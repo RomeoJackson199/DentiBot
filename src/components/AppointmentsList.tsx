@@ -46,6 +46,15 @@ export const AppointmentsList = ({ user }: AppointmentsListProps) => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Move carousel hook to top to avoid conditional hook calls
+  const [emblaRef, emblaApi] = useEmblaCarousel({ 
+    align: 'start', 
+    slidesToScroll: 1,
+    breakpoints: {
+      '(min-width: 768px)': { slidesToScroll: 2 }
+    }
+  });
+
   useEffect(() => {
     fetchAppointments();
   }, [user]);
@@ -227,14 +236,6 @@ export const AppointmentsList = ({ user }: AppointmentsListProps) => {
       </div>
     );
   }
-
-  const [emblaRef, emblaApi] = useEmblaCarousel({ 
-    align: 'start', 
-    slidesToScroll: 1,
-    breakpoints: {
-      '(min-width: 768px)': { slidesToScroll: 2 }
-    }
-  });
 
   const scrollPrev = () => emblaApi && emblaApi.scrollPrev();
   const scrollNext = () => emblaApi && emblaApi.scrollNext();
