@@ -7,8 +7,10 @@ import { useToast } from "@/hooks/use-toast";
 import { Activity, User as UserIcon, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LanguageSettings } from "@/components/LanguageSettings";
+import { useLanguage } from "@/hooks/useLanguage";
 
 const Index = () => {
+  const { t } = useLanguage();
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
@@ -38,14 +40,14 @@ const Index = () => {
     const { error } = await supabase.auth.signOut();
     if (error) {
       toast({
-        title: "Erreur",
-        description: "Erreur lors de la déconnexion",
+        title: "Error",
+        description: "Error during sign out",
         variant: "destructive",
       });
     } else {
       toast({
-        title: "Déconnexion réussie",
-        description: "À bientôt !",
+        title: t.signOut,
+        description: "You have been signed out successfully",
       });
     }
   };
@@ -132,7 +134,7 @@ const Index = () => {
               className="flex items-center bg-muted hover:bg-dental-primary/10 border-dental-primary/20 text-dental-primary hover:text-dental-primary transition-all duration-300"
             >
               <LogOut className="h-4 w-4 sm:mr-2" />
-              <span className="hidden sm:inline">Sign Out</span>
+              <span className="hidden sm:inline">{t.signOut}</span>
             </Button>
           </div>
         </div>
