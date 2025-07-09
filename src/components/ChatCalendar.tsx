@@ -66,26 +66,25 @@ export const ChatCalendar = ({
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto">
-      <CardHeader className="pb-3">
+    <Card className="w-full max-w-md mx-auto shadow-lg">
+      <CardHeader className="pb-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-t-lg">
         <CardTitle className="flex items-center text-lg">
-          <CalendarDays className="h-5 w-5 mr-2 text-blue-500" />
+          <CalendarDays className="h-5 w-5 mr-2" />
           {step === 'date' ? 'Choisissez une date' : 'Choisissez un créneau'}
         </CardTitle>
         {selectedDate && (
-          <div className="flex items-center space-x-2">
-            <Badge variant="outline" className="text-blue-600">
+          <div className="flex items-center space-x-2 mt-2">
+            <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
               {selectedDate.toLocaleDateString('fr-FR', { 
                 weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
+                day: 'numeric',
+                month: 'long'
               })}
             </Badge>
             {selectedTime && (
               <>
-                <ArrowRight className="w-4 h-4 text-gray-400" />
-                <Badge variant="outline" className="text-green-600">
+                <ArrowRight className="w-4 h-4 text-white/70" />
+                <Badge variant="secondary" className="bg-green-500/90 text-white border-white/30">
                   {selectedTime}
                 </Badge>
               </>
@@ -127,7 +126,7 @@ export const ChatCalendar = ({
               variant="ghost" 
               size="sm" 
               onClick={() => setStep('date')}
-              className="mb-2 text-blue-600"
+              className="mb-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50"
             >
               ← Changer la date
             </Button>
@@ -141,9 +140,10 @@ export const ChatCalendar = ({
                   disabled={!available}
                   onClick={() => handleTimeSelect(time)}
                   className={cn(
-                    "justify-center",
-                    !available && "opacity-50 cursor-not-allowed",
-                    selectedTime === time && "bg-blue-600 text-white"
+                    "justify-center py-3 font-medium transition-all",
+                    !available && "opacity-50 cursor-not-allowed bg-gray-100",
+                    selectedTime === time && "bg-blue-600 text-white shadow-md",
+                    available && selectedTime !== time && "hover:bg-blue-50 hover:border-blue-300"
                   )}
                 >
                   <Clock className="w-3 h-3 mr-1" />
@@ -158,9 +158,9 @@ export const ChatCalendar = ({
             {selectedTime && (
               <Button 
                 onClick={handleConfirm}
-                className="w-full mt-4 bg-green-600 hover:bg-green-700"
+                className="w-full mt-4 bg-green-600 hover:bg-green-700 text-white font-medium py-3 shadow-md"
               >
-                Confirmer le rendez-vous
+                ✓ Confirmer le rendez-vous
               </Button>
             )}
           </div>

@@ -7,12 +7,13 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { Send, Bot, User as UserIcon, Calendar, Camera, Mail } from "lucide-react";
+import { Send, Bot, User as UserIcon, Calendar, Camera, Mail, ImageIcon } from "lucide-react";
 import { ChatMessage } from "@/types/chat";
 import { AppointmentBooking } from "@/components/AppointmentBooking";
 import { PhotoUpload } from "@/components/PhotoUpload";
 import { DentistSelection } from "@/components/DentistSelection";
 import { ChatCalendar } from "@/components/ChatCalendar";
+import { QuickPhotoUpload } from "@/components/QuickPhotoUpload";
 
 interface DentalChatbotProps {
   user: User;
@@ -23,7 +24,7 @@ export const DentalChatbot = ({ user }: DentalChatbotProps) => {
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [sessionId] = useState(() => crypto.randomUUID());
-  const [currentFlow, setCurrentFlow] = useState<'chat' | 'problem-collection' | 'booking' | 'photo' | 'dentist-selection' | 'calendar'>('chat');
+  const [currentFlow, setCurrentFlow] = useState<'chat' | 'booking' | 'photo' | 'dentist-selection' | 'calendar' | 'quick-photo'>('chat');
   const [lastPhotoUrl, setLastPhotoUrl] = useState<string | null>(null);
   const [selectedDentist, setSelectedDentist] = useState<any>(null);
   const [selectedDate, setSelectedDate] = useState<Date>();
@@ -196,12 +197,6 @@ Tapez votre demande...`;
       const botResponse = await generateBotResponse(userMessage.message);
       setMessages(prev => [...prev, botResponse]);
       await saveMessage(botResponse);
-      
-      // Track questions in problem collection mode
-      if (currentFlow === 'problem-collection') {
-        setProblemDescription(prev => prev + " " + userMessage.message);
-        setQuestionsAsked(prev => prev + 1);
-      }
       
       setIsLoading(false);
     }, 1000);
@@ -414,6 +409,19 @@ Tapez votre demande...`;
             </div>
           )}
 
+          {currentFlow === 'quick-photo' && (
+            <div className="border-t p-4 bg-blue-50">
+              <QuickPhotoUpload 
+                onPhotoUploaded={(url) => {
+                  setLastPhotoUrl(url);
+                  addSystemMessage("📸 Photo ajoutée avec succès", 'success');
+                  setCurrentFlow('chat');
+                }}
+                onCancel={() => setCurrentFlow('chat')}
+              />
+            </div>
+          )}
+
           {currentFlow === 'photo' && (
             <div className="border-t p-4 bg-blue-50">
               <PhotoUpload 
@@ -438,7 +446,19 @@ Tapez votre demande...`;
                 disabled={isLoading}
                 className="flex-1"
               />
-              <Button onClick={handleSendMessage} disabled={isLoading || !inputMessage.trim()}>
+              <Button 
+                variant="outline" 
+                size="icon"
+                onClick={() => setCurrentFlow('quick-photo')}
+                className="shrink-0"
+              >
+                <ImageIcon className="h-4 w-4" />
+              </Button>
+              <Button 
+                onClick={handleSendMessage} 
+                disabled={isLoading || !inputMessage.trim()}
+                className="shrink-0"
+              >
                 <Send className="h-4 w-4" />
               </Button>
             </div>
