@@ -1,4 +1,3 @@
-import { GoogleAuth } from "npm:google-auth-library";
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 
 const corsHeaders = {
@@ -7,77 +6,123 @@ const corsHeaders = {
 };
 
 interface CalendarRequest {
-  action: 'getAvailability' | 'createEvent';
+  action: 'getAvailability' | 'createEvent' | 'getAuthUrl' | 'exchangeToken' | 'testAccess';
   date?: string;
   eventDetails?: {
     summary: string;
-    description: string;
-    startTime: string;
-    endTime: string;
-    attendeeEmail: string;
-    attendeeName: string;
+    startDateTime: string;
+    endDateTime: string;
+    timeZone?: string;
+    attendeeEmail?: string;
+    attendeeName?: string;
   };
+  authCode?: string;
+  tokens?: any;
 }
 
-async function getGoogleAccessToken(): Promise<string> {
-  // Get service account credentials from environment
-  const serviceAccountKey = Deno.env.get('GOOGLE_SERVICE_ACCOUNT_KEY');
-  const calendarId = Deno.env.get('GOOGLE_CALENDAR_ID');
+// OAuth configuration
+function getOAuthConfig() {
+  const clientId = Deno.env.get('GOOGLE_CLIENT_ID');
+  const clientSecret = Deno.env.get('GOOGLE_CLIENT_SECRET');
   
-  if (!serviceAccountKey || !calendarId) {
-    throw new Error("Missing required Google Calendar configuration");
+  if (!clientId || !clientSecret) {
+    throw new Error('Google OAuth credentials not found');
   }
-
-  const serviceAccountJson = JSON.parse(serviceAccountKey);
   
-  const auth = new GoogleAuth({
-    credentials: serviceAccountJson,
-    scopes: ['https://www.googleapis.com/auth/calendar'],
+  return { clientId, clientSecret };
+}
+
+// Generate OAuth authorization URL
+function generateAuthUrl(): string {
+  const { clientId } = getOAuthConfig();
+  const redirectUri = `${Deno.env.get('SUPABASE_URL')}/functions/v1/google-calendar-integration/callback`;
+  
+  const params = new URLSearchParams({
+    client_id: clientId,
+    redirect_uri: redirectUri,
+    response_type: 'code',
+    scope: 'https://www.googleapis.com/auth/calendar',
+    access_type: 'offline',
+    prompt: 'consent'
   });
   
-  const client = await auth.getClient();
-  const accessTokenResponse = await client.getAccessToken();
-  
-  if (!accessTokenResponse || !accessTokenResponse.token) {
-    throw new Error("Unable to obtain Google access token");
-  }
-  
-  return accessTokenResponse.token;
+  return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
 }
 
-async function createCalendarEvent(accessToken: string, eventDetails: any): Promise<any> {
-  const calendarId = Deno.env.get('GOOGLE_CALENDAR_ID');
+// Exchange authorization code for tokens
+async function exchangeCodeForTokens(authCode: string): Promise<any> {
+  const { clientId, clientSecret } = getOAuthConfig();
+  const redirectUri = `${Deno.env.get('SUPABASE_URL')}/functions/v1/google-calendar-integration/callback`;
   
-  const res = await fetch(`https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events`, {
-    method: "POST",
+  const response = await fetch('https://oauth2.googleapis.com/token', {
+    method: 'POST',
     headers: {
-      "Authorization": `Bearer ${accessToken}`,
-      "Content-Type": "application/json",
+      'Content-Type': 'application/x-www-form-urlencoded',
     },
-    body: JSON.stringify({
-      summary: eventDetails.summary,
-      description: eventDetails.description,
-      start: { dateTime: eventDetails.startTime, timeZone: "Europe/Brussels" },
-      end: { dateTime: eventDetails.endTime, timeZone: "Europe/Brussels" },
-      attendees: [
-        { email: eventDetails.attendeeEmail, displayName: eventDetails.attendeeName }
-      ],
-    }),
+    body: new URLSearchParams({
+      client_id: clientId,
+      client_secret: clientSecret,
+      code: authCode,
+      grant_type: 'authorization_code',
+      redirect_uri: redirectUri
+    })
   });
-
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Google Calendar API error: ${res.status} ${text}`);
+  
+  if (!response.ok) {
+    const error = await response.text();
+    console.error('Token exchange failed:', error);
+    throw new Error('Failed to exchange authorization code for tokens');
   }
   
-  return await res.json();
+  return await response.json();
+}
+
+// Create a calendar event using OAuth tokens
+async function createCalendarEvent(tokens: any, eventDetails: any): Promise<any> {
+  try {
+    const response = await fetch(
+      `https://www.googleapis.com/calendar/v3/calendars/primary/events`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${tokens.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          summary: eventDetails.summary,
+          start: {
+            dateTime: eventDetails.startDateTime,
+            timeZone: eventDetails.timeZone || 'Europe/Brussels',
+          },
+          end: {
+            dateTime: eventDetails.endDateTime,
+            timeZone: eventDetails.timeZone || 'Europe/Brussels',
+          },
+          attendees: eventDetails.attendeeEmail ? [{
+            email: eventDetails.attendeeEmail,
+            displayName: eventDetails.attendeeName || ''
+          }] : [],
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Calendar API error:', errorText);
+      throw new Error(`Failed to create calendar event: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error creating calendar event:', error);
+    throw error;
+  }
 }
 
 function generateAvailableTimeSlots(busySlots: any[], date: string): string[] {
   // Define business hours (9 AM to 6 PM)
   const startHour = 9;
   const endHour = 18;
-  const slotDuration = 60; // 60 minutes per slot
   
   const availableSlots: string[] = [];
   const selectedDate = new Date(date);
@@ -91,7 +136,7 @@ function generateAvailableTimeSlots(busySlots: any[], date: string): string[] {
     slotEnd.setHours(hour + 1, 0, 0, 0);
     
     // Check if this slot conflicts with any busy periods
-    const isSlotBusy = busySlots.some(busySlot => {
+    const isSlotBusy = busySlots.some((busySlot: any) => {
       const busyStart = new Date(busySlot.start);
       const busyEnd = new Date(busySlot.end);
       
@@ -107,45 +152,75 @@ function generateAvailableTimeSlots(busySlots: any[], date: string): string[] {
   return availableSlots;
 }
 
-async function getCalendarAvailability(accessToken: string, date?: string): Promise<string[]> {
-  const calendarId = Deno.env.get('GOOGLE_CALENDAR_ID');
-  
-  // Use provided date or today
-  const targetDate = date ? new Date(date) : new Date();
-  const timeMin = new Date(targetDate);
-  timeMin.setHours(0, 0, 0, 0);
-  const timeMax = new Date(targetDate);
-  timeMax.setHours(23, 59, 59, 999);
+// Get calendar availability using FreeBusy API with OAuth tokens
+async function getCalendarAvailability(tokens: any, date?: string): Promise<string[]> {
+  try {
+    const targetDate = date || new Date().toISOString().split('T')[0];
+    const startTime = `${targetDate}T00:00:00Z`;
+    const endTime = `${targetDate}T23:59:59Z`;
+    
+    const response = await fetch(
+      'https://www.googleapis.com/calendar/v3/freeBusy',
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${tokens.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          timeMin: startTime,
+          timeMax: endTime,
+          items: [{ id: 'primary' }]
+        }),
+      }
+    );
 
-  const res = await fetch('https://www.googleapis.com/calendar/v3/freeBusy', {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${accessToken}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      timeMin: timeMin.toISOString(),
-      timeMax: timeMax.toISOString(),
-      timeZone: "Europe/Brussels",
-      items: [{ id: calendarId }],
-    }),
-  });
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('FreeBusy API error:', errorText);
+      throw new Error(`FreeBusy API failed: ${response.status}`);
+    }
 
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`FreeBusy API error: ${res.status} ${text}`);
+    const data = await response.json();
+    const busySlots = data.calendars?.primary?.busy || [];
+    
+    return generateAvailableTimeSlots(busySlots, targetDate);
+  } catch (error) {
+    console.error('Error fetching calendar availability:', error);
+    throw error;
   }
+}
 
-  const data = await res.json();
-  const busySlots = data.calendars[calendarId]?.busy || [];
-  
-  // Convert busy slots to available time slots
-  const availableSlots = generateAvailableTimeSlots(busySlots, targetDate.toISOString().split('T')[0]);
-  
-  return availableSlots;
+// Test calendar access by fetching calendar list
+async function testCalendarAccess(tokens: any): Promise<any> {
+  try {
+    const response = await fetch(
+      'https://www.googleapis.com/calendar/v3/users/me/calendarList',
+      {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${tokens.access_token}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Calendar list API error:', errorText);
+      throw new Error(`Calendar list API failed: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.items?.map((cal: any) => ({ id: cal.id, summary: cal.summary })) || [];
+  } catch (error) {
+    console.error('Error testing calendar access:', error);
+    throw error;
+  }
 }
 
 const handler = async (req: Request): Promise<Response> => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -164,44 +239,87 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    const { action, date, eventDetails } = requestData;
+    const { action, date, eventDetails, authCode, tokens } = requestData;
     console.log('Calendar request:', { action, date });
 
-    // Get Google Calendar access token
-    const accessToken = await getGoogleAccessToken();
-
-    if (action === 'getAvailability') {
-      const availability = await getCalendarAvailability(accessToken, date);
-      console.log('Available slots:', availability);
+    let result;
+    
+    if (action === 'getAuthUrl') {
+      console.log('Generating OAuth authorization URL');
+      const authUrl = generateAuthUrl();
+      result = { authUrl };
       
-      return new Response(JSON.stringify({ availability }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+    } else if (action === 'exchangeToken') {
+      console.log('Exchanging authorization code for tokens');
+      if (!authCode) {
+        throw new Error('Authorization code is required');
+      }
+      const tokenData = await exchangeCodeForTokens(authCode);
+      result = { tokens: tokenData };
+      
+    } else if (action === 'testAccess') {
+      console.log('Testing calendar access');
+      if (!tokens) {
+        throw new Error('OAuth tokens are required');
+      }
+      const calendarList = await testCalendarAccess(tokens);
+      result = { calendarList };
+      
+    } else if (action === 'getAvailability') {
+      console.log('Getting calendar availability for date:', date);
+      if (!tokens) {
+        throw new Error('OAuth tokens are required');
+      }
+      const availability = await getCalendarAvailability(tokens, date);
+      result = { availability };
+      
+    } else if (action === 'createEvent') {
+      console.log('Creating calendar event:', eventDetails);
+      if (!eventDetails) {
+        throw new Error('Event details are required');
+      }
+      if (!tokens) {
+        throw new Error('OAuth tokens are required');
+      }
+      
+      const event = await createCalendarEvent(tokens, eventDetails);
+      
+      // Test calendar access to verify permissions
+      const calendarList = await testCalendarAccess(tokens);
+      console.log('Accessible calendars:', calendarList);
+      
+      result = { event, calendarList };
+      
+    } else {
+      throw new Error(`Unknown action: ${action}`);
     }
 
-    if (action === 'createEvent' && eventDetails) {
-      const event = await createCalendarEvent(accessToken, eventDetails);
-      console.log('Event created:', event.id);
-      
-      return new Response(JSON.stringify({ event }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    return new Response(JSON.stringify({ error: 'Invalid action' }), {
-      status: 400,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    return new Response(
+      JSON.stringify(result),
+      { 
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json' 
+        } 
+      }
+    );
 
   } catch (error: any) {
-    console.error('Calendar integration error:', error);
-    return new Response(JSON.stringify({
-      error: error.message || 'Internal server error',
-      details: error.stack || 'No stack trace available'
-    }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    console.error('Function error:', error);
+    
+    return new Response(
+      JSON.stringify({ 
+        error: error.message || 'Internal server error',
+        details: error.stack || 'No stack trace available'
+      }),
+      { 
+        status: 500,
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json' 
+        } 
+      }
+    );
   }
 };
 
