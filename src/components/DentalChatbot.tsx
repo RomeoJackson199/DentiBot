@@ -255,31 +255,40 @@ Type your request...`;
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <Card className="h-[600px] flex flex-col">
-        <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
-          <CardTitle className="flex items-center">
-            <Bot className="h-6 w-6 mr-2" />
-            DentiBot - Dental Assistant
-            <Badge variant="secondary" className="ml-auto">
-              Online
-            </Badge>
+    <div className="max-w-5xl mx-auto">
+      <Card className="h-[700px] flex flex-col floating-card animate-scale-in">
+        <CardHeader className="bg-gradient-primary text-white rounded-t-xl border-0">
+          <CardTitle className="flex items-center text-xl">
+            <div className="relative">
+              <Bot className="h-7 w-7 mr-3" />
+              <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center gap-3">
+                <span>DentiBot</span>
+                <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
+                  <div className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></div>
+                  Online
+                </Badge>
+              </div>
+              <p className="text-sm text-white/80 font-normal">Your AI Dental Assistant</p>
+            </div>
           </CardTitle>
         </CardHeader>
         
-        <CardContent className="flex-1 flex flex-col p-0">
-          <ScrollArea className="flex-1 p-4">
-            <div className="space-y-4">
+        <CardContent className="flex-1 flex flex-col p-0 bg-gradient-hero">
+          <ScrollArea className="flex-1 p-6">
+            <div className="space-y-6">
               {messages.map((message) => (
                 <div
                   key={message.id}
                   className={`flex ${message.is_bot ? "justify-start" : "justify-end"}`}
                 >
                   <div
-                    className={`max-w-[80%] rounded-lg p-3 ${
+                    className={`max-w-[85%] rounded-2xl p-4 shadow-float animate-slide-in ${
                       message.is_bot
-                        ? "bg-gray-100 text-gray-900"
-                        : "bg-blue-600 text-white"
+                        ? "bg-white/90 backdrop-blur-sm text-gray-900 border border-dental-primary/10"
+                        : "bg-gradient-primary text-white shadow-glow"
                     }`}
                   >
                     <div className="flex items-start space-x-2">
@@ -300,14 +309,15 @@ Type your request...`;
               ))}
               {isLoading && (
                 <div className="flex justify-start">
-                  <div className="bg-gray-100 rounded-lg p-3 max-w-[80%]">
-                    <div className="flex items-center space-x-2">
-                      <Bot className="h-4 w-4" />
+                  <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-4 max-w-[80%] shadow-float border border-dental-primary/10 animate-scale-in">
+                    <div className="flex items-center space-x-3">
+                      <Bot className="h-5 w-5 text-dental-primary" />
                       <div className="flex space-x-1">
-                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "0.1s" }}></div>
-                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
+                        <div className="w-3 h-3 bg-dental-primary rounded-full animate-bounce"></div>
+                        <div className="w-3 h-3 bg-dental-primary rounded-full animate-bounce" style={{ animationDelay: "0.1s" }}></div>
+                        <div className="w-3 h-3 bg-dental-primary rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
                       </div>
+                      <span className="text-sm text-dental-muted-foreground">DentiBot is thinking...</span>
                     </div>
                   </div>
                 </div>
@@ -319,8 +329,8 @@ Type your request...`;
           {/* Action Panels */}
 
           {currentFlow === 'dentist-selection' && (
-            <div className="border-t p-4 bg-blue-50">
-              <DentistSelection 
+            <div className="border-t border-dental-primary/20 p-6 glass-card rounded-t-none animate-fade-in">
+              <DentistSelection
                 onSelectDentist={(dentist) => {
                   setSelectedDentist(dentist);
                   addSystemMessage(`Dentist selected: Dr ${dentist.profiles.first_name} ${dentist.profiles.last_name}`, 'success');
@@ -333,8 +343,8 @@ Type your request...`;
           )}
 
           {currentFlow === 'calendar' && (
-            <div className="border-t p-4 bg-green-50">
-              <ChatCalendar 
+            <div className="border-t border-dental-secondary/20 p-6 glass-card rounded-t-none animate-fade-in">
+              <ChatCalendar
                 onDateSelect={(date) => {
                   setSelectedDate(date);
                   addSystemMessage(`Date selected: ${date.toLocaleDateString('en-US')}`, 'info');
@@ -417,8 +427,8 @@ Type your request...`;
           )}
 
           {currentFlow === 'booking' && (
-            <div className="border-t p-4 bg-green-50">
-              <AppointmentBooking 
+            <div className="border-t border-dental-secondary/20 p-6 glass-card rounded-t-none animate-fade-in">
+              <AppointmentBooking
                 user={user}
                 onComplete={(appointmentData) => {
                   addSystemMessage("Appointment confirmed! You'll receive a reminder 24 hours before.", 'success');
@@ -431,8 +441,8 @@ Type your request...`;
           )}
 
           {currentFlow === 'quick-photo' && (
-            <div className="border-t p-4 bg-blue-50">
-              <QuickPhotoUpload 
+            <div className="border-t border-dental-accent/20 p-6 glass-card rounded-t-none animate-fade-in">
+              <QuickPhotoUpload
                 onPhotoUploaded={(url) => {
                   setLastPhotoUrl(url);
                   addSystemMessage("📸 Photo added successfully", 'success');
@@ -444,8 +454,8 @@ Type your request...`;
           )}
 
           {currentFlow === 'photo' && (
-            <div className="border-t p-4 bg-blue-50">
-              <PhotoUpload 
+            <div className="border-t border-dental-accent/20 p-6 glass-card rounded-t-none animate-fade-in">
+              <PhotoUpload
                 onComplete={(url) => {
                   setLastPhotoUrl(url);
                   addSystemMessage("Photo uploaded successfully. It will be sent to the dentist.", 'success');
@@ -457,30 +467,52 @@ Type your request...`;
           )}
 
           {/* Chat Input */}
-          <div className="border-t p-4">
-            <div className="flex space-x-2">
+          <div className="border-t border-dental-primary/20 p-6 glass-card rounded-t-none">
+            <div className="flex space-x-3">
               <Input
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="Type your message..."
                 disabled={isLoading}
-                className="flex-1"
+                className="flex-1 border-dental-primary/20 focus:border-dental-primary focus:ring-dental-primary/20 bg-white/90 backdrop-blur-sm"
               />
               <Button 
                 variant="outline" 
                 size="icon"
                 onClick={() => setCurrentFlow('quick-photo')}
-                className="shrink-0"
+                className="shrink-0 floating-card border-dental-accent/30 text-dental-accent hover:bg-dental-accent/10"
               >
                 <ImageIcon className="h-4 w-4" />
               </Button>
               <Button 
                 onClick={handleSendMessage} 
                 disabled={isLoading || !inputMessage.trim()}
-                className="shrink-0"
+                className="shrink-0 bg-gradient-primary hover:shadow-glow text-white px-6 rounded-xl transition-all duration-300 hover:scale-105"
               >
                 <Send className="h-4 w-4" />
+              </Button>
+            </div>
+            
+            {/* Action Buttons */}
+            <div className="flex flex-wrap gap-3 mt-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentFlow('dentist-selection')}
+                className="flex items-center gap-2 floating-card border-dental-primary/30 text-dental-primary hover:bg-dental-primary/10 hover:scale-105 transition-all duration-300"
+              >
+                <Calendar className="h-4 w-4" />
+                Book Appointment
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => sendEmailSummary()}
+                className="flex items-center gap-2 floating-card border-dental-secondary/30 text-dental-secondary hover:bg-dental-secondary/10 hover:scale-105 transition-all duration-300"
+              >
+                <Mail className="h-4 w-4" />
+                Send Summary
               </Button>
             </div>
           </div>

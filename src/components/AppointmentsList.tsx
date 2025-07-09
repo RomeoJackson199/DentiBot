@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CalendarDays, Clock, User as UserIcon, MapPin, Phone, AlertCircle } from "lucide-react";
+import { CalendarDays, Clock, User as UserIcon, MapPin, Phone, AlertCircle, Calendar } from "lucide-react";
 import { AnimatedCard } from "@/components/ui/animated-card";
 import { toast } from "sonner";
 
@@ -162,40 +162,45 @@ export const AppointmentsList = ({ user }: AppointmentsListProps) => {
 
   if (loading) {
     return (
-      <AnimatedCard className="w-full max-w-4xl mx-auto" gradient glow>
-        <CardHeader>
-          <CardTitle className="flex items-center text-xl text-dental-primary font-semibold">
-            <CalendarDays className="h-6 w-6 mr-3" />
+      <div className="w-full max-w-5xl mx-auto floating-card animate-scale-in">
+        <CardHeader className="bg-gradient-primary text-white rounded-t-xl">
+          <CardTitle className="flex items-center text-2xl font-bold">
+            <CalendarDays className="h-7 w-7 mr-3" />
             Mes Rendez-vous
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-dental-primary"></div>
-            <span className="ml-3 text-dental-muted-foreground">Chargement des rendez-vous...</span>
+        <CardContent className="p-8">
+          <div className="flex items-center justify-center py-12">
+            <div className="relative">
+              <div className="animate-spin rounded-full h-12 w-12 border-4 border-dental-primary/30 border-t-dental-primary"></div>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <CalendarDays className="h-6 w-6 text-dental-primary animate-pulse" />
+              </div>
+            </div>
+            <span className="ml-4 text-dental-muted-foreground text-lg">Chargement des rendez-vous...</span>
           </div>
         </CardContent>
-      </AnimatedCard>
+      </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Upcoming Appointments */}
       {upcomingAppointments.length > 0 && (
-        <AnimatedCard className="w-full max-w-4xl mx-auto" gradient glow>
-          <CardHeader>
-            <CardTitle className="flex items-center text-xl text-dental-primary font-semibold">
-              <CalendarDays className="h-6 w-6 mr-3" />
+        <div className="w-full max-w-5xl mx-auto floating-card animate-fade-in">
+          <CardHeader className="bg-gradient-primary text-white rounded-t-xl">
+            <CardTitle className="flex items-center text-2xl font-bold">
+              <CalendarDays className="h-7 w-7 mr-3" />
               Rendez-vous à Venir ({upcomingAppointments.length})
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {upcomingAppointments.map((appointment) => {
+          <CardContent className="space-y-6 p-8">
+            {upcomingAppointments.map((appointment, index) => {
               const { date, time } = formatDateTime(appointment.appointment_date);
               return (
-                <Card key={appointment.id} className="border-l-4 border-l-dental-primary">
-                  <CardContent className="p-6">
+                <Card key={appointment.id} className="border-l-4 border-l-dental-primary floating-card animate-slide-in" style={{ animationDelay: `${index * 0.1}s` }}>
+                  <CardContent className="p-8">
                     <div className="flex justify-between items-start mb-4">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
@@ -259,24 +264,24 @@ export const AppointmentsList = ({ user }: AppointmentsListProps) => {
               );
             })}
           </CardContent>
-        </AnimatedCard>
+        </div>
       )}
 
       {/* Past Appointments */}
       {pastAppointments.length > 0 && (
-        <AnimatedCard className="w-full max-w-4xl mx-auto">
-          <CardHeader>
-            <CardTitle className="flex items-center text-xl text-dental-muted-foreground font-semibold">
-              <CalendarDays className="h-6 w-6 mr-3" />
+        <div className="w-full max-w-5xl mx-auto floating-card animate-fade-in" style={{ animationDelay: "0.3s" }}>
+          <CardHeader className="bg-gradient-card text-dental-muted-foreground rounded-t-xl">
+            <CardTitle className="flex items-center text-2xl font-bold">
+              <CalendarDays className="h-7 w-7 mr-3" />
               Historique des Rendez-vous ({pastAppointments.length})
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
-            {pastAppointments.map((appointment) => {
+          <CardContent className="space-y-4 p-8">
+            {pastAppointments.map((appointment, index) => {
               const { date, time } = formatDateTime(appointment.appointment_date);
               return (
-                <Card key={appointment.id} className="border-l-4 border-l-gray-300 opacity-75">
-                  <CardContent className="p-4">
+                <Card key={appointment.id} className="border-l-4 border-l-gray-300 opacity-80 floating-card animate-slide-in" style={{ animationDelay: `${(index + upcomingAppointments.length) * 0.1}s` }}>
+                  <CardContent className="p-6">
                     <div className="flex justify-between items-center">
                       <div className="flex items-center gap-4">
                         <div>
@@ -305,28 +310,32 @@ export const AppointmentsList = ({ user }: AppointmentsListProps) => {
               );
             })}
           </CardContent>
-        </AnimatedCard>
+        </div>
       )}
 
       {/* No Appointments */}
       {appointments.length === 0 && (
-        <AnimatedCard className="w-full max-w-4xl mx-auto">
-          <CardContent className="text-center py-12">
-            <CalendarDays className="h-16 w-16 text-dental-muted-foreground mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-dental-primary mb-2">
+        <div className="w-full max-w-5xl mx-auto floating-card animate-scale-in">
+          <CardContent className="text-center py-16">
+            <div className="relative mb-8">
+              <div className="pulse-ring w-32 h-32 -top-8 -left-8 mx-auto"></div>
+              <CalendarDays className="h-20 w-20 text-dental-muted-foreground mx-auto animate-float" />
+            </div>
+            <h3 className="text-3xl font-bold gradient-text mb-4">
               Aucun rendez-vous trouvé
             </h3>
-            <p className="text-dental-muted-foreground mb-6">
-              Vous n'avez pas encore de rendez-vous programmés.
+            <p className="text-dental-muted-foreground mb-8 text-lg max-w-md mx-auto">
+              Vous n'avez pas encore de rendez-vous programmés. Commencez dès maintenant avec notre assistant IA.
             </p>
             <Button 
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-              className="bg-gradient-primary text-white"
+              className="bg-gradient-primary text-white px-8 py-3 text-lg rounded-xl shadow-glow hover:shadow-elegant hover:scale-105 transition-all duration-300"
             >
+              <Calendar className="h-5 w-5 mr-2" />
               Prendre un rendez-vous
             </Button>
           </CardContent>
-        </AnimatedCard>
+        </div>
       )}
     </div>
   );

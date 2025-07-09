@@ -17,8 +17,8 @@ All colors MUST be HSL.
     --popover: 240 10% 3.9%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 142.1 76.2% 36.3%;
-    --primary-foreground: 355.7 100% 97.3%;
+    --primary: 199 89% 48%;
+    --primary-foreground: 0 0% 100%;
 
     --secondary: 240 3.7% 15.9%;
     --secondary-foreground: 0 0% 98%;
@@ -34,29 +34,37 @@ All colors MUST be HSL.
 
     --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
-    --ring: 142.4 71.8% 29.2%;
+    --ring: 199 89% 48%;
 
-    --radius: 0.75rem;
+    --radius: 1rem;
     
-    /* Dental theme colors */
+    /* Enhanced Dental theme colors */
     --dental-primary: 199 89% 48%;
     --dental-primary-foreground: 0 0% 100%;
     --dental-secondary: 142.1 76.2% 36.3%;
     --dental-secondary-foreground: 0 0% 100%;
-    --dental-accent: 35 77% 49%;
+    --dental-accent: 279 70% 52%;
     --dental-accent-foreground: 0 0% 100%;
     --dental-muted: 240 4.8% 95.9%;
     --dental-muted-foreground: 240 3.8% 46.1%;
+    --dental-surface: 240 8% 8%;
+    --dental-surface-foreground: 0 0% 95%;
     
-    /* Gradients */
+    /* Advanced gradients */
     --gradient-primary: linear-gradient(135deg, hsl(var(--dental-primary)), hsl(var(--dental-secondary)));
-    --gradient-card: linear-gradient(145deg, hsl(240 10% 3.9%), hsl(240 3.7% 15.9%));
-    --gradient-accent: linear-gradient(135deg, hsl(var(--dental-accent)), hsl(35 100% 55%));
+    --gradient-secondary: linear-gradient(135deg, hsl(var(--dental-secondary)), hsl(var(--dental-accent)));
+    --gradient-accent: linear-gradient(135deg, hsl(var(--dental-accent)), hsl(279 100% 60%));
+    --gradient-card: linear-gradient(145deg, hsl(240 8% 8%), hsl(240 6% 12%));
+    --gradient-hero: linear-gradient(135deg, hsl(var(--dental-primary) / 0.1), hsl(var(--dental-accent) / 0.1));
+    --gradient-mesh: radial-gradient(ellipse at top, hsl(var(--dental-primary) / 0.1) 0%, transparent 70%),
+                     radial-gradient(ellipse at bottom right, hsl(var(--dental-accent) / 0.1) 0%, transparent 70%);
     
-    /* Shadows */
-    --shadow-elegant: 0 10px 30px -10px hsl(var(--dental-primary) / 0.3);
-    --shadow-glow: 0 0 40px hsl(var(--dental-primary) / 0.2);
-    --shadow-card: 0 8px 32px hsl(240 10% 3.9% / 0.8);
+    /* Enhanced shadows */
+    --shadow-elegant: 0 20px 50px -12px hsl(var(--dental-primary) / 0.3);
+    --shadow-glow: 0 0 60px hsl(var(--dental-primary) / 0.15);
+    --shadow-card: 0 12px 40px -8px hsl(240 10% 3.9% / 0.8);
+    --shadow-float: 0 8px 25px -8px hsl(var(--dental-primary) / 0.2);
+    --shadow-inner: inset 0 2px 4px 0 hsl(240 10% 3.9% / 0.3);
 
     --sidebar-background: 0 0% 98%;
 
@@ -76,7 +84,7 @@ All colors MUST be HSL.
   }
 
   .light {
-    --background: 0 0% 100%;
+    --background: 250 100% 99%;
     --foreground: 240 10% 3.9%;
 
     --card: 0 0% 100%;
@@ -86,7 +94,7 @@ All colors MUST be HSL.
     --popover-foreground: 240 10% 3.9%;
 
     --primary: 199 89% 48%;
-    --primary-foreground: 0 0% 98%;
+    --primary-foreground: 0 0% 100%;
 
     --secondary: 240 4.8% 95.9%;
     --secondary-foreground: 240 5.9% 10%;
@@ -108,18 +116,26 @@ All colors MUST be HSL.
     --dental-primary-foreground: 0 0% 100%;
     --dental-secondary: 142.1 76.2% 36.3%;
     --dental-secondary-foreground: 0 0% 100%;
-    --dental-accent: 35 77% 49%;
+    --dental-accent: 279 70% 52%;
     --dental-accent-foreground: 0 0% 100%;
     --dental-muted: 240 4.8% 95.9%;
     --dental-muted-foreground: 240 3.8% 46.1%;
+    --dental-surface: 250 100% 98%;
+    --dental-surface-foreground: 240 10% 3.9%;
     
     --gradient-primary: linear-gradient(135deg, hsl(var(--dental-primary)), hsl(var(--dental-secondary)));
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(240 4.8% 95.9%));
-    --gradient-accent: linear-gradient(135deg, hsl(var(--dental-accent)), hsl(35 100% 55%));
+    --gradient-secondary: linear-gradient(135deg, hsl(var(--dental-secondary)), hsl(var(--dental-accent)));
+    --gradient-accent: linear-gradient(135deg, hsl(var(--dental-accent)), hsl(279 100% 60%));
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(240 4.8% 98%));
+    --gradient-hero: linear-gradient(135deg, hsl(var(--dental-primary) / 0.05), hsl(var(--dental-accent) / 0.05));
+    --gradient-mesh: radial-gradient(ellipse at top, hsl(var(--dental-primary) / 0.05) 0%, transparent 70%),
+                     radial-gradient(ellipse at bottom right, hsl(var(--dental-accent) / 0.05) 0%, transparent 70%);
     
-    --shadow-elegant: 0 10px 30px -10px hsl(var(--dental-primary) / 0.2);
-    --shadow-glow: 0 0 40px hsl(var(--dental-primary) / 0.1);
-    --shadow-card: 0 8px 32px hsl(240 10% 3.9% / 0.1);
+    --shadow-elegant: 0 20px 50px -12px hsl(var(--dental-primary) / 0.15);
+    --shadow-glow: 0 0 60px hsl(var(--dental-primary) / 0.08);
+    --shadow-card: 0 12px 40px -8px hsl(240 10% 3.9% / 0.1);
+    --shadow-float: 0 8px 25px -8px hsl(var(--dental-primary) / 0.1);
+    --shadow-inner: inset 0 2px 4px 0 hsl(240 10% 3.9% / 0.1);
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
@@ -138,6 +154,52 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    background-image: var(--gradient-mesh);
+    background-attachment: fixed;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-white/10 backdrop-blur-xl border border-white/20 shadow-elegant;
+  }
+  
+  .glass-card-dark {
+    @apply bg-black/10 backdrop-blur-xl border border-white/10 shadow-elegant;
+  }
+  
+  .floating-card {
+    @apply bg-card/80 backdrop-blur-lg border border-border/50 shadow-float;
+    transform: translateY(0);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .floating-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-elegant);
+  }
+  
+  .pulse-ring {
+    @apply absolute rounded-full animate-ping;
+    background: radial-gradient(circle, hsl(var(--dental-primary) / 0.3) 0%, transparent 70%);
+  }
+  
+  .gradient-text {
+    @apply bg-gradient-primary bg-clip-text text-transparent;
+  }
+  
+  .mesh-bg {
+    background-image: var(--gradient-mesh);
+  }
+  
+  .hero-pattern {
+    background-image: 
+      radial-gradient(circle at 25% 25%, hsl(var(--dental-primary) / 0.05) 0%, transparent 50%),
+      radial-gradient(circle at 75% 75%, hsl(var(--dental-accent) / 0.05) 0%, transparent 50%);
   }
 }
