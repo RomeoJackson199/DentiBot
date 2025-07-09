@@ -258,30 +258,30 @@ Type your request...`;
   };
 
   return (
-    <div className="max-w-5xl mx-auto">
-      <Card className="h-[700px] flex flex-col floating-card animate-scale-in">
-        <CardHeader className="bg-gradient-primary text-white rounded-t-xl border-0">
-          <CardTitle className="flex items-center text-xl">
+    <div className="max-w-5xl mx-auto px-2 sm:px-0">
+      <Card className="h-[85vh] sm:h-[700px] flex flex-col floating-card animate-scale-in">
+        <CardHeader className="bg-gradient-primary text-white rounded-t-xl border-0 p-3 sm:p-6">
+          <CardTitle className="flex items-center text-lg sm:text-xl">
             <div className="relative">
-              <Bot className="h-7 w-7 mr-3" />
-              <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+              <Bot className="h-6 w-6 sm:h-7 sm:w-7 mr-2 sm:mr-3" />
+              <div className="absolute -top-1 -right-1 w-2 h-2 sm:w-3 sm:h-3 bg-green-400 rounded-full animate-pulse"></div>
             </div>
-            <div className="flex-1">
-              <div className="flex items-center gap-3">
-                <span>DentiBot</span>
-                <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
-                  <div className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <span className="truncate">DentiBot</span>
+                <Badge variant="secondary" className="bg-white/20 text-white border-white/30 text-xs">
+                  <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-400 rounded-full mr-1 sm:mr-2 animate-pulse"></div>
                   Online
                 </Badge>
               </div>
-              <p className="text-sm text-white/80 font-normal">Your AI Dental Assistant</p>
+              <p className="text-xs sm:text-sm text-white/80 font-normal truncate">Your AI Dental Assistant</p>
             </div>
           </CardTitle>
         </CardHeader>
         
         <CardContent className="flex-1 flex flex-col p-0 bg-gradient-hero">
-          <ScrollArea className="flex-1 p-6">
-            <div className="space-y-6">
+          <ScrollArea className="flex-1 p-3 sm:p-6">
+            <div className="space-y-4 sm:space-y-6">
               {messages.map((message) => (
                 <div
                   key={message.id}
@@ -312,15 +312,15 @@ Type your request...`;
               ))}
               {isLoading && (
                 <div className="flex justify-start">
-                  <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-4 max-w-[80%] shadow-float border border-dental-primary/10 animate-scale-in">
-                    <div className="flex items-center space-x-3">
-                      <Bot className="h-5 w-5 text-dental-primary" />
+                  <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-3 sm:p-4 max-w-[80%] shadow-float border border-dental-primary/10 animate-scale-in">
+                    <div className="flex items-center space-x-2 sm:space-x-3">
+                      <Bot className="h-4 w-4 sm:h-5 sm:w-5 text-dental-primary" />
                       <div className="flex space-x-1">
-                        <div className="w-3 h-3 bg-dental-primary rounded-full animate-bounce"></div>
-                        <div className="w-3 h-3 bg-dental-primary rounded-full animate-bounce" style={{ animationDelay: "0.1s" }}></div>
-                        <div className="w-3 h-3 bg-dental-primary rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
+                        <div className="w-2 h-2 sm:w-3 sm:h-3 bg-dental-primary rounded-full animate-bounce"></div>
+                        <div className="w-2 h-2 sm:w-3 sm:h-3 bg-dental-primary rounded-full animate-bounce" style={{ animationDelay: "0.1s" }}></div>
+                        <div className="w-2 h-2 sm:w-3 sm:h-3 bg-dental-primary rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
                       </div>
-                      <span className="text-sm text-dental-muted-foreground">DentiBot is thinking...</span>
+                      <span className="text-xs sm:text-sm text-dental-muted-foreground">DentiBot is thinking...</span>
                     </div>
                   </div>
                 </div>
@@ -499,52 +499,54 @@ Type your request...`;
           )}
 
           {/* Chat Input */}
-          <div className="border-t border-dental-primary/20 p-6 glass-card rounded-t-none">
-            <div className="flex space-x-3">
+          <div className="border-t border-dental-primary/20 p-3 sm:p-6 glass-card rounded-t-none">
+            <div className="flex space-x-2 sm:space-x-3">
               <Input
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="Type your message..."
                 disabled={isLoading}
-                className="flex-1 border-dental-primary/20 focus:border-dental-primary focus:ring-dental-primary/20 bg-white/90 backdrop-blur-sm"
+                className="flex-1 border-dental-primary/20 focus:border-dental-primary focus:ring-dental-primary/20 bg-white/90 backdrop-blur-sm text-sm sm:text-base"
               />
               <Button 
                 variant="outline" 
                 size="icon"
                 onClick={() => setCurrentFlow('quick-photo')}
-                className="shrink-0 floating-card border-dental-accent/30 text-dental-accent hover:bg-dental-accent/10"
+                className="shrink-0 floating-card border-dental-accent/30 text-dental-accent hover:bg-dental-accent/10 w-10 h-10 sm:w-11 sm:h-11"
               >
                 <ImageIcon className="h-4 w-4" />
               </Button>
               <Button 
                 onClick={handleSendMessage} 
                 disabled={isLoading || !inputMessage.trim()}
-                className="shrink-0 bg-gradient-primary hover:shadow-glow text-white px-6 rounded-xl transition-all duration-300 hover:scale-105"
+                className="shrink-0 bg-gradient-primary hover:shadow-glow text-white px-4 sm:px-6 rounded-xl transition-all duration-300 hover:scale-105 h-10 sm:h-11"
               >
                 <Send className="h-4 w-4" />
               </Button>
             </div>
             
             {/* Action Buttons */}
-            <div className="flex flex-wrap gap-3 mt-4">
+            <div className="flex flex-wrap gap-2 sm:gap-3 mt-3 sm:mt-4">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setCurrentFlow('patient-selection')}
-                className="flex items-center gap-2 floating-card border-dental-primary/30 text-dental-primary hover:bg-dental-primary/10 hover:scale-105 transition-all duration-300"
+                className="flex items-center gap-1 sm:gap-2 floating-card border-dental-primary/30 text-dental-primary hover:bg-dental-primary/10 hover:scale-105 transition-all duration-300 text-xs sm:text-sm px-3 sm:px-4 py-2"
               >
-                <Calendar className="h-4 w-4" />
-                Book Appointment
+                <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="hidden xs:inline">Book Appointment</span>
+                <span className="xs:hidden">Book</span>
               </Button>
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => sendEmailSummary()}
-                className="flex items-center gap-2 floating-card border-dental-secondary/30 text-dental-secondary hover:bg-dental-secondary/10 hover:scale-105 transition-all duration-300"
+                onClick={() => setCurrentFlow('quick-photo')}
+                className="flex items-center gap-1 sm:gap-2 floating-card border-dental-accent/30 text-dental-accent hover:bg-dental-accent/10 hover:scale-105 transition-all duration-300 text-xs sm:text-sm px-3 sm:px-4 py-2"
               >
-                <Mail className="h-4 w-4" />
-                Send Summary
+                <Camera className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="hidden xs:inline">Upload Photo</span>
+                <span className="xs:hidden">Photo</span>
               </Button>
             </div>
           </div>

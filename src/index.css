@@ -202,4 +202,18 @@ All colors MUST be HSL.
       radial-gradient(circle at 25% 25%, hsl(var(--dental-primary) / 0.05) 0%, transparent 50%),
       radial-gradient(circle at 75% 75%, hsl(var(--dental-accent) / 0.05) 0%, transparent 50%);
   }
+  
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
 }

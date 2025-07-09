@@ -211,34 +211,34 @@ const Index = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-6 sm:py-10">
+      <main className="container mx-auto px-2 sm:px-4 py-4 sm:py-6 lg:py-10">
         {/* Tab Navigation */}
-        <div className="flex justify-center mb-8">
-          <div className="glass-card rounded-2xl p-3 animate-fade-in">
-            <div className="flex space-x-3">
+        <div className="flex justify-center mb-6 sm:mb-8">
+          <div className="glass-card rounded-2xl p-2 sm:p-3 animate-fade-in w-full max-w-md">
+            <div className="flex space-x-2 sm:space-x-3">
               <Button
                 variant={activeTab === 'chat' ? 'default' : 'ghost'}
                 onClick={() => setActiveTab('chat')}
-                className={`flex items-center space-x-3 px-6 py-3 rounded-xl transition-all duration-300 ${
+                className={`flex items-center space-x-2 sm:space-x-3 px-4 sm:px-6 py-2 sm:py-3 rounded-xl transition-all duration-300 flex-1 justify-center ${
                   activeTab === 'chat' 
                     ? 'bg-gradient-primary text-white shadow-elegant scale-105' 
                     : 'text-dental-muted-foreground hover:text-dental-primary hover:bg-dental-primary/10 hover:scale-105'
                 }`}
               >
-                <MessageSquare className="h-5 w-5" />
-                <span className="font-medium">Chat Assistant</span>
+                <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5" />
+                <span className="font-medium text-sm sm:text-base">Chat</span>
               </Button>
               <Button
                 variant={activeTab === 'appointments' ? 'default' : 'ghost'}
                 onClick={() => setActiveTab('appointments')}
-                className={`flex items-center space-x-3 px-6 py-3 rounded-xl transition-all duration-300 ${
+                className={`flex items-center space-x-2 sm:space-x-3 px-4 sm:px-6 py-2 sm:py-3 rounded-xl transition-all duration-300 flex-1 justify-center ${
                   activeTab === 'appointments' 
                     ? 'bg-gradient-primary text-white shadow-elegant scale-105' 
                     : 'text-dental-muted-foreground hover:text-dental-primary hover:bg-dental-primary/10 hover:scale-105'
                 }`}
               >
-                <Calendar className="h-5 w-5" />
-                <span className="font-medium">Mes Rendez-vous</span>
+                <Calendar className="h-4 w-4 sm:h-5 sm:w-5" />
+                <span className="font-medium text-sm sm:text-base">Rendez-vous</span>
               </Button>
             </div>
           </div>

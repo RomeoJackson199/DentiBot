@@ -4,9 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CalendarDays, Clock, User as UserIcon, MapPin, Phone, AlertCircle, Calendar, X, Users } from "lucide-react";
+import { CalendarDays, Clock, User as UserIcon, MapPin, Phone, AlertCircle, Calendar, X, Users, Plus, ChevronLeft, ChevronRight } from "lucide-react";
 import { AnimatedCard } from "@/components/ui/animated-card";
 import { toast } from "sonner";
+import useEmblaCarousel from 'embla-carousel-react';
 import { 
   AlertDialog, 
   AlertDialogAction, 
@@ -195,168 +196,232 @@ export const AppointmentsList = ({ user }: AppointmentsListProps) => {
   if (loading) {
     return (
       <div className="w-full max-w-5xl mx-auto floating-card animate-scale-in">
-        <CardHeader className="bg-gradient-primary text-white rounded-t-xl">
-          <CardTitle className="flex items-center text-2xl font-bold">
-            <CalendarDays className="h-7 w-7 mr-3" />
-            Mes Rendez-vous
+        <CardHeader className="bg-gradient-primary text-white rounded-t-xl p-4 sm:p-6">
+          <CardTitle className="flex items-center justify-between text-xl sm:text-2xl font-bold">
+            <div className="flex items-center">
+              <CalendarDays className="h-6 w-6 sm:h-7 sm:w-7 mr-2 sm:mr-3" />
+              <span>Mes Rendez-vous</span>
+            </div>
+            <Button
+              size="sm"
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              className="bg-white/20 hover:bg-white/30 text-white border-white/30 text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2 h-8 sm:h-9"
+            >
+              <Plus className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Nouveau</span>
+              <span className="sm:hidden">+</span>
+            </Button>
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-8">
-          <div className="flex items-center justify-center py-12">
+        <CardContent className="p-6 sm:p-8">
+          <div className="flex items-center justify-center py-8 sm:py-12">
             <div className="relative">
-              <div className="animate-spin rounded-full h-12 w-12 border-4 border-dental-primary/30 border-t-dental-primary"></div>
+              <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-4 border-dental-primary/30 border-t-dental-primary"></div>
               <div className="absolute inset-0 flex items-center justify-center">
-                <CalendarDays className="h-6 w-6 text-dental-primary animate-pulse" />
+                <CalendarDays className="h-5 w-5 sm:h-6 sm:w-6 text-dental-primary animate-pulse" />
               </div>
             </div>
-            <span className="ml-4 text-dental-muted-foreground text-lg">Chargement des rendez-vous...</span>
+            <span className="ml-3 sm:ml-4 text-dental-muted-foreground text-base sm:text-lg">Chargement...</span>
           </div>
         </CardContent>
       </div>
     );
   }
 
+  const [emblaRef, emblaApi] = useEmblaCarousel({ 
+    align: 'start', 
+    slidesToScroll: 1,
+    breakpoints: {
+      '(min-width: 768px)': { slidesToScroll: 2 }
+    }
+  });
+
+  const scrollPrev = () => emblaApi && emblaApi.scrollPrev();
+  const scrollNext = () => emblaApi && emblaApi.scrollNext();
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8 px-2 sm:px-0">
       {/* Upcoming Appointments */}
       {upcomingAppointments.length > 0 && (
         <div className="w-full max-w-5xl mx-auto floating-card animate-fade-in">
-          <CardHeader className="bg-gradient-primary text-white rounded-t-xl">
-            <CardTitle className="flex items-center text-2xl font-bold">
-              <CalendarDays className="h-7 w-7 mr-3" />
-              Rendez-vous à Venir ({upcomingAppointments.length})
+          <CardHeader className="bg-gradient-primary text-white rounded-t-xl p-4 sm:p-6">
+            <CardTitle className="flex items-center justify-between text-xl sm:text-2xl font-bold">
+              <div className="flex items-center">
+                <CalendarDays className="h-6 w-6 sm:h-7 sm:w-7 mr-2 sm:mr-3" />
+                <span className="text-base sm:text-2xl">Rendez-vous à Venir ({upcomingAppointments.length})</span>
+              </div>
+              <Button
+                size="sm"
+                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                className="bg-white/20 hover:bg-white/30 text-white border-white/30 text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2 h-8 sm:h-9"
+              >
+                <Plus className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                <span className="hidden sm:inline">Nouveau</span>
+                <span className="sm:hidden">+</span>
+              </Button>
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6 p-8">
-            {upcomingAppointments.map((appointment, index) => {
-              const { date, time } = formatDateTime(appointment.appointment_date);
-              return (
-                <Card key={appointment.id} className="border-l-4 border-l-dental-primary floating-card animate-slide-in" style={{ animationDelay: `${index * 0.1}s` }}>
-                  <CardContent className="p-8">
-                    <div className="flex justify-between items-start mb-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <CalendarDays className="h-5 w-5 text-dental-primary" />
-                          <span className="font-semibold text-lg">{date}</span>
-                          <Badge className={getStatusColor(appointment.status)}>
-                            {appointment.status}
-                          </Badge>
-                        </div>
-                        <div className="flex items-center gap-2 mb-3">
-                          <Clock className="h-4 w-4 text-dental-secondary" />
-                          <span className="text-dental-secondary font-medium">{time}</span>
-                          <Badge variant="outline" className={getUrgencyColor(appointment.urgency)}>
-                            {appointment.urgency}
-                          </Badge>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-4">
-                        <div className="grid md:grid-cols-2 gap-6">
-                          <div>
-                            <div className="flex items-center gap-2 mb-3">
-                              <UserIcon className="h-5 w-5 text-dental-muted-foreground" />
-                              <span className="font-semibold text-lg">
-                                Dr. {appointment.dentist.profile.first_name} {appointment.dentist.profile.last_name}
-                              </span>
-                            </div>
-                            {appointment.dentist.specialization && (
-                              <div className="flex items-center gap-2 mb-2">
-                                <MapPin className="h-4 w-4 text-dental-muted-foreground" />
-                                <span className="text-sm text-dental-muted-foreground">
-                                  {appointment.dentist.specialization}
-                                </span>
-                              </div>
-                            )}
-                            {appointment.dentist.profile.phone && (
-                              <div className="flex items-center gap-2">
-                                <Phone className="h-4 w-4 text-dental-muted-foreground" />
-                                <span className="text-sm text-dental-muted-foreground">
-                                  {appointment.dentist.profile.phone}
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                          
-                          <div>
-                            <h4 className="font-semibold mb-3 text-lg">Appointment Details</h4>
-                            <div className="space-y-3">
-                              <div>
-                                <h5 className="font-medium text-dental-primary mb-1">Patient</h5>
-                                <p className="text-dental-muted-foreground flex items-center gap-2">
-                                  {(appointment as any).patient_name ? (
-                                    <>
-                                      <Users className="h-4 w-4" />
-                                      {(appointment as any).patient_name} 
-                                      {(appointment as any).patient_age && ` (${(appointment as any).patient_age} years old)`}
-                                      {(appointment as any).patient_relationship && ` - ${(appointment as any).patient_relationship}`}
-                                    </>
-                                  ) : (
-                                    <>
-                                      <UserIcon className="h-4 w-4" />
-                                      You
-                                    </>
-                                  )}
-                                </p>
-                              </div>
-                              
-                              <div>
-                                <h5 className="font-medium text-dental-primary mb-1">Reason</h5>
-                                <p className="text-dental-muted-foreground">
-                                  {appointment.reason || "General consultation"}
-                                </p>
-                              </div>
-                              
-                              {appointment.notes && (
-                                <div>
-                                  <h5 className="font-medium text-dental-primary mb-1">Notes</h5>
-                                  <p className="text-sm text-dental-muted-foreground">{appointment.notes}</p>
+          <CardContent className="p-4 sm:p-8">
+            <div className="relative">
+              <div className="overflow-hidden" ref={emblaRef}>
+                <div className="flex gap-4 sm:gap-6">
+                  {upcomingAppointments.map((appointment, index) => {
+                    const { date, time } = formatDateTime(appointment.appointment_date);
+                    return (
+                      <div key={appointment.id} className="flex-none w-full sm:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)]">
+                        <Card className="border-l-4 border-l-dental-primary floating-card animate-slide-in h-full" style={{ animationDelay: `${index * 0.1}s` }}>
+                          <CardContent className="p-4 sm:p-6">
+                            <div className="flex justify-between items-start mb-3 sm:mb-4">
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 sm:gap-3 mb-2">
+                                  <CalendarDays className="h-4 w-4 sm:h-5 sm:w-5 text-dental-primary flex-shrink-0" />
+                                  <span className="font-semibold text-sm sm:text-lg truncate">{date}</span>
+                                  <Badge className={`${getStatusColor(appointment.status)} text-xs flex-shrink-0`}>
+                                    {appointment.status}
+                                  </Badge>
                                 </div>
-                              )}
+                                <div className="flex items-center gap-2 mb-2 sm:mb-3">
+                                  <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-dental-secondary flex-shrink-0" />
+                                  <span className="text-dental-secondary font-medium text-sm sm:text-base">{time}</span>
+                                  <Badge variant="outline" className={`${getUrgencyColor(appointment.urgency)} text-xs flex-shrink-0`}>
+                                    {appointment.urgency}
+                                  </Badge>
+                                </div>
+                              </div>
                             </div>
-                          </div>
-                        </div>
-                        
-                        {/* Action Buttons */}
-                        {appointment.status === 'pending' && (
-                          <div className="flex gap-3 mt-6 pt-4 border-t border-dental-primary/10">
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button 
-                                  variant="outline" 
-                                  size="sm"
-                                  className="flex items-center gap-2 border-red-300 text-red-600 hover:bg-red-50"
-                                >
-                                  <X className="h-4 w-4" />
-                                  Cancel Appointment
-                                </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Cancel Appointment</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    Are you sure you want to cancel this appointment? This action cannot be undone.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Keep Appointment</AlertDialogCancel>
-                                  <AlertDialogAction 
-                                    onClick={() => cancelAppointment(appointment.id)}
-                                    className="bg-red-600 hover:bg-red-700"
-                                  >
-                                    Yes, Cancel
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                           </div>
-                         )}
+                            
+                            <div className="space-y-3 sm:space-y-4">
+                              <div>
+                                <div className="flex items-center gap-2 mb-2 sm:mb-3">
+                                  <UserIcon className="h-4 w-4 sm:h-5 sm:w-5 text-dental-muted-foreground flex-shrink-0" />
+                                  <span className="font-semibold text-sm sm:text-lg truncate">
+                                    Dr. {appointment.dentist.profile.first_name} {appointment.dentist.profile.last_name}
+                                  </span>
+                                </div>
+                                {appointment.dentist.specialization && (
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <MapPin className="h-3 w-3 sm:h-4 sm:w-4 text-dental-muted-foreground flex-shrink-0" />
+                                    <span className="text-xs sm:text-sm text-dental-muted-foreground truncate">
+                                      {appointment.dentist.specialization}
+                                    </span>
+                                  </div>
+                                )}
+                                {appointment.dentist.profile.phone && (
+                                  <div className="flex items-center gap-2">
+                                    <Phone className="h-3 w-3 sm:h-4 sm:w-4 text-dental-muted-foreground flex-shrink-0" />
+                                    <span className="text-xs sm:text-sm text-dental-muted-foreground">
+                                      {appointment.dentist.profile.phone}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                              
+                              <div>
+                                <h4 className="font-semibold mb-2 sm:mb-3 text-sm sm:text-lg">Appointment Details</h4>
+                                <div className="space-y-2 sm:space-y-3">
+                                  <div>
+                                    <h5 className="font-medium text-dental-primary mb-1 text-xs sm:text-sm">Patient</h5>
+                                    <p className="text-dental-muted-foreground flex items-center gap-2 text-xs sm:text-sm">
+                                      {(appointment as any).patient_name ? (
+                                        <>
+                                          <Users className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                                          <span className="truncate">
+                                            {(appointment as any).patient_name} 
+                                            {(appointment as any).patient_age && ` (${(appointment as any).patient_age} years old)`}
+                                            {(appointment as any).patient_relationship && ` - ${(appointment as any).patient_relationship}`}
+                                          </span>
+                                        </>
+                                      ) : (
+                                        <>
+                                          <UserIcon className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                                          <span>You</span>
+                                        </>
+                                      )}
+                                    </p>
+                                  </div>
+                                  
+                                  <div>
+                                    <h5 className="font-medium text-dental-primary mb-1 text-xs sm:text-sm">Reason</h5>
+                                    <p className="text-dental-muted-foreground text-xs sm:text-sm line-clamp-2">
+                                      {appointment.reason || "General consultation"}
+                                    </p>
+                                  </div>
+                                  
+                                  {appointment.notes && (
+                                    <div>
+                                      <h5 className="font-medium text-dental-primary mb-1 text-xs sm:text-sm">Notes</h5>
+                                      <p className="text-xs text-dental-muted-foreground line-clamp-2">{appointment.notes}</p>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                            
+                            {/* Action Buttons */}
+                            {appointment.status === 'pending' && (
+                              <div className="flex gap-2 sm:gap-3 mt-4 sm:mt-6 pt-3 sm:pt-4 border-t border-dental-primary/10">
+                                <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                    <Button 
+                                      variant="outline" 
+                                      size="sm"
+                                      className="flex items-center gap-1 sm:gap-2 border-red-300 text-red-600 hover:bg-red-50 text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2 h-8 sm:h-9"
+                                    >
+                                      <X className="h-3 w-3 sm:h-4 sm:w-4" />
+                                      <span className="hidden sm:inline">Cancel</span>
+                                      <span className="sm:hidden">Cancel</span>
+                                    </Button>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent className="mx-4">
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>Cancel Appointment</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        Are you sure you want to cancel this appointment? This action cannot be undone.
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>Keep Appointment</AlertDialogCancel>
+                                      <AlertDialogAction 
+                                        onClick={() => cancelAppointment(appointment.id)}
+                                        className="bg-red-600 hover:bg-red-700"
+                                      >
+                                        Yes, Cancel
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
+                              </div>
+                            )}
+                          </CardContent>
+                        </Card>
                       </div>
-                   </CardContent>
-                </Card>
-              );
-            })}
+                    );
+                  })}
+                </div>
+              </div>
+              
+              {/* Navigation Buttons */}
+              {upcomingAppointments.length > 1 && (
+                <div className="flex justify-center gap-2 mt-4 sm:mt-6">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={scrollPrev}
+                    className="w-8 h-8 sm:w-10 sm:h-10 p-0 rounded-full border-dental-primary/30 text-dental-primary hover:bg-dental-primary/10"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={scrollNext}
+                    className="w-8 h-8 sm:w-10 sm:h-10 p-0 rounded-full border-dental-primary/30 text-dental-primary hover:bg-dental-primary/10"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+            </div>
           </CardContent>
         </div>
       )}
