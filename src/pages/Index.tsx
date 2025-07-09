@@ -6,6 +6,7 @@ import { AuthForm } from "@/components/AuthForm";
 import { useToast } from "@/hooks/use-toast";
 import { Activity, User as UserIcon, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { LanguageSettings } from "@/components/LanguageSettings";
 
 const Index = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -103,40 +104,41 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-card">
       <header className="bg-card/80 backdrop-blur-lg shadow-card border-b border-border/50 sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-6 flex items-center justify-between">
-          <div className="flex items-center space-x-4">
+        <div className="container mx-auto px-4 py-4 sm:py-6 flex items-center justify-between">
+          <div className="flex items-center space-x-3 sm:space-x-4">
             <div className="relative">
-              <div className="bg-gradient-primary p-3 rounded-xl shadow-glow">
-                <Activity className="h-8 w-8 text-white" />
+              <div className="bg-gradient-primary p-2 sm:p-3 rounded-xl shadow-glow">
+                <Activity className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
               </div>
-              <div className="absolute -top-1 -right-1 w-4 h-4 bg-dental-secondary rounded-full animate-pulse"></div>
+              <div className="absolute -top-1 -right-1 w-3 h-3 sm:w-4 sm:h-4 bg-dental-secondary rounded-full animate-pulse"></div>
             </div>
-            <div>
-              <h1 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+            <div className="hidden sm:block">
+              <h1 className="text-xl sm:text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
                 SmileCare AI
               </h1>
-              <p className="text-dental-muted-foreground font-medium">Intelligent Dental Assistant</p>
+              <p className="text-dental-muted-foreground font-medium text-sm">Intelligent Dental Assistant</p>
             </div>
           </div>
-          <div className="flex items-center space-x-6">
-            <div className="flex items-center text-sm text-dental-primary font-medium">
+          <div className="flex items-center space-x-2 sm:space-x-4">
+            <div className="hidden md:flex items-center text-sm text-dental-primary font-medium">
               <UserIcon className="h-4 w-4 mr-2" />
-              {user.email}
+              <span className="max-w-[120px] sm:max-w-none truncate">{user.email}</span>
             </div>
+            <LanguageSettings />
             <Button 
               variant="outline" 
               size="sm" 
               onClick={handleSignOut}
               className="flex items-center bg-muted hover:bg-dental-primary/10 border-dental-primary/20 text-dental-primary hover:text-dental-primary transition-all duration-300"
             >
-              <LogOut className="h-4 w-4 mr-2" />
-              Sign Out
+              <LogOut className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Sign Out</span>
             </Button>
           </div>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-4 sm:py-8">
         <DentalChatbot user={user} />
       </main>
     </div>
