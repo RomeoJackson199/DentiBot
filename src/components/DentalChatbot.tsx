@@ -7,9 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { Send, Bot, User as UserIcon, Calendar, Camera, AlertTriangle, Mail } from "lucide-react";
+import { Send, Bot, User as UserIcon, Calendar, Camera, Mail } from "lucide-react";
 import { ChatMessage } from "@/types/chat";
-import { UrgencyAssessment } from "@/components/UrgencyAssessment";
 import { AppointmentBooking } from "@/components/AppointmentBooking";
 import { PhotoUpload } from "@/components/PhotoUpload";
 import { DentistSelection } from "@/components/DentistSelection";
@@ -24,7 +23,7 @@ export const DentalChatbot = ({ user }: DentalChatbotProps) => {
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [sessionId] = useState(() => crypto.randomUUID());
-  const [currentFlow, setCurrentFlow] = useState<'chat' | 'urgency' | 'booking' | 'photo' | 'dentist-selection' | 'calendar'>('chat');
+  const [currentFlow, setCurrentFlow] = useState<'chat' | 'booking' | 'photo' | 'dentist-selection' | 'calendar'>('chat');
   const [lastPhotoUrl, setLastPhotoUrl] = useState<string | null>(null);
   const [selectedDentist, setSelectedDentist] = useState<any>(null);
   const [selectedDate, setSelectedDate] = useState<Date>();
@@ -39,7 +38,7 @@ export const DentalChatbot = ({ user }: DentalChatbotProps) => {
     const welcomeMessage: ChatMessage = {
       id: crypto.randomUUID(),
       session_id: sessionId,
-      message: "Bonjour ! Je suis DentiBot, votre assistant dentaire virtuel. Je peux vous aider à prendre rendez-vous, évaluer l'urgence de votre situation, ou répondre à vos questions. Comment puis-je vous aider aujourd'hui ?",
+      message: "Bonjour ! Je suis DentiBot. Comment puis-je vous aider aujourd'hui ? 🦷",
       is_bot: true,
       message_type: "text",
       created_at: new Date().toISOString(),
@@ -106,17 +105,15 @@ export const DentalChatbot = ({ user }: DentalChatbotProps) => {
       const urgencyDetected = data.urgency_detected || false;
 
       // Auto-suggest next actions based on AI analysis
-      if (suggestions.includes('urgency') && currentFlow === 'chat') {
-        setTimeout(() => setCurrentFlow('urgency'), 2000);
-      } else if (suggestions.includes('booking') && currentFlow === 'chat') {
+      if (suggestions.includes('booking') && currentFlow === 'chat') {
         setTimeout(() => setCurrentFlow('dentist-selection'), 2000);
       }
 
       // Show urgency warning if detected
       if (urgencyDetected) {
         toast({
-          title: "Situation potentiellement urgente",
-          description: "Votre situation pourrait nécessiter une attention immédiate.",
+          title: "Situation urgente détectée",
+          description: "Je recommande un rendez-vous rapidement.",
           variant: "destructive",
         });
       }
@@ -143,20 +140,19 @@ export const DentalChatbot = ({ user }: DentalChatbotProps) => {
       let response = "";
 
       if (lowerMessage.includes("rendez-vous") || lowerMessage.includes("rdv")) {
-        response = "Je vais vous aider à prendre rendez-vous. Commençons par choisir votre dentiste.";
+        response = "Parfait ! Choisissons votre dentiste.";
         setTimeout(() => setCurrentFlow('dentist-selection'), 1000);
       } else if (lowerMessage.includes("douleur") || lowerMessage.includes("mal")) {
-        response = "Je comprends que vous avez une douleur. Laissez-moi d'abord évaluer l'urgence de votre situation.";
-        setTimeout(() => setCurrentFlow('urgency'), 1000);
+        response = "Je comprends. Qu'avez-vous déjà essayé ? (glace, médicaments...) Prenons un rendez-vous rapidement.";
+        setTimeout(() => setCurrentFlow('dentist-selection'), 1000);
       } else {
         response = `Je peux vous aider avec :
-        
-🗓️ Prendre un rendez-vous
-⚡ Évaluer l'urgence de votre situation  
-📸 Télécharger une photo de la zone concernée
-❓ Répondre à vos questions sur les soins dentaires
 
-Que souhaitez-vous faire ?`;
+🗓️ Prendre un rendez-vous
+📸 Analyser une photo  
+❓ Répondre à vos questions
+
+Que voulez-vous faire ?`;
       }
 
       return {
@@ -313,18 +309,6 @@ Que souhaitez-vous faire ?`;
           </ScrollArea>
 
           {/* Action Panels */}
-          {currentFlow === 'urgency' && (
-            <div className="border-t p-4 bg-orange-50">
-              <UrgencyAssessment 
-                onComplete={(urgency) => {
-                  addSystemMessage(`Évaluation d'urgence terminée. Niveau: ${urgency}`, 'success');
-                  sendEmailSummary(null, urgency);
-                  setCurrentFlow('dentist-selection');
-                }}
-                onCancel={() => setCurrentFlow('chat')}
-              />
-            </div>
-          )}
 
           {currentFlow === 'dentist-selection' && (
             <div className="border-t p-4 bg-blue-50">
@@ -445,14 +429,6 @@ Que souhaitez-vous faire ?`;
               </Button>
             </div>
             <div className="flex justify-center space-x-2 mt-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => setCurrentFlow('urgency')}
-              >
-                <AlertTriangle className="h-4 w-4 mr-1" />
-                Urgence
-              </Button>
               <Button 
                 variant="outline" 
                 size="sm" 

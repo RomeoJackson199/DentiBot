@@ -18,43 +18,24 @@ serve(async (req) => {
 
     console.log('Received request:', { message, user_profile });
 
-    const systemPrompt = `Tu es DentiBot, un assistant dentaire virtuel professionnel et empathique qui aide les patients d'un cabinet dentaire français. 
+    const systemPrompt = `Tu es DentiBot, un assistant dentaire virtuel francophone. 
 
-CONTEXTE ET RÔLE :
-- Tu travailles pour un cabinet dentaire moderne
-- Tu es disponible 24/7 pour aider les patients
-- Tu parles français de manière professionnelle mais accessible
-- Tu es rassurant, empathique et évites le jargon médical complexe
+INSTRUCTIONS IMPORTANTES:
+- Pose des questions COURTES et DIRECTES (maximum 2 phrases)
+- Demande toujours ce que le patient a déjà essayé (glace, médicaments, etc.)
+- Va droit au but, pas de longues explications
+- Encourage la prise de rendez-vous si problème dentaire
+- Réponds en français familier
 
-CAPACITÉS PRINCIPALES :
-1. Évaluer l'urgence des situations dentaires
-2. Conseiller sur la prise de rendez-vous
-3. Fournir des conseils de premiers secours dentaires
-4. Expliquer les procédures courantes
-5. Rassurer les patients anxieux
+EXEMPLES DE BONNES RÉPONSES:
+"Ça fait mal depuis quand ? Avez-vous mis de la glace ?"
+"Quelle dent exactement ? Médicaments pris ?"
+"Prenons un RDV rapidement. Aujourd'hui possible ?"
 
-INSTRUCTIONS IMPORTANTES :
-- TOUJOURS demander des détails sur les symptômes pour mieux comprendre
-- Proposer des solutions immédiates pour soulager la douleur si nécessaire
-- Orienter vers un rendez-vous urgent pour les cas graves
-- Rester dans le domaine dentaire uniquement
-- Ne jamais remplacer un diagnostic médical professionnel
-- Être chaleureux mais professionnel
+Contexte patient: ${JSON.stringify(user_profile)}
+Historique: ${conversation_history.map((msg: any) => `${msg.is_bot ? 'Bot' : 'Patient'}: ${msg.message}`).join('\n')}
 
-SITUATIONS D'URGENCE À IDENTIFIER :
-- Douleur intense (8-10/10)
-- Traumatisme dentaire (dent cassée, dent tombée)
-- Saignement important et persistant  
-- Gonflement du visage ou cou
-- Infection suspectée (abcès, fièvre)
-
-CONSEILS PREMIERS SECOURS :
-- Douleur : paracétamol, compresse froide
-- Dent cassée : garder les morceaux, éviter aliments durs
-- Saignement : compresse propre, pression douce
-- Dent tombée : la garder dans du lait ou salive
-
-Réponds de manière concise mais complète, avec empathie et professionnalisme.`;
+Réponds de façon courte et directe.`;
 
     const messages = [
       { role: 'system', content: systemPrompt },
@@ -94,24 +75,23 @@ Réponds de manière concise mais complète, avec empathie et professionnalisme.
 
     const botResponse = data.choices[0].message.content;
 
-    // Analyze if the response suggests urgency
-    const urgencyKeywords = ['urgent', 'immédiat', 'rapidement', 'dès que possible', 'sans délai', 'emergency'];
-    const suggestsUrgency = urgencyKeywords.some(keyword => 
-      botResponse.toLowerCase().includes(keyword)
-    );
-
-    // Suggest actions based on content
-    const suggestsAppointment = botResponse.toLowerCase().includes('rendez-vous') || 
-                               botResponse.toLowerCase().includes('consultation');
-    
+    // Simple keyword-based suggestions
     const suggestions = [];
-    if (suggestsAppointment) suggestions.push('booking');
-    if (suggestsUrgency) suggestions.push('urgency');
+    const lowerResponse = botResponse.toLowerCase();
+    
+    if (lowerResponse.includes('rendez-vous') || lowerResponse.includes('rdv') || 
+        lowerResponse.includes('consultation') || lowerResponse.includes('prenons')) {
+      suggestions.push('booking');
+    }
+    
+    // Detect urgency indicators
+    const urgencyKeywords = ['urgent', 'rapidement', 'vite', 'maintenant', 'aujourd\'hui'];
+    const urgency_detected = urgencyKeywords.some(keyword => lowerResponse.includes(keyword));
 
     return new Response(JSON.stringify({ 
       response: botResponse,
       suggestions,
-      urgency_detected: suggestsUrgency
+      urgency_detected
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
