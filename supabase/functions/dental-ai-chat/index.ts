@@ -52,8 +52,8 @@ EXAMPLES:
 "I understand that must be really bothering you. Can you tell me more about what triggers it?"
 "Based on what you've described, I think Dr. [Name] would be perfect to help you with this."
 
-Patient context: ${JSON.stringify(user_profile)}
-History: ${conversation_history.map((msg: any) => `${msg.is_bot ? 'Bot' : 'Patient'}: ${msg.message}`).join('\n')}
+Patient context: ` + JSON.stringify(user_profile) + `
+History: ` + conversation_history.map((msg: any) => (msg.is_bot ? 'Bot' : 'Patient') + ': ' + msg.message).join('\n') + `
 
 Be conversational, empathetic, and take time to understand before recommending.
 
@@ -71,7 +71,7 @@ Be conversational, empathetic, and take time to understand before recommending.
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
+        'Authorization': 'Bearer ' + openAIApiKey,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -87,7 +87,7 @@ Be conversational, empathetic, and take time to understand before recommending.
     if (!response.ok) {
       const errorData = await response.text();
       console.error('OpenAI API error:', errorData);
-      throw new Error(`OpenAI API error: ${response.status}`);
+      throw new Error('OpenAI API error: ' + response.status);
     }
 
     const data = await response.json();
