@@ -4,9 +4,10 @@ import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CalendarDays, Clock, ArrowRight, Sparkles, CheckCircle } from "lucide-react";
+import { CalendarDays, Clock, ArrowRight, Sparkles, CheckCircle, LinkIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AnimatedCard } from "@/components/ui/animated-card";
+import { toast } from "sonner";
 
 interface ChatCalendarProps {
   onDateSelect: (date: Date) => void;
@@ -24,9 +25,68 @@ export const ChatCalendar = ({
   onConfirm 
 }: ChatCalendarProps) => {
   const [step, setStep] = useState<'date' | 'time'>('date');
-
   const [availableTimes, setAvailableTimes] = useState<{ time: string; available: boolean }[]>([]);
   const [loadingTimes, setLoadingTimes] = useState(false);
+  const [oauthTokens, setOauthTokens] = useState<any>(null);
+  const [isAuthorizing, setIsAuthorizing] = useState(false);
+
+  // Check for OAuth callback on component mount
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const authCode = urlParams.get('code');
+    
+    if (authCode && !oauthTokens) {
+      exchangeAuthCode(authCode);
+      // Clean up URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, [oauthTokens]);
+
+  const initiateOAuthFlow = async () => {
+    setIsAuthorizing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('google-calendar-integration', {
+        body: { action: 'getAuthUrl' }
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      if (data?.authUrl) {
+        // Store current page state before redirect
+        sessionStorage.setItem('calendarOAuthReturn', window.location.href);
+        window.location.href = data.authUrl;
+      }
+    } catch (error) {
+      console.error('Failed to initiate OAuth flow:', error);
+      toast.error('Failed to start Google Calendar authorization');
+      setIsAuthorizing(false);
+    }
+  };
+
+  const exchangeAuthCode = async (authCode: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('google-calendar-integration', {
+        body: { 
+          action: 'exchangeToken', 
+          authCode 
+        }
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      if (data?.tokens) {
+        setOauthTokens(data.tokens);
+        toast.success('Google Calendar connected successfully!');
+      }
+    } catch (error) {
+      console.error('Failed to exchange auth code:', error);
+      toast.error('Failed to connect Google Calendar');
+    }
+  };
 
   const isDateDisabled = (date: Date) => {
     const today = new Date();
@@ -39,10 +99,16 @@ export const ChatCalendar = ({
     try {
       console.log('Fetching availability for date:', date.toISOString().split('T')[0]);
       
+      if (!oauthTokens) {
+        console.warn('No OAuth tokens available, using fallback times');
+        throw new Error('Google Calendar not connected');
+      }
+
       const { data, error } = await supabase.functions.invoke('google-calendar-integration', {
         body: {
           action: 'getAvailability',
-          date: date.toISOString().split('T')[0], // Send date in YYYY-MM-DD format
+          date: date.toISOString().split('T')[0],
+          tokens: oauthTokens
         },
       });
 
@@ -50,21 +116,12 @@ export const ChatCalendar = ({
 
       if (error) {
         console.error('Supabase function error:', error);
-        
-        // Show specific error message based on the error type
-        if (error.message?.includes('Google Calendar API has not been used') || error.message?.includes('SERVICE_DISABLED')) {
-          throw new Error('Google Calendar API is not enabled. Please enable the Google Calendar API in your Google Cloud Console.');
-        } else if (error.message?.includes('PERMISSION_DENIED')) {
-          throw new Error('Permission denied to access Google Calendar. Please check your API credentials.');
-        } else {
-          throw new Error('Failed to connect to Google Calendar. Please try again later.');
-        }
+        throw new Error('Failed to fetch calendar availability');
       }
 
       const availableSlots = data?.availability || [];
       console.log('Received available slots:', availableSlots);
       
-      // If no slots from API, provide fallback business hours
       const timeSlots = availableSlots.length > 0 ? 
         availableSlots.map((time: string) => ({
           time,
@@ -81,17 +138,16 @@ export const ChatCalendar = ({
 
       setAvailableTimes(timeSlots);
       
-      if (timeSlots.length === 0) {
-        console.warn('No available time slots found for date:', date);
-      }
     } catch (error) {
       console.error('Failed to fetch availability:', error);
       
-      // Show error message to user
       const errorMessage = error instanceof Error ? error.message : 'Failed to load available times';
       
-      // You can show a toast notification here
-      // toast({ title: "Calendar Error", description: errorMessage, variant: "destructive" });
+      if (!oauthTokens) {
+        toast.error('Google Calendar not connected. Using default time slots.');
+      } else {
+        toast.error(errorMessage);
+      }
       
       // Provide fallback times when API fails
       setAvailableTimes([
@@ -162,6 +218,28 @@ export const ChatCalendar = ({
       <CardContent className="p-6">
         {step === 'date' ? (
           <div className="space-y-4">
+            {!oauthTokens && (
+              <div className="bg-dental-accent/10 border border-dental-accent/20 rounded-lg p-4 mb-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="font-semibold text-dental-primary">Connect Google Calendar</h4>
+                    <p className="text-sm text-dental-muted-foreground">
+                      Connect to see real-time availability from your dentist's calendar
+                    </p>
+                  </div>
+                  <Button 
+                    onClick={initiateOAuthFlow}
+                    disabled={isAuthorizing}
+                    variant="outline"
+                    size="sm"
+                    className="ml-4"
+                  >
+                    <LinkIcon className="w-4 h-4 mr-2" />
+                    {isAuthorizing ? 'Connecting...' : 'Connect'}
+                  </Button>
+                </div>
+              </div>
+            )}
             <p className="text-dental-muted-foreground text-center mb-4">
               Select a date for your appointment. Weekend appointments are not available.
             </p>

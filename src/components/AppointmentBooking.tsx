@@ -48,47 +48,17 @@ export const AppointmentBooking = ({ user, onComplete, onCancel }: AppointmentBo
     try {
       console.log('Fetching availability for:', date.toISOString().split('T')[0]);
       
-      const { data, error } = await supabase.functions.invoke('google-calendar-integration', {
-        body: {
-          action: 'getAvailability',
-          date: date.toISOString().split('T')[0],
-        },
-      });
-
-      console.log('Calendar response:', { data, error });
-
-      if (error) {
-        console.error('Calendar API error:', error);
-        
-        // Show specific error message based on the error type
-        if (error.message?.includes('Google Calendar API has not been used') || error.message?.includes('SERVICE_DISABLED')) {
-          toast({
-            title: "Configuration requise",
-            description: "L'API Google Calendar n'est pas activée. Utilisation des créneaux par défaut.",
-            variant: "destructive",
-          });
-        } else if (error.message?.includes('PERMISSION_DENIED')) {
-          toast({
-            title: "Erreur d'autorisation",
-            description: "Accès refusé au calendrier Google. Vérifiez les identifiants API.",
-            variant: "destructive",
-          });
-        } else {
-          toast({
-            title: "Erreur de calendrier",
-            description: "Impossible de se connecter au calendrier Google. Utilisation des créneaux par défaut.",
-            variant: "destructive",
-          });
-        }
-        
-        throw error;
-      }
-
-      const availableSlots = data?.availability || [];
-      
-      // If no slots from API, provide fallback business hours
+      // For now, just use fallback times since OAuth flow needs to be implemented properly
       const fallbackTimes = ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"];
-      setAvailableTimes(availableSlots.length > 0 ? availableSlots : fallbackTimes);
+      setAvailableTimes(fallbackTimes);
+      
+      console.log('Using fallback times due to OAuth requirement');
+      
+      toast({
+        title: "Créneaux par défaut",
+        description: "Utilisation des créneaux horaires standards. Connectez Google Calendar pour voir la disponibilité en temps réel.",
+        variant: "default",
+      });
       
     } catch (error) {
       console.error('Failed to fetch availability:', error);
