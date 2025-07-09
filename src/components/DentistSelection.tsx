@@ -34,6 +34,17 @@ export const DentistSelection = ({ onSelectDentist, selectedDentistId, recommend
     // Pour la démo, on utilise des dentistes fictifs avec de vrais noms français
     const mockDentists: Dentist[] = [
       {
+        id: '0',
+        profile_id: '0',
+        specialization: 'General Dentistry',
+        is_active: true,
+        profiles: {
+          first_name: 'Kevin',
+          last_name: 'Jackson',
+          email: 'kevin.jackson@dental.com'
+        }
+      },
+      {
         id: '1',
         profile_id: '1',
         specialization: 'General Dentistry',
