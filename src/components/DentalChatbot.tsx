@@ -12,6 +12,8 @@ import { ChatMessage } from "@/types/chat";
 import { UrgencyAssessment } from "@/components/UrgencyAssessment";
 import { AppointmentBooking } from "@/components/AppointmentBooking";
 import { PhotoUpload } from "@/components/PhotoUpload";
+import { DentistSelection } from "@/components/DentistSelection";
+import { ChatCalendar } from "@/components/ChatCalendar";
 
 interface DentalChatbotProps {
   user: User;
@@ -22,13 +24,18 @@ export const DentalChatbot = ({ user }: DentalChatbotProps) => {
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [sessionId] = useState(() => crypto.randomUUID());
-  const [currentFlow, setCurrentFlow] = useState<'chat' | 'urgency' | 'booking' | 'photo'>('chat');
+  const [currentFlow, setCurrentFlow] = useState<'chat' | 'urgency' | 'booking' | 'photo' | 'dentist-selection' | 'calendar'>('chat');
   const [lastPhotoUrl, setLastPhotoUrl] = useState<string | null>(null);
+  const [selectedDentist, setSelectedDentist] = useState<any>(null);
+  const [selectedDate, setSelectedDate] = useState<Date>();
+  const [selectedTime, setSelectedTime] = useState<string>();
+  const [userProfile, setUserProfile] = useState<any>(null);
   const { toast } = useToast();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Welcome message
+    // Load user profile and welcome message
+    loadUserProfile();
     const welcomeMessage: ChatMessage = {
       id: crypto.randomUUID(),
       session_id: sessionId,
@@ -39,6 +46,21 @@ export const DentalChatbot = ({ user }: DentalChatbotProps) => {
     };
     setMessages([welcomeMessage]);
   }, [sessionId]);
+
+  const loadUserProfile = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("user_id", user.id)
+        .single();
+
+      if (error) throw error;
+      setUserProfile(data);
+    } catch (error) {
+      console.error("Error loading user profile:", error);
+    }
+  };
 
   useEffect(() => {
     scrollToBottom();
@@ -70,8 +92,9 @@ export const DentalChatbot = ({ user }: DentalChatbotProps) => {
         body: {
           message: userMessage,
           conversation_history: messages.slice(-10), // Last 10 messages for context
-          user_profile: {
-            name: user.email?.split('@')[0] || 'Patient'
+          user_profile: userProfile || {
+            name: user.email?.split('@')[0] || 'Patient',
+            email: user.email
           }
         }
       });
@@ -86,7 +109,7 @@ export const DentalChatbot = ({ user }: DentalChatbotProps) => {
       if (suggestions.includes('urgency') && currentFlow === 'chat') {
         setTimeout(() => setCurrentFlow('urgency'), 2000);
       } else if (suggestions.includes('booking') && currentFlow === 'chat') {
-        setTimeout(() => setCurrentFlow('booking'), 2000);
+        setTimeout(() => setCurrentFlow('dentist-selection'), 2000);
       }
 
       // Show urgency warning if detected
@@ -120,10 +143,10 @@ export const DentalChatbot = ({ user }: DentalChatbotProps) => {
       let response = "";
 
       if (lowerMessage.includes("rendez-vous") || lowerMessage.includes("rdv")) {
-        response = "Je vais vous aider à prendre rendez-vous. Voulez-vous d'abord que j'évalue l'urgence de votre situation ?";
-        setTimeout(() => setCurrentFlow('urgency'), 1000);
+        response = "Je vais vous aider à prendre rendez-vous. Commençons par choisir votre dentiste.";
+        setTimeout(() => setCurrentFlow('dentist-selection'), 1000);
       } else if (lowerMessage.includes("douleur") || lowerMessage.includes("mal")) {
-        response = "Je comprends que vous avez une douleur. Laissez-moi évaluer l'urgence de votre situation pour vous proposer le bon créneau.";
+        response = "Je comprends que vous avez une douleur. Laissez-moi d'abord évaluer l'urgence de votre situation.";
         setTimeout(() => setCurrentFlow('urgency'), 1000);
       } else {
         response = `Je peux vous aider avec :
@@ -296,9 +319,85 @@ Que souhaitez-vous faire ?`;
                 onComplete={(urgency) => {
                   addSystemMessage(`Évaluation d'urgence terminée. Niveau: ${urgency}`, 'success');
                   sendEmailSummary(null, urgency);
-                  setCurrentFlow('booking');
+                  setCurrentFlow('dentist-selection');
                 }}
                 onCancel={() => setCurrentFlow('chat')}
+              />
+            </div>
+          )}
+
+          {currentFlow === 'dentist-selection' && (
+            <div className="border-t p-4 bg-blue-50">
+              <DentistSelection 
+                onSelectDentist={(dentist) => {
+                  setSelectedDentist(dentist);
+                  addSystemMessage(`Dentiste sélectionné : Dr ${dentist.profiles.first_name} ${dentist.profiles.last_name}`, 'success');
+                  setCurrentFlow('calendar');
+                }}
+                selectedDentistId={selectedDentist?.id}
+              />
+            </div>
+          )}
+
+          {currentFlow === 'calendar' && (
+            <div className="border-t p-4 bg-green-50">
+              <ChatCalendar 
+                onDateSelect={(date) => {
+                  setSelectedDate(date);
+                  addSystemMessage(`Date sélectionnée : ${date.toLocaleDateString('fr-FR')}`, 'info');
+                }}
+                onTimeSelect={(time) => {
+                  setSelectedTime(time);
+                  addSystemMessage(`Heure sélectionnée : ${time}`, 'info');
+                }}
+                selectedDate={selectedDate}
+                selectedTime={selectedTime}
+                onConfirm={async () => {
+                  if (selectedDentist && selectedDate && selectedTime) {
+                    // Create appointment
+                    try {
+                      const { data: profile } = await supabase
+                        .from("profiles")
+                        .select("id")
+                        .eq("user_id", user.id)
+                        .single();
+
+                      const appointmentDateTime = new Date(selectedDate);
+                      const [hours, minutes] = selectedTime.split(":");
+                      appointmentDateTime.setHours(parseInt(hours), parseInt(minutes));
+
+                      await supabase
+                        .from("appointments")
+                        .insert({
+                          patient_id: profile?.id,
+                          dentist_id: selectedDentist.id,
+                          appointment_date: appointmentDateTime.toISOString(),
+                          reason: "Consultation via DentiBot",
+                          status: "pending",
+                          urgency: "medium"
+                        });
+
+                      const appointmentData = {
+                        date: selectedDate.toLocaleDateString('fr-FR'),
+                        time: selectedTime,
+                        dentist: `Dr ${selectedDentist.profiles.first_name} ${selectedDentist.profiles.last_name}`,
+                        reason: "Consultation via DentiBot"
+                      };
+
+                      addSystemMessage("✅ Rendez-vous confirmé ! Vous recevrez un rappel 24h avant.", 'success');
+                      sendEmailSummary(appointmentData);
+                      setCurrentFlow('chat');
+                      
+                      // Reset selections
+                      setSelectedDentist(null);
+                      setSelectedDate(undefined);
+                      setSelectedTime(undefined);
+                    } catch (error) {
+                      console.error("Error creating appointment:", error);
+                      addSystemMessage("❌ Erreur lors de la création du rendez-vous", 'warning');
+                    }
+                  }
+                }}
               />
             </div>
           )}
@@ -357,7 +456,7 @@ Que souhaitez-vous faire ?`;
               <Button 
                 variant="outline" 
                 size="sm" 
-                onClick={() => setCurrentFlow('booking')}
+                onClick={() => setCurrentFlow('dentist-selection')}
               >
                 <Calendar className="h-4 w-4 mr-1" />
                 RDV
