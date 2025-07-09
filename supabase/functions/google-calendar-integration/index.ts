@@ -1,9 +1,13 @@
+import { GoogleAuth } from "npm:google-auth-library";
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+const CALENDAR_ID = 'c_50174c89acc6fea0584af32c11327187da9807dd25a8f82c6397d67da5df566c@group.calendar.google.com';
+const SERVICE_ACCOUNT_PATH = './gpt2sheets-433311-6d41e95ac83d.json'; // Adjust if different!
 
 interface CalendarRequest {
   action: 'getAvailability' | 'createEvent';
@@ -18,6 +22,76 @@ interface CalendarRequest {
   };
 }
 
+// Read and parse service account JSON ONCE at cold start
+const serviceAccountJson = JSON.parse(await Deno.readTextFile(SERVICE_ACCOUNT_PATH));
+
+async function getGoogleAccessToken(): Promise<string> {
+  const auth = new GoogleAuth({
+    credentials: serviceAccountJson,
+    scopes: ['https://www.googleapis.com/auth/calendar'],
+  });
+  const client = await auth.getClient();
+  const accessTokenResponse = await client.getAccessToken();
+  if (!accessTokenResponse || !accessTokenResponse.token) {
+    throw new Error("Unable to obtain Google access token");
+  }
+  return accessTokenResponse.token;
+}
+
+async function createCalendarEvent(accessToken: string, eventDetails: any): Promise<any> {
+  const res = await fetch(`https://www.googleapis.com/calendar/v3/calendars/${CALENDAR_ID}/events`, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      summary: eventDetails.summary,
+      description: eventDetails.description,
+      start: { dateTime: eventDetails.startTime, timeZone: "Europe/Brussels" },
+      end: { dateTime: eventDetails.endTime, timeZone: "Europe/Brussels" },
+      attendees: [
+        { email: eventDetails.attendeeEmail, displayName: eventDetails.attendeeName }
+      ],
+    }),
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Google Calendar API error: ${res.status} ${text}`);
+  }
+  return await res.json();
+}
+
+async function getCalendarAvailability(accessToken: string, date?: string): Promise<any[]> {
+  // Returns "busy" slots for the selected day; you can transform this to "available" slots if you want.
+  const timeMin = date ? `${date}T00:00:00+02:00` : new Date().toISOString();
+  const timeMax = date ? `${date}T23:59:59+02:00` : new Date(Date.now() + 24*60*60*1000).toISOString();
+
+  const res = await fetch('https://www.googleapis.com/calendar/v3/freeBusy', {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      timeMin,
+      timeMax,
+      timeZone: "Europe/Brussels",
+      items: [{ id: CALENDAR_ID }],
+    }),
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`FreeBusy API error: ${res.status} ${text}`);
+  }
+
+  const data = await res.json();
+  const busySlots = data.calendars[CALENDAR_ID].busy;
+  return busySlots;
+}
+
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -26,11 +100,10 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     const body = await req.text();
     let requestData: CalendarRequest;
-    
+
     try {
       requestData = JSON.parse(body);
     } catch (parseError) {
-      console.error('JSON parse error:', parseError);
       return new Response(JSON.stringify({ error: 'Invalid JSON in request body' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -38,18 +111,17 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const { action, date, eventDetails } = requestData;
-    console.log('Processing request:', { action, date, eventDetails });
 
     // Get Google Calendar access token
     const accessToken = await getGoogleAccessToken();
-    
+
     if (action === 'getAvailability') {
       const availability = await getCalendarAvailability(accessToken, date);
       return new Response(JSON.stringify({ availability }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
-    
+
     if (action === 'createEvent' && eventDetails) {
       const event = await createCalendarEvent(accessToken, eventDetails);
       return new Response(JSON.stringify({ event }), {
@@ -63,61 +135,14 @@ const handler = async (req: Request): Promise<Response> => {
     });
 
   } catch (error: any) {
-    console.error('Error in google-calendar-integration:', error);
-    return new Response(JSON.stringify({ 
+    return new Response(JSON.stringify({
       error: error.message || 'Internal server error',
       details: error.stack || 'No stack trace available'
     }), {
-      status: 200, // Return 200 to avoid client-side errors
+      status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
 };
-
-const CALENDAR_ID = 'c_50174c89acc6fea0584af32c11327187da9807dd25a8f82c6397d67da5df566c@group.calendar.google.com';
-
-async function getGoogleAccessToken(): Promise<string> {
-  // For demo purposes, we'll simulate the calendar integration
-  // In production, you'd need a proper service account or OAuth flow
-  console.log('Google Calendar integration running in demo mode');
-  return 'demo_access_token';
-}
-
-async function getCalendarAvailability(accessToken: string, date?: string): Promise<string[]> {
-  console.log('Fetching availability for date:', date);
-  
-  // For demo purposes, return available slots
-  // In production, this would query the actual Google Calendar
-  const availableSlots = [
-    "09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
-    "14:00", "14:30", "15:00", "15:30", "16:00", "16:30"
-  ];
-  
-  console.log('Returning available slots:', availableSlots);
-  return availableSlots;
-}
-
-async function createCalendarEvent(accessToken: string, eventDetails: any): Promise<any> {
-  console.log('Creating calendar event:', {
-    summary: eventDetails.summary,
-    start: eventDetails.startTime,
-    attendee: eventDetails.attendeeEmail
-  });
-
-  // For demo purposes, simulate successful calendar event creation
-  // In production, this would create an actual Google Calendar event
-  const mockEvent = {
-    id: 'demo_event_' + Date.now(),
-    summary: eventDetails.summary,
-    start: { dateTime: eventDetails.startTime },
-    end: { dateTime: eventDetails.endTime },
-    attendees: [{ email: eventDetails.attendeeEmail }],
-    htmlLink: 'https://calendar.google.com/calendar/event?eid=demo',
-    status: 'confirmed'
-  };
-
-  console.log('Calendar event created (demo):', mockEvent.id);
-  return mockEvent;
-}
 
 serve(handler);
