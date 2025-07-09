@@ -1,29 +1,22 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
-import { Button } from "@/components/ui/button";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/AppSidebar";
-import { Dashboard } from "@/components/Dashboard";
-import { CalendarView } from "@/components/CalendarView";
+import { User, Session } from "@supabase/supabase-js";
 import { DentalChatbot } from "@/components/DentalChatbot";
-import { AppointmentsList } from "@/components/AppointmentsList";
 import { AuthForm } from "@/components/AuthForm";
+import { AppointmentsList } from "@/components/AppointmentsList";
+import { useToast } from "@/hooks/use-toast";
+import { Activity, User as UserIcon, LogOut, MessageSquare, Calendar } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { LanguageSettings } from "@/components/LanguageSettings";
-import { ThemeToggle } from "@/components/ThemeToggle";
-import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
-import { Activity, LogOut, User as UserIcon } from "lucide-react";
-import { Session, User } from "@supabase/supabase-js";
 import { useLanguage } from "@/hooks/useLanguage";
-import { Routes, Route, Navigate } from "react-router-dom";
 
 const Index = () => {
+  const { t } = useLanguage();
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<'chat' | 'appointments'>('chat');
   const { toast } = useToast();
-  const { t } = useLanguage();
 
   useEffect(() => {
     // Set up auth state listener
@@ -63,12 +56,12 @@ const Index = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-card">
         <div className="text-center space-y-6">
           <div className="relative">
-            <div className="animate-spin rounded-full h-16 w-16 border-4 border-primary/30 border-t-primary mx-auto"></div>
+            <div className="animate-spin rounded-full h-16 w-16 border-4 border-dental-primary/30 border-t-dental-primary mx-auto"></div>
             <div className="absolute inset-0 flex items-center justify-center">
-              <Activity className="w-8 h-8 text-primary animate-pulse" />
+              <Activity className="w-8 h-8 text-dental-primary animate-pulse" />
             </div>
           </div>
           <div className="space-y-2">
@@ -82,25 +75,25 @@ const Index = () => {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-gradient-card">
         <div className="container mx-auto px-4 py-12">
           <div className="text-center mb-12 space-y-6">
             <div className="flex items-center justify-center mb-6">
               <div className="relative">
-                <div className="bg-primary p-4 rounded-2xl shadow-lg">
-                  <Activity className="h-16 w-16 text-primary-foreground" />
+                <div className="bg-gradient-primary p-4 rounded-2xl shadow-glow">
+                  <Activity className="h-16 w-16 text-white" />
                 </div>
-                <div className="absolute -top-2 -right-2 w-6 h-6 bg-secondary rounded-full animate-pulse"></div>
+                <div className="absolute -top-2 -right-2 w-6 h-6 bg-dental-secondary rounded-full animate-pulse"></div>
               </div>
             </div>
             <div className="space-y-4">
-              <h1 className="text-5xl font-bold text-primary">
+              <h1 className="text-5xl font-bold bg-gradient-primary bg-clip-text text-transparent">
                 SmileCare AI
               </h1>
-              <p className="text-2xl text-primary font-semibold">
+              <p className="text-2xl text-dental-primary font-semibold">
                 Your Intelligent Dental Assistant 24/7
               </p>
-              <p className="text-muted-foreground max-w-3xl mx-auto text-lg leading-relaxed">
+              <p className="text-dental-muted-foreground max-w-3xl mx-auto text-lg leading-relaxed">
                 Book appointments, assess the urgency of your situation, and receive personalized advice 
                 with our specialized dental care chatbot powered by advanced AI technology.
               </p>
@@ -113,80 +106,83 @@ const Index = () => {
   }
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full">
-        <AppSidebar />
-        
-        <div className="flex-1 flex flex-col">
-          {/* Header */}
-          <header className="h-16 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex items-center px-6">
-            <SidebarTrigger className="mr-4" />
-            <div className="flex items-center space-x-4 flex-1">
-              <div className="flex items-center space-x-3">
-                <div className="relative">
-                  <div className="bg-primary p-2 rounded-xl">
-                    <Activity className="h-6 w-6 text-primary-foreground" />
-                  </div>
-                </div>
-                <div>
-                  <h1 className="text-xl font-semibold text-primary">SmileCare AI</h1>
-                  <Badge variant="secondary" className="text-xs">Online</Badge>
-                </div>
+    <div className="min-h-screen bg-gradient-card">
+      <header className="bg-card/80 backdrop-blur-lg shadow-card border-b border-border/50 sticky top-0 z-50">
+        <div className="container mx-auto px-4 py-4 sm:py-6 flex items-center justify-between">
+          <div className="flex items-center space-x-3 sm:space-x-4">
+            <div className="relative">
+              <div className="bg-gradient-primary p-2 sm:p-3 rounded-xl shadow-glow">
+                <Activity className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
               </div>
+              <div className="absolute -top-1 -right-1 w-3 h-3 sm:w-4 sm:h-4 bg-dental-secondary rounded-full animate-pulse"></div>
             </div>
-            
-            <div className="flex items-center space-x-3">
-              <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                <UserIcon className="h-4 w-4" />
-                <span className="max-w-[150px] truncate">{user.email}</span>
-              </div>
-              <ThemeToggle />
-              <LanguageSettings />
-              <Separator orientation="vertical" className="h-6" />
-              <Button variant="outline" size="sm" onClick={handleSignOut}>
-                <LogOut className="h-4 w-4 mr-2" />
-                {t.signOut || 'Sign Out'}
+            <div className="hidden sm:block">
+              <h1 className="text-xl sm:text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+                SmileCare AI
+              </h1>
+              <p className="text-dental-muted-foreground font-medium text-sm">Intelligent Dental Assistant</p>
+            </div>
+          </div>
+          <div className="flex items-center space-x-2 sm:space-x-4">
+            <div className="hidden md:flex items-center text-sm text-dental-primary font-medium">
+              <UserIcon className="h-4 w-4 mr-2" />
+              <span className="max-w-[120px] sm:max-w-none truncate">{user.email}</span>
+            </div>
+            <LanguageSettings />
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleSignOut}
+              className="flex items-center bg-muted hover:bg-dental-primary/10 border-dental-primary/20 text-dental-primary hover:text-dental-primary transition-all duration-300"
+            >
+              <LogOut className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">{t.signOut}</span>
+            </Button>
+          </div>
+        </div>
+      </header>
+
+      <main className="container mx-auto px-4 py-4 sm:py-8">
+        {/* Tab Navigation */}
+        <div className="flex justify-center mb-6">
+          <div className="bg-card/80 backdrop-blur-lg rounded-xl p-2 shadow-card border border-border/50">
+            <div className="flex space-x-2">
+              <Button
+                variant={activeTab === 'chat' ? 'default' : 'ghost'}
+                onClick={() => setActiveTab('chat')}
+                className={`flex items-center space-x-2 transition-all duration-300 ${
+                  activeTab === 'chat' 
+                    ? 'bg-gradient-primary text-white shadow-elegant' 
+                    : 'text-dental-muted-foreground hover:text-dental-primary hover:bg-dental-primary/10'
+                }`}
+              >
+                <MessageSquare className="h-4 w-4" />
+                <span>Chat Assistant</span>
+              </Button>
+              <Button
+                variant={activeTab === 'appointments' ? 'default' : 'ghost'}
+                onClick={() => setActiveTab('appointments')}
+                className={`flex items-center space-x-2 transition-all duration-300 ${
+                  activeTab === 'appointments' 
+                    ? 'bg-gradient-primary text-white shadow-elegant' 
+                    : 'text-dental-muted-foreground hover:text-dental-primary hover:bg-dental-primary/10'
+                }`}
+              >
+                <Calendar className="h-4 w-4" />
+                <span>Mes Rendez-vous</span>
               </Button>
             </div>
-          </header>
-
-          {/* Main Content */}
-          <main className="flex-1 p-6 overflow-auto">
-            <Routes>
-              <Route path="/" element={<Dashboard user={user} />} />
-              <Route path="/chat" element={<DentalChatbot user={user} />} />
-              <Route path="/appointments" element={<CalendarView user={user} />} />
-              <Route path="/history" element={<AppointmentsList user={user} />} />
-              <Route path="/records" element={
-                <div className="text-center py-12">
-                  <h1 className="text-2xl font-bold mb-4">Health Records</h1>
-                  <p className="text-muted-foreground">Coming Soon - Track your dental health history</p>
-                </div>
-              } />
-              <Route path="/analytics" element={
-                <div className="text-center py-12">
-                  <h1 className="text-2xl font-bold mb-4">Analytics</h1>
-                  <p className="text-muted-foreground">Coming Soon - View your dental health insights</p>
-                </div>
-              } />
-              <Route path="/profile" element={
-                <div className="text-center py-12">
-                  <h1 className="text-2xl font-bold mb-4">Profile</h1>
-                  <p className="text-muted-foreground">Coming Soon - Manage your profile settings</p>
-                </div>
-              } />
-              <Route path="/settings" element={
-                <div className="text-center py-12">
-                  <h1 className="text-2xl font-bold mb-4">Settings</h1>
-                  <p className="text-muted-foreground">Coming Soon - Customize your preferences</p>
-                </div>
-              } />
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </main>
+          </div>
         </div>
-      </div>
-    </SidebarProvider>
+
+        {/* Content */}
+        {activeTab === 'chat' ? (
+          <DentalChatbot user={user} />
+        ) : (
+          <AppointmentsList user={user} />
+        )}
+      </main>
+    </div>
   );
 };
 
