@@ -30,39 +30,79 @@ export const DentistSelection = ({ onSelectDentist, selectedDentistId }: Dentist
   const { toast } = useToast();
 
   useEffect(() => {
-    fetchDentists();
+    // Pour la démo, on utilise des dentistes fictifs avec de vrais noms français
+    const mockDentists: Dentist[] = [
+      {
+        id: '1',
+        profile_id: '1',
+        specialization: 'Dentisterie générale',
+        is_active: true,
+        profiles: {
+          first_name: 'Marie',
+          last_name: 'Dubois',
+          email: 'marie.dubois@dentaire.fr'
+        }
+      },
+      {
+        id: '2',
+        profile_id: '2',
+        specialization: 'Orthodontie',
+        is_active: true,
+        profiles: {
+          first_name: 'Pierre',
+          last_name: 'Martin',
+          email: 'pierre.martin@dentaire.fr'
+        }
+      },
+      {
+        id: '3',
+        profile_id: '3',
+        specialization: 'Chirurgie dentaire',
+        is_active: true,
+        profiles: {
+          first_name: 'Sophie',
+          last_name: 'Leroy',
+          email: 'sophie.leroy@dentaire.fr'
+        }
+      },
+      {
+        id: '4',
+        profile_id: '4',
+        specialization: 'Endodontie',
+        is_active: true,
+        profiles: {
+          first_name: 'Thomas',
+          last_name: 'Bernard',
+          email: 'thomas.bernard@dentaire.fr'
+        }
+      },
+      {
+        id: '5',
+        profile_id: '5',
+        specialization: 'Parodontologie',
+        is_active: true,
+        profiles: {
+          first_name: 'Isabelle',
+          last_name: 'Moreau',
+          email: 'isabelle.moreau@dentaire.fr'
+        }
+      },
+      {
+        id: '6',
+        profile_id: '6',
+        specialization: 'Implantologie',
+        is_active: true,
+        profiles: {
+          first_name: 'Jean-Luc',
+          last_name: 'Petit',
+          email: 'jeanluc.petit@dentaire.fr'
+        }
+      }
+    ];
+    
+    setDentists(mockDentists);
+    setIsLoading(false);
   }, []);
-
-  const fetchDentists = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("dentists")
-        .select(`
-          id,
-          profile_id,
-          specialization,
-          is_active,
-          profiles:profile_id (
-            first_name,
-            last_name,
-            email
-          )
-        `)
-        .eq("is_active", true);
-
-      if (error) throw error;
-      setDentists(data || []);
-    } catch (error) {
-      console.error("Error fetching dentists:", error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de charger la liste des dentistes",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const getDentistInitials = (dentist: Dentist) => {
     return `${dentist.profiles.first_name[0]}${dentist.profiles.last_name[0]}`;
@@ -130,7 +170,7 @@ export const DentistSelection = ({ onSelectDentist, selectedDentistId }: Dentist
                 <div className="relative">
                   <Avatar className="w-16 h-16">
                     <AvatarImage 
-                      src={`https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=150&h=150&fit=crop&crop=face`} 
+                      src={`https://images.unsplash.com/photo-155983973420${dentist.id}?w=150&h=150&fit=crop&crop=face`} 
                       alt={`Dr ${dentist.profiles.first_name} ${dentist.profiles.last_name}`}
                     />
                     <AvatarFallback className="bg-blue-100 text-blue-800 font-semibold">

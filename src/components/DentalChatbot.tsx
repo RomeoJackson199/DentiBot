@@ -146,13 +146,12 @@ export const DentalChatbot = ({ user }: DentalChatbotProps) => {
         response = "Je comprends. Qu'avez-vous déjà essayé ? (glace, médicaments...) Prenons un rendez-vous rapidement.";
         setTimeout(() => setCurrentFlow('dentist-selection'), 1000);
       } else {
-        response = `Je peux vous aider avec :
+        response = `Que puis-je faire pour vous ?
 
 🗓️ Prendre un rendez-vous
-📸 Analyser une photo  
 ❓ Répondre à vos questions
 
-Que voulez-vous faire ?`;
+Tapez votre demande...`;
       }
 
       return {
