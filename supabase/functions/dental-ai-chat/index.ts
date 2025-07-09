@@ -21,24 +21,31 @@ serve(async (req) => {
     const systemPrompt = `Tu es DentiBot, un assistant dentaire virtuel francophone. 
 
 INSTRUCTIONS IMPORTANTES:
-- Pose des questions COURTES et DIRECTES (maximum 2 phrases)
-- Demande toujours plus de détails sur le problème AVANT de proposer un dentiste
-- Collecte d'abord: symptômes, durée, tentatives de soulagement
-- Encourage à continuer la description du problème
+- TRÈS COURT si pas grave (1 phrase max)
+- Plus de détails SEULEMENT si urgence/grave
+- Demande rapidement: "Quel problème?" puis direct au dentiste
+- RECOMMANDE des dentistes spécifiques selon le problème
 - Réponds en français familier
 
-EXEMPLES DE BONNES RÉPONSES POUR COLLECTER INFO:
-"Ça fait mal depuis quand exactement ?"
-"Avez-vous pris des médicaments ? Lesquels ?"
-"La douleur est constante ou par moments ?"
-"Décrivez-moi plus précisément la douleur."
+RECOMMANDATIONS DENTISTES selon problème:
+- Douleur/urgence → "Marie Dubois" (généraliste)
+- Orthodontie/appareil → "Pierre Martin" (orthodontie) 
+- Chirurgie/extraction → "Sophie Leroy" (chirurgie)
+- Canal/infection → "Thomas Bernard" (endodontie)
+- Gencives → "Isabelle Moreau" (parodontologie)
+- Implant → "Jean-Luc Petit" (implantologie)
 
-FLOW: Problème détaillé → Choix dentiste → Rendez-vous
+EXEMPLES RÉPONSES COURTES:
+"Mal de dent? Dr Marie Dubois parfait pour ça."
+"Appareil? Dr Pierre Martin spécialiste."
+"RDV avec Dr Sophie Leroy pour extraction."
+
+FLOW: Problème → Recommandation dentiste → Choix
 
 Contexte patient: ${JSON.stringify(user_profile)}
 Historique: ${conversation_history.map((msg: any) => `${msg.is_bot ? 'Bot' : 'Patient'}: ${msg.message}`).join('\n')}
 
-Collecte d'abord toutes les infos sur le problème.`;
+Sois BREF et RECOMMANDE le bon dentiste.`;
 
     const messages = [
       { role: 'system', content: systemPrompt },
@@ -78,19 +85,22 @@ Collecte d'abord toutes les infos sur le problème.`;
 
     const botResponse = data.choices[0].message.content;
 
-    // Simple keyword-based suggestions
+    // Simple keyword-based suggestions and recommendations
     const suggestions = [];
     const lowerResponse = botResponse.toLowerCase();
     
-    // Suggest problem collection for initial complaints
-    if (lowerResponse.includes('problème') || lowerResponse.includes('décrivez') || 
-        lowerResponse.includes('détails') || lowerResponse.includes('symptômes')) {
-      suggestions.push('problem-collection');
-    }
+    // Extract dentist recommendations from response
+    let recommendedDentist = null;
+    if (lowerResponse.includes('marie dubois')) recommendedDentist = 'Marie Dubois';
+    else if (lowerResponse.includes('pierre martin')) recommendedDentist = 'Pierre Martin';
+    else if (lowerResponse.includes('sophie leroy')) recommendedDentist = 'Sophie Leroy';
+    else if (lowerResponse.includes('thomas bernard')) recommendedDentist = 'Thomas Bernard';
+    else if (lowerResponse.includes('isabelle moreau')) recommendedDentist = 'Isabelle Moreau';
+    else if (lowerResponse.includes('jean-luc petit')) recommendedDentist = 'Jean-Luc Petit';
     
-    // Suggest booking after problem collection
-    if (lowerResponse.includes('dentiste') || lowerResponse.includes('choisissons') || 
-        lowerResponse.includes('rendez-vous') || lowerResponse.includes('consultation')) {
+    // Suggest booking after recommendation
+    if (recommendedDentist || lowerResponse.includes('dentiste') || 
+        lowerResponse.includes('rendez-vous') || lowerResponse.includes('rdv')) {
       suggestions.push('booking');
     }
     
@@ -101,7 +111,8 @@ Collecte d'abord toutes les infos sur le problème.`;
     return new Response(JSON.stringify({ 
       response: botResponse,
       suggestions,
-      urgency_detected
+      urgency_detected,
+      recommended_dentist: recommendedDentist
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

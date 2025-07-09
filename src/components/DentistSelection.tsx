@@ -22,9 +22,10 @@ interface Dentist {
 interface DentistSelectionProps {
   onSelectDentist: (dentist: Dentist) => void;
   selectedDentistId?: string;
+  recommendedDentist?: string | null;
 }
 
-export const DentistSelection = ({ onSelectDentist, selectedDentistId }: DentistSelectionProps) => {
+export const DentistSelection = ({ onSelectDentist, selectedDentistId, recommendedDentist }: DentistSelectionProps) => {
   const [dentists, setDentists] = useState<Dentist[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
@@ -123,6 +124,11 @@ export const DentistSelection = ({ onSelectDentist, selectedDentistId }: Dentist
     }
   };
 
+  const isRecommended = (dentist: Dentist) => {
+    if (!recommendedDentist) return false;
+    return `${dentist.profiles.first_name} ${dentist.profiles.last_name}` === recommendedDentist;
+  };
+
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -155,16 +161,20 @@ export const DentistSelection = ({ onSelectDentist, selectedDentistId }: Dentist
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {dentists.map((dentist) => (
-          <Card 
-            key={dentist.id} 
-            className={`cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-105 ${
-              selectedDentistId === dentist.id 
-                ? 'ring-2 ring-blue-500 bg-blue-50' 
-                : 'hover:bg-gray-50'
-            }`}
-            onClick={() => onSelectDentist(dentist)}
-          >
+        {dentists.map((dentist) => {
+          const recommended = isRecommended(dentist);
+          return (
+            <Card 
+              key={dentist.id} 
+              className={`cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-105 ${
+                selectedDentistId === dentist.id 
+                  ? 'ring-2 ring-blue-500 bg-blue-50' 
+                  : recommended
+                  ? 'ring-2 ring-green-500 bg-green-50 shadow-lg'
+                  : 'hover:bg-gray-50'
+              }`}
+              onClick={() => onSelectDentist(dentist)}
+            >
             <CardContent className="p-6">
               <div className="flex items-start space-x-4">
                 <div className="relative">
@@ -177,7 +187,12 @@ export const DentistSelection = ({ onSelectDentist, selectedDentistId }: Dentist
                       {getDentistInitials(dentist)}
                     </AvatarFallback>
                   </Avatar>
-                  {selectedDentistId === dentist.id && (
+                  {recommended && (
+                    <div className="absolute -top-1 -right-1 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                      <Check className="w-4 h-4 text-white" />
+                    </div>
+                  )}
+                  {selectedDentistId === dentist.id && !recommended && (
                     <div className="absolute -top-1 -right-1 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
                       <Check className="w-4 h-4 text-white" />
                     </div>
@@ -185,9 +200,16 @@ export const DentistSelection = ({ onSelectDentist, selectedDentistId }: Dentist
                 </div>
 
                 <div className="flex-1 min-w-0">
-                  <h4 className="text-lg font-semibold text-gray-900 truncate">
-                    Dr {dentist.profiles.first_name} {dentist.profiles.last_name}
-                  </h4>
+                  <div className="flex items-center space-x-2">
+                    <h4 className="text-lg font-semibold text-gray-900 truncate">
+                      Dr {dentist.profiles.first_name} {dentist.profiles.last_name}
+                    </h4>
+                    {recommended && (
+                      <Badge variant="default" className="bg-green-500 text-white text-xs">
+                        Recommandé
+                      </Badge>
+                    )}
+                  </div>
                   
                   <Badge 
                     variant="secondary" 
@@ -222,7 +244,8 @@ export const DentistSelection = ({ onSelectDentist, selectedDentistId }: Dentist
               </div>
             </CardContent>
           </Card>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
