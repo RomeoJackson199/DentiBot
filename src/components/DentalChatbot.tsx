@@ -18,9 +18,11 @@ import { PatientSelection } from "@/components/PatientSelection";
 
 interface DentalChatbotProps {
   user: User;
+  triggerBooking?: boolean;
+  onBookingTriggered?: () => void;
 }
 
-export const DentalChatbot = ({ user }: DentalChatbotProps) => {
+export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered }: DentalChatbotProps) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -71,6 +73,14 @@ export const DentalChatbot = ({ user }: DentalChatbotProps) => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Handle external booking trigger
+  useEffect(() => {
+    if (triggerBooking) {
+      setCurrentFlow('patient-selection');
+      onBookingTriggered?.();
+    }
+  }, [triggerBooking, onBookingTriggered]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });

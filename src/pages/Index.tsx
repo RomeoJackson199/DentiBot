@@ -6,7 +6,7 @@ import { AuthForm } from "@/components/AuthForm";
 import { OnboardingPopup } from "@/components/OnboardingPopup";
 import { AppointmentsList } from "@/components/AppointmentsList";
 import { useToast } from "@/hooks/use-toast";
-import { Activity, User as UserIcon, LogOut, MessageSquare, Calendar } from "lucide-react";
+import { Activity, User as UserIcon, LogOut, MessageSquare, Calendar, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LanguageSettings } from "@/components/LanguageSettings";
 import { useLanguage } from "@/hooks/useLanguage";
@@ -18,6 +18,7 @@ const Index = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'chat' | 'appointments'>('chat');
+  const [triggerBooking, setTriggerBooking] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const { toast } = useToast();
 
@@ -78,6 +79,11 @@ const Index = () => {
     if (user) {
       localStorage.setItem(`onboarding_${user.id}`, 'true');
     }
+  };
+
+  const handleBookAppointment = () => {
+    setActiveTab('chat');
+    setTriggerBooking(true);
   };
 
   if (loading) {
@@ -228,18 +234,28 @@ const Index = () => {
                 <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5" />
                 <span className="font-medium text-sm sm:text-base">Chat</span>
               </Button>
-              <Button
-                variant={activeTab === 'appointments' ? 'default' : 'ghost'}
-                onClick={() => setActiveTab('appointments')}
-                className={`flex items-center space-x-2 sm:space-x-3 px-4 sm:px-6 py-2 sm:py-3 rounded-xl transition-all duration-300 flex-1 justify-center ${
-                  activeTab === 'appointments' 
-                    ? 'bg-gradient-primary text-white shadow-elegant scale-105' 
-                    : 'text-dental-muted-foreground hover:text-dental-primary hover:bg-dental-primary/10 hover:scale-105'
-                }`}
-              >
-                <Calendar className="h-4 w-4 sm:h-5 sm:w-5" />
-                <span className="font-medium text-sm sm:text-base">Rendez-vous</span>
-              </Button>
+              <div className="flex items-center space-x-2 flex-1">
+                <Button
+                  variant={activeTab === 'appointments' ? 'default' : 'ghost'}
+                  onClick={() => setActiveTab('appointments')}
+                  className={`flex items-center space-x-2 sm:space-x-3 px-4 sm:px-6 py-2 sm:py-3 rounded-xl transition-all duration-300 flex-1 justify-center ${
+                    activeTab === 'appointments' 
+                      ? 'bg-gradient-primary text-white shadow-elegant scale-105' 
+                      : 'text-dental-muted-foreground hover:text-dental-primary hover:bg-dental-primary/10 hover:scale-105'
+                  }`}
+                >
+                  <Calendar className="h-4 w-4 sm:h-5 sm:w-5" />
+                  <span className="font-medium text-sm sm:text-base">Rendez-vous</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleBookAppointment}
+                  className="shrink-0 glass-card border-dental-primary/30 text-dental-primary hover:bg-dental-primary/10 hover:scale-105 transition-all duration-300 w-8 h-8 sm:w-10 sm:h-10 p-0"
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           </div>
         </div>
@@ -247,7 +263,11 @@ const Index = () => {
         {/* Content */}
         <div className="animate-fade-in">
           {activeTab === 'chat' ? (
-            <DentalChatbot user={user} />
+            <DentalChatbot 
+              user={user} 
+              triggerBooking={triggerBooking} 
+              onBookingTriggered={() => setTriggerBooking(false)} 
+            />
           ) : (
             <AppointmentsList user={user} />
           )}
