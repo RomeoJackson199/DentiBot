@@ -59,6 +59,28 @@ export const AppointmentBooking = ({ user, onComplete, onCancel }: AppointmentBo
 
       if (error) {
         console.error('Calendar API error:', error);
+        
+        // Show specific error message based on the error type
+        if (error.message?.includes('Google Calendar API has not been used') || error.message?.includes('SERVICE_DISABLED')) {
+          toast({
+            title: "Configuration requise",
+            description: "L'API Google Calendar n'est pas activée. Utilisation des créneaux par défaut.",
+            variant: "destructive",
+          });
+        } else if (error.message?.includes('PERMISSION_DENIED')) {
+          toast({
+            title: "Erreur d'autorisation",
+            description: "Accès refusé au calendrier Google. Vérifiez les identifiants API.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Erreur de calendrier",
+            description: "Impossible de se connecter au calendrier Google. Utilisation des créneaux par défaut.",
+            variant: "destructive",
+          });
+        }
+        
         throw error;
       }
 
@@ -70,10 +92,15 @@ export const AppointmentBooking = ({ user, onComplete, onCancel }: AppointmentBo
       
     } catch (error) {
       console.error('Failed to fetch availability:', error);
-      toast({
-        title: "Information",
-        description: "Utilisation des créneaux par défaut",
-      });
+      
+      // Only show fallback message if we haven't shown a specific error already
+      if (!error.message?.includes('Google Calendar API') && !error.message?.includes('PERMISSION_DENIED')) {
+        toast({
+          title: "Information",
+          description: "Utilisation des créneaux par défaut",
+        });
+      }
+      
       // Provide fallback times
       setAvailableTimes(["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"]);
     } finally {

@@ -50,7 +50,15 @@ export const ChatCalendar = ({
 
       if (error) {
         console.error('Supabase function error:', error);
-        throw error;
+        
+        // Show specific error message based on the error type
+        if (error.message?.includes('Google Calendar API has not been used') || error.message?.includes('SERVICE_DISABLED')) {
+          throw new Error('Google Calendar API is not enabled. Please enable the Google Calendar API in your Google Cloud Console.');
+        } else if (error.message?.includes('PERMISSION_DENIED')) {
+          throw new Error('Permission denied to access Google Calendar. Please check your API credentials.');
+        } else {
+          throw new Error('Failed to connect to Google Calendar. Please try again later.');
+        }
       }
 
       const availableSlots = data?.availability || [];
@@ -78,6 +86,13 @@ export const ChatCalendar = ({
       }
     } catch (error) {
       console.error('Failed to fetch availability:', error);
+      
+      // Show error message to user
+      const errorMessage = error instanceof Error ? error.message : 'Failed to load available times';
+      
+      // You can show a toast notification here
+      // toast({ title: "Calendar Error", description: errorMessage, variant: "destructive" });
+      
       // Provide fallback times when API fails
       setAvailableTimes([
         { time: "09:00", available: true },
