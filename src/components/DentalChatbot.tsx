@@ -538,16 +538,6 @@ Type your request...`;
                 <span className="hidden xs:inline">Book Appointment</span>
                 <span className="xs:hidden">Book</span>
               </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentFlow('quick-photo')}
-                className="flex items-center gap-1 sm:gap-2 floating-card border-dental-accent/30 text-dental-accent hover:bg-dental-accent/10 hover:scale-105 transition-all duration-300 text-xs sm:text-sm px-3 sm:px-4 py-2"
-              >
-                <Camera className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span className="hidden xs:inline">Upload Photo</span>
-                <span className="xs:hidden">Photo</span>
-              </Button>
             </div>
           </div>
         </CardContent>
