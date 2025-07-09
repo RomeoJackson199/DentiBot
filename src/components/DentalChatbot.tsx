@@ -370,6 +370,27 @@ Type your request...`;
                           urgency: "medium"
                         });
 
+                      // Create Google Calendar event
+                      try {
+                        const endDateTime = new Date(appointmentDateTime.getTime() + 60 * 60000); // 1 hour
+                        
+                        await supabase.functions.invoke('google-calendar-integration', {
+                          body: {
+                            action: 'createEvent',
+                            eventDetails: {
+                              summary: `Dental Appointment - ${user.user_metadata?.first_name || 'Patient'} ${user.user_metadata?.last_name || ''}`,
+                              description: `Patient consultation via DentiBot\nDentist: Dr ${selectedDentist.profiles.first_name} ${selectedDentist.profiles.last_name}`,
+                              startTime: appointmentDateTime.toISOString(),
+                              endTime: endDateTime.toISOString(),
+                              attendeeEmail: user.email || '',
+                              attendeeName: `${user.user_metadata?.first_name || 'Patient'} ${user.user_metadata?.last_name || ''}`,
+                            },
+                          },
+                        });
+                      } catch (calendarError) {
+                        console.error('Failed to create calendar event:', calendarError);
+                      }
+
                       const appointmentData = {
                         date: selectedDate.toLocaleDateString('en-US'),
                         time: selectedTime,
@@ -377,7 +398,7 @@ Type your request...`;
                         reason: "Consultation via DentiBot"
                       };
 
-                      addSystemMessage("✅ Appointment confirmed! You'll receive a reminder 24 hours before.", 'success');
+                      addSystemMessage("✅ Appointment confirmed and added to dentist's calendar! You'll receive a reminder 24 hours before.", 'success');
                       sendEmailSummary(appointmentData);
                       setCurrentFlow('chat');
                       

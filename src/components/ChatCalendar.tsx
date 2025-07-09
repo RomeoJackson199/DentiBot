@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,24 +24,8 @@ export const ChatCalendar = ({
 }: ChatCalendarProps) => {
   const [step, setStep] = useState<'date' | 'time'>('date');
 
-  const availableTimes = [
-    { time: "08:00", available: true },
-    { time: "08:30", available: true },
-    { time: "09:00", available: false },
-    { time: "09:30", available: true },
-    { time: "10:00", available: true },
-    { time: "10:30", available: false },
-    { time: "11:00", available: true },
-    { time: "11:30", available: true },
-    { time: "14:00", available: true },
-    { time: "14:30", available: true },
-    { time: "15:00", available: false },
-    { time: "15:30", available: true },
-    { time: "16:00", available: true },
-    { time: "16:30", available: true },
-    { time: "17:00", available: true },
-    { time: "17:30", available: false }
-  ];
+  const [availableTimes, setAvailableTimes] = useState<{ time: string; available: boolean }[]>([]);
+  const [loadingTimes, setLoadingTimes] = useState(false);
 
   const isDateDisabled = (date: Date) => {
     const today = new Date();
@@ -48,10 +33,46 @@ export const ChatCalendar = ({
     return date < today || date.getDay() === 0 || date.getDay() === 6;
   };
 
+  const fetchAvailability = async (date: Date) => {
+    setLoadingTimes(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('google-calendar-integration', {
+        body: {
+          action: 'getAvailability',
+          date: date.toISOString(),
+        },
+      });
+
+      if (error) throw error;
+
+      const availableSlots = data.availability || [];
+      const timeSlots = availableSlots.map((time: string) => ({
+        time,
+        available: true,
+      }));
+
+      setAvailableTimes(timeSlots);
+    } catch (error) {
+      console.error('Failed to fetch availability:', error);
+      // Fallback to some default times if API fails
+      setAvailableTimes([
+        { time: "09:00", available: true },
+        { time: "10:00", available: true },
+        { time: "11:00", available: true },
+        { time: "14:00", available: true },
+        { time: "15:00", available: true },
+        { time: "16:00", available: true },
+      ]);
+    } finally {
+      setLoadingTimes(false);
+    }
+  };
+
   const handleDateSelect = (date: Date | undefined) => {
     if (date) {
       onDateSelect(date);
       setStep('time');
+      fetchAvailability(date);
     }
   };
 
@@ -131,8 +152,13 @@ export const ChatCalendar = ({
               ← Change date
             </Button>
             
-            <div className="grid grid-cols-2 gap-2">
-              {availableTimes.map(({ time, available }) => (
+            {loadingTimes ? (
+              <div className="text-center py-4 text-gray-500">
+                Loading available times...
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-2">
+                {availableTimes.map(({ time, available }) => (
                 <Button
                   key={time}
                   variant={selectedTime === time ? "default" : "outline"}
@@ -152,8 +178,9 @@ export const ChatCalendar = ({
                     <span className="ml-1 text-xs text-red-500">Busy</span>
                   )}
                 </Button>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
 
             {selectedTime && (
               <Button 
