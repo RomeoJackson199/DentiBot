@@ -14,7 +14,270 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      appointments: {
+        Row: {
+          appointment_date: string
+          created_at: string
+          dentist_id: string
+          duration_minutes: number | null
+          id: string
+          notes: string | null
+          patient_id: string
+          photo_url: string | null
+          reason: string | null
+          status: Database["public"]["Enums"]["appointment_status"] | null
+          updated_at: string
+          urgency: Database["public"]["Enums"]["urgency_level"] | null
+        }
+        Insert: {
+          appointment_date: string
+          created_at?: string
+          dentist_id: string
+          duration_minutes?: number | null
+          id?: string
+          notes?: string | null
+          patient_id: string
+          photo_url?: string | null
+          reason?: string | null
+          status?: Database["public"]["Enums"]["appointment_status"] | null
+          updated_at?: string
+          urgency?: Database["public"]["Enums"]["urgency_level"] | null
+        }
+        Update: {
+          appointment_date?: string
+          created_at?: string
+          dentist_id?: string
+          duration_minutes?: number | null
+          id?: string
+          notes?: string | null
+          patient_id?: string
+          photo_url?: string | null
+          reason?: string | null
+          status?: Database["public"]["Enums"]["appointment_status"] | null
+          updated_at?: string
+          urgency?: Database["public"]["Enums"]["urgency_level"] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointments_dentist_id_fkey"
+            columns: ["dentist_id"]
+            isOneToOne: false
+            referencedRelation: "dentists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_messages: {
+        Row: {
+          created_at: string
+          id: string
+          is_bot: boolean | null
+          message: string
+          message_type: string | null
+          metadata: Json | null
+          session_id: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_bot?: boolean | null
+          message: string
+          message_type?: string | null
+          metadata?: Json | null
+          session_id: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_bot?: boolean | null
+          message?: string
+          message_type?: string | null
+          metadata?: Json | null
+          session_id?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      dentist_schedules: {
+        Row: {
+          created_at: string
+          day_of_week: number | null
+          dentist_id: string
+          end_time: string
+          id: string
+          is_available: boolean | null
+          start_time: string
+        }
+        Insert: {
+          created_at?: string
+          day_of_week?: number | null
+          dentist_id: string
+          end_time: string
+          id?: string
+          is_available?: boolean | null
+          start_time: string
+        }
+        Update: {
+          created_at?: string
+          day_of_week?: number | null
+          dentist_id?: string
+          end_time?: string
+          id?: string
+          is_available?: boolean | null
+          start_time?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dentist_schedules_dentist_id_fkey"
+            columns: ["dentist_id"]
+            isOneToOne: false
+            referencedRelation: "dentists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dentists: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean | null
+          license_number: string | null
+          profile_id: string
+          specialization: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          license_number?: string | null
+          profile_id: string
+          specialization?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          license_number?: string | null
+          profile_id?: string
+          specialization?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dentists_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          date_of_birth: string | null
+          email: string
+          first_name: string
+          id: string
+          last_name: string
+          medical_history: string | null
+          phone: string | null
+          preferred_language: string | null
+          role: Database["public"]["Enums"]["user_role"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date_of_birth?: string | null
+          email: string
+          first_name: string
+          id?: string
+          last_name: string
+          medical_history?: string | null
+          phone?: string | null
+          preferred_language?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date_of_birth?: string | null
+          email?: string
+          first_name?: string
+          id?: string
+          last_name?: string
+          medical_history?: string | null
+          phone?: string | null
+          preferred_language?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      urgency_assessments: {
+        Row: {
+          appointment_id: string
+          assessment_score: number | null
+          calculated_urgency:
+            | Database["public"]["Enums"]["urgency_level"]
+            | null
+          created_at: string
+          duration_symptoms: string | null
+          has_bleeding: boolean | null
+          has_swelling: boolean | null
+          id: string
+          pain_level: number | null
+        }
+        Insert: {
+          appointment_id: string
+          assessment_score?: number | null
+          calculated_urgency?:
+            | Database["public"]["Enums"]["urgency_level"]
+            | null
+          created_at?: string
+          duration_symptoms?: string | null
+          has_bleeding?: boolean | null
+          has_swelling?: boolean | null
+          id?: string
+          pain_level?: number | null
+        }
+        Update: {
+          appointment_id?: string
+          assessment_score?: number | null
+          calculated_urgency?:
+            | Database["public"]["Enums"]["urgency_level"]
+            | null
+          created_at?: string
+          duration_symptoms?: string | null
+          has_bleeding?: boolean | null
+          has_swelling?: boolean | null
+          id?: string
+          pain_level?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "urgency_assessments_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +286,9 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      appointment_status: "pending" | "confirmed" | "completed" | "cancelled"
+      urgency_level: "low" | "medium" | "high" | "emergency"
+      user_role: "patient" | "dentist" | "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +415,10 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      appointment_status: ["pending", "confirmed", "completed", "cancelled"],
+      urgency_level: ["low", "medium", "high", "emergency"],
+      user_role: ["patient", "dentist", "admin"],
+    },
   },
 } as const
