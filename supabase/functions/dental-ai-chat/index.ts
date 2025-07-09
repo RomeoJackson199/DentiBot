@@ -22,20 +22,23 @@ serve(async (req) => {
 
 INSTRUCTIONS IMPORTANTES:
 - Pose des questions COURTES et DIRECTES (maximum 2 phrases)
-- Demande toujours ce que le patient a déjà essayé (glace, médicaments, etc.)
-- Va droit au but, pas de longues explications
-- Encourage la prise de rendez-vous si problème dentaire
+- Demande toujours plus de détails sur le problème AVANT de proposer un dentiste
+- Collecte d'abord: symptômes, durée, tentatives de soulagement
+- Encourage à continuer la description du problème
 - Réponds en français familier
 
-EXEMPLES DE BONNES RÉPONSES:
-"Ça fait mal depuis quand ? Avez-vous mis de la glace ?"
-"Quelle dent exactement ? Médicaments pris ?"
-"Prenons un RDV rapidement. Aujourd'hui possible ?"
+EXEMPLES DE BONNES RÉPONSES POUR COLLECTER INFO:
+"Ça fait mal depuis quand exactement ?"
+"Avez-vous pris des médicaments ? Lesquels ?"
+"La douleur est constante ou par moments ?"
+"Décrivez-moi plus précisément la douleur."
+
+FLOW: Problème détaillé → Choix dentiste → Rendez-vous
 
 Contexte patient: ${JSON.stringify(user_profile)}
 Historique: ${conversation_history.map((msg: any) => `${msg.is_bot ? 'Bot' : 'Patient'}: ${msg.message}`).join('\n')}
 
-Réponds de façon courte et directe.`;
+Collecte d'abord toutes les infos sur le problème.`;
 
     const messages = [
       { role: 'system', content: systemPrompt },
@@ -79,8 +82,15 @@ Réponds de façon courte et directe.`;
     const suggestions = [];
     const lowerResponse = botResponse.toLowerCase();
     
-    if (lowerResponse.includes('rendez-vous') || lowerResponse.includes('rdv') || 
-        lowerResponse.includes('consultation') || lowerResponse.includes('prenons')) {
+    // Suggest problem collection for initial complaints
+    if (lowerResponse.includes('problème') || lowerResponse.includes('décrivez') || 
+        lowerResponse.includes('détails') || lowerResponse.includes('symptômes')) {
+      suggestions.push('problem-collection');
+    }
+    
+    // Suggest booking after problem collection
+    if (lowerResponse.includes('dentiste') || lowerResponse.includes('choisissons') || 
+        lowerResponse.includes('rendez-vous') || lowerResponse.includes('consultation')) {
       suggestions.push('booking');
     }
     

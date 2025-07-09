@@ -23,12 +23,14 @@ export const DentalChatbot = ({ user }: DentalChatbotProps) => {
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [sessionId] = useState(() => crypto.randomUUID());
-  const [currentFlow, setCurrentFlow] = useState<'chat' | 'booking' | 'photo' | 'dentist-selection' | 'calendar'>('chat');
+  const [currentFlow, setCurrentFlow] = useState<'chat' | 'problem-collection' | 'booking' | 'photo' | 'dentist-selection' | 'calendar'>('chat');
   const [lastPhotoUrl, setLastPhotoUrl] = useState<string | null>(null);
   const [selectedDentist, setSelectedDentist] = useState<any>(null);
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [selectedTime, setSelectedTime] = useState<string>();
   const [userProfile, setUserProfile] = useState<any>(null);
+  const [problemDescription, setProblemDescription] = useState<string>("");
+  const [questionsAsked, setQuestionsAsked] = useState<number>(0);
   const { toast } = useToast();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -105,7 +107,9 @@ export const DentalChatbot = ({ user }: DentalChatbotProps) => {
       const urgencyDetected = data.urgency_detected || false;
 
       // Auto-suggest next actions based on AI analysis
-      if (suggestions.includes('booking') && currentFlow === 'chat') {
+      if (suggestions.includes('problem-collection') && currentFlow === 'chat') {
+        setTimeout(() => setCurrentFlow('problem-collection'), 2000);
+      } else if (suggestions.includes('booking') && currentFlow === 'problem-collection') {
         setTimeout(() => setCurrentFlow('dentist-selection'), 2000);
       }
 
@@ -139,12 +143,11 @@ export const DentalChatbot = ({ user }: DentalChatbotProps) => {
       const lowerMessage = userMessage.toLowerCase();
       let response = "";
 
-      if (lowerMessage.includes("rendez-vous") || lowerMessage.includes("rdv")) {
-        response = "Parfait ! Choisissons votre dentiste.";
-        setTimeout(() => setCurrentFlow('dentist-selection'), 1000);
-      } else if (lowerMessage.includes("douleur") || lowerMessage.includes("mal")) {
-        response = "Je comprends. Qu'avez-vous déjà essayé ? (glace, médicaments...) Prenons un rendez-vous rapidement.";
-        setTimeout(() => setCurrentFlow('dentist-selection'), 1000);
+      if (lowerMessage.includes("rendez-vous") || lowerMessage.includes("rdv") || 
+          lowerMessage.includes("douleur") || lowerMessage.includes("mal") || 
+          lowerMessage.includes("problème") || lowerMessage.includes("souci")) {
+        response = "Parfait ! Décrivez-moi votre problème en quelques mots.";
+        setTimeout(() => setCurrentFlow('problem-collection'), 1000);
       } else {
         response = `Que puis-je faire pour vous ?
 
@@ -189,6 +192,13 @@ Tapez votre demande...`;
       const botResponse = await generateBotResponse(userMessage.message);
       setMessages(prev => [...prev, botResponse]);
       await saveMessage(botResponse);
+      
+      // Track questions in problem collection mode
+      if (currentFlow === 'problem-collection') {
+        setProblemDescription(prev => prev + " " + userMessage.message);
+        setQuestionsAsked(prev => prev + 1);
+      }
+      
       setIsLoading(false);
     }, 1000);
   };
@@ -308,6 +318,61 @@ Tapez votre demande...`;
           </ScrollArea>
 
           {/* Action Panels */}
+          {currentFlow === 'problem-collection' && (
+            <div className="border-t p-4 bg-orange-50">
+              <div className="space-y-4">
+                <div className="text-center">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    Décrivez votre problème
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    Plus vous donnez de détails, mieux je peux vous aider
+                  </p>
+                </div>
+                
+                <div className="bg-white rounded-lg p-4 border">
+                  <div className="space-y-3">
+                    {questionsAsked === 0 && (
+                      <div className="text-sm text-gray-700">
+                        <p className="font-medium mb-2">Quelques questions pour mieux vous aider :</p>
+                        <ul className="space-y-1 text-gray-600">
+                          <li>• Quel est le problème exact ?</li>
+                          <li>• Depuis quand ?</li>
+                          <li>• Avez-vous pris des médicaments ?</li>
+                          <li>• Avez-vous mis de la glace ?</li>
+                        </ul>
+                      </div>
+                    )}
+                    
+                    <div className="flex space-x-2">
+                      <Button 
+                        onClick={() => {
+                          addSystemMessage("✅ Informations collectées. Choisissons maintenant votre dentiste.", 'success');
+                          setCurrentFlow('dentist-selection');
+                        }}
+                        className="flex-1"
+                        disabled={questionsAsked < 2}
+                      >
+                        Continuer vers les dentistes
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        onClick={() => setCurrentFlow('chat')}
+                      >
+                        Retour
+                      </Button>
+                    </div>
+                    
+                    {questionsAsked < 2 && (
+                      <p className="text-xs text-gray-500 text-center">
+                        Continuez à décrire votre problème dans le chat ci-dessous
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {currentFlow === 'dentist-selection' && (
             <div className="border-t p-4 bg-blue-50">
