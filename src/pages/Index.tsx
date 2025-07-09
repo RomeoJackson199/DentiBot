@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { User, Session } from "@supabase/supabase-js";
 import { DentalChatbot } from "@/components/DentalChatbot";
 import { AuthForm } from "@/components/AuthForm";
+import { OnboardingPopup } from "@/components/OnboardingPopup";
 import { AppointmentsList } from "@/components/AppointmentsList";
 import { useToast } from "@/hooks/use-toast";
 import { Activity, User as UserIcon, LogOut, MessageSquare, Calendar } from "lucide-react";
@@ -17,6 +18,7 @@ const Index = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'chat' | 'appointments'>('chat');
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -26,6 +28,14 @@ const Index = () => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+        
+        // Show onboarding for new users
+        if (event === 'SIGNED_IN' && session?.user) {
+          const hasSeenOnboarding = localStorage.getItem(`onboarding_${session.user.id}`);
+          if (!hasSeenOnboarding) {
+            setShowOnboarding(true);
+          }
+        }
       }
     );
 
@@ -34,6 +44,14 @@ const Index = () => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+      
+      // Check onboarding for existing session
+      if (session?.user) {
+        const hasSeenOnboarding = localStorage.getItem(`onboarding_${session.user.id}`);
+        if (!hasSeenOnboarding) {
+          setShowOnboarding(true);
+        }
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -52,6 +70,13 @@ const Index = () => {
         title: t.signOut,
         description: "You have been signed out successfully",
       });
+    }
+  };
+
+  const handleOnboardingClose = () => {
+    setShowOnboarding(false);
+    if (user) {
+      localStorage.setItem(`onboarding_${user.id}`, 'true');
     }
   };
 
@@ -228,6 +253,12 @@ const Index = () => {
           )}
         </div>
       </main>
+
+      {/* Onboarding Popup */}
+      <OnboardingPopup 
+        isOpen={showOnboarding} 
+        onClose={handleOnboardingClose}
+      />
     </div>
   );
 };

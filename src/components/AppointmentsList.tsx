@@ -4,9 +4,20 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CalendarDays, Clock, User as UserIcon, MapPin, Phone, AlertCircle, Calendar } from "lucide-react";
+import { CalendarDays, Clock, User as UserIcon, MapPin, Phone, AlertCircle, Calendar, X, Users } from "lucide-react";
 import { AnimatedCard } from "@/components/ui/animated-card";
 import { toast } from "sonner";
+import { 
+  AlertDialog, 
+  AlertDialogAction, 
+  AlertDialogCancel, 
+  AlertDialogContent, 
+  AlertDialogDescription, 
+  AlertDialogFooter, 
+  AlertDialogHeader, 
+  AlertDialogTitle, 
+  AlertDialogTrigger 
+} from "@/components/ui/alert-dialog";
 
 interface Appointment {
   id: string;
@@ -104,6 +115,27 @@ export const AppointmentsList = ({ user }: AppointmentsListProps) => {
       toast.error("Failed to load appointments");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const cancelAppointment = async (appointmentId: string) => {
+    try {
+      const { data, error } = await supabase.rpc('cancel_appointment', {
+        appointment_id: appointmentId,
+        user_id: user.id
+      });
+
+      if (error) throw error;
+
+      if (data) {
+        toast.success("Appointment cancelled successfully");
+        fetchAppointments(); // Refresh the list
+      } else {
+        toast.error("Failed to cancel appointment");
+      }
+    } catch (error) {
+      console.error("Error cancelling appointment:", error);
+      toast.error("Failed to cancel appointment");
     }
   };
 
@@ -220,46 +252,108 @@ export const AppointmentsList = ({ user }: AppointmentsListProps) => {
                       </div>
                     </div>
                     
-                    <div className="grid md:grid-cols-2 gap-4">
-                      <div>
-                        <div className="flex items-center gap-2 mb-2">
-                          <UserIcon className="h-4 w-4 text-dental-muted-foreground" />
-                          <span className="font-semibold">
-                            Dr. {appointment.dentist.profile.first_name} {appointment.dentist.profile.last_name}
-                          </span>
+                    <div className="space-y-4">
+                        <div className="grid md:grid-cols-2 gap-6">
+                          <div>
+                            <div className="flex items-center gap-2 mb-3">
+                              <UserIcon className="h-5 w-5 text-dental-muted-foreground" />
+                              <span className="font-semibold text-lg">
+                                Dr. {appointment.dentist.profile.first_name} {appointment.dentist.profile.last_name}
+                              </span>
+                            </div>
+                            {appointment.dentist.specialization && (
+                              <div className="flex items-center gap-2 mb-2">
+                                <MapPin className="h-4 w-4 text-dental-muted-foreground" />
+                                <span className="text-sm text-dental-muted-foreground">
+                                  {appointment.dentist.specialization}
+                                </span>
+                              </div>
+                            )}
+                            {appointment.dentist.profile.phone && (
+                              <div className="flex items-center gap-2">
+                                <Phone className="h-4 w-4 text-dental-muted-foreground" />
+                                <span className="text-sm text-dental-muted-foreground">
+                                  {appointment.dentist.profile.phone}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                          
+                          <div>
+                            <h4 className="font-semibold mb-3 text-lg">Appointment Details</h4>
+                            <div className="space-y-3">
+                              <div>
+                                <h5 className="font-medium text-dental-primary mb-1">Patient</h5>
+                                <p className="text-dental-muted-foreground flex items-center gap-2">
+                                  {(appointment as any).patient_name ? (
+                                    <>
+                                      <Users className="h-4 w-4" />
+                                      {(appointment as any).patient_name} 
+                                      {(appointment as any).patient_age && ` (${(appointment as any).patient_age} years old)`}
+                                      {(appointment as any).patient_relationship && ` - ${(appointment as any).patient_relationship}`}
+                                    </>
+                                  ) : (
+                                    <>
+                                      <UserIcon className="h-4 w-4" />
+                                      You
+                                    </>
+                                  )}
+                                </p>
+                              </div>
+                              
+                              <div>
+                                <h5 className="font-medium text-dental-primary mb-1">Reason</h5>
+                                <p className="text-dental-muted-foreground">
+                                  {appointment.reason || "General consultation"}
+                                </p>
+                              </div>
+                              
+                              {appointment.notes && (
+                                <div>
+                                  <h5 className="font-medium text-dental-primary mb-1">Notes</h5>
+                                  <p className="text-sm text-dental-muted-foreground">{appointment.notes}</p>
+                                </div>
+                              )}
+                            </div>
+                          </div>
                         </div>
-                        {appointment.dentist.specialization && (
-                          <div className="flex items-center gap-2 mb-2">
-                            <MapPin className="h-4 w-4 text-dental-muted-foreground" />
-                            <span className="text-sm text-dental-muted-foreground">
-                              {appointment.dentist.specialization}
-                            </span>
-                          </div>
-                        )}
-                        {appointment.dentist.profile.phone && (
-                          <div className="flex items-center gap-2">
-                            <Phone className="h-4 w-4 text-dental-muted-foreground" />
-                            <span className="text-sm text-dental-muted-foreground">
-                              {appointment.dentist.profile.phone}
-                            </span>
-                          </div>
-                        )}
+                        
+                        {/* Action Buttons */}
+                        {appointment.status === 'pending' && (
+                          <div className="flex gap-3 mt-6 pt-4 border-t border-dental-primary/10">
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  className="flex items-center gap-2 border-red-300 text-red-600 hover:bg-red-50"
+                                >
+                                  <X className="h-4 w-4" />
+                                  Cancel Appointment
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Cancel Appointment</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Are you sure you want to cancel this appointment? This action cannot be undone.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Keep Appointment</AlertDialogCancel>
+                                  <AlertDialogAction 
+                                    onClick={() => cancelAppointment(appointment.id)}
+                                    className="bg-red-600 hover:bg-red-700"
+                                  >
+                                    Yes, Cancel
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                           </div>
+                         )}
                       </div>
-                      
-                      <div>
-                        <h4 className="font-semibold mb-2">Motif de consultation</h4>
-                        <p className="text-dental-muted-foreground">
-                          {appointment.reason || "Consultation générale"}
-                        </p>
-                        {appointment.notes && (
-                          <div className="mt-3">
-                            <h5 className="font-semibold text-sm mb-1">Notes</h5>
-                            <p className="text-sm text-dental-muted-foreground">{appointment.notes}</p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </CardContent>
+                   </CardContent>
                 </Card>
               );
             })}

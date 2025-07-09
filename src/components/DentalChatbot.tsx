@@ -14,6 +14,7 @@ import { PhotoUpload } from "@/components/PhotoUpload";
 import { DentistSelection } from "@/components/DentistSelection";
 import { ChatCalendar } from "@/components/ChatCalendar";
 import { QuickPhotoUpload } from "@/components/QuickPhotoUpload";
+import { PatientSelection } from "@/components/PatientSelection";
 
 interface DentalChatbotProps {
   user: User;
@@ -24,7 +25,7 @@ export const DentalChatbot = ({ user }: DentalChatbotProps) => {
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [sessionId] = useState(() => crypto.randomUUID());
-  const [currentFlow, setCurrentFlow] = useState<'chat' | 'booking' | 'photo' | 'dentist-selection' | 'calendar' | 'quick-photo'>('chat');
+  const [currentFlow, setCurrentFlow] = useState<'chat' | 'booking' | 'photo' | 'dentist-selection' | 'calendar' | 'quick-photo' | 'patient-selection'>('chat');
   const [lastPhotoUrl, setLastPhotoUrl] = useState<string | null>(null);
   const [selectedDentist, setSelectedDentist] = useState<any>(null);
   const [selectedDate, setSelectedDate] = useState<Date>();
@@ -33,6 +34,8 @@ export const DentalChatbot = ({ user }: DentalChatbotProps) => {
   const [problemDescription, setProblemDescription] = useState<string>("");
   const [questionsAsked, setQuestionsAsked] = useState<number>(0);
   const [recommendedDentist, setRecommendedDentist] = useState<string | null>(null);
+  const [patientInfo, setPatientInfo] = useState<any>(null);
+  const [isForUser, setIsForUser] = useState<boolean>(true);
   const { toast } = useToast();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -115,7 +118,7 @@ export const DentalChatbot = ({ user }: DentalChatbotProps) => {
 
       // Auto-suggest next actions based on AI analysis
       if (suggestions.includes('booking') && currentFlow === 'chat') {
-        setTimeout(() => setCurrentFlow('dentist-selection'), 2000);
+        setTimeout(() => setCurrentFlow('patient-selection'), 2000);
       }
 
       // Show urgency warning if detected
@@ -151,8 +154,8 @@ export const DentalChatbot = ({ user }: DentalChatbotProps) => {
       if (lowerMessage.includes("appointment") || lowerMessage.includes("booking") || 
           lowerMessage.includes("pain") || lowerMessage.includes("hurt") || 
           lowerMessage.includes("problem") || lowerMessage.includes("issue")) {
-        response = "What's the exact problem?";
-        setTimeout(() => setCurrentFlow('dentist-selection'), 1000);
+        response = "What's the exact problem? I'll help you find the right dentist and book an appointment that typically takes 30-60 minutes.";
+        setTimeout(() => setCurrentFlow('patient-selection'), 1000);
       } else {
         response = `What can I do for you?
 
@@ -328,6 +331,25 @@ Type your request...`;
 
           {/* Action Panels */}
 
+          {currentFlow === 'patient-selection' && (
+            <div className="border-t border-dental-primary/20 p-6 glass-card rounded-t-none animate-fade-in">
+              <PatientSelection 
+                onSelectPatient={(isForUserSelected, patientInfoSelected) => {
+                  setIsForUser(isForUserSelected);
+                  setPatientInfo(patientInfoSelected);
+                  addSystemMessage(
+                    isForUserSelected 
+                      ? "Appointment will be booked for you" 
+                      : `Appointment will be booked for ${patientInfoSelected?.name}`, 
+                    'success'
+                  );
+                  setCurrentFlow('dentist-selection');
+                }}
+                onCancel={() => setCurrentFlow('chat')}
+              />
+            </div>
+          )}
+
           {currentFlow === 'dentist-selection' && (
             <div className="border-t border-dental-primary/20 p-6 glass-card rounded-t-none animate-fade-in">
               <DentistSelection
@@ -368,6 +390,8 @@ Type your request...`;
                       const appointmentDateTime = new Date(selectedDate);
                       const [hours, minutes] = selectedTime.split(":");
                       appointmentDateTime.setHours(parseInt(hours), parseInt(minutes));
+                      
+                      const endTime = new Date(appointmentDateTime.getTime() + 60 * 60000); // 1 hour duration
 
                       await supabase
                         .from("appointments")
@@ -377,7 +401,12 @@ Type your request...`;
                           appointment_date: appointmentDateTime.toISOString(),
                           reason: "Consultation via DentiBot",
                           status: "pending",
-                          urgency: "medium"
+                          urgency: "medium",
+                          duration_minutes: 60,
+                          patient_name: !isForUser ? patientInfo?.name : null,
+                          patient_age: !isForUser ? patientInfo?.age : null,
+                          patient_relationship: !isForUser ? patientInfo?.relationship : null,
+                          is_for_user: isForUser
                         });
 
                       // Create Google Calendar event
@@ -388,8 +417,8 @@ Type your request...`;
                           body: {
                             action: 'createEvent',
                             eventDetails: {
-                              summary: `Dental Appointment - ${user.user_metadata?.first_name || 'Patient'} ${user.user_metadata?.last_name || ''}`,
-                              description: `Patient consultation via DentiBot\nDentist: Dr ${selectedDentist.profiles.first_name} ${selectedDentist.profiles.last_name}`,
+                              summary: `Dental Appointment - ${!isForUser ? patientInfo?.name : (user.user_metadata?.first_name || 'Patient')} ${!isForUser ? '' : (user.user_metadata?.last_name || '')}`,
+                              description: `${!isForUser ? `Patient: ${patientInfo?.name} (${patientInfo?.relationship})\n` : ''}Patient consultation via DentiBot\nDentist: Dr ${selectedDentist.profiles.first_name} ${selectedDentist.profiles.last_name}\nDuration: 60 minutes`,
                               startTime: appointmentDateTime.toISOString(),
                               endTime: endDateTime.toISOString(),
                               attendeeEmail: user.email || '',
@@ -404,11 +433,14 @@ Type your request...`;
                       const appointmentData = {
                         date: selectedDate.toLocaleDateString('en-US'),
                         time: selectedTime,
+                        endTime: endTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
                         dentist: `Dr ${selectedDentist.profiles.first_name} ${selectedDentist.profiles.last_name}`,
-                        reason: "Consultation via DentiBot"
+                        reason: "Consultation via DentiBot",
+                        patient: !isForUser ? `${patientInfo?.name} (${patientInfo?.relationship})` : "You",
+                        duration: "60 minutes"
                       };
 
-                      addSystemMessage("✅ Appointment confirmed and added to dentist's calendar! You'll receive a reminder 24 hours before.", 'success');
+                      addSystemMessage(`✅ Appointment confirmed! ${!isForUser ? `For ${patientInfo?.name}` : 'For you'} from ${selectedTime} to ${endTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })} (60 minutes). You'll receive a reminder 24 hours before.`, 'success');
                       sendEmailSummary(appointmentData);
                       setCurrentFlow('chat');
                       
@@ -499,7 +531,7 @@ Type your request...`;
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setCurrentFlow('dentist-selection')}
+                onClick={() => setCurrentFlow('patient-selection')}
                 className="flex items-center gap-2 floating-card border-dental-primary/30 text-dental-primary hover:bg-dental-primary/10 hover:scale-105 transition-all duration-300"
               >
                 <Calendar className="h-4 w-4" />

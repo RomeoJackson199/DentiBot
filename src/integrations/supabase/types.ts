@@ -21,8 +21,12 @@ export type Database = {
           dentist_id: string
           duration_minutes: number | null
           id: string
+          is_for_user: boolean | null
           notes: string | null
+          patient_age: number | null
           patient_id: string
+          patient_name: string | null
+          patient_relationship: string | null
           photo_url: string | null
           reason: string | null
           status: Database["public"]["Enums"]["appointment_status"] | null
@@ -35,8 +39,12 @@ export type Database = {
           dentist_id: string
           duration_minutes?: number | null
           id?: string
+          is_for_user?: boolean | null
           notes?: string | null
+          patient_age?: number | null
           patient_id: string
+          patient_name?: string | null
+          patient_relationship?: string | null
           photo_url?: string | null
           reason?: string | null
           status?: Database["public"]["Enums"]["appointment_status"] | null
@@ -49,8 +57,12 @@ export type Database = {
           dentist_id?: string
           duration_minutes?: number | null
           id?: string
+          is_for_user?: boolean | null
           notes?: string | null
+          patient_age?: number | null
           patient_id?: string
+          patient_name?: string | null
+          patient_relationship?: string | null
           photo_url?: string | null
           reason?: string | null
           status?: Database["public"]["Enums"]["appointment_status"] | null
@@ -283,7 +295,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      cancel_appointment: {
+        Args: { appointment_id: string; user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       appointment_status: "pending" | "confirmed" | "completed" | "cancelled"
