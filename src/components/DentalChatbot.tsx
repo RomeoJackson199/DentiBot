@@ -62,44 +62,88 @@ export const DentalChatbot = ({ user }: DentalChatbotProps) => {
     }
   };
 
-  const generateBotResponse = (userMessage: string): ChatMessage => {
-    const lowerMessage = userMessage.toLowerCase();
-    let response = "";
-    let nextFlow: typeof currentFlow = 'chat';
+  const generateBotResponse = async (userMessage: string): Promise<ChatMessage> => {
+    try {
+      // Call the AI edge function
+      const { data, error } = await supabase.functions.invoke('dental-ai-chat', {
+        body: {
+          message: userMessage,
+          conversation_history: messages.slice(-10), // Last 10 messages for context
+          user_profile: {
+            name: user.email?.split('@')[0] || 'Patient'
+          }
+        }
+      });
 
-    if (lowerMessage.includes("rendez-vous") || lowerMessage.includes("rdv") || lowerMessage.includes("appointment")) {
-      response = "Je vais vous aider à prendre rendez-vous. Voulez-vous d'abord que j'évalue l'urgence de votre situation ?";
-      nextFlow = 'urgency';
-    } else if (lowerMessage.includes("douleur") || lowerMessage.includes("mal") || lowerMessage.includes("urgent")) {
-      response = "Je comprends que vous avez une douleur. Laissez-moi évaluer l'urgence de votre situation pour vous proposer le bon créneau.";
-      nextFlow = 'urgency';
-    } else if (lowerMessage.includes("photo") || lowerMessage.includes("image")) {
-      response = "Vous pouvez effectivement joindre une photo de la zone concernée pour aider le dentiste. Voulez-vous télécharger une photo ?";
-      nextFlow = 'photo';
-    } else if (lowerMessage.includes("urgence") || lowerMessage.includes("emergency")) {
-      response = "Je vais évaluer l'urgence de votre situation avec quelques questions rapides.";
-      nextFlow = 'urgency';
-    } else {
-      response = `Je peux vous aider avec :
+      if (error) throw error;
+
+      const response = data.response || "Je suis désolé, je n'ai pas pu traiter votre demande.";
+      const suggestions = data.suggestions || [];
+      const urgencyDetected = data.urgency_detected || false;
+
+      // Auto-suggest next actions based on AI analysis
+      if (suggestions.includes('urgency') && currentFlow === 'chat') {
+        setTimeout(() => setCurrentFlow('urgency'), 2000);
+      } else if (suggestions.includes('booking') && currentFlow === 'chat') {
+        setTimeout(() => setCurrentFlow('booking'), 2000);
+      }
+
+      // Show urgency warning if detected
+      if (urgencyDetected) {
+        toast({
+          title: "Situation potentiellement urgente",
+          description: "Votre situation pourrait nécessiter une attention immédiate.",
+          variant: "destructive",
+        });
+      }
+
+      return {
+        id: crypto.randomUUID(),
+        session_id: sessionId,
+        message: response,
+        is_bot: true,
+        message_type: "text",
+        metadata: { 
+          ai_generated: true, 
+          suggestions,
+          urgency_detected: urgencyDetected 
+        },
+        created_at: new Date().toISOString(),
+      };
+
+    } catch (error) {
+      console.error('Error calling AI:', error);
       
+      // Fallback to simple responses
+      const lowerMessage = userMessage.toLowerCase();
+      let response = "";
+
+      if (lowerMessage.includes("rendez-vous") || lowerMessage.includes("rdv")) {
+        response = "Je vais vous aider à prendre rendez-vous. Voulez-vous d'abord que j'évalue l'urgence de votre situation ?";
+        setTimeout(() => setCurrentFlow('urgency'), 1000);
+      } else if (lowerMessage.includes("douleur") || lowerMessage.includes("mal")) {
+        response = "Je comprends que vous avez une douleur. Laissez-moi évaluer l'urgence de votre situation pour vous proposer le bon créneau.";
+        setTimeout(() => setCurrentFlow('urgency'), 1000);
+      } else {
+        response = `Je peux vous aider avec :
+        
 🗓️ Prendre un rendez-vous
 ⚡ Évaluer l'urgence de votre situation  
 📸 Télécharger une photo de la zone concernée
 ❓ Répondre à vos questions sur les soins dentaires
 
 Que souhaitez-vous faire ?`;
+      }
+
+      return {
+        id: crypto.randomUUID(),
+        session_id: sessionId,
+        message: response,
+        is_bot: true,
+        message_type: "text",
+        created_at: new Date().toISOString(),
+      };
     }
-
-    setTimeout(() => setCurrentFlow(nextFlow), 1000);
-
-    return {
-      id: crypto.randomUUID(),
-      session_id: sessionId,
-      message: response,
-      is_bot: true,
-      message_type: "text",
-      created_at: new Date().toISOString(),
-    };
   };
 
   const handleSendMessage = async () => {
@@ -123,7 +167,7 @@ Que souhaitez-vous faire ?`;
 
     // Generate bot response
     setTimeout(async () => {
-      const botResponse = generateBotResponse(userMessage.message);
+      const botResponse = await generateBotResponse(userMessage.message);
       setMessages(prev => [...prev, botResponse]);
       await saveMessage(botResponse);
       setIsLoading(false);
