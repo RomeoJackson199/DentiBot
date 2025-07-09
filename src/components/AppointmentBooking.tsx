@@ -12,7 +12,7 @@ import { CalendarDays, Clock, User as UserIcon } from "lucide-react";
 
 interface AppointmentBookingProps {
   user: User;
-  onComplete: () => void;
+  onComplete: (appointmentData?: any) => void;
   onCancel: () => void;
 }
 
@@ -117,7 +117,12 @@ export const AppointmentBooking = ({ user, onComplete, onCancel }: AppointmentBo
         description: `Votre rendez-vous a été pris pour le ${selectedDate.toLocaleDateString()} à ${selectedTime}`,
       });
 
-      onComplete();
+      onComplete({
+        date: selectedDate.toLocaleDateString(),
+        time: selectedTime,
+        reason: reason || "Consultation générale",
+        dentist: dentists.find(d => d.id === selectedDentist)?.profiles.first_name + " " + dentists.find(d => d.id === selectedDentist)?.profiles.last_name
+      });
     } catch (error) {
       console.error("Error booking appointment:", error);
       toast({

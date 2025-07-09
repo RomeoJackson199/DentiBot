@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { Send, Bot, User as UserIcon, Calendar, Camera, AlertTriangle } from "lucide-react";
+import { Send, Bot, User as UserIcon, Calendar, Camera, AlertTriangle, Mail } from "lucide-react";
 import { ChatMessage } from "@/types/chat";
 import { UrgencyAssessment } from "@/components/UrgencyAssessment";
 import { AppointmentBooking } from "@/components/AppointmentBooking";
@@ -23,6 +23,7 @@ export const DentalChatbot = ({ user }: DentalChatbotProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [sessionId] = useState(() => crypto.randomUUID());
   const [currentFlow, setCurrentFlow] = useState<'chat' | 'urgency' | 'booking' | 'photo'>('chat');
+  const [lastPhotoUrl, setLastPhotoUrl] = useState<string | null>(null);
   const { toast } = useToast();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -193,6 +194,39 @@ Que souhaitez-vous faire ?`;
     setMessages(prev => [...prev, systemMessage]);
   };
 
+  const sendEmailSummary = async (appointmentData?: any, urgencyLevel?: string) => {
+    try {
+      // Create summary from recent messages
+      const recentMessages = messages.slice(-10);
+      const chatSummary = recentMessages
+        .map(msg => `${msg.is_bot ? 'DentiBot' : 'Patient'}: ${msg.message}`)
+        .join('\n\n');
+
+      const { data, error } = await supabase.functions.invoke('send-patient-email', {
+        body: {
+          userId: user.id,
+          chatSummary,
+          photoUrl: lastPhotoUrl,
+          appointmentData,
+          urgencyLevel
+        }
+      });
+
+      if (error) throw error;
+
+      addSystemMessage(`📧 Résumé envoyé au dentiste (Patient ID: ${data.patientId})`, 'success');
+      
+      toast({
+        title: "Email envoyé",
+        description: `Votre résumé a été envoyé au dentiste avec l'ID patient: ${data.patientId}`,
+      });
+
+    } catch (error) {
+      console.error('Error sending email:', error);
+      addSystemMessage("❌ Erreur lors de l'envoi de l'email", 'warning');
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto">
       <Card className="h-[600px] flex flex-col">
@@ -261,6 +295,7 @@ Que souhaitez-vous faire ?`;
               <UrgencyAssessment 
                 onComplete={(urgency) => {
                   addSystemMessage(`Évaluation d'urgence terminée. Niveau: ${urgency}`, 'success');
+                  sendEmailSummary(null, urgency);
                   setCurrentFlow('booking');
                 }}
                 onCancel={() => setCurrentFlow('chat')}
@@ -272,8 +307,9 @@ Que souhaitez-vous faire ?`;
             <div className="border-t p-4 bg-green-50">
               <AppointmentBooking 
                 user={user}
-                onComplete={() => {
+                onComplete={(appointmentData) => {
                   addSystemMessage("Rendez-vous confirmé ! Vous recevrez un rappel 24h avant.", 'success');
+                  sendEmailSummary(appointmentData);
                   setCurrentFlow('chat');
                 }}
                 onCancel={() => setCurrentFlow('chat')}
@@ -285,6 +321,7 @@ Que souhaitez-vous faire ?`;
             <div className="border-t p-4 bg-blue-50">
               <PhotoUpload 
                 onComplete={(url) => {
+                  setLastPhotoUrl(url);
                   addSystemMessage("Photo téléchargée avec succès. Elle sera transmise au dentiste.", 'success');
                   setCurrentFlow('chat');
                 }}
@@ -332,6 +369,14 @@ Que souhaitez-vous faire ?`;
               >
                 <Camera className="h-4 w-4 mr-1" />
                 Photo
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => sendEmailSummary()}
+              >
+                <Mail className="h-4 w-4 mr-1" />
+                Email
               </Button>
             </div>
           </div>
