@@ -31,11 +31,11 @@ export const DentistSelection = ({ onSelectDentist, selectedDentistId, recommend
   const { toast } = useToast();
 
   useEffect(() => {
-    // Pour la démo, on utilise des dentistes fictifs avec de vrais noms français
+    // Pour la démo, on utilise des dentistes fictifs avec de vrais UUIDs
     const mockDentists: Dentist[] = [
       {
-        id: '0',
-        profile_id: '0',
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        profile_id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         specialization: 'General Dentistry',
         is_active: true,
         profiles: {
@@ -45,8 +45,8 @@ export const DentistSelection = ({ onSelectDentist, selectedDentistId, recommend
         }
       },
       {
-        id: '1',
-        profile_id: '1',
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d480',
+        profile_id: 'f47ac10b-58cc-4372-a567-0e02b2c3d480',
         specialization: 'General Dentistry',
         is_active: true,
         profiles: {
@@ -56,8 +56,8 @@ export const DentistSelection = ({ onSelectDentist, selectedDentistId, recommend
         }
       },
       {
-        id: '2',
-        profile_id: '2',
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d481',
+        profile_id: 'f47ac10b-58cc-4372-a567-0e02b2c3d481',
         specialization: 'Orthodontics',
         is_active: true,
         profiles: {
@@ -67,8 +67,8 @@ export const DentistSelection = ({ onSelectDentist, selectedDentistId, recommend
         }
       },
       {
-        id: '3',
-        profile_id: '3',
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d482',
+        profile_id: 'f47ac10b-58cc-4372-a567-0e02b2c3d482',
         specialization: 'Oral Surgery',
         is_active: true,
         profiles: {
@@ -78,8 +78,8 @@ export const DentistSelection = ({ onSelectDentist, selectedDentistId, recommend
         }
       },
       {
-        id: '4',
-        profile_id: '4',
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d483',
+        profile_id: 'f47ac10b-58cc-4372-a567-0e02b2c3d483',
         specialization: 'Endodontics',
         is_active: true,
         profiles: {
@@ -89,8 +89,8 @@ export const DentistSelection = ({ onSelectDentist, selectedDentistId, recommend
         }
       },
       {
-        id: '5',
-        profile_id: '5',
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d484',
+        profile_id: 'f47ac10b-58cc-4372-a567-0e02b2c3d484',
         specialization: 'Periodontics',
         is_active: true,
         profiles: {
@@ -100,8 +100,8 @@ export const DentistSelection = ({ onSelectDentist, selectedDentistId, recommend
         }
       },
       {
-        id: '6',
-        profile_id: '6',
+        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d485',
+        profile_id: 'f47ac10b-58cc-4372-a567-0e02b2c3d485',
         specialization: 'Implantology',
         is_active: true,
         profiles: {

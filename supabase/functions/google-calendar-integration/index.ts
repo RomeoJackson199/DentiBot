@@ -60,16 +60,9 @@ const handler = async (req: Request): Promise<Response> => {
 const CALENDAR_ID = 'c_50174c89acc6fea0584af32c11327187da9807dd25a8f82c6397d67da5df566c@group.calendar.google.com';
 
 async function getGoogleAccessToken(): Promise<string> {
-  const clientId = Deno.env.get('GOOGLE_CLIENT_ID');
-  const clientSecret = Deno.env.get('GOOGLE_CLIENT_SECRET');
-  
-  if (!clientId || !clientSecret) {
-    throw new Error('Google Calendar credentials not configured');
-  }
-
   // For demo purposes, we'll simulate the calendar integration
   // In production, you'd need a proper service account or OAuth flow
-  console.log('Google Calendar integration simulated - credentials found');
+  console.log('Google Calendar integration running in demo mode');
   return 'demo_access_token';
 }
 
