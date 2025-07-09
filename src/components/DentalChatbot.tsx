@@ -428,32 +428,6 @@ Que voulez-vous faire ?`;
                 <Send className="h-4 w-4" />
               </Button>
             </div>
-            <div className="flex justify-center space-x-2 mt-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => setCurrentFlow('dentist-selection')}
-              >
-                <Calendar className="h-4 w-4 mr-1" />
-                RDV
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => setCurrentFlow('photo')}
-              >
-                <Camera className="h-4 w-4 mr-1" />
-                Photo
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => sendEmailSummary()}
-              >
-                <Mail className="h-4 w-4 mr-1" />
-                Email
-              </Button>
-            </div>
           </div>
         </CardContent>
       </Card>
