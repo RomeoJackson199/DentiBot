@@ -57,6 +57,8 @@ const handler = async (req: Request): Promise<Response> => {
   }
 };
 
+const CALENDAR_ID = 'c_50174c89acc6fea0584af32c11327187da9807dd25a8f82c6397d67da5df566c@group.calendar.google.com';
+
 async function getGoogleAccessToken(): Promise<string> {
   const clientId = Deno.env.get('GOOGLE_CLIENT_ID');
   const clientSecret = Deno.env.get('GOOGLE_CLIENT_SECRET');
