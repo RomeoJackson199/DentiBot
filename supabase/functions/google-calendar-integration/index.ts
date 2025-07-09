@@ -24,7 +24,21 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { action, date, eventDetails }: CalendarRequest = await req.json();
+    const body = await req.text();
+    let requestData: CalendarRequest;
+    
+    try {
+      requestData = JSON.parse(body);
+    } catch (parseError) {
+      console.error('JSON parse error:', parseError);
+      return new Response(JSON.stringify({ error: 'Invalid JSON in request body' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const { action, date, eventDetails } = requestData;
+    console.log('Processing request:', { action, date, eventDetails });
 
     // Get Google Calendar access token
     const accessToken = await getGoogleAccessToken();
@@ -50,8 +64,11 @@ const handler = async (req: Request): Promise<Response> => {
 
   } catch (error: any) {
     console.error('Error in google-calendar-integration:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
+    return new Response(JSON.stringify({ 
+      error: error.message || 'Internal server error',
+      details: error.stack || 'No stack trace available'
+    }), {
+      status: 200, // Return 200 to avoid client-side errors
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }

@@ -4,8 +4,9 @@ import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CalendarDays, Clock, ArrowRight } from "lucide-react";
+import { CalendarDays, Clock, ArrowRight, Sparkles, CheckCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { AnimatedCard } from "@/components/ui/animated-card";
 
 interface ChatCalendarProps {
   onDateSelect: (date: Date) => void;
@@ -87,112 +88,135 @@ export const ChatCalendar = ({
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto shadow-lg">
-      <CardHeader className="pb-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-t-lg">
-        <CardTitle className="flex items-center text-lg">
-          <CalendarDays className="h-5 w-5 mr-2" />
-          {step === 'date' ? 'Choose a date' : 'Choose a time slot'}
-        </CardTitle>
-        {selectedDate && (
-          <div className="flex items-center space-x-2 mt-2">
-            <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
-              {selectedDate.toLocaleDateString('en-US', { 
-                weekday: 'long', 
-                day: 'numeric',
-                month: 'long'
-              })}
-            </Badge>
-            {selectedTime && (
-              <>
-                <ArrowRight className="w-4 h-4 text-white/70" />
-                <Badge variant="secondary" className="bg-green-500/90 text-white border-white/30">
-                  {selectedTime}
-                </Badge>
-              </>
-            )}
-          </div>
-        )}
-      </CardHeader>
+    <AnimatedCard className="w-full max-w-lg mx-auto" gradient glow>
+      <div className="relative">
+        <div className="absolute inset-0 bg-gradient-primary opacity-10 rounded-t-lg" />
+        <CardHeader className="pb-4 relative z-10">
+          <CardTitle className="flex items-center text-xl text-dental-primary font-semibold">
+            <div className="p-2 bg-dental-primary/10 rounded-lg mr-3">
+              <CalendarDays className="h-6 w-6 text-dental-primary" />
+            </div>
+            {step === 'date' ? 'Select Your Appointment Date' : 'Choose Your Preferred Time'}
+          </CardTitle>
+          {selectedDate && (
+            <div className="flex items-center space-x-3 mt-4">
+              <Badge className="bg-dental-primary text-dental-primary-foreground border-0 px-4 py-2 text-sm font-medium">
+                {selectedDate.toLocaleDateString('en-US', { 
+                  weekday: 'long', 
+                  day: 'numeric',
+                  month: 'long'
+                })}
+              </Badge>
+              {selectedTime && (
+                <>
+                  <ArrowRight className="w-5 h-5 text-dental-secondary animate-pulse" />
+                  <Badge className="bg-dental-secondary text-dental-secondary-foreground border-0 px-4 py-2 text-sm font-medium">
+                    <Clock className="w-4 h-4 mr-1" />
+                    {selectedTime}
+                  </Badge>
+                </>
+              )}
+            </div>
+          )}
+        </CardHeader>
+      </div>
       
-      <CardContent className="p-4">
+      <CardContent className="p-6">
         {step === 'date' ? (
-          <Calendar
-            mode="single"
-            selected={selectedDate}
-            onSelect={handleDateSelect}
-            disabled={isDateDisabled}
-            className={cn("rounded-md border pointer-events-auto w-full")}
-            classNames={{
-              months: "flex w-full flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0 flex-1",
-              month: "space-y-4 w-full flex flex-col",
-              table: "w-full h-full border-collapse space-y-1",
-              head_row: "",
-              head_cell: "text-muted-foreground rounded-md w-full font-normal text-[0.8rem]",
-              row: "w-full mt-2",
-              cell: "relative p-0 text-center text-sm focus-within:relative focus-within:z-20 [&:has([aria-selected])]:bg-accent [&:has([aria-selected].day-outside)]:bg-accent/50 [&:has([aria-selected].day-range-middle)]:rounded-none first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md",
-              day: "h-8 w-full p-0 font-normal hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground aria-selected:opacity-100",
-              day_range_start: "day-range-start",
-              day_range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
-              day_range_end: "day-range-end",
-              day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
-              day_today: "bg-accent text-accent-foreground",
-              day_outside: "day-outside text-muted-foreground opacity-50 aria-selected:bg-accent/50 aria-selected:text-muted-foreground aria-selected:opacity-30",
-              day_disabled: "text-muted-foreground opacity-50",
-              day_hidden: "invisible",
-            }}
-          />
-        ) : (
           <div className="space-y-4">
+            <p className="text-dental-muted-foreground text-center mb-4">
+              Select a date for your appointment. Weekend appointments are not available.
+            </p>
+            <Calendar
+              mode="single"
+              selected={selectedDate}
+              onSelect={handleDateSelect}
+              disabled={isDateDisabled}
+              className={cn("rounded-lg border-0 pointer-events-auto w-full bg-gradient-card p-4")}
+              classNames={{
+                months: "flex w-full flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0 flex-1",
+                month: "space-y-4 w-full flex flex-col",
+                table: "w-full h-full border-collapse space-y-1",
+                head_row: "",
+                head_cell: "text-dental-muted-foreground rounded-md w-full font-medium text-sm",
+                row: "w-full mt-2",
+                cell: "relative p-0 text-center text-sm focus-within:relative focus-within:z-20",
+                day: "h-10 w-full p-0 font-medium hover:bg-dental-primary/10 hover:text-dental-primary rounded-lg transition-all duration-200",
+                day_selected: "bg-dental-primary text-dental-primary-foreground hover:bg-dental-primary hover:text-dental-primary-foreground shadow-lg",
+                day_today: "bg-dental-accent/20 text-dental-accent font-bold",
+                day_outside: "text-dental-muted-foreground/50 opacity-50",
+                day_disabled: "text-dental-muted-foreground/30 opacity-30 cursor-not-allowed",
+                day_hidden: "invisible",
+              }}
+            />
+          </div>
+        ) : (
+          <div className="space-y-6">
             <Button 
               variant="ghost" 
               size="sm" 
               onClick={() => setStep('date')}
-              className="mb-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+              className="mb-4 text-dental-primary hover:text-dental-primary hover:bg-dental-primary/10 transition-all duration-200"
             >
               ← Change date
             </Button>
             
             {loadingTimes ? (
-              <div className="text-center py-4 text-gray-500">
-                Loading available times...
+              <div className="text-center py-8">
+                <div className="inline-flex items-center space-x-2 text-dental-muted-foreground">
+                  <Sparkles className="w-5 h-5 animate-spin text-dental-primary" />
+                  <span className="text-lg font-medium">Finding available times...</span>
+                </div>
               </div>
             ) : (
-              <div className="grid grid-cols-2 gap-2">
-                {availableTimes.map(({ time, available }) => (
-                <Button
-                  key={time}
-                  variant={selectedTime === time ? "default" : "outline"}
-                  size="sm"
-                  disabled={!available}
-                  onClick={() => handleTimeSelect(time)}
-                  className={cn(
-                    "justify-center py-3 font-medium transition-all",
-                    !available && "opacity-50 cursor-not-allowed bg-gray-100",
-                    selectedTime === time && "bg-blue-600 text-white shadow-md",
-                    available && selectedTime !== time && "hover:bg-blue-50 hover:border-blue-300"
-                  )}
-                >
-                  <Clock className="w-3 h-3 mr-1" />
-                  {time}
-                  {!available && (
-                    <span className="ml-1 text-xs text-red-500">Busy</span>
-                  )}
-                </Button>
-                ))}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-dental-primary flex items-center">
+                  <Clock className="w-5 h-5 mr-2" />
+                  Available Time Slots
+                </h3>
+                <div className="grid grid-cols-2 gap-3">
+                  {availableTimes.map(({ time, available }) => (
+                    <Button
+                      key={time}
+                      variant={selectedTime === time ? "default" : "outline"}
+                      size="lg"
+                      disabled={!available}
+                      onClick={() => handleTimeSelect(time)}
+                      className={cn(
+                        "py-4 px-6 font-semibold transition-all duration-300 rounded-xl",
+                        !available && "opacity-40 cursor-not-allowed bg-muted",
+                        selectedTime === time && "bg-dental-primary text-dental-primary-foreground shadow-elegant scale-105",
+                        available && selectedTime !== time && "hover:bg-dental-primary/10 hover:border-dental-primary hover:text-dental-primary hover:scale-105"
+                      )}
+                    >
+                      <div className="flex items-center justify-center space-x-2">
+                        <Clock className="w-4 h-4" />
+                        <span>{time}</span>
+                        {selectedTime === time && <CheckCircle className="w-4 h-4" />}
+                      </div>
+                      {!available && (
+                        <div className="text-xs text-destructive mt-1">Unavailable</div>
+                      )}
+                    </Button>
+                  ))}
+                </div>
               </div>
             )}
 
             {selectedTime && (
-              <Button 
-                onClick={handleConfirm}
-                className="w-full mt-4 bg-green-600 hover:bg-green-700 text-white font-medium py-3 shadow-md"
-              >
-                ✓ Confirm appointment
-              </Button>
+              <div className="pt-4">
+                <Button 
+                  onClick={handleConfirm}
+                  className="w-full bg-gradient-primary text-white font-bold py-4 shadow-elegant hover:shadow-glow transition-all duration-300 rounded-xl text-lg"
+                >
+                  <CheckCircle className="w-5 h-5 mr-2" />
+                  Confirm Appointment
+                </Button>
+              </div>
             )}
           </div>
         )}
       </CardContent>
-    </Card>
+    </AnimatedCard>
   );
 };

@@ -51,10 +51,18 @@ const Index = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-        <div className="text-center">
-          <Activity className="h-12 w-12 text-blue-600 animate-pulse mx-auto mb-4" />
-          <p className="text-muted-foreground">Chargement...</p>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-card">
+        <div className="text-center space-y-6">
+          <div className="relative">
+            <div className="animate-spin rounded-full h-16 w-16 border-4 border-dental-primary/30 border-t-dental-primary mx-auto"></div>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <Activity className="w-8 h-8 text-dental-primary animate-pulse" />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <p className="text-xl font-semibold text-foreground">Initializing SmileCare AI</p>
+            <p className="text-muted-foreground">Preparing your personalized dental experience...</p>
+          </div>
         </div>
       </div>
     );
@@ -62,20 +70,29 @@ const Index = () => {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-        <div className="container mx-auto px-4 py-8">
-          <div className="text-center mb-8">
-            <div className="flex items-center justify-center mb-4">
-              <Activity className="h-12 w-12 text-blue-600 mr-3" />
-              <h1 className="text-4xl font-bold text-gray-900">DentiBot</h1>
+      <div className="min-h-screen bg-gradient-card">
+        <div className="container mx-auto px-4 py-12">
+          <div className="text-center mb-12 space-y-6">
+            <div className="flex items-center justify-center mb-6">
+              <div className="relative">
+                <div className="bg-gradient-primary p-4 rounded-2xl shadow-glow">
+                  <Activity className="h-16 w-16 text-white" />
+                </div>
+                <div className="absolute -top-2 -right-2 w-6 h-6 bg-dental-secondary rounded-full animate-pulse"></div>
+              </div>
             </div>
-            <p className="text-xl text-gray-600 mb-6">
-              Votre assistant dentaire intelligent 24/7
-            </p>
-            <p className="text-gray-500 max-w-2xl mx-auto">
-              Prenez rendez-vous, évaluez l'urgence de votre situation et recevez des conseils personnalisés 
-              grâce à notre chatbot spécialisé en soins dentaires.
-            </p>
+            <div className="space-y-4">
+              <h1 className="text-5xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+                SmileCare AI
+              </h1>
+              <p className="text-2xl text-dental-primary font-semibold">
+                Your Intelligent Dental Assistant 24/7
+              </p>
+              <p className="text-dental-muted-foreground max-w-3xl mx-auto text-lg leading-relaxed">
+                Book appointments, assess the urgency of your situation, and receive personalized advice 
+                with our specialized dental care chatbot powered by advanced AI technology.
+              </p>
+            </div>
           </div>
           <AuthForm />
         </div>
@@ -84,15 +101,25 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <header className="bg-white shadow-sm border-b">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center">
-            <Activity className="h-8 w-8 text-blue-600 mr-3" />
-            <h1 className="text-2xl font-bold text-gray-900">DentiBot</h1>
-          </div>
+    <div className="min-h-screen bg-gradient-card">
+      <header className="bg-card/80 backdrop-blur-lg shadow-card border-b border-border/50 sticky top-0 z-50">
+        <div className="container mx-auto px-4 py-6 flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <div className="flex items-center text-sm text-gray-600">
+            <div className="relative">
+              <div className="bg-gradient-primary p-3 rounded-xl shadow-glow">
+                <Activity className="h-8 w-8 text-white" />
+              </div>
+              <div className="absolute -top-1 -right-1 w-4 h-4 bg-dental-secondary rounded-full animate-pulse"></div>
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+                SmileCare AI
+              </h1>
+              <p className="text-dental-muted-foreground font-medium">Intelligent Dental Assistant</p>
+            </div>
+          </div>
+          <div className="flex items-center space-x-6">
+            <div className="flex items-center text-sm text-dental-primary font-medium">
               <UserIcon className="h-4 w-4 mr-2" />
               {user.email}
             </div>
@@ -100,10 +127,10 @@ const Index = () => {
               variant="outline" 
               size="sm" 
               onClick={handleSignOut}
-              className="flex items-center"
+              className="flex items-center bg-muted hover:bg-dental-primary/10 border-dental-primary/20 text-dental-primary hover:text-dental-primary transition-all duration-300"
             >
               <LogOut className="h-4 w-4 mr-2" />
-              Déconnexion
+              Sign Out
             </Button>
           </div>
         </div>

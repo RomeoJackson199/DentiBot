@@ -61,7 +61,27 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				dental: {
+					primary: 'hsl(var(--dental-primary))',
+					'primary-foreground': 'hsl(var(--dental-primary-foreground))',
+					secondary: 'hsl(var(--dental-secondary))',
+					'secondary-foreground': 'hsl(var(--dental-secondary-foreground))',
+					accent: 'hsl(var(--dental-accent))',
+					'accent-foreground': 'hsl(var(--dental-accent-foreground))',
+					muted: 'hsl(var(--dental-muted))',
+					'muted-foreground': 'hsl(var(--dental-muted-foreground))'
 				}
+			},
+			backgroundImage: {
+				'gradient-primary': 'var(--gradient-primary)',
+				'gradient-card': 'var(--gradient-card)',
+				'gradient-accent': 'var(--gradient-accent)'
+			},
+			boxShadow: {
+				'elegant': 'var(--shadow-elegant)',
+				'glow': 'var(--shadow-glow)',
+				'card': 'var(--shadow-card)'
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
