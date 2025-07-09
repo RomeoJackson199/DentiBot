@@ -40,30 +40,31 @@ export const ChatCalendar = ({
       const { data, error } = await supabase.functions.invoke('google-calendar-integration', {
         body: {
           action: 'getAvailability',
-          date: date.toISOString(),
+          date: date.toISOString().split('T')[0], // Send date in YYYY-MM-DD format
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase function error:', error);
+        throw error;
+      }
 
       const availableSlots = data.availability || [];
+      console.log('Received available slots:', availableSlots);
+      
       const timeSlots = availableSlots.map((time: string) => ({
         time,
         available: true,
       }));
 
       setAvailableTimes(timeSlots);
+      
+      if (timeSlots.length === 0) {
+        console.warn('No available time slots found for date:', date);
+      }
     } catch (error) {
       console.error('Failed to fetch availability:', error);
-      // Fallback to some default times if API fails
-      setAvailableTimes([
-        { time: "09:00", available: true },
-        { time: "10:00", available: true },
-        { time: "11:00", available: true },
-        { time: "14:00", available: true },
-        { time: "15:00", available: true },
-        { time: "16:00", available: true },
-      ]);
+      throw error; // Don't fall back to demo data - let the user know there's an issue
     } finally {
       setLoadingTimes(false);
     }

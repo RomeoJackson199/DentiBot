@@ -32,18 +32,42 @@ export const AppointmentBooking = ({ user, onComplete, onCancel }: AppointmentBo
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [selectedTime, setSelectedTime] = useState("");
   const [reason, setReason] = useState("");
+  const [availableTimes, setAvailableTimes] = useState<string[]>([]);
+  const [loadingTimes, setLoadingTimes] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-
-  const availableTimes = [
-    "08:00", "08:30", "09:00", "09:30", "10:00", "10:30",
-    "11:00", "11:30", "14:00", "14:30", "15:00", "15:30",
-    "16:00", "16:30", "17:00", "17:30"
-  ];
 
   useEffect(() => {
     fetchDentists();
   }, []);
+
+  const fetchAvailability = async (date: Date) => {
+    setLoadingTimes(true);
+    setSelectedTime(""); // Reset selected time when date changes
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('google-calendar-integration', {
+        body: {
+          action: 'getAvailability',
+          date: date.toISOString().split('T')[0],
+        },
+      });
+
+      if (error) throw error;
+
+      setAvailableTimes(data.availability || []);
+    } catch (error) {
+      console.error('Failed to fetch availability:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de charger les créneaux disponibles",
+        variant: "destructive",
+      });
+      setAvailableTimes([]);
+    } finally {
+      setLoadingTimes(false);
+    }
+  };
 
   const fetchDentists = async () => {
     try {
@@ -177,7 +201,12 @@ export const AppointmentBooking = ({ user, onComplete, onCancel }: AppointmentBo
           <Calendar
             mode="single"
             selected={selectedDate}
-            onSelect={setSelectedDate}
+            onSelect={(date) => {
+              setSelectedDate(date);
+              if (date) {
+                fetchAvailability(date);
+              }
+            }}
             disabled={isDateDisabled}
             className="rounded-md border mt-2"
           />
@@ -186,21 +215,33 @@ export const AppointmentBooking = ({ user, onComplete, onCancel }: AppointmentBo
         {selectedDate && (
           <div>
             <Label>Sélectionnez une heure :</Label>
-            <Select value={selectedTime} onValueChange={setSelectedTime}>
-              <SelectTrigger className="mt-2">
-                <SelectValue placeholder="Choisir un créneau" />
-              </SelectTrigger>
-              <SelectContent>
-                {availableTimes.map((time) => (
-                  <SelectItem key={time} value={time}>
-                    <div className="flex items-center">
-                      <Clock className="h-4 w-4 mr-2" />
-                      {time}
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {loadingTimes ? (
+              <div className="mt-2 py-4 text-center text-muted-foreground">
+                Chargement des créneaux disponibles...
+              </div>
+            ) : (
+              <Select value={selectedTime} onValueChange={setSelectedTime}>
+                <SelectTrigger className="mt-2">
+                  <SelectValue placeholder={availableTimes.length > 0 ? "Choisir un créneau" : "Aucun créneau disponible"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableTimes.length > 0 ? (
+                    availableTimes.map((time) => (
+                      <SelectItem key={time} value={time}>
+                        <div className="flex items-center">
+                          <Clock className="h-4 w-4 mr-2" />
+                          {time}
+                        </div>
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="" disabled>
+                      Aucun créneau disponible pour cette date
+                    </SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
+            )}
           </div>
         )}
 
