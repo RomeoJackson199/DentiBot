@@ -3,8 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { User, Session } from "@supabase/supabase-js";
 import { DentalChatbot } from "@/components/DentalChatbot";
 import { AuthForm } from "@/components/AuthForm";
+import { AppointmentsList } from "@/components/AppointmentsList";
 import { useToast } from "@/hooks/use-toast";
-import { Activity, User as UserIcon, LogOut } from "lucide-react";
+import { Activity, User as UserIcon, LogOut, MessageSquare, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LanguageSettings } from "@/components/LanguageSettings";
 import { useLanguage } from "@/hooks/useLanguage";
@@ -14,6 +15,7 @@ const Index = () => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<'chat' | 'appointments'>('chat');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -141,7 +143,44 @@ const Index = () => {
       </header>
 
       <main className="container mx-auto px-4 py-4 sm:py-8">
-        <DentalChatbot user={user} />
+        {/* Tab Navigation */}
+        <div className="flex justify-center mb-6">
+          <div className="bg-card/80 backdrop-blur-lg rounded-xl p-2 shadow-card border border-border/50">
+            <div className="flex space-x-2">
+              <Button
+                variant={activeTab === 'chat' ? 'default' : 'ghost'}
+                onClick={() => setActiveTab('chat')}
+                className={`flex items-center space-x-2 transition-all duration-300 ${
+                  activeTab === 'chat' 
+                    ? 'bg-gradient-primary text-white shadow-elegant' 
+                    : 'text-dental-muted-foreground hover:text-dental-primary hover:bg-dental-primary/10'
+                }`}
+              >
+                <MessageSquare className="h-4 w-4" />
+                <span>Chat Assistant</span>
+              </Button>
+              <Button
+                variant={activeTab === 'appointments' ? 'default' : 'ghost'}
+                onClick={() => setActiveTab('appointments')}
+                className={`flex items-center space-x-2 transition-all duration-300 ${
+                  activeTab === 'appointments' 
+                    ? 'bg-gradient-primary text-white shadow-elegant' 
+                    : 'text-dental-muted-foreground hover:text-dental-primary hover:bg-dental-primary/10'
+                }`}
+              >
+                <Calendar className="h-4 w-4" />
+                <span>Mes Rendez-vous</span>
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Content */}
+        {activeTab === 'chat' ? (
+          <DentalChatbot user={user} />
+        ) : (
+          <AppointmentsList user={user} />
+        )}
       </main>
     </div>
   );
