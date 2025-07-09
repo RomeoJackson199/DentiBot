@@ -23,8 +23,8 @@ export const QuickPhotoUpload = ({ onPhotoUploaded, onCancel }: QuickPhotoUpload
     // Validate file type
     if (!file.type.startsWith('image/')) {
       toast({
-        title: "Erreur",
-        description: "Veuillez sélectionner un fichier image",
+        title: "Error",
+        description: "Please select an image file",
         variant: "destructive",
       });
       return;
@@ -33,8 +33,8 @@ export const QuickPhotoUpload = ({ onPhotoUploaded, onCancel }: QuickPhotoUpload
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       toast({
-        title: "Erreur",
-        description: "L'image doit faire moins de 5MB",
+        title: "Error",
+        description: "Image must be less than 5MB",
         variant: "destructive",
       });
       return;
@@ -66,8 +66,8 @@ export const QuickPhotoUpload = ({ onPhotoUploaded, onCancel }: QuickPhotoUpload
         .getPublicUrl(fileName);
 
       toast({
-        title: "Photo téléchargée",
-        description: "Votre photo a été ajoutée avec succès",
+        title: "Photo uploaded",
+        description: "Your photo has been added successfully",
       });
 
       onPhotoUploaded(publicUrl);
@@ -75,8 +75,8 @@ export const QuickPhotoUpload = ({ onPhotoUploaded, onCancel }: QuickPhotoUpload
     } catch (error) {
       console.error('Error uploading photo:', error);
       toast({
-        title: "Erreur",
-        description: "Impossible de télécharger la photo",
+        title: "Error",
+        description: "Unable to upload photo",
         variant: "destructive",
       });
     } finally {
@@ -90,10 +90,10 @@ export const QuickPhotoUpload = ({ onPhotoUploaded, onCancel }: QuickPhotoUpload
         <div className="space-y-4">
           <div className="text-center">
             <h3 className="font-semibold text-gray-900 mb-1">
-              Ajouter une photo
+              Add a photo
             </h3>
             <p className="text-sm text-gray-600">
-              Photo de la zone concernée
+              Photo of the affected area
             </p>
           </div>
 
@@ -101,7 +101,7 @@ export const QuickPhotoUpload = ({ onPhotoUploaded, onCancel }: QuickPhotoUpload
             <div className="relative">
               <img 
                 src={preview} 
-                alt="Aperçu" 
+                alt="Preview" 
                 className="w-full h-32 object-cover rounded-lg border"
               />
               <Button
@@ -123,10 +123,10 @@ export const QuickPhotoUpload = ({ onPhotoUploaded, onCancel }: QuickPhotoUpload
               variant="outline"
             >
               <Upload className="w-4 h-4 mr-2" />
-              {isUploading ? "Upload..." : "Choisir photo"}
+              {isUploading ? "Uploading..." : "Choose photo"}
             </Button>
             <Button variant="ghost" onClick={onCancel}>
-              Annuler
+              Cancel
             </Button>
           </div>
 

@@ -42,7 +42,7 @@ export const DentalChatbot = ({ user }: DentalChatbotProps) => {
     const welcomeMessage: ChatMessage = {
       id: crypto.randomUUID(),
       session_id: sessionId,
-      message: "Bonjour ! Je suis DentiBot. Comment puis-je vous aider aujourd'hui ? 🦷",
+      message: "Hello! I'm DentiBot. How can I help you today? 🦷",
       is_bot: true,
       message_type: "text",
       created_at: new Date().toISOString(),
@@ -104,7 +104,7 @@ export const DentalChatbot = ({ user }: DentalChatbotProps) => {
 
       if (error) throw error;
 
-      const response = data.response || "Je suis désolé, je n'ai pas pu traiter votre demande.";
+      const response = data.response || "I'm sorry, I couldn't process your request.";
       const suggestions = data.suggestions || [];
       const urgencyDetected = data.urgency_detected || false;
       const aiRecommendedDentist = data.recommended_dentist || null;
@@ -121,8 +121,8 @@ export const DentalChatbot = ({ user }: DentalChatbotProps) => {
       // Show urgency warning if detected
       if (urgencyDetected) {
         toast({
-          title: "Situation urgente détectée",
-          description: "Je recommande un rendez-vous rapidement.",
+          title: "Urgent situation detected",
+          description: "I recommend an appointment quickly.",
           variant: "destructive",
         });
       }
@@ -148,18 +148,18 @@ export const DentalChatbot = ({ user }: DentalChatbotProps) => {
       const lowerMessage = userMessage.toLowerCase();
       let response = "";
 
-      if (lowerMessage.includes("rendez-vous") || lowerMessage.includes("rdv") || 
-          lowerMessage.includes("douleur") || lowerMessage.includes("mal") || 
-          lowerMessage.includes("problème") || lowerMessage.includes("souci")) {
-        response = "Quel problème exactement ?";
+      if (lowerMessage.includes("appointment") || lowerMessage.includes("booking") || 
+          lowerMessage.includes("pain") || lowerMessage.includes("hurt") || 
+          lowerMessage.includes("problem") || lowerMessage.includes("issue")) {
+        response = "What's the exact problem?";
         setTimeout(() => setCurrentFlow('dentist-selection'), 1000);
       } else {
-        response = `Que puis-je faire pour vous ?
+        response = `What can I do for you?
 
-🗓️ Prendre un rendez-vous
-❓ Répondre à vos questions
+🗓️ Book an appointment
+❓ Answer your questions
 
-Tapez votre demande...`;
+Type your request...`;
       }
 
       return {
@@ -241,16 +241,16 @@ Tapez votre demande...`;
 
       if (error) throw error;
 
-      addSystemMessage(`📧 Résumé envoyé au dentiste (Patient ID: ${data.patientId})`, 'success');
+      addSystemMessage(`📧 Summary sent to dentist (Patient ID: ${data.patientId})`, 'success');
       
       toast({
-        title: "Email envoyé",
-        description: `Votre résumé a été envoyé au dentiste avec l'ID patient: ${data.patientId}`,
+        title: "Email sent",
+        description: `Your summary has been sent to the dentist with Patient ID: ${data.patientId}`,
       });
 
     } catch (error) {
       console.error('Error sending email:', error);
-      addSystemMessage("❌ Erreur lors de l'envoi de l'email", 'warning');
+      addSystemMessage("❌ Error sending email", 'warning');
     }
   };
 
@@ -260,9 +260,9 @@ Tapez votre demande...`;
         <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
           <CardTitle className="flex items-center">
             <Bot className="h-6 w-6 mr-2" />
-            DentiBot - Assistant Dentaire
+            DentiBot - Dental Assistant
             <Badge variant="secondary" className="ml-auto">
-              En ligne
+              Online
             </Badge>
           </CardTitle>
         </CardHeader>
@@ -323,7 +323,7 @@ Tapez votre demande...`;
               <DentistSelection 
                 onSelectDentist={(dentist) => {
                   setSelectedDentist(dentist);
-                  addSystemMessage(`Dentiste sélectionné : Dr ${dentist.profiles.first_name} ${dentist.profiles.last_name}`, 'success');
+                  addSystemMessage(`Dentist selected: Dr ${dentist.profiles.first_name} ${dentist.profiles.last_name}`, 'success');
                   setCurrentFlow('calendar');
                 }}
                 selectedDentistId={selectedDentist?.id}
@@ -337,11 +337,11 @@ Tapez votre demande...`;
               <ChatCalendar 
                 onDateSelect={(date) => {
                   setSelectedDate(date);
-                  addSystemMessage(`Date sélectionnée : ${date.toLocaleDateString('fr-FR')}`, 'info');
+                  addSystemMessage(`Date selected: ${date.toLocaleDateString('en-US')}`, 'info');
                 }}
                 onTimeSelect={(time) => {
                   setSelectedTime(time);
-                  addSystemMessage(`Heure sélectionnée : ${time}`, 'info');
+                  addSystemMessage(`Time selected: ${time}`, 'info');
                 }}
                 selectedDate={selectedDate}
                 selectedTime={selectedTime}
@@ -371,13 +371,13 @@ Tapez votre demande...`;
                         });
 
                       const appointmentData = {
-                        date: selectedDate.toLocaleDateString('fr-FR'),
+                        date: selectedDate.toLocaleDateString('en-US'),
                         time: selectedTime,
                         dentist: `Dr ${selectedDentist.profiles.first_name} ${selectedDentist.profiles.last_name}`,
                         reason: "Consultation via DentiBot"
                       };
 
-                      addSystemMessage("✅ Rendez-vous confirmé ! Vous recevrez un rappel 24h avant.", 'success');
+                      addSystemMessage("✅ Appointment confirmed! You'll receive a reminder 24 hours before.", 'success');
                       sendEmailSummary(appointmentData);
                       setCurrentFlow('chat');
                       
@@ -387,7 +387,7 @@ Tapez votre demande...`;
                       setSelectedTime(undefined);
                     } catch (error) {
                       console.error("Error creating appointment:", error);
-                      addSystemMessage("❌ Erreur lors de la création du rendez-vous", 'warning');
+                      addSystemMessage("❌ Error creating appointment", 'warning');
                     }
                   }
                 }}
@@ -400,7 +400,7 @@ Tapez votre demande...`;
               <AppointmentBooking 
                 user={user}
                 onComplete={(appointmentData) => {
-                  addSystemMessage("Rendez-vous confirmé ! Vous recevrez un rappel 24h avant.", 'success');
+                  addSystemMessage("Appointment confirmed! You'll receive a reminder 24 hours before.", 'success');
                   sendEmailSummary(appointmentData);
                   setCurrentFlow('chat');
                 }}
@@ -414,7 +414,7 @@ Tapez votre demande...`;
               <QuickPhotoUpload 
                 onPhotoUploaded={(url) => {
                   setLastPhotoUrl(url);
-                  addSystemMessage("📸 Photo ajoutée avec succès", 'success');
+                  addSystemMessage("📸 Photo added successfully", 'success');
                   setCurrentFlow('chat');
                 }}
                 onCancel={() => setCurrentFlow('chat')}
@@ -427,7 +427,7 @@ Tapez votre demande...`;
               <PhotoUpload 
                 onComplete={(url) => {
                   setLastPhotoUrl(url);
-                  addSystemMessage("Photo téléchargée avec succès. Elle sera transmise au dentiste.", 'success');
+                  addSystemMessage("Photo uploaded successfully. It will be sent to the dentist.", 'success');
                   setCurrentFlow('chat');
                 }}
                 onCancel={() => setCurrentFlow('chat')}
@@ -442,7 +442,7 @@ Tapez votre demande...`;
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder="Tapez votre message..."
+                placeholder="Type your message..."
                 disabled={isLoading}
                 className="flex-1"
               />

@@ -18,36 +18,36 @@ serve(async (req) => {
 
     console.log('Received request:', { message, user_profile });
 
-    const systemPrompt = `Tu es DentiBot, un assistant dentaire virtuel francophone. 
+    const systemPrompt = `You are DentiBot, a French-speaking dental virtual assistant. 
 
-INSTRUCTIONS IMPORTANTES:
-- TRÈS COURT si pas grave (1 phrase max)
-- Plus de détails SEULEMENT si urgence/grave
-- Demande rapidement: "Quel problème?" puis direct au dentiste
-- RECOMMANDE des dentistes spécifiques selon le problème
-- Si une photo est mentionnée, dis juste "Photo reçue, elle sera envoyée au dentiste"
-- NE PAS analyser ou décrire les photos
-- Réponds en français familier
+IMPORTANT INSTRUCTIONS:
+- VERY SHORT if not serious (1 sentence max)
+- More details ONLY if urgent/serious
+- Ask quickly: "What problem?" then directly to dentist
+- RECOMMEND specific dentists according to the problem
+- If a photo is mentioned, just say "Photo received, it will be sent to the dentist"
+- DO NOT analyze or describe photos
+- Respond in casual English
 
-RECOMMANDATIONS DENTISTES selon problème:
-- Douleur/urgence → "Marie Dubois" (généraliste)
-- Orthodontie/appareil → "Pierre Martin" (orthodontie) 
-- Chirurgie/extraction → "Sophie Leroy" (chirurgie)
-- Canal/infection → "Thomas Bernard" (endodontie)
-- Gencives → "Isabelle Moreau" (parodontologie)
-- Implant → "Jean-Luc Petit" (implantologie)
+DENTIST RECOMMENDATIONS by problem:
+- Pain/emergency → "Marie Dubois" (general)
+- Orthodontics/braces → "Pierre Martin" (orthodontics) 
+- Surgery/extraction → "Sophie Leroy" (surgery)
+- Root canal/infection → "Thomas Bernard" (endodontics)
+- Gums → "Isabelle Moreau" (periodontics)
+- Implant → "Jean-Luc Petit" (implantology)
 
-EXEMPLES RÉPONSES COURTES:
-"Mal de dent? Dr Marie Dubois parfait pour ça."
-"Appareil? Dr Pierre Martin spécialiste."
-"Photo reçue, Dr Sophie Leroy verra ça."
+EXAMPLES OF SHORT RESPONSES:
+"Tooth pain? Dr Marie Dubois perfect for that."
+"Braces? Dr Pierre Martin specialist."
+"Photo received, Dr Sophie Leroy will see that."
 
-FLOW: Problème → Recommandation dentiste → Choix
+FLOW: Problem → Dentist recommendation → Choice
 
-Contexte patient: ${JSON.stringify(user_profile)}
-Historique: ${conversation_history.map((msg: any) => `${msg.is_bot ? 'Bot' : 'Patient'}: ${msg.message}`).join('\n')}
+Patient context: ${JSON.stringify(user_profile)}
+History: ${conversation_history.map((msg: any) => `${msg.is_bot ? 'Bot' : 'Patient'}: ${msg.message}`).join('\n')}
 
-Sois BREF et RECOMMANDE le bon dentiste.`;
+Be BRIEF and RECOMMEND the right dentist.`;
 
     const messages = [
       { role: 'system', content: systemPrompt },
@@ -101,13 +101,13 @@ Sois BREF et RECOMMANDE le bon dentiste.`;
     else if (lowerResponse.includes('jean-luc petit')) recommendedDentist = 'Jean-Luc Petit';
     
     // Suggest booking after recommendation
-    if (recommendedDentist || lowerResponse.includes('dentiste') || 
-        lowerResponse.includes('rendez-vous') || lowerResponse.includes('rdv')) {
+    if (recommendedDentist || lowerResponse.includes('dentist') || 
+        lowerResponse.includes('appointment') || lowerResponse.includes('booking')) {
       suggestions.push('booking');
     }
     
     // Detect urgency indicators
-    const urgencyKeywords = ['urgent', 'rapidement', 'vite', 'maintenant', 'aujourd\'hui'];
+    const urgencyKeywords = ['urgent', 'quickly', 'fast', 'now', 'today', 'emergency'];
     const urgency_detected = urgencyKeywords.some(keyword => lowerResponse.includes(keyword));
 
     return new Response(JSON.stringify({ 
@@ -122,8 +122,8 @@ Sois BREF et RECOMMANDE le bon dentiste.`;
   } catch (error) {
     console.error('Error in dental-ai-chat function:', error);
     return new Response(JSON.stringify({ 
-      error: 'Une erreur est survenue. Veuillez réessayer.',
-      fallback_response: "Je suis désolé, je rencontre un problème technique. Pour une urgence dentaire, n'hésitez pas à contacter directement le cabinet ou les urgences."
+      error: 'An error occurred. Please try again.',
+      fallback_response: "I'm sorry, I'm experiencing a technical issue. For a dental emergency, please contact the office directly or emergency services."
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

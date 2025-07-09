@@ -36,67 +36,67 @@ export const DentistSelection = ({ onSelectDentist, selectedDentistId, recommend
       {
         id: '1',
         profile_id: '1',
-        specialization: 'Dentisterie générale',
+        specialization: 'General Dentistry',
         is_active: true,
         profiles: {
           first_name: 'Marie',
           last_name: 'Dubois',
-          email: 'marie.dubois@dentaire.fr'
+          email: 'marie.dubois@dental.com'
         }
       },
       {
         id: '2',
         profile_id: '2',
-        specialization: 'Orthodontie',
+        specialization: 'Orthodontics',
         is_active: true,
         profiles: {
           first_name: 'Pierre',
           last_name: 'Martin',
-          email: 'pierre.martin@dentaire.fr'
+          email: 'pierre.martin@dental.com'
         }
       },
       {
         id: '3',
         profile_id: '3',
-        specialization: 'Chirurgie dentaire',
+        specialization: 'Oral Surgery',
         is_active: true,
         profiles: {
           first_name: 'Sophie',
           last_name: 'Leroy',
-          email: 'sophie.leroy@dentaire.fr'
+          email: 'sophie.leroy@dental.com'
         }
       },
       {
         id: '4',
         profile_id: '4',
-        specialization: 'Endodontie',
+        specialization: 'Endodontics',
         is_active: true,
         profiles: {
           first_name: 'Thomas',
           last_name: 'Bernard',
-          email: 'thomas.bernard@dentaire.fr'
+          email: 'thomas.bernard@dental.com'
         }
       },
       {
         id: '5',
         profile_id: '5',
-        specialization: 'Parodontologie',
+        specialization: 'Periodontics',
         is_active: true,
         profiles: {
           first_name: 'Isabelle',
           last_name: 'Moreau',
-          email: 'isabelle.moreau@dentaire.fr'
+          email: 'isabelle.moreau@dental.com'
         }
       },
       {
         id: '6',
         profile_id: '6',
-        specialization: 'Implantologie',
+        specialization: 'Implantology',
         is_active: true,
         profiles: {
           first_name: 'Jean-Luc',
           last_name: 'Petit',
-          email: 'jeanluc.petit@dentaire.fr'
+          email: 'jeanluc.petit@dental.com'
         }
       }
     ];
@@ -111,13 +111,13 @@ export const DentistSelection = ({ onSelectDentist, selectedDentistId, recommend
 
   const getSpecializationColor = (specialization: string | null) => {
     switch (specialization?.toLowerCase()) {
-      case 'orthodontie':
+      case 'orthodontics':
         return 'bg-blue-100 text-blue-800';
-      case 'chirurgie':
+      case 'oral surgery':
         return 'bg-red-100 text-red-800';
-      case 'endodontie':
+      case 'endodontics':
         return 'bg-green-100 text-green-800';
-      case 'parodontologie':
+      case 'periodontics':
         return 'bg-purple-100 text-purple-800';
       default:
         return 'bg-gray-100 text-gray-800';
@@ -151,14 +151,14 @@ export const DentistSelection = ({ onSelectDentist, selectedDentistId, recommend
 
   return (
     <div className="space-y-4">
-      <div className="text-center">
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">
-          Choisissez votre dentiste
-        </h3>
-        <p className="text-sm text-gray-600">
-          Sélectionnez le dentiste avec qui vous souhaitez prendre rendez-vous
-        </p>
-      </div>
+        <div className="text-center">
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            Choose your dentist
+          </h3>
+          <p className="text-sm text-gray-600">
+            Select the dentist you'd like to book an appointment with
+          </p>
+        </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {dentists.map((dentist) => {
@@ -206,7 +206,7 @@ export const DentistSelection = ({ onSelectDentist, selectedDentistId, recommend
                     </h4>
                     {recommended && (
                       <Badge variant="default" className="bg-green-500 text-white text-xs">
-                        Recommandé
+                        Recommended
                       </Badge>
                     )}
                   </div>
@@ -215,7 +215,7 @@ export const DentistSelection = ({ onSelectDentist, selectedDentistId, recommend
                     variant="secondary" 
                     className={`mt-1 ${getSpecializationColor(dentist.specialization)}`}
                   >
-                    {dentist.specialization || 'Dentiste généraliste'}
+                    {dentist.specialization || 'General Dentist'}
                   </Badge>
 
                   <div className="flex items-center mt-3 space-x-4 text-sm text-gray-600">
@@ -225,21 +225,21 @@ export const DentistSelection = ({ onSelectDentist, selectedDentistId, recommend
                     </div>
                     <div className="flex items-center">
                       <Clock className="w-4 h-4 mr-1" />
-                      <span>Dispo aujourd'hui</span>
+                      <span>Available today</span>
                     </div>
                   </div>
 
                   <div className="flex items-center mt-2 text-sm text-gray-500">
                     <MapPin className="w-4 h-4 mr-1" />
-                    <span>Cabinet dentaire du centre</span>
+                    <span>Downtown Dental Office</span>
                   </div>
                 </div>
               </div>
 
               <div className="mt-4 pt-4 border-t border-gray-100">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Prochaine disponibilité</span>
-                  <span className="text-sm font-medium text-green-600">Aujourd'hui 14h30</span>
+                  <span className="text-sm text-gray-600">Next availability</span>
+                  <span className="text-sm font-medium text-green-600">Today 2:30 PM</span>
                 </div>
               </div>
             </CardContent>

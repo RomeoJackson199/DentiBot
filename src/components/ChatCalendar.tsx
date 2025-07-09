@@ -70,12 +70,12 @@ export const ChatCalendar = ({
       <CardHeader className="pb-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-t-lg">
         <CardTitle className="flex items-center text-lg">
           <CalendarDays className="h-5 w-5 mr-2" />
-          {step === 'date' ? 'Choisissez une date' : 'Choisissez un créneau'}
+          {step === 'date' ? 'Choose a date' : 'Choose a time slot'}
         </CardTitle>
         {selectedDate && (
           <div className="flex items-center space-x-2 mt-2">
             <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
-              {selectedDate.toLocaleDateString('fr-FR', { 
+              {selectedDate.toLocaleDateString('en-US', { 
                 weekday: 'long', 
                 day: 'numeric',
                 month: 'long'
@@ -128,7 +128,7 @@ export const ChatCalendar = ({
               onClick={() => setStep('date')}
               className="mb-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50"
             >
-              ← Changer la date
+              ← Change date
             </Button>
             
             <div className="grid grid-cols-2 gap-2">
@@ -149,7 +149,7 @@ export const ChatCalendar = ({
                   <Clock className="w-3 h-3 mr-1" />
                   {time}
                   {!available && (
-                    <span className="ml-1 text-xs text-red-500">Occupé</span>
+                    <span className="ml-1 text-xs text-red-500">Busy</span>
                   )}
                 </Button>
               ))}
@@ -160,7 +160,7 @@ export const ChatCalendar = ({
                 onClick={handleConfirm}
                 className="w-full mt-4 bg-green-600 hover:bg-green-700 text-white font-medium py-3 shadow-md"
               >
-                ✓ Confirmer le rendez-vous
+                ✓ Confirm appointment
               </Button>
             )}
           </div>
