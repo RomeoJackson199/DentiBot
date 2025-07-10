@@ -130,6 +130,17 @@ export const AppointmentsList = ({ user }: AppointmentsListProps) => {
 
   const cancelAppointment = async (appointmentId: string) => {
     try {
+      // First release the appointment slot
+      const { error: slotError } = await supabase.rpc('release_appointment_slot', {
+        p_appointment_id: appointmentId
+      });
+
+      if (slotError) {
+        console.error("Error releasing slot:", slotError);
+        // Continue with cancellation even if slot release fails
+      }
+
+      // Cancel the appointment
       const { data, error } = await supabase.rpc('cancel_appointment', {
         appointment_id: appointmentId,
         user_id: user.id

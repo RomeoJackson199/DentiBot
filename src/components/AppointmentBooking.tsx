@@ -42,37 +42,45 @@ export const AppointmentBooking = ({ user, onComplete, onCancel }: AppointmentBo
   }, []);
 
   const fetchAvailability = async (date: Date) => {
+    if (!selectedDentist) return;
+    
     setLoadingTimes(true);
     setSelectedTime(""); // Reset selected time when date changes
     
     try {
       console.log('Fetching availability for:', date.toISOString().split('T')[0]);
       
-      // For now, just use fallback times since OAuth flow needs to be implemented properly
-      const fallbackTimes = ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"];
-      setAvailableTimes(fallbackTimes);
-      
-      console.log('Using fallback times due to OAuth requirement');
-      
-      toast({
-        title: "Créneaux par défaut",
-        description: "Utilisation des créneaux horaires standards. Connectez Google Calendar pour voir la disponibilité en temps réel.",
-        variant: "default",
+      // First, generate slots for the selected date and dentist
+      await supabase.rpc('generate_daily_slots', {
+        p_dentist_id: selectedDentist,
+        p_date: date.toISOString().split('T')[0]
       });
+
+      // Then fetch available slots
+      const { data: slots, error } = await supabase
+        .from('appointment_slots')
+        .select('slot_time')
+        .eq('dentist_id', selectedDentist)
+        .eq('slot_date', date.toISOString().split('T')[0])
+        .eq('is_available', true)
+        .order('slot_time');
+
+      if (error) throw error;
+
+      const availableSlots = slots?.map(slot => 
+        slot.slot_time.substring(0, 5) // Format HH:MM
+      ) || [];
+      
+      setAvailableTimes(availableSlots);
       
     } catch (error) {
       console.error('Failed to fetch availability:', error);
-      
-      // Only show fallback message if we haven't shown a specific error already
-      if (!error.message?.includes('Google Calendar API') && !error.message?.includes('PERMISSION_DENIED')) {
-        toast({
-          title: "Information",
-          description: "Utilisation des créneaux par défaut",
-        });
-      }
-      
-      // Provide fallback times
-      setAvailableTimes(["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"]);
+      toast({
+        title: "Erreur",
+        description: "Impossible de charger les créneaux disponibles",
+        variant: "destructive",
+      });
+      setAvailableTimes([]);
     } finally {
       setLoadingTimes(false);
     }
@@ -132,7 +140,7 @@ export const AppointmentBooking = ({ user, onComplete, onCancel }: AppointmentBo
       const [hours, minutes] = selectedTime.split(":");
       appointmentDateTime.setHours(parseInt(hours), parseInt(minutes));
 
-      const { error: appointmentError } = await supabase
+      const { data: appointmentData, error: appointmentError } = await supabase
         .from("appointments")
         .insert({
           patient_id: profile.id,
@@ -141,9 +149,25 @@ export const AppointmentBooking = ({ user, onComplete, onCancel }: AppointmentBo
           reason: reason || "Consultation générale",
           status: "pending",
           urgency: "medium"
-        });
+        })
+        .select()
+        .single();
 
       if (appointmentError) throw appointmentError;
+
+      // Book the slot
+      const { error: slotError } = await supabase.rpc('book_appointment_slot', {
+        p_dentist_id: selectedDentist,
+        p_slot_date: selectedDate.toISOString().split('T')[0],
+        p_slot_time: selectedTime + ':00', // Add seconds for TIME format
+        p_appointment_id: appointmentData.id
+      });
+
+      if (slotError) {
+        // If slot booking fails, delete the appointment
+        await supabase.from("appointments").delete().eq("id", appointmentData.id);
+        throw new Error("Ce créneau n'est plus disponible");
+      }
 
       toast({
         title: "Rendez-vous confirmé !",
