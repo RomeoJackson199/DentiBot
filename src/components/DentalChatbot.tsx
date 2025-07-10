@@ -21,9 +21,10 @@ interface DentalChatbotProps {
   user: User;
   triggerBooking?: boolean;
   onBookingTriggered?: () => void;
+  onScrollToDentists?: () => void;
 }
 
-export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered }: DentalChatbotProps) => {
+export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScrollToDentists }: DentalChatbotProps) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -43,6 +44,7 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered }: Dent
   const [emergencyDetected, setEmergencyDetected] = useState(false);
   const [urgencyLevel, setUrgencyLevel] = useState<string>("medium");
   const [consultationReason, setConsultationReason] = useState<string>("");
+  const [scrollToDentists, setScrollToDentists] = useState<(() => void) | null>(null);
   
   // Voice recording states
   const [isRecording, setIsRecording] = useState(false);
@@ -163,6 +165,10 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered }: Dent
       if (aiRecommendedDentist) {
         // Handle both string and array formats for recommended dentists
         setRecommendedDentist(Array.isArray(aiRecommendedDentist) ? aiRecommendedDentist : [aiRecommendedDentist]);
+        // Scroll to dentists section when recommendation is made
+        setTimeout(() => {
+          onScrollToDentists?.();
+        }, 2000);
       }
 
       // Extract consultation reason from AI response
@@ -191,6 +197,10 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered }: Dent
           };
           setMessages(prev => [...prev, questionMessage]);
         }, 1000);
+        // Scroll to dentists section when recommendation is requested
+        setTimeout(() => {
+          onScrollToDentists?.();
+        }, 2000);
       }
 
       // Handle patient selection from chat response

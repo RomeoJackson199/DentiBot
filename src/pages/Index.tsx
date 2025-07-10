@@ -23,6 +23,16 @@ const Index = () => {
   const [showLanguageSelection, setShowLanguageSelection] = useState(false);
   const { toast } = useToast();
 
+  // Function to scroll to dentists section
+  const scrollToDentists = () => {
+    // Since we don't have a dentists section on this page, 
+    // we'll scroll to the bottom where booking typically happens
+    window.scrollTo({ 
+      top: document.body.scrollHeight, 
+      behavior: 'smooth' 
+    });
+  };
+
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -260,11 +270,14 @@ const Index = () => {
         {/* Content */}
         <div className="animate-fade-in space-y-6">          
           {activeTab === 'chat' ? (
-            <DentalChatbot 
-              user={user} 
-              triggerBooking={triggerBooking} 
-              onBookingTriggered={() => setTriggerBooking(false)} 
-            />
+            <div className="max-h-[60vh] overflow-hidden">
+              <DentalChatbot 
+                user={user} 
+                triggerBooking={triggerBooking} 
+                onBookingTriggered={() => setTriggerBooking(false)}
+                onScrollToDentists={scrollToDentists}
+              />
+            </div>
           ) : (
             <AppointmentsList user={user} />
           )}
