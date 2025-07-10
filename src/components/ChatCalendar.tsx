@@ -29,69 +29,7 @@ export const ChatCalendar = ({
   const [step, setStep] = useState<'date' | 'time'>('date');
   const [availableTimes, setAvailableTimes] = useState<{ time: string; available: boolean; emergency?: boolean }[]>([]);
   const [loadingTimes, setLoadingTimes] = useState(false);
-  const [oauthTokens, setOauthTokens] = useState<any>(null);
-  const [isAuthorizing, setIsAuthorizing] = useState(false);
 
-  // Check for OAuth callback on component mount
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const authCode = urlParams.get('code');
-    
-    if (authCode && !oauthTokens) {
-      exchangeAuthCode(authCode);
-      // Clean up URL
-      window.history.replaceState({}, document.title, window.location.pathname);
-    }
-  }, [oauthTokens]);
-
-  const initiateOAuthFlow = async () => {
-    setIsAuthorizing(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('google-calendar-integration', {
-        body: { action: 'getAuthUrl' }
-      });
-
-      if (error) {
-        throw error;
-      }
-
-      if (data?.authUrl) {
-        // Store current page state before redirect and set proper return URL
-        sessionStorage.setItem('calendarOAuthReturn', window.location.href);
-        // Ensure we return to the main page after OAuth
-        const returnUrl = `${window.location.origin}/`;
-        const authUrlWithReturn = `${data.authUrl}&state=${encodeURIComponent(returnUrl)}`;
-        window.location.href = authUrlWithReturn;
-      }
-    } catch (error) {
-      console.error('Failed to initiate OAuth flow:', error);
-      toast.error('Failed to start Google Calendar authorization');
-      setIsAuthorizing(false);
-    }
-  };
-
-  const exchangeAuthCode = async (authCode: string) => {
-    try {
-      const { data, error } = await supabase.functions.invoke('google-calendar-integration', {
-        body: { 
-          action: 'exchangeToken', 
-          authCode 
-        }
-      });
-
-      if (error) {
-        throw error;
-      }
-
-      if (data?.tokens) {
-        setOauthTokens(data.tokens);
-        toast.success('Google Calendar connected successfully!');
-      }
-    } catch (error) {
-      console.error('Failed to exchange auth code:', error);
-      toast.error('Failed to connect Google Calendar');
-    }
-  };
 
   const isDateDisabled = (date: Date) => {
     const today = new Date();
@@ -163,44 +101,39 @@ export const ChatCalendar = ({
         setAvailableTimes(timeSlots);
         console.log('Using filtered database slots:', timeSlots);
       } else {
-        console.log('No available database slots found, checking Google Calendar...');
+        console.log('No available database slots found');
         
-        // Fallback to Google Calendar if available
-        if (oauthTokens) {
-          const { data, error: calendarError } = await supabase.functions.invoke('google-calendar-integration', {
-            body: {
-              action: 'getAvailability',
-              date: date.toISOString().split('T')[0],
-              tokens: oauthTokens
-            },
-          });
-
-          if (!calendarError && data?.availability) {
-            const timeSlots = data.availability.map((time: string) => ({
-              time,
-              available: true,
-            }));
-            setAvailableTimes(timeSlots);
-          } else {
-            throw new Error('No calendar data available');
-          }
-        } else {
-          throw new Error('No slots or calendar connection');
+        // Provide fallback times when no database slots are available
+        const fallbackTimes = [
+          { time: "09:00", available: true, emergency: false },
+          { time: "09:30", available: true, emergency: false },
+          { time: "10:00", available: true, emergency: false },
+          { time: "10:30", available: true, emergency: false },
+          { time: "11:00", available: true, emergency: false },
+        ];
+        
+        // Add emergency slots if this is an emergency case
+        if (isEmergency) {
+          fallbackTimes.push(
+            { time: "11:30", available: true, emergency: true },
+            { time: "12:00", available: true, emergency: true },
+            { time: "14:00", available: true, emergency: true },
+            { time: "14:30", available: true, emergency: true },
+            { time: "15:00", available: true, emergency: true },
+            { time: "15:30", available: true, emergency: true },
+            { time: "16:00", available: true, emergency: true }
+          );
         }
+        
+        setAvailableTimes(fallbackTimes);
       }
       
     } catch (error) {
       console.error('Failed to fetch availability:', error);
       
-      const errorMessage = error instanceof Error ? error.message : 'Failed to load available times';
+      toast.error('Failed to load available times from database');
       
-      if (!oauthTokens) {
-        toast.error('Using default time slots. Connect Google Calendar for real-time availability.');
-      } else {
-        toast.error(errorMessage);
-      }
-      
-      // Provide fallback times when API fails
+      // Provide fallback times when database fails
       const fallbackTimes = [
         { time: "09:00", available: true, emergency: false },
         { time: "09:30", available: true, emergency: false },
@@ -283,41 +216,6 @@ export const ChatCalendar = ({
       <CardContent className="p-8">
         {step === 'date' ? (
           <div className="space-y-6">
-            {!oauthTokens && (
-              <div className="bg-gradient-to-r from-dental-accent/10 to-dental-primary/5 border border-dental-accent/20 rounded-xl p-6 mb-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-4">
-                    <div className="p-3 bg-dental-accent/20 rounded-lg">
-                      <LinkIcon className="w-6 h-6 text-dental-accent" />
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-lg text-dental-primary">Connect Google Calendar</h4>
-                      <p className="text-dental-muted-foreground mt-1">
-                        Sync with your dentist's real-time availability for accurate scheduling
-                      </p>
-                    </div>
-                  </div>
-                  <Button 
-                    onClick={initiateOAuthFlow}
-                    disabled={isAuthorizing}
-                    className="bg-dental-accent hover:bg-dental-accent/90 text-white font-semibold px-6 py-3 rounded-xl shadow-elegant hover:shadow-glow transition-all duration-300"
-                  >
-                    {isAuthorizing ? (
-                      <>
-                        <Sparkles className="w-5 h-5 mr-2 animate-spin" />
-                        Connecting...
-                      </>
-                    ) : (
-                      <>
-                        <LinkIcon className="w-5 h-5 mr-2" />
-                        Connect Now
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </div>
-            )}
-            
             <div className="text-center mb-6">
               <p className="text-dental-muted-foreground text-lg">
                 Select your preferred appointment date
@@ -325,6 +223,11 @@ export const ChatCalendar = ({
               <p className="text-sm text-dental-muted-foreground/70 mt-2">
                 • Weekend appointments are not available
                 • Dates in the past are disabled
+                {isEmergency && (
+                  <>
+                    <br />• Emergency case: Priority slots (11:30+ AM) available
+                  </>
+                )}
               </p>
             </div>
             
