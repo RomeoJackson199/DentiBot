@@ -34,7 +34,7 @@ export const AppointmentBooking = ({ user, onComplete, onCancel }: AppointmentBo
   const [selectedTime, setSelectedTime] = useState("");
   const [reason, setReason] = useState("");
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
-  const [allSlots, setAllSlots] = useState<{slot_time: string, is_available: boolean}[]>([]);
+  const [allSlots, setAllSlots] = useState<{slot_time: string, is_available: boolean, emergency_only: boolean}[]>([]);
   const [loadingTimes, setLoadingTimes] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -61,7 +61,7 @@ export const AppointmentBooking = ({ user, onComplete, onCancel }: AppointmentBo
       // Then fetch all slots to show availability status
       const { data: allSlots, error } = await supabase
         .from('appointment_slots')
-        .select('slot_time, is_available')
+        .select('slot_time, is_available, emergency_only')
         .eq('dentist_id', selectedDentist)
         .eq('slot_date', date.toISOString().split('T')[0])
         .order('slot_time');
@@ -298,55 +298,70 @@ export const AppointmentBooking = ({ user, onComplete, onCancel }: AppointmentBo
                 Chargement des créneaux disponibles...
               </div>
             ) : (
-              <div className="space-y-4">
-                <Select value={selectedTime} onValueChange={setSelectedTime}>
-                  <SelectTrigger className="mt-2">
-                    <SelectValue placeholder={availableTimes.length > 0 ? "Choisir un créneau" : "Aucun créneau disponible"} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableTimes.length > 0 ? (
-                      availableTimes.map((time) => (
-                        <SelectItem key={time} value={time}>
-                          <div className="flex items-center">
-                            <Clock className="h-4 w-4 mr-2 text-green-500" />
-                            {time} - Disponible
-                          </div>
-                        </SelectItem>
-                      ))
-                    ) : (
-                      <SelectItem value="" disabled>
-                        Aucun créneau disponible pour cette date
-                      </SelectItem>
-                    )}
-                  </SelectContent>
-                </Select>
-                
+              <div className="space-y-6">
+                {/* Clean Time Slots Grid like in the image */}
                 {allSlots.length > 0 && (
-                  <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                    <h4 className="text-sm font-semibold mb-3 text-gray-800">État des créneaux pour cette date:</h4>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
-                      {allSlots.map((slot) => (
-                        <div
+                  <div className="space-y-4">
+                    <div className="text-center space-y-2">
+                      <div className="flex items-center justify-center text-blue-500">
+                        <Clock className="h-6 w-6 mr-2" />
+                        <h3 className="text-xl font-semibold">Available Time Slots</h3>
+                      </div>
+                      <p className="text-gray-600">Choose the time that works best for you</p>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-3 max-w-2xl mx-auto">
+                      {allSlots
+                        .filter(slot => slot.is_available && !slot.emergency_only) // Only show available non-emergency slots
+                        .map((slot) => (
+                        <button
                           key={slot.slot_time}
-                          className={`p-3 rounded-lg text-sm text-center border-2 transition-all duration-200 ${
-                            slot.is_available
-                              ? 'bg-green-100 border-green-300 text-green-800 hover:bg-green-200'
-                              : 'bg-red-100 border-red-300 text-red-800'
+                          onClick={() => setSelectedTime(slot.slot_time.substring(0, 5))}
+                          className={`p-4 rounded-xl border-2 transition-all duration-200 flex items-center justify-center space-x-3 ${
+                            selectedTime === slot.slot_time.substring(0, 5)
+                              ? 'bg-blue-50 border-blue-300 text-blue-700'
+                              : 'bg-white border-gray-200 text-gray-700 hover:border-blue-200 hover:bg-blue-50'
                           }`}
                         >
-                          <div className="font-bold text-base">
+                          <Clock className="h-5 w-5" />
+                          <span className="text-lg font-semibold">
                             {slot.slot_time.substring(0, 5)}
-                          </div>
-                          <div className="text-xs font-medium mt-1">
-                            {slot.is_available ? '✅ LIBRE' : '❌ OCCUPÉ'}
-                          </div>
-                        </div>
+                          </span>
+                        </button>
                       ))}
                     </div>
-                    <div className="mt-3 text-xs text-gray-600">
-                      Total créneaux: {allSlots.length} | Disponibles: {allSlots.filter(s => s.is_available).length} | Occupés: {allSlots.filter(s => !s.is_available).length}
+                    
+                    {/* Status Summary */}
+                    <div className="text-center text-sm text-gray-500">
+                      Available slots: {allSlots.filter(s => s.is_available && !s.emergency_only).length} | 
+                      Booked: {allSlots.filter(s => !s.is_available).length}
                     </div>
                   </div>
+                )}
+                
+                {/* Fallback dropdown if no slots loaded */}
+                {allSlots.length === 0 && (
+                  <Select value={selectedTime} onValueChange={setSelectedTime}>
+                    <SelectTrigger className="mt-2">
+                      <SelectValue placeholder="Choisir un créneau" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white border z-50">
+                      {availableTimes.length > 0 ? (
+                        availableTimes.map((time) => (
+                          <SelectItem key={time} value={time}>
+                            <div className="flex items-center">
+                              <Clock className="h-4 w-4 mr-2 text-green-500" />
+                              {time} - Disponible
+                            </div>
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <SelectItem value="" disabled>
+                          Aucun créneau disponible pour cette date
+                        </SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
                 )}
               </div>
             )}
