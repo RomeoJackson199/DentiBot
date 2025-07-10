@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { Send, Bot, User as UserIcon, Calendar, Camera, Mail, ImageIcon } from "lucide-react";
+import { Send, Bot, User as UserIcon, Calendar, Camera, Mail, ImageIcon, Mic, Square } from "lucide-react";
 import { ChatMessage } from "@/types/chat";
 import { AppointmentBooking } from "@/components/AppointmentBooking";
 import { PhotoUpload } from "@/components/PhotoUpload";
@@ -42,6 +42,12 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered }: Dent
   const [isEmergency, setIsEmergency] = useState(false);
   const [emergencyDetected, setEmergencyDetected] = useState(false);
   const [urgencyLevel, setUrgencyLevel] = useState<string>("medium");
+  
+  // Voice recording states
+  const [isRecording, setIsRecording] = useState(false);
+  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
+  const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
+  
   const { toast } = useToast();
   const { t } = useLanguage();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -235,6 +241,142 @@ Type your request...`;
     }
   };
 
+  // Voice recording functions
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: {
+          sampleRate: 44100,
+          channelCount: 1,
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true
+        } 
+      });
+      
+      const recorder = new MediaRecorder(stream, {
+        mimeType: 'audio/webm;codecs=opus'
+      });
+      
+      const chunks: Blob[] = [];
+      
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          chunks.push(event.data);
+        }
+      };
+      
+      recorder.onstop = async () => {
+        const audioBlob = new Blob(chunks, { type: 'audio/webm' });
+        await processVoiceMessage(audioBlob);
+        
+        // Stop all tracks
+        stream.getTracks().forEach(track => track.stop());
+      };
+      
+      setMediaRecorder(recorder);
+      setAudioChunks(chunks);
+      recorder.start();
+      setIsRecording(true);
+      
+      toast({
+        title: "🎤 Enregistrement en cours",
+        description: "Parlez maintenant...",
+      });
+      
+    } catch (error) {
+      console.error('Error starting recording:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible d'accéder au microphone",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorder && isRecording) {
+      mediaRecorder.stop();
+      setIsRecording(false);
+      setMediaRecorder(null);
+    }
+  };
+
+  const processVoiceMessage = async (audioBlob: Blob) => {
+    try {
+      setIsLoading(true);
+      
+      // Convert audio to base64
+      const arrayBuffer = await audioBlob.arrayBuffer();
+      const base64Audio = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+      
+      // Send to voice-to-text edge function
+      const { data, error } = await supabase.functions.invoke('voice-to-text', {
+        body: { audio: base64Audio }
+      });
+      
+      if (error) throw error;
+      
+      const transcribedText = data.text;
+      
+      if (transcribedText && transcribedText.trim()) {
+        // Create user message with transcribed text
+        const userMessage: ChatMessage = {
+          id: crypto.randomUUID(),
+          session_id: sessionId,
+          message: transcribedText,
+          is_bot: false,
+          message_type: "voice",
+          created_at: new Date().toISOString(),
+        };
+
+        setMessages(prev => [...prev, userMessage]);
+        await saveMessage(userMessage);
+
+        // Generate bot response
+        setTimeout(async () => {
+          const botResponse = await generateBotResponse(transcribedText);
+          setMessages(prev => [...prev, botResponse]);
+          await saveMessage(botResponse);
+          setIsLoading(false);
+        }, 1000);
+        
+        toast({
+          title: "✅ Message vocal reçu",
+          description: `"${transcribedText}"`,
+        });
+      } else {
+        toast({
+          title: "Aucun texte détecté",
+          description: "Veuillez réessayer",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+      }
+      
+    } catch (error) {
+      console.error('Error processing voice message:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de traiter le message vocal",
+        variant: "destructive",
+      });
+      setIsLoading(false);
+    }
+  };
+
+  const handleVoiceOrSend = () => {
+    if (inputMessage.trim()) {
+      handleSendMessage();
+    } else {
+      if (isRecording) {
+        stopRecording();
+      } else {
+        startRecording();
+      }
+    }
+  };
+
   const addSystemMessage = (message: string, type: 'success' | 'info' | 'warning' = 'info') => {
     const systemMessage: ChatMessage = {
       id: crypto.randomUUID(),
@@ -372,11 +514,23 @@ Type your request...`;
                 <ImageIcon className="h-4 w-4" />
               </Button>
               <Button 
-                onClick={handleSendMessage} 
-                disabled={isLoading || !inputMessage.trim()}
-                className="shrink-0 bg-gradient-primary hover:shadow-glow text-white px-4 sm:px-6 rounded-xl transition-all duration-300 hover:scale-105 h-10 sm:h-11"
+                onClick={handleVoiceOrSend}
+                disabled={isLoading}
+                className={`shrink-0 hover:shadow-glow text-white px-4 sm:px-6 rounded-xl transition-all duration-300 hover:scale-105 h-10 sm:h-11 ${
+                  inputMessage.trim() 
+                    ? 'bg-gradient-primary' 
+                    : isRecording 
+                      ? 'bg-red-500 hover:bg-red-600 animate-pulse' 
+                      : 'bg-gradient-secondary'
+                }`}
               >
-                <Send className="h-4 w-4" />
+                {inputMessage.trim() ? (
+                  <Send className="h-4 w-4" />
+                ) : isRecording ? (
+                  <Square className="h-4 w-4" />
+                ) : (
+                  <Mic className="h-4 w-4" />
+                )}
               </Button>
             </div>
             
