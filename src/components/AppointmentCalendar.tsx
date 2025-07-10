@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SimpleCalendar } from "@/components/SimpleCalendar";
 import { DentistSelection } from "@/components/DentistSelection";
 import { PatientSelection } from "@/components/PatientSelection";
@@ -15,19 +16,30 @@ interface AppointmentCalendarProps {
   user: User;
   onComplete: (appointmentData?: any) => void;
   onCancel: () => void;
+  onBackToDentist?: () => void;
 }
 
-export const AppointmentCalendar = ({ user, onComplete, onCancel }: AppointmentCalendarProps) => {
-  const [step, setStep] = useState<'patient' | 'dentist' | 'datetime' | 'details'>('patient');
+export const AppointmentCalendar = ({ user, onComplete, onCancel, onBackToDentist }: AppointmentCalendarProps) => {
+  const [step, setStep] = useState<'patient' | 'dentist' | 'datetime' | 'details'>('datetime'); // Start directly at datetime
   const [selectedDentist, setSelectedDentist] = useState<any>(null);
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [selectedTime, setSelectedTime] = useState("");
   const [reason, setReason] = useState("");
+  const [reasonType, setReasonType] = useState<'checkup' | 'custom'>('checkup');
   const [isForUser, setIsForUser] = useState(true);
   const [patientInfo, setPatientInfo] = useState<any>(null);
   const [isEmergency, setIsEmergency] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+
+  // Set default reason based on type
+  useEffect(() => {
+    if (reasonType === 'checkup') {
+      setReason('Contrôle de routine');
+    } else {
+      setReason('');
+    }
+  }, [reasonType]);
 
   const handleDateTimeSelect = (date: Date, time: string) => {
     setSelectedDate(date);
@@ -140,13 +152,27 @@ export const AppointmentCalendar = ({ user, onComplete, onCancel }: AppointmentC
         );
 
       case 'datetime':
-        return selectedDentist ? (
-          <SimpleCalendar
-            selectedDentist={selectedDentist.id}
-            onDateTimeSelect={handleDateTimeSelect}
-            isEmergency={isEmergency}
-          />
-        ) : null;
+        return (
+          <div className="space-y-4">
+            {/* Back Button */}
+            <Button
+              variant="outline"
+              onClick={onBackToDentist}
+              className="flex items-center gap-2 mb-4"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Retour à la sélection du dentiste
+            </Button>
+            
+            {selectedDentist ? (
+              <SimpleCalendar
+                selectedDentist={selectedDentist.id}
+                onDateTimeSelect={handleDateTimeSelect}
+                isEmergency={isEmergency}
+              />
+            ) : null}
+          </div>
+        );
 
       case 'details':
         return (
@@ -154,16 +180,28 @@ export const AppointmentCalendar = ({ user, onComplete, onCancel }: AppointmentC
             <CardHeader>
               <CardTitle>Détails du rendez-vous</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
+              {/* Reason Selection */}
               <div className="space-y-3">
-                <Label htmlFor="reason">Motif de consultation (optionnel)</Label>
-                <Textarea
-                  id="reason"
-                  placeholder="Ex: Douleur dentaire, nettoyage, contrôle de routine..."
-                  value={reason}
-                  onChange={(e) => setReason(e.target.value)}
-                  className="min-h-[100px]"
-                />
+                <Label>Motif de consultation</Label>
+                <Select value={reasonType} onValueChange={(value: 'checkup' | 'custom') => setReasonType(value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choisissez le motif" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="checkup">Contrôle de routine</SelectItem>
+                    <SelectItem value="custom">Autre (personnalisé)</SelectItem>
+                  </SelectContent>
+                </Select>
+                
+                {reasonType === 'custom' && (
+                  <Textarea
+                    placeholder="Ex: Douleur dentaire, nettoyage, urgence..."
+                    value={reason}
+                    onChange={(e) => setReason(e.target.value)}
+                    className="min-h-[80px]"
+                  />
+                )}
               </div>
 
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
@@ -173,7 +211,7 @@ export const AppointmentCalendar = ({ user, onComplete, onCancel }: AppointmentC
                   <p><strong>Dentiste:</strong> Dr {selectedDentist?.profiles.first_name} {selectedDentist?.profiles.last_name}</p>
                   <p><strong>Date:</strong> {selectedDate?.toLocaleDateString('fr-FR')}</p>
                   <p><strong>Heure:</strong> {selectedTime}</p>
-                  <p><strong>Motif:</strong> {reason || "Consultation générale"}</p>
+                  <p><strong>Motif:</strong> {reason || "Contrôle de routine"}</p>
                 </div>
               </div>
             </CardContent>
@@ -215,41 +253,47 @@ export const AppointmentCalendar = ({ user, onComplete, onCancel }: AppointmentC
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <div className="max-w-4xl mx-auto">
-        {/* Progress Indicator */}
-        <div className="mb-8">
-          <div className="flex items-center justify-center space-x-4">
-            {['patient', 'dentist', 'datetime', 'details'].map((stepName, index) => (
-              <div key={stepName} className="flex items-center">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                  step === stepName 
-                    ? 'bg-blue-600 text-white' 
-                    : index < ['patient', 'dentist', 'datetime', 'details'].indexOf(step)
-                      ? 'bg-green-500 text-white'
-                      : 'bg-gray-200 text-gray-500'
-                }`}>
-                  {index < ['patient', 'dentist', 'datetime', 'details'].indexOf(step) ? (
-                    <CheckCircle className="h-4 w-4" />
-                  ) : (
-                    index + 1
-                  )}
+      <div className="max-w-7xl mx-auto">
+        {/* Progress Indicator - Skip for datetime step */}
+        {step !== 'datetime' && (
+          <div className="mb-8">
+            <div className="flex items-center justify-center space-x-4">
+              {['patient', 'dentist', 'datetime', 'details'].map((stepName, index) => (
+                <div key={stepName} className="flex items-center">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                    step === stepName 
+                      ? 'bg-blue-600 text-white' 
+                      : index < ['patient', 'dentist', 'datetime', 'details'].indexOf(step)
+                        ? 'bg-green-500 text-white'
+                        : 'bg-gray-200 text-gray-500'
+                  }`}>
+                    {index < ['patient', 'dentist', 'datetime', 'details'].indexOf(step) ? (
+                      <CheckCircle className="h-4 w-4" />
+                    ) : (
+                      index + 1
+                    )}
+                  </div>
+                  {index < 3 && <div className="w-8 h-0.5 bg-gray-200 mx-2" />}
                 </div>
-                {index < 3 && <div className="w-8 h-0.5 bg-gray-200 mx-2" />}
-              </div>
-            ))}
+              ))}
+            </div>
+            <div className="text-center mt-2 text-sm text-gray-600">
+              Étape {['patient', 'dentist', 'datetime', 'details'].indexOf(step) + 1}/4: {
+                step === 'details' ? 'Détails' : 
+                step === 'patient' ? 'Patient' : 
+                'Dentiste'
+              }
+            </div>
           </div>
-          <div className="text-center mt-2 text-sm text-gray-600 capitalize">
-            Étape {['patient', 'dentist', 'datetime', 'details'].indexOf(step) + 1}/4: {step === 'datetime' ? 'Date & Heure' : step}
-          </div>
-        </div>
+        )}
 
         {/* Step Content */}
         <div className="mb-8">
           {renderStepContent()}
         </div>
 
-        {/* Navigation Buttons */}
-        {step !== 'patient' && step !== 'dentist' && (
+        {/* Navigation Buttons - Hide for datetime step since it has its own back button */}
+        {step !== 'patient' && step !== 'dentist' && step !== 'datetime' && (
           <div className="flex justify-between max-w-2xl mx-auto">
             <Button
               variant="outline"
