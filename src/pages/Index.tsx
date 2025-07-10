@@ -5,12 +5,11 @@ import { DentalChatbot } from "@/components/DentalChatbot";
 import { AuthForm } from "@/components/AuthForm";
 import { OnboardingPopup } from "@/components/OnboardingPopup";
 import { AppointmentsList } from "@/components/AppointmentsList";
+import { Settings } from "@/components/Settings";
 import { useToast } from "@/hooks/use-toast";
-import { Activity, User as UserIcon, LogOut, MessageSquare, Calendar, Plus } from "lucide-react";
+import { Activity, MessageSquare, Calendar, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { LanguageSettings } from "@/components/LanguageSettings";
 import { useLanguage } from "@/hooks/useLanguage";
-import { ThemeToggle } from "@/components/ThemeToggle";
 
 const Index = () => {
   const { t } = useLanguage();
@@ -58,21 +57,6 @@ const Index = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const handleSignOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      toast({
-        title: "Error",
-        description: "Error during sign out",
-        variant: "destructive",
-      });
-    } else {
-      toast({
-        title: t.signOut,
-        description: "You have been signed out successfully",
-      });
-    }
-  };
 
   const handleOnboardingClose = () => {
     setShowOnboarding(false);
@@ -197,22 +181,8 @@ const Index = () => {
               <p className="text-dental-muted-foreground font-medium text-sm">Intelligent Dental Assistant</p>
             </div>
           </div>
-          <div className="flex items-center space-x-2 sm:space-x-4">
-            <div className="hidden md:flex items-center text-sm text-dental-primary font-medium floating-card px-3 py-1.5 rounded-full">
-              <UserIcon className="h-4 w-4 mr-2" />
-              <span className="max-w-[120px] sm:max-w-none truncate">{user.email}</span>
-            </div>
-            <ThemeToggle />
-            <LanguageSettings />
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={handleSignOut}
-              className="glass-card border-dental-primary/30 text-dental-primary hover:bg-dental-primary/10 hover:border-dental-primary/50 transition-all duration-300"
-            >
-              <LogOut className="h-4 w-4 sm:mr-2" />
-              <span className="hidden sm:inline">{t.signOut}</span>
-            </Button>
+          <div className="flex items-center">
+            <Settings user={user} />
           </div>
         </div>
       </header>
