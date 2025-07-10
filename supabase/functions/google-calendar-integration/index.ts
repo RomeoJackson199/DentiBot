@@ -228,36 +228,21 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     let requestData: CalendarRequest;
 
-    // Handle different request methods
-    if (req.method === 'POST') {
-      try {
-        const contentType = req.headers.get('content-type');
-        console.log('Content-Type:', contentType);
-        
-        if (contentType?.includes('application/json')) {
-          requestData = await req.json();
-        } else {
-          const body = await req.text();
-          console.log('Raw request body:', body);
-          
-          if (body) {
-            requestData = JSON.parse(body);
-          } else {
-            throw new Error('Empty request body');
-          }
-        }
-      } catch (parseError) {
-        console.error('JSON parse error:', parseError);
-        const body = await req.text();
-        console.error('Failed to parse body:', body);
-        return new Response(JSON.stringify({ error: 'Invalid JSON in request body', details: parseError.message }), {
-          status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-    } else {
-      return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-        status: 405,
+    try {
+      // Supabase function invoke sends the body directly as JSON
+      requestData = await req.json();
+      console.log('Received request data:', requestData);
+    } catch (parseError) {
+      console.error('JSON parse error:', parseError);
+      console.error('Request method:', req.method);
+      console.error('Request headers:', Object.fromEntries(req.headers.entries()));
+      
+      return new Response(JSON.stringify({ 
+        error: 'Invalid JSON in request body', 
+        details: parseError.message,
+        method: req.method 
+      }), {
+        status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
