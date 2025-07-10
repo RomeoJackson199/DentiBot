@@ -6,7 +6,6 @@ import { AuthForm } from "@/components/AuthForm";
 import { OnboardingPopup } from "@/components/OnboardingPopup";
 import { AppointmentsList } from "@/components/AppointmentsList";
 import { Settings } from "@/components/Settings";
-import GoogleCalendarAuth from "@/components/GoogleCalendarAuth";
 import { useToast } from "@/hooks/use-toast";
 import { Activity, MessageSquare, Calendar, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -244,12 +243,7 @@ const Index = () => {
         </div>
 
         {/* Content */}
-        <div className="animate-fade-in space-y-6">
-          {/* Google Calendar Integration - Always visible */}
-          <div className="max-w-md mx-auto">
-            <GoogleCalendarAuth />
-          </div>
-          
+        <div className="animate-fade-in space-y-6">          
           {activeTab === 'chat' ? (
             <DentalChatbot 
               user={user} 

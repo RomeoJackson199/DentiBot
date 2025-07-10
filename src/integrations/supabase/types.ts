@@ -196,6 +196,8 @@ export type Database = {
       dentists: {
         Row: {
           created_at: string
+          google_calendar_connected: boolean | null
+          google_calendar_tokens: Json | null
           id: string
           is_active: boolean | null
           license_number: string | null
@@ -205,6 +207,8 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          google_calendar_connected?: boolean | null
+          google_calendar_tokens?: Json | null
           id?: string
           is_active?: boolean | null
           license_number?: string | null
@@ -214,6 +218,8 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          google_calendar_connected?: boolean | null
+          google_calendar_tokens?: Json | null
           id?: string
           is_active?: boolean | null
           license_number?: string | null

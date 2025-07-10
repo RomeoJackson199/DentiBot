@@ -9,7 +9,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { CalendarDays, Clock, User as UserIcon } from "lucide-react";
-import GoogleCalendarAuth from "@/components/GoogleCalendarAuth";
+import DentistGoogleCalendarAuth from "@/components/DentistGoogleCalendarAuth";
 
 interface AppointmentBookingProps {
   user: User;
@@ -188,32 +188,36 @@ export const AppointmentBooking = ({ user, onComplete, onCancel }: AppointmentBo
 
         console.log('Creating Google Calendar event:', eventDetails);
 
-        // Get stored Google Calendar tokens
-        const getTokens = (window as any).getGoogleCalendarTokens;
-        const googleTokens = getTokens ? getTokens() : null;
+        // Get dentist's Google Calendar tokens from database
+        const { data: dentistData, error: dentistError } = await supabase
+          .from('dentists')
+          .select('google_calendar_tokens, google_calendar_connected')
+          .eq('id', selectedDentist)
+          .single();
 
-        if (googleTokens) {
-          // Call the Google Calendar integration with actual tokens
+        if (dentistError) {
+          console.warn('Could not fetch dentist calendar data:', dentistError);
+        } else if (dentistData?.google_calendar_connected && dentistData?.google_calendar_tokens) {
+          // Call the Google Calendar integration with dentist's tokens
           const { data: calendarResult, error: calendarError } = await supabase.functions.invoke('google-calendar-integration', {
             body: {
               action: 'createEvent',
               eventDetails: eventDetails,
-              tokens: googleTokens
+              tokens: dentistData.google_calendar_tokens
             }
           });
 
           if (calendarError) {
             console.warn('Google Calendar integration failed:', calendarError);
-            // Don't fail the appointment booking if calendar creation fails
           } else {
-            console.log('Google Calendar event created:', calendarResult);
+            console.log('Google Calendar event created in dentist calendar:', calendarResult);
             toast({
-              title: "Événement Google Calendar créé !",
-              description: "Le rendez-vous a été ajouté à votre calendrier Google.",
+              title: "Événement ajouté au calendrier du dentiste !",
+              description: "Le rendez-vous a été ajouté au calendrier Google du dentiste.",
             });
           }
         } else {
-          console.log('No Google Calendar tokens available - skipping calendar event creation');
+          console.log('Dentist calendar not connected - skipping calendar event creation');
         }
       } catch (calendarError) {
         console.warn('Could not create Google Calendar event:', calendarError);
@@ -251,7 +255,7 @@ export const AppointmentBooking = ({ user, onComplete, onCancel }: AppointmentBo
 
   return (
     <div className="space-y-6">
-      <GoogleCalendarAuth />
+      <DentistGoogleCalendarAuth dentistId={selectedDentist} />
       
       <Card className="w-full">
         <CardHeader>
