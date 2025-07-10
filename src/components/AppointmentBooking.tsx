@@ -10,6 +10,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { CalendarDays, Clock, User as UserIcon, CheckCircle, XCircle } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface AppointmentBookingProps {
   user: User;
@@ -236,7 +237,7 @@ export const AppointmentBooking = ({ user, onComplete, onCancel }: AppointmentBo
               </Select>
             </div>
 
-            {/* Date Selection */}
+            {/* Date Selection - Make calendar bigger */}
             <div className="space-y-3">
               <Label className="text-base font-semibold text-gray-700">
                 Choisissez une date
@@ -250,7 +251,12 @@ export const AppointmentBooking = ({ user, onComplete, onCancel }: AppointmentBo
                     if (date) fetchAvailability(date);
                   }}
                   disabled={isDateDisabled}
-                  className="rounded-lg border-2 border-gray-200 bg-white shadow-sm"
+                  className={cn(
+                    "rounded-xl border-2 border-gray-200/50 shadow-lg bg-white/90 backdrop-blur-sm p-8 pointer-events-auto",
+                    "[&_table]:w-full [&_td]:h-16 [&_td]:w-16 [&_th]:h-12 [&_th]:text-lg [&_button]:h-14 [&_button]:w-14 [&_button]:text-lg",
+                    "[&_.rdp-months]:text-xl [&_.rdp-caption]:text-xl [&_.rdp-nav_button]:h-10 [&_.rdp-nav_button]:w-10",
+                    selectedDate && "border-blue-300 shadow-blue-100"
+                  )}
                 />
               </div>
             </div>
@@ -343,18 +349,32 @@ export const AppointmentBooking = ({ user, onComplete, onCancel }: AppointmentBo
               </div>
             )}
 
-            {/* Reason */}
+            {/* Reason - Add preset options */}
             <div className="space-y-3">
-              <Label htmlFor="reason" className="text-base font-semibold text-gray-700">
-                Motif de consultation (optionnel)
+              <Label className="text-base font-semibold text-gray-700">
+                Motif de consultation
               </Label>
-              <Textarea
-                id="reason"
-                placeholder="Ex: Douleur dentaire, nettoyage, contrôle de routine..."
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-                className="min-h-[80px] border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 transition-colors"
-              />
+              <Select value={reason} onValueChange={setReason}>
+                <SelectTrigger className="h-12 border-2 border-gray-200 hover:border-blue-300 transition-colors">
+                  <SelectValue placeholder="Sélectionnez le motif" />
+                </SelectTrigger>
+                <SelectContent className="bg-white border-2 shadow-lg">
+                  <SelectItem value="Contrôle de routine">Contrôle de routine</SelectItem>
+                  <SelectItem value="Nettoyage dentaire">Nettoyage dentaire</SelectItem>
+                  <SelectItem value="Douleur dentaire">Douleur dentaire</SelectItem>
+                  <SelectItem value="Urgence dentaire">Urgence dentaire</SelectItem>
+                  <SelectItem value="Consultation esthétique">Consultation esthétique</SelectItem>
+                  <SelectItem value="Autre">Autre (personnalisé)</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              {reason === "Autre" && (
+                <Textarea
+                  placeholder="Décrivez votre motif de consultation..."
+                  className="min-h-[80px] border-2 border-gray-200 hover:border-blue-300 transition-colors"
+                  onChange={(e) => setReason(e.target.value)}
+                />
+              )}
             </div>
 
             {/* Action Buttons */}
