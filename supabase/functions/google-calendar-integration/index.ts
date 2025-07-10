@@ -35,7 +35,7 @@ function getOAuthConfig() {
 // Generate OAuth authorization URL
 function generateAuthUrl(): string {
   const { clientId } = getOAuthConfig();
-  const redirectUri = `${Deno.env.get('SUPABASE_URL')}/functions/v1/google-calendar-integration/callback`;
+  const redirectUri = `${Deno.env.get('SUPABASE_URL')}/functions/v1/google-calendar-integration`;
   
   const params = new URLSearchParams({
     client_id: clientId,
@@ -52,7 +52,7 @@ function generateAuthUrl(): string {
 // Exchange authorization code for tokens
 async function exchangeCodeForTokens(authCode: string): Promise<any> {
   const { clientId, clientSecret } = getOAuthConfig();
-  const redirectUri = `${Deno.env.get('SUPABASE_URL')}/functions/v1/google-calendar-integration/callback`;
+  const redirectUri = `${Deno.env.get('SUPABASE_URL')}/functions/v1/google-calendar-integration`;
   
   const response = await fetch('https://oauth2.googleapis.com/token', {
     method: 'POST',
