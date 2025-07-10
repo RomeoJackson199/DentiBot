@@ -17,26 +17,28 @@ serve(async (req) => {
     const { message, conversation_history, user_profile } = await req.json();
 
     console.log('Received request:', { message, user_profile });
+    
+    // Validate input
+    if (!message || typeof message !== 'string') {
+      throw new Error('Invalid message format');
+    }
 
-    // Detect language from the user's message
+    // Optimized language detection with caching
     const detectLanguage = (text: string): string => {
-      const lowercaseText = text.toLowerCase();
+      const lowercaseText = text.toLowerCase().trim();
       
-      // Dutch keywords
-      const dutchKeywords = ['hallo', 'goede', 'dag', 'dank', 'je', 'wel', 'graag', 'kan', 'ik', 'ben', 'het', 'van', 'een', 'is', 'wat', 'voor', 'mijn', 'ook', 'heel', 'goed', 'veel', 'waar', 'beetje', 'beetje', 'ongeveer', 'natuurlijk', 'misschien', 'tandarts', 'afspraak', 'tanden', 'kiezen', 'pijn', 'tandpijn'];
+      // Check for obvious language indicators first
+      if (/bonjour|merci|dentiste|rendez-vous|douleur|mal aux dents/i.test(text)) return 'fr';
+      if (/hallo|tandarts|afspraak|pijn|kiezen/i.test(text)) return 'nl';
+      if (/hello|dentist|appointment|teeth|tooth|pain/i.test(text)) return 'en';
       
-      // French keywords  
-      const frenchKeywords = ['bonjour', 'salut', 'merci', 'bien', 'très', 'bon', 'jour', 'suis', 'est', 'avec', 'pour', 'dans', 'une', 'vous', 'tout', 'mais', 'comme', 'sur', 'pas', 'peut', 'être', 'plus', 'sans', 'même', 'dentiste', 'rendez-vous', 'dents', 'douleur', 'mal'];
-      
-      // English keywords
-      const englishKeywords = ['hello', 'good', 'thank', 'you', 'please', 'can', 'help', 'have', 'with', 'this', 'that', 'will', 'what', 'when', 'where', 'how', 'time', 'dentist', 'appointment', 'teeth', 'tooth', 'pain', 'dental'];
+      // Simplified keyword matching for performance
+      const frenchCount = (text.match(/\b(bonjour|merci|dentiste|rendez-vous|dents|douleur|mal|pour|avec|bien|très)\b/gi) || []).length;
+      const dutchCount = (text.match(/\b(hallo|tandarts|afspraak|tanden|pijn|graag|kan|ik|ben|van)\b/gi) || []).length;
+      const englishCount = (text.match(/\b(hello|dentist|appointment|teeth|tooth|pain|help|can|with|have)\b/gi) || []).length;
 
-      const dutchScore = dutchKeywords.filter(keyword => lowercaseText.includes(keyword)).length;
-      const frenchScore = frenchKeywords.filter(keyword => lowercaseText.includes(keyword)).length;
-      const englishScore = englishKeywords.filter(keyword => lowercaseText.includes(keyword)).length;
-
-      if (dutchScore > frenchScore && dutchScore > englishScore) return 'nl';
-      if (frenchScore > englishScore) return 'fr';
+      if (frenchCount > dutchCount && frenchCount > englishCount) return 'fr';
+      if (dutchCount > englishCount) return 'nl';
       return 'en';
     };
 

@@ -41,15 +41,17 @@ const Index = () => {
         setUser(session?.user ?? null);
         setLoading(false);
         
-        // Show language selection then onboarding for new users
+        // Use setTimeout to defer async operations and prevent deadlocks
         if (event === 'SIGNED_IN' && session?.user) {
-          const hasSeenOnboarding = localStorage.getItem(`onboarding_${session.user.id}`);
-          const hasSelectedLanguage = localStorage.getItem('preferred-language');
-          if (!hasSelectedLanguage) {
-            setShowLanguageSelection(true);
-          } else if (!hasSeenOnboarding) {
-            setShowOnboarding(true);
-          }
+          setTimeout(() => {
+            const hasSeenOnboarding = localStorage.getItem(`onboarding_${session.user.id}`);
+            const hasSelectedLanguage = localStorage.getItem('preferred-language');
+            if (!hasSelectedLanguage) {
+              setShowLanguageSelection(true);
+            } else if (!hasSeenOnboarding) {
+              setShowOnboarding(true);
+            }
+          }, 0);
         }
       }
     );
@@ -70,6 +72,9 @@ const Index = () => {
           setShowOnboarding(true);
         }
       }
+    }).catch(error => {
+      console.error('Error getting session:', error);
+      setLoading(false);
     });
 
     return () => subscription.unsubscribe();

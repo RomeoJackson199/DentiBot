@@ -40,6 +40,8 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
   const [allSlots, setAllSlots] = useState<{slot_time: string, is_available: boolean, emergency_only?: boolean}[]>([]);
   const [loadingTimes, setLoadingTimes] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -59,19 +61,27 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
     }
   }, [dentists, selectedDentist, preSelectedDentist]);
 
-  const fetchAvailability = async (date: Date) => {
+  const fetchAvailability = async (date: Date, retry = 0) => {
     if (!selectedDentist) return;
     
     setLoadingTimes(true);
     setSelectedTime("");
+    setErrorMessage(null);
     
     try {
       console.log('Fetching availability for:', date.toISOString().split('T')[0]);
       
-      await supabase.rpc('generate_daily_slots', {
+      // Generate slots with retry logic
+      const { error: slotError } = await supabase.rpc('generate_daily_slots', {
         p_dentist_id: selectedDentist,
         p_date: date.toISOString().split('T')[0]
       });
+      
+      if (slotError && retry < 2) {
+        console.log(`Retrying slot generation, attempt ${retry + 1}`);
+        setTimeout(() => fetchAvailability(date, retry + 1), 1000);
+        return;
+      }
 
       const { data: allSlots, error } = await supabase
         .from('appointment_slots')
@@ -87,20 +97,31 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
       
       setAvailableTimes(availableSlots);
       setAllSlots(allSlots || []);
+      setRetryCount(0); // Reset retry count on success
       
       console.log('Available slots:', availableSlots);
       
     } catch (error) {
       console.error('Failed to fetch availability:', error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de charger les créneaux disponibles",
-        variant: "destructive",
-      });
-      setAvailableTimes([]);
-      setAllSlots([]);
+      
+      if (retry < 2) {
+        setRetryCount(retry + 1);
+        setTimeout(() => fetchAvailability(date, retry + 1), 2000);
+        setErrorMessage(`Tentative ${retry + 1}/3 de chargement des créneaux...`);
+      } else {
+        toast({
+          title: "Erreur",
+          description: "Impossible de charger les créneaux disponibles après plusieurs tentatives",
+          variant: "destructive",
+        });
+        setErrorMessage("Échec du chargement des créneaux");
+        setAvailableTimes([]);
+        setAllSlots([]);
+      }
     } finally {
-      setLoadingTimes(false);
+      if (retry === 0 || retry >= 2) {
+        setLoadingTimes(false);
+      }
     }
   };
 
@@ -307,7 +328,10 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
                 {loadingTimes ? (
                   <div className="flex justify-center items-center py-8">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                    <span className="ml-3 text-gray-600">Chargement des créneaux...</span>
+                    <span className="ml-3 text-gray-600">
+                      {errorMessage || "Chargement des créneaux..."}
+                      {retryCount > 0 && ` (tentative ${retryCount + 1})`}
+                    </span>
                   </div>
                 ) : (
                   <div className="space-y-4">

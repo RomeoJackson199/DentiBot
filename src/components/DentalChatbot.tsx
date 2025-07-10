@@ -44,7 +44,6 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
   const [emergencyDetected, setEmergencyDetected] = useState(false);
   const [urgencyLevel, setUrgencyLevel] = useState<string>("medium");
   const [consultationReason, setConsultationReason] = useState<string>("");
-  const [scrollToDentists, setScrollToDentists] = useState<(() => void) | null>(null);
   
   // Voice recording states
   const [isRecording, setIsRecording] = useState(false);
@@ -77,22 +76,20 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
     };
 
     initializeChat();
-  }, [sessionId, t]); // Add 't' to dependencies so it updates when language changes
+  }, [sessionId]); // Remove 't' dependency to prevent loops
   
   // Effect to update welcome message when language changes
   useEffect(() => {
-    if (messages.length > 0 && messages[0].is_bot) {
+    if (messages.length > 0 && messages[0].is_bot && userProfile) {
       // Update the first message (welcome message) when language changes
       const updatedWelcomeMessage: ChatMessage = {
         ...messages[0],
-        message: userProfile ? 
-          t.detailedWelcomeMessageWithName(userProfile.first_name) : 
-          t.detailedWelcomeMessage,
+        message: t.detailedWelcomeMessageWithName(userProfile.first_name),
       };
       
       setMessages(prev => [updatedWelcomeMessage, ...prev.slice(1)]);
     }
-  }, [t, userProfile]); // Update when translation object or user profile changes
+  }, [t]); // Only update when translation object changes
 
   const loadUserProfile = async () => {
     try {
