@@ -240,14 +240,6 @@ const Index = () => {
                   <Calendar className="h-4 w-4 sm:h-5 sm:w-5" />
                   <span className="font-medium text-sm sm:text-base">{t.appointments}</span>
                 </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleBookAppointment}
-                  className="shrink-0 glass-card border-dental-primary/30 text-dental-primary hover:bg-dental-primary/10 hover:scale-105 transition-all duration-300 w-8 h-8 sm:w-10 sm:h-10 p-0"
-                >
-                  <Plus className="h-4 w-4" />
-                </Button>
               </div>
             </div>
           </div>
