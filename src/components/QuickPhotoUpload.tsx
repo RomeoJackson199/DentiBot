@@ -48,10 +48,16 @@ export const QuickPhotoUpload = ({ onPhotoUploaded, onCancel }: QuickPhotoUpload
       reader.onload = (e) => setPreview(e.target?.result as string);
       reader.readAsDataURL(file);
 
-      // Generate unique filename
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error("User not authenticated");
+      }
+
+      // Generate unique filename with user folder structure
       const timestamp = Date.now();
       const fileExt = file.name.split('.').pop();
-      const fileName = `dental-photo-${timestamp}.${fileExt}`;
+      const fileName = `${user.id}/${timestamp}.${fileExt}`;
 
       // Upload to Supabase Storage
       const { data, error } = await supabase.storage
