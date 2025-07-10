@@ -14,6 +14,8 @@ import { cn } from "@/lib/utils";
 
 interface AppointmentBookingProps {
   user: User;
+  selectedDentist?: any;
+  prefilledReason?: string;
   onComplete: (appointmentData?: any) => void;
   onCancel: () => void;
 }
@@ -28,7 +30,7 @@ interface Dentist {
   };
 }
 
-export const AppointmentBooking = ({ user, onComplete, onCancel }: AppointmentBookingProps) => {
+export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, prefilledReason, onComplete, onCancel }: AppointmentBookingProps) => {
   const [dentists, setDentists] = useState<Dentist[]>([]);
   const [selectedDentist, setSelectedDentist] = useState("");
   const [selectedDate, setSelectedDate] = useState<Date>();
@@ -42,14 +44,20 @@ export const AppointmentBooking = ({ user, onComplete, onCancel }: AppointmentBo
 
   useEffect(() => {
     fetchDentists();
-  }, []);
+    // Set prefilled reason if provided
+    if (prefilledReason) {
+      setReason(prefilledReason);
+    }
+  }, [prefilledReason]);
 
-  // Auto-select first dentist when dentists are loaded
+  // Auto-select dentist when dentists are loaded
   useEffect(() => {
     if (dentists.length > 0 && !selectedDentist) {
-      setSelectedDentist(dentists[0].id);
+      // Use preselected dentist if available, otherwise use first
+      const dentistToSelect = preSelectedDentist?.id || dentists[0].id;
+      setSelectedDentist(dentistToSelect);
     }
-  }, [dentists, selectedDentist]);
+  }, [dentists, selectedDentist, preSelectedDentist]);
 
   const fetchAvailability = async (date: Date) => {
     if (!selectedDentist) return;

@@ -253,6 +253,52 @@ PROFESSIONAL LANGUAGE EXAMPLES WITH RECOMMENDATIONS:
 
     const botResponse = data.choices[0].message.content;
 
+    // Extract consultation reason from conversation
+    const extractConsultationReason = (message: string, history: any[]): string => {
+      const lowerMessage = message.toLowerCase();
+      
+      // Extract from current message
+      if (lowerMessage.includes('douleur') || lowerMessage.includes('mal aux dents') || lowerMessage.includes('pain')) {
+        return 'Douleur dentaire';
+      }
+      if (lowerMessage.includes('nettoyage') || lowerMessage.includes('cleaning')) {
+        return 'Nettoyage dentaire';
+      }
+      if (lowerMessage.includes('contrôle') || lowerMessage.includes('checkup') || lowerMessage.includes('routine')) {
+        return 'Contrôle de routine';
+      }
+      if (lowerMessage.includes('urgence') || lowerMessage.includes('emergency')) {
+        return 'Urgence dentaire';
+      }
+      if (lowerMessage.includes('esthétique') || lowerMessage.includes('cosmetic') || lowerMessage.includes('whitening') || lowerMessage.includes('blanchiment')) {
+        return 'Consultation esthétique';
+      }
+      
+      // Extract from conversation history (last 5 messages)
+      const recentMessages = history.slice(-5);
+      const fullContext = recentMessages.map(m => m.message).join(' ').toLowerCase();
+      
+      if (fullContext.includes('douleur') || fullContext.includes('mal aux dents')) {
+        return 'Douleur dentaire';
+      }
+      if (fullContext.includes('nettoyage')) {
+        return 'Nettoyage dentaire';
+      }
+      if (fullContext.includes('contrôle') || fullContext.includes('routine')) {
+        return 'Contrôle de routine';
+      }
+      if (fullContext.includes('urgence')) {
+        return 'Urgence dentaire';
+      }
+      if (fullContext.includes('esthétique') || fullContext.includes('blanchiment')) {
+        return 'Consultation esthétique';
+      }
+      
+      return 'Consultation générale';
+    };
+
+    const consultationReason = extractConsultationReason(message, conversation_history);
+
     // Enhanced keyword-based suggestions and recommendations
     const suggestions = [];
     const lowerResponse = botResponse.toLowerCase();
@@ -330,7 +376,8 @@ PROFESSIONAL LANGUAGE EXAMPLES WITH RECOMMENDATIONS:
       suggestions,
       urgency_detected,
       emergency_detected,
-      recommended_dentist: recommendedDentist
+      recommended_dentist: recommendedDentist,
+      consultation_reason: consultationReason
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

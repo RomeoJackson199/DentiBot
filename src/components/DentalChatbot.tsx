@@ -42,6 +42,7 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered }: Dent
   const [isEmergency, setIsEmergency] = useState(false);
   const [emergencyDetected, setEmergencyDetected] = useState(false);
   const [urgencyLevel, setUrgencyLevel] = useState<string>("medium");
+  const [consultationReason, setConsultationReason] = useState<string>("");
   
   // Voice recording states
   const [isRecording, setIsRecording] = useState(false);
@@ -144,6 +145,12 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered }: Dent
 
       if (aiRecommendedDentist) {
         setRecommendedDentist(aiRecommendedDentist);
+      }
+
+      // Extract consultation reason from AI response
+      const extractedReason = data.consultation_reason || "";
+      if (extractedReason) {
+        setConsultationReason(extractedReason);
       }
 
       // Handle different suggestion types
@@ -658,6 +665,8 @@ Type your request...`;
             <div className="border-t border-dental-secondary/20 p-6 glass-card animate-fade-in">
               <AppointmentBooking
                 user={user}
+                selectedDentist={selectedDentist}
+                prefilledReason={consultationReason}
                 onComplete={(appointmentData) => {
                   addSystemMessage("Appointment confirmed! You'll receive a reminder 24 hours before.", 'success');
                   sendEmailSummary(appointmentData);
