@@ -64,8 +64,30 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered }: Dent
           id: crypto.randomUUID(),
           session_id: sessionId,
           message: userProfile ? 
-            `${t.welcomeMessage} ${userProfile.first_name}!` : 
-            t.welcomeMessage,
+            `Welcome to First Smile AI! 🦷✨
+
+Hello ${userProfile.first_name}! I'm your AI dental assistant, available 24/7 to help you with:
+
+🤖 **AI Chat** - Get instant answers to your dental questions
+📅 **Smart Booking** - Book appointments intelligently with duration info
+📸 **Photo Analysis** - Upload photos for AI-powered dental analysis  
+👨‍👩‍👧‍👦 **Family Care** - Book appointments for yourself or family members
+
+💡 **Pro Tip**: Just tell me what's bothering you, and I'll guide you through everything!
+
+How can I help you today?` : 
+            `Welcome to First Smile AI! 🦷✨
+
+I'm your AI dental assistant, available 24/7 to help you with:
+
+🤖 **AI Chat** - Get instant answers to your dental questions
+📅 **Smart Booking** - Book appointments intelligently with duration info
+📸 **Photo Analysis** - Upload photos for AI-powered dental analysis  
+👨‍👩‍👧‍👦 **Family Care** - Book appointments for yourself or family members
+
+💡 **Pro Tip**: Just tell me what's bothering you, and I'll guide you through everything!
+
+How can I help you today?`,
           is_bot: true,
           message_type: "text",
           created_at: new Date().toISOString(),
