@@ -352,83 +352,7 @@ Type your request...`;
             <div ref={messagesEndRef} />
           </ScrollArea>
 
-          {/* Action Panels */}
-
-          {currentFlow === 'patient-selection' && (
-            <div className="border-t border-dental-primary/20 p-6 glass-card rounded-t-none animate-fade-in">
-              <PatientSelection 
-                onSelectPatient={(isForUserSelected, patientInfoSelected) => {
-                  setIsForUser(isForUserSelected);
-                  setPatientInfo(patientInfoSelected);
-                  addSystemMessage(
-                    isForUserSelected 
-                      ? "Appointment will be booked for you" 
-                      : `Appointment will be booked for ${patientInfoSelected?.name}`, 
-                    'success'
-                  );
-                  setCurrentFlow('dentist-selection');
-                }}
-                onCancel={() => setCurrentFlow('chat')}
-              />
-            </div>
-          )}
-
-          {currentFlow === 'dentist-selection' && (
-            <div className="border-t border-dental-primary/20 p-6 glass-card rounded-t-none animate-fade-in">
-              <DentistSelection
-                onSelectDentist={(dentist) => {
-                  setSelectedDentist(dentist);
-                  addSystemMessage(`Dentist selected: Dr ${dentist.profiles.first_name} ${dentist.profiles.last_name}`, 'success');
-                  setCurrentFlow('booking');
-                }}
-                selectedDentistId={selectedDentist?.id}
-                recommendedDentist={recommendedDentist}
-              />
-            </div>
-          )}
-
-
-          {currentFlow === 'booking' && (
-            <div className="border-t border-dental-secondary/20 p-6 glass-card rounded-t-none animate-fade-in">
-              <AppointmentBooking
-                user={user}
-                onComplete={(appointmentData) => {
-                  addSystemMessage("Appointment confirmed! You'll receive a reminder 24 hours before.", 'success');
-                  sendEmailSummary(appointmentData);
-                  setCurrentFlow('chat');
-                }}
-                onCancel={() => setCurrentFlow('chat')}
-              />
-            </div>
-          )}
-
-          {currentFlow === 'quick-photo' && (
-            <div className="border-t border-dental-accent/20 p-6 glass-card rounded-t-none animate-fade-in">
-              <QuickPhotoUpload
-                onPhotoUploaded={(url) => {
-                  setLastPhotoUrl(url);
-                  addSystemMessage("📸 Photo added successfully", 'success');
-                  setCurrentFlow('chat');
-                }}
-                onCancel={() => setCurrentFlow('chat')}
-              />
-            </div>
-          )}
-
-          {currentFlow === 'photo' && (
-            <div className="border-t border-dental-accent/20 p-6 glass-card rounded-t-none animate-fade-in">
-              <PhotoUpload
-                onComplete={(url) => {
-                  setLastPhotoUrl(url);
-                  addSystemMessage("Photo uploaded successfully. It will be sent to the dentist.", 'success');
-                  setCurrentFlow('chat');
-                }}
-                onCancel={() => setCurrentFlow('chat')}
-              />
-            </div>
-          )}
-
-          {/* Chat Input */}
+          {/* Chat Input - Always at bottom */}
           <div className="border-t border-dental-primary/20 p-3 sm:p-6 glass-card rounded-t-none">
             <div className="flex space-x-2 sm:space-x-3">
               <Input
@@ -456,20 +380,114 @@ Type your request...`;
               </Button>
             </div>
             
-            {/* Action Buttons */}
-            <div className="flex flex-wrap gap-2 sm:gap-3 mt-3 sm:mt-4">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentFlow('patient-selection')}
-                className="flex items-center gap-1 sm:gap-2 floating-card border-dental-primary/30 text-dental-primary hover:bg-dental-primary/10 hover:scale-105 transition-all duration-300 text-xs sm:text-sm px-3 sm:px-4 py-2"
-              >
-                <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span className="hidden xs:inline">Book Appointment</span>
-                <span className="xs:hidden">Book</span>
-              </Button>
-            </div>
+            {/* Action Buttons - only show when in chat mode */}
+            {currentFlow === 'chat' && (
+              <div className="flex flex-wrap gap-2 sm:gap-3 mt-3 sm:mt-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentFlow('patient-selection')}
+                  className="flex items-center gap-1 sm:gap-2 floating-card border-dental-primary/30 text-dental-primary hover:bg-dental-primary/10 hover:scale-105 transition-all duration-300 text-xs sm:text-sm px-3 sm:px-4 py-2"
+                >
+                  <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden xs:inline">Book Appointment</span>
+                  <span className="xs:hidden">Book</span>
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setCurrentFlow('quick-photo')}
+                  className="floating-card border-dental-accent/30 text-dental-accent hover:bg-dental-accent/10 hover:scale-105 transition-all duration-300"
+                >
+                  <Camera className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                  Upload Photo
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => sendEmailSummary()}
+                  className="floating-card border-dental-secondary/30 text-dental-secondary hover:bg-dental-secondary/10 hover:scale-105 transition-all duration-300"
+                >
+                  <Mail className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                  Send Summary
+                </Button>
+              </div>
+            )}
           </div>
+
+          {/* Action Panels - Above chat input */}
+          {currentFlow === 'patient-selection' && (
+            <div className="border-t border-dental-primary/20 p-6 glass-card animate-fade-in">
+              <PatientSelection 
+                onSelectPatient={(isForUserSelected, patientInfoSelected) => {
+                  setIsForUser(isForUserSelected);
+                  setPatientInfo(patientInfoSelected);
+                  addSystemMessage(
+                    isForUserSelected 
+                      ? "Appointment will be booked for you" 
+                      : `Appointment will be booked for ${patientInfoSelected?.name}`, 
+                    'success'
+                  );
+                  setCurrentFlow('dentist-selection');
+                }}
+                onCancel={() => setCurrentFlow('chat')}
+              />
+            </div>
+          )}
+
+          {currentFlow === 'dentist-selection' && (
+            <div className="border-t border-dental-primary/20 p-6 glass-card animate-fade-in">
+              <DentistSelection
+                onSelectDentist={(dentist) => {
+                  setSelectedDentist(dentist);
+                  addSystemMessage(`Dentist selected: Dr ${dentist.profiles.first_name} ${dentist.profiles.last_name}`, 'success');
+                  setCurrentFlow('booking');
+                }}
+                selectedDentistId={selectedDentist?.id}
+                recommendedDentist={recommendedDentist}
+              />
+            </div>
+          )}
+
+          {currentFlow === 'booking' && (
+            <div className="border-t border-dental-secondary/20 p-6 glass-card animate-fade-in">
+              <AppointmentBooking
+                user={user}
+                onComplete={(appointmentData) => {
+                  addSystemMessage("Appointment confirmed! You'll receive a reminder 24 hours before.", 'success');
+                  sendEmailSummary(appointmentData);
+                  setCurrentFlow('chat');
+                }}
+                onCancel={() => setCurrentFlow('chat')}
+              />
+            </div>
+          )}
+
+          {currentFlow === 'quick-photo' && (
+            <div className="border-t border-dental-accent/20 p-6 glass-card animate-fade-in">
+              <QuickPhotoUpload
+                onPhotoUploaded={(url) => {
+                  setLastPhotoUrl(url);
+                  addSystemMessage("📸 Photo added successfully", 'success');
+                  setCurrentFlow('chat');
+                }}
+                onCancel={() => setCurrentFlow('chat')}
+              />
+            </div>
+          )}
+
+          {currentFlow === 'photo' && (
+            <div className="border-t border-dental-accent/20 p-6 glass-card animate-fade-in">
+              <PhotoUpload
+                onComplete={(url) => {
+                  setLastPhotoUrl(url);
+                  addSystemMessage("Photo uploaded successfully. It will be sent to the dentist.", 'success');
+                  setCurrentFlow('chat');
+                }}
+                onCancel={() => setCurrentFlow('chat')}
+              />
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
