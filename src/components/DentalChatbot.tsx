@@ -64,30 +64,8 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered }: Dent
           id: crypto.randomUUID(),
           session_id: sessionId,
           message: userProfile ? 
-            `Welcome to First Smile AI! 🦷✨
-
-Hello ${userProfile.first_name}! I'm your AI dental assistant, available 24/7 to help you with:
-
-🤖 **AI Chat** - Get instant answers to your dental questions
-📅 **Smart Booking** - Book appointments intelligently with duration info
-📸 **Photo Analysis** - Upload photos for AI-powered dental analysis  
-👨‍👩‍👧‍👦 **Family Care** - Book appointments for yourself or family members
-
-💡 **Pro Tip**: Just tell me what's bothering you, and I'll guide you through everything!
-
-How can I help you today?` : 
-            `Welcome to First Smile AI! 🦷✨
-
-I'm your AI dental assistant, available 24/7 to help you with:
-
-🤖 **AI Chat** - Get instant answers to your dental questions
-📅 **Smart Booking** - Book appointments intelligently with duration info
-📸 **Photo Analysis** - Upload photos for AI-powered dental analysis  
-👨‍👩‍👧‍👦 **Family Care** - Book appointments for yourself or family members
-
-💡 **Pro Tip**: Just tell me what's bothering you, and I'll guide you through everything!
-
-How can I help you today?`,
+            t.detailedWelcomeMessageWithName(userProfile.first_name) : 
+            t.detailedWelcomeMessage,
           is_bot: true,
           message_type: "text",
           created_at: new Date().toISOString(),
@@ -97,7 +75,22 @@ How can I help you today?`,
     };
 
     initializeChat();
-  }, [sessionId]); // Remove dependencies that cause re-runs
+  }, [sessionId, t]); // Add 't' to dependencies so it updates when language changes
+  
+  // Effect to update welcome message when language changes
+  useEffect(() => {
+    if (messages.length > 0 && messages[0].is_bot) {
+      // Update the first message (welcome message) when language changes
+      const updatedWelcomeMessage: ChatMessage = {
+        ...messages[0],
+        message: userProfile ? 
+          t.detailedWelcomeMessageWithName(userProfile.first_name) : 
+          t.detailedWelcomeMessage,
+      };
+      
+      setMessages(prev => [updatedWelcomeMessage, ...prev.slice(1)]);
+    }
+  }, [t, userProfile]); // Update when translation object or user profile changes
 
   const loadUserProfile = async () => {
     try {

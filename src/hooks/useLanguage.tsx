@@ -65,6 +65,8 @@ interface Translations {
   typeMessage: string;
   send: string;
   welcomeMessage: string;
+  detailedWelcomeMessage: string;
+  detailedWelcomeMessageWithName: (name: string) => string;
   
   // Landing page
   intelligentDentalAssistant: string;
@@ -202,6 +204,30 @@ const translations: Record<Language, Translations> = {
     typeMessage: 'Type your message...',
     send: 'Send',
     welcomeMessage: 'Hello! I\'m DentiBot. How can I help you today? 🦷',
+    detailedWelcomeMessage: `Welcome to First Smile AI! 🦷✨
+
+I'm your AI dental assistant, available 24/7 to help you with:
+
+🤖 **AI Chat** - Get instant answers to your dental questions
+📅 **Smart Booking** - Book appointments intelligently with duration info
+📸 **Photo Analysis** - Upload photos for AI-powered dental analysis  
+👨‍👩‍👧‍👦 **Family Care** - Book appointments for yourself or family members
+
+💡 **Pro Tip**: Just tell me what's bothering you, and I'll guide you through everything!
+
+How can I help you today?`,
+    detailedWelcomeMessageWithName: (name: string) => `Welcome to First Smile AI! 🦷✨
+
+Hello ${name}! I'm your AI dental assistant, available 24/7 to help you with:
+
+🤖 **AI Chat** - Get instant answers to your dental questions
+📅 **Smart Booking** - Book appointments intelligently with duration info
+📸 **Photo Analysis** - Upload photos for AI-powered dental analysis  
+👨‍👩‍👧‍👦 **Family Care** - Book appointments for yourself or family members
+
+💡 **Pro Tip**: Just tell me what's bothering you, and I'll guide you through everything!
+
+How can I help you today?`,
     
     // Landing page
     intelligentDentalAssistant: 'Your Intelligent Dental Assistant 24/7',
@@ -337,6 +363,30 @@ const translations: Record<Language, Translations> = {
     typeMessage: 'Tapez votre message...',
     send: 'Envoyer',
     welcomeMessage: 'Bonjour ! Je suis DentiBot. Comment puis-je vous aider aujourd\'hui ? 🦷',
+    detailedWelcomeMessage: `Bienvenue sur First Smile AI ! 🦷✨
+
+Je suis votre assistant dentaire IA, disponible 24h/24 pour vous aider avec :
+
+🤖 **Chat IA** - Obtenez des réponses instantanées à vos questions dentaires
+📅 **Réservation Intelligente** - Réservez des rendez-vous intelligemment avec les informations de durée
+📸 **Analyse Photo** - Téléchargez des photos pour une analyse dentaire alimentée par l'IA
+👨‍👩‍👧‍👦 **Soins Familiaux** - Réservez des rendez-vous pour vous ou les membres de votre famille
+
+💡 **Astuce Pro** : Dites-moi simplement ce qui vous dérange, et je vous guiderai à travers tout !
+
+Comment puis-je vous aider aujourd'hui ?`,
+    detailedWelcomeMessageWithName: (name: string) => `Bienvenue sur First Smile AI ! 🦷✨
+
+Bonjour ${name} ! Je suis votre assistant dentaire IA, disponible 24h/24 pour vous aider avec :
+
+🤖 **Chat IA** - Obtenez des réponses instantanées à vos questions dentaires
+📅 **Réservation Intelligente** - Réservez des rendez-vous intelligemment avec les informations de durée
+📸 **Analyse Photo** - Téléchargez des photos pour une analyse dentaire alimentée par l'IA
+👨‍👩‍👧‍👦 **Soins Familiaux** - Réservez des rendez-vous pour vous ou les membres de votre famille
+
+💡 **Astuce Pro** : Dites-moi simplement ce qui vous dérange, et je vous guiderai à travers tout !
+
+Comment puis-je vous aider aujourd'hui ?`,
     
     // Landing page
     intelligentDentalAssistant: 'Votre Assistant Dentaire Intelligent 24h/24',
@@ -472,6 +522,30 @@ const translations: Record<Language, Translations> = {
     typeMessage: 'Typ uw bericht...',
     send: 'Versturen',
     welcomeMessage: 'Hallo! Ik ben DentiBot. Hoe kan ik u vandaag helpen? 🦷',
+    detailedWelcomeMessage: `Welkom bij First Smile AI! 🦷✨
+
+Ik ben uw AI tandheelkundige assistent, 24/7 beschikbaar om u te helpen met:
+
+🤖 **AI Chat** - Krijg directe antwoorden op uw tandheelkundige vragen
+📅 **Slimme Boekingen** - Boek afspraken intelligent met duurduurinformatie
+📸 **Foto Analyse** - Upload foto's voor AI-aangedreven tandheelkundige analyse
+👨‍👩‍👧‍👦 **Familiezorg** - Boek afspraken voor uzelf of familieleden
+
+💡 **Pro Tip**: Vertel me gewoon wat u dwarszit, en ik zal u door alles heen begeleiden!
+
+Hoe kan ik u vandaag helpen?`,
+    detailedWelcomeMessageWithName: (name: string) => `Welkom bij First Smile AI! 🦷✨
+
+Hallo ${name}! Ik ben uw AI tandheelkundige assistent, 24/7 beschikbaar om u te helpen met:
+
+🤖 **AI Chat** - Krijg directe antwoorden op uw tandheelkundige vragen
+📅 **Slimme Boekingen** - Boek afspraken intelligent met duurduurinformatie
+📸 **Foto Analyse** - Upload foto's voor AI-aangedreven tandheelkundige analyse
+👨‍👩‍👧‍👦 **Familiezorg** - Boek afspraken voor uzelf of familieleden
+
+💡 **Pro Tip**: Vertel me gewoon wat u dwarszit, en ik zal u door alles heen begeleiden!
+
+Hoe kan ik u vandaag helpen?`,
     
     // Landing page
     intelligentDentalAssistant: 'Uw Intelligente Tandheelkundige Assistent 24/7',
