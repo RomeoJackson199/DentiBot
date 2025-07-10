@@ -13,7 +13,7 @@ import { ChatMessage } from "@/types/chat";
 import { AppointmentBooking } from "@/components/AppointmentBooking";
 import { PhotoUpload } from "@/components/PhotoUpload";
 import { DentistSelection } from "@/components/DentistSelection";
-import { ChatCalendar } from "@/components/ChatCalendar";
+
 import { QuickPhotoUpload } from "@/components/QuickPhotoUpload";
 import { PatientSelection } from "@/components/PatientSelection";
 
@@ -28,7 +28,7 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered }: Dent
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [sessionId] = useState(() => crypto.randomUUID());
-  const [currentFlow, setCurrentFlow] = useState<'chat' | 'booking' | 'photo' | 'dentist-selection' | 'calendar' | 'quick-photo' | 'patient-selection'>('chat');
+  const [currentFlow, setCurrentFlow] = useState<'chat' | 'booking' | 'photo' | 'dentist-selection' | 'quick-photo' | 'patient-selection'>('chat');
   const [lastPhotoUrl, setLastPhotoUrl] = useState<string | null>(null);
   const [selectedDentist, setSelectedDentist] = useState<any>(null);
   const [selectedDate, setSelectedDate] = useState<Date>();
@@ -379,7 +379,7 @@ Type your request...`;
                 onSelectDentist={(dentist) => {
                   setSelectedDentist(dentist);
                   addSystemMessage(`Dentist selected: Dr ${dentist.profiles.first_name} ${dentist.profiles.last_name}`, 'success');
-                  setCurrentFlow('calendar');
+                  setCurrentFlow('booking');
                 }}
                 selectedDentistId={selectedDentist?.id}
                 recommendedDentist={recommendedDentist}
@@ -387,35 +387,6 @@ Type your request...`;
             </div>
           )}
 
-          {currentFlow === 'calendar' && (
-            <div className="border-t border-dental-secondary/20 p-6 glass-card rounded-t-none animate-fade-in">
-              <ChatCalendar
-                onDateSelect={(date) => {
-                  setSelectedDate(date);
-                  addSystemMessage(`Date selected: ${date.toLocaleDateString('en-US')}`, 'info');
-                }}
-                onTimeSelect={(time) => {
-                  setSelectedTime(time);
-                  addSystemMessage(`Time selected: ${time}`, 'info');
-                }}
-                selectedDate={selectedDate}
-                selectedTime={selectedTime}
-                isEmergency={isEmergency}
-                onConfirm={() => {
-                  if (selectedDate && selectedTime) {
-                    addSystemMessage(`✅ Appointment confirmed for ${selectedDate.toLocaleDateString()} at ${selectedTime}`, 'success');
-                    sendEmailSummary({
-                      date: selectedDate.toLocaleDateString(),
-                      time: selectedTime,
-                      emergency: isEmergency,
-                      urgency: urgencyLevel
-                    });
-                    setCurrentFlow('chat');
-                  }
-                }}
-              />
-            </div>
-          )}
 
           {currentFlow === 'booking' && (
             <div className="border-t border-dental-secondary/20 p-6 glass-card rounded-t-none animate-fade-in">

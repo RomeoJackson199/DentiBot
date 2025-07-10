@@ -167,24 +167,6 @@ export const AppointmentBooking = ({ user, onComplete, onCancel }: AppointmentBo
         throw new Error("Ce créneau n'est plus disponible");
       }
 
-      try {
-        const dentist = dentists.find(d => d.id === selectedDentist);
-        const appointmentStart = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), 
-          parseInt(selectedTime.split(':')[0]), parseInt(selectedTime.split(':')[1]));
-        const appointmentEnd = new Date(appointmentStart.getTime() + 60 * 60 * 1000);
-
-        await supabase.from('calendar_events').insert({
-          dentist_id: selectedDentist,
-          appointment_id: appointmentData.id,
-          title: `Rendez-vous - ${reason || 'Consultation générale'}`,
-          description: `Patient: ${user.email}\nMotif: ${reason || 'Consultation générale'}`,
-          start_datetime: appointmentStart.toISOString(),
-          end_datetime: appointmentEnd.toISOString(),
-          event_type: 'appointment',
-        });
-      } catch (calendarError) {
-        console.warn('Could not create calendar event:', calendarError);
-      }
 
       toast({
         title: "Rendez-vous confirmé !",
