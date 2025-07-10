@@ -154,8 +154,19 @@ const Index = () => {
               </div>
             </div>
           </div>
-          <div className="max-w-md mx-auto animate-fade-in" style={{ animationDelay: "1.1s" }}>
-            <AuthForm />
+          <div className="space-y-8 animate-fade-in" style={{ animationDelay: "1.1s" }}>
+            <div className="text-center">
+              <Button 
+                variant="outline" 
+                onClick={() => window.location.href = "/dentists"}
+                className="mr-4 mb-4 glass-card border-dental-primary/30 text-dental-primary hover:bg-dental-primary/10"
+              >
+                View Our Dentists
+              </Button>
+            </div>
+            <div className="max-w-md mx-auto">
+              <AuthForm />
+            </div>
           </div>
         </div>
       </div>
@@ -175,10 +186,11 @@ const Index = () => {
               <div className="absolute -top-1 -right-1 w-3 h-3 sm:w-4 sm:h-4 bg-gradient-secondary rounded-full animate-pulse shadow-float"></div>
             </div>
             <div className="hidden sm:block">
-              <h1 className="text-xl sm:text-2xl font-bold gradient-text">
-                First Smile AI
-              </h1>
-              <p className="text-dental-muted-foreground font-medium text-sm">Intelligent Dental Assistant</p>
+              <img 
+                src="/lovable-uploads/dd1b725d-745a-4f59-a31a-2b7df6e48a1c.png" 
+                alt="First Smile Logo" 
+                className="h-12 w-auto"
+              />
             </div>
           </div>
           <div className="flex items-center">
