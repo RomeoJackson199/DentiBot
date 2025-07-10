@@ -31,90 +31,45 @@ export const DentistSelection = ({ onSelectDentist, selectedDentistId, recommend
   const { toast } = useToast();
 
   useEffect(() => {
-    // Pour la démo, on utilise des dentistes fictifs avec de vrais UUIDs
-    const mockDentists: Dentist[] = [
-      {
-        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-        profile_id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-        specialization: 'General Dentistry',
-        is_active: true,
-        profiles: {
-          first_name: 'Kevin',
-          last_name: 'Jackson',
-          email: 'kevin.jackson@dental.com'
+    const fetchDentists = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("dentists")
+          .select(`
+            *,
+            profiles:profile_id (
+              first_name,
+              last_name,
+              email
+            )
+          `)
+          .eq("is_active", true);
+
+        if (error) {
+          console.error("Error fetching dentists:", error);
+          toast({
+            title: "Error",
+            description: "Unable to load dentists. Please try again.",
+            variant: "destructive",
+          });
+          return;
         }
-      },
-      {
-        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d480',
-        profile_id: 'f47ac10b-58cc-4372-a567-0e02b2c3d480',
-        specialization: 'General Dentistry',
-        is_active: true,
-        profiles: {
-          first_name: 'Marie',
-          last_name: 'Dubois',
-          email: 'marie.dubois@dental.com'
-        }
-      },
-      {
-        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d481',
-        profile_id: 'f47ac10b-58cc-4372-a567-0e02b2c3d481',
-        specialization: 'Orthodontics',
-        is_active: true,
-        profiles: {
-          first_name: 'Pierre',
-          last_name: 'Martin',
-          email: 'pierre.martin@dental.com'
-        }
-      },
-      {
-        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d482',
-        profile_id: 'f47ac10b-58cc-4372-a567-0e02b2c3d482',
-        specialization: 'Oral Surgery',
-        is_active: true,
-        profiles: {
-          first_name: 'Sophie',
-          last_name: 'Leroy',
-          email: 'sophie.leroy@dental.com'
-        }
-      },
-      {
-        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d483',
-        profile_id: 'f47ac10b-58cc-4372-a567-0e02b2c3d483',
-        specialization: 'Endodontics',
-        is_active: true,
-        profiles: {
-          first_name: 'Thomas',
-          last_name: 'Bernard',
-          email: 'thomas.bernard@dental.com'
-        }
-      },
-      {
-        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d484',
-        profile_id: 'f47ac10b-58cc-4372-a567-0e02b2c3d484',
-        specialization: 'Periodontics',
-        is_active: true,
-        profiles: {
-          first_name: 'Isabelle',
-          last_name: 'Moreau',
-          email: 'isabelle.moreau@dental.com'
-        }
-      },
-      {
-        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d485',
-        profile_id: 'f47ac10b-58cc-4372-a567-0e02b2c3d485',
-        specialization: 'Implantology',
-        is_active: true,
-        profiles: {
-          first_name: 'Jean-Luc',
-          last_name: 'Petit',
-          email: 'jeanluc.petit@dental.com'
-        }
+
+        setDentists(data || []);
+      } catch (error) {
+        console.error("Error:", error);
+        toast({
+          title: "Error",
+          description: "Unable to load dentists. Please try again.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
       }
-    ];
-    
-    setDentists(mockDentists);
-    setIsLoading(false);
-  }, []);
+    };
+
+    fetchDentists();
+  }, [toast]);
 
   const getDentistInitials = (dentist: Dentist) => {
     return `${dentist.profiles.first_name[0]}${dentist.profiles.last_name[0]}`;

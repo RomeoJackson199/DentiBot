@@ -36,13 +36,11 @@ IMPORTANT INSTRUCTIONS:
 
 const dentistDirectory = `
 AVAILABLE DENTISTS:
-Dr. Kevin Jackson - Downtown Toronto, General Dentistry & Emergency Care
-Dr. Marie Dubois - General Dentistry & Pain Management
-Dr. Pierre Martin - Orthodontics
-Dr. Sophie Leroy - Oral Surgery
-Dr. Thomas Bernard - Endodontics
-Dr. Isabelle Moreau - Periodontics
-Dr. Jean-Luc Petit - Implantology
+Dr. Virginie Pauwels - Pédodontiste (Pediatric Dentistry)
+Dr. Emeline Hubin - Pédodontiste (Pediatric Dentistry)
+Dr. Firdaws Benhsain - Dentiste généraliste (General Dentistry)
+Dr. Justine Peters - Orthodontiste (Orthodontics)
+Dr. Anne-Sophie Haas - Orthodontiste (Orthodontics)
 `;
 
 const consultationFlow = `
@@ -120,13 +118,11 @@ const systemPrompt = [
     
     // Extract dentist recommendations from response
     let recommendedDentist = null;
-    if (lowerResponse.includes('kevin jackson')) recommendedDentist = 'Kevin Jackson';
-    else if (lowerResponse.includes('marie dubois')) recommendedDentist = 'Marie Dubois';
-    else if (lowerResponse.includes('pierre martin')) recommendedDentist = 'Pierre Martin';
-    else if (lowerResponse.includes('sophie leroy')) recommendedDentist = 'Sophie Leroy';
-    else if (lowerResponse.includes('thomas bernard')) recommendedDentist = 'Thomas Bernard';
-    else if (lowerResponse.includes('isabelle moreau')) recommendedDentist = 'Isabelle Moreau';
-    else if (lowerResponse.includes('jean-luc petit')) recommendedDentist = 'Jean-Luc Petit';
+    if (lowerResponse.includes('virginie pauwels')) recommendedDentist = 'Virginie Pauwels';
+    else if (lowerResponse.includes('emeline hubin')) recommendedDentist = 'Emeline Hubin';
+    else if (lowerResponse.includes('firdaws benhsain')) recommendedDentist = 'Firdaws Benhsain';
+    else if (lowerResponse.includes('justine peters')) recommendedDentist = 'Justine Peters';
+    else if (lowerResponse.includes('anne-sophie haas')) recommendedDentist = 'Anne-Sophie Haas';
     
     // Suggest booking after recommendation
     if (recommendedDentist || lowerResponse.includes('dentist') || 
