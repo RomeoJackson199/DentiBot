@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -16,8 +16,6 @@ import { DentistSelection } from "@/components/DentistSelection";
 
 import { QuickPhotoUpload } from "@/components/QuickPhotoUpload";
 import { PatientSelection } from "@/components/PatientSelection";
-import { MessageItem } from "@/components/MessageItem";
-import { NewChatButton } from "@/components/NewChatButton";
 
 interface DentalChatbotProps {
   user: User;
@@ -32,32 +30,20 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
   const [isLoading, setIsLoading] = useState(false);
   const [sessionId] = useState(() => crypto.randomUUID());
   const [currentFlow, setCurrentFlow] = useState<'chat' | 'booking' | 'photo' | 'dentist-selection' | 'quick-photo' | 'patient-selection'>('chat');
-  
-  // Token limit tracking
-  const [tokenCount, setTokenCount] = useState(0);
-  const [isTokenLimitReached, setIsTokenLimitReached] = useState(false);
-  const TOKEN_LIMIT = 5000;
-  
-  // Core appointment states - consolidated
-  const [appointmentData, setAppointmentData] = useState({
-    selectedDentist: null as any,
-    selectedDate: undefined as Date | undefined,
-    selectedTime: undefined as string | undefined,
-    consultationReason: "",
-    urgencyLevel: "medium",
-    isForUser: true,
-    isEmergency: false,
-    emergencyDetected: false,
-  });
-  
-  // User and session states
-  const [userProfile, setUserProfile] = useState<any>(null);
   const [lastPhotoUrl, setLastPhotoUrl] = useState<string | null>(null);
-  const [patientInfo, setPatientInfo] = useState<any>(null);
-  
-  // Chat flow states - reduced
+  const [selectedDentist, setSelectedDentist] = useState<any>(null);
+  const [selectedDate, setSelectedDate] = useState<Date>();
+  const [selectedTime, setSelectedTime] = useState<string>();
+  const [userProfile, setUserProfile] = useState<any>(null);
   const [problemDescription, setProblemDescription] = useState<string>("");
+  const [questionsAsked, setQuestionsAsked] = useState<number>(0);
   const [recommendedDentist, setRecommendedDentist] = useState<string[] | null>(null);
+  const [patientInfo, setPatientInfo] = useState<any>(null);
+  const [isForUser, setIsForUser] = useState<boolean>(true);
+  const [isEmergency, setIsEmergency] = useState(false);
+  const [emergencyDetected, setEmergencyDetected] = useState(false);
+  const [urgencyLevel, setUrgencyLevel] = useState<string>("medium");
+  const [consultationReason, setConsultationReason] = useState<string>("");
   
   // Voice recording states
   const [isRecording, setIsRecording] = useState(false);
@@ -120,19 +106,9 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
     }
   };
 
-  const scrollToBottom = useCallback(() => {
-    // Use requestAnimationFrame for smoother scrolling
-    requestAnimationFrame(() => {
-      messagesEndRef.current?.scrollIntoView({ 
-        behavior: "smooth",
-        block: "end"
-      });
-    });
-  }, []);
-
   useEffect(() => {
     scrollToBottom();
-  }, [messages, scrollToBottom]);
+  }, [messages]);
 
   // Handle external booking trigger
   useEffect(() => {
@@ -141,6 +117,12 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
       onBookingTriggered?.();
     }
   }, [triggerBooking, onBookingTriggered]);
+
+  const scrollToBottom = () => {
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 100);
+  };
 
   const saveMessage = async (message: ChatMessage) => {
     try {
@@ -159,23 +141,6 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
 
   const generateBotResponse = async (userMessage: string): Promise<ChatMessage> => {
     try {
-      // Estimate tokens (rough calculation: ~4 chars per token)
-      const estimatedTokens = Math.ceil(userMessage.length / 4);
-      const newTokenCount = tokenCount + estimatedTokens;
-      
-      // Check token limit
-      if (newTokenCount >= TOKEN_LIMIT) {
-        setIsTokenLimitReached(true);
-        return {
-          id: crypto.randomUUID(),
-          session_id: sessionId,
-          message: "Token limit reached (5000 tokens). Please start a new chat session to continue.",
-          is_bot: true,
-          message_type: "warning",
-          created_at: new Date().toISOString(),
-        };
-      }
-      
       // Call the AI edge function
       const { data, error } = await supabase.functions.invoke('dental-ai-chat', {
         body: {
@@ -184,8 +149,7 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
           user_profile: userProfile || {
             name: user.email?.split('@')[0] || 'Patient',
             email: user.email
-          },
-          token_count: newTokenCount
+          }
         }
       });
 
@@ -194,13 +158,6 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
       const response = data.response || "I'm sorry, I couldn't process your request.";
       const suggestions = data.suggestions || [];
       const aiRecommendedDentist = data.recommended_dentist || null;
-      
-      // Update token count from response
-      if (data.total_tokens) {
-        setTokenCount(data.total_tokens);
-      } else {
-        setTokenCount(newTokenCount);
-      }
 
       if (aiRecommendedDentist) {
         // Handle both string and array formats for recommended dentists
@@ -214,7 +171,7 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
       // Extract consultation reason from AI response
       const extractedReason = data.consultation_reason || "";
       if (extractedReason) {
-        setAppointmentData(prev => ({ ...prev, consultationReason: extractedReason }));
+        setConsultationReason(extractedReason);
       }
 
       // Handle different suggestion types
@@ -251,7 +208,7 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
             userMessage.includes('myself') || userMessage.includes('voor mij') ||
             userMessage.includes('for me')) {
           // User selected themselves
-          setAppointmentData(prev => ({ ...prev, isForUser: true }));
+          setIsForUser(true);
           setPatientInfo(userProfile);
           addSystemMessage("Rendez-vous sera pris pour vous", 'success');
           setTimeout(() => setCurrentFlow('dentist-selection'), 1000);
@@ -292,7 +249,7 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
           };
 
           const parsedInfo = parsePatientInfo(userMessage);
-          setAppointmentData(prev => ({ ...prev, isForUser: false }));
+          setIsForUser(false);
           setPatientInfo(parsedInfo);
           addSystemMessage(`Rendez-vous sera pris pour ${parsedInfo.name}`, 'success');
           setTimeout(() => setCurrentFlow('dentist-selection'), 1000);
@@ -345,7 +302,7 @@ Type your request...`;
   };
 
   const handleSendMessage = async () => {
-    if (!inputMessage.trim() || isTokenLimitReached) return;
+    if (!inputMessage.trim()) return;
 
     const userMessage: ChatMessage = {
       id: crypto.randomUUID(),
@@ -528,39 +485,6 @@ Type your request...`;
     setMessages(prev => [...prev, systemMessage]);
   };
 
-  const handleNewChat = () => {
-    setMessages([]);
-    setTokenCount(0);
-    setIsTokenLimitReached(false);
-    setInputMessage("");
-    setCurrentFlow('chat');
-    setAppointmentData({
-      selectedDentist: null,
-      selectedDate: undefined,
-      selectedTime: undefined,
-      consultationReason: "",
-      urgencyLevel: "medium",
-      isForUser: true,
-      isEmergency: false,
-      emergencyDetected: false,
-    });
-    
-    // Add new welcome message
-    setTimeout(() => {
-      const welcomeMessage: ChatMessage = {
-        id: crypto.randomUUID(),
-        session_id: sessionId,
-        message: userProfile ? 
-          t.detailedWelcomeMessageWithName(userProfile.first_name) : 
-          t.detailedWelcomeMessage,
-        is_bot: true,
-        message_type: "text",
-        created_at: new Date().toISOString(),
-      };
-      setMessages([welcomeMessage]);
-    }, 100);
-  };
-
   const sendEmailSummary = async (appointmentData?: any, urgencyLevel?: string) => {
     try {
       // Create summary from recent messages
@@ -598,30 +522,20 @@ Type your request...`;
     <div className="max-w-5xl mx-auto px-2 sm:px-0">
       <Card className="h-[85vh] sm:h-[700px] flex flex-col floating-card animate-scale-in">
         <CardHeader className="bg-gradient-primary text-white rounded-t-xl border-0 p-3 sm:p-6">
-          <CardTitle className="flex items-center justify-between text-lg sm:text-xl">
-            <div className="flex items-center">
-              <div className="relative">
-                <Bot className="h-6 w-6 sm:h-7 sm:w-7 mr-2 sm:mr-3" />
-                <div className="absolute -top-1 -right-1 w-2 h-2 sm:w-3 sm:h-3 bg-green-400 rounded-full animate-pulse"></div>
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 sm:gap-3">
-                  <span className="truncate">DentiBot</span>
-                  <Badge variant="secondary" className="bg-white/20 text-white border-white/30 text-xs">
-                    <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-400 rounded-full mr-1 sm:mr-2 animate-pulse"></div>
-                    Online
-                  </Badge>
-                </div>
-                <p className="text-xs sm:text-sm text-white/80 font-normal truncate">Your AI Dental Assistant</p>
-              </div>
+          <CardTitle className="flex items-center text-lg sm:text-xl">
+            <div className="relative">
+              <Bot className="h-6 w-6 sm:h-7 sm:w-7 mr-2 sm:mr-3" />
+              <div className="absolute -top-1 -right-1 w-2 h-2 sm:w-3 sm:h-3 bg-green-400 rounded-full animate-pulse"></div>
             </div>
-            <div className="flex items-center gap-2">
-              <Badge variant={tokenCount > TOKEN_LIMIT * 0.8 ? "destructive" : "outline"} className="text-xs">
-                {tokenCount}/{TOKEN_LIMIT} tokens
-              </Badge>
-              {tokenCount > TOKEN_LIMIT * 0.7 && (
-                <NewChatButton onNewChat={handleNewChat} />
-              )}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <span className="truncate">DentiBot</span>
+                <Badge variant="secondary" className="bg-white/20 text-white border-white/30 text-xs">
+                  <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-400 rounded-full mr-1 sm:mr-2 animate-pulse"></div>
+                  Online
+                </Badge>
+              </div>
+              <p className="text-xs sm:text-sm text-white/80 font-normal truncate">Your AI Dental Assistant</p>
             </div>
           </CardTitle>
         </CardHeader>
@@ -683,8 +597,8 @@ Type your request...`;
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder={isTokenLimitReached ? "Token limit reached - start new chat" : "Type your message..."}
-                disabled={isLoading || isTokenLimitReached}
+                placeholder="Type your message..."
+                disabled={isLoading}
                 className="flex-1 border-dental-primary/20 focus:border-dental-primary focus:ring-dental-primary/20 bg-white/90 backdrop-blur-sm text-sm sm:text-base"
               />
               <Button 
@@ -697,7 +611,7 @@ Type your request...`;
               </Button>
               <Button 
                 onClick={handleVoiceOrSend}
-                disabled={isLoading || isTokenLimitReached}
+                disabled={isLoading}
                 className={`shrink-0 hover:shadow-glow text-white px-4 sm:px-6 rounded-xl transition-all duration-300 hover:scale-105 h-10 sm:h-11 ${
                   inputMessage.trim() 
                     ? 'bg-gradient-primary' 
@@ -724,7 +638,7 @@ Type your request...`;
                   size="sm"
                   onClick={() => {
                     // Skip patient selection if it's for the user
-                    setAppointmentData(prev => ({ ...prev, isForUser: true }));
+                    setIsForUser(true);
                     setPatientInfo(userProfile);
                     setCurrentFlow('dentist-selection');
                   }}
@@ -743,7 +657,7 @@ Type your request...`;
             <div className="border-t border-dental-primary/20 p-6 glass-card animate-fade-in">
               <PatientSelection 
                 onSelectPatient={(isForUserSelected, patientInfoSelected) => {
-                  setAppointmentData(prev => ({ ...prev, isForUser: isForUserSelected }));
+                  setIsForUser(isForUserSelected);
                   setPatientInfo(patientInfoSelected);
                   addSystemMessage(
                     isForUserSelected 
@@ -762,11 +676,11 @@ Type your request...`;
             <div className="border-t border-dental-primary/20 p-6 glass-card animate-fade-in">
               <DentistSelection
                 onSelectDentist={(dentist) => {
-                  setAppointmentData(prev => ({ ...prev, selectedDentist: dentist }));
+                  setSelectedDentist(dentist);
                   addSystemMessage(`Dentist selected: Dr ${dentist.profiles.first_name} ${dentist.profiles.last_name}`, 'success');
                   setCurrentFlow('booking');
                 }}
-                selectedDentistId={appointmentData.selectedDentist?.id}
+                selectedDentistId={selectedDentist?.id}
                 recommendedDentist={recommendedDentist}
               />
             </div>
@@ -776,8 +690,8 @@ Type your request...`;
             <div className="border-t border-dental-secondary/20 p-6 glass-card animate-fade-in">
               <AppointmentBooking
                 user={user}
-                selectedDentist={appointmentData.selectedDentist}
-                prefilledReason={appointmentData.consultationReason}
+                selectedDentist={selectedDentist}
+                prefilledReason={consultationReason}
                 onComplete={(appointmentData) => {
                   addSystemMessage("Appointment confirmed! You'll receive a reminder 24 hours before.", 'success');
                   sendEmailSummary(appointmentData);
