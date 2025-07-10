@@ -270,14 +270,12 @@ const Index = () => {
         {/* Content */}
         <div className="animate-fade-in space-y-6">          
           {activeTab === 'chat' ? (
-            <div className="max-h-[60vh] overflow-hidden">
-              <DentalChatbot 
-                user={user} 
-                triggerBooking={triggerBooking} 
-                onBookingTriggered={() => setTriggerBooking(false)}
-                onScrollToDentists={scrollToDentists}
-              />
-            </div>
+            <DentalChatbot 
+              user={user} 
+              triggerBooking={triggerBooking} 
+              onBookingTriggered={() => setTriggerBooking(false)}
+              onScrollToDentists={scrollToDentists}
+            />
           ) : (
             <AppointmentsList user={user} />
           )}
