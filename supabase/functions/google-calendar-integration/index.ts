@@ -228,13 +228,36 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     let requestData: CalendarRequest;
 
-    try {
-      requestData = await req.json();
-    } catch (parseError) {
-      console.error('JSON parse error:', parseError);
-      console.error('Request body:', await req.text());
-      return new Response(JSON.stringify({ error: 'Invalid JSON in request body' }), {
-        status: 400,
+    // Handle different request methods
+    if (req.method === 'POST') {
+      try {
+        const contentType = req.headers.get('content-type');
+        console.log('Content-Type:', contentType);
+        
+        if (contentType?.includes('application/json')) {
+          requestData = await req.json();
+        } else {
+          const body = await req.text();
+          console.log('Raw request body:', body);
+          
+          if (body) {
+            requestData = JSON.parse(body);
+          } else {
+            throw new Error('Empty request body');
+          }
+        }
+      } catch (parseError) {
+        console.error('JSON parse error:', parseError);
+        const body = await req.text();
+        console.error('Failed to parse body:', body);
+        return new Response(JSON.stringify({ error: 'Invalid JSON in request body', details: parseError.message }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+    } else {
+      return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+        status: 405,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
