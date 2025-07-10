@@ -53,20 +53,28 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered }: Dent
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Load user profile and welcome message
-    loadUserProfile();
-    const welcomeMessage: ChatMessage = {
-      id: crypto.randomUUID(),
-      session_id: sessionId,
-      message: userProfile ? 
-        `${t.welcomeMessage} ${userProfile.first_name}!` : 
-        t.welcomeMessage,
-      is_bot: true,
-      message_type: "text",
-      created_at: new Date().toISOString(),
+    // Load user profile and set welcome message only once
+    const initializeChat = async () => {
+      await loadUserProfile();
+      
+      // Only add welcome message if no messages exist
+      if (messages.length === 0) {
+        const welcomeMessage: ChatMessage = {
+          id: crypto.randomUUID(),
+          session_id: sessionId,
+          message: userProfile ? 
+            `${t.welcomeMessage} ${userProfile.first_name}!` : 
+            t.welcomeMessage,
+          is_bot: true,
+          message_type: "text",
+          created_at: new Date().toISOString(),
+        };
+        setMessages([welcomeMessage]);
+      }
     };
-    setMessages([welcomeMessage]);
-  }, [sessionId, t.welcomeMessage, userProfile]);
+
+    initializeChat();
+  }, [sessionId]); // Remove dependencies that cause re-runs
 
   const loadUserProfile = async () => {
     try {

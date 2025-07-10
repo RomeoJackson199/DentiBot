@@ -244,7 +244,7 @@ export const AppointmentBooking = ({ user, onComplete, onCancel }: AppointmentBo
               </Select>
             </div>
 
-            {/* Date Selection - Make calendar bigger */}
+            {/* Date Selection - Responsive calendar */}
             <div className="space-y-3">
               <Label className="text-base font-semibold text-gray-700">
                 Choisissez une date
@@ -259,9 +259,28 @@ export const AppointmentBooking = ({ user, onComplete, onCancel }: AppointmentBo
                   }}
                   disabled={isDateDisabled}
                   className={cn(
-                    "rounded-xl border-2 border-gray-200/50 shadow-lg bg-white/90 backdrop-blur-sm p-8 pointer-events-auto",
-                    "[&_table]:w-full [&_table]:mx-auto [&_td]:h-16 [&_td]:w-16 [&_th]:h-12 [&_th]:text-lg [&_th]:text-center [&_button]:h-14 [&_button]:w-14 [&_button]:text-lg",
+                    "rounded-xl border-2 border-gray-200/50 shadow-lg bg-white/90 backdrop-blur-sm pointer-events-auto",
+                    // Desktop styling
+                    "hidden sm:block p-8 [&_table]:w-full [&_table]:mx-auto [&_td]:h-16 [&_td]:w-16 [&_th]:h-12 [&_th]:text-lg [&_th]:text-center [&_button]:h-14 [&_button]:w-14 [&_button]:text-lg",
                     "[&_.rdp-months]:text-xl [&_.rdp-caption]:text-xl [&_.rdp-nav_button]:h-10 [&_.rdp-nav_button]:w-10",
+                    "[&_.rdp-head_cell]:text-center [&_.rdp-head_cell]:font-semibold [&_.rdp-cell]:text-center",
+                    selectedDate && "border-blue-300 shadow-blue-100"
+                  )}
+                />
+                {/* Mobile calendar - smaller */}
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={(date) => {
+                    setSelectedDate(date);
+                    if (date) fetchAvailability(date);
+                  }}
+                  disabled={isDateDisabled}
+                  className={cn(
+                    "rounded-xl border-2 border-gray-200/50 shadow-lg bg-white/90 backdrop-blur-sm pointer-events-auto",
+                    // Mobile styling - smaller
+                    "block sm:hidden p-4 [&_table]:w-full [&_table]:mx-auto [&_td]:h-10 [&_td]:w-10 [&_th]:h-8 [&_th]:text-sm [&_th]:text-center [&_button]:h-8 [&_button]:w-8 [&_button]:text-sm",
+                    "[&_.rdp-months]:text-base [&_.rdp-caption]:text-base [&_.rdp-nav_button]:h-8 [&_.rdp-nav_button]:w-8",
                     "[&_.rdp-head_cell]:text-center [&_.rdp-head_cell]:font-semibold [&_.rdp-cell]:text-center",
                     selectedDate && "border-blue-300 shadow-blue-100"
                   )}
@@ -290,13 +309,13 @@ export const AppointmentBooking = ({ user, onComplete, onCancel }: AppointmentBo
                         <h4 className="font-semibold text-gray-700 mb-3">
                           État de tous les créneaux ({allSlots.length} total)
                         </h4>
-                        <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
+                         <div className="grid grid-cols-3 xs:grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-1 sm:gap-2">
                            {allSlots.map((slot) => (
                             <button
                               key={slot.slot_time}
                               onClick={() => slot.is_available && !slot.emergency_only ? setSelectedTime(slot.slot_time.substring(0, 5)) : null}
                               disabled={!slot.is_available || slot.emergency_only}
-                              className={`p-3 rounded-lg text-sm text-center font-medium transition-all border-2 ${
+                              className={`p-2 sm:p-3 rounded-lg text-xs sm:text-sm text-center font-medium transition-all border-2 ${
                                 slot.is_available && !slot.emergency_only
                                   ? selectedTime === slot.slot_time.substring(0, 5)
                                     ? 'bg-blue-600 text-white border-blue-600 shadow-md'
@@ -304,29 +323,29 @@ export const AppointmentBooking = ({ user, onComplete, onCancel }: AppointmentBo
                                   : 'bg-red-50 border-red-200 text-red-700 cursor-not-allowed'
                               }`}
                             >
-                              <div className="font-bold">
+                              <div className="font-bold text-xs sm:text-sm">
                                 {slot.slot_time.substring(0, 5)}
                               </div>
-                              <div className="flex items-center justify-center mt-1">
+                              <div className="flex items-center justify-center mt-0.5 sm:mt-1">
                                 {slot.is_available && !slot.emergency_only ? (
-                                  <CheckCircle className="h-3 w-3" />
+                                  <CheckCircle className="h-2 w-2 sm:h-3 sm:w-3" />
                                 ) : (
-                                  <XCircle className="h-3 w-3" />
+                                  <XCircle className="h-2 w-2 sm:h-3 sm:w-3" />
                                 )}
                               </div>
                             </button>
                           ))}
-                        </div>
-                         <div className="flex justify-center gap-8 mt-4 text-sm font-medium">
-                           <div className="flex items-center bg-green-50 px-3 py-2 rounded-full border border-green-200">
-                             <CheckCircle className="h-4 w-4 text-green-600 mr-2" />
-                             <span className="text-green-700">Disponible ({allSlots.filter(s => s.is_available && !s.emergency_only).length})</span>
-                           </div>
-                           <div className="flex items-center bg-red-50 px-3 py-2 rounded-full border border-red-200">
-                             <XCircle className="h-4 w-4 text-red-600 mr-2" />
-                             <span className="text-red-700">Occupé ({allSlots.filter(s => !s.is_available).length})</span>
-                           </div>
                          </div>
+                          <div className="flex flex-col sm:flex-row justify-center gap-2 sm:gap-8 mt-4 text-xs sm:text-sm font-medium">
+                            <div className="flex items-center justify-center bg-green-50 px-2 sm:px-3 py-1 sm:py-2 rounded-full border border-green-200">
+                              <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-green-600 mr-1 sm:mr-2" />
+                              <span className="text-green-700">Disponible ({allSlots.filter(s => s.is_available && !s.emergency_only).length})</span>
+                            </div>
+                            <div className="flex items-center justify-center bg-red-50 px-2 sm:px-3 py-1 sm:py-2 rounded-full border border-red-200">
+                              <XCircle className="h-3 w-3 sm:h-4 sm:w-4 text-red-600 mr-1 sm:mr-2" />
+                              <span className="text-red-700">Occupé ({allSlots.filter(s => !s.is_available).length})</span>
+                            </div>
+                          </div>
                       </div>
                     )}
                   </div>
