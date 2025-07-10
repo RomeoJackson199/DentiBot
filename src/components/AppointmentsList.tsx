@@ -262,15 +262,6 @@ export const AppointmentsList = ({ user }: AppointmentsListProps) => {
                 <CalendarDays className="h-6 w-6 sm:h-7 sm:w-7 mr-2 sm:mr-3" />
                 <span className="text-base sm:text-2xl">Rendez-vous à Venir ({upcomingAppointments.length})</span>
               </div>
-              <Button
-                size="sm"
-                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                className="bg-white/20 hover:bg-white/30 text-white border-white/30 text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2 h-8 sm:h-9"
-              >
-                <Plus className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                <span className="hidden sm:inline">Nouveau</span>
-                <span className="sm:hidden">+</span>
-              </Button>
             </CardTitle>
           </CardHeader>
           <CardContent className="p-4 sm:p-8">
