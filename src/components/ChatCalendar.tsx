@@ -102,29 +102,34 @@ export const ChatCalendar = ({
     try {
       console.log('Fetching availability for date:', date.toISOString().split('T')[0]);
       
-      // First try to generate slots for this date (in case they don't exist)
-      try {
-        // We need a dentist to generate slots - for now, use the first available dentist
-        const { data: dentists } = await supabase
-          .from("dentists")
-          .select("id")
-          .eq("is_active", true)
-          .limit(1);
+      // Get the first available dentist to check slots for
+      const { data: dentists } = await supabase
+        .from("dentists")
+        .select("id")
+        .eq("is_active", true)
+        .limit(1);
 
-        if (dentists && dentists.length > 0) {
-          await supabase.rpc('generate_daily_slots', {
-            p_dentist_id: dentists[0].id,
-            p_date: date.toISOString().split('T')[0]
-          });
-        }
+      if (!dentists || dentists.length === 0) {
+        throw new Error('No dentists available');
+      }
+
+      const dentistId = dentists[0].id;
+
+      // Generate slots for this date and dentist if they don't exist
+      try {
+        await supabase.rpc('generate_daily_slots', {
+          p_dentist_id: dentistId,
+          p_date: date.toISOString().split('T')[0]
+        });
       } catch (slotError) {
         console.warn('Could not generate slots:', slotError);
       }
 
-      // Fetch available slots from database
+      // Fetch available slots from database for this specific dentist
       const { data: slots, error } = await supabase
         .from('appointment_slots')
         .select('slot_time, is_available')
+        .eq('dentist_id', dentistId)
         .eq('slot_date', date.toISOString().split('T')[0])
         .eq('is_available', true)
         .order('slot_time');
@@ -134,17 +139,18 @@ export const ChatCalendar = ({
         throw new Error('Failed to fetch database availability');
       }
 
-      console.log('Database slots:', slots);
+      console.log('Database slots for dentist', dentistId, ':', slots);
 
       if (slots && slots.length > 0) {
         // Use database slots
         const timeSlots = slots.map(slot => ({
           time: slot.slot_time.substring(0, 5), // Format HH:MM
-          available: slot.is_available,
+          available: true, // Only showing available slots
         }));
         setAvailableTimes(timeSlots);
+        console.log('Using database slots:', timeSlots);
       } else {
-        console.log('No database slots found, checking Google Calendar...');
+        console.log('No available database slots found, checking Google Calendar...');
         
         // Fallback to Google Calendar if available
         if (oauthTokens) {
