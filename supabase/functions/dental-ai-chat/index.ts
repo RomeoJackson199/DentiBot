@@ -44,12 +44,17 @@ For routine check-ups, cleanings, minor concerns
 `;
 
 const dentistDirectory = `
-AVAILABLE DENTISTS:
+AVAILABLE DENTISTS & RECOMMENDATIONS:
 Dr. Virginie Pauwels - Pédodontiste (Pediatric Dentistry)
-Dr. Emeline Hubin - Pédodontiste (Pediatric Dentistry)
+  * Best for: Children's dental care, pediatric emergencies, preventive care for kids
+Dr. Emeline Hubin - Pédodontiste (Pediatric Dentistry) 
+  * Best for: Pediatric procedures, child-friendly approach, behavioral management
 Dr. Firdaws Benhsain - Dentiste généraliste (General Dentistry)
+  * Best for: General dental care, routine cleanings, fillings, extractions, emergencies
 Dr. Justine Peters - Orthodontiste (Orthodontics)
+  * Best for: Braces, teeth alignment, bite correction, orthodontic consultations
 Dr. Anne-Sophie Haas - Orthodontiste (Orthodontics)
+  * Best for: Adult orthodontics, Invisalign, complex alignment cases
 `;
 
 const consultationFlow = `

@@ -322,13 +322,13 @@ export const AppointmentBooking = ({ user, onComplete, onCancel }: AppointmentBo
                           État de tous les créneaux ({allSlots.length} total)
                         </h4>
                         <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
-                          {allSlots.map((slot) => (
+                           {allSlots.map((slot) => (
                             <div
                               key={slot.slot_time}
-                              className={`p-2 rounded-md text-xs text-center border-2 ${
+                              className={`p-3 rounded-lg text-sm text-center font-medium transition-all border-2 ${
                                 slot.is_available
-                                  ? 'bg-green-100 border-green-300 text-green-800'
-                                  : 'bg-red-100 border-red-300 text-red-800'
+                                  ? 'bg-green-50 border-green-200 text-green-700 hover:bg-green-100'
+                                  : 'bg-red-50 border-red-200 text-red-700 hover:bg-red-100'
                               }`}
                             >
                               <div className="font-bold">
@@ -344,16 +344,16 @@ export const AppointmentBooking = ({ user, onComplete, onCancel }: AppointmentBo
                             </div>
                           ))}
                         </div>
-                        <div className="flex justify-center gap-6 mt-4 text-sm">
-                          <div className="flex items-center">
-                            <CheckCircle className="h-4 w-4 text-green-600 mr-1" />
-                            Disponible ({allSlots.filter(s => s.is_available).length})
-                          </div>
-                          <div className="flex items-center">
-                            <XCircle className="h-4 w-4 text-red-600 mr-1" />
-                            Occupé ({allSlots.filter(s => !s.is_available).length})
-                          </div>
-                        </div>
+                         <div className="flex justify-center gap-8 mt-4 text-sm font-medium">
+                           <div className="flex items-center bg-green-50 px-3 py-2 rounded-full border border-green-200">
+                             <CheckCircle className="h-4 w-4 text-green-600 mr-2" />
+                             <span className="text-green-700">Disponible ({allSlots.filter(s => s.is_available).length})</span>
+                           </div>
+                           <div className="flex items-center bg-red-50 px-3 py-2 rounded-full border border-red-200">
+                             <XCircle className="h-4 w-4 text-red-600 mr-2" />
+                             <span className="text-red-700">Occupé ({allSlots.filter(s => !s.is_available).length})</span>
+                           </div>
+                         </div>
                       </div>
                     )}
                   </div>
