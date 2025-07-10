@@ -4,8 +4,9 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Clock, CalendarDays, CheckCircle, XCircle } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Clock, CalendarDays, CheckCircle, XCircle, Sparkles, Users, Timer } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface SimpleCalendarProps {
   selectedDentist: string;
@@ -85,83 +86,196 @@ export const SimpleCalendar = ({ selectedDentist, onDateTimeSelect, isEmergency 
     return date < today || date.getDay() === 0 || date.getDay() === 6;
   };
 
+  const getTimeOfDay = (time: string) => {
+    const hour = parseInt(time.split(':')[0]);
+    if (hour < 12) return 'morning';
+    if (hour < 17) return 'afternoon';
+    return 'evening';
+  };
+
+  const getTimeIcon = (time: string) => {
+    const timeOfDay = getTimeOfDay(time);
+    if (timeOfDay === 'morning') return '🌅';
+    if (timeOfDay === 'afternoon') return '☀️';
+    return '🌙';
+  };
+
+  const getTimeColor = (time: string) => {
+    const timeOfDay = getTimeOfDay(time);
+    if (timeOfDay === 'morning') return 'from-orange-100 to-yellow-100 border-orange-200 text-orange-800';
+    if (timeOfDay === 'afternoon') return 'from-blue-100 to-sky-100 border-blue-200 text-blue-800';
+    return 'from-purple-100 to-indigo-100 border-purple-200 text-purple-800';
+  };
+
   return (
-    <Card className="w-full max-w-2xl mx-auto">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <CalendarDays className="h-5 w-5 text-blue-600" />
-          Sélectionner une date et heure
-          {isEmergency && (
-            <span className="bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs font-medium">
-              URGENCE
-            </span>
-          )}
-        </CardTitle>
-      </CardHeader>
-      
-      <CardContent className="space-y-6">
+    <div className="w-full max-w-4xl mx-auto space-y-6">
+      {/* Header Card */}
+      <Card className="bg-gradient-to-r from-blue-50 via-white to-indigo-50 border border-blue-200/50 shadow-lg">
+        <CardHeader className="text-center pb-4">
+          <CardTitle className="flex items-center justify-center gap-3 text-2xl">
+            <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl text-white">
+              <CalendarDays className="h-6 w-6" />
+            </div>
+            Réservez votre rendez-vous
+            {isEmergency && (
+              <Badge className="bg-gradient-to-r from-red-500 to-red-600 text-white animate-pulse">
+                <Sparkles className="h-3 w-3 mr-1" />
+                URGENCE
+              </Badge>
+            )}
+          </CardTitle>
+          <p className="text-muted-foreground">
+            Choisissez la date et l'heure qui vous conviennent le mieux
+          </p>
+        </CardHeader>
+      </Card>
+
+      <div className="grid lg:grid-cols-2 gap-6">
         {/* Date Selection */}
-        <div className="space-y-3">
-          <h3 className="font-semibold text-gray-700">Choisissez une date</h3>
-          <div className="flex justify-center">
-            <Calendar
-              mode="single"
-              selected={selectedDate}
-              onSelect={handleDateSelect}
-              disabled={isDateDisabled}
-              className="rounded-lg border shadow-sm"
-            />
-          </div>
-        </div>
+        <Card className="bg-white/80 backdrop-blur-sm border border-gray-200/50 shadow-xl">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <div className="p-1.5 bg-gradient-to-br from-emerald-400 to-green-500 rounded-lg text-white">
+                <CalendarDays className="h-4 w-4" />
+              </div>
+              Sélectionnez une date
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex justify-center">
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={handleDateSelect}
+                disabled={isDateDisabled}
+                className={cn(
+                  "rounded-xl border-2 border-gray-200/50 shadow-lg bg-white/90 backdrop-blur-sm p-3 pointer-events-auto",
+                  selectedDate && "border-blue-300 shadow-blue-100"
+                )}
+              />
+            </div>
+            {selectedDate && (
+              <div className="mt-4 p-3 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg">
+                <div className="flex items-center gap-2 text-green-700">
+                  <CheckCircle className="h-4 w-4" />
+                  <span className="text-sm font-medium">
+                    {selectedDate.toLocaleDateString('fr-FR', { 
+                      weekday: 'long', 
+                      day: 'numeric', 
+                      month: 'long' 
+                    })}
+                  </span>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Time Selection */}
-        {selectedDate && (
-          <div className="space-y-3">
-            <h3 className="font-semibold text-gray-700 flex items-center gap-2">
-              <Clock className="h-4 w-4 text-blue-600" />
-              Créneaux disponibles {isEmergency ? "(Urgence)" : "(Standard)"}
-            </h3>
-            
-            {loadingTimes ? (
-              <div className="flex justify-center items-center py-8">
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-                <span className="ml-3 text-gray-600">Chargement...</span>
+        <Card className="bg-white/80 backdrop-blur-sm border border-gray-200/50 shadow-xl">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <div className="p-1.5 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-lg text-white">
+                <Clock className="h-4 w-4" />
+              </div>
+              Choisissez un créneau
+              {selectedDate && (
+                <Badge variant="outline" className="ml-auto">
+                  {isEmergency ? (
+                    <>
+                      <Sparkles className="h-3 w-3 mr-1 text-red-500" />
+                      Urgence
+                    </>
+                  ) : (
+                    <>
+                      <Timer className="h-3 w-3 mr-1 text-blue-500" />
+                      Standard
+                    </>
+                  )}
+                </Badge>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {!selectedDate ? (
+              <div className="text-center py-12 text-gray-400">
+                <CalendarDays className="h-16 w-16 mx-auto mb-4 opacity-50" />
+                <p className="text-lg font-medium">Sélectionnez d'abord une date</p>
+                <p className="text-sm">Puis choisissez votre créneau horaire</p>
+              </div>
+            ) : loadingTimes ? (
+              <div className="flex flex-col justify-center items-center py-12">
+                <div className="relative">
+                  <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-200"></div>
+                  <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-600 absolute top-0"></div>
+                </div>
+                <span className="mt-4 text-gray-600 font-medium">Recherche des créneaux...</span>
+                <span className="text-sm text-gray-500">Veuillez patienter</span>
               </div>
             ) : availableTimes.length > 0 ? (
-              <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
-                {availableTimes.map((time) => (
-                  <Button
-                    key={time}
-                    variant={selectedTime === time ? "default" : "outline"}
-                    onClick={() => handleTimeSelect(time)}
-                    className="h-12 text-center"
-                  >
-                    {time}
-                  </Button>
-                ))}
+              <div className="space-y-4">
+                <div className="text-sm text-gray-600 flex items-center gap-1">
+                  <Users className="h-4 w-4" />
+                  {availableTimes.length} créneaux disponibles
+                </div>
+                <div className="grid grid-cols-2 gap-3 max-h-64 overflow-y-auto">
+                  {availableTimes.map((time) => (
+                    <Button
+                      key={time}
+                      variant={selectedTime === time ? "default" : "outline"}
+                      onClick={() => handleTimeSelect(time)}
+                      className={cn(
+                        "h-14 flex flex-col items-center justify-center transition-all duration-200 hover:scale-105",
+                        selectedTime === time 
+                          ? "bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg border-0" 
+                          : `bg-gradient-to-br ${getTimeColor(time)} hover:shadow-md border-2`
+                      )}
+                    >
+                      <span className="text-xs opacity-75">{getTimeIcon(time)}</span>
+                      <span className="font-semibold">{time}</span>
+                    </Button>
+                  ))}
+                </div>
               </div>
             ) : (
-              <div className="text-center py-8 text-gray-500">
-                <XCircle className="h-12 w-12 mx-auto mb-2 text-gray-400" />
-                <p>Aucun créneau disponible pour cette date</p>
+              <div className="text-center py-12 text-gray-500">
+                <XCircle className="h-16 w-16 mx-auto mb-4 text-gray-300" />
+                <p className="text-lg font-medium">Aucun créneau disponible</p>
                 <p className="text-sm">Essayez une autre date</p>
               </div>
             )}
-          </div>
-        )}
+          </CardContent>
+        </Card>
+      </div>
 
-        {/* Selection Summary */}
-        {selectedDate && selectedTime && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-green-700">
-              <CheckCircle className="h-5 w-5" />
-              <span className="font-medium">
-                Rendez-vous sélectionné: {selectedDate.toLocaleDateString('fr-FR')} à {selectedTime}
-              </span>
+      {/* Selection Summary */}
+      {selectedDate && selectedTime && (
+        <Card className="bg-gradient-to-r from-green-50 via-emerald-50 to-green-50 border-2 border-green-300 shadow-xl animate-fade-in">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl text-white">
+                  <CheckCircle className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-green-800">Rendez-vous sélectionné</h3>
+                  <p className="text-green-700">
+                    {selectedDate.toLocaleDateString('fr-FR', { 
+                      weekday: 'long', 
+                      day: 'numeric', 
+                      month: 'long' 
+                    })} à {selectedTime}
+                  </p>
+                </div>
+              </div>
+              <Badge className="bg-gradient-to-r from-green-500 to-emerald-600 text-white">
+                <Sparkles className="h-3 w-3 mr-1" />
+                Confirmé
+              </Badge>
             </div>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+          </CardContent>
+        </Card>
+      )}
+    </div>
   );
 };
