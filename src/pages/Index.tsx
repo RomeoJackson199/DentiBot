@@ -92,8 +92,12 @@ const Index = () => {
         <div className="text-center space-y-8 animate-fade-in">
           <div className="relative">
             <div className="pulse-ring w-32 h-32 -top-8 -left-8"></div>
-            <div className="relative bg-gradient-primary p-6 rounded-3xl shadow-glow animate-float">
-              <Activity className="w-12 h-12 text-white" />
+            <div className="relative p-6 rounded-3xl shadow-glow animate-float bg-white">
+              <img 
+                src="/lovable-uploads/bd9069b9-f5b0-427d-8acb-8b6a25ccba24.png" 
+                alt="First Smile AI Logo" 
+                className="w-12 h-12 object-contain mx-auto"
+              />
             </div>
           </div>
           <div className="space-y-4">
@@ -123,8 +127,12 @@ const Index = () => {
             <div className="flex items-center justify-center mb-8">
               <div className="relative">
                 <div className="pulse-ring w-24 h-24 -top-6 -left-6"></div>
-                <div className="relative bg-gradient-primary p-6 rounded-3xl shadow-glow animate-float">
-                  <Activity className="h-20 w-20 text-white" />
+                <div className="relative p-6 rounded-3xl shadow-glow animate-float bg-white">
+                  <img 
+                    src="/lovable-uploads/bd9069b9-f5b0-427d-8acb-8b6a25ccba24.png" 
+                    alt="First Smile AI Logo" 
+                    className="h-20 w-20 object-contain"
+                  />
                 </div>
                 <div className="absolute -top-3 -right-3 w-8 h-8 bg-gradient-secondary rounded-full animate-pulse shadow-float"></div>
               </div>
@@ -195,8 +203,12 @@ const Index = () => {
           <div className="flex items-center space-x-3 sm:space-x-4">
             <div className="relative">
               <div className="pulse-ring w-16 h-16 -top-4 -left-4 sm:w-20 sm:h-20 sm:-top-5 sm:-left-5"></div>
-              <div className="relative bg-gradient-primary p-2 sm:p-3 rounded-2xl shadow-glow animate-glow">
-                <Activity className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
+              <div className="relative p-2 sm:p-3 rounded-2xl shadow-glow animate-glow bg-white">
+                <img 
+                  src="/lovable-uploads/bd9069b9-f5b0-427d-8acb-8b6a25ccba24.png" 
+                  alt="First Smile AI Logo" 
+                  className="h-6 w-6 sm:h-8 sm:w-8 object-contain"
+                />
               </div>
               <div className="absolute -top-1 -right-1 w-3 h-3 sm:w-4 sm:h-4 bg-gradient-secondary rounded-full animate-pulse shadow-float"></div>
             </div>
