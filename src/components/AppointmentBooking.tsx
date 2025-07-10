@@ -169,6 +169,44 @@ export const AppointmentBooking = ({ user, onComplete, onCancel }: AppointmentBo
         throw new Error("Ce créneau n'est plus disponible");
       }
 
+      // Create Google Calendar event
+      try {
+        const dentist = dentists.find(d => d.id === selectedDentist);
+        const dentistName = dentist ? `${dentist.profiles.first_name} ${dentist.profiles.last_name}` : 'Dentiste';
+        
+        const eventDetails = {
+          summary: `Rendez-vous dentaire - ${dentistName}`,
+          startDateTime: new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), 
+            parseInt(selectedTime.split(':')[0]), parseInt(selectedTime.split(':')[1])).toISOString(),
+          endDateTime: new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), 
+            parseInt(selectedTime.split(':')[0]) + 1, parseInt(selectedTime.split(':')[1])).toISOString(),
+          timeZone: 'Europe/Brussels',
+          attendeeEmail: user.email,
+          attendeeName: `${user.user_metadata?.first_name || ''} ${user.user_metadata?.last_name || ''}`.trim()
+        };
+
+        console.log('Creating Google Calendar event:', eventDetails);
+
+        // Call the Google Calendar integration
+        const { data: calendarResult, error: calendarError } = await supabase.functions.invoke('google-calendar-integration', {
+          body: {
+            action: 'createEvent',
+            eventDetails: eventDetails,
+            tokens: null // Will need OAuth flow implementation
+          }
+        });
+
+        if (calendarError) {
+          console.warn('Google Calendar integration failed:', calendarError);
+          // Don't fail the appointment booking if calendar creation fails
+        } else {
+          console.log('Google Calendar event created:', calendarResult);
+        }
+      } catch (calendarError) {
+        console.warn('Could not create Google Calendar event:', calendarError);
+        // Don't fail the appointment booking if calendar creation fails
+      }
+
       toast({
         title: "Rendez-vous confirmé !",
         description: `Votre rendez-vous a été pris pour le ${selectedDate.toLocaleDateString()} à ${selectedTime}`,
