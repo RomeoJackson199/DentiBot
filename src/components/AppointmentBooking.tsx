@@ -75,6 +75,10 @@ export const AppointmentBooking = ({ user, onComplete, onCancel }: AppointmentBo
       setAvailableTimes(availableSlots);
       setAllSlots(allSlots || []);
       
+      // Debug logging
+      console.log('All slots fetched:', allSlots);
+      console.log('Available slots:', availableSlots);
+      
     } catch (error) {
       console.error('Failed to fetch availability:', error);
       toast({
@@ -318,26 +322,29 @@ export const AppointmentBooking = ({ user, onComplete, onCancel }: AppointmentBo
                 </Select>
                 
                 {allSlots.length > 0 && (
-                  <div className="mt-4">
-                    <h4 className="text-sm font-medium mb-2">Tous les créneaux:</h4>
-                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                  <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                    <h4 className="text-sm font-semibold mb-3 text-gray-800">État des créneaux pour cette date:</h4>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
                       {allSlots.map((slot) => (
                         <div
                           key={slot.slot_time}
-                          className={`p-2 rounded-md text-xs text-center border ${
+                          className={`p-3 rounded-lg text-sm text-center border-2 transition-all duration-200 ${
                             slot.is_available
-                              ? 'bg-green-50 border-green-200 text-green-700'
-                              : 'bg-red-50 border-red-200 text-red-700'
+                              ? 'bg-green-100 border-green-300 text-green-800 hover:bg-green-200'
+                              : 'bg-red-100 border-red-300 text-red-800'
                           }`}
                         >
-                          <div className="font-medium">
+                          <div className="font-bold text-base">
                             {slot.slot_time.substring(0, 5)}
                           </div>
-                          <div className="text-xs">
-                            {slot.is_available ? 'Libre' : 'Occupé'}
+                          <div className="text-xs font-medium mt-1">
+                            {slot.is_available ? '✅ LIBRE' : '❌ OCCUPÉ'}
                           </div>
                         </div>
                       ))}
+                    </div>
+                    <div className="mt-3 text-xs text-gray-600">
+                      Total créneaux: {allSlots.length} | Disponibles: {allSlots.filter(s => s.is_available).length} | Occupés: {allSlots.filter(s => !s.is_available).length}
                     </div>
                   </div>
                 )}
