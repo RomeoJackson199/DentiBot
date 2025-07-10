@@ -228,33 +228,35 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     let requestData: CalendarRequest;
 
-    if (req.method === 'GET') {
-      // Handle GET requests by parsing URL parameters
-      const url = new URL(req.url);
-      const action = url.searchParams.get('action') as CalendarRequest['action'];
-      const date = url.searchParams.get('date') || undefined;
-      const authCode = url.searchParams.get('code') || undefined;
+    // For Supabase function invocations, the body is always JSON
+    try {
+      requestData = await req.json();
+      console.log('Received request data:', requestData);
       
-      requestData = { action, date, authCode } as CalendarRequest;
-      console.log('GET request data:', requestData);
-      
-    } else if (req.method === 'POST') {
-      try {
-        requestData = await req.json();
-        console.log('POST request data:', requestData);
-      } catch (parseError) {
-        console.error('JSON parse error:', parseError);
+      // Ensure we have a valid action
+      if (!requestData.action) {
+        console.error('Missing action in request:', requestData);
         return new Response(JSON.stringify({ 
-          error: 'Invalid JSON in request body', 
-          details: parseError.message 
+          error: 'Missing action parameter',
+          received: requestData 
         }), {
           status: 400,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
-    } else {
-      return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-        status: 405,
+      
+    } catch (parseError) {
+      console.error('JSON parse error:', parseError);
+      console.error('Request method:', req.method);
+      console.error('Request URL:', req.url);
+      
+      return new Response(JSON.stringify({ 
+        error: 'Invalid JSON in request body', 
+        details: parseError.message,
+        method: req.method,
+        url: req.url
+      }), {
+        status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
