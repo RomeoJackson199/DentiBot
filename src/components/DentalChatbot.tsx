@@ -40,6 +40,7 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered }: Dent
   const [patientInfo, setPatientInfo] = useState<any>(null);
   const [isForUser, setIsForUser] = useState<boolean>(true);
   const [isEmergency, setIsEmergency] = useState(false);
+  const [emergencyDetected, setEmergencyDetected] = useState(false);
   const [urgencyLevel, setUrgencyLevel] = useState<string>("medium");
   const { toast } = useToast();
   const { t } = useLanguage();

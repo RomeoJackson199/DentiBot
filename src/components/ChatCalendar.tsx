@@ -40,7 +40,12 @@ export const ChatCalendar = ({
   const fetchAvailability = async (date: Date) => {
     setLoadingTimes(true);
     try {
-      console.log('Fetching availability for date:', date.toISOString().split('T')[0]);
+      // Format date consistently for database (avoid timezone issues)
+      const dateStr = date.getFullYear() + '-' + 
+        String(date.getMonth() + 1).padStart(2, '0') + '-' + 
+        String(date.getDate()).padStart(2, '0');
+      
+      console.log('Fetching availability for date:', dateStr, 'Emergency:', isEmergency);
       
       // Get the first available dentist to check slots for
       const { data: dentists } = await supabase
@@ -59,10 +64,10 @@ export const ChatCalendar = ({
       try {
         await supabase.rpc('generate_daily_slots', {
           p_dentist_id: dentistId,
-          p_date: date.toISOString().split('T')[0]
+          p_date: dateStr
         });
       } catch (slotError) {
-        console.warn('Could not generate slots:', slotError);
+        console.warn('Could not generate slots (may already exist):', slotError);
       }
 
       // Fetch available slots from database for this specific dentist
@@ -70,7 +75,7 @@ export const ChatCalendar = ({
         .from('appointment_slots')
         .select('slot_time, is_available, emergency_only')
         .eq('dentist_id', dentistId)
-        .eq('slot_date', date.toISOString().split('T')[0])
+        .eq('slot_date', dateStr)
         .eq('is_available', true)
         .order('slot_time');
 
@@ -79,20 +84,22 @@ export const ChatCalendar = ({
         throw new Error('Failed to fetch database availability');
       }
 
-      console.log('Database slots for dentist', dentistId, ':', slots);
+      console.log('Raw database slots:', slots);
 
       if (slots && slots.length > 0) {
         // Filter slots based on emergency status
         const filteredSlots = slots.filter(slot => {
           if (isEmergency) {
-            // Emergency cases can book any available slot
+            // Emergency patients can book any available slot
             return true;
           } else {
-            // Non-emergency cases can only book non-emergency slots
+            // Non-emergency patients can only book non-emergency slots
             return !slot.emergency_only;
           }
         });
 
+        console.log('Filtered slots for', isEmergency ? 'emergency' : 'regular', 'appointment:', filteredSlots);
+        
         const timeSlots = filteredSlots.map(slot => ({
           time: slot.slot_time.substring(0, 5), // Format HH:MM
           available: true,

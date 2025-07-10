@@ -146,14 +146,26 @@ const systemPrompt = [
       suggestions.push('booking');
     }
     
-    // Detect urgency and emergency indicators
-    const emergencyKeywords = ['emergency', 'urgent', 'severe pain', 'bleeding', 'broken', 'trauma', 'infection', 'swelling', 'can\'t eat', 'unbearable'];
-    const urgencyKeywords = ['quickly', 'fast', 'now', 'today', 'asap'];
+    // Enhanced emergency detection - check both user input and AI response
+    const emergencyKeywords = [
+      'emergency', 'urgent', 'severe pain', 'intense pain', 'excruciating', 'unbearable',
+      'bleeding', 'blood', 'trauma', 'knocked out', 'swollen face', 'swelling',
+      'broken tooth', 'cracked tooth', 'abscess', 'infection', 'pus',
+      'accident', 'injury', 'immediate', 'can\'t eat', 'can\'t sleep', 'throbbing'
+    ];
     
+    const userInput = message?.toLowerCase() || '';
+    const botResponseLower = botResponse.toLowerCase();
+    
+    // Check both user input and bot response for emergency indicators
     const emergency_detected = emergencyKeywords.some(keyword => 
-      lowerResponse.includes(keyword) || message.toLowerCase().includes(keyword)
+      userInput.includes(keyword.toLowerCase()) || botResponseLower.includes(keyword.toLowerCase())
     );
-    const urgency_detected = urgencyKeywords.some(keyword => lowerResponse.includes(keyword));
+    
+    const urgencyKeywords = ['quickly', 'fast', 'now', 'today', 'asap'];
+    const urgency_detected = urgencyKeywords.some(keyword => 
+      userInput.includes(keyword.toLowerCase()) || botResponseLower.includes(keyword.toLowerCase())
+    ) || emergency_detected;
 
     return new Response(JSON.stringify({ 
       response: botResponse,
