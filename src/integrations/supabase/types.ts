@@ -122,6 +122,66 @@ export type Database = {
           },
         ]
       }
+      calendar_events: {
+        Row: {
+          appointment_id: string | null
+          created_at: string
+          dentist_id: string
+          description: string | null
+          end_datetime: string
+          event_type: string
+          id: string
+          is_recurring: boolean | null
+          recurrence_pattern: Json | null
+          start_datetime: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          appointment_id?: string | null
+          created_at?: string
+          dentist_id: string
+          description?: string | null
+          end_datetime: string
+          event_type?: string
+          id?: string
+          is_recurring?: boolean | null
+          recurrence_pattern?: Json | null
+          start_datetime: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          appointment_id?: string | null
+          created_at?: string
+          dentist_id?: string
+          description?: string | null
+          end_datetime?: string
+          event_type?: string
+          id?: string
+          is_recurring?: boolean | null
+          recurrence_pattern?: Json | null
+          start_datetime?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendar_events_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calendar_events_dentist_id_fkey"
+            columns: ["dentist_id"]
+            isOneToOne: false
+            referencedRelation: "dentists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chat_messages: {
         Row: {
           created_at: string
@@ -154,6 +214,53 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      dentist_availability: {
+        Row: {
+          break_end_time: string | null
+          break_start_time: string | null
+          created_at: string
+          day_of_week: number
+          dentist_id: string
+          end_time: string
+          id: string
+          is_available: boolean | null
+          start_time: string
+          updated_at: string
+        }
+        Insert: {
+          break_end_time?: string | null
+          break_start_time?: string | null
+          created_at?: string
+          day_of_week: number
+          dentist_id: string
+          end_time: string
+          id?: string
+          is_available?: boolean | null
+          start_time: string
+          updated_at?: string
+        }
+        Update: {
+          break_end_time?: string | null
+          break_start_time?: string | null
+          created_at?: string
+          day_of_week?: number
+          dentist_id?: string
+          end_time?: string
+          id?: string
+          is_available?: boolean | null
+          start_time?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dentist_availability_dentist_id_fkey"
+            columns: ["dentist_id"]
+            isOneToOne: false
+            referencedRelation: "dentists"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       dentist_schedules: {
         Row: {
@@ -196,8 +303,6 @@ export type Database = {
       dentists: {
         Row: {
           created_at: string
-          google_calendar_connected: boolean | null
-          google_calendar_tokens: Json | null
           id: string
           is_active: boolean | null
           license_number: string | null
@@ -207,8 +312,6 @@ export type Database = {
         }
         Insert: {
           created_at?: string
-          google_calendar_connected?: boolean | null
-          google_calendar_tokens?: Json | null
           id?: string
           is_active?: boolean | null
           license_number?: string | null
@@ -218,8 +321,6 @@ export type Database = {
         }
         Update: {
           created_at?: string
-          google_calendar_connected?: boolean | null
-          google_calendar_tokens?: Json | null
           id?: string
           is_active?: boolean | null
           license_number?: string | null
