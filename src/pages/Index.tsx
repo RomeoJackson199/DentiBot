@@ -4,7 +4,6 @@ import { User, Session } from "@supabase/supabase-js";
 import { DentalChatbot } from "@/components/DentalChatbot";
 import { AuthForm } from "@/components/AuthForm";
 import { OnboardingPopup } from "@/components/OnboardingPopup";
-import { LanguageSelection } from "@/components/LanguageSelection";
 import { AppointmentsList } from "@/components/AppointmentsList";
 import { Settings } from "@/components/Settings";
 import { useToast } from "@/hooks/use-toast";
@@ -20,7 +19,6 @@ const Index = () => {
   const [activeTab, setActiveTab] = useState<'chat' | 'appointments'>('chat');
   const [triggerBooking, setTriggerBooking] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
-  const [showLanguageSelection, setShowLanguageSelection] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -31,13 +29,10 @@ const Index = () => {
         setUser(session?.user ?? null);
         setLoading(false);
         
-        // Show language selection then onboarding for new users
+        // Show onboarding for new users
         if (event === 'SIGNED_IN' && session?.user) {
           const hasSeenOnboarding = localStorage.getItem(`onboarding_${session.user.id}`);
-          const hasSelectedLanguage = localStorage.getItem('preferred-language');
-          if (!hasSelectedLanguage) {
-            setShowLanguageSelection(true);
-          } else if (!hasSeenOnboarding) {
+          if (!hasSeenOnboarding) {
             setShowOnboarding(true);
           }
         }
@@ -50,13 +45,10 @@ const Index = () => {
       setUser(session?.user ?? null);
       setLoading(false);
       
-      // Check language selection and onboarding for existing session
+      // Check onboarding for existing session
       if (session?.user) {
         const hasSeenOnboarding = localStorage.getItem(`onboarding_${session.user.id}`);
-        const hasSelectedLanguage = localStorage.getItem('preferred-language');
-        if (!hasSelectedLanguage) {
-          setShowLanguageSelection(true);
-        } else if (!hasSeenOnboarding) {
+        if (!hasSeenOnboarding) {
           setShowOnboarding(true);
         }
       }
@@ -65,14 +57,6 @@ const Index = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-
-  const handleLanguageSelected = () => {
-    setShowLanguageSelection(false);
-    const hasSeenOnboarding = user ? localStorage.getItem(`onboarding_${user.id}`) : null;
-    if (!hasSeenOnboarding) {
-      setShowOnboarding(true);
-    }
-  };
 
   const handleOnboardingClose = () => {
     setShowOnboarding(false);
@@ -98,9 +82,9 @@ const Index = () => {
           </div>
           <div className="space-y-4">
             <h1 className="text-3xl font-bold gradient-text">First Smile AI</h1>
-            <p className="text-xl font-semibold text-dental-primary">{t.initializingExperience}</p>
+            <p className="text-xl font-semibold text-dental-primary">Initializing your experience</p>
             <p className="text-dental-muted-foreground max-w-md mx-auto">
-              {t.preparingAssistant}
+              Preparing your personalized dental assistant powered by advanced AI technology
             </p>
             <div className="flex justify-center">
               <div className="flex space-x-2">
@@ -135,36 +119,37 @@ const Index = () => {
               </h1>
               <div className="space-y-4">
                 <p className="text-3xl text-dental-primary font-semibold animate-slide-in">
-                  {t.intelligentDentalAssistant}
+                  Your Intelligent Dental Assistant 24/7
                 </p>
                 <div className="flex justify-center">
                   <div className="h-1 w-24 bg-gradient-primary rounded-full"></div>
                 </div>
               </div>
               <p className="text-dental-muted-foreground max-w-4xl mx-auto text-xl leading-relaxed animate-fade-in" style={{ animationDelay: "0.3s" }}>
-                {t.experienceFuture}
+                Experience the future of dental care with AI-powered consultations, smart appointment booking, 
+                and personalized treatment recommendations. Available 24/7 to help you maintain your perfect smile.
               </p>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto mt-12">
                 <div className="floating-card p-6 text-center animate-scale-in" style={{ animationDelay: "0.5s" }}>
                   <div className="w-12 h-12 bg-gradient-primary rounded-full flex items-center justify-center mx-auto mb-4">
                     <Activity className="h-6 w-6 text-white" />
                   </div>
-                  <h3 className="font-semibold text-dental-primary mb-2">{t.aiDiagnosis}</h3>
-                  <p className="text-sm text-dental-muted-foreground">{t.aiDiagnosisDesc}</p>
+                  <h3 className="font-semibold text-dental-primary mb-2">AI Diagnosis</h3>
+                  <p className="text-sm text-dental-muted-foreground">Get instant AI-powered assessments</p>
                 </div>
                 <div className="floating-card p-6 text-center animate-scale-in" style={{ animationDelay: "0.7s" }}>
                   <div className="w-12 h-12 bg-gradient-secondary rounded-full flex items-center justify-center mx-auto mb-4">
                     <Calendar className="h-6 w-6 text-white" />
                   </div>
-                  <h3 className="font-semibold text-dental-primary mb-2">{t.smartBooking}</h3>
-                  <p className="text-sm text-dental-muted-foreground">{t.smartBookingDesc}</p>
+                  <h3 className="font-semibold text-dental-primary mb-2">Smart Booking</h3>
+                  <p className="text-sm text-dental-muted-foreground">Book appointments intelligently</p>
                 </div>
                 <div className="floating-card p-6 text-center animate-scale-in" style={{ animationDelay: "0.9s" }}>
                   <div className="w-12 h-12 bg-gradient-accent rounded-full flex items-center justify-center mx-auto mb-4">
                     <MessageSquare className="h-6 w-6 text-white" />
                   </div>
-                  <h3 className="font-semibold text-dental-primary mb-2">{t.support24_7}</h3>
-                  <p className="text-sm text-dental-muted-foreground">{t.support24_7Desc}</p>
+                  <h3 className="font-semibold text-dental-primary mb-2">24/7 Support</h3>
+                  <p className="text-sm text-dental-muted-foreground">Round-the-clock assistance</p>
                 </div>
               </div>
             </div>
@@ -176,7 +161,7 @@ const Index = () => {
                 onClick={() => window.location.href = "/dentists"}
                 className="mr-4 mb-4 glass-card border-dental-primary/30 text-dental-primary hover:bg-dental-primary/10"
               >
-                {t.viewOurDentists}
+                View Our Dentists
               </Button>
             </div>
             <div className="max-w-md mx-auto">
@@ -201,7 +186,11 @@ const Index = () => {
               <div className="absolute -top-1 -right-1 w-3 h-3 sm:w-4 sm:h-4 bg-gradient-secondary rounded-full animate-pulse shadow-float"></div>
             </div>
             <div className="hidden sm:block">
-              <h2 className="text-2xl font-bold gradient-text">First Smile AI</h2>
+              <img 
+                src="/lovable-uploads/dd1b725d-745a-4f59-a31a-2b7df6e48a1c.png" 
+                alt="First Smile Logo" 
+                className="h-12 w-auto"
+              />
             </div>
           </div>
           <div className="flex items-center">
@@ -225,7 +214,7 @@ const Index = () => {
                 }`}
               >
                 <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5" />
-                <span className="font-medium text-sm sm:text-base">{t.chat}</span>
+                <span className="font-medium text-sm sm:text-base">Chat</span>
               </Button>
               <div className="flex items-center space-x-2 flex-1">
                 <Button
@@ -238,7 +227,7 @@ const Index = () => {
                   }`}
                 >
                   <Calendar className="h-4 w-4 sm:h-5 sm:w-5" />
-                  <span className="font-medium text-sm sm:text-base">{t.appointments}</span>
+                  <span className="font-medium text-sm sm:text-base">Rendez-vous</span>
                 </Button>
                 <Button
                   variant="outline"
@@ -266,11 +255,6 @@ const Index = () => {
           )}
         </div>
       </main>
-
-      {/* Language Selection */}
-      {showLanguageSelection && (
-        <LanguageSelection onLanguageSelected={handleLanguageSelected} />
-      )}
 
       {/* Onboarding Popup */}
       <OnboardingPopup 

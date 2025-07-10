@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useLanguage } from "@/hooks/useLanguage";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,7 +9,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2, Mail, Lock, User, Phone, Calendar } from "lucide-react";
 
 export const AuthForm = () => {
-  const { t } = useLanguage();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
@@ -68,13 +66,13 @@ export const AuthForm = () => {
         if (profileError) throw profileError;
 
         toast({
-          title: t.accountCreatedSuccess,
-          description: t.checkEmailConfirm,
+          title: "Compte créé avec succès !",
+          description: "Vérifiez votre email pour confirmer votre compte.",
         });
       }
     } catch (error: any) {
       toast({
-        title: t.signUpError,
+        title: "Erreur lors de l'inscription",
         description: error.message,
         variant: "destructive",
       });
@@ -96,12 +94,12 @@ export const AuthForm = () => {
       if (error) throw error;
 
       toast({
-        title: t.signInSuccess,
-        description: t.welcomeToDentiBot,
+        title: "Connexion réussie !",
+        description: "Bienvenue sur DentiBot.",
       });
     } catch (error: any) {
       toast({
-        title: t.signInError,
+        title: "Erreur lors de la connexion",
         description: error.message,
         variant: "destructive",
       });
@@ -114,29 +112,29 @@ export const AuthForm = () => {
     <div className="max-w-md mx-auto">
       <Card>
         <CardHeader className="text-center">
-          <CardTitle>{t.accessDentiBot}</CardTitle>
+          <CardTitle>Accès à DentiBot</CardTitle>
           <CardDescription>
-            {t.signInOrCreate}
+            Connectez-vous ou créez un compte pour commencer
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="signin" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="signin">{t.signIn}</TabsTrigger>
-              <TabsTrigger value="signup">{t.signUp}</TabsTrigger>
+              <TabsTrigger value="signin">Connexion</TabsTrigger>
+              <TabsTrigger value="signup">Inscription</TabsTrigger>
             </TabsList>
             
             <TabsContent value="signin">
               <form onSubmit={handleSignIn} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="signin-email">{t.email}</Label>
+                  <Label htmlFor="signin-email">Email</Label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="signin-email"
                       name="email"
                       type="email"
-                      placeholder={t.enterEmail}
+                      placeholder="votre@email.com"
                       value={formData.email}
                       onChange={handleInputChange}
                       className="pl-10"
@@ -145,14 +143,14 @@ export const AuthForm = () => {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signin-password">{t.password}</Label>
+                  <Label htmlFor="signin-password">Mot de passe</Label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="signin-password"
                       name="password"
                       type="password"
-                      placeholder={t.enterPassword}
+                      placeholder="••••••••"
                       value={formData.password}
                       onChange={handleInputChange}
                       className="pl-10"
@@ -162,7 +160,7 @@ export const AuthForm = () => {
                 </div>
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  {t.signInButton}
+                  Se connecter
                 </Button>
               </form>
             </TabsContent>
@@ -171,13 +169,13 @@ export const AuthForm = () => {
               <form onSubmit={handleSignUp} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="signup-firstName">{t.firstName}</Label>
+                    <Label htmlFor="signup-firstName">Prénom</Label>
                     <div className="relative">
                       <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                       <Input
                         id="signup-firstName"
                         name="firstName"
-                        placeholder={t.firstName}
+                        placeholder="Prénom"
                         value={formData.firstName}
                         onChange={handleInputChange}
                         className="pl-10"
@@ -186,11 +184,11 @@ export const AuthForm = () => {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="signup-lastName">{t.lastName}</Label>
+                    <Label htmlFor="signup-lastName">Nom</Label>
                     <Input
                       id="signup-lastName"
                       name="lastName"
-                      placeholder={t.lastName}
+                      placeholder="Nom"
                       value={formData.lastName}
                       onChange={handleInputChange}
                       required
@@ -198,14 +196,14 @@ export const AuthForm = () => {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signup-email">{t.email}</Label>
+                  <Label htmlFor="signup-email">Email</Label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="signup-email"
                       name="email"
                       type="email"
-                      placeholder={t.enterEmail}
+                      placeholder="votre@email.com"
                       value={formData.email}
                       onChange={handleInputChange}
                       className="pl-10"
@@ -214,14 +212,14 @@ export const AuthForm = () => {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signup-password">{t.password}</Label>
+                  <Label htmlFor="signup-password">Mot de passe</Label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="signup-password"
                       name="password"
                       type="password"
-                      placeholder={t.enterPassword}
+                      placeholder="••••••••"
                       value={formData.password}
                       onChange={handleInputChange}
                       className="pl-10"
@@ -230,14 +228,14 @@ export const AuthForm = () => {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signup-phone">{t.phone} ({t.optional})</Label>
+                  <Label htmlFor="signup-phone">Téléphone (optionnel)</Label>
                   <div className="relative">
                     <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="signup-phone"
                       name="phone"
                       type="tel"
-                      placeholder={t.enterPhoneNumber}
+                      placeholder="06 12 34 56 78"
                       value={formData.phone}
                       onChange={handleInputChange}
                       className="pl-10"
@@ -245,7 +243,7 @@ export const AuthForm = () => {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signup-dateOfBirth">{t.dateOfBirth} ({t.optional})</Label>
+                  <Label htmlFor="signup-dateOfBirth">Date de naissance (optionnel)</Label>
                   <div className="relative">
                     <Calendar className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input
@@ -260,7 +258,7 @@ export const AuthForm = () => {
                 </div>
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  {t.createAccountButton}
+                  Créer un compte
                 </Button>
               </form>
             </TabsContent>
