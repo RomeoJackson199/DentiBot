@@ -226,13 +226,13 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const body = await req.text();
     let requestData: CalendarRequest;
 
     try {
-      requestData = JSON.parse(body);
+      requestData = await req.json();
     } catch (parseError) {
       console.error('JSON parse error:', parseError);
+      console.error('Request body:', await req.text());
       return new Response(JSON.stringify({ error: 'Invalid JSON in request body' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
