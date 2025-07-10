@@ -298,60 +298,21 @@ export const AppointmentBooking = ({ user, onComplete, onCancel }: AppointmentBo
                 Chargement des créneaux disponibles...
               </div>
             ) : (
-              <div className="space-y-6">
-                {/* Clean Time Slots Grid like in the image */}
-                {allSlots.length > 0 && (
-                  <div className="space-y-4">
-                    <div className="text-center space-y-2">
-                      <div className="flex items-center justify-center text-blue-500">
-                        <Clock className="h-6 w-6 mr-2" />
-                        <h3 className="text-xl font-semibold">Available Time Slots</h3>
-                      </div>
-                      <p className="text-gray-600">Choose the time that works best for you</p>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-3 max-w-2xl mx-auto">
-                      {allSlots
-                        .filter(slot => slot.is_available && !slot.emergency_only) // Only show available non-emergency slots
-                        .map((slot) => (
-                        <button
-                          key={slot.slot_time}
-                          onClick={() => setSelectedTime(slot.slot_time.substring(0, 5))}
-                          className={`p-4 rounded-xl border-2 transition-all duration-200 flex items-center justify-center space-x-3 ${
-                            selectedTime === slot.slot_time.substring(0, 5)
-                              ? 'bg-blue-50 border-blue-300 text-blue-700'
-                              : 'bg-white border-gray-200 text-gray-700 hover:border-blue-200 hover:bg-blue-50'
-                          }`}
-                        >
-                          <Clock className="h-5 w-5" />
-                          <span className="text-lg font-semibold">
-                            {slot.slot_time.substring(0, 5)}
-                          </span>
-                        </button>
-                      ))}
-                    </div>
-                    
-                    {/* Status Summary */}
-                    <div className="text-center text-sm text-gray-500">
-                      Available slots: {allSlots.filter(s => s.is_available && !s.emergency_only).length} | 
-                      Booked: {allSlots.filter(s => !s.is_available).length}
-                    </div>
-                  </div>
-                )}
-                
-                {/* Fallback dropdown if no slots loaded */}
-                {allSlots.length === 0 && (
+              <div className="space-y-4">
+                {/* Simple time slot selection */}
+                <div className="space-y-3">
                   <Select value={selectedTime} onValueChange={setSelectedTime}>
-                    <SelectTrigger className="mt-2">
-                      <SelectValue placeholder="Choisir un créneau" />
+                    <SelectTrigger className="mt-2 bg-white border-2 z-50">
+                      <SelectValue placeholder={availableTimes.length > 0 ? "Choisir un créneau disponible" : "Aucun créneau disponible"} />
                     </SelectTrigger>
-                    <SelectContent className="bg-white border z-50">
+                    <SelectContent className="bg-white border-2 shadow-lg z-50 max-h-60 overflow-y-auto">
                       {availableTimes.length > 0 ? (
                         availableTimes.map((time) => (
-                          <SelectItem key={time} value={time}>
-                            <div className="flex items-center">
-                              <Clock className="h-4 w-4 mr-2 text-green-500" />
-                              {time} - Disponible
+                          <SelectItem key={time} value={time} className="cursor-pointer hover:bg-blue-50">
+                            <div className="flex items-center py-1">
+                              <Clock className="h-4 w-4 mr-3 text-blue-500" />
+                              <span className="font-medium">{time}</span>
+                              <span className="ml-2 text-sm text-green-600">- Disponible</span>
                             </div>
                           </SelectItem>
                         ))
@@ -362,6 +323,40 @@ export const AppointmentBooking = ({ user, onComplete, onCancel }: AppointmentBo
                       )}
                     </SelectContent>
                   </Select>
+                  
+                  {/* Status debug info */}
+                  <div className="text-xs text-gray-500 bg-gray-50 p-2 rounded">
+                    Debug: {availableTimes.length} créneaux disponibles | Total slots: {allSlots.length}
+                  </div>
+                </div>
+                
+                {/* Show all slots status */}
+                {allSlots.length > 0 && (
+                  <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                    <h4 className="text-sm font-semibold mb-3 text-gray-800">Tous les créneaux:</h4>
+                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                      {allSlots.map((slot) => (
+                        <div
+                          key={slot.slot_time}
+                          className={`p-2 rounded-lg text-xs text-center border-2 ${
+                            slot.is_available
+                              ? 'bg-green-100 border-green-300 text-green-800'
+                              : 'bg-red-100 border-red-300 text-red-800'
+                          }`}
+                        >
+                          <div className="font-bold">
+                            {slot.slot_time.substring(0, 5)}
+                          </div>
+                          <div className="text-xs mt-1">
+                            {slot.is_available ? 'LIBRE' : 'OCCUPÉ'}
+                          </div>
+                          {slot.emergency_only && (
+                            <div className="text-xs text-orange-600">Urgence</div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 )}
               </div>
             )}
