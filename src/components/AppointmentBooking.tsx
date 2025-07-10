@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,8 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Calendar } from "@/components/ui/calendar";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { CalendarDays, Clock, User as UserIcon } from "lucide-react";
-
+import { CalendarDays, Clock, User as UserIcon, CheckCircle, XCircle } from "lucide-react";
 
 interface AppointmentBookingProps {
   user: User;
@@ -34,7 +34,7 @@ export const AppointmentBooking = ({ user, onComplete, onCancel }: AppointmentBo
   const [selectedTime, setSelectedTime] = useState("");
   const [reason, setReason] = useState("");
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
-  const [allSlots, setAllSlots] = useState<{slot_time: string, is_available: boolean, emergency_only: boolean}[]>([]);
+  const [allSlots, setAllSlots] = useState<{slot_time: string, is_available: boolean, emergency_only?: boolean}[]>([]);
   const [loadingTimes, setLoadingTimes] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -47,18 +47,16 @@ export const AppointmentBooking = ({ user, onComplete, onCancel }: AppointmentBo
     if (!selectedDentist) return;
     
     setLoadingTimes(true);
-    setSelectedTime(""); // Reset selected time when date changes
+    setSelectedTime("");
     
     try {
       console.log('Fetching availability for:', date.toISOString().split('T')[0]);
       
-      // First, generate slots for the selected date and dentist
       await supabase.rpc('generate_daily_slots', {
         p_dentist_id: selectedDentist,
         p_date: date.toISOString().split('T')[0]
       });
 
-      // Then fetch all slots to show availability status
       const { data: allSlots, error } = await supabase
         .from('appointment_slots')
         .select('slot_time, is_available, emergency_only')
@@ -68,15 +66,12 @@ export const AppointmentBooking = ({ user, onComplete, onCancel }: AppointmentBo
 
       if (error) throw error;
 
-      // Only include available slots for booking
-      const availableSlots = allSlots?.filter(slot => slot.is_available)
+      const availableSlots = allSlots?.filter(slot => slot.is_available && !slot.emergency_only)
         .map(slot => slot.slot_time.substring(0, 5)) || [];
       
       setAvailableTimes(availableSlots);
       setAllSlots(allSlots || []);
       
-      // Debug logging
-      console.log('All slots fetched:', allSlots);
       console.log('Available slots:', availableSlots);
       
     } catch (error) {
@@ -133,7 +128,6 @@ export const AppointmentBooking = ({ user, onComplete, onCancel }: AppointmentBo
     setIsLoading(true);
 
     try {
-      // Get user profile
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
         .select("id")
@@ -142,7 +136,6 @@ export const AppointmentBooking = ({ user, onComplete, onCancel }: AppointmentBo
 
       if (profileError) throw profileError;
 
-      // Create appointment
       const appointmentDateTime = new Date(selectedDate);
       const [hours, minutes] = selectedTime.split(":");
       appointmentDateTime.setHours(parseInt(hours), parseInt(minutes));
@@ -162,42 +155,23 @@ export const AppointmentBooking = ({ user, onComplete, onCancel }: AppointmentBo
 
       if (appointmentError) throw appointmentError;
 
-      // Book the slot
       const { error: slotError } = await supabase.rpc('book_appointment_slot', {
         p_dentist_id: selectedDentist,
         p_slot_date: selectedDate.toISOString().split('T')[0],
-        p_slot_time: selectedTime + ':00', // Add seconds for TIME format
+        p_slot_time: selectedTime + ':00',
         p_appointment_id: appointmentData.id
       });
 
       if (slotError) {
-        // If slot booking fails, delete the appointment
         await supabase.from("appointments").delete().eq("id", appointmentData.id);
         throw new Error("Ce créneau n'est plus disponible");
       }
 
-      // Create Google Calendar event
       try {
         const dentist = dentists.find(d => d.id === selectedDentist);
-        const dentistName = dentist ? `${dentist.profiles.first_name} ${dentist.profiles.last_name}` : 'Dentiste';
-        
-        const eventDetails = {
-          summary: `Rendez-vous dentaire - ${dentistName}`,
-          startDateTime: new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), 
-            parseInt(selectedTime.split(':')[0]), parseInt(selectedTime.split(':')[1])).toISOString(),
-          endDateTime: new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), 
-            parseInt(selectedTime.split(':')[0]) + 1, parseInt(selectedTime.split(':')[1])).toISOString(),
-          timeZone: 'Europe/Brussels',
-          attendeeEmail: user.email,
-          attendeeName: `${user.user_metadata?.first_name || ''} ${user.user_metadata?.last_name || ''}`.trim()
-        };
-
-        console.log('Creating Google Calendar event:', eventDetails);
-
-        // Create calendar event in database
         const appointmentStart = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), 
           parseInt(selectedTime.split(':')[0]), parseInt(selectedTime.split(':')[1]));
-        const appointmentEnd = new Date(appointmentStart.getTime() + 60 * 60 * 1000); // 1 hour duration
+        const appointmentEnd = new Date(appointmentStart.getTime() + 60 * 60 * 1000);
 
         await supabase.from('calendar_events').insert({
           dentist_id: selectedDentist,
@@ -210,7 +184,6 @@ export const AppointmentBooking = ({ user, onComplete, onCancel }: AppointmentBo
         });
       } catch (calendarError) {
         console.warn('Could not create calendar event:', calendarError);
-        // Don't fail the appointment booking if calendar creation fails
       }
 
       toast({
@@ -239,155 +212,196 @@ export const AppointmentBooking = ({ user, onComplete, onCancel }: AppointmentBo
   const isDateDisabled = (date: Date) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    return date < today || date.getDay() === 0 || date.getDay() === 6; // Disable past dates and weekends
+    return date < today || date.getDay() === 0 || date.getDay() === 6;
   };
 
   return (
-    <div className="space-y-6">      
-      <Card className="w-full">
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <CalendarDays className="h-5 w-5 mr-2 text-blue-500" />
-            Prise de rendez-vous
-          </CardTitle>
-        </CardHeader>
-      <CardContent className="space-y-6">
-        <div>
-          <Label>Sélectionnez un dentiste :</Label>
-          <Select value={selectedDentist} onValueChange={setSelectedDentist}>
-            <SelectTrigger className="mt-2">
-              <SelectValue placeholder="Choisir un dentiste" />
-            </SelectTrigger>
-            <SelectContent>
-              {dentists.map((dentist) => (
-                <SelectItem key={dentist.id} value={dentist.id}>
-                  <div className="flex items-center">
-                    <UserIcon className="h-4 w-4 mr-2" />
-                    Dr {dentist.profiles.first_name} {dentist.profiles.last_name}
-                    <span className="text-sm text-muted-foreground ml-2">
-                      ({dentist.specialization})
-                    </span>
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div>
-          <Label>Sélectionnez une date :</Label>
-          <Calendar
-            mode="single"
-            selected={selectedDate}
-            onSelect={(date) => {
-              setSelectedDate(date);
-              if (date) {
-                fetchAvailability(date);
-              }
-            }}
-            disabled={isDateDisabled}
-            className="rounded-md border mt-2"
-          />
-        </div>
-
-        {selectedDate && (
-          <div>
-            <Label>Sélectionnez une heure :</Label>
-            {loadingTimes ? (
-              <div className="mt-2 py-4 text-center text-muted-foreground">
-                Chargement des créneaux disponibles...
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {/* Simple time slot selection */}
-                <div className="space-y-3">
-                  <Select value={selectedTime} onValueChange={setSelectedTime}>
-                    <SelectTrigger className="mt-2 bg-white border-2 z-50">
-                      <SelectValue placeholder={availableTimes.length > 0 ? "Choisir un créneau disponible" : "Aucun créneau disponible"} />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white border-2 shadow-lg z-50 max-h-60 overflow-y-auto">
-                      {availableTimes.length > 0 ? (
-                        availableTimes.map((time) => (
-                          <SelectItem key={time} value={time} className="cursor-pointer hover:bg-blue-50">
-                            <div className="flex items-center py-1">
-                              <Clock className="h-4 w-4 mr-3 text-blue-500" />
-                              <span className="font-medium">{time}</span>
-                              <span className="ml-2 text-sm text-green-600">- Disponible</span>
-                            </div>
-                          </SelectItem>
-                        ))
-                      ) : (
-                        <SelectItem value="" disabled>
-                          Aucun créneau disponible pour cette date
-                        </SelectItem>
-                      )}
-                    </SelectContent>
-                  </Select>
-                  
-                  {/* Status debug info */}
-                  <div className="text-xs text-gray-500 bg-gray-50 p-2 rounded">
-                    Debug: {availableTimes.length} créneaux disponibles | Total slots: {allSlots.length}
-                  </div>
-                </div>
-                
-                {/* Show all slots status */}
-                {allSlots.length > 0 && (
-                  <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                    <h4 className="text-sm font-semibold mb-3 text-gray-800">Tous les créneaux:</h4>
-                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                      {allSlots.map((slot) => (
-                        <div
-                          key={slot.slot_time}
-                          className={`p-2 rounded-lg text-xs text-center border-2 ${
-                            slot.is_available
-                              ? 'bg-green-100 border-green-300 text-green-800'
-                              : 'bg-red-100 border-red-300 text-red-800'
-                          }`}
-                        >
-                          <div className="font-bold">
-                            {slot.slot_time.substring(0, 5)}
-                          </div>
-                          <div className="text-xs mt-1">
-                            {slot.is_available ? 'LIBRE' : 'OCCUPÉ'}
-                          </div>
-                          {slot.emergency_only && (
-                            <div className="text-xs text-orange-600">Urgence</div>
-                          )}
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+      <div className="max-w-4xl mx-auto">
+        <Card className="shadow-xl border-0 bg-white/95 backdrop-blur-sm">
+          <CardHeader className="text-center pb-6">
+            <CardTitle className="flex items-center justify-center text-2xl font-bold text-gray-800">
+              <CalendarDays className="h-6 w-6 mr-3 text-blue-600" />
+              Prise de rendez-vous
+            </CardTitle>
+            <p className="text-gray-600 mt-2">Réservez votre consultation dentaire en quelques clics</p>
+          </CardHeader>
+          
+          <CardContent className="space-y-8 p-6 md:p-8">
+            {/* Dentist Selection */}
+            <div className="space-y-3">
+              <Label className="text-base font-semibold text-gray-700 flex items-center">
+                <UserIcon className="h-4 w-4 mr-2 text-blue-600" />
+                Sélectionnez votre dentiste
+              </Label>
+              <Select value={selectedDentist} onValueChange={setSelectedDentist}>
+                <SelectTrigger className="h-12 border-2 border-gray-200 hover:border-blue-300 transition-colors">
+                  <SelectValue placeholder="Choisir un dentiste" />
+                </SelectTrigger>
+                <SelectContent className="bg-white border-2 shadow-lg">
+                  {dentists.map((dentist) => (
+                    <SelectItem key={dentist.id} value={dentist.id} className="cursor-pointer hover:bg-blue-50">
+                      <div className="flex items-center py-1">
+                        <UserIcon className="h-4 w-4 mr-3 text-blue-600" />
+                        <div>
+                          <div className="font-medium">Dr {dentist.profiles.first_name} {dentist.profiles.last_name}</div>
+                          <div className="text-sm text-gray-500">{dentist.specialization}</div>
                         </div>
-                      ))}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Date Selection */}
+            <div className="space-y-3">
+              <Label className="text-base font-semibold text-gray-700">
+                Choisissez une date
+              </Label>
+              <div className="flex justify-center">
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={(date) => {
+                    setSelectedDate(date);
+                    if (date) fetchAvailability(date);
+                  }}
+                  disabled={isDateDisabled}
+                  className="rounded-lg border-2 border-gray-200 bg-white shadow-sm"
+                />
+              </div>
+            </div>
+
+            {/* Time Selection */}
+            {selectedDate && (
+              <div className="space-y-4">
+                <Label className="text-base font-semibold text-gray-700 flex items-center">
+                  <Clock className="h-4 w-4 mr-2 text-blue-600" />
+                  Choisissez un créneau
+                </Label>
+                
+                {loadingTimes ? (
+                  <div className="flex justify-center items-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    <span className="ml-3 text-gray-600">Chargement des créneaux...</span>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {/* Available Times Grid */}
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <h4 className="font-semibold text-gray-700 mb-3 flex items-center">
+                        <CheckCircle className="h-4 w-4 mr-2 text-green-600" />
+                        Créneaux disponibles ({availableTimes.length})
+                      </h4>
+                      {availableTimes.length > 0 ? (
+                        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
+                          {availableTimes.map((time) => (
+                            <button
+                              key={time}
+                              onClick={() => setSelectedTime(time)}
+                              className={`p-3 rounded-lg border-2 transition-all text-center font-medium ${
+                                selectedTime === time
+                                  ? 'bg-blue-600 text-white border-blue-600 shadow-md'
+                                  : 'bg-white text-gray-700 border-gray-200 hover:border-blue-300 hover:bg-blue-50'
+                              }`}
+                            >
+                              {time}
+                            </button>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-gray-500 text-center py-4">Aucun créneau disponible pour cette date</p>
+                      )}
                     </div>
+
+                    {/* All Slots Status */}
+                    {allSlots.length > 0 && (
+                      <div className="bg-gray-50 rounded-lg p-4">
+                        <h4 className="font-semibold text-gray-700 mb-3">
+                          État de tous les créneaux ({allSlots.length} total)
+                        </h4>
+                        <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
+                          {allSlots.map((slot) => (
+                            <div
+                              key={slot.slot_time}
+                              className={`p-2 rounded-md text-xs text-center border-2 ${
+                                slot.is_available
+                                  ? 'bg-green-100 border-green-300 text-green-800'
+                                  : 'bg-red-100 border-red-300 text-red-800'
+                              }`}
+                            >
+                              <div className="font-bold">
+                                {slot.slot_time.substring(0, 5)}
+                              </div>
+                              <div className="flex items-center justify-center mt-1">
+                                {slot.is_available ? (
+                                  <CheckCircle className="h-3 w-3" />
+                                ) : (
+                                  <XCircle className="h-3 w-3" />
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="flex justify-center gap-6 mt-4 text-sm">
+                          <div className="flex items-center">
+                            <CheckCircle className="h-4 w-4 text-green-600 mr-1" />
+                            Disponible ({allSlots.filter(s => s.is_available).length})
+                          </div>
+                          <div className="flex items-center">
+                            <XCircle className="h-4 w-4 text-red-600 mr-1" />
+                            Occupé ({allSlots.filter(s => !s.is_available).length})
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
             )}
-          </div>
-        )}
 
-        <div>
-          <Label htmlFor="reason">Motif de consultation (optionnel) :</Label>
-          <Textarea
-            id="reason"
-            placeholder="Ex: Douleur dentaire, nettoyage, contrôle..."
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
-            className="mt-2"
-          />
-        </div>
+            {/* Reason */}
+            <div className="space-y-3">
+              <Label htmlFor="reason" className="text-base font-semibold text-gray-700">
+                Motif de consultation (optionnel)
+              </Label>
+              <Textarea
+                id="reason"
+                placeholder="Ex: Douleur dentaire, nettoyage, contrôle de routine..."
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                className="min-h-[80px] border-2 border-gray-200 hover:border-blue-300 focus:border-blue-500 transition-colors"
+              />
+            </div>
 
-        <div className="flex space-x-3">
-          <Button 
-            onClick={handleBookAppointment} 
-            className="flex-1" 
-            disabled={isLoading || !selectedDentist || !selectedDate || !selectedTime}
-          >
-            {isLoading ? "Confirmation..." : "Confirmer le rendez-vous"}
-          </Button>
-          <Button variant="outline" onClick={onCancel}>
-            Annuler
-          </Button>
-        </div>
-        </CardContent>
-      </Card>
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4 pt-6">
+              <Button 
+                onClick={handleBookAppointment} 
+                className="flex-1 h-12 bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors shadow-lg" 
+                disabled={isLoading || !selectedDentist || !selectedDate || !selectedTime}
+              >
+                {isLoading ? (
+                  <div className="flex items-center">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Confirmation...
+                  </div>
+                ) : (
+                  "Confirmer le rendez-vous"
+                )}
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={onCancel}
+                className="h-12 border-2 border-gray-300 hover:bg-gray-50 font-semibold transition-colors"
+              >
+                Annuler
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
