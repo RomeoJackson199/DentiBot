@@ -14,9 +14,9 @@ serve(async (req) => {
   }
 
   try {
-    const { message, conversation_history, user_profile } = await req.json();
+    const { message, conversation_history, user_profile, token_count = 0 } = await req.json();
 
-    console.log('Received request:', { message, user_profile });
+    console.log('Received request:', { message, user_profile, token_count });
     
     // Validate input
     if (!message || typeof message !== 'string') {
@@ -237,7 +237,7 @@ PROFESSIONAL LANGUAGE EXAMPLES WITH RECOMMENDATIONS:
       body: JSON.stringify({
         model: 'gpt-4.1-2025-04-14',
         messages: messages,
-        max_tokens: 500,
+        max_tokens: Math.min(500, Math.max(50, 5000 - token_count)), // Respect token limit
         temperature: 0.7,
         presence_penalty: 0.1,
         frequency_penalty: 0.1,
@@ -380,13 +380,19 @@ PROFESSIONAL LANGUAGE EXAMPLES WITH RECOMMENDATIONS:
     const urgency_detected = false;
     const emergency_detected = false;
 
-    return new Response(JSON.stringify({ 
+    // Calculate total tokens used
+    const responseTokens = data.usage?.total_tokens || Math.ceil(botResponse.length / 4);
+    const totalTokens = token_count + responseTokens;
+
+    return new Response(JSON.stringify({
       response: botResponse,
       suggestions,
       urgency_detected,
       emergency_detected,
       recommended_dentist: recommendedDentist,
-      consultation_reason: consultationReason
+      consultation_reason: consultationReason,
+      total_tokens: totalTokens,
+      tokens_used: responseTokens
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
