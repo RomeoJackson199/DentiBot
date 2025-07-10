@@ -233,7 +233,7 @@ PROFESSIONAL LANGUAGE EXAMPLES WITH RECOMMENDATIONS:
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-4.1-2025-04-14',
         messages: messages,
         max_tokens: 500,
         temperature: 0.7,
@@ -327,19 +327,26 @@ PROFESSIONAL LANGUAGE EXAMPLES WITH RECOMMENDATIONS:
       suggestions.push('skip-patient-selection');
     }
     
-    // Extract dentist recommendations from response (improved matching)
-    let recommendedDentist = null;
+    // Extract dentist recommendations from response (improved matching for multiple dentists)
+    let recommendedDentists = [];
     if (lowerResponse.includes('virginie pauwels') || lowerResponse.includes('dr. virginie')) {
-      recommendedDentist = 'Virginie Pauwels';
-    } else if (lowerResponse.includes('emeline hubin') || lowerResponse.includes('dr. emeline')) {
-      recommendedDentist = 'Emeline Hubin';
-    } else if (lowerResponse.includes('firdaws benhsain') || lowerResponse.includes('dr. firdaws')) {
-      recommendedDentist = 'Firdaws Benhsain';
-    } else if (lowerResponse.includes('justine peters') || lowerResponse.includes('dr. justine')) {
-      recommendedDentist = 'Justine Peters';
-    } else if (lowerResponse.includes('anne-sophie haas') || lowerResponse.includes('dr. anne-sophie')) {
-      recommendedDentist = 'Anne-Sophie Haas';
+      recommendedDentists.push('Virginie Pauwels');
     }
+    if (lowerResponse.includes('emeline hubin') || lowerResponse.includes('dr. emeline')) {
+      recommendedDentists.push('Emeline Hubin');
+    }
+    if (lowerResponse.includes('firdaws benhsain') || lowerResponse.includes('dr. firdaws')) {
+      recommendedDentists.push('Firdaws Benhsain');
+    }
+    if (lowerResponse.includes('justine peters') || lowerResponse.includes('dr. justine')) {
+      recommendedDentists.push('Justine Peters');
+    }
+    if (lowerResponse.includes('anne-sophie haas') || lowerResponse.includes('dr. anne-sophie')) {
+      recommendedDentists.push('Anne-Sophie Haas');
+    }
+    
+    // Limit to maximum 2 recommendations
+    const recommendedDentist = recommendedDentists.slice(0, 2);
     
     // Detect patient selection responses (when bot asked who the appointment is for)
     if (lowerMessage.includes('moi') || lowerMessage.includes('me') || 
@@ -356,9 +363,9 @@ PROFESSIONAL LANGUAGE EXAMPLES WITH RECOMMENDATIONS:
     }
 
     // Suggest recommend-dentist for recommendations instead of direct booking
-    if (recommendedDentist && !suggestions.includes('skip-patient-selection')) {
+    if (recommendedDentist.length > 0 && !suggestions.includes('skip-patient-selection')) {
       suggestions.push('recommend-dentist');
-    } else if (recommendedDentist && suggestions.includes('skip-patient-selection')) {
+    } else if (recommendedDentist.length > 0 && suggestions.includes('skip-patient-selection')) {
       // If we have both a recommendation and patient info, go directly to dentist selection
       suggestions.push('skip-patient-selection');
     } else if (lowerResponse.includes('dentist') || 

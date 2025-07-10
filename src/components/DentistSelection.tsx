@@ -22,7 +22,7 @@ interface Dentist {
 interface DentistSelectionProps {
   onSelectDentist: (dentist: Dentist) => void;
   selectedDentistId?: string;
-  recommendedDentist?: string | null;
+  recommendedDentist?: string[] | string | null;
 }
 
 export const DentistSelection = ({ onSelectDentist, selectedDentistId, recommendedDentist }: DentistSelectionProps) => {
@@ -92,7 +92,13 @@ export const DentistSelection = ({ onSelectDentist, selectedDentistId, recommend
 
   const isRecommended = (dentist: Dentist) => {
     if (!recommendedDentist) return false;
-    return `${dentist.profiles.first_name} ${dentist.profiles.last_name}` === recommendedDentist;
+    const dentistFullName = `${dentist.profiles.first_name} ${dentist.profiles.last_name}`;
+    
+    // Handle both string and array formats
+    if (Array.isArray(recommendedDentist)) {
+      return recommendedDentist.includes(dentistFullName);
+    }
+    return dentistFullName === recommendedDentist;
   };
 
   if (isLoading) {
@@ -122,7 +128,9 @@ export const DentistSelection = ({ onSelectDentist, selectedDentistId, recommend
             Choose your dentist
           </h3>
           <p className="text-sm text-gray-600">
-            Select the dentist you'd like to book an appointment with
+            {recommendedDentist && (Array.isArray(recommendedDentist) ? recommendedDentist.length > 1 : true) 
+              ? "We've highlighted our recommendations based on your needs" 
+              : "Select the dentist you'd like to book an appointment with"}
           </p>
         </div>
 

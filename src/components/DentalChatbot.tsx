@@ -36,7 +36,7 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered }: Dent
   const [userProfile, setUserProfile] = useState<any>(null);
   const [problemDescription, setProblemDescription] = useState<string>("");
   const [questionsAsked, setQuestionsAsked] = useState<number>(0);
-  const [recommendedDentist, setRecommendedDentist] = useState<string | null>(null);
+  const [recommendedDentist, setRecommendedDentist] = useState<string[] | null>(null);
   const [patientInfo, setPatientInfo] = useState<any>(null);
   const [isForUser, setIsForUser] = useState<boolean>(true);
   const [isEmergency, setIsEmergency] = useState(false);
@@ -144,7 +144,8 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered }: Dent
       const aiRecommendedDentist = data.recommended_dentist || null;
 
       if (aiRecommendedDentist) {
-        setRecommendedDentist(aiRecommendedDentist);
+        // Handle both string and array formats for recommended dentists
+        setRecommendedDentist(Array.isArray(aiRecommendedDentist) ? aiRecommendedDentist : [aiRecommendedDentist]);
       }
 
       // Extract consultation reason from AI response
