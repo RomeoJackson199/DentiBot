@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -16,6 +16,7 @@ import { DentistSelection } from "@/components/DentistSelection";
 
 import { QuickPhotoUpload } from "@/components/QuickPhotoUpload";
 import { PatientSelection } from "@/components/PatientSelection";
+import { MessageItem } from "@/components/MessageItem";
 
 interface DentalChatbotProps {
   user: User;
@@ -30,20 +31,27 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
   const [isLoading, setIsLoading] = useState(false);
   const [sessionId] = useState(() => crypto.randomUUID());
   const [currentFlow, setCurrentFlow] = useState<'chat' | 'booking' | 'photo' | 'dentist-selection' | 'quick-photo' | 'patient-selection'>('chat');
-  const [lastPhotoUrl, setLastPhotoUrl] = useState<string | null>(null);
-  const [selectedDentist, setSelectedDentist] = useState<any>(null);
-  const [selectedDate, setSelectedDate] = useState<Date>();
-  const [selectedTime, setSelectedTime] = useState<string>();
+  
+  // Core appointment states - consolidated
+  const [appointmentData, setAppointmentData] = useState({
+    selectedDentist: null as any,
+    selectedDate: undefined as Date | undefined,
+    selectedTime: undefined as string | undefined,
+    consultationReason: "",
+    urgencyLevel: "medium",
+    isForUser: true,
+    isEmergency: false,
+    emergencyDetected: false,
+  });
+  
+  // User and session states
   const [userProfile, setUserProfile] = useState<any>(null);
-  const [problemDescription, setProblemDescription] = useState<string>("");
-  const [questionsAsked, setQuestionsAsked] = useState<number>(0);
-  const [recommendedDentist, setRecommendedDentist] = useState<string[] | null>(null);
+  const [lastPhotoUrl, setLastPhotoUrl] = useState<string | null>(null);
   const [patientInfo, setPatientInfo] = useState<any>(null);
-  const [isForUser, setIsForUser] = useState<boolean>(true);
-  const [isEmergency, setIsEmergency] = useState(false);
-  const [emergencyDetected, setEmergencyDetected] = useState(false);
-  const [urgencyLevel, setUrgencyLevel] = useState<string>("medium");
-  const [consultationReason, setConsultationReason] = useState<string>("");
+  
+  // Chat flow states - reduced
+  const [problemDescription, setProblemDescription] = useState<string>("");
+  const [recommendedDentist, setRecommendedDentist] = useState<string[] | null>(null);
   
   // Voice recording states
   const [isRecording, setIsRecording] = useState(false);
@@ -106,9 +114,19 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
     }
   };
 
+  const scrollToBottom = useCallback(() => {
+    // Use requestAnimationFrame for smoother scrolling
+    requestAnimationFrame(() => {
+      messagesEndRef.current?.scrollIntoView({ 
+        behavior: "smooth",
+        block: "end"
+      });
+    });
+  }, []);
+
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [messages, scrollToBottom]);
 
   // Handle external booking trigger
   useEffect(() => {
@@ -117,12 +135,6 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
       onBookingTriggered?.();
     }
   }, [triggerBooking, onBookingTriggered]);
-
-  const scrollToBottom = () => {
-    setTimeout(() => {
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, 100);
-  };
 
   const saveMessage = async (message: ChatMessage) => {
     try {
@@ -171,7 +183,7 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
       // Extract consultation reason from AI response
       const extractedReason = data.consultation_reason || "";
       if (extractedReason) {
-        setConsultationReason(extractedReason);
+        setAppointmentData(prev => ({ ...prev, consultationReason: extractedReason }));
       }
 
       // Handle different suggestion types
@@ -208,7 +220,7 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
             userMessage.includes('myself') || userMessage.includes('voor mij') ||
             userMessage.includes('for me')) {
           // User selected themselves
-          setIsForUser(true);
+          setAppointmentData(prev => ({ ...prev, isForUser: true }));
           setPatientInfo(userProfile);
           addSystemMessage("Rendez-vous sera pris pour vous", 'success');
           setTimeout(() => setCurrentFlow('dentist-selection'), 1000);
@@ -249,7 +261,7 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
           };
 
           const parsedInfo = parsePatientInfo(userMessage);
-          setIsForUser(false);
+          setAppointmentData(prev => ({ ...prev, isForUser: false }));
           setPatientInfo(parsedInfo);
           addSystemMessage(`Rendez-vous sera pris pour ${parsedInfo.name}`, 'success');
           setTimeout(() => setCurrentFlow('dentist-selection'), 1000);
@@ -638,7 +650,7 @@ Type your request...`;
                   size="sm"
                   onClick={() => {
                     // Skip patient selection if it's for the user
-                    setIsForUser(true);
+                    setAppointmentData(prev => ({ ...prev, isForUser: true }));
                     setPatientInfo(userProfile);
                     setCurrentFlow('dentist-selection');
                   }}
@@ -657,7 +669,7 @@ Type your request...`;
             <div className="border-t border-dental-primary/20 p-6 glass-card animate-fade-in">
               <PatientSelection 
                 onSelectPatient={(isForUserSelected, patientInfoSelected) => {
-                  setIsForUser(isForUserSelected);
+                  setAppointmentData(prev => ({ ...prev, isForUser: isForUserSelected }));
                   setPatientInfo(patientInfoSelected);
                   addSystemMessage(
                     isForUserSelected 
@@ -676,11 +688,11 @@ Type your request...`;
             <div className="border-t border-dental-primary/20 p-6 glass-card animate-fade-in">
               <DentistSelection
                 onSelectDentist={(dentist) => {
-                  setSelectedDentist(dentist);
+                  setAppointmentData(prev => ({ ...prev, selectedDentist: dentist }));
                   addSystemMessage(`Dentist selected: Dr ${dentist.profiles.first_name} ${dentist.profiles.last_name}`, 'success');
                   setCurrentFlow('booking');
                 }}
-                selectedDentistId={selectedDentist?.id}
+                selectedDentistId={appointmentData.selectedDentist?.id}
                 recommendedDentist={recommendedDentist}
               />
             </div>
@@ -690,8 +702,8 @@ Type your request...`;
             <div className="border-t border-dental-secondary/20 p-6 glass-card animate-fade-in">
               <AppointmentBooking
                 user={user}
-                selectedDentist={selectedDentist}
-                prefilledReason={consultationReason}
+                selectedDentist={appointmentData.selectedDentist}
+                prefilledReason={appointmentData.consultationReason}
                 onComplete={(appointmentData) => {
                   addSystemMessage("Appointment confirmed! You'll receive a reminder 24 hours before.", 'success');
                   sendEmailSummary(appointmentData);

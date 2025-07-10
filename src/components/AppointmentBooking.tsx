@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo } from "react";
 import { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { CalendarDays, Clock, User as UserIcon, CheckCircle, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { OptimisticSlot } from "@/components/ui/optimistic-slot";
 
 interface AppointmentBookingProps {
   user: User;
@@ -30,7 +31,7 @@ interface Dentist {
   };
 }
 
-export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, prefilledReason, onComplete, onCancel }: AppointmentBookingProps) => {
+export const AppointmentBooking = memo(({ user, selectedDentist: preSelectedDentist, prefilledReason, onComplete, onCancel }: AppointmentBookingProps) => {
   const [dentists, setDentists] = useState<Dentist[]>([]);
   const [selectedDentist, setSelectedDentist] = useState("");
   const [selectedDate, setSelectedDate] = useState<Date>();
@@ -42,6 +43,7 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
   const [isLoading, setIsLoading] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [optimisticallyBookedSlots, setOptimisticallyBookedSlots] = useState<Set<string>>(new Set());
   const { toast } = useToast();
 
   useEffect(() => {
@@ -162,6 +164,8 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
       return;
     }
 
+    // Optimistic UI update - disable the selected time slot immediately
+    setAvailableTimes(prev => prev.filter(time => time !== selectedTime));
     setIsLoading(true);
 
     try {
@@ -216,13 +220,22 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
         reason: reason || "Consultation générale",
         dentist: dentists.find(d => d.id === selectedDentist)?.profiles.first_name + " " + dentists.find(d => d.id === selectedDentist)?.profiles.last_name
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error booking appointment:", error);
+      
+      // Show specific error message or generic fallback
+      const errorMessage = error.message || "Impossible de créer le rendez-vous";
+      
       toast({
         title: "Erreur",
-        description: "Impossible de créer le rendez-vous",
+        description: errorMessage,
         variant: "destructive",
       });
+      
+      // Rollback optimistic UI update on error
+      if (selectedDate) {
+        await fetchAvailability(selectedDate);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -442,4 +455,6 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
       </div>
     </div>
   );
-};
+});
+
+AppointmentBooking.displayName = 'AppointmentBooking';
