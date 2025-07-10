@@ -16,7 +16,7 @@ interface SimpleCalendarProps {
 
 export const SimpleCalendar = ({ selectedDentist, onDateTimeSelect, isEmergency = false }: SimpleCalendarProps) => {
   const [selectedDate, setSelectedDate] = useState<Date>();
-  const [availableTimes, setAvailableTimes] = useState<string[]>([]);
+  const [availableSlots, setAvailableSlots] = useState<{time: string, available: boolean}[]>([]);
   const [selectedTime, setSelectedTime] = useState("");
   const [loadingTimes, setLoadingTimes] = useState(false);
   const { toast } = useToast();
@@ -34,24 +34,27 @@ export const SimpleCalendar = ({ selectedDentist, onDateTimeSelect, isEmergency 
         p_date: date.toISOString().split('T')[0]
       });
 
-      // Fetch available slots
+      // Fetch ALL slots for the date to show both available and booked
       const { data: slots, error } = await supabase
         .from('appointment_slots')
         .select('slot_time, is_available, emergency_only')
         .eq('dentist_id', selectedDentist)
         .eq('slot_date', date.toISOString().split('T')[0])
-        .eq('is_available', true)
         .order('slot_time');
 
       if (error) throw error;
 
-      // Filter slots based on emergency status
+      // Filter slots based on emergency status and create slot objects with availability info
       const filteredSlots = slots?.filter(slot => 
         isEmergency ? slot.emergency_only : !slot.emergency_only
       ) || [];
       
-      const timeSlots = filteredSlots.map(slot => slot.slot_time.substring(0, 5));
-      setAvailableTimes(timeSlots);
+      const slotData = filteredSlots.map(slot => ({
+        time: slot.slot_time.substring(0, 5),
+        available: slot.is_available
+      }));
+      
+      setAvailableSlots(slotData);
       
     } catch (error) {
       console.error('Failed to fetch availability:', error);
@@ -60,7 +63,7 @@ export const SimpleCalendar = ({ selectedDentist, onDateTimeSelect, isEmergency 
         description: "Impossible de charger les créneaux disponibles",
         variant: "destructive",
       });
-      setAvailableTimes([]);
+      setAvailableSlots([]);
     } finally {
       setLoadingTimes(false);
     }
@@ -73,7 +76,8 @@ export const SimpleCalendar = ({ selectedDentist, onDateTimeSelect, isEmergency 
     }
   };
 
-  const handleTimeSelect = (time: string) => {
+  const handleTimeSelect = (time: string, available: boolean) => {
+    if (!available) return; // Don't allow selection of booked slots
     setSelectedTime(time);
     if (selectedDate) {
       onDateTimeSelect(selectedDate, time);
@@ -108,7 +112,7 @@ export const SimpleCalendar = ({ selectedDentist, onDateTimeSelect, isEmergency 
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-6">
+    <div className="w-full max-w-7xl mx-auto space-y-6">
       {/* Header Card */}
       <Card className="bg-gradient-to-r from-blue-50 via-white to-indigo-50 border border-blue-200/50 shadow-lg">
         <CardHeader className="text-center pb-4">
@@ -116,7 +120,7 @@ export const SimpleCalendar = ({ selectedDentist, onDateTimeSelect, isEmergency 
             <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl text-white">
               <CalendarDays className="h-6 w-6" />
             </div>
-            Réservez votre rendez-vous
+            Choisissez votre date et heure
             {isEmergency && (
               <Badge className="bg-gradient-to-r from-red-500 to-red-600 text-white animate-pulse">
                 <Sparkles className="h-3 w-3 mr-1" />
@@ -125,14 +129,14 @@ export const SimpleCalendar = ({ selectedDentist, onDateTimeSelect, isEmergency 
             )}
           </CardTitle>
           <p className="text-muted-foreground">
-            Choisissez la date et l'heure qui vous conviennent le mieux
+            Sélectionnez la date et l'heure qui vous conviennent le mieux
           </p>
         </CardHeader>
       </Card>
 
-      <div className="grid lg:grid-cols-2 gap-6">
-        {/* Date Selection */}
-        <Card className="bg-white/80 backdrop-blur-sm border border-gray-200/50 shadow-xl">
+      <div className="grid lg:grid-cols-3 gap-6">
+        {/* Date Selection - Bigger Calendar */}
+        <Card className="lg:col-span-2 bg-white/80 backdrop-blur-sm border border-gray-200/50 shadow-xl">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
               <div className="p-1.5 bg-gradient-to-br from-emerald-400 to-green-500 rounded-lg text-white">
@@ -149,7 +153,8 @@ export const SimpleCalendar = ({ selectedDentist, onDateTimeSelect, isEmergency 
                 onSelect={handleDateSelect}
                 disabled={isDateDisabled}
                 className={cn(
-                  "rounded-xl border-2 border-gray-200/50 shadow-lg bg-white/90 backdrop-blur-sm p-3 pointer-events-auto",
+                  "rounded-xl border-2 border-gray-200/50 shadow-lg bg-white/90 backdrop-blur-sm p-6 pointer-events-auto text-lg",
+                  "[&_table]:w-full [&_td]:h-14 [&_td]:w-14 [&_th]:h-12 [&_th]:text-base [&_button]:h-12 [&_button]:w-12 [&_button]:text-base",
                   selectedDate && "border-blue-300 shadow-blue-100"
                 )}
               />
@@ -212,27 +217,37 @@ export const SimpleCalendar = ({ selectedDentist, onDateTimeSelect, isEmergency 
                 <span className="mt-4 text-gray-600 font-medium">Recherche des créneaux...</span>
                 <span className="text-sm text-gray-500">Veuillez patienter</span>
               </div>
-            ) : availableTimes.length > 0 ? (
+            ) : availableSlots.length > 0 ? (
               <div className="space-y-4">
-                <div className="text-sm text-gray-600 flex items-center gap-1">
+                <div className="text-sm text-gray-600 flex items-center gap-2">
                   <Users className="h-4 w-4" />
-                  {availableTimes.length} créneaux disponibles
+                  {availableSlots.filter(slot => slot.available).length} créneaux disponibles
+                  <div className="flex items-center gap-1 ml-4">
+                    <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                    <span className="text-xs">Disponible</span>
+                    <div className="w-3 h-3 bg-red-500 rounded-full ml-2"></div>
+                    <span className="text-xs">Réservé</span>
+                  </div>
                 </div>
-                <div className="grid grid-cols-2 gap-3 max-h-64 overflow-y-auto">
-                  {availableTimes.map((time) => (
+                <div className="grid grid-cols-2 gap-3 max-h-80 overflow-y-auto">
+                  {availableSlots.map((slot) => (
                     <Button
-                      key={time}
-                      variant={selectedTime === time ? "default" : "outline"}
-                      onClick={() => handleTimeSelect(time)}
+                      key={slot.time}
+                      variant={selectedTime === slot.time ? "default" : "outline"}
+                      onClick={() => handleTimeSelect(slot.time, slot.available)}
+                      disabled={!slot.available}
                       className={cn(
-                        "h-14 flex flex-col items-center justify-center transition-all duration-200 hover:scale-105",
-                        selectedTime === time 
+                        "h-14 flex flex-col items-center justify-center transition-all duration-200",
+                        selectedTime === slot.time 
                           ? "bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg border-0" 
-                          : `bg-gradient-to-br ${getTimeColor(time)} hover:shadow-md border-2`
+                          : slot.available
+                            ? "bg-gradient-to-br from-green-50 to-green-100 hover:from-green-100 hover:to-green-200 border-2 border-green-300 text-green-800 hover:scale-105 hover:shadow-md"
+                            : "bg-gradient-to-br from-red-50 to-red-100 border-2 border-red-300 text-red-600 cursor-not-allowed opacity-75"
                       )}
                     >
-                      <span className="text-xs opacity-75">{getTimeIcon(time)}</span>
-                      <span className="font-semibold">{time}</span>
+                      <span className="text-xs opacity-75">{getTimeIcon(slot.time)}</span>
+                      <span className="font-semibold">{slot.time}</span>
+                      {!slot.available && <span className="text-xs">Réservé</span>}
                     </Button>
                   ))}
                 </div>
