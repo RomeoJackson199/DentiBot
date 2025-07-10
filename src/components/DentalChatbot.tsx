@@ -58,13 +58,15 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered }: Dent
     const welcomeMessage: ChatMessage = {
       id: crypto.randomUUID(),
       session_id: sessionId,
-      message: t.welcomeMessage,
+      message: userProfile ? 
+        `${t.welcomeMessage} ${userProfile.first_name}!` : 
+        t.welcomeMessage,
       is_bot: true,
       message_type: "text",
       created_at: new Date().toISOString(),
     };
     setMessages([welcomeMessage]);
-  }, [sessionId, t.welcomeMessage]);
+  }, [sessionId, t.welcomeMessage, userProfile]);
 
   const loadUserProfile = async () => {
     try {
@@ -136,8 +138,12 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered }: Dent
         setRecommendedDentist(aiRecommendedDentist);
       }
 
-      // Auto-suggest next actions based on AI analysis
-      if (suggestions.includes('booking') && currentFlow === 'chat') {
+      // Handle different suggestion types
+      if (suggestions.includes('appointments-list')) {
+        addSystemMessage("🗓️ You can manage your appointments by clicking on the 'Appointments' tab above", 'info');
+      } else if (suggestions.includes('skip-patient-selection')) {
+        setTimeout(() => setCurrentFlow('dentist-selection'), 2000);
+      } else if (suggestions.includes('booking') && currentFlow === 'chat') {
         setTimeout(() => setCurrentFlow('patient-selection'), 2000);
       }
 
@@ -521,7 +527,12 @@ Type your request...`;
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setCurrentFlow('patient-selection')}
+                  onClick={() => {
+                    // Skip patient selection if it's for the user
+                    setIsForUser(true);
+                    setPatientInfo(userProfile);
+                    setCurrentFlow('dentist-selection');
+                  }}
                   className="flex items-center gap-1 sm:gap-2 floating-card border-dental-primary/30 text-dental-primary hover:bg-dental-primary/10 hover:scale-105 transition-all duration-300 text-xs sm:text-sm px-3 sm:px-4 py-2"
                 >
                   <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
