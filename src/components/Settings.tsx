@@ -1,11 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { LanguageSettings } from "@/components/LanguageSettings";
 import { useLanguage } from "@/hooks/useLanguage";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useTheme } from "next-themes";
 import { 
   Dialog, 
   DialogContent, 
@@ -17,15 +20,22 @@ import {
   Settings as SettingsIcon, 
   LogOut, 
   User as UserIcon, 
-  Palette,
-  Globe,
-  Mail,
+  Sun,
   Moon,
-  Sun
+  Globe,
+  Heart
 } from "lucide-react";
 
 interface SettingsProps {
   user: User;
+}
+
+interface UserProfile {
+  first_name: string;
+  last_name: string;
+  phone: string;
+  date_of_birth: string;
+  medical_history: string;
 }
 
 type TabType = 'general' | 'theme' | 'personal';
@@ -33,7 +43,42 @@ type TabType = 'general' | 'theme' | 'personal';
 export const Settings = ({ user }: SettingsProps) => {
   const { t } = useLanguage();
   const { toast } = useToast();
+  const { theme, setTheme } = useTheme();
   const [activeTab, setActiveTab] = useState<TabType>('general');
+  const [profile, setProfile] = useState<UserProfile>({
+    first_name: '',
+    last_name: '',
+    phone: '',
+    date_of_birth: '',
+    medical_history: ''
+  });
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    fetchProfile();
+  }, [user]);
+
+  const fetchProfile = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('first_name, last_name, phone, date_of_birth, medical_history')
+        .eq('user_id', user.id)
+        .single();
+
+      if (data) {
+        setProfile({
+          first_name: data.first_name || '',
+          last_name: data.last_name || '',
+          phone: data.phone || '',
+          date_of_birth: data.date_of_birth || '',
+          medical_history: data.medical_history || ''
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+    }
+  };
 
   const handleSignOut = async () => {
     const { error } = await supabase.auth.signOut();
@@ -51,9 +96,40 @@ export const Settings = ({ user }: SettingsProps) => {
     }
   };
 
+  const handleSaveProfile = async () => {
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          first_name: profile.first_name,
+          last_name: profile.last_name,
+          phone: profile.phone,
+          date_of_birth: profile.date_of_birth || null,
+          medical_history: profile.medical_history
+        })
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Personal information saved successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save personal information",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const tabs = [
     { id: 'general' as TabType, label: 'General', icon: Globe },
-    { id: 'theme' as TabType, label: 'Theme', icon: Palette },
+    { id: 'theme' as TabType, label: 'Theme', icon: Sun },
     { id: 'personal' as TabType, label: 'Personal', icon: UserIcon },
   ];
 
@@ -68,10 +144,10 @@ export const Settings = ({ user }: SettingsProps) => {
           <SettingsIcon className="h-4 w-4" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-2xl max-h-[80vh] p-0 bg-background border-border">
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto p-0 bg-background border-border">
         <DialogHeader className="p-6 pb-0">
-          <DialogTitle className="flex items-center space-x-3 text-2xl text-foreground">
-            <SettingsIcon className="h-6 w-6 text-primary" />
+          <DialogTitle className="flex items-center space-x-3 text-2xl text-primary">
+            <SettingsIcon className="h-6 w-6" />
             <span>Settings</span>
           </DialogTitle>
         </DialogHeader>
@@ -100,7 +176,7 @@ export const Settings = ({ user }: SettingsProps) => {
         </div>
 
         {/* Tab Content */}
-        <div className="px-6 pb-6 space-y-6">
+        <div className="px-6 pb-6">
           {activeTab === 'general' && (
             <div className="space-y-6">
               <div>
@@ -115,21 +191,32 @@ export const Settings = ({ user }: SettingsProps) => {
           {activeTab === 'theme' && (
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-semibold text-foreground mb-4">Appearance</h3>
-                <div className="bg-muted/30 rounded-xl p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                        <Sun className="h-5 w-5 text-primary dark:hidden" />
-                        <Moon className="h-5 w-5 text-primary hidden dark:block" />
-                      </div>
-                      <div>
-                        <p className="font-medium text-foreground">Theme Mode</p>
-                        <p className="text-sm text-muted-foreground">Switch between light and dark mode</p>
-                      </div>
-                    </div>
-                    <ThemeToggle />
-                  </div>
+                <h3 className="text-lg font-semibold text-foreground mb-4">Theme</h3>
+                <div className="flex space-x-4">
+                  <Button
+                    variant={theme === 'light' ? 'default' : 'outline'}
+                    onClick={() => setTheme('light')}
+                    className={`flex-1 py-6 flex items-center justify-center space-x-3 rounded-xl ${
+                      theme === 'light' 
+                        ? 'bg-primary text-primary-foreground' 
+                        : 'bg-muted/30 text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    <Sun className="h-5 w-5" />
+                    <span className="font-medium">Light</span>
+                  </Button>
+                  <Button
+                    variant={theme === 'dark' ? 'default' : 'outline'}
+                    onClick={() => setTheme('dark')}
+                    className={`flex-1 py-6 flex items-center justify-center space-x-3 rounded-xl ${
+                      theme === 'dark' 
+                        ? 'bg-primary text-primary-foreground' 
+                        : 'bg-muted/30 text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    <Moon className="h-5 w-5" />
+                    <span className="font-medium">Dark</span>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -137,33 +224,83 @@ export const Settings = ({ user }: SettingsProps) => {
 
           {activeTab === 'personal' && (
             <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-semibold text-foreground mb-4">Account Information</h3>
-                <div className="bg-muted/30 rounded-xl p-4">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
-                      <Mail className="h-6 w-6 text-primary" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-medium text-foreground">Email Address</p>
-                      <p className="text-sm text-muted-foreground">{user.email}</p>
-                    </div>
-                  </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="firstName" className="text-foreground font-medium">First Name</Label>
+                  <Input
+                    id="firstName"
+                    placeholder="Enter your first name"
+                    value={profile.first_name}
+                    onChange={(e) => setProfile(prev => ({ ...prev, first_name: e.target.value }))}
+                    className="mt-2 bg-muted/30 border-border rounded-xl"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="lastName" className="text-foreground font-medium">Last Name</Label>
+                  <Input
+                    id="lastName"
+                    placeholder="Enter your last name"
+                    value={profile.last_name}
+                    onChange={(e) => setProfile(prev => ({ ...prev, last_name: e.target.value }))}
+                    className="mt-2 bg-muted/30 border-border rounded-xl"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="phone" className="text-foreground font-medium">Phone Number</Label>
+                  <Input
+                    id="phone"
+                    placeholder="Enter your phone number"
+                    value={profile.phone}
+                    onChange={(e) => setProfile(prev => ({ ...prev, phone: e.target.value }))}
+                    className="mt-2 bg-muted/30 border-border rounded-xl"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="dateOfBirth" className="text-foreground font-medium">Date of Birth</Label>
+                  <Input
+                    id="dateOfBirth"
+                    type="date"
+                    value={profile.date_of_birth}
+                    onChange={(e) => setProfile(prev => ({ ...prev, date_of_birth: e.target.value }))}
+                    className="mt-2 bg-muted/30 border-border rounded-xl"
+                  />
                 </div>
               </div>
 
               <div>
-                <h3 className="text-lg font-semibold text-foreground mb-4">Account Actions</h3>
-                <div className="bg-muted/30 rounded-xl p-4">
-                  <Button 
-                    variant="destructive" 
-                    onClick={handleSignOut}
-                    className="w-full bg-red-500 hover:bg-red-600 text-white font-medium py-3 rounded-lg transition-all duration-300"
-                  >
-                    <LogOut className="h-4 w-4 mr-2" />
-                    {t.signOut}
-                  </Button>
-                </div>
+                <Label htmlFor="medicalHistory" className="text-foreground font-medium flex items-center space-x-2">
+                  <Heart className="h-4 w-4" />
+                  <span>Medical History</span>
+                </Label>
+                <Textarea
+                  id="medicalHistory"
+                  placeholder="Enter relevant medical history, allergies, medications, etc."
+                  value={profile.medical_history}
+                  onChange={(e) => setProfile(prev => ({ ...prev, medical_history: e.target.value }))}
+                  className="mt-2 bg-muted/30 border-border rounded-xl min-h-[120px] resize-none"
+                />
+              </div>
+
+              <Button
+                onClick={handleSaveProfile}
+                disabled={loading}
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium py-4 rounded-xl"
+              >
+                {loading ? 'Saving...' : 'Save Personal Information'}
+              </Button>
+
+              <div className="pt-4 border-t border-border">
+                <Button 
+                  variant="destructive" 
+                  onClick={handleSignOut}
+                  className="w-full bg-red-500 hover:bg-red-600 text-white font-medium py-3 rounded-xl"
+                >
+                  <LogOut className="h-4 w-4 mr-2" />
+                  {t.signOut}
+                </Button>
               </div>
             </div>
           )}
