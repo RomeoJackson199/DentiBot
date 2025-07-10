@@ -39,6 +39,8 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered }: Dent
   const [recommendedDentist, setRecommendedDentist] = useState<string | null>(null);
   const [patientInfo, setPatientInfo] = useState<any>(null);
   const [isForUser, setIsForUser] = useState<boolean>(true);
+  const [isEmergency, setIsEmergency] = useState(false);
+  const [urgencyLevel, setUrgencyLevel] = useState<string>("medium");
   const { toast } = useToast();
   const { t } = useLanguage();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -122,7 +124,15 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered }: Dent
       const response = data.response || "I'm sorry, I couldn't process your request.";
       const suggestions = data.suggestions || [];
       const urgencyDetected = data.urgency_detected || false;
+      const emergencyDetected = data.emergency_detected || false;
       const aiRecommendedDentist = data.recommended_dentist || null;
+
+      // Handle emergency detection
+      if (emergencyDetected && !isEmergency) {
+        setIsEmergency(true);
+        setUrgencyLevel("emergency");
+        addSystemMessage("🚨 Emergency detected - You'll have access to priority time slots (11:30 AM onwards)", 'warning');
+      }
 
       if (aiRecommendedDentist) {
         setRecommendedDentist(aiRecommendedDentist);
@@ -134,10 +144,10 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered }: Dent
       }
 
       // Show urgency warning if detected
-      if (urgencyDetected) {
+      if (urgencyDetected || emergencyDetected) {
         toast({
-          title: "Urgent situation detected",
-          description: "I recommend an appointment quickly.",
+          title: emergencyDetected ? "Emergency situation detected" : "Urgent situation detected",
+          description: emergencyDetected ? "Priority emergency slots are available." : "I recommend an appointment quickly.",
           variant: "destructive",
         });
       }
@@ -389,81 +399,17 @@ Type your request...`;
                 }}
                 selectedDate={selectedDate}
                 selectedTime={selectedTime}
-                onConfirm={async () => {
-                  if (selectedDentist && selectedDate && selectedTime) {
-                    // Create appointment
-                    try {
-                      const { data: profile } = await supabase
-                        .from("profiles")
-                        .select("id")
-                        .eq("user_id", user.id)
-                        .single();
-
-                      const appointmentDateTime = new Date(selectedDate);
-                      const [hours, minutes] = selectedTime.split(":");
-                      appointmentDateTime.setHours(parseInt(hours), parseInt(minutes));
-                      
-                      const endTime = new Date(appointmentDateTime.getTime() + 60 * 60000); // 1 hour duration
-
-                      await supabase
-                        .from("appointments")
-                        .insert({
-                          patient_id: profile?.id,
-                          dentist_id: selectedDentist.id,
-                          appointment_date: appointmentDateTime.toISOString(),
-                          reason: "Consultation via DentiBot",
-                          status: "pending",
-                          urgency: "medium",
-                          duration_minutes: 60,
-                          patient_name: !isForUser ? patientInfo?.name : null,
-                          patient_age: !isForUser ? patientInfo?.age : null,
-                          patient_relationship: !isForUser ? patientInfo?.relationship : null,
-                          is_for_user: isForUser
-                        });
-
-                      // Create Google Calendar event
-                      try {
-                        const endDateTime = new Date(appointmentDateTime.getTime() + 60 * 60000); // 1 hour
-                        
-                        await supabase.functions.invoke('google-calendar-integration', {
-                          body: {
-                            action: 'createEvent',
-                            eventDetails: {
-                              summary: `Dental Appointment - ${!isForUser ? patientInfo?.name : (user.user_metadata?.first_name || 'Patient')} ${!isForUser ? '' : (user.user_metadata?.last_name || '')}`,
-                              description: `${!isForUser ? `Patient: ${patientInfo?.name} (${patientInfo?.relationship})\n` : ''}Patient consultation via DentiBot\nDentist: Dr ${selectedDentist.profiles.first_name} ${selectedDentist.profiles.last_name}\nDuration: 60 minutes`,
-                              startTime: appointmentDateTime.toISOString(),
-                              endTime: endDateTime.toISOString(),
-                              attendeeEmail: user.email || '',
-                              attendeeName: `${user.user_metadata?.first_name || 'Patient'} ${user.user_metadata?.last_name || ''}`,
-                            },
-                          },
-                        });
-                      } catch (calendarError) {
-                        console.error('Failed to create calendar event:', calendarError);
-                      }
-
-                      const appointmentData = {
-                        date: selectedDate.toLocaleDateString('en-US'),
-                        time: selectedTime,
-                        endTime: endTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-                        dentist: `Dr ${selectedDentist.profiles.first_name} ${selectedDentist.profiles.last_name}`,
-                        reason: "Consultation via DentiBot",
-                        patient: !isForUser ? `${patientInfo?.name} (${patientInfo?.relationship})` : "You",
-                        duration: "60 minutes"
-                      };
-
-                      addSystemMessage(`✅ Appointment confirmed! ${!isForUser ? `For ${patientInfo?.name}` : 'For you'} from ${selectedTime} to ${endTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })} (60 minutes). You'll receive a reminder 24 hours before.`, 'success');
-                      sendEmailSummary(appointmentData);
-                      setCurrentFlow('chat');
-                      
-                      // Reset selections
-                      setSelectedDentist(null);
-                      setSelectedDate(undefined);
-                      setSelectedTime(undefined);
-                    } catch (error) {
-                      console.error("Error creating appointment:", error);
-                      addSystemMessage("❌ Error creating appointment", 'warning');
-                    }
+                isEmergency={isEmergency}
+                onConfirm={() => {
+                  if (selectedDate && selectedTime) {
+                    addSystemMessage(`✅ Appointment confirmed for ${selectedDate.toLocaleDateString()} at ${selectedTime}`, 'success');
+                    sendEmailSummary({
+                      date: selectedDate.toLocaleDateString(),
+                      time: selectedTime,
+                      emergency: isEmergency,
+                      urgency: urgencyLevel
+                    });
+                    setCurrentFlow('chat');
                   }
                 }}
               />

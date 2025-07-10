@@ -15,6 +15,7 @@ interface ChatCalendarProps {
   selectedDate?: Date;
   selectedTime?: string;
   onConfirm?: () => void;
+  isEmergency?: boolean;
 }
 
 export const ChatCalendar = ({ 
@@ -22,10 +23,11 @@ export const ChatCalendar = ({
   onTimeSelect, 
   selectedDate, 
   selectedTime,
-  onConfirm 
+  onConfirm,
+  isEmergency = false
 }: ChatCalendarProps) => {
   const [step, setStep] = useState<'date' | 'time'>('date');
-  const [availableTimes, setAvailableTimes] = useState<{ time: string; available: boolean }[]>([]);
+  const [availableTimes, setAvailableTimes] = useState<{ time: string; available: boolean; emergency?: boolean }[]>([]);
   const [loadingTimes, setLoadingTimes] = useState(false);
   const [oauthTokens, setOauthTokens] = useState<any>(null);
   const [isAuthorizing, setIsAuthorizing] = useState(false);
@@ -128,7 +130,7 @@ export const ChatCalendar = ({
       // Fetch available slots from database for this specific dentist
       const { data: slots, error } = await supabase
         .from('appointment_slots')
-        .select('slot_time, is_available')
+        .select('slot_time, is_available, emergency_only')
         .eq('dentist_id', dentistId)
         .eq('slot_date', date.toISOString().split('T')[0])
         .eq('is_available', true)
@@ -142,13 +144,24 @@ export const ChatCalendar = ({
       console.log('Database slots for dentist', dentistId, ':', slots);
 
       if (slots && slots.length > 0) {
-        // Use database slots
-        const timeSlots = slots.map(slot => ({
+        // Filter slots based on emergency status
+        const filteredSlots = slots.filter(slot => {
+          if (isEmergency) {
+            // Emergency cases can book any available slot
+            return true;
+          } else {
+            // Non-emergency cases can only book non-emergency slots
+            return !slot.emergency_only;
+          }
+        });
+
+        const timeSlots = filteredSlots.map(slot => ({
           time: slot.slot_time.substring(0, 5), // Format HH:MM
-          available: true, // Only showing available slots
+          available: true,
+          emergency: slot.emergency_only
         }));
         setAvailableTimes(timeSlots);
-        console.log('Using database slots:', timeSlots);
+        console.log('Using filtered database slots:', timeSlots);
       } else {
         console.log('No available database slots found, checking Google Calendar...');
         
@@ -188,18 +201,28 @@ export const ChatCalendar = ({
       }
       
       // Provide fallback times when API fails
-      setAvailableTimes([
-        { time: "09:00", available: true },
-        { time: "09:30", available: true },
-        { time: "10:00", available: true },
-        { time: "10:30", available: true },
-        { time: "11:00", available: true },
-        { time: "14:00", available: true },
-        { time: "14:30", available: true },
-        { time: "15:00", available: true },
-        { time: "15:30", available: true },
-        { time: "16:00", available: true },
-      ]);
+      const fallbackTimes = [
+        { time: "09:00", available: true, emergency: false },
+        { time: "09:30", available: true, emergency: false },
+        { time: "10:00", available: true, emergency: false },
+        { time: "10:30", available: true, emergency: false },
+        { time: "11:00", available: true, emergency: false },
+      ];
+      
+      // Add emergency slots if this is an emergency case
+      if (isEmergency) {
+        fallbackTimes.push(
+          { time: "11:30", available: true, emergency: true },
+          { time: "12:00", available: true, emergency: true },
+          { time: "14:00", available: true, emergency: true },
+          { time: "14:30", available: true, emergency: true },
+          { time: "15:00", available: true, emergency: true },
+          { time: "15:30", available: true, emergency: true },
+          { time: "16:00", available: true, emergency: true }
+        );
+      }
+      
+      setAvailableTimes(fallbackTimes);
     } finally {
       setLoadingTimes(false);
     }
@@ -379,7 +402,7 @@ export const ChatCalendar = ({
                 
                 <div className="bg-gradient-card rounded-2xl p-6 shadow-subtle">
                   <div className="grid grid-cols-2 gap-4">
-                    {availableTimes.map(({ time, available }) => (
+                    {availableTimes.map(({ time, available, emergency }) => (
                       <Button
                         key={time}
                         variant={selectedTime === time ? "default" : "outline"}
@@ -389,17 +412,23 @@ export const ChatCalendar = ({
                           "py-6 px-6 font-bold transition-all duration-300 rounded-xl text-base relative overflow-hidden",
                           !available && "opacity-30 cursor-not-allowed bg-muted/50 text-muted-foreground",
                           selectedTime === time && "bg-dental-primary text-dental-primary-foreground shadow-elegant scale-105 ring-2 ring-dental-primary/20",
-                          available && selectedTime !== time && "hover:bg-dental-primary/10 hover:border-dental-primary hover:text-dental-primary hover:scale-105 hover:shadow-lg border-2"
+                          available && selectedTime !== time && "hover:bg-dental-primary/10 hover:border-dental-primary hover:text-dental-primary hover:scale-105 hover:shadow-lg border-2",
+                          emergency && "border-red-300 bg-red-50/50"
                         )}
                       >
                         <div className="flex items-center justify-center space-x-3">
                           <div className={cn(
                             "p-2 rounded-lg transition-all duration-200",
-                            selectedTime === time ? "bg-white/20" : "bg-dental-primary/10"
+                            selectedTime === time ? "bg-white/20" : emergency ? "bg-red-100" : "bg-dental-primary/10"
                           )}>
                             <Clock className="w-5 h-5" />
                           </div>
-                          <span className="text-lg">{time}</span>
+                          <div className="flex flex-col items-center">
+                            <span className="text-lg">{time}</span>
+                            {emergency && (
+                              <span className="text-xs text-red-600 font-medium">Emergency Only</span>
+                            )}
+                          </div>
                           {selectedTime === time && (
                             <CheckCircle className="w-5 h-5 animate-pulse" />
                           )}

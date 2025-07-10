@@ -19,6 +19,7 @@ export type Database = {
           appointment_id: string | null
           created_at: string
           dentist_id: string
+          emergency_only: boolean | null
           id: string
           is_available: boolean
           slot_date: string
@@ -29,6 +30,7 @@ export type Database = {
           appointment_id?: string | null
           created_at?: string
           dentist_id: string
+          emergency_only?: boolean | null
           id?: string
           is_available?: boolean
           slot_date: string
@@ -39,6 +41,7 @@ export type Database = {
           appointment_id?: string | null
           created_at?: string
           dentist_id?: string
+          emergency_only?: boolean | null
           id?: string
           is_available?: boolean
           slot_date?: string
