@@ -393,15 +393,6 @@ Type your request...`;
                   <span className="hidden xs:inline">Book Appointment</span>
                   <span className="xs:hidden">Book</span>
                 </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => sendEmailSummary()}
-                  className="floating-card border-dental-secondary/30 text-dental-secondary hover:bg-dental-secondary/10 hover:scale-105 transition-all duration-300"
-                >
-                  <Mail className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                  Send Summary
-                </Button>
               </div>
             )}
           </div>
