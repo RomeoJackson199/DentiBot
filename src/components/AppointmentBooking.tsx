@@ -34,6 +34,7 @@ export const AppointmentBooking = ({ user, onComplete, onCancel }: AppointmentBo
   const [selectedTime, setSelectedTime] = useState("");
   const [reason, setReason] = useState("");
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
+  const [allSlots, setAllSlots] = useState<{slot_time: string, is_available: boolean}[]>([]);
   const [loadingTimes, setLoadingTimes] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -57,22 +58,22 @@ export const AppointmentBooking = ({ user, onComplete, onCancel }: AppointmentBo
         p_date: date.toISOString().split('T')[0]
       });
 
-      // Then fetch available slots
-      const { data: slots, error } = await supabase
+      // Then fetch all slots to show availability status
+      const { data: allSlots, error } = await supabase
         .from('appointment_slots')
-        .select('slot_time')
+        .select('slot_time, is_available')
         .eq('dentist_id', selectedDentist)
         .eq('slot_date', date.toISOString().split('T')[0])
-        .eq('is_available', true)
         .order('slot_time');
 
       if (error) throw error;
 
-      const availableSlots = slots?.map(slot => 
-        slot.slot_time.substring(0, 5) // Format HH:MM
-      ) || [];
+      // Only include available slots for booking
+      const availableSlots = allSlots?.filter(slot => slot.is_available)
+        .map(slot => slot.slot_time.substring(0, 5)) || [];
       
       setAvailableTimes(availableSlots);
+      setAllSlots(allSlots || []);
       
     } catch (error) {
       console.error('Failed to fetch availability:', error);
@@ -82,6 +83,7 @@ export const AppointmentBooking = ({ user, onComplete, onCancel }: AppointmentBo
         variant: "destructive",
       });
       setAvailableTimes([]);
+      setAllSlots([]);
     } finally {
       setLoadingTimes(false);
     }
@@ -292,27 +294,54 @@ export const AppointmentBooking = ({ user, onComplete, onCancel }: AppointmentBo
                 Chargement des créneaux disponibles...
               </div>
             ) : (
-              <Select value={selectedTime} onValueChange={setSelectedTime}>
-                <SelectTrigger className="mt-2">
-                  <SelectValue placeholder={availableTimes.length > 0 ? "Choisir un créneau" : "Aucun créneau disponible"} />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableTimes.length > 0 ? (
-                    availableTimes.map((time) => (
-                      <SelectItem key={time} value={time}>
-                        <div className="flex items-center">
-                          <Clock className="h-4 w-4 mr-2" />
-                          {time}
-                        </div>
+              <div className="space-y-4">
+                <Select value={selectedTime} onValueChange={setSelectedTime}>
+                  <SelectTrigger className="mt-2">
+                    <SelectValue placeholder={availableTimes.length > 0 ? "Choisir un créneau" : "Aucun créneau disponible"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableTimes.length > 0 ? (
+                      availableTimes.map((time) => (
+                        <SelectItem key={time} value={time}>
+                          <div className="flex items-center">
+                            <Clock className="h-4 w-4 mr-2 text-green-500" />
+                            {time} - Disponible
+                          </div>
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="" disabled>
+                        Aucun créneau disponible pour cette date
                       </SelectItem>
-                    ))
-                  ) : (
-                    <SelectItem value="" disabled>
-                      Aucun créneau disponible pour cette date
-                    </SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
+                    )}
+                  </SelectContent>
+                </Select>
+                
+                {allSlots.length > 0 && (
+                  <div className="mt-4">
+                    <h4 className="text-sm font-medium mb-2">Tous les créneaux:</h4>
+                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                      {allSlots.map((slot) => (
+                        <div
+                          key={slot.slot_time}
+                          className={`p-2 rounded-md text-xs text-center border ${
+                            slot.is_available
+                              ? 'bg-green-50 border-green-200 text-green-700'
+                              : 'bg-red-50 border-red-200 text-red-700'
+                          }`}
+                        >
+                          <div className="font-medium">
+                            {slot.slot_time.substring(0, 5)}
+                          </div>
+                          <div className="text-xs">
+                            {slot.is_available ? 'Libre' : 'Occupé'}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             )}
           </div>
         )}
