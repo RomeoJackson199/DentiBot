@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Activity, Calendar, Camera, MessageSquare, Users, Clock, CheckCircle } from "lucide-react";
+import { useLanguage } from "@/hooks/useLanguage";
 
 interface OnboardingPopupProps {
   isOpen: boolean;
@@ -10,11 +11,12 @@ interface OnboardingPopupProps {
 }
 
 export const OnboardingPopup = ({ isOpen, onClose }: OnboardingPopupProps) => {
+  const { t } = useLanguage();
   const [currentStep, setCurrentStep] = useState(0);
 
   const steps = [
     {
-      title: "Welcome to First Smile AI! 🦷",
+      title: t.welcomeToFirstSmile,
       content: (
         <div className="space-y-4">
           <div className="text-center">
@@ -24,9 +26,9 @@ export const OnboardingPopup = ({ isOpen, onClose }: OnboardingPopupProps) => {
                 <Activity className="h-12 w-12 text-white mx-auto" />
               </div>
             </div>
-            <h3 className="text-xl font-semibold gradient-text mb-2">Your AI Dental Assistant</h3>
+            <h3 className="text-xl font-semibold gradient-text mb-2">{t.yourAIDentalAssistant}</h3>
             <p className="text-dental-muted-foreground">
-              I'm here to help you with all your dental needs, 24/7. Let me show you what I can do!
+              {t.onboardingIntro}
             </p>
           </div>
         </div>
