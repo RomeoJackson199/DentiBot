@@ -54,9 +54,12 @@ export const ChatCalendar = ({
       }
 
       if (data?.authUrl) {
-        // Store current page state before redirect
+        // Store current page state before redirect and set proper return URL
         sessionStorage.setItem('calendarOAuthReturn', window.location.href);
-        window.location.href = data.authUrl;
+        // Ensure we return to the main page after OAuth
+        const returnUrl = `${window.location.origin}/`;
+        const authUrlWithReturn = `${data.authUrl}&state=${encodeURIComponent(returnUrl)}`;
+        window.location.href = authUrlWithReturn;
       }
     } catch (error) {
       console.error('Failed to initiate OAuth flow:', error);
