@@ -130,16 +130,7 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered }: Dent
 
       const response = data.response || "I'm sorry, I couldn't process your request.";
       const suggestions = data.suggestions || [];
-      const urgencyDetected = data.urgency_detected || false;
-      const emergencyDetected = data.emergency_detected || false;
       const aiRecommendedDentist = data.recommended_dentist || null;
-
-      // Handle emergency detection
-      if (emergencyDetected && !isEmergency) {
-        setIsEmergency(true);
-        setUrgencyLevel("emergency");
-        addSystemMessage("🚨 Emergency detected - You'll have access to priority time slots (11:30 AM onwards)", 'warning');
-      }
 
       if (aiRecommendedDentist) {
         setRecommendedDentist(aiRecommendedDentist);
@@ -150,15 +141,6 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered }: Dent
         setTimeout(() => setCurrentFlow('patient-selection'), 2000);
       }
 
-      // Show urgency warning if detected
-      if (urgencyDetected || emergencyDetected) {
-        toast({
-          title: emergencyDetected ? "Emergency situation detected" : "Urgent situation detected",
-          description: emergencyDetected ? "Priority emergency slots are available." : "I recommend an appointment quickly.",
-          variant: "destructive",
-        });
-      }
-
       return {
         id: crypto.randomUUID(),
         session_id: sessionId,
@@ -167,8 +149,7 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered }: Dent
         message_type: "text",
         metadata: { 
           ai_generated: true, 
-          suggestions,
-          urgency_detected: urgencyDetected 
+          suggestions
         },
         created_at: new Date().toISOString(),
       };
