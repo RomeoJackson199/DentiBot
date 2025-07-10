@@ -60,17 +60,19 @@ export const QuickPhotoUpload = ({ onPhotoUploaded, onCancel }: QuickPhotoUpload
 
       if (error) throw error;
 
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
+      // Get signed URL (valid for 7 days)
+      const { data: signedUrl, error: urlError } = await supabase.storage
         .from('dental-photos')
-        .getPublicUrl(fileName);
+        .createSignedUrl(fileName, 7 * 24 * 60 * 60); // 7 days in seconds
+
+      if (urlError) throw urlError;
 
       toast({
         title: "Photo uploaded",
         description: "Your photo has been added successfully",
       });
 
-      onPhotoUploaded(publicUrl);
+      onPhotoUploaded(signedUrl.signedUrl);
 
     } catch (error) {
       console.error('Error uploading photo:', error);
