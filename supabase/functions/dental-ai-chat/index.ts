@@ -295,8 +295,27 @@ PROFESSIONAL LANGUAGE EXAMPLES WITH RECOMMENDATIONS:
       recommendedDentist = 'Anne-Sophie Haas';
     }
     
-    // Suggest booking after recommendation
-    if (recommendedDentist || lowerResponse.includes('dentist') || 
+    // Detect patient selection responses (when bot asked who the appointment is for)
+    if (lowerMessage.includes('moi') || lowerMessage.includes('me') || 
+        lowerMessage.includes('myself') || lowerMessage.includes('voor mij') ||
+        lowerMessage.includes('for me')) {
+      suggestions.push('skip-patient-selection');
+    } else if (lowerMessage.includes('ma fille') || lowerMessage.includes('mon fils') ||
+               lowerMessage.includes('my daughter') || lowerMessage.includes('my son') ||
+               lowerMessage.includes('mijn dochter') || lowerMessage.includes('mijn zoon') ||
+               /\d+\s*(ans|years|jaar)/.test(lowerMessage) ||
+               lowerMessage.includes('ma femme') || lowerMessage.includes('mon mari') ||
+               lowerMessage.includes('my wife') || lowerMessage.includes('my husband')) {
+      suggestions.push('skip-patient-selection');
+    }
+
+    // Suggest recommend-dentist for recommendations instead of direct booking
+    if (recommendedDentist && !suggestions.includes('skip-patient-selection')) {
+      suggestions.push('recommend-dentist');
+    } else if (recommendedDentist && suggestions.includes('skip-patient-selection')) {
+      // If we have both a recommendation and patient info, go directly to dentist selection
+      suggestions.push('skip-patient-selection');
+    } else if (lowerResponse.includes('dentist') || 
         lowerResponse.includes('appointment') || lowerResponse.includes('booking') ||
         lowerResponse.includes('rendez-vous')) {
       suggestions.push('booking');

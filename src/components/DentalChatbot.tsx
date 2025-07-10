@@ -145,6 +145,75 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered }: Dent
         setTimeout(() => setCurrentFlow('dentist-selection'), 2000);
       } else if (suggestions.includes('booking') && currentFlow === 'chat') {
         setTimeout(() => setCurrentFlow('patient-selection'), 2000);
+      } else if (suggestions.includes('recommend-dentist')) {
+        // For recommendations, ask the question in chat instead of showing UI
+        setTimeout(() => {
+          const questionMessage: ChatMessage = {
+            id: crypto.randomUUID(),
+            session_id: sessionId,
+            message: "Pour qui souhaitez-vous prendre ce rendez-vous ? Tapez 'moi' si c'est pour vous, ou donnez-moi le nom et l'âge de la personne (ex: 'ma fille Sarah, 8 ans').",
+            is_bot: true,
+            message_type: "text",
+            created_at: new Date().toISOString(),
+          };
+          setMessages(prev => [...prev, questionMessage]);
+        }, 1000);
+      }
+
+      // Handle patient selection from chat response
+      if (suggestions.includes('skip-patient-selection')) {
+        const lowerUserMessage = userMessage.toLowerCase();
+        
+        if (userMessage.includes('moi') || userMessage.includes('me') || 
+            userMessage.includes('myself') || userMessage.includes('voor mij') ||
+            userMessage.includes('for me')) {
+          // User selected themselves
+          setIsForUser(true);
+          setPatientInfo(userProfile);
+          addSystemMessage("Rendez-vous sera pris pour vous", 'success');
+          setTimeout(() => setCurrentFlow('dentist-selection'), 1000);
+        } else {
+          // Try to parse patient info from message
+          const parsePatientInfo = (message: string) => {
+            const lowerMsg = message.toLowerCase();
+            let name = '';
+            let age = 0;
+            let relationship = '';
+
+            // Extract age
+            const ageMatch = message.match(/\d+/);
+            if (ageMatch) {
+              age = parseInt(ageMatch[0]);
+            }
+
+            // Extract relationship and name
+            if (lowerMsg.includes('ma fille') || lowerMsg.includes('my daughter') || lowerMsg.includes('mijn dochter')) {
+              relationship = 'child';
+              const nameMatch = message.match(/(?:ma fille|my daughter|mijn dochter)\s+([a-zA-ZÀ-ÿ\u0100-\u017F]+)/i);
+              if (nameMatch) name = nameMatch[1];
+            } else if (lowerMsg.includes('mon fils') || lowerMsg.includes('my son') || lowerMsg.includes('mijn zoon')) {
+              relationship = 'child';
+              const nameMatch = message.match(/(?:mon fils|my son|mijn zoon)\s+([a-zA-ZÀ-ÿ\u0100-\u017F]+)/i);
+              if (nameMatch) name = nameMatch[1];
+            } else if (lowerMsg.includes('ma femme') || lowerMsg.includes('my wife')) {
+              relationship = 'spouse';
+              const nameMatch = message.match(/(?:ma femme|my wife)\s+([a-zA-ZÀ-ÿ\u0100-\u017F]+)/i);
+              if (nameMatch) name = nameMatch[1];
+            } else if (lowerMsg.includes('mon mari') || lowerMsg.includes('my husband')) {
+              relationship = 'spouse';
+              const nameMatch = message.match(/(?:mon mari|my husband)\s+([a-zA-ZÀ-ÿ\u0100-\u017F]+)/i);
+              if (nameMatch) name = nameMatch[1];
+            }
+
+            return { name: name || 'Patient', age: age || 25, relationship: relationship || 'other' };
+          };
+
+          const parsedInfo = parsePatientInfo(userMessage);
+          setIsForUser(false);
+          setPatientInfo(parsedInfo);
+          addSystemMessage(`Rendez-vous sera pris pour ${parsedInfo.name}`, 'success');
+          setTimeout(() => setCurrentFlow('dentist-selection'), 1000);
+        }
       }
 
       return {
