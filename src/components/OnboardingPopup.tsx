@@ -14,7 +14,7 @@ export const OnboardingPopup = ({ isOpen, onClose }: OnboardingPopupProps) => {
 
   const steps = [
     {
-      title: "Welcome to SmileCare AI! 🦷",
+      title: "Welcome to First Smile AI! 🦷",
       content: (
         <div className="space-y-4">
           <div className="text-center">

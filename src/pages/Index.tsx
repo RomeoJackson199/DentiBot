@@ -81,7 +81,7 @@ const Index = () => {
             </div>
           </div>
           <div className="space-y-4">
-            <h1 className="text-3xl font-bold gradient-text">SmileCare AI</h1>
+            <h1 className="text-3xl font-bold gradient-text">First Smile AI</h1>
             <p className="text-xl font-semibold text-dental-primary">Initializing your experience</p>
             <p className="text-dental-muted-foreground max-w-md mx-auto">
               Preparing your personalized dental assistant powered by advanced AI technology
@@ -115,7 +115,7 @@ const Index = () => {
             </div>
             <div className="space-y-6">
               <h1 className="text-6xl md:text-7xl font-bold gradient-text leading-tight">
-                SmileCare AI
+                First Smile AI
               </h1>
               <div className="space-y-4">
                 <p className="text-3xl text-dental-primary font-semibold animate-slide-in">
@@ -176,7 +176,7 @@ const Index = () => {
             </div>
             <div className="hidden sm:block">
               <h1 className="text-xl sm:text-2xl font-bold gradient-text">
-                SmileCare AI
+                First Smile AI
               </h1>
               <p className="text-dental-muted-foreground font-medium text-sm">Intelligent Dental Assistant</p>
             </div>
