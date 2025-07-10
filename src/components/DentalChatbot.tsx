@@ -120,7 +120,9 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered }: Dent
   }, [triggerBooking, onBookingTriggered]);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 100);
   };
 
   const saveMessage = async (message: ChatMessage) => {
