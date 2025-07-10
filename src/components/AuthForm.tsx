@@ -34,7 +34,7 @@ export const AuthForm = () => {
     setIsLoading(true);
 
     try {
-      const redirectUrl = `${window.location.origin}/`;
+      const redirectUrl = `${window.location.origin}/confirm-email`;
       
       const { data, error } = await supabase.auth.signUp({
         email: formData.email,
@@ -70,6 +70,7 @@ export const AuthForm = () => {
         toast({
           title: t.accountCreatedSuccess,
           description: t.checkEmailConfirm,
+          duration: 6000,
         });
       }
     } catch (error: any) {

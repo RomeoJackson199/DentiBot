@@ -7,6 +7,8 @@ import { ThemeProvider } from "next-themes";
 import { LanguageProvider } from "./hooks/useLanguage";
 import Index from "./pages/Index";
 import DentistProfiles from "./pages/DentistProfiles";
+import { DentistDashboard } from "./pages/DentistDashboard";
+import { EmailConfirmation } from "./pages/EmailConfirmation";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -27,6 +29,8 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/dentists" element={<DentistProfiles />} />
+              <Route path="/dentist-dashboard" element={<DentistDashboard user={null} />} />
+              <Route path="/confirm-email" element={<EmailConfirmation />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
