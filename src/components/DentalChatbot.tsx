@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/hooks/useLanguage";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -39,6 +40,7 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered }: Dent
   const [patientInfo, setPatientInfo] = useState<any>(null);
   const [isForUser, setIsForUser] = useState<boolean>(true);
   const { toast } = useToast();
+  const { t } = useLanguage();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -47,13 +49,13 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered }: Dent
     const welcomeMessage: ChatMessage = {
       id: crypto.randomUUID(),
       session_id: sessionId,
-      message: "Hello! I'm DentiBot. How can I help you today? 🦷",
+      message: t.welcomeMessage,
       is_bot: true,
       message_type: "text",
       created_at: new Date().toISOString(),
     };
     setMessages([welcomeMessage]);
-  }, [sessionId]);
+  }, [sessionId, t.welcomeMessage]);
 
   const loadUserProfile = async () => {
     try {

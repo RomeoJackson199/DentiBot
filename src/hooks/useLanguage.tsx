@@ -44,6 +44,7 @@ interface Translations {
   dentalAssistant: string;
   typeMessage: string;
   send: string;
+  welcomeMessage: string;
 }
 
 const translations: Record<Language, Translations> = {
@@ -88,7 +89,8 @@ const translations: Record<Language, Translations> = {
     // Dental Chat
     dentalAssistant: 'Dental Assistant',
     typeMessage: 'Type your message...',
-    send: 'Send'
+    send: 'Send',
+    welcomeMessage: 'Hello! I\'m DentiBot. How can I help you today? 🦷'
   },
   fr: {
     // General
@@ -131,7 +133,8 @@ const translations: Record<Language, Translations> = {
     // Dental Chat
     dentalAssistant: 'Assistant dentaire',
     typeMessage: 'Tapez votre message...',
-    send: 'Envoyer'
+    send: 'Envoyer',
+    welcomeMessage: 'Bonjour ! Je suis DentiBot. Comment puis-je vous aider aujourd\'hui ? 🦷'
   },
   nl: {
     // General
@@ -174,7 +177,8 @@ const translations: Record<Language, Translations> = {
     // Dental Chat
     dentalAssistant: 'Tandheelkundige assistent',
     typeMessage: 'Typ uw bericht...',
-    send: 'Versturen'
+    send: 'Versturen',
+    welcomeMessage: 'Hallo! Ik ben DentiBot. Hoe kan ik u vandaag helpen? 🦷'
   }
 };
 

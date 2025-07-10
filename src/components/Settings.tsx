@@ -128,7 +128,7 @@ export const Settings = ({ user }: SettingsProps) => {
   };
 
   const tabs = [
-    { id: 'general' as TabType, label: 'General', icon: Globe },
+    { id: 'general' as TabType, label: 'Languages', icon: Globe },
     { id: 'theme' as TabType, label: 'Theme', icon: Sun },
     { id: 'personal' as TabType, label: 'Personal', icon: UserIcon },
   ];
