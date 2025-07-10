@@ -102,44 +102,73 @@ export const ChatCalendar = ({
     try {
       console.log('Fetching availability for date:', date.toISOString().split('T')[0]);
       
-      if (!oauthTokens) {
-        console.warn('No OAuth tokens available, using fallback times');
-        throw new Error('Google Calendar not connected');
+      // First try to generate slots for this date (in case they don't exist)
+      try {
+        // We need a dentist to generate slots - for now, use the first available dentist
+        const { data: dentists } = await supabase
+          .from("dentists")
+          .select("id")
+          .eq("is_active", true)
+          .limit(1);
+
+        if (dentists && dentists.length > 0) {
+          await supabase.rpc('generate_daily_slots', {
+            p_dentist_id: dentists[0].id,
+            p_date: date.toISOString().split('T')[0]
+          });
+        }
+      } catch (slotError) {
+        console.warn('Could not generate slots:', slotError);
       }
 
-      const { data, error } = await supabase.functions.invoke('google-calendar-integration', {
-        body: {
-          action: 'getAvailability',
-          date: date.toISOString().split('T')[0],
-          tokens: oauthTokens
-        },
-      });
-
-      console.log('Calendar function response:', { data, error });
+      // Fetch available slots from database
+      const { data: slots, error } = await supabase
+        .from('appointment_slots')
+        .select('slot_time, is_available')
+        .eq('slot_date', date.toISOString().split('T')[0])
+        .eq('is_available', true)
+        .order('slot_time');
 
       if (error) {
-        console.error('Supabase function error:', error);
-        throw new Error('Failed to fetch calendar availability');
+        console.error('Database error:', error);
+        throw new Error('Failed to fetch database availability');
       }
 
-      const availableSlots = data?.availability || [];
-      console.log('Received available slots:', availableSlots);
-      
-      const timeSlots = availableSlots.length > 0 ? 
-        availableSlots.map((time: string) => ({
-          time,
-          available: true,
-        })) : 
-        [
-          { time: "09:00", available: true },
-          { time: "10:00", available: true },
-          { time: "11:00", available: true },
-          { time: "14:00", available: true },
-          { time: "15:00", available: true },
-          { time: "16:00", available: true },
-        ];
+      console.log('Database slots:', slots);
 
-      setAvailableTimes(timeSlots);
+      if (slots && slots.length > 0) {
+        // Use database slots
+        const timeSlots = slots.map(slot => ({
+          time: slot.slot_time.substring(0, 5), // Format HH:MM
+          available: slot.is_available,
+        }));
+        setAvailableTimes(timeSlots);
+      } else {
+        console.log('No database slots found, checking Google Calendar...');
+        
+        // Fallback to Google Calendar if available
+        if (oauthTokens) {
+          const { data, error: calendarError } = await supabase.functions.invoke('google-calendar-integration', {
+            body: {
+              action: 'getAvailability',
+              date: date.toISOString().split('T')[0],
+              tokens: oauthTokens
+            },
+          });
+
+          if (!calendarError && data?.availability) {
+            const timeSlots = data.availability.map((time: string) => ({
+              time,
+              available: true,
+            }));
+            setAvailableTimes(timeSlots);
+          } else {
+            throw new Error('No calendar data available');
+          }
+        } else {
+          throw new Error('No slots or calendar connection');
+        }
+      }
       
     } catch (error) {
       console.error('Failed to fetch availability:', error);
@@ -147,7 +176,7 @@ export const ChatCalendar = ({
       const errorMessage = error instanceof Error ? error.message : 'Failed to load available times';
       
       if (!oauthTokens) {
-        toast.error('Google Calendar not connected. Using default time slots.');
+        toast.error('Using default time slots. Connect Google Calendar for real-time availability.');
       } else {
         toast.error(errorMessage);
       }
@@ -155,10 +184,14 @@ export const ChatCalendar = ({
       // Provide fallback times when API fails
       setAvailableTimes([
         { time: "09:00", available: true },
+        { time: "09:30", available: true },
         { time: "10:00", available: true },
+        { time: "10:30", available: true },
         { time: "11:00", available: true },
         { time: "14:00", available: true },
+        { time: "14:30", available: true },
         { time: "15:00", available: true },
+        { time: "15:30", available: true },
         { time: "16:00", available: true },
       ]);
     } finally {
