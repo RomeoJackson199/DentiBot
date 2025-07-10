@@ -228,37 +228,57 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     let requestData: CalendarRequest;
 
-    // For Supabase function invocations, the body is always JSON
-    try {
-      requestData = await req.json();
-      console.log('Received request data:', requestData);
+    if (req.method === 'GET') {
+      // Handle OAuth callback from Google
+      const url = new URL(req.url);
+      const authCode = url.searchParams.get('code');
       
-      // Ensure we have a valid action
-      if (!requestData.action) {
-        console.error('Missing action in request:', requestData);
+      if (authCode) {
+        // This is an OAuth callback - redirect back to the app with the code
+        const redirectUrl = `${Deno.env.get('SUPABASE_URL')?.replace('.supabase.co', '.lovableproject.com') || 'https://952bbe84-3a4d-4f46-b2b7-7a7945d9eaf0.lovableproject.com'}/?code=${authCode}`;
+        
+        return new Response(null, {
+          status: 302,
+          headers: {
+            ...corsHeaders,
+            'Location': redirectUrl
+          }
+        });
+      }
+      
+      return new Response(JSON.stringify({ error: 'Invalid GET request' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+      
+    } else {
+      // Handle POST requests from supabase.functions.invoke()
+      try {
+        requestData = await req.json();
+        console.log('Received request data:', requestData);
+        
+        // Ensure we have a valid action
+        if (!requestData.action) {
+          console.error('Missing action in request:', requestData);
+          return new Response(JSON.stringify({ 
+            error: 'Missing action parameter',
+            received: requestData 
+          }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+        
+      } catch (parseError) {
+        console.error('JSON parse error:', parseError);
         return new Response(JSON.stringify({ 
-          error: 'Missing action parameter',
-          received: requestData 
+          error: 'Invalid JSON in request body', 
+          details: parseError.message 
         }), {
           status: 400,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
-      
-    } catch (parseError) {
-      console.error('JSON parse error:', parseError);
-      console.error('Request method:', req.method);
-      console.error('Request URL:', req.url);
-      
-      return new Response(JSON.stringify({ 
-        error: 'Invalid JSON in request body', 
-        details: parseError.message,
-        method: req.method,
-        url: req.url
-      }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
     }
 
     const { action, date, eventDetails, authCode, tokens } = requestData;
