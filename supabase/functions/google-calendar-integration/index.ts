@@ -228,21 +228,33 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     let requestData: CalendarRequest;
 
-    try {
-      // Supabase function invoke sends the body directly as JSON
-      requestData = await req.json();
-      console.log('Received request data:', requestData);
-    } catch (parseError) {
-      console.error('JSON parse error:', parseError);
-      console.error('Request method:', req.method);
-      console.error('Request headers:', Object.fromEntries(req.headers.entries()));
+    if (req.method === 'GET') {
+      // Handle GET requests by parsing URL parameters
+      const url = new URL(req.url);
+      const action = url.searchParams.get('action') as CalendarRequest['action'];
+      const date = url.searchParams.get('date') || undefined;
+      const authCode = url.searchParams.get('code') || undefined;
       
-      return new Response(JSON.stringify({ 
-        error: 'Invalid JSON in request body', 
-        details: parseError.message,
-        method: req.method 
-      }), {
-        status: 400,
+      requestData = { action, date, authCode } as CalendarRequest;
+      console.log('GET request data:', requestData);
+      
+    } else if (req.method === 'POST') {
+      try {
+        requestData = await req.json();
+        console.log('POST request data:', requestData);
+      } catch (parseError) {
+        console.error('JSON parse error:', parseError);
+        return new Response(JSON.stringify({ 
+          error: 'Invalid JSON in request body', 
+          details: parseError.message 
+        }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+    } else {
+      return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+        status: 405,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
