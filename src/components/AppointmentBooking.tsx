@@ -44,6 +44,13 @@ export const AppointmentBooking = ({ user, onComplete, onCancel }: AppointmentBo
     fetchDentists();
   }, []);
 
+  // Auto-select first dentist when dentists are loaded
+  useEffect(() => {
+    if (dentists.length > 0 && !selectedDentist) {
+      setSelectedDentist(dentists[0].id);
+    }
+  }, [dentists, selectedDentist]);
+
   const fetchAvailability = async (date: Date) => {
     if (!selectedDentist) return;
     
@@ -211,14 +218,14 @@ export const AppointmentBooking = ({ user, onComplete, onCancel }: AppointmentBo
           </CardHeader>
           
           <CardContent className="space-y-8 p-6 md:p-8">
-            {/* Dentist Selection */}
+            {/* Dentist Selection - Pre-filled */}
             <div className="space-y-3">
               <Label className="text-base font-semibold text-gray-700 flex items-center">
                 <UserIcon className="h-4 w-4 mr-2 text-blue-600" />
-                Sélectionnez votre dentiste
+                Dentiste sélectionné
               </Label>
               <Select value={selectedDentist} onValueChange={setSelectedDentist}>
-                <SelectTrigger className="h-12 border-2 border-gray-200 hover:border-blue-300 transition-colors">
+                <SelectTrigger className="h-12 border-2 border-blue-200 bg-blue-50 hover:border-blue-300 transition-colors">
                   <SelectValue placeholder="Choisir un dentiste" />
                 </SelectTrigger>
                 <SelectContent className="bg-white border-2 shadow-lg">
@@ -253,8 +260,9 @@ export const AppointmentBooking = ({ user, onComplete, onCancel }: AppointmentBo
                   disabled={isDateDisabled}
                   className={cn(
                     "rounded-xl border-2 border-gray-200/50 shadow-lg bg-white/90 backdrop-blur-sm p-8 pointer-events-auto",
-                    "[&_table]:w-full [&_td]:h-16 [&_td]:w-16 [&_th]:h-12 [&_th]:text-lg [&_button]:h-14 [&_button]:w-14 [&_button]:text-lg",
+                    "[&_table]:w-full [&_table]:mx-auto [&_td]:h-16 [&_td]:w-16 [&_th]:h-12 [&_th]:text-lg [&_th]:text-center [&_button]:h-14 [&_button]:w-14 [&_button]:text-lg",
                     "[&_.rdp-months]:text-xl [&_.rdp-caption]:text-xl [&_.rdp-nav_button]:h-10 [&_.rdp-nav_button]:w-10",
+                    "[&_.rdp-head_cell]:text-center [&_.rdp-head_cell]:font-semibold [&_.rdp-cell]:text-center",
                     selectedDate && "border-blue-300 shadow-blue-100"
                   )}
                 />
@@ -276,34 +284,7 @@ export const AppointmentBooking = ({ user, onComplete, onCancel }: AppointmentBo
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {/* Available Times Grid */}
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <h4 className="font-semibold text-gray-700 mb-3 flex items-center">
-                        <CheckCircle className="h-4 w-4 mr-2 text-green-600" />
-                        Créneaux disponibles ({availableTimes.length})
-                      </h4>
-                      {availableTimes.length > 0 ? (
-                        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
-                          {availableTimes.map((time) => (
-                            <button
-                              key={time}
-                              onClick={() => setSelectedTime(time)}
-                              className={`p-3 rounded-lg border-2 transition-all text-center font-medium ${
-                                selectedTime === time
-                                  ? 'bg-blue-600 text-white border-blue-600 shadow-md'
-                                  : 'bg-white text-gray-700 border-gray-200 hover:border-blue-300 hover:bg-blue-50'
-                              }`}
-                            >
-                              {time}
-                            </button>
-                          ))}
-                        </div>
-                      ) : (
-                        <p className="text-gray-500 text-center py-4">Aucun créneau disponible pour cette date</p>
-                      )}
-                    </div>
-
-                    {/* All Slots Status */}
+                    {/* Time Slots Grid - Clickable green/red slots */}
                     {allSlots.length > 0 && (
                       <div className="bg-gray-50 rounded-lg p-4">
                         <h4 className="font-semibold text-gray-700 mb-3">
@@ -311,31 +292,35 @@ export const AppointmentBooking = ({ user, onComplete, onCancel }: AppointmentBo
                         </h4>
                         <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
                            {allSlots.map((slot) => (
-                            <div
+                            <button
                               key={slot.slot_time}
+                              onClick={() => slot.is_available && !slot.emergency_only ? setSelectedTime(slot.slot_time.substring(0, 5)) : null}
+                              disabled={!slot.is_available || slot.emergency_only}
                               className={`p-3 rounded-lg text-sm text-center font-medium transition-all border-2 ${
-                                slot.is_available
-                                  ? 'bg-green-50 border-green-200 text-green-700 hover:bg-green-100'
-                                  : 'bg-red-50 border-red-200 text-red-700 hover:bg-red-100'
+                                slot.is_available && !slot.emergency_only
+                                  ? selectedTime === slot.slot_time.substring(0, 5)
+                                    ? 'bg-blue-600 text-white border-blue-600 shadow-md'
+                                    : 'bg-green-50 border-green-200 text-green-700 hover:bg-green-100 cursor-pointer'
+                                  : 'bg-red-50 border-red-200 text-red-700 cursor-not-allowed'
                               }`}
                             >
                               <div className="font-bold">
                                 {slot.slot_time.substring(0, 5)}
                               </div>
                               <div className="flex items-center justify-center mt-1">
-                                {slot.is_available ? (
+                                {slot.is_available && !slot.emergency_only ? (
                                   <CheckCircle className="h-3 w-3" />
                                 ) : (
                                   <XCircle className="h-3 w-3" />
                                 )}
                               </div>
-                            </div>
+                            </button>
                           ))}
                         </div>
                          <div className="flex justify-center gap-8 mt-4 text-sm font-medium">
                            <div className="flex items-center bg-green-50 px-3 py-2 rounded-full border border-green-200">
                              <CheckCircle className="h-4 w-4 text-green-600 mr-2" />
-                             <span className="text-green-700">Disponible ({allSlots.filter(s => s.is_available).length})</span>
+                             <span className="text-green-700">Disponible ({allSlots.filter(s => s.is_available && !s.emergency_only).length})</span>
                            </div>
                            <div className="flex items-center bg-red-50 px-3 py-2 rounded-full border border-red-200">
                              <XCircle className="h-4 w-4 text-red-600 mr-2" />
