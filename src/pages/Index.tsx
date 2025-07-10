@@ -7,7 +7,6 @@ import { OnboardingPopup } from "@/components/OnboardingPopup";
 import { LanguageSelection } from "@/components/LanguageSelection";
 import { AppointmentsList } from "@/components/AppointmentsList";
 import { Settings } from "@/components/Settings";
-import { EmailVerificationBanner } from "@/components/EmailVerificationBanner";
 import { useToast } from "@/hooks/use-toast";
 import { Activity, MessageSquare, Calendar, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -22,27 +21,18 @@ const Index = () => {
   const [triggerBooking, setTriggerBooking] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showLanguageSelection, setShowLanguageSelection] = useState(false);
-  const [showEmailBanner, setShowEmailBanner] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        console.log('Auth event:', event, session?.user?.email_confirmed_at);
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
         
-        // Check if email needs verification
-        if (session?.user && !session.user.email_confirmed_at) {
-          setShowEmailBanner(true);
-        } else {
-          setShowEmailBanner(false);
-        }
-        
-        // Show language selection then onboarding for new users with confirmed email
-        if (event === 'SIGNED_IN' && session?.user && session.user.email_confirmed_at) {
+        // Show language selection then onboarding for new users
+        if (event === 'SIGNED_IN' && session?.user) {
           const hasSeenOnboarding = localStorage.getItem(`onboarding_${session.user.id}`);
           const hasSelectedLanguage = localStorage.getItem('preferred-language');
           if (!hasSelectedLanguage) {
@@ -60,15 +50,8 @@ const Index = () => {
       setUser(session?.user ?? null);
       setLoading(false);
       
-      // Check if email needs verification for existing session
-      if (session?.user && !session.user.email_confirmed_at) {
-        setShowEmailBanner(true);
-      } else {
-        setShowEmailBanner(false);
-      }
-      
-      // Check language selection and onboarding for existing session with confirmed email
-      if (session?.user && session.user.email_confirmed_at) {
+      // Check language selection and onboarding for existing session
+      if (session?.user) {
         const hasSeenOnboarding = localStorage.getItem(`onboarding_${session.user.id}`);
         const hasSelectedLanguage = localStorage.getItem('preferred-language');
         if (!hasSelectedLanguage) {
@@ -273,16 +256,6 @@ const Index = () => {
             </div>
           </div>
         </div>
-
-        {/* Email Verification Banner */}
-        {showEmailBanner && user && !user.email_confirmed_at && (
-          <div className="mb-6">
-            <EmailVerificationBanner 
-              user={user} 
-              onDismiss={() => setShowEmailBanner(false)} 
-            />
-          </div>
-        )}
 
         {/* Content */}
         <div className="animate-fade-in space-y-6">          
