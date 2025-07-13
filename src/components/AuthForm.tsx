@@ -7,11 +7,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Mail, Lock, User, Phone, Calendar } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Loader2, Mail, Lock, User, Phone, Calendar, LogIn } from "lucide-react";
 
-export const AuthForm = () => {
+interface AuthFormProps {
+  compact?: boolean;
+}
+
+export const AuthForm = ({ compact = false }: AuthFormProps) => {
   const { t } = useLanguage();
   const [isLoading, setIsLoading] = useState(false);
+  const [showLoginDialog, setShowLoginDialog] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -71,6 +77,10 @@ export const AuthForm = () => {
           title: t.accountCreatedSuccess,
           description: t.checkEmailConfirm,
         });
+        
+        if (compact) {
+          setShowLoginDialog(false);
+        }
       }
     } catch (error: any) {
       toast({
@@ -99,6 +109,10 @@ export const AuthForm = () => {
         title: t.signInSuccess,
         description: t.welcomeToDentiBot,
       });
+      
+      if (compact) {
+        setShowLoginDialog(false);
+      }
     } catch (error: any) {
       toast({
         title: t.signInError,
@@ -110,9 +124,32 @@ export const AuthForm = () => {
     }
   };
 
+  if (compact) {
+    return (
+      <>
+        <Button 
+          variant="outline" 
+          onClick={() => setShowLoginDialog(true)}
+          className="glass-card border-dental-primary/30 text-dental-primary hover:bg-dental-primary/10"
+        >
+          <LogIn className="h-4 w-4 mr-2" />
+          {t.signIn}
+        </Button>
+        <Dialog open={showLoginDialog} onOpenChange={setShowLoginDialog}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>{t.accessDentiBot}</DialogTitle>
+            </DialogHeader>
+            <AuthForm />
+          </DialogContent>
+        </Dialog>
+      </>
+    );
+  }
+
   return (
-    <div className="max-w-md mx-auto">
-      <Card>
+    <div className="w-full">
+      <Card className="shadow-elegant glass-card border border-border/20">
         <CardHeader className="text-center">
           <CardTitle>{t.accessDentiBot}</CardTitle>
           <CardDescription>
@@ -121,9 +158,13 @@ export const AuthForm = () => {
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="signin" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="signin">{t.signIn}</TabsTrigger>
-              <TabsTrigger value="signup">{t.signUp}</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 glass-card">
+              <TabsTrigger value="signin" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-white">
+                {t.signIn}
+              </TabsTrigger>
+              <TabsTrigger value="signup" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-white">
+                {t.signUp}
+              </TabsTrigger>
             </TabsList>
             
             <TabsContent value="signin">

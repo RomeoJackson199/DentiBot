@@ -18,7 +18,7 @@ import { QuickPhotoUpload } from "@/components/QuickPhotoUpload";
 import { PatientSelection } from "@/components/PatientSelection";
 
 interface DentalChatbotProps {
-  user: User;
+  user: User | null;
   triggerBooking?: boolean;
   onBookingTriggered?: () => void;
   onScrollToDentists?: () => void;
@@ -57,14 +57,16 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
   useEffect(() => {
     // Load user profile and set welcome message only once
     const initializeChat = async () => {
-      await loadUserProfile();
+      if (user) {
+        await loadUserProfile();
+      }
       
       // Only add welcome message if no messages exist
       if (messages.length === 0) {
         const welcomeMessage: ChatMessage = {
           id: crypto.randomUUID(),
           session_id: sessionId,
-          message: userProfile ? 
+          message: user && userProfile ? 
             t.detailedWelcomeMessageWithName(userProfile.first_name) : 
             t.detailedWelcomeMessage,
           is_bot: true,
@@ -76,7 +78,7 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
     };
 
     initializeChat();
-  }, [sessionId]); // Remove 't' dependency to prevent loops
+  }, [sessionId, user]); // Add user dependency
   
   // Effect to update welcome message when language changes
   useEffect(() => {
@@ -92,6 +94,8 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
   }, [t]); // Only update when translation object changes
 
   const loadUserProfile = async () => {
+    if (!user) return;
+    
     try {
       const { data, error } = await supabase
         .from("profiles")
@@ -113,10 +117,23 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
   // Handle external booking trigger
   useEffect(() => {
     if (triggerBooking) {
-      setCurrentFlow('patient-selection');
+      if (!user) {
+        // Show login requirement message
+        const loginMessage: ChatMessage = {
+          id: crypto.randomUUID(),
+          session_id: sessionId,
+          message: "Vous devez vous connecter pour prendre un rendez-vous. Cliquez sur le bouton 'Se connecter' en haut à droite.",
+          is_bot: true,
+          message_type: "text",
+          created_at: new Date().toISOString(),
+        };
+        setMessages(prev => [...prev, loginMessage]);
+      } else {
+        setCurrentFlow('patient-selection');
+      }
       onBookingTriggered?.();
     }
-  }, [triggerBooking, onBookingTriggered]);
+  }, [triggerBooking, onBookingTriggered, user, sessionId]);
 
   const scrollToBottom = () => {
     setTimeout(() => {
@@ -125,6 +142,8 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
   };
 
   const saveMessage = async (message: ChatMessage) => {
+    if (!user) return; // Don't save messages for non-authenticated users
+    
     try {
       await supabase.from("chat_messages").insert({
         session_id: message.session_id,
@@ -146,10 +165,13 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
         body: {
           message: userMessage,
           conversation_history: messages.slice(-10), // Last 10 messages for context
-          user_profile: userProfile || {
+          user_profile: userProfile || (user ? {
             name: user.email?.split('@')[0] || 'Patient',
             email: user.email
-          }
+          } : {
+            name: 'Guest',
+            email: null
+          })
         }
       });
 
@@ -180,24 +202,54 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
       } else if (suggestions.includes('skip-patient-selection')) {
         setTimeout(() => setCurrentFlow('dentist-selection'), 2000);
       } else if (suggestions.includes('booking') && currentFlow === 'chat') {
-        setTimeout(() => setCurrentFlow('patient-selection'), 2000);
+        if (!user) {
+          // Show login requirement message
+          setTimeout(() => {
+            const loginMessage: ChatMessage = {
+              id: crypto.randomUUID(),
+              session_id: sessionId,
+              message: "Vous devez vous connecter pour prendre un rendez-vous. Cliquez sur le bouton 'Se connecter' en haut à droite.",
+              is_bot: true,
+              message_type: "text",
+              created_at: new Date().toISOString(),
+            };
+            setMessages(prev => [...prev, loginMessage]);
+          }, 1000);
+        } else {
+          setTimeout(() => setCurrentFlow('patient-selection'), 2000);
+        }
       } else if (suggestions.includes('recommend-dentist')) {
-        // For recommendations, ask the question in chat instead of showing UI
-        setTimeout(() => {
-          const questionMessage: ChatMessage = {
-            id: crypto.randomUUID(),
-            session_id: sessionId,
-            message: "Pour qui souhaitez-vous prendre ce rendez-vous ? Tapez 'moi' si c'est pour vous, ou donnez-moi le nom et l'âge de la personne (ex: 'ma fille Sarah, 8 ans').",
-            is_bot: true,
-            message_type: "text",
-            created_at: new Date().toISOString(),
-          };
-          setMessages(prev => [...prev, questionMessage]);
-        }, 1000);
-        // Scroll to dentists section when recommendation is requested
-        setTimeout(() => {
-          onScrollToDentists?.();
-        }, 2000);
+        if (!user) {
+          // Show login requirement message
+          setTimeout(() => {
+            const loginMessage: ChatMessage = {
+              id: crypto.randomUUID(),
+              session_id: sessionId,
+              message: "Vous devez vous connecter pour prendre un rendez-vous. Cliquez sur le bouton 'Se connecter' en haut à droite.",
+              is_bot: true,
+              message_type: "text",
+              created_at: new Date().toISOString(),
+            };
+            setMessages(prev => [...prev, loginMessage]);
+          }, 1000);
+        } else {
+          // For recommendations, ask the question in chat instead of showing UI
+          setTimeout(() => {
+            const questionMessage: ChatMessage = {
+              id: crypto.randomUUID(),
+              session_id: sessionId,
+              message: "Pour qui souhaitez-vous prendre ce rendez-vous ? Tapez 'moi' si c'est pour vous, ou donnez-moi le nom et l'âge de la personne (ex: 'ma fille Sarah, 8 ans').",
+              is_bot: true,
+              message_type: "text",
+              created_at: new Date().toISOString(),
+            };
+            setMessages(prev => [...prev, questionMessage]);
+          }, 1000);
+          // Scroll to dentists section when recommendation is requested
+          setTimeout(() => {
+            onScrollToDentists?.();
+          }, 2000);
+        }
       }
 
       // Handle patient selection from chat response
@@ -280,7 +332,9 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
           lowerMessage.includes("pain") || lowerMessage.includes("hurt") || 
           lowerMessage.includes("problem") || lowerMessage.includes("issue")) {
         response = "What's the exact problem? I'll help you find the right dentist and book an appointment that typically takes 30-60 minutes.";
-        setTimeout(() => setCurrentFlow('patient-selection'), 1000);
+        if (user) {
+          setTimeout(() => setCurrentFlow('patient-selection'), 1000);
+        }
       } else {
         response = `What can I do for you?
 
@@ -486,6 +540,8 @@ Type your request...`;
   };
 
   const sendEmailSummary = async (appointmentData?: any, urgencyLevel?: string) => {
+    if (!user) return;
+    
     try {
       // Create summary from recent messages
       const recentMessages = messages.slice(-10);
@@ -636,12 +692,24 @@ Type your request...`;
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => {
-                    // Skip patient selection if it's for the user
-                    setIsForUser(true);
-                    setPatientInfo(userProfile);
-                    setCurrentFlow('dentist-selection');
-                  }}
+                 onClick={() => {
+                   if (!user) {
+                     const loginMessage: ChatMessage = {
+                       id: crypto.randomUUID(),
+                       session_id: sessionId,
+                       message: "Vous devez vous connecter pour prendre un rendez-vous. Cliquez sur le bouton 'Se connecter' en haut à droite.",
+                       is_bot: true,
+                       message_type: "text",
+                       created_at: new Date().toISOString(),
+                     };
+                     setMessages(prev => [...prev, loginMessage]);
+                   } else {
+                     // Skip patient selection if it's for the user
+                     setIsForUser(true);
+                     setPatientInfo(userProfile);
+                     setCurrentFlow('dentist-selection');
+                   }
+                 }}
                   className="flex items-center gap-1 sm:gap-2 floating-card border-dental-primary/30 text-dental-primary hover:bg-dental-primary/10 hover:scale-105 transition-all duration-300 text-xs sm:text-sm px-3 sm:px-4 py-2"
                 >
                   <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -653,7 +721,7 @@ Type your request...`;
           </div>
 
           {/* Action Panels - Above chat input */}
-          {currentFlow === 'patient-selection' && (
+          {currentFlow === 'patient-selection' && user && (
             <div className="border-t border-dental-primary/20 p-6 glass-card animate-fade-in">
               <PatientSelection 
                 onSelectPatient={(isForUserSelected, patientInfoSelected) => {
@@ -672,7 +740,7 @@ Type your request...`;
             </div>
           )}
 
-          {currentFlow === 'dentist-selection' && (
+          {currentFlow === 'dentist-selection' && user && (
             <div className="border-t border-dental-primary/20 p-6 glass-card animate-fade-in">
               <DentistSelection
                 onSelectDentist={(dentist) => {
@@ -686,7 +754,7 @@ Type your request...`;
             </div>
           )}
 
-          {currentFlow === 'booking' && (
+          {currentFlow === 'booking' && user && (
             <div className="border-t border-dental-secondary/20 p-6 glass-card animate-fade-in">
               <AppointmentBooking
                 user={user}

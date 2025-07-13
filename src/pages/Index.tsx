@@ -134,82 +134,7 @@ const Index = () => {
     );
   }
 
-  if (!user) {
-    return (
-      <div className="min-h-screen hero-pattern">
-        <div className="container mx-auto px-4 py-16">
-          <div className="text-center mb-16 space-y-8 animate-fade-in">
-            <div className="flex items-center justify-center mb-8">
-              <div className="relative">
-                <div className="pulse-ring w-24 h-24 -top-6 -left-6"></div>
-                <div className="relative p-6 rounded-3xl shadow-glow animate-float bg-white">
-                  <img 
-                    src="/lovable-uploads/bd9069b9-f5b0-427d-8acb-8b6a25ccba24.png" 
-                    alt="First Smile AI Logo" 
-                    className="h-20 w-20 object-contain"
-                  />
-                </div>
-                <div className="absolute -top-3 -right-3 w-8 h-8 bg-gradient-secondary rounded-full animate-pulse shadow-float"></div>
-              </div>
-            </div>
-            <div className="space-y-6">
-              <h1 className="text-6xl md:text-7xl font-bold gradient-text leading-tight">
-                First Smile AI
-              </h1>
-              <div className="space-y-4">
-                <p className="text-3xl text-dental-primary font-semibold animate-slide-in">
-                  {t.intelligentDentalAssistant}
-                </p>
-                <div className="flex justify-center">
-                  <div className="h-1 w-24 bg-gradient-primary rounded-full"></div>
-                </div>
-              </div>
-              <p className="text-dental-muted-foreground max-w-4xl mx-auto text-xl leading-relaxed animate-fade-in" style={{ animationDelay: "0.3s" }}>
-                {t.experienceFuture}
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto mt-12">
-                <div className="floating-card p-6 text-center animate-scale-in" style={{ animationDelay: "0.5s" }}>
-                  <div className="w-12 h-12 bg-gradient-primary rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Activity className="h-6 w-6 text-white" />
-                  </div>
-                  <h3 className="font-semibold text-dental-primary mb-2">{t.aiDiagnosis}</h3>
-                  <p className="text-sm text-dental-muted-foreground">{t.aiDiagnosisDesc}</p>
-                </div>
-                <div className="floating-card p-6 text-center animate-scale-in" style={{ animationDelay: "0.7s" }}>
-                  <div className="w-12 h-12 bg-gradient-secondary rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Calendar className="h-6 w-6 text-white" />
-                  </div>
-                  <h3 className="font-semibold text-dental-primary mb-2">{t.smartBooking}</h3>
-                  <p className="text-sm text-dental-muted-foreground">{t.smartBookingDesc}</p>
-                </div>
-                <div className="floating-card p-6 text-center animate-scale-in" style={{ animationDelay: "0.9s" }}>
-                  <div className="w-12 h-12 bg-gradient-accent rounded-full flex items-center justify-center mx-auto mb-4">
-                    <MessageSquare className="h-6 w-6 text-white" />
-                  </div>
-                  <h3 className="font-semibold text-dental-primary mb-2">{t.support24_7}</h3>
-                  <p className="text-sm text-dental-muted-foreground">{t.support24_7Desc}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="space-y-8 animate-fade-in" style={{ animationDelay: "1.1s" }}>
-            <div className="text-center">
-              <Button 
-                variant="outline" 
-                onClick={() => window.location.href = "/dentists"}
-                className="mr-4 mb-4 glass-card border-dental-primary/30 text-dental-primary hover:bg-dental-primary/10"
-              >
-                {t.viewOurDentists}
-              </Button>
-            </div>
-            <div className="max-w-md mx-auto">
-              <AuthForm />
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // Show main app with login button in corner (no auth required for chat)
 
   return (
     <div className="min-h-screen mesh-bg">
@@ -231,8 +156,12 @@ const Index = () => {
               <h2 className="text-2xl font-bold gradient-text">First Smile AI</h2>
             </div>
           </div>
-          <div className="flex items-center">
-            <Settings user={user} />
+          <div className="flex items-center space-x-3">
+            {user ? (
+              <Settings user={user} />
+            ) : (
+              <AuthForm compact />
+            )}
           </div>
         </div>
       </header>
@@ -281,8 +210,20 @@ const Index = () => {
               onBookingTriggered={() => setTriggerBooking(false)}
               onScrollToDentists={scrollToDentists}
             />
-          ) : (
+          ) : user ? (
             <AppointmentsList user={user} />
+          ) : (
+            <div className="text-center py-12">
+              <div className="max-w-md mx-auto space-y-6">
+                <h3 className="text-xl font-semibold text-dental-primary">
+                  {t.signIn} Required
+                </h3>
+                <p className="text-dental-muted-foreground">
+                  Please sign in to view your appointments
+                </p>
+                <AuthForm />
+              </div>
+            </div>
           )}
         </div>
       </main>
