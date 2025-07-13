@@ -10,7 +10,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Send, Bot, User as UserIcon, Calendar, Camera, Mail, ImageIcon, Mic, Square } from "lucide-react";
 import { ChatMessage } from "@/types/chat";
-import { AppointmentBooking } from "@/components/AppointmentBooking";
+import { AppointmentBookingWithAuth } from "@/components/AppointmentBookingWithAuth";
 import { PhotoUpload } from "@/components/PhotoUpload";
 import { DentistSelection } from "@/components/DentistSelection";
 
@@ -756,7 +756,7 @@ Type your request...`;
 
           {currentFlow === 'booking' && user && (
             <div className="border-t border-dental-secondary/20 p-6 glass-card animate-fade-in">
-              <AppointmentBooking
+              <AppointmentBookingWithAuth
                 user={user}
                 selectedDentist={selectedDentist}
                 prefilledReason={consultationReason}

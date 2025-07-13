@@ -53,6 +53,7 @@ export const Settings = ({ user }: SettingsProps) => {
     medical_history: ''
   });
   const [loading, setLoading] = useState(false);
+  const [hasIncompleteProfile, setHasIncompleteProfile] = useState(false);
 
   useEffect(() => {
     fetchProfile();
@@ -67,13 +68,18 @@ export const Settings = ({ user }: SettingsProps) => {
         .single();
 
       if (data) {
-        setProfile({
+        const profileData = {
           first_name: data.first_name || '',
           last_name: data.last_name || '',
           phone: data.phone || '',
           date_of_birth: data.date_of_birth || '',
           medical_history: data.medical_history || ''
-        });
+        };
+        setProfile(profileData);
+        
+        // Check if profile is incomplete (missing first or last name)
+        const isIncomplete = !data.first_name || !data.last_name;
+        setHasIncompleteProfile(isIncomplete);
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
@@ -136,13 +142,18 @@ export const Settings = ({ user }: SettingsProps) => {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="glass-card border-dental-primary/30 text-dental-primary hover:bg-dental-primary/10 hover:border-dental-primary/50 transition-all duration-300"
-        >
-          <SettingsIcon className="h-4 w-4" />
-        </Button>
+        <div className="relative">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="glass-card border-dental-primary/30 text-dental-primary hover:bg-dental-primary/10 hover:border-dental-primary/50 transition-all duration-300"
+          >
+            <SettingsIcon className="h-4 w-4" />
+          </Button>
+          {hasIncompleteProfile && (
+            <div className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full animate-pulse" />
+          )}
+        </div>
       </DialogTrigger>
       <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto p-0 bg-background border-border">
         <DialogHeader className="p-6 pb-0">
