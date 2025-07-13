@@ -341,6 +341,164 @@ export type Database = {
           },
         ]
       }
+      medical_records: {
+        Row: {
+          attachments: Json | null
+          created_at: string
+          dentist_id: string
+          description: string | null
+          findings: string | null
+          id: string
+          patient_id: string
+          recommendations: string | null
+          record_type: string
+          title: string
+          updated_at: string
+          visit_date: string
+        }
+        Insert: {
+          attachments?: Json | null
+          created_at?: string
+          dentist_id: string
+          description?: string | null
+          findings?: string | null
+          id?: string
+          patient_id: string
+          recommendations?: string | null
+          record_type?: string
+          title: string
+          updated_at?: string
+          visit_date: string
+        }
+        Update: {
+          attachments?: Json | null
+          created_at?: string
+          dentist_id?: string
+          description?: string | null
+          findings?: string | null
+          id?: string
+          patient_id?: string
+          recommendations?: string | null
+          record_type?: string
+          title?: string
+          updated_at?: string
+          visit_date?: string
+        }
+        Relationships: []
+      }
+      patient_documents: {
+        Row: {
+          created_at: string
+          dentist_id: string
+          document_name: string
+          document_type: string
+          file_size: number | null
+          google_drive_file_id: string | null
+          google_drive_url: string | null
+          id: string
+          is_synced: boolean | null
+          last_synced_at: string | null
+          medical_record_id: string | null
+          mime_type: string | null
+          patient_id: string
+          treatment_plan_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          dentist_id: string
+          document_name: string
+          document_type: string
+          file_size?: number | null
+          google_drive_file_id?: string | null
+          google_drive_url?: string | null
+          id?: string
+          is_synced?: boolean | null
+          last_synced_at?: string | null
+          medical_record_id?: string | null
+          mime_type?: string | null
+          patient_id: string
+          treatment_plan_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          dentist_id?: string
+          document_name?: string
+          document_type?: string
+          file_size?: number | null
+          google_drive_file_id?: string | null
+          google_drive_url?: string | null
+          id?: string
+          is_synced?: boolean | null
+          last_synced_at?: string | null
+          medical_record_id?: string | null
+          mime_type?: string | null
+          patient_id?: string
+          treatment_plan_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_documents_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      prescriptions: {
+        Row: {
+          created_at: string
+          dentist_id: string
+          dosage: string
+          duration_days: number | null
+          frequency: string
+          id: string
+          instructions: string | null
+          medical_record_id: string | null
+          medication_name: string
+          patient_id: string
+          prescribed_date: string
+          status: string
+          treatment_plan_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          dentist_id: string
+          dosage: string
+          duration_days?: number | null
+          frequency: string
+          id?: string
+          instructions?: string | null
+          medical_record_id?: string | null
+          medication_name: string
+          patient_id: string
+          prescribed_date?: string
+          status?: string
+          treatment_plan_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          dentist_id?: string
+          dosage?: string
+          duration_days?: number | null
+          frequency?: string
+          id?: string
+          instructions?: string | null
+          medical_record_id?: string | null
+          medication_name?: string
+          patient_id?: string
+          prescribed_date?: string
+          status?: string
+          treatment_plan_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           address: string | null
@@ -389,6 +547,63 @@ export type Database = {
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      treatment_plans: {
+        Row: {
+          created_at: string
+          dentist_id: string
+          description: string | null
+          diagnosis: string | null
+          end_date: string | null
+          estimated_cost: number | null
+          estimated_duration_weeks: number | null
+          id: string
+          notes: string | null
+          patient_id: string
+          priority: string
+          start_date: string | null
+          status: string
+          title: string
+          treatment_steps: Json | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          dentist_id: string
+          description?: string | null
+          diagnosis?: string | null
+          end_date?: string | null
+          estimated_cost?: number | null
+          estimated_duration_weeks?: number | null
+          id?: string
+          notes?: string | null
+          patient_id: string
+          priority?: string
+          start_date?: string | null
+          status?: string
+          title: string
+          treatment_steps?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          dentist_id?: string
+          description?: string | null
+          diagnosis?: string | null
+          end_date?: string | null
+          estimated_cost?: number | null
+          estimated_duration_weeks?: number | null
+          id?: string
+          notes?: string | null
+          patient_id?: string
+          priority?: string
+          start_date?: string | null
+          status?: string
+          title?: string
+          treatment_steps?: Json | null
+          updated_at?: string
         }
         Relationships: []
       }
