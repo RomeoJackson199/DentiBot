@@ -165,13 +165,27 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
     setIsLoading(true);
 
     try {
+      // Get patient profile with all information
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
-        .select("id")
+        .select("id, first_name, last_name, date_of_birth, phone, email, address, medical_history, emergency_contact")
         .eq("user_id", user.id)
         .single();
 
       if (profileError) throw profileError;
+
+      // Check if profile is complete for appointment booking
+      const requiredFields = ['first_name', 'last_name', 'phone', 'email'];
+      const missingFields = requiredFields.filter(field => !profile[field]);
+      
+      if (missingFields.length > 0) {
+        toast({
+          title: "Profil incomplet",
+          description: "Veuillez compléter votre profil dans les paramètres avant de prendre rendez-vous",
+          variant: "destructive",
+        });
+        return;
+      }
 
       const appointmentDateTime = new Date(selectedDate);
       const [hours, minutes] = selectedTime.split(":");

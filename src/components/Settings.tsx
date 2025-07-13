@@ -36,6 +36,8 @@ interface UserProfile {
   phone: string;
   date_of_birth: string;
   medical_history: string;
+  address: string;
+  emergency_contact: string;
 }
 
 type TabType = 'general' | 'theme' | 'personal';
@@ -50,7 +52,9 @@ export const Settings = ({ user }: SettingsProps) => {
     last_name: '',
     phone: '',
     date_of_birth: '',
-    medical_history: ''
+    medical_history: '',
+    address: '',
+    emergency_contact: ''
   });
   const [loading, setLoading] = useState(false);
   const [hasIncompleteProfile, setHasIncompleteProfile] = useState(false);
@@ -63,7 +67,7 @@ export const Settings = ({ user }: SettingsProps) => {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('first_name, last_name, phone, date_of_birth, medical_history')
+        .select('first_name, last_name, phone, date_of_birth, medical_history, address, emergency_contact')
         .eq('user_id', user.id)
         .single();
 
@@ -73,7 +77,9 @@ export const Settings = ({ user }: SettingsProps) => {
           last_name: data.last_name || '',
           phone: data.phone || '',
           date_of_birth: data.date_of_birth || '',
-          medical_history: data.medical_history || ''
+          medical_history: data.medical_history || '',
+          address: data.address || '',
+          emergency_contact: data.emergency_contact || ''
         };
         setProfile(profileData);
         
@@ -112,7 +118,9 @@ export const Settings = ({ user }: SettingsProps) => {
           last_name: profile.last_name,
           phone: profile.phone,
           date_of_birth: profile.date_of_birth || null,
-          medical_history: profile.medical_history
+          medical_history: profile.medical_history,
+          address: profile.address,
+          emergency_contact: profile.emergency_contact
         })
         .eq('user_id', user.id);
 
@@ -122,6 +130,9 @@ export const Settings = ({ user }: SettingsProps) => {
         title: "Success",
         description: "Personal information saved successfully",
       });
+      
+      // Refresh profile to update incomplete status
+      fetchProfile();
     } catch (error) {
       toast({
         title: "Error",
@@ -279,6 +290,28 @@ export const Settings = ({ user }: SettingsProps) => {
                     className="mt-2 bg-muted/30 border-border rounded-xl"
                   />
                 </div>
+              </div>
+
+              <div>
+                <Label htmlFor="address" className="text-foreground font-medium">Address</Label>
+                <Input
+                  id="address"
+                  placeholder="Enter your address"
+                  value={profile.address}
+                  onChange={(e) => setProfile(prev => ({ ...prev, address: e.target.value }))}
+                  className="mt-2 bg-muted/30 border-border rounded-xl"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="emergencyContact" className="text-foreground font-medium">Emergency Contact</Label>
+                <Input
+                  id="emergencyContact"
+                  placeholder="Emergency contact name and phone"
+                  value={profile.emergency_contact}
+                  onChange={(e) => setProfile(prev => ({ ...prev, emergency_contact: e.target.value }))}
+                  className="mt-2 bg-muted/30 border-border rounded-xl"
+                />
               </div>
 
               <div>

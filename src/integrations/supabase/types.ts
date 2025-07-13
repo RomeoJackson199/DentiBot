@@ -53,6 +53,7 @@ export type Database = {
       appointments: {
         Row: {
           appointment_date: string
+          consultation_notes: string | null
           created_at: string
           dentist_id: string
           duration_minutes: number | null
@@ -71,6 +72,7 @@ export type Database = {
         }
         Insert: {
           appointment_date: string
+          consultation_notes?: string | null
           created_at?: string
           dentist_id: string
           duration_minutes?: number | null
@@ -89,6 +91,7 @@ export type Database = {
         }
         Update: {
           appointment_date?: string
+          consultation_notes?: string | null
           created_at?: string
           dentist_id?: string
           duration_minutes?: number | null
@@ -340,9 +343,11 @@ export type Database = {
       }
       profiles: {
         Row: {
+          address: string | null
           created_at: string
           date_of_birth: string | null
           email: string
+          emergency_contact: string | null
           first_name: string
           id: string
           last_name: string
@@ -354,9 +359,11 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          address?: string | null
           created_at?: string
           date_of_birth?: string | null
           email: string
+          emergency_contact?: string | null
           first_name: string
           id?: string
           last_name: string
@@ -368,9 +375,11 @@ export type Database = {
           user_id: string
         }
         Update: {
+          address?: string | null
           created_at?: string
           date_of_birth?: string | null
           email?: string
+          emergency_contact?: string | null
           first_name?: string
           id?: string
           last_name?: string
