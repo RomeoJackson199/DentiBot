@@ -57,19 +57,6 @@ export const AuthForm = ({ compact = false }: AuthFormProps) => {
       if (error) throw error;
 
       if (data.user) {
-        // Create profile
-        const { error: profileError } = await supabase
-          .from("profiles")
-          .insert({
-            user_id: data.user.id,
-            email: formData.email,
-            first_name: formData.firstName,
-            last_name: formData.lastName,
-            phone: formData.phone,
-          });
-
-        if (profileError) throw profileError;
-
         toast({
           title: t.accountCreatedSuccess,
           description: t.checkEmailConfirm,
