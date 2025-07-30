@@ -13,9 +13,11 @@ import { ChatMessage } from "@/types/chat";
 import { AppointmentBookingWithAuth } from "@/components/AppointmentBookingWithAuth";
 import { PhotoUpload } from "@/components/PhotoUpload";
 import { DentistSelection } from "@/components/DentistSelection";
-
 import { QuickPhotoUpload } from "@/components/QuickPhotoUpload";
 import { PatientSelection } from "@/components/PatientSelection";
+import { ChatAppointmentManager } from "@/components/chat/ChatAppointmentManager";
+import { ChatBookingFlow } from "@/components/chat/ChatBookingFlow";
+import { ChatSettingsManager } from "@/components/chat/ChatSettingsManager";
 
 interface DentalChatbotProps {
   user: User | null;
@@ -29,7 +31,7 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [sessionId] = useState(() => crypto.randomUUID());
-  const [currentFlow, setCurrentFlow] = useState<'chat' | 'booking' | 'photo' | 'dentist-selection' | 'quick-photo' | 'patient-selection'>('chat');
+  const [currentFlow, setCurrentFlow] = useState<'chat' | 'booking' | 'photo' | 'dentist-selection' | 'quick-photo' | 'patient-selection' | 'chat-booking'>('chat');
   const [lastPhotoUrl, setLastPhotoUrl] = useState<string | null>(null);
   const [selectedDentist, setSelectedDentist] = useState<any>(null);
   const [selectedDate, setSelectedDate] = useState<Date>();
@@ -44,6 +46,8 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
   const [emergencyDetected, setEmergencyDetected] = useState(false);
   const [urgencyLevel, setUrgencyLevel] = useState<string>("medium");
   const [consultationReason, setConsultationReason] = useState<string>("");
+  const [actionButtons, setActionButtons] = useState<any[]>([]);
+  const [showChatBooking, setShowChatBooking] = useState(false);
   
   // Voice recording states
   const [isRecording, setIsRecording] = useState(false);
@@ -53,6 +57,28 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
   const { toast } = useToast();
   const { t } = useLanguage();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  // Declare functions first
+  const addChatResponse = (message: string, buttons?: any[]) => {
+    const botMessage: ChatMessage = {
+      id: crypto.randomUUID(),
+      session_id: sessionId,
+      message,
+      is_bot: true,
+      message_type: "text",
+      created_at: new Date().toISOString(),
+    };
+    
+    setMessages(prev => [...prev, botMessage]);
+    if (buttons) {
+      setActionButtons(buttons);
+    }
+    saveMessage(botMessage);
+  };
+
+  // Initialize chat managers
+  const appointmentManager = user ? ChatAppointmentManager({ user, onResponse: addChatResponse }) : null;
+  const settingsManager = user ? ChatSettingsManager({ user, onResponse: addChatResponse }) : null;
 
   useEffect(() => {
     // Load user profile and set welcome message only once
@@ -113,6 +139,19 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  const addSystemMessage = (message: string, type: 'info' | 'success' | 'warning' = 'info') => {
+    const systemMessage: ChatMessage = {
+      id: crypto.randomUUID(),
+      session_id: sessionId,
+      message,
+      is_bot: true,
+      message_type: type,
+      created_at: new Date().toISOString(),
+    };
+    setMessages(prev => [...prev, systemMessage]);
+    saveMessage(systemMessage);
+  };
 
   // Handle external booking trigger
   useEffect(() => {
@@ -368,11 +407,19 @@ Type your request...`;
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const currentInput = inputMessage;
     setInputMessage("");
     setIsLoading(true);
+    setActionButtons([]); // Clear action buttons when new message is sent
 
     // Save user message
     await saveMessage(userMessage);
+
+    // Check for chat commands first
+    if (user && handleChatCommands(currentInput)) {
+      setIsLoading(false);
+      return;
+    }
 
     // Generate bot response
     setTimeout(async () => {
@@ -384,10 +431,59 @@ Type your request...`;
     }, 1000);
   };
 
+  const handleChatCommands = (message: string): boolean => {
+    const lowerMessage = message.toLowerCase();
+
+    // Appointment management commands
+    if (lowerMessage.includes('show') && (lowerMessage.includes('appointment') || lowerMessage.includes('rendez-vous'))) {
+      appointmentManager?.showAppointments();
+      return true;
+    }
+    
+    if (lowerMessage.includes('next appointment') || lowerMessage.includes('prochain rendez-vous')) {
+      appointmentManager?.showAppointments();
+      return true;
+    }
+
+    if (lowerMessage.includes('book') && lowerMessage.includes('appointment')) {
+      setShowChatBooking(true);
+      return true;
+    }
+
+    // Settings commands
+    if (settingsManager?.processSettingsCommand(message)) {
+      return true;
+    }
+
+    return false;
+  };
+
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
+    }
+  };
+
+  const handleActionButton = (action: string, data?: any) => {
+    setActionButtons([]);
+    
+    switch (action) {
+      case 'book_appointment':
+        setShowChatBooking(true);
+        break;
+      case 'cancel_appointment':
+        if (data?.appointmentId) {
+          appointmentManager?.cancelAppointment(data.appointmentId);
+        }
+        break;
+      case 'reschedule_appointment':
+        if (data?.appointmentId) {
+          appointmentManager?.rescheduleAppointment(data.appointmentId);
+        }
+        break;
+      default:
+        console.log('Unknown action:', action);
     }
   };
 
@@ -437,8 +533,8 @@ Type your request...`;
     } catch (error) {
       console.error('Error starting recording:', error);
       toast({
-        title: "Erreur",
-        description: "Impossible d'accéder au microphone",
+        title: t.error,
+        description: t.microphoneAccessError,
         variant: "destructive",
       });
     }
@@ -507,8 +603,8 @@ Type your request...`;
     } catch (error) {
       console.error('Error processing voice message:', error);
       toast({
-        title: "Erreur",
-        description: "Impossible de traiter le message vocal",
+        title: t.error,
+        description: t.voiceProcessingError,
         variant: "destructive",
       });
       setIsLoading(false);
@@ -527,17 +623,6 @@ Type your request...`;
     }
   };
 
-  const addSystemMessage = (message: string, type: 'success' | 'info' | 'warning' = 'info') => {
-    const systemMessage: ChatMessage = {
-      id: crypto.randomUUID(),
-      session_id: sessionId,
-      message,
-      is_bot: true,
-      message_type: type,
-      created_at: new Date().toISOString(),
-    };
-    setMessages(prev => [...prev, systemMessage]);
-  };
 
   const sendEmailSummary = async (appointmentData?: any, urgencyLevel?: string) => {
     if (!user) return;
@@ -795,6 +880,44 @@ Type your request...`;
               />
             </div>
           )}
+          
+          {/* Chat Booking Flow */}
+          {showChatBooking && user && (
+            <div className="border-t border-dental-primary/20 p-6 glass-card animate-fade-in">
+              <ChatBookingFlow
+                user={user}
+                selectedDentist={selectedDentist}
+                onComplete={(appointmentData) => {
+                  addChatResponse(appointmentData.message);
+                  setShowChatBooking(false);
+                }}
+                onCancel={() => setShowChatBooking(false)}
+                onResponse={addChatResponse}
+              />
+            </div>
+          )}
+
+          {/* Action Buttons for chat responses */}
+          {actionButtons.length > 0 && currentFlow === 'chat' && (
+            <div className="border-t border-dental-primary/20 p-4 glass-card">
+              <div className="flex flex-wrap gap-2">
+                {actionButtons.map((button, index) => (
+                  <Button
+                    key={index}
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleActionButton(button.action, button.data)}
+                    className="text-dental-primary border-dental-primary/30 hover:bg-dental-primary/10"
+                  >
+                    {button.label}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Settings Form */}
+          {settingsManager && <settingsManager.PersonalInfoForm />}
         </CardContent>
       </Card>
     </div>

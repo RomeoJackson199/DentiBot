@@ -3,6 +3,12 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 type Language = 'en' | 'fr' | 'nl';
 
 interface Translations {
+  // Error & status messages
+  error: string;
+  success: string;
+  microphoneAccessError: string;
+  transcriptionFailed: string;
+  voiceProcessingError: string;
   // General
   settings: string;
   general: string;
@@ -198,6 +204,13 @@ interface Translations {
 
 const translations: Record<Language, Translations> = {
   en: {
+    // Error & status messages
+    error: 'Error',
+    success: 'Success',
+    microphoneAccessError: 'Cannot access microphone. Please check your browser permissions and try again.',
+    transcriptionFailed: 'Voice transcription failed. Please try again or type your message.',
+    voiceProcessingError: 'Error processing voice message. Please try again.',
+    
     // General
     settings: 'Settings',
     general: 'General',
@@ -413,6 +426,13 @@ How can I help you today?`,
     languageSelectionDescription: 'Choose your language to get started with First Smile AI',
   },
   fr: {
+    // Error & status messages
+    error: 'Erreur',
+    success: 'Succès',
+    microphoneAccessError: 'Impossible d\'accéder au microphone. Veuillez vérifier les autorisations de votre navigateur et réessayer.',
+    transcriptionFailed: 'Échec de la transcription vocale. Veuillez réessayer ou taper votre message.',
+    voiceProcessingError: 'Erreur lors du traitement du message vocal. Veuillez réessayer.',
+    
     // General
     settings: 'Paramètres',
     general: 'Général',
@@ -628,6 +648,13 @@ Comment puis-je vous aider aujourd'hui ?`,
     languageSelectionDescription: 'Choisissez votre langue pour commencer avec First Smile AI',
   },
   nl: {
+    // Error & status messages
+    error: 'Fout',
+    success: 'Succes',
+    microphoneAccessError: 'Kan geen toegang krijgen tot de microfoon. Controleer uw browserrechten en probeer opnieuw.',
+    transcriptionFailed: 'Spraaktranscriptie mislukt. Probeer opnieuw of typ uw bericht.',
+    voiceProcessingError: 'Fout bij het verwerken van spraakbericht. Probeer opnieuw.',
+    
     // General
     settings: 'Instellingen',
     general: 'Algemeen',
@@ -848,9 +875,17 @@ interface LanguageContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
   t: Translations;
+  currentLanguage: string;
+  changeLanguage: (lang: 'en' | 'fr' | 'nl') => void;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
+
+export const changeLanguage = (lang: 'en' | 'fr' | 'nl') => {
+  localStorage.setItem('preferred-language', lang);
+  // Force page reload to apply language changes
+  window.location.reload();
+};
 
 export const LanguageProvider = ({ children }: { children: ReactNode }) => {
   const [language, setLanguage] = useState<Language>('en');
@@ -870,7 +905,13 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
   const t = translations[language];
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage: handleSetLanguage, t }}>
+    <LanguageContext.Provider value={{ 
+      language, 
+      setLanguage: handleSetLanguage, 
+      t,
+      currentLanguage: language,
+      changeLanguage
+    }}>
       {children}
     </LanguageContext.Provider>
   );
