@@ -8,6 +8,7 @@ import { CalendarDays, Clock, User as UserIcon, MapPin, Phone, AlertCircle, Cale
 import { AnimatedCard } from "@/components/ui/animated-card";
 import { toast } from "sonner";
 import useEmblaCarousel from 'embla-carousel-react';
+import { useLanguage } from "@/hooks/useLanguage";
 import { 
   AlertDialog, 
   AlertDialogAction, 
@@ -45,6 +46,7 @@ interface AppointmentsListProps {
 export const AppointmentsList = ({ user }: AppointmentsListProps) => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
+  const { t, language } = useLanguage();
 
   // Move carousel hook to top to avoid conditional hook calls
   const [emblaRef, emblaApi] = useEmblaCarousel({ 
@@ -149,14 +151,14 @@ export const AppointmentsList = ({ user }: AppointmentsListProps) => {
       if (error) throw error;
 
       if (data) {
-        toast.success("Appointment cancelled successfully");
+        toast.success(t.appointmentCancelled);
         fetchAppointments(); // Refresh the list
       } else {
-        toast.error("Failed to cancel appointment");
+        toast.error(t.failedToCancelAppointment);
       }
     } catch (error) {
       console.error("Error cancelling appointment:", error);
-      toast.error("Failed to cancel appointment");
+      toast.error(t.failedToCancelAppointment);
     }
   };
 
@@ -192,16 +194,18 @@ export const AppointmentsList = ({ user }: AppointmentsListProps) => {
 
   const formatDateTime = (dateString: string) => {
     const date = new Date(dateString);
+    const locale = language === 'en' ? 'en-US' : language === 'fr' ? 'fr-FR' : 'nl-NL';
     return {
-      date: date.toLocaleDateString('fr-FR', {
+      date: date.toLocaleDateString(locale, {
         weekday: 'long',
         year: 'numeric',
         month: 'long',
         day: 'numeric'
       }),
-      time: date.toLocaleTimeString('fr-FR', {
+      time: date.toLocaleTimeString(locale, {
         hour: '2-digit',
-        minute: '2-digit'
+        minute: '2-digit',
+        hour12: language === 'en'
       })
     };
   };
@@ -220,7 +224,7 @@ export const AppointmentsList = ({ user }: AppointmentsListProps) => {
           <CardTitle className="flex items-center justify-between text-xl sm:text-2xl font-bold">
             <div className="flex items-center">
               <CalendarDays className="h-6 w-6 sm:h-7 sm:w-7 mr-2 sm:mr-3" />
-              <span>Mes Rendez-vous</span>
+              <span>{t.myAppointments}</span>
             </div>
             <Button
               size="sm"
@@ -228,7 +232,7 @@ export const AppointmentsList = ({ user }: AppointmentsListProps) => {
               className="bg-white/20 hover:bg-white/30 text-white border-white/30 text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2 h-8 sm:h-9"
             >
               <Plus className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-              <span className="hidden sm:inline">Nouveau</span>
+              <span className="hidden sm:inline">{t.newAppointment}</span>
               <span className="sm:hidden">+</span>
             </Button>
           </CardTitle>
@@ -241,7 +245,7 @@ export const AppointmentsList = ({ user }: AppointmentsListProps) => {
                 <CalendarDays className="h-5 w-5 sm:h-6 sm:w-6 text-dental-primary animate-pulse" />
               </div>
             </div>
-            <span className="ml-3 sm:ml-4 text-dental-muted-foreground text-base sm:text-lg">Chargement...</span>
+            <span className="ml-3 sm:ml-4 text-dental-muted-foreground text-base sm:text-lg">{t.loading}</span>
           </div>
         </CardContent>
       </div>
@@ -260,7 +264,7 @@ export const AppointmentsList = ({ user }: AppointmentsListProps) => {
             <CardTitle className="flex items-center justify-between text-xl sm:text-2xl font-bold">
               <div className="flex items-center">
                 <CalendarDays className="h-6 w-6 sm:h-7 sm:w-7 mr-2 sm:mr-3" />
-                <span className="text-base sm:text-2xl">Rendez-vous à Venir ({upcomingAppointments.length})</span>
+                <span className="text-base sm:text-2xl">{t.upcomingAppointments} ({upcomingAppointments.length})</span>
               </div>
             </CardTitle>
           </CardHeader>
@@ -320,7 +324,7 @@ export const AppointmentsList = ({ user }: AppointmentsListProps) => {
                               </div>
                               
                               <div>
-                                <h4 className="font-semibold mb-2 sm:mb-3 text-sm sm:text-lg">Appointment Details</h4>
+                                <h4 className="font-semibold mb-2 sm:mb-3 text-sm sm:text-lg">{t.appointmentDetails}</h4>
                                 <div className="space-y-2 sm:space-y-3">
                                   <div>
                                     <h5 className="font-medium text-dental-primary mb-1 text-xs sm:text-sm">Patient</h5>
@@ -344,9 +348,9 @@ export const AppointmentsList = ({ user }: AppointmentsListProps) => {
                                   </div>
                                   
                                   <div>
-                                    <h5 className="font-medium text-dental-primary mb-1 text-xs sm:text-sm">Reason</h5>
+                                    <h5 className="font-medium text-dental-primary mb-1 text-xs sm:text-sm">{t.consultationReason}</h5>
                                     <p className="text-dental-muted-foreground text-xs sm:text-sm line-clamp-2">
-                                      {appointment.reason || "General consultation"}
+                                      {appointment.reason || t.generalConsultation}
                                     </p>
                                   </div>
                                   
@@ -371,24 +375,24 @@ export const AppointmentsList = ({ user }: AppointmentsListProps) => {
                                       className="flex items-center gap-1 sm:gap-2 border-red-300 text-red-600 hover:bg-red-50 text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2 h-8 sm:h-9"
                                     >
                                       <X className="h-3 w-3 sm:h-4 sm:w-4" />
-                                      <span className="hidden sm:inline">Cancel</span>
-                                      <span className="sm:hidden">Cancel</span>
+                                      <span className="hidden sm:inline">{t.cancelAppointment}</span>
+                                      <span className="sm:hidden">{t.cancelAppointment}</span>
                                     </Button>
                                   </AlertDialogTrigger>
                                   <AlertDialogContent className="mx-4">
                                     <AlertDialogHeader>
-                                      <AlertDialogTitle>Cancel Appointment</AlertDialogTitle>
+                                      <AlertDialogTitle>{t.confirmCancellation}</AlertDialogTitle>
                                       <AlertDialogDescription>
-                                        Are you sure you want to cancel this appointment? This action cannot be undone.
+                                        {t.confirmCancellationMessage}
                                       </AlertDialogDescription>
                                     </AlertDialogHeader>
                                     <AlertDialogFooter>
-                                      <AlertDialogCancel>Keep Appointment</AlertDialogCancel>
+                                      <AlertDialogCancel>{t.keepAppointment}</AlertDialogCancel>
                                       <AlertDialogAction 
                                         onClick={() => cancelAppointment(appointment.id)}
                                         className="bg-red-600 hover:bg-red-700"
                                       >
-                                        Yes, Cancel
+                                        {t.yesCancelAppointment}
                                       </AlertDialogAction>
                                     </AlertDialogFooter>
                                   </AlertDialogContent>
@@ -435,7 +439,7 @@ export const AppointmentsList = ({ user }: AppointmentsListProps) => {
           <CardHeader className="bg-gradient-card text-dental-muted-foreground rounded-t-xl">
             <CardTitle className="flex items-center text-2xl font-bold">
               <CalendarDays className="h-7 w-7 mr-3" />
-              Historique des Rendez-vous ({pastAppointments.length})
+              {t.appointmentHistory} ({pastAppointments.length})
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 p-8">
@@ -463,7 +467,7 @@ export const AppointmentsList = ({ user }: AppointmentsListProps) => {
                       </div>
                       <div className="text-right">
                         <p className="text-sm text-dental-muted-foreground">
-                          {appointment.reason || "Consultation générale"}
+                          {appointment.reason || t.generalConsultation}
                         </p>
                       </div>
                     </div>
@@ -484,17 +488,17 @@ export const AppointmentsList = ({ user }: AppointmentsListProps) => {
               <CalendarDays className="h-20 w-20 text-dental-muted-foreground mx-auto animate-float" />
             </div>
             <h3 className="text-3xl font-bold gradient-text mb-4">
-              Aucun rendez-vous trouvé
+              {t.noUpcomingAppointments}
             </h3>
             <p className="text-dental-muted-foreground mb-8 text-lg max-w-md mx-auto">
-              Vous n'avez pas encore de rendez-vous programmés. Commencez dès maintenant avec notre assistant IA.
+              {t.noPastAppointments}
             </p>
             <Button 
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
               className="bg-gradient-primary text-white px-8 py-3 text-lg rounded-xl shadow-glow hover:shadow-elegant hover:scale-105 transition-all duration-300"
             >
               <Calendar className="h-5 w-5 mr-2" />
-              Prendre un rendez-vous
+              {t.bookAppointment}
             </Button>
           </CardContent>
         </div>

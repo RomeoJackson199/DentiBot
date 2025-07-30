@@ -12,6 +12,10 @@ interface Translations {
   light: string;
   dark: string;
   save: string;
+  confirm: string;
+  cancel: string;
+  close: string;
+  retry: string;
   
   // Personal Info
   firstName: string;
@@ -21,6 +25,10 @@ interface Translations {
   medicalHistory: string;
   personalInformation: string;
   savePersonalInfo: string;
+  address: string;
+  emergencyContact: string;
+  enterAddress: string;
+  enterEmergencyContact: string;
   
   // Messages
   languageUpdated: string;
@@ -29,6 +37,9 @@ interface Translations {
   switchedToMode: string;
   personalInfoSaved: string;
   personalInfoUpdated: string;
+  informationConfirmed: string;
+  changesSaved: string;
+  privacyNotice: string;
   
   // Auth
   signOut: string;
@@ -109,6 +120,51 @@ interface Translations {
   slotNoLongerAvailable: string;
   cannotCreateAppointment: string;
   
+  // Appointments list
+  myAppointments: string;
+  appointmentHistory: string;
+  upcomingAppointments: string;
+  pastAppointments: string;
+  newAppointment: string;
+  appointmentDetails: string;
+  loading: string;
+  noUpcomingAppointments: string;
+  noPastAppointments: string;
+  reschedule: string;
+  cancelAppointment: string;
+  confirmCancellation: string;
+  confirmCancellationMessage: string;
+  keepAppointment: string;
+  yesCancelAppointment: string;
+  appointmentCancelled: string;
+  failedToCancelAppointment: string;
+  
+  // Chat commands & integration
+  showMyAppointments: string;
+  nextAppointment: string;
+  suggestedTime: (dentist: string, time: string) => string;
+  wouldYouLikeToBook: string;
+  seeOtherOptions: string;
+  appointmentSuggestion: (dentist: string, date: string, time: string) => string;
+  bookThisSlot: string;
+  showOtherTimes: string;
+  settingsUpdated: string;
+  preferencesChanged: string;
+  
+  // Error handling
+  microphoneError: string;
+  cameraError: string;
+  mediaAccessDenied: string;
+  mediaNotSupported: string;
+  tryAgain: string;
+  
+  // Privacy & validation
+  privacyPolicyLink: string;
+  dataHandlingInfo: string;
+  invalidPhoneFormat: string;
+  invalidEmailFormat: string;
+  requiredField: string;
+  
   // Onboarding
   welcomeToFirstSmile: string;
   yourAIDentalAssistant: string;
@@ -151,6 +207,10 @@ const translations: Record<Language, Translations> = {
     light: 'Light',
     dark: 'Dark',
     save: 'Save',
+    confirm: 'Confirm',
+    cancel: 'Cancel',
+    close: 'Close',
+    retry: 'Retry',
     
     // Personal Info
     firstName: 'First Name',
@@ -160,6 +220,10 @@ const translations: Record<Language, Translations> = {
     medicalHistory: 'Medical History',
     personalInformation: 'Personal Information',
     savePersonalInfo: 'Save Personal Information',
+    address: 'Address',
+    emergencyContact: 'Emergency Contact',
+    enterAddress: 'Enter your address',
+    enterEmergencyContact: 'Enter emergency contact information',
     
     // Messages
     languageUpdated: 'Language Updated',
@@ -168,6 +232,9 @@ const translations: Record<Language, Translations> = {
     switchedToMode: 'Switched to',
     personalInfoSaved: 'Personal Information Saved',
     personalInfoUpdated: 'Your information has been updated successfully.',
+    informationConfirmed: 'Information Confirmed',
+    changesSaved: 'Changes Saved',
+    privacyNotice: 'Your personal and medical data is protected according to our privacy policy.',
     
     // Auth
     signOut: 'Sign Out',
@@ -270,6 +337,51 @@ How can I help you today?`,
     slotNoLongerAvailable: 'This slot is no longer available',
     cannotCreateAppointment: 'Unable to create appointment',
     
+    // Appointments list
+    myAppointments: 'My Appointments',
+    appointmentHistory: 'Appointment History',
+    upcomingAppointments: 'Upcoming Appointments',
+    pastAppointments: 'Past Appointments',
+    newAppointment: 'New',
+    appointmentDetails: 'Appointment Details',
+    loading: 'Loading...',
+    noUpcomingAppointments: 'No upcoming appointments',
+    noPastAppointments: 'No past appointments',
+    reschedule: 'Reschedule',
+    cancelAppointment: 'Cancel',
+    confirmCancellation: 'Cancel Appointment',
+    confirmCancellationMessage: 'Are you sure you want to cancel this appointment? This action cannot be undone.',
+    keepAppointment: 'Keep Appointment',
+    yesCancelAppointment: 'Yes, Cancel',
+    appointmentCancelled: 'Appointment cancelled successfully',
+    failedToCancelAppointment: 'Failed to cancel appointment',
+    
+    // Chat commands & integration
+    showMyAppointments: 'Here are your appointments:',
+    nextAppointment: 'Your next appointment is:',
+    suggestedTime: (dentist: string, time: string) => `Based on your preferences, I suggest ${time} with ${dentist}`,
+    wouldYouLikeToBook: 'Would you like to book this appointment?',
+    seeOtherOptions: 'See other options',
+    appointmentSuggestion: (dentist: string, date: string, time: string) => `📅 Available: ${date} at ${time} with ${dentist}`,
+    bookThisSlot: 'Book this slot',
+    showOtherTimes: 'Show other times',
+    settingsUpdated: 'Settings Updated',
+    preferencesChanged: 'Your preferences have been updated',
+    
+    // Error handling
+    microphoneError: 'Microphone Error',
+    cameraError: 'Camera Error',
+    mediaAccessDenied: 'Media access was denied. Please check your browser settings.',
+    mediaNotSupported: 'Media features are not supported on this device.',
+    tryAgain: 'Try Again',
+    
+    // Privacy & validation
+    privacyPolicyLink: 'Privacy Policy',
+    dataHandlingInfo: 'Learn how we handle your personal and medical data.',
+    invalidPhoneFormat: 'Please enter a valid phone number',
+    invalidEmailFormat: 'Please enter a valid email address',
+    requiredField: 'This field is required',
+    
     // Onboarding
     welcomeToFirstSmile: 'Welcome to First Smile AI! 🦷',
     yourAIDentalAssistant: 'Your AI Dental Assistant',
@@ -310,6 +422,10 @@ How can I help you today?`,
     light: 'Clair',
     dark: 'Sombre',
     save: 'Enregistrer',
+    confirm: 'Confirmer',
+    cancel: 'Annuler',
+    close: 'Fermer',
+    retry: 'Réessayer',
     
     // Personal Info
     firstName: 'Prénom',
@@ -319,6 +435,10 @@ How can I help you today?`,
     medicalHistory: 'Antécédents médicaux',
     personalInformation: 'Informations personnelles',
     savePersonalInfo: 'Enregistrer les informations personnelles',
+    address: 'Adresse',
+    emergencyContact: 'Contact d\'urgence',
+    enterAddress: 'Entrez votre adresse',
+    enterEmergencyContact: 'Entrez les informations de contact d\'urgence',
     
     // Messages
     languageUpdated: 'Langue mise à jour',
@@ -327,6 +447,9 @@ How can I help you today?`,
     switchedToMode: 'Basculé en mode',
     personalInfoSaved: 'Informations personnelles enregistrées',
     personalInfoUpdated: 'Vos informations ont été mises à jour avec succès.',
+    informationConfirmed: 'Informations Confirmées',
+    changesSaved: 'Modifications Enregistrées',
+    privacyNotice: 'Vos données personnelles et médicales sont protégées selon notre politique de confidentialité.',
     
     // Auth
     signOut: 'Se déconnecter',
@@ -429,6 +552,51 @@ Comment puis-je vous aider aujourd'hui ?`,
     slotNoLongerAvailable: 'Ce créneau n\'est plus disponible',
     cannotCreateAppointment: 'Impossible de créer le rendez-vous',
     
+    // Appointments list
+    myAppointments: 'Mes Rendez-vous',
+    appointmentHistory: 'Historique des Rendez-vous',
+    upcomingAppointments: 'Rendez-vous à Venir',
+    pastAppointments: 'Rendez-vous Passés',
+    newAppointment: 'Nouveau',
+    appointmentDetails: 'Détails du Rendez-vous',
+    loading: 'Chargement...',
+    noUpcomingAppointments: 'Aucun rendez-vous à venir',
+    noPastAppointments: 'Aucun rendez-vous passé',
+    reschedule: 'Reprogrammer',
+    cancelAppointment: 'Annuler',
+    confirmCancellation: 'Annuler le Rendez-vous',
+    confirmCancellationMessage: 'Êtes-vous sûr de vouloir annuler ce rendez-vous ? Cette action ne peut pas être annulée.',
+    keepAppointment: 'Garder le Rendez-vous',
+    yesCancelAppointment: 'Oui, Annuler',
+    appointmentCancelled: 'Rendez-vous annulé avec succès',
+    failedToCancelAppointment: 'Échec de l\'annulation du rendez-vous',
+    
+    // Chat commands & integration
+    showMyAppointments: 'Voici vos rendez-vous :',
+    nextAppointment: 'Votre prochain rendez-vous est :',
+    suggestedTime: (dentist: string, time: string) => `Selon vos préférences, je suggère ${time} avec ${dentist}`,
+    wouldYouLikeToBook: 'Souhaitez-vous réserver ce rendez-vous ?',
+    seeOtherOptions: 'Voir d\'autres options',
+    appointmentSuggestion: (dentist: string, date: string, time: string) => `📅 Disponible : ${date} à ${time} avec ${dentist}`,
+    bookThisSlot: 'Réserver ce créneau',
+    showOtherTimes: 'Afficher d\'autres horaires',
+    settingsUpdated: 'Paramètres Mis à Jour',
+    preferencesChanged: 'Vos préférences ont été mises à jour',
+    
+    // Error handling
+    microphoneError: 'Erreur de Microphone',
+    cameraError: 'Erreur de Caméra',
+    mediaAccessDenied: 'L\'accès aux médias a été refusé. Veuillez vérifier les paramètres de votre navigateur.',
+    mediaNotSupported: 'Les fonctionnalités multimédias ne sont pas prises en charge sur cet appareil.',
+    tryAgain: 'Réessayer',
+    
+    // Privacy & validation
+    privacyPolicyLink: 'Politique de Confidentialité',
+    dataHandlingInfo: 'Découvrez comment nous gérons vos données personnelles et médicales.',
+    invalidPhoneFormat: 'Veuillez entrer un numéro de téléphone valide',
+    invalidEmailFormat: 'Veuillez entrer une adresse email valide',
+    requiredField: 'Ce champ est obligatoire',
+    
     // Onboarding
     welcomeToFirstSmile: 'Bienvenue sur First Smile AI ! 🦷',
     yourAIDentalAssistant: 'Votre Assistant Dentaire IA',
@@ -469,6 +637,10 @@ Comment puis-je vous aider aujourd'hui ?`,
     light: 'Licht',
     dark: 'Donker',
     save: 'Opslaan',
+    confirm: 'Bevestigen',
+    cancel: 'Annuleren',
+    close: 'Sluiten',
+    retry: 'Opnieuw proberen',
     
     // Personal Info
     firstName: 'Voornaam',
@@ -478,6 +650,10 @@ Comment puis-je vous aider aujourd'hui ?`,
     medicalHistory: 'Medische voorgeschiedenis',
     personalInformation: 'Persoonlijke informatie',
     savePersonalInfo: 'Persoonlijke informatie opslaan',
+    address: 'Adres',
+    emergencyContact: 'Noodcontact',
+    enterAddress: 'Voer uw adres in',
+    enterEmergencyContact: 'Voer noodcontactinformatie in',
     
     // Messages
     languageUpdated: 'Taal bijgewerkt',
@@ -486,6 +662,9 @@ Comment puis-je vous aider aujourd'hui ?`,
     switchedToMode: 'Overgeschakeld naar',
     personalInfoSaved: 'Persoonlijke informatie opgeslagen',
     personalInfoUpdated: 'Uw informatie is succesvol bijgewerkt.',
+    informationConfirmed: 'Informatie Bevestigd',
+    changesSaved: 'Wijzigingen Opgeslagen',
+    privacyNotice: 'Uw persoonlijke en medische gegevens zijn beschermd volgens ons privacybeleid.',
     
     // Auth
     signOut: 'Uitloggen',
@@ -587,6 +766,51 @@ Hoe kan ik u vandaag helpen?`,
     selectDentistDateTime: 'Selecteer een tandarts, datum en tijd',
     slotNoLongerAvailable: 'Dit tijdslot is niet meer beschikbaar',
     cannotCreateAppointment: 'Kan afspraak niet maken',
+    
+    // Appointments list  
+    myAppointments: 'Mijn Afspraken',
+    appointmentHistory: 'Afsprakengeschiedenis',
+    upcomingAppointments: 'Komende Afspraken',
+    pastAppointments: 'Vorige Afspraken',
+    newAppointment: 'Nieuw',
+    appointmentDetails: 'Afspraak Details',
+    loading: 'Laden...',
+    noUpcomingAppointments: 'Geen komende afspraken',
+    noPastAppointments: 'Geen vorige afspraken',
+    reschedule: 'Herplannen',
+    cancelAppointment: 'Annuleren',
+    confirmCancellation: 'Afspraak Annuleren',
+    confirmCancellationMessage: 'Weet u zeker dat u deze afspraak wilt annuleren? Deze actie kan niet ongedaan worden gemaakt.',
+    keepAppointment: 'Afspraak Behouden',
+    yesCancelAppointment: 'Ja, Annuleren',
+    appointmentCancelled: 'Afspraak succesvol geannuleerd',
+    failedToCancelAppointment: 'Fout bij het annuleren van de afspraak',
+    
+    // Chat commands & integration
+    showMyAppointments: 'Hier zijn uw afspraken:',
+    nextAppointment: 'Uw volgende afspraak is:',
+    suggestedTime: (dentist: string, time: string) => `Op basis van uw voorkeuren stel ik ${time} voor met ${dentist}`,
+    wouldYouLikeToBook: 'Wilt u deze afspraak boeken?',
+    seeOtherOptions: 'Zie andere opties',
+    appointmentSuggestion: (dentist: string, date: string, time: string) => `📅 Beschikbaar: ${date} om ${time} met ${dentist}`,
+    bookThisSlot: 'Boek dit tijdslot',
+    showOtherTimes: 'Toon andere tijden',
+    settingsUpdated: 'Instellingen Bijgewerkt',
+    preferencesChanged: 'Uw voorkeuren zijn bijgewerkt',
+    
+    // Error handling
+    microphoneError: 'Microfoon Fout',
+    cameraError: 'Camera Fout',
+    mediaAccessDenied: 'Media toegang is geweigerd. Controleer uw browserinstellingen.',
+    mediaNotSupported: 'Mediafuncties worden niet ondersteund op dit apparaat.',
+    tryAgain: 'Probeer Opnieuw',
+    
+    // Privacy & validation
+    privacyPolicyLink: 'Privacybeleid',
+    dataHandlingInfo: 'Leer hoe we uw persoonlijke en medische gegevens behandelen.',
+    invalidPhoneFormat: 'Voer een geldig telefoonnummer in',
+    invalidEmailFormat: 'Voer een geldig e-mailadres in',
+    requiredField: 'Dit veld is verplicht',
     
     // Onboarding
     welcomeToFirstSmile: 'Welkom bij First Smile AI! 🦷',
