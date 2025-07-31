@@ -11,15 +11,11 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-interface AppointmentData {
-  [key: string]: unknown;
-}
-
 interface EmailRequest {
   userId: string;
   chatSummary: string;
   photoUrl?: string;
-  appointmentData?: AppointmentData;
+  appointmentData?: any;
   urgencyLevel?: string;
 }
 
@@ -154,11 +150,10 @@ const handler = async (req: Request): Promise<Response> => {
       headers: { "Content-Type": "application/json", ...corsHeaders },
     });
 
-  } catch (error) {
-    const err = error as Error;
-    console.error("Error in send-patient-email function:", err);
+  } catch (error: any) {
+    console.error("Error in send-patient-email function:", error);
     return new Response(
-      JSON.stringify({ error: err.message }),
+      JSON.stringify({ error: error.message }),
       {
         status: 500,
         headers: { "Content-Type": "application/json", ...corsHeaders },
