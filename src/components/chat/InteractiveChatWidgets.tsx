@@ -568,6 +568,7 @@ const ImageUploadWidget = ({
   );
 };
 
+
 // Urgency Slider Widget
 const UrgencySliderWidget = ({ 
   value, 
@@ -622,3 +623,4 @@ export {
   ImageUploadWidget,
   UrgencySliderWidget
 };
+

@@ -44,10 +44,11 @@ export function DentistDashboard({ user }: DentistDashboardProps) {
       }
 
       setDentistId(dentist.id);
-    } catch (error: any) {
+    } catch (error) {
+      const err = error as Error;
       toast({
         title: "Error",
-        description: error.message || "Failed to load dentist profile",
+        description: err.message || "Failed to load dentist profile",
         variant: "destructive",
       });
     } finally {

@@ -87,8 +87,7 @@ export const NewInteractiveDentalChat = ({ user }: NewInteractiveDentalChatProps
         addBotMessage(`Here's what I can help with:\n\n🗓️ Book appointments\n📱 Manage your bookings\n❓ Answer questions\n⚙️ Update settings\n\nJust type what you need!`);
         break;
     }
-    
-    // continue conversation naturally without quick action prompts
+
   };
 
   const handleSendMessage = () => {
@@ -157,7 +156,6 @@ export const NewInteractiveDentalChat = ({ user }: NewInteractiveDentalChatProps
             </div>
           ))}
 
-          
           <div ref={messagesEndRef} />
         </div>
       </ScrollArea>
@@ -183,3 +181,4 @@ export const NewInteractiveDentalChat = ({ user }: NewInteractiveDentalChatProps
     </div>
   );
 };
+

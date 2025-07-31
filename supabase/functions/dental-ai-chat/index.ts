@@ -214,12 +214,12 @@ PROFESSIONAL LANGUAGE EXAMPLES WITH RECOMMENDATIONS:
       content.dentists,
       content.examples,
       `Patient Information: ${JSON.stringify(user_profile)}`,
-      `Conversation History:\n${conversation_history.map((msg: any) => (msg.is_bot ? 'Assistant' : 'Patient') + ': ' + msg.message).join('\n')}`
+      `Conversation History:\n${conversation_history.map((msg: { is_bot: boolean; message: string }) => (msg.is_bot ? 'Assistant' : 'Patient') + ': ' + msg.message).join('\n')}`
     ].join('\n\n');
 
     const messages = [
       { role: 'system', content: systemPrompt },
-      ...conversation_history.map((msg: any) => ({
+      ...conversation_history.map((msg: { is_bot: boolean; message: string }) => ({
         role: msg.is_bot ? 'assistant' : 'user',
         content: msg.message
       })),
@@ -256,7 +256,10 @@ PROFESSIONAL LANGUAGE EXAMPLES WITH RECOMMENDATIONS:
     const botResponse = data.choices[0].message.content;
 
     // Extract consultation reason from conversation
-    const extractConsultationReason = (message: string, history: any[]): string => {
+    const extractConsultationReason = (
+      message: string,
+      history: Array<{ message: string }>
+    ): string => {
       const lowerMessage = message.toLowerCase();
       
       // Extract from current message
@@ -330,7 +333,7 @@ PROFESSIONAL LANGUAGE EXAMPLES WITH RECOMMENDATIONS:
     }
     
     // Extract dentist recommendations from response (improved matching for multiple dentists)
-    let recommendedDentists = [];
+    const recommendedDentists: string[] = [];
     if (lowerResponse.includes('virginie pauwels') || lowerResponse.includes('dr. virginie')) {
       recommendedDentists.push('Virginie Pauwels');
     }

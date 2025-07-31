@@ -119,7 +119,7 @@ export const InteractiveDentalChat = ({
         created_at: new Date().toISOString(),
       };
       setMessages([welcomeMessage]);
-      
+
     }
   };
 
@@ -154,10 +154,7 @@ export const InteractiveDentalChat = ({
     saveMessage(botMessage);
   };
 
-  const generateBotResponse = async (
-    userMessage: string,
-    history: ChatMessage[]
-  ): Promise<ChatMessage> => {
+
     try {
       const { data, error } = await supabase.functions.invoke('dental-ai-chat', {
         body: {
@@ -176,7 +173,7 @@ export const InteractiveDentalChat = ({
       if (error) throw error;
 
       const responseText = data.response || data.fallback_response || "I'm sorry, I couldn't process your request.";
-      return {
+
         id: crypto.randomUUID(),
         session_id: sessionId,
         message: responseText,
@@ -184,15 +181,7 @@ export const InteractiveDentalChat = ({
         message_type: 'text',
         created_at: new Date().toISOString(),
       };
-    } catch (error) {
-      console.error('Error generating AI response:', error);
-      return {
-        id: crypto.randomUUID(),
-        session_id: sessionId,
-        message: "I'm sorry, I couldn't process your request.",
-        is_bot: true,
-        message_type: 'text',
-        created_at: new Date().toISOString(),
+
       };
     }
   };
@@ -311,8 +300,7 @@ export const InteractiveDentalChat = ({
       }
 
       addBotMessage(responseMessage);
-      
-      // When there are no upcoming appointments, simply let the conversation continue
+
 
     } catch (error) {
       console.error("Error fetching appointments:", error);
@@ -367,6 +355,7 @@ Just type what you need or use the quick action buttons! 😊
     `;
     
     addBotMessage(helpMessage);
+
   };
 
   const loadDentistsForBooking = async () => {
@@ -577,6 +566,7 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
 
 
 
+
     } catch (error) {
       console.error("Error booking appointment:", error);
       addBotMessage("I'm sorry, I couldn't complete your booking. Please try again or contact the clinic directly.");
@@ -611,33 +601,7 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
       return;
     }
 
-    // Handle various chat commands (language and appointments)
-    if (currentInput.includes('appointment') || currentInput.includes('rendez-vous')) {
-      if (currentInput.includes('show') || currentInput.includes('list') || currentInput.includes('my')) {
-        showAppointments();
-      } else {
-        startBookingFlow();
-      }
-    } else if (currentInput.includes('language')) {
-      if (currentInput.includes('english')) {
-        handleLanguageChange('en');
-      } else if (currentInput.includes('french') || currentInput.includes('français')) {
-        handleLanguageChange('fr');
-      } else if (currentInput.includes('dutch') || currentInput.includes('nederlands')) {
-        handleLanguageChange('nl');
-      } else {
-        setActiveWidget('quick-settings');
-        addBotMessage("I can help you change the language. Please select from the options below:");
-      }
-    } else if (currentInput.includes('help') || currentInput.includes('aide')) {
-      showHelp();
-    } else if (currentInput.includes('emergency') || currentInput.includes('urgent') || currentInput.includes('pain')) {
-      startEmergencyBooking();
-    } else {
-      const history = [...messages, userMessage].slice(-10);
-      const botResponse = await generateBotResponse(userMessage.message, history);
-      setMessages(prev => [...prev, botResponse]);
-      await saveMessage(botResponse);
+
     }
 
     setIsLoading(false);
@@ -790,7 +754,7 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
             }}
           />
         );
-      
+
       default:
         return null;
     }
@@ -897,3 +861,4 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
     </div>
   );
 };
+

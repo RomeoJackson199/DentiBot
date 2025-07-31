@@ -5,6 +5,6 @@ export interface ChatMessage {
   message: string;
   is_bot: boolean;
   message_type: string;
-  metadata?: any;
+  metadata?: Record<string, unknown>;
   created_at: string;
 }
