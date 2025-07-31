@@ -88,7 +88,7 @@ export const NewInteractiveDentalChat = ({ user }: NewInteractiveDentalChatProps
         addBotMessage(`Here's what I can help with:\n\n🗓️ Book appointments\n📱 Manage your bookings\n❓ Answer questions\n⚙️ Update settings\n\nJust type what you need!`);
         break;
     }
-    
+
     setTimeout(() => setActiveWidget('quick-actions'), 2000);
   };
 
@@ -158,11 +158,10 @@ export const NewInteractiveDentalChat = ({ user }: NewInteractiveDentalChatProps
               </div>
             </div>
           ))}
-          
           {activeWidget === 'quick-actions' && (
             <QuickActionsWidget onAction={handleQuickAction} />
           )}
-          
+
           <div ref={messagesEndRef} />
         </div>
       </ScrollArea>
@@ -188,3 +187,4 @@ export const NewInteractiveDentalChat = ({ user }: NewInteractiveDentalChatProps
     </div>
   );
 };
+

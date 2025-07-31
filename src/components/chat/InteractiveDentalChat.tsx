@@ -112,19 +112,17 @@ export const InteractiveDentalChat = ({
       const welcomeMessage: ChatMessage = {
         id: crypto.randomUUID(),
         session_id: sessionId,
-        message: user && userProfile ? 
-          `Hello ${userProfile.first_name}! 👋 I'm your dental assistant. How can I help you today?` : 
-          `Hello! 👋 Welcome to First Smile AI. I'm your dental assistant. How can I help you today?`,
+        message: user && userProfile
+          ? t.detailedWelcomeMessageWithName(userProfile.first_name)
+          : t.detailedWelcomeMessage,
         is_bot: true,
         message_type: "text",
         created_at: new Date().toISOString(),
       };
       setMessages([welcomeMessage]);
-      
-      // Show quick actions after welcome
-      setTimeout(() => {
-        setActiveWidget('quick-actions');
-      }, 1500);
+
+      // AI will decide when to show widgets like quick actions
+
     }
   };
 
@@ -154,9 +152,61 @@ export const InteractiveDentalChat = ({
       message_type: type,
       created_at: new Date().toISOString(),
     };
-    
+
     setMessages(prev => [...prev, botMessage]);
     saveMessage(botMessage);
+  };
+
+const generateBotResponse = async (
+  userMessage: string,
+  history: ChatMessage[]
+): Promise<{ message: ChatMessage; fallback: boolean; suggestions: string[] }> => {
+    try {
+      const { data, error } = await supabase.functions.invoke('dental-ai-chat', {
+        body: {
+          message: userMessage,
+          conversation_history: history,
+          user_profile: userProfile || (user ? {
+            name: user.email?.split('@')[0] || 'Patient',
+            email: user.email
+          } : {
+            name: 'Guest',
+            email: null
+          })
+        }
+      });
+
+      if (error) throw error;
+
+      const responseText = data.response || data.fallback_response || "I'm sorry, I couldn't process your request.";
+      const result = {
+        id: crypto.randomUUID(),
+        session_id: sessionId,
+        message: responseText,
+        is_bot: true,
+        message_type: 'text',
+        created_at: new Date().toISOString(),
+      };
+      return {
+        message: result,
+        fallback: Boolean(data.fallback_response && !data.response),
+        suggestions: data.suggestions || []
+      };
+    } catch (error) {
+      console.error('Error generating AI response:', error);
+      return {
+        message: {
+          id: crypto.randomUUID(),
+          session_id: sessionId,
+          message: "I'm sorry, I couldn't process your request.",
+          is_bot: true,
+          message_type: 'text',
+          created_at: new Date().toISOString(),
+        },
+        fallback: true,
+        suggestions: []
+      };
+    }
   };
 
   const handleConsent = (accepted: boolean) => {
@@ -233,7 +283,6 @@ export const InteractiveDentalChat = ({
 
       if (!appointments || appointments.length === 0) {
         addBotMessage("You don't have any appointments scheduled yet. Would you like to book one? 📅");
-        setTimeout(() => setActiveWidget('quick-actions'), 1000);
         return;
       }
 
@@ -274,10 +323,6 @@ export const InteractiveDentalChat = ({
       }
 
       addBotMessage(responseMessage);
-      
-      if (upcoming.length === 0) {
-        setTimeout(() => setActiveWidget('quick-actions'), 2000);
-      }
 
     } catch (error) {
       console.error("Error fetching appointments:", error);
@@ -332,7 +377,23 @@ Just type what you need or use the quick action buttons! 😊
     `;
     
     addBotMessage(helpMessage);
-    setTimeout(() => setActiveWidget('quick-actions'), 3000);
+  };
+
+  const handleSuggestions = (suggestions?: string[]) => {
+    if (!suggestions || suggestions.length === 0) return;
+
+    if (suggestions.includes('appointments-list')) {
+      showAppointments();
+      return;
+    }
+
+    if (
+      suggestions.includes('booking') ||
+      suggestions.includes('skip-patient-selection') ||
+      suggestions.includes('recommend-dentist')
+    ) {
+      startBookingFlow();
+    }
   };
 
   const loadDentistsForBooking = async () => {
@@ -541,7 +602,9 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
         step: 'reason'
       });
 
-      setTimeout(() => setActiveWidget('quick-actions'), 3000);
+
+
+
 
     } catch (error) {
       console.error("Error booking appointment:", error);
@@ -569,48 +632,41 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
 
     await saveMessage(userMessage);
 
-    // Handle various chat commands
-    setTimeout(() => {
-      if (currentInput.includes('appointment') || currentInput.includes('rendez-vous')) {
-        if (currentInput.includes('show') || currentInput.includes('list') || currentInput.includes('my')) {
-          showAppointments();
-        } else {
-          startBookingFlow();
-        }
-      } else if (currentInput.includes('language')) {
-        if (currentInput.includes('english')) {
-          handleLanguageChange('en');
-        } else if (currentInput.includes('french') || currentInput.includes('français')) {
-          handleLanguageChange('fr');
-        } else if (currentInput.includes('dutch') || currentInput.includes('nederlands')) {
-          handleLanguageChange('nl');
-        } else {
-          setActiveWidget('quick-settings');
-          addBotMessage("I can help you change the language. Please select from the options below:");
-        }
-      } else if (currentInput.includes('dark') || currentInput.includes('light') || currentInput.includes('theme')) {
-        if (currentInput.includes('dark')) {
-          setTheme('dark');
-          addBotMessage("Theme changed to dark mode! 🌙");
-        } else if (currentInput.includes('light')) {
-          setTheme('light');
-          addBotMessage("Theme changed to light mode! ☀️");
-        } else {
-          setActiveWidget('quick-settings');
-          addBotMessage("I can help you change the theme. Please select from the options below:");
-        }
-      } else if (currentInput.includes('help') || currentInput.includes('aide')) {
-        showHelp();
-      } else if (currentInput.includes('emergency') || currentInput.includes('urgent') || currentInput.includes('pain')) {
-        startEmergencyBooking();
-      } else {
-        // Default response with quick actions
-        addBotMessage("I'm here to help! Here are some quick actions you can try:");
-        setTimeout(() => setActiveWidget('quick-actions'), 1000);
-      }
-      
+    const themeIntent = await detectThemeIntent(currentInput);
+    if (themeIntent) {
+      setTheme(themeIntent);
+      addBotMessage(`Theme changed to ${themeIntent} mode! ${themeIntent === 'dark' ? '🌙' : '☀️'}`);
       setIsLoading(false);
-    }, 1000);
+      return;
+    }
+
+    if (currentInput.includes('language')) {
+      if (currentInput.includes('english')) {
+        handleLanguageChange('en');
+      } else if (currentInput.includes('french') || currentInput.includes('français')) {
+        handleLanguageChange('fr');
+      } else if (currentInput.includes('dutch') || currentInput.includes('nederlands')) {
+        handleLanguageChange('nl');
+      } else {
+        setActiveWidget('quick-settings');
+        addBotMessage('I can help you change the language. Please select from the options below:');
+      }
+      setIsLoading(false);
+      return;
+    }
+
+    const history = [...messages, userMessage].slice(-10);
+    const { message: botResponse, fallback, suggestions } = await generateBotResponse(userMessage.message, history);
+    setMessages(prev => [...prev, botResponse]);
+    await saveMessage(botResponse);
+
+    handleSuggestions(suggestions);
+
+    if (fallback) {
+      setTimeout(() => setActiveWidget('quick-actions'), 1000);
+    }
+
+    setIsLoading(false);
   };
 
   const handleLanguageChange = (lang: string) => {
@@ -629,6 +685,37 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
       title: "Success",
       description: `Language changed to ${langNames[lang as keyof typeof langNames]}`
     });
+  };
+
+  const detectThemeIntent = async (message: string): Promise<'dark' | 'light' | null> => {
+    try {
+      const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
+      if (!apiKey) return null;
+
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          model: 'gpt-4-turbo',
+          messages: [
+            { role: 'system', content: 'Determine if the user wants a dark or light theme. Respond with "dark", "light", or "none".' },
+            { role: 'user', content: message }
+          ],
+          max_tokens: 1,
+          temperature: 0
+        })
+      });
+
+      const data = await response.json();
+      const intent = data.choices?.[0]?.message?.content?.toLowerCase().trim();
+      if (intent === 'dark' || intent === 'light') return intent;
+    } catch (error) {
+      console.error('Theme intent detection failed', error);
+    }
+    return null;
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -682,7 +769,6 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
             onCancel={() => {
               setActiveWidget(null);
               addBotMessage("Appointment cancelled. Would you like to try a different time?");
-              setTimeout(() => setActiveWidget('quick-actions'), 1000);
             }}
           />
         );
@@ -730,10 +816,10 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
             }}
           />
         );
-      
+
       case 'quick-actions':
         return <QuickActionsWidget onAction={handleQuickAction} />;
-      
+
       default:
         return null;
     }
@@ -840,3 +926,4 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
     </div>
   );
 };
+
