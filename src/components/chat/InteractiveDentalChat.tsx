@@ -388,7 +388,7 @@ export const InteractiveDentalChat = ({
     }
 
     addBotMessage("I'll help you book an appointment! Please choose a dentist to continue.");
-    setPreBookingQuestions(0);
+
     await loadDentistsForBooking(false);
   };
 
