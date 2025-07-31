@@ -89,7 +89,6 @@ const AppointmentReasonWidget = ({ onSelect }: { onSelect: (reason: string) => v
     <Card className="max-w-md mx-auto my-4 border-primary/20 shadow-lg">
       <CardHeader className="text-center">
         <CalendarIcon className="h-8 w-8 mx-auto text-primary mb-2" />
-        <CardTitle className="text-lg">What brings you here today?</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         {reasons.map((reason) => (
