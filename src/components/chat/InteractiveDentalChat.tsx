@@ -22,8 +22,7 @@ import {
   PersonalInfoFormWidget,
   QuickSettingsWidget,
   ImageUploadWidget,
-  QuickActionsWidget,
-  UrgencySliderWidget
+  QuickActionsWidget
 } from "./InteractiveChatWidgets";
 
 interface InteractiveDentalChatProps {

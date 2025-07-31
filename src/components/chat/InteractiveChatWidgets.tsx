@@ -604,48 +604,6 @@ const QuickActionsWidget = ({
   );
 };
 
-// Urgency Slider Widget
-const UrgencySliderWidget = ({ 
-  value, 
-  onChange 
-}: { 
-  value: number;
-  onChange: (value: number) => void;
-}) => {
-  const urgencyLabels = ['Low', 'Medium', 'High', 'Emergency'];
-  
-  return (
-    <Card className="max-w-md mx-auto my-4 border-primary/20 shadow-lg">
-      <CardHeader className="text-center">
-        <AlertTriangle className="h-8 w-8 mx-auto text-primary mb-2" />
-        <CardTitle className="text-lg">How urgent is this?</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="px-4">
-          <Slider
-            value={[value]}
-            onValueChange={(values) => onChange(values[0])}
-            max={3}
-            min={0}
-            step={1}
-            className="w-full"
-          />
-        </div>
-        <div className="flex justify-between text-sm text-muted-foreground px-2">
-          {urgencyLabels.map((label, index) => (
-            <span key={index} className={value === index ? 'text-primary font-medium' : ''}>
-              {label}
-            </span>
-          ))}
-        </div>
-        <p className="text-center text-sm">
-          Current: <span className="font-medium text-primary">{urgencyLabels[value]}</span>
-        </p>
-      </CardContent>
-    </Card>
-  );
-};
-
 export {
   PrivacyConsentWidget,
   AppointmentReasonWidget,
@@ -657,6 +615,6 @@ export {
   QuickSettingsWidget,
   ImageUploadWidget,
   QuickActionsWidget,
-  UrgencySliderWidget
+
 };
 
