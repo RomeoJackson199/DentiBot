@@ -158,7 +158,7 @@ export const InteractiveDentalChat = ({
   const generateBotResponse = async (
     userMessage: string,
     history: ChatMessage[]
-  ): Promise<{ message: ChatMessage; fallback: boolean; suggestions: string[] }> => {
+  ): Promise<{ message: ChatMessage; fallback: boolean; suggestions: string[]; recommendedDentists: string[] }> => {
     try {
       const { data, error } = await supabase.functions.invoke('dental-ai-chat', {
         body: {
@@ -188,7 +188,8 @@ export const InteractiveDentalChat = ({
       return {
         message: result,
         fallback: Boolean(data.fallback_response && !data.response),
-        suggestions: data.suggestions || []
+        suggestions: data.suggestions || [],
+        recommendedDentists: data.recommended_dentist || []
       };
     } catch (error) {
       console.error('Error generating AI response:', error);
@@ -202,12 +203,13 @@ export const InteractiveDentalChat = ({
           created_at: new Date().toISOString(),
         },
         fallback: true,
-        suggestions: []
+        suggestions: [],
+        recommendedDentists: []
       };
     }
   };
 
-  const handleSuggestions = (suggestions?: string[]) => {
+  const handleSuggestions = (suggestions?: string[], recommendedDentists?: string[]) => {
     if (!suggestions || suggestions.length === 0) return;
 
     if (suggestions.includes('appointments-list')) {
@@ -215,10 +217,15 @@ export const InteractiveDentalChat = ({
       return;
     }
 
+
+    if (suggestions.includes('recommend-dentist')) {
+      loadDentistsForBooking(false, recommendedDentists);
+      return;
+    }
+
     if (
       suggestions.includes('booking') ||
-      suggestions.includes('skip-patient-selection') ||
-      suggestions.includes('recommend-dentist')
+      suggestions.includes('skip-patient-selection')
     ) {
       startBookingFlow();
     }
@@ -354,8 +361,8 @@ export const InteractiveDentalChat = ({
       return;
     }
 
-    addBotMessage("I'll help you book an appointment! Let me pick a dentist for you...");
-    await loadDentistsForBooking(true);
+    addBotMessage("I'll help you book an appointment! Please choose a dentist to continue.");
+    await loadDentistsForBooking(false);
   };
 
   const startEmergencyBooking = () => {
@@ -396,7 +403,7 @@ Just type what you need or use the quick action buttons! 😊
     addBotMessage(helpMessage);
   };
 
-  const loadDentistsForBooking = async (autoSelect = false) => {
+  const loadDentistsForBooking = async (autoSelect = false, recommendedDentists?: string[]) => {
     try {
       const { data, error } = await supabase
         .from("dentists")
@@ -415,7 +422,7 @@ Just type what you need or use the quick action buttons! 😊
       if (autoSelect && data && data.length > 0) {
         handleDentistSelection(data[0]);
       } else {
-        setWidgetData({ dentists: data || [] });
+        setWidgetData({ dentists: data || [], recommendedDentists });
         setActiveWidget('dentist-selection');
         addBotMessage("Please choose your preferred dentist:");
       }
@@ -679,11 +686,11 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
     }
 
     const history = [...messages, userMessage].slice(-10);
-    const { message: botResponse, fallback, suggestions } = await generateBotResponse(userMessage.message, history);
+    const { message: botResponse, fallback, suggestions, recommendedDentists } = await generateBotResponse(userMessage.message, history);
     setMessages(prev => [...prev, botResponse]);
     await saveMessage(botResponse);
 
-    handleSuggestions(suggestions);
+    handleSuggestions(suggestions, recommendedDentists);
 
     if (fallback) {
       setTimeout(() => setActiveWidget('quick-actions'), 1000);
@@ -726,9 +733,10 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
       
       case 'dentist-selection':
         return (
-          <DentistSelectionWidget 
-            dentists={widgetData.dentists || []} 
-            onSelect={handleDentistSelection} 
+          <DentistSelectionWidget
+            dentists={widgetData.dentists || []}
+            onSelect={handleDentistSelection}
+            recommendedDentists={widgetData.recommendedDentists}
           />
         );
       
