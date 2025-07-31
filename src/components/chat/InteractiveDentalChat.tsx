@@ -212,15 +212,17 @@ export const InteractiveDentalChat = ({
       };
     }
   };
-
-  const handleSuggestions = (
-    suggestions?: string[],
-    recommendedDentists?: string[]
-  ) => {
+ main
     if (!suggestions || suggestions.length === 0) return;
 
     if (suggestions.includes('appointments-list')) {
       showAppointments();
+      return;
+    }
+
+
+    if (suggestions.includes('recommend-dentist')) {
+      loadDentistsForBooking(false, recommendedDentists);
       return;
     }
 
@@ -398,7 +400,7 @@ export const InteractiveDentalChat = ({
     }
 
     addBotMessage("I'll help you book an appointment! Please choose a dentist to continue.");
-    setPreBookingQuestions(0);
+>>> main
     await loadDentistsForBooking(false);
   };
 
