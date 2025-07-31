@@ -149,9 +149,49 @@ export const InteractiveDentalChat = ({
       message_type: type,
       created_at: new Date().toISOString(),
     };
-    
+
     setMessages(prev => [...prev, botMessage]);
     saveMessage(botMessage);
+  };
+
+  const generateBotResponse = async (userMessage: string): Promise<ChatMessage> => {
+    try {
+      const { data, error } = await supabase.functions.invoke('dental-ai-chat', {
+        body: {
+          message: userMessage,
+          conversation_history: messages.slice(-10),
+          user_profile: userProfile || (user ? {
+            name: user.email?.split('@')[0] || 'Patient',
+            email: user.email
+          } : {
+            name: 'Guest',
+            email: null
+          })
+        }
+      });
+
+      if (error) throw error;
+
+      const responseText = data.response || data.fallback_response || "I'm sorry, I couldn't process your request.";
+      return {
+        id: crypto.randomUUID(),
+        session_id: sessionId,
+        message: responseText,
+        is_bot: true,
+        message_type: 'text',
+        created_at: new Date().toISOString(),
+      };
+    } catch (error) {
+      console.error('Error generating AI response:', error);
+      return {
+        id: crypto.randomUUID(),
+        session_id: sessionId,
+        message: "I'm sorry, I couldn't process your request.",
+        is_bot: true,
+        message_type: 'text',
+        created_at: new Date().toISOString(),
+      };
+    }
   };
 
   const handleConsent = (accepted: boolean) => {
@@ -591,7 +631,9 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
     } else if (currentInput.includes('emergency') || currentInput.includes('urgent') || currentInput.includes('pain')) {
       startEmergencyBooking();
     } else {
-      addBotMessage("I'm here to help! Please tell me how I can assist you.");
+      const botResponse = await generateBotResponse(userMessage.message);
+      setMessages(prev => [...prev, botResponse]);
+      await saveMessage(botResponse);
     }
 
     setIsLoading(false);
