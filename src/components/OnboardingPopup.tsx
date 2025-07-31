@@ -35,63 +35,63 @@ export const OnboardingPopup = ({ isOpen, onClose }: OnboardingPopupProps) => {
       )
     },
     {
-      title: "Smart Features at Your Service",
+      title: t.smartFeaturesService,
       content: (
         <div className="grid grid-cols-2 gap-4">
           <div className="floating-card p-4 text-center">
             <MessageSquare className="h-8 w-8 text-dental-primary mx-auto mb-2" />
-            <h4 className="font-semibold text-sm">AI Chat</h4>
-            <p className="text-xs text-dental-muted-foreground">Get instant answers to dental questions</p>
+            <h4 className="font-semibold text-sm">{t.aiChat}</h4>
+            <p className="text-xs text-dental-muted-foreground">{t.aiChatDesc}</p>
           </div>
           <div className="floating-card p-4 text-center">
             <Calendar className="h-8 w-8 text-dental-secondary mx-auto mb-2" />
-            <h4 className="font-semibold text-sm">Smart Booking</h4>
-            <p className="text-xs text-dental-muted-foreground">Book appointments intelligently</p>
+            <h4 className="font-semibold text-sm">{t.smartBooking}</h4>
+            <p className="text-xs text-dental-muted-foreground">{t.smartBookingDesc}</p>
           </div>
           <div className="floating-card p-4 text-center">
             <Camera className="h-8 w-8 text-dental-accent mx-auto mb-2" />
-            <h4 className="font-semibold text-sm">Photo Analysis</h4>
-            <p className="text-xs text-dental-muted-foreground">Upload photos for AI analysis</p>
+            <h4 className="font-semibold text-sm">{t.photoAnalysis}</h4>
+            <p className="text-xs text-dental-muted-foreground">{t.photoAnalysisDesc}</p>
           </div>
           <div className="floating-card p-4 text-center">
             <Users className="h-8 w-8 text-dental-primary mx-auto mb-2" />
-            <h4 className="font-semibold text-sm">Family Care</h4>
-            <p className="text-xs text-dental-muted-foreground">Book for family members too</p>
+            <h4 className="font-semibold text-sm">{t.familyCare}</h4>
+            <p className="text-xs text-dental-muted-foreground">{t.familyCareDesc}</p>
           </div>
         </div>
       )
     },
     {
-      title: "Book for Anyone in Your Family",
+      title: t.bookForFamilyTitle,
       content: (
         <div className="space-y-4">
           <div className="text-center">
             <Users className="h-16 w-16 text-dental-primary mx-auto mb-3" />
-            <h3 className="text-lg font-semibold mb-2">Family-Friendly Booking</h3>
+            <h3 className="text-lg font-semibold mb-2">{t.familyFriendlyBooking}</h3>
           </div>
           <div className="space-y-3">
             <div className="flex items-center gap-3 p-3 floating-card">
               <CheckCircle className="h-5 w-5 text-dental-secondary" />
-              <span className="text-sm">Book appointments for yourself</span>
+              <span className="text-sm">{t.bookForYourself}</span>
             </div>
             <div className="flex items-center gap-3 p-3 floating-card">
               <CheckCircle className="h-5 w-5 text-dental-secondary" />
-              <span className="text-sm">Book for your children</span>
+              <span className="text-sm">{t.bookForChildren}</span>
             </div>
             <div className="flex items-center gap-3 p-3 floating-card">
               <CheckCircle className="h-5 w-5 text-dental-secondary" />
-              <span className="text-sm">Book for family members</span>
+              <span className="text-sm">{t.bookForFamily}</span>
             </div>
           </div>
           <Badge variant="outline" className="w-full justify-center py-2 border-dental-primary/30 text-dental-primary">
             <Clock className="h-4 w-4 mr-2" />
-            I'll always tell you appointment duration and end time
+            {t.alwaysTellDuration}
           </Badge>
         </div>
       )
     },
     {
-      title: "Ready to Get Started?",
+      title: t.readyToStart,
       content: (
         <div className="text-center space-y-4">
           <div className="relative mx-auto">
@@ -99,13 +99,13 @@ export const OnboardingPopup = ({ isOpen, onClose }: OnboardingPopupProps) => {
               <MessageSquare className="h-16 w-16 text-white mx-auto" />
             </div>
           </div>
-          <h3 className="text-xl font-semibold gradient-text">You're All Set! 🎉</h3>
+          <h3 className="text-xl font-semibold gradient-text">{t.youreAllSet}</h3>
           <p className="text-dental-muted-foreground">
-            Start chatting with me below to book appointments, ask questions, or get dental advice.
+            {t.onboardingEnd}
           </p>
           <div className="bg-dental-primary/10 p-4 rounded-xl">
             <p className="text-sm font-medium text-dental-primary">
-              💡 Pro Tip: Just tell me what's bothering you, and I'll guide you through everything!
+              {t.proTip} {t.proTipText}
             </p>
           </div>
         </div>
@@ -163,14 +163,14 @@ export const OnboardingPopup = ({ isOpen, onClose }: OnboardingPopupProps) => {
                 onClick={prevStep}
                 className="border-dental-primary/30 text-dental-primary hover:bg-dental-primary/10"
               >
-                Back
+                {t.back}
               </Button>
             )}
             <Button 
               onClick={nextStep}
               className="bg-gradient-primary text-white hover:shadow-glow"
             >
-              {currentStep === steps.length - 1 ? "Let's Start!" : "Next"}
+              {currentStep === steps.length - 1 ? t.letsStart : t.next}
             </Button>
           </div>
         </div>
