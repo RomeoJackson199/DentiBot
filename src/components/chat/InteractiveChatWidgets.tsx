@@ -189,13 +189,20 @@ const TimeSlotsWidget = ({
 };
 
 // Dentist Selection Widget
-const DentistSelectionWidget = ({ 
-  dentists, 
-  onSelect 
-}: { 
-  dentists: any[]; 
+const DentistSelectionWidget = ({
+  dentists,
+  onSelect,
+  recommendedDentists
+}: {
+  dentists: any[];
   onSelect: (dentist: any) => void;
+  recommendedDentists?: string[];
 }) => {
+  const isRecommended = (dentist: any) => {
+    if (!recommendedDentists) return false;
+    const fullName = `${dentist.profiles?.first_name} ${dentist.profiles?.last_name}`;
+    return recommendedDentists.includes(fullName);
+  };
   return (
     <Card className="max-w-md mx-auto my-4 border-primary/20 shadow-lg">
       <CardHeader className="text-center">
@@ -204,11 +211,14 @@ const DentistSelectionWidget = ({
       </CardHeader>
       <CardContent className="space-y-3">
         {dentists.map((dentist) => (
-          <Card key={dentist.id} className="cursor-pointer hover:border-primary/50 transition-colors">
+          <Card key={dentist.id} className={`cursor-pointer hover:border-primary/50 transition-colors ${isRecommended(dentist) ? 'ring-2 ring-green-500' : ''}`}>
             <CardContent className="p-4">
               <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                <div className="relative w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
                   <UserIcon className="h-6 w-6 text-primary" />
+                  {isRecommended(dentist) && (
+                    <CheckCircle className="absolute -top-1 -right-1 h-4 w-4 text-green-500" />
+                  )}
                 </div>
                 <div className="flex-1">
                   <h3 className="font-semibold">
