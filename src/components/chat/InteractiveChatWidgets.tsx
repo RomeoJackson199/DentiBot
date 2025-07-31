@@ -568,6 +568,42 @@ const ImageUploadWidget = ({
   );
 };
 
+// Quick Actions Widget
+const QuickActionsWidget = ({ 
+  onAction 
+}: { 
+  onAction: (action: string) => void;
+}) => {
+  const actions = [
+    { id: 'appointments', label: 'Show my appointments', icon: CalendarIcon },
+    { id: 'earliest', label: 'Find earliest slot', icon: Clock },
+    { id: 'emergency', label: 'Emergency booking', icon: AlertTriangle },
+    { id: 'help', label: 'Help & FAQ', icon: HelpCircle }
+  ];
+
+  return (
+    <Card className="max-w-md mx-auto my-4 border-primary/20 shadow-lg">
+      <CardHeader className="text-center">
+        <Info className="h-8 w-8 mx-auto text-primary mb-2" />
+        <CardTitle className="text-lg">Quick Actions</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-2">
+        {actions.map((action) => (
+          <Button
+            key={action.id}
+            variant="outline"
+            onClick={() => onAction(action.id)}
+            className="w-full justify-start"
+          >
+            <action.icon className="h-4 w-4 mr-2" />
+            {action.label}
+          </Button>
+        ))}
+      </CardContent>
+    </Card>
+  );
+};
+
 // Urgency Slider Widget
 const UrgencySliderWidget = ({ 
   value, 
@@ -620,5 +656,6 @@ export {
   PersonalInfoFormWidget,
   QuickSettingsWidget,
   ImageUploadWidget,
+  QuickActionsWidget,
   UrgencySliderWidget
 };
