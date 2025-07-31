@@ -154,12 +154,15 @@ export const InteractiveDentalChat = ({
     saveMessage(botMessage);
   };
 
-  const generateBotResponse = async (userMessage: string): Promise<ChatMessage> => {
+  const generateBotResponse = async (
+    userMessage: string,
+    history: ChatMessage[]
+  ): Promise<ChatMessage> => {
     try {
       const { data, error } = await supabase.functions.invoke('dental-ai-chat', {
         body: {
           message: userMessage,
-          conversation_history: messages.slice(-10),
+          conversation_history: history,
           user_profile: userProfile || (user ? {
             name: user.email?.split('@')[0] || 'Patient',
             email: user.email
@@ -631,7 +634,8 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
     } else if (currentInput.includes('emergency') || currentInput.includes('urgent') || currentInput.includes('pain')) {
       startEmergencyBooking();
     } else {
-      const botResponse = await generateBotResponse(userMessage.message);
+      const history = [...messages, userMessage].slice(-10);
+      const botResponse = await generateBotResponse(userMessage.message, history);
       setMessages(prev => [...prev, botResponse]);
       await saveMessage(botResponse);
     }
