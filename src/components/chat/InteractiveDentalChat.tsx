@@ -215,7 +215,16 @@ export const InteractiveDentalChat = ({
       return;
     }
 
+    if (suggestions.includes('booking')) {
+      startBookingFlow();
+      return;
+    }
 
+    if (
+      suggestions.includes('skip-patient-selection') ||
+      suggestions.includes('recommend-dentist')
+    ) {
+      startBookingFlow(true);
     }
   };
 
@@ -345,13 +354,14 @@ export const InteractiveDentalChat = ({
   }
 };
 
-
+  const startBookingFlow = async (autoSelect = false) => {
     if (!user) {
       addBotMessage("Please log in to book an appointment. You can find the login button at the top right of the page.");
       return;
     }
 
-
+    addBotMessage("I'll help you book an appointment! Let's start by choosing a dentist...");
+    await loadDentistsForBooking(autoSelect);
   };
 
   const startEmergencyBooking = () => {
