@@ -112,9 +112,9 @@ export const InteractiveDentalChat = ({
       const welcomeMessage: ChatMessage = {
         id: crypto.randomUUID(),
         session_id: sessionId,
-        message: user && userProfile ? 
-          `Hello ${userProfile.first_name}! 👋 I'm your dental assistant. How can I help you today?` : 
-          `Hello! 👋 Welcome to First Smile AI. I'm your dental assistant. How can I help you today?`,
+        message: user && userProfile
+          ? t.detailedWelcomeMessageWithName(userProfile.first_name)
+          : t.detailedWelcomeMessage,
         is_bot: true,
         message_type: "text",
         created_at: new Date().toISOString(),
