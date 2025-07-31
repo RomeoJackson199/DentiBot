@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 
@@ -18,11 +18,7 @@ export function DentistDashboard({ user }: DentistDashboardProps) {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  useEffect(() => {
-    fetchDentistProfile();
-  }, [user]);
-
-  const fetchDentistProfile = async () => {
+  const fetchDentistProfile = useCallback(async () => {
     try {
       // Get the dentist profile for this user
       const { data: profile, error: profileError } = await supabase
@@ -47,14 +43,18 @@ export function DentistDashboard({ user }: DentistDashboardProps) {
     } catch (error) {
       const err = error as Error;
       toast({
-        title: "Error",
-        description: err.message || "Failed to load dentist profile",
-        variant: "destructive",
+        title: 'Error',
+        description: err.message || 'Failed to load dentist profile',
+        variant: 'destructive'
       });
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, toast]);
+
+  useEffect(() => {
+    fetchDentistProfile();
+  }, [user, fetchDentistProfile]);
 
   if (loading) {
     return <div className="flex justify-center p-8">Loading dentist dashboard...</div>;
