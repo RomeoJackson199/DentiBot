@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { User, Session } from "@supabase/supabase-js";
-import { InteractiveDentalChat } from "@/components/chat/InteractiveDentalChat";
+import { DentalChatbot } from "@/components/DentalChatbot";
 import { AuthForm } from "@/components/AuthForm";
 import { OnboardingPopup } from "@/components/OnboardingPopup";
 import { LanguageSelection } from "@/components/LanguageSelection";
@@ -204,10 +204,11 @@ const Index = () => {
         {/* Content */}
         <div className="animate-fade-in space-y-6">          
           {activeTab === 'chat' ? (
-            <InteractiveDentalChat
-              user={user}
-              triggerBooking={triggerBooking}
+            <DentalChatbot 
+              user={user} 
+              triggerBooking={triggerBooking} 
               onBookingTriggered={() => setTriggerBooking(false)}
+              onScrollToDentists={scrollToDentists}
             />
           ) : user ? (
             <AppointmentsList user={user} />
