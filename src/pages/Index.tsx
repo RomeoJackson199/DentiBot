@@ -1,14 +1,14 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { User, Session } from "@supabase/supabase-js";
-import { DentalChatbot } from "@/components/DentalChatbot";
+import { InteractiveDentalChat } from "@/components/chat/InteractiveDentalChat";
 import { AuthForm } from "@/components/AuthForm";
 import { OnboardingPopup } from "@/components/OnboardingPopup";
 import { LanguageSelection } from "@/components/LanguageSelection";
 import { AppointmentsList } from "@/components/AppointmentsList";
 import { Settings } from "@/components/Settings";
 import { useToast } from "@/hooks/use-toast";
-import { Activity, MessageSquare, Calendar, Plus } from "lucide-react";
+import { Activity, MessageSquare, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/hooks/useLanguage";
 
@@ -204,11 +204,10 @@ const Index = () => {
         {/* Content */}
         <div className="animate-fade-in space-y-6">          
           {activeTab === 'chat' ? (
-            <DentalChatbot 
-              user={user} 
-              triggerBooking={triggerBooking} 
+            <InteractiveDentalChat
+              user={user}
+              triggerBooking={triggerBooking}
               onBookingTriggered={() => setTriggerBooking(false)}
-              onScrollToDentists={scrollToDentists}
             />
           ) : user ? (
             <AppointmentsList user={user} />
