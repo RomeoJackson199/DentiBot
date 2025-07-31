@@ -220,7 +220,7 @@ export const InteractiveDentalChat = ({
       suggestions.includes('skip-patient-selection') ||
       suggestions.includes('recommend-dentist')
     ) {
-      startBookingFlow();
+      addBotMessage("If you'd like to book an appointment, just let me know!");
     }
   };
 
@@ -244,8 +244,10 @@ export const InteractiveDentalChat = ({
         showAppointments();
         break;
       case 'book_appointment':
-      case 'earliest':
         startBookingFlow();
+        break;
+      case 'earliest':
+        startBookingFlow(true);
         break;
       case 'emergency':
         startEmergencyBooking();
@@ -348,14 +350,14 @@ export const InteractiveDentalChat = ({
   }
 };
 
-  const startBookingFlow = async () => {
+  const startBookingFlow = async (autoSelect = false) => {
     if (!user) {
       addBotMessage("Please log in to book an appointment. You can find the login button at the top right of the page.");
       return;
     }
 
-    addBotMessage("I'll help you book an appointment! Let me pick a dentist for you...");
-    await loadDentistsForBooking(true);
+    addBotMessage("I'll help you book an appointment! Let's start by choosing a dentist...");
+    await loadDentistsForBooking(autoSelect);
   };
 
   const startEmergencyBooking = () => {
@@ -674,6 +676,12 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
 
     if (currentInput.includes('emergency') || currentInput.includes('urgent') || currentInput.includes('pain')) {
       startEmergencyBooking();
+      setIsLoading(false);
+      return;
+    }
+
+    if (currentInput.includes('appointment') || currentInput.includes('book')) {
+      startBookingFlow();
       setIsLoading(false);
       return;
     }
