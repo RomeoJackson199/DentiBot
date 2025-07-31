@@ -57,6 +57,10 @@ export const InteractiveDentalChat = ({
     step: 'dentist' // dentist -> date -> time -> confirm
   });
 
+  // Track how many triage questions have been asked before booking
+  const [preBookingQuestions, setPreBookingQuestions] = useState(0);
+  const [bookingBlocked, setBookingBlocked] = useState(false);
+
   const { t } = useLanguage();
   const { toast } = useToast();
   const { setTheme } = useTheme();
@@ -158,7 +162,7 @@ export const InteractiveDentalChat = ({
   const generateBotResponse = async (
     userMessage: string,
     history: ChatMessage[]
-  ): Promise<{ message: ChatMessage; fallback: boolean; suggestions: string[] }> => {
+  ): Promise<{ message: ChatMessage; fallback: boolean; suggestions: string[]; recommendedDentists: string[] }> => {
     try {
       const { data, error } = await supabase.functions.invoke('dental-ai-chat', {
         body: {
@@ -188,7 +192,8 @@ export const InteractiveDentalChat = ({
       return {
         message: result,
         fallback: Boolean(data.fallback_response && !data.response),
-        suggestions: data.suggestions || []
+        suggestions: data.suggestions || [],
+        recommendedDentists: data.recommended_dentist || []
       };
     } catch (error) {
       console.error('Error generating AI response:', error);
@@ -202,12 +207,13 @@ export const InteractiveDentalChat = ({
           created_at: new Date().toISOString(),
         },
         fallback: true,
-        suggestions: []
+        suggestions: [],
+        recommendedDentists: []
       };
     }
   };
 
-  const handleSuggestions = (suggestions?: string[]) => {
+  const handleSuggestions = (suggestions?: string[], recommendedDentists?: string[]) => {
     if (!suggestions || suggestions.length === 0) return;
 
     if (suggestions.includes('appointments-list')) {
@@ -215,12 +221,31 @@ export const InteractiveDentalChat = ({
       return;
     }
 
+
+    if (suggestions.includes('recommend-dentist')) {
+      loadDentistsForBooking(false, recommendedDentists);
+      return;
+    }
+
     if (
       suggestions.includes('booking') ||
-      suggestions.includes('skip-patient-selection') ||
-      suggestions.includes('recommend-dentist')
+      suggestions.includes('skip-patient-selection')
     ) {
+      if (preBookingQuestions < 2) {
+        addBotMessage(
+          "I just need to ask a couple more quick questions so your dentist can focus on what's important and not the admin details."
+        );
+        setBookingBlocked(true);
+        return;
+      }
       startBookingFlow();
+      setBookingBlocked(false);
+      return;
+    }
+
+    // Count questions before booking (cap at 5)
+    if (preBookingQuestions < 5) {
+      setPreBookingQuestions(prev => prev + 1);
     }
   };
 
@@ -245,7 +270,15 @@ export const InteractiveDentalChat = ({
         break;
       case 'book_appointment':
       case 'earliest':
-        startBookingFlow();
+        if (preBookingQuestions < 2) {
+          addBotMessage(
+            "I just need to ask a couple more quick questions so your dentist can focus on what's important and not the admin details."
+          );
+          setBookingBlocked(true);
+        } else {
+          startBookingFlow();
+          setBookingBlocked(false);
+        }
         break;
       case 'emergency':
         startEmergencyBooking();
@@ -354,8 +387,9 @@ export const InteractiveDentalChat = ({
       return;
     }
 
-    addBotMessage("I'll help you book an appointment! Let me pick a dentist for you...");
-    await loadDentistsForBooking(true);
+    addBotMessage("I'll help you book an appointment! Please choose a dentist to continue.");
+    setPreBookingQuestions(0);
+    await loadDentistsForBooking(false);
   };
 
   const startEmergencyBooking = () => {
@@ -396,7 +430,7 @@ Just type what you need or use the quick action buttons! 😊
     addBotMessage(helpMessage);
   };
 
-  const loadDentistsForBooking = async (autoSelect = false) => {
+  const loadDentistsForBooking = async (autoSelect = false, recommendedDentists?: string[]) => {
     try {
       const { data, error } = await supabase
         .from("dentists")
@@ -415,7 +449,7 @@ Just type what you need or use the quick action buttons! 😊
       if (autoSelect && data && data.length > 0) {
         handleDentistSelection(data[0]);
       } else {
-        setWidgetData({ dentists: data || [] });
+        setWidgetData({ dentists: data || [], recommendedDentists });
         setActiveWidget('dentist-selection');
         addBotMessage("Please choose your preferred dentist:");
       }
@@ -607,6 +641,8 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
         urgency: 1,
         step: 'dentist'
       });
+      setPreBookingQuestions(0);
+      setBookingBlocked(false);
 
 
   } catch (error) {
@@ -635,6 +671,14 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
     setActiveWidget(null);
 
     await saveMessage(userMessage);
+
+    if (bookingBlocked && currentInput.includes('why')) {
+      addBotMessage(
+        "Because gathering a bit more info first lets the dentist focus on what's important and not administrative details."
+      );
+      setIsLoading(false);
+      return;
+    }
 
     if (currentInput.includes('language')) {
       if (currentInput.includes('english')) {
@@ -679,11 +723,11 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
     }
 
     const history = [...messages, userMessage].slice(-10);
-    const { message: botResponse, fallback, suggestions } = await generateBotResponse(userMessage.message, history);
+    const { message: botResponse, fallback, suggestions, recommendedDentists } = await generateBotResponse(userMessage.message, history);
     setMessages(prev => [...prev, botResponse]);
     await saveMessage(botResponse);
 
-    handleSuggestions(suggestions);
+    handleSuggestions(suggestions, recommendedDentists);
 
     if (fallback) {
       setTimeout(() => setActiveWidget('quick-actions'), 1000);
@@ -726,9 +770,10 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
       
       case 'dentist-selection':
         return (
-          <DentistSelectionWidget 
-            dentists={widgetData.dentists || []} 
-            onSelect={handleDentistSelection} 
+          <DentistSelectionWidget
+            dentists={widgetData.dentists || []}
+            onSelect={handleDentistSelection}
+            recommendedDentists={widgetData.recommendedDentists}
           />
         );
       
