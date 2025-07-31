@@ -22,7 +22,6 @@ import {
   PersonalInfoFormWidget,
   QuickSettingsWidget,
   ImageUploadWidget,
-  QuickActionsWidget,
   UrgencySliderWidget
 } from "./InteractiveChatWidgets";
 
@@ -121,8 +120,6 @@ export const InteractiveDentalChat = ({
       };
       setMessages([welcomeMessage]);
 
-      // AI will decide when to show widgets like quick actions
-
     }
   };
 
@@ -157,10 +154,7 @@ export const InteractiveDentalChat = ({
     saveMessage(botMessage);
   };
 
-const generateBotResponse = async (
-  userMessage: string,
-  history: ChatMessage[]
-): Promise<{ message: ChatMessage; fallback: boolean; suggestions: string[] }> => {
+
     try {
       const { data, error } = await supabase.functions.invoke('dental-ai-chat', {
         body: {
@@ -179,7 +173,7 @@ const generateBotResponse = async (
       if (error) throw error;
 
       const responseText = data.response || data.fallback_response || "I'm sorry, I couldn't process your request.";
-      const result = {
+
         id: crypto.randomUUID(),
         session_id: sessionId,
         message: responseText,
@@ -187,24 +181,7 @@ const generateBotResponse = async (
         message_type: 'text',
         created_at: new Date().toISOString(),
       };
-      return {
-        message: result,
-        fallback: Boolean(data.fallback_response && !data.response),
-        suggestions: data.suggestions || []
-      };
-    } catch (error) {
-      console.error('Error generating AI response:', error);
-      return {
-        message: {
-          id: crypto.randomUUID(),
-          session_id: sessionId,
-          message: "I'm sorry, I couldn't process your request.",
-          is_bot: true,
-          message_type: 'text',
-          created_at: new Date().toISOString(),
-        },
-        fallback: true,
-        suggestions: []
+
       };
     }
   };
@@ -324,6 +301,7 @@ const generateBotResponse = async (
 
       addBotMessage(responseMessage);
 
+
     } catch (error) {
       console.error("Error fetching appointments:", error);
       addBotMessage("I'm sorry, I couldn't retrieve your appointments right now. Please try again later.");
@@ -377,23 +355,7 @@ Just type what you need or use the quick action buttons! 😊
     `;
     
     addBotMessage(helpMessage);
-  };
 
-  const handleSuggestions = (suggestions?: string[]) => {
-    if (!suggestions || suggestions.length === 0) return;
-
-    if (suggestions.includes('appointments-list')) {
-      showAppointments();
-      return;
-    }
-
-    if (
-      suggestions.includes('booking') ||
-      suggestions.includes('skip-patient-selection') ||
-      suggestions.includes('recommend-dentist')
-    ) {
-      startBookingFlow();
-    }
   };
 
   const loadDentistsForBooking = async () => {
@@ -605,7 +567,6 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
 
 
 
-
     } catch (error) {
       console.error("Error booking appointment:", error);
       addBotMessage("I'm sorry, I couldn't complete your booking. Please try again or contact the clinic directly.");
@@ -640,30 +601,7 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
       return;
     }
 
-    if (currentInput.includes('language')) {
-      if (currentInput.includes('english')) {
-        handleLanguageChange('en');
-      } else if (currentInput.includes('french') || currentInput.includes('français')) {
-        handleLanguageChange('fr');
-      } else if (currentInput.includes('dutch') || currentInput.includes('nederlands')) {
-        handleLanguageChange('nl');
-      } else {
-        setActiveWidget('quick-settings');
-        addBotMessage('I can help you change the language. Please select from the options below:');
-      }
-      setIsLoading(false);
-      return;
-    }
 
-    const history = [...messages, userMessage].slice(-10);
-    const { message: botResponse, fallback, suggestions } = await generateBotResponse(userMessage.message, history);
-    setMessages(prev => [...prev, botResponse]);
-    await saveMessage(botResponse);
-
-    handleSuggestions(suggestions);
-
-    if (fallback) {
-      setTimeout(() => setActiveWidget('quick-actions'), 1000);
     }
 
     setIsLoading(false);
@@ -816,9 +754,6 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
             }}
           />
         );
-
-      case 'quick-actions':
-        return <QuickActionsWidget onAction={handleQuickAction} />;
 
       default:
         return null;

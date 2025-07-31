@@ -9,7 +9,6 @@ import { Send, Bot, User as UserIcon } from "lucide-react";
 import { ChatMessage } from "@/types/chat";
 import {
   PrivacyConsentWidget,
-  QuickActionsWidget,
 } from "./InteractiveChatWidgets";
 
 interface NewInteractiveDentalChatProps {
@@ -37,7 +36,7 @@ export const NewInteractiveDentalChat = ({ user }: NewInteractiveDentalChatProps
         created_at: new Date().toISOString(),
       };
       setMessages([welcomeMessage]);
-      setTimeout(() => setActiveWidget('quick-actions'), 1000);
+      // initial interaction does not show quick actions anymore
     }
   }, [user, sessionId]);
 
@@ -89,7 +88,6 @@ export const NewInteractiveDentalChat = ({ user }: NewInteractiveDentalChatProps
         break;
     }
 
-    setTimeout(() => setActiveWidget('quick-actions'), 2000);
   };
 
   const handleSendMessage = () => {
@@ -109,8 +107,7 @@ export const NewInteractiveDentalChat = ({ user }: NewInteractiveDentalChatProps
     setActiveWidget(null);
 
     setTimeout(() => {
-      addBotMessage("I'm here to help! Here are some quick actions:");
-      setTimeout(() => setActiveWidget('quick-actions'), 1000);
+      addBotMessage("I'm here to help! How can I assist you?");
     }, 500);
   };
 
@@ -158,9 +155,6 @@ export const NewInteractiveDentalChat = ({ user }: NewInteractiveDentalChatProps
               </div>
             </div>
           ))}
-          {activeWidget === 'quick-actions' && (
-            <QuickActionsWidget onAction={handleQuickAction} />
-          )}
 
           <div ref={messagesEndRef} />
         </div>
