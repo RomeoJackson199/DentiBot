@@ -569,9 +569,9 @@ const ImageUploadWidget = ({
 };
 
 // Quick Actions Widget
-const QuickActionsWidget = ({ 
-  onAction 
-}: { 
+const QuickActionsWidget = ({
+  onAction
+}: {
   onAction: (action: string) => void;
 }) => {
   const actions = [
