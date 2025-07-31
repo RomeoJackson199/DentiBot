@@ -54,7 +54,7 @@ export const InteractiveDentalChat = ({
     selectedDate: null as Date | null,
     selectedTime: '',
     urgency: 1,
-    step: 'reason' // reason -> dentist -> date -> time -> confirm
+    step: 'dentist' // dentist -> date -> time -> confirm
   });
 
   const { t } = useLanguage();
@@ -121,10 +121,6 @@ export const InteractiveDentalChat = ({
       };
       setMessages([welcomeMessage]);
       
-      // Show quick actions after welcome
-      setTimeout(() => {
-        setActiveWidget('quick-actions');
-      }, 1500);
     }
   };
 
@@ -302,7 +298,6 @@ export const InteractiveDentalChat = ({
 
       if (!appointments || appointments.length === 0) {
         addBotMessage("You don't have any appointments scheduled yet. Would you like to book one? 📅");
-        setTimeout(() => setActiveWidget('quick-actions'), 1000);
         return;
       }
 
@@ -344,25 +339,23 @@ export const InteractiveDentalChat = ({
 
       addBotMessage(responseMessage);
       
-      if (upcoming.length === 0) {
-        setTimeout(() => setActiveWidget('quick-actions'), 2000);
-      }
 
-    } catch (error) {
-      console.error("Error fetching appointments:", error);
-      addBotMessage("I'm sorry, I couldn't retrieve your appointments right now. Please try again later.");
-    }
-  };
 
-  const startBookingFlow = () => {
+  } catch (error) {
+    console.error("Error fetching appointments:", error);
+    addBotMessage("I'm sorry, I couldn't retrieve your appointments right now. Please try again later.");
+    setTimeout(() => setActiveWidget('quick-actions'), 1000);
+  }
+};
+
+  const startBookingFlow = async () => {
     if (!user) {
       addBotMessage("Please log in to book an appointment. You can find the login button at the top right of the page.");
       return;
     }
 
-    addBotMessage("I'll help you book an appointment! 📅 Let's start by understanding what brings you here today.");
-    setBookingFlow({ ...bookingFlow, step: 'reason' });
-    setActiveWidget('appointment-reason');
+    addBotMessage("I'll help you book an appointment! Let me pick a dentist for you...");
+    await loadDentistsForBooking(true);
   };
 
   const startEmergencyBooking = () => {
@@ -373,7 +366,7 @@ export const InteractiveDentalChat = ({
 
     setBookingFlow({ ...bookingFlow, reason: 'emergency', urgency: 3, step: 'dentist' });
     addBotMessage("🚨 **Emergency Booking** - I'll find you the earliest available slot with any dentist.");
-    loadDentistsForBooking();
+    loadDentistsForBooking(true);
   };
 
   const showHelp = () => {
@@ -401,10 +394,9 @@ Just type what you need or use the quick action buttons! 😊
     `;
     
     addBotMessage(helpMessage);
-    setTimeout(() => setActiveWidget('quick-actions'), 3000);
   };
 
-  const loadDentistsForBooking = async () => {
+  const loadDentistsForBooking = async (autoSelect = false) => {
     try {
       const { data, error } = await supabase
         .from("dentists")
@@ -420,13 +412,18 @@ Just type what you need or use the quick action buttons! 😊
 
       if (error) throw error;
       
-      setWidgetData({ dentists: data || [] });
-      setActiveWidget('dentist-selection');
-      addBotMessage("Please choose your preferred dentist:");
+      if (autoSelect && data && data.length > 0) {
+        handleDentistSelection(data[0]);
+      } else {
+        setWidgetData({ dentists: data || [] });
+        setActiveWidget('dentist-selection');
+        addBotMessage("Please choose your preferred dentist:");
+      }
       
     } catch (error) {
       console.error("Error fetching dentists:", error);
       addBotMessage("I couldn't load the dentist list. Please try again.");
+      setTimeout(() => setActiveWidget('quick-actions'), 1000);
     }
   };
 
@@ -499,12 +496,13 @@ Just type what you need or use the quick action buttons! 😊
         addBotMessage("Please choose your preferred time:");
       }
       
-    } catch (error) {
-      console.error("Error fetching slots:", error);
-      addBotMessage("I couldn't load the available times. Please try a different date.");
-      setTimeout(() => setActiveWidget('calendar'), 1000);
-    }
-  };
+  } catch (error) {
+    console.error("Error fetching slots:", error);
+    addBotMessage("I couldn't load the available times. Please try a different date.");
+    setTimeout(() => setActiveWidget('calendar'), 1000);
+    setTimeout(() => setActiveWidget('quick-actions'), 1500);
+  }
+};
 
   const handleTimeSelection = (time: string) => {
     setBookingFlow({ ...bookingFlow, selectedTime: time, step: 'confirm' });
@@ -607,16 +605,16 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
         selectedDate: null,
         selectedTime: '',
         urgency: 1,
-        step: 'reason'
+        step: 'dentist'
       });
 
-      setTimeout(() => setActiveWidget('quick-actions'), 3000);
 
-    } catch (error) {
-      console.error("Error booking appointment:", error);
-      addBotMessage("I'm sorry, I couldn't complete your booking. Please try again or contact the clinic directly.");
-    }
-  };
+  } catch (error) {
+    console.error("Error booking appointment:", error);
+    addBotMessage("I'm sorry, I couldn't complete your booking. Please try again or contact the clinic directly.");
+    setTimeout(() => setActiveWidget('quick-actions'), 1000);
+  }
+};
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim() || !hasConsented) return;
@@ -763,7 +761,6 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
             onCancel={() => {
               setActiveWidget(null);
               addBotMessage("Appointment cancelled. Would you like to try a different time?");
-              setTimeout(() => setActiveWidget('quick-actions'), 1000);
             }}
           />
         );
