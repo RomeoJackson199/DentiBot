@@ -22,6 +22,7 @@ import {
   PersonalInfoFormWidget,
   QuickSettingsWidget,
   ImageUploadWidget,
+  QuickActionsWidget,
   UrgencySliderWidget
 } from "./InteractiveChatWidgets";
 
@@ -119,7 +120,12 @@ export const InteractiveDentalChat = ({
         created_at: new Date().toISOString(),
       };
       setMessages([welcomeMessage]);
-      
+
+      // Show quick actions after welcome
+      setTimeout(() => {
+        setActiveWidget('quick-actions');
+      }, 1500);
+
     }
   };
 
@@ -154,10 +160,10 @@ export const InteractiveDentalChat = ({
     saveMessage(botMessage);
   };
 
-  const generateBotResponse = async (
-    userMessage: string,
-    history: ChatMessage[]
-  ): Promise<ChatMessage> => {
+const generateBotResponse = async (
+  userMessage: string,
+  history: ChatMessage[]
+): Promise<{ message: ChatMessage; fallback: boolean }> => {
     try {
       const { data, error } = await supabase.functions.invoke('dental-ai-chat', {
         body: {
@@ -176,7 +182,7 @@ export const InteractiveDentalChat = ({
       if (error) throw error;
 
       const responseText = data.response || data.fallback_response || "I'm sorry, I couldn't process your request.";
-      return {
+      const result = {
         id: crypto.randomUUID(),
         session_id: sessionId,
         message: responseText,
@@ -184,15 +190,19 @@ export const InteractiveDentalChat = ({
         message_type: 'text',
         created_at: new Date().toISOString(),
       };
+      return { message: result, fallback: Boolean(data.fallback_response && !data.response) };
     } catch (error) {
       console.error('Error generating AI response:', error);
       return {
+        message: {
         id: crypto.randomUUID(),
         session_id: sessionId,
         message: "I'm sorry, I couldn't process your request.",
         is_bot: true,
         message_type: 'text',
         created_at: new Date().toISOString(),
+        },
+        fallback: true
       };
     }
   };
@@ -271,6 +281,7 @@ export const InteractiveDentalChat = ({
 
       if (!appointments || appointments.length === 0) {
         addBotMessage("You don't have any appointments scheduled yet. Would you like to book one? 📅");
+        setTimeout(() => setActiveWidget('quick-actions'), 1000);
         return;
       }
 
@@ -311,8 +322,10 @@ export const InteractiveDentalChat = ({
       }
 
       addBotMessage(responseMessage);
-      
-      // When there are no upcoming appointments, simply let the conversation continue
+
+      if (upcoming.length === 0) {
+        setTimeout(() => setActiveWidget('quick-actions'), 2000);
+      }
 
     } catch (error) {
       console.error("Error fetching appointments:", error);
@@ -367,6 +380,7 @@ Just type what you need or use the quick action buttons! 😊
     `;
     
     addBotMessage(helpMessage);
+    setTimeout(() => setActiveWidget('quick-actions'), 3000);
   };
 
   const loadDentistsForBooking = async () => {
@@ -575,6 +589,8 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
         step: 'reason'
       });
 
+      setTimeout(() => setActiveWidget('quick-actions'), 3000);
+
 
 
     } catch (error) {
@@ -635,9 +651,12 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
       startEmergencyBooking();
     } else {
       const history = [...messages, userMessage].slice(-10);
-      const botResponse = await generateBotResponse(userMessage.message, history);
+      const { message: botResponse, fallback } = await generateBotResponse(userMessage.message, history);
       setMessages(prev => [...prev, botResponse]);
       await saveMessage(botResponse);
+      if (fallback) {
+        setTimeout(() => setActiveWidget('quick-actions'), 1000);
+      }
     }
 
     setIsLoading(false);
@@ -743,6 +762,7 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
             onCancel={() => {
               setActiveWidget(null);
               addBotMessage("Appointment cancelled. Would you like to try a different time?");
+              setTimeout(() => setActiveWidget('quick-actions'), 1000);
             }}
           />
         );
@@ -790,7 +810,10 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
             }}
           />
         );
-      
+
+      case 'quick-actions':
+        return <QuickActionsWidget onAction={handleQuickAction} />;
+
       default:
         return null;
     }
