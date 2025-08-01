@@ -14,7 +14,6 @@ import { ChatMessage } from "@/types/chat";
 import { format } from "date-fns";
 import {
   PrivacyConsentWidget,
-  AppointmentReasonWidget,
   InlineCalendarWidget,
   TimeSlotsWidget,
   DentistSelectionWidget,
@@ -373,7 +372,7 @@ export const InteractiveDentalChat = ({
     });
 
     addBotMessage("I'll help you book an appointment! What symptoms are you experiencing?");
-    setActiveWidget('appointment-reason');
+
   };
 
   const startEmergencyBooking = () => {
@@ -445,23 +444,6 @@ Just type what you need or use the quick action buttons! 😊
     }
   };
 
-  const handleAppointmentReason = (reason: string) => {
-    const reasonLabels = {
-      routine: 'Routine check-up',
-      braces: 'Braces tightening', 
-      emergency: 'Pain/Emergency',
-      cleaning: 'Cleaning'
-    };
-
-    setBookingFlow({ ...bookingFlow, reason, step: 'dentist' });
-    setActiveWidget(null);
-    
-    addBotMessage(`Great! You selected: **${reasonLabels[reason as keyof typeof reasonLabels]}** 🦷`);
-    
-    setTimeout(() => {
-      loadDentistsForBooking();
-    }, 1000);
-  };
 
   const handleDentistSelection = (dentist: any) => {
     setBookingFlow({ ...bookingFlow, selectedDentist: dentist, step: 'date' });
@@ -650,9 +632,17 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
     const currentInput = inputMessage.toLowerCase();
     setInputMessage("");
     setIsLoading(true);
-    setActiveWidget(null);
+  setActiveWidget(null);
 
-    await saveMessage(userMessage);
+  await saveMessage(userMessage);
+
+  if (bookingFlow.step === 'reason') {
+    setBookingFlow({ ...bookingFlow, reason: userMessage.message, step: 'dentist' });
+    addBotMessage(`Got it! You're experiencing: **${userMessage.message}**.`);
+    await loadDentistsForBooking(false);
+    setIsLoading(false);
+    return;
+  }
 
     if (currentInput.includes('language')) {
       if (currentInput.includes('english')) {
@@ -739,8 +729,6 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
     if (!activeWidget) return null;
 
     switch (activeWidget) {
-      case 'appointment-reason':
-        return <AppointmentReasonWidget onSelect={handleAppointmentReason} />;
       
       case 'dentist-selection':
         return (

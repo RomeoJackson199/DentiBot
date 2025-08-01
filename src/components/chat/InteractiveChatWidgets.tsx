@@ -76,37 +76,6 @@ const PrivacyConsentWidget = ({ onAccept, onDecline }: { onAccept: () => void; o
   );
 };
 
-// Appointment Reason Widget
-const AppointmentReasonWidget = ({ onSelect }: { onSelect: (reason: string) => void }) => {
-  const reasons = [
-    { id: 'routine', label: 'Routine check-up', icon: '🦷' },
-    { id: 'braces', label: 'Braces tightening', icon: '🔧' },
-    { id: 'emergency', label: 'Pain/Emergency', icon: '🚨' },
-    { id: 'cleaning', label: 'Cleaning', icon: '✨' }
-  ];
-
-  return (
-    <Card className="max-w-md mx-auto my-4 border-primary/20 shadow-lg">
-      <CardHeader className="text-center">
-        <CalendarIcon className="h-8 w-8 mx-auto text-primary mb-2" />
-      </CardHeader>
-      <CardContent className="space-y-3">
-        {reasons.map((reason) => (
-          <Button
-            key={reason.id}
-            variant="outline"
-            onClick={() => onSelect(reason.id)}
-            className="w-full justify-start text-left h-auto p-4"
-          >
-            <span className="text-xl mr-3">{reason.icon}</span>
-            <span>{reason.label}</span>
-          </Button>
-        ))}
-      </CardContent>
-    </Card>
-  );
-};
-
 // Inline Calendar Widget
 const InlineCalendarWidget = ({ 
   selectedDate, 
@@ -657,7 +626,6 @@ const UrgencySliderWidget = ({
 
 export {
   PrivacyConsentWidget,
-  AppointmentReasonWidget,
   InlineCalendarWidget,
   TimeSlotsWidget,
   DentistSelectionWidget,
