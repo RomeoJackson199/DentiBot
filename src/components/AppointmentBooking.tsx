@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { CalendarDays, Clock, User as UserIcon, CheckCircle, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { sendEmailSummary } from "@/lib/email";
+import { createMedicalRecord } from "@/lib/medicalRecords";
 
 interface AppointmentBookingProps {
   user: User;
@@ -246,6 +247,16 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
           }
         );
         toast({ title: 'Résumé envoyé', description: `Patient ID: ${patientId}` });
+
+        // Create a medical record for this appointment
+        await createMedicalRecord({
+          patientId: profile.id,
+          dentistId: selectedDentist,
+          title: 'Appointment booked',
+          description: `Rendez-vous confirmé le ${selectedDate.toLocaleDateString()} à ${selectedTime}. Motif: ${reason || 'Consultation générale'}`,
+          recordType: 'appointment',
+          visitDate: selectedDate.toISOString().split('T')[0]
+        });
       } catch (err) {
         console.error('Error sending summary email:', err);
       }
