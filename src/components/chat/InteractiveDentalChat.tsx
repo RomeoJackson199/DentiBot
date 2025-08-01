@@ -635,8 +635,18 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
   await saveMessage(userMessage);
 
   if (bookingFlow.step === 'reason') {
-    setBookingFlow({ ...bookingFlow, reason: userMessage.message, step: 'dentist' });
-    addBotMessage(`Got it! You're experiencing: **${userMessage.message}**.`);
+    if (!bookingFlow.reason) {
+      setBookingFlow({
+        ...bookingFlow,
+        reason: userMessage.message,
+        step: 'dentist'
+      });
+      addBotMessage(`Got it! You're experiencing: **${userMessage.message}**.`);
+    } else {
+      // Avoid repeating the confirmation if the reason was already provided
+      setBookingFlow({ ...bookingFlow, step: 'dentist' });
+    }
+
     await loadDentistsForBooking(false);
     setIsLoading(false);
     return;
