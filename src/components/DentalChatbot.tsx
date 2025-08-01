@@ -433,8 +433,30 @@ Type your request...`;
     }, 1000);
   };
 
-  // Keyword-based chat commands have been removed so the assistant can interpret messages freely.
-  const handleChatCommands = (_message: string): boolean => {
+  const handleChatCommands = (message: string): boolean => {
+    const lowerMessage = message.toLowerCase();
+
+    // Appointment management commands
+    if (lowerMessage.includes('show') && (lowerMessage.includes('appointment') || lowerMessage.includes('rendez-vous'))) {
+      appointmentManager?.showAppointments();
+      return true;
+    }
+    
+    if (lowerMessage.includes('next appointment') || lowerMessage.includes('prochain rendez-vous')) {
+      appointmentManager?.showAppointments();
+      return true;
+    }
+
+    if (lowerMessage.includes('book') && lowerMessage.includes('appointment')) {
+      setShowChatBooking(true);
+      return true;
+    }
+
+    // Settings commands
+    if (settingsManager?.processSettingsCommand(message)) {
+      return true;
+    }
+
     return false;
   };
 

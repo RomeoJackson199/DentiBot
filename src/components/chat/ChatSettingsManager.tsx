@@ -132,10 +132,48 @@ export const ChatSettingsManager = ({ user, onResponse }: ChatSettingsManagerPro
     }
   };
 
-  // Previously this function detected keywords like "change language" or "update personal information" and
-  // triggered the associated action automatically. These preset rules have been removed so the assistant can
-  // decide when to apply settings itself. The helper now simply returns `false`.
-  const processSettingsCommand = (_message: string) => {
+  const processSettingsCommand = (message: string) => {
+    const lowerMessage = message.toLowerCase();
+    
+    // Language change commands
+    if (lowerMessage.includes('change') && lowerMessage.includes('language')) {
+      if (lowerMessage.includes('english') || lowerMessage.includes('en')) {
+        handleLanguageChange('en');
+      } else if (lowerMessage.includes('french') || lowerMessage.includes('français') || lowerMessage.includes('fr')) {
+        handleLanguageChange('fr');
+      } else if (lowerMessage.includes('dutch') || lowerMessage.includes('nederlands') || lowerMessage.includes('nl')) {
+        handleLanguageChange('nl');
+      } else {
+        onResponse("Which language would you like to use? I support English, French (français), and Dutch (Nederlands).");
+      }
+      return true;
+    }
+
+    // Theme change commands
+    if (lowerMessage.includes('dark') && lowerMessage.includes('mode')) {
+      handleThemeChange('dark');
+      return true;
+    }
+    
+    if (lowerMessage.includes('light') && lowerMessage.includes('mode')) {
+      handleThemeChange('light');
+      return true;
+    }
+
+    if (lowerMessage.includes('switch') && lowerMessage.includes('theme')) {
+      const newTheme = theme === 'dark' ? 'light' : 'dark';
+      handleThemeChange(newTheme);
+      return true;
+    }
+
+    // Personal info update commands
+    if ((lowerMessage.includes('update') || lowerMessage.includes('change')) && 
+        (lowerMessage.includes('personal') || lowerMessage.includes('profile') || 
+         lowerMessage.includes('information') || lowerMessage.includes('details'))) {
+      showPersonalInfoEditor();
+      return true;
+    }
+
     return false;
   };
 
