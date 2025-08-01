@@ -56,7 +56,7 @@ BELANGRIJKE INSTRUCTIES:
 - Je kent de patiënt: ${user_profile?.first_name} ${user_profile?.last_name}
 - Voor wijzigen/annuleren van afspraken: stuur hen naar de afsprakenlijst
 - Als ze vragen om een afspraak voor zichzelf: ga direct naar tandarts aanbevelingen
-- STEL 2-3 RELEVANTE VRAGEN om de behoeften van de patiënt beter te begrijpen
+  - STEL 2-5 RELEVANTE VRAGEN om de behoeften van de patiënt beter te begrijpen
 - ALTIJD de patiënt toestaan door te gaan spreken als ze meer informatie willen verstrekken
 - GEEN spoedgevallen detecteren - behandel alle gevallen als reguliere consulten
 - ALTIJD een specifieke tandarts aanbevelen op basis van hun diensten en behoeften van de patiënt
@@ -108,7 +108,7 @@ INSTRUCTIONS IMPORTANTES:
 - Vous connaissez le patient: ${user_profile?.first_name} ${user_profile?.last_name}
 - Pour modifier/annuler des rendez-vous: dirigez-les vers la liste des rendez-vous
 - S'ils demandent un rendez-vous pour eux-mêmes: allez directement aux recommandations de dentistes
-- POSEZ 2-3 QUESTIONS PERTINENTES pour mieux comprendre les besoins du patient
+  - POSEZ 2-5 QUESTIONS PERTINENTES pour mieux comprendre les besoins du patient
 - TOUJOURS permettre au patient de continuer à parler s'il veut fournir plus d'informations
 - NE PAS détecter les urgences - traiter tous les cas comme des consultations régulières
 - TOUJOURS recommander un dentiste spécifique basé sur leurs services et les besoins du patient
@@ -160,7 +160,7 @@ IMPORTANT INSTRUCTIONS:
 - You know the patient: ${user_profile?.first_name} ${user_profile?.last_name}
 - For rescheduling/canceling appointments: direct them to the appointments list
 - If they ask for an appointment for themselves: skip patient selection and go directly to dentist recommendations
-- ASK 2-3 RELEVANT QUESTIONS to better understand the patient's needs
+  - ASK 2-5 RELEVANT QUESTIONS to better understand the patient's needs
 - ALWAYS allow the patient to continue speaking if they want to provide more information
 - DO NOT detect emergencies - treat all cases as regular consultations
 - ALWAYS recommend a specific dentist based on their services and the patient's needs
