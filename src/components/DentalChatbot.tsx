@@ -18,6 +18,8 @@ import { PatientSelection } from "@/components/PatientSelection";
 import { ChatAppointmentManager } from "@/components/chat/ChatAppointmentManager";
 import { ChatBookingFlow } from "@/components/chat/ChatBookingFlow";
 import { ChatSettingsManager } from "@/components/chat/ChatSettingsManager";
+import { sendEmailSummary } from "@/lib/email";
+import { generateSymptomSummary } from "@/lib/symptoms";
 
 interface DentalChatbotProps {
   user: User | null;
@@ -624,38 +626,27 @@ Type your request...`;
   };
 
 
-  const sendEmailSummary = async (appointmentData?: any, urgencyLevel?: string) => {
+  const sendSummaryEmail = async (appointmentData?: any, urgencyLevel?: string) => {
     if (!user) return;
-    
     try {
-      // Create summary from recent messages
-      const recentMessages = messages.slice(-10);
-      const chatSummary = recentMessages
-        .map(msg => `${msg.is_bot ? 'DentiBot' : 'Patient'}: ${msg.message}`)
-        .join('\n\n');
-
-      const { data, error } = await supabase.functions.invoke('send-patient-email', {
-        body: {
-          userId: user.id,
-          chatSummary,
-          photoUrl: lastPhotoUrl,
-          appointmentData,
-          urgencyLevel
-        }
-      });
-
-      if (error) throw error;
-
-      addSystemMessage(`📧 Summary sent to dentist (Patient ID: ${data.patientId})`, 'success');
-      
+      const patientId = await sendEmailSummary(
+        user.id,
+        messages,
+        lastPhotoUrl,
+        appointmentData,
+        urgencyLevel
+      );
+      addSystemMessage(`📧 Summary sent to dentist (Patient ID: ${patientId})`, 'success');
       toast({
-        title: "Email sent",
-        description: `Your summary has been sent to the dentist with Patient ID: ${data.patientId}`,
+        title: 'Email sent',
+        description: `Your summary has been sent to the dentist with Patient ID: ${patientId}`,
       });
-
+      const summary = await generateSymptomSummary(messages, userProfile);
+      setSymptomSummary(summary);
+      setActiveWidget('symptom-summary');
     } catch (error) {
       console.error('Error sending email:', error);
-      addSystemMessage("❌ Error sending email", 'warning');
+      addSystemMessage('❌ Error sending email', 'warning');
     }
   };
 
@@ -847,7 +838,7 @@ Type your request...`;
                 prefilledReason={consultationReason}
                 onComplete={(appointmentData) => {
                   addSystemMessage("Appointment confirmed! You'll receive a reminder 24 hours before.", 'success');
-                  sendEmailSummary(appointmentData);
+                  sendSummaryEmail(appointmentData);
                   setCurrentFlow('chat');
                 }}
                 onCancel={() => setCurrentFlow('chat')}
