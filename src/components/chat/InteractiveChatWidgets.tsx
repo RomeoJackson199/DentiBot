@@ -583,7 +583,7 @@ const QuickActionsWidget = ({
 };
 
 // Urgency Slider Widget
-const UrgencySliderWidget = ({ 
+const UrgencySliderWidget = ({
   value, 
   onChange 
 }: { 
@@ -624,6 +624,32 @@ const UrgencySliderWidget = ({
   );
 };
 
+// Symptom Summary Widget
+const SymptomSummaryWidget = ({
+  summary,
+  onClose,
+}: {
+  summary: string;
+  onClose?: () => void;
+}) => {
+  return (
+    <Card className="max-w-md mx-auto my-4 border-primary/20 shadow-lg">
+      <CardHeader className="text-center">
+        <Activity className="h-8 w-8 mx-auto text-primary mb-2" />
+        <CardTitle className="text-lg">Symptom Summary</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <p className="text-sm whitespace-pre-wrap">{summary}</p>
+        {onClose && (
+          <Button variant="outline" onClick={onClose} className="w-full">
+            Close
+          </Button>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
 export {
   PrivacyConsentWidget,
   InlineCalendarWidget,
@@ -634,5 +660,6 @@ export {
   QuickSettingsWidget,
   ImageUploadWidget,
   QuickActionsWidget,
-  UrgencySliderWidget
+  UrgencySliderWidget,
+  SymptomSummaryWidget
 };

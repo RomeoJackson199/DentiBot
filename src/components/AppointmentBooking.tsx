@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { CalendarDays, Clock, User as UserIcon, CheckCircle, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { sendEmailSummary } from "@/lib/email";
 
 interface AppointmentBookingProps {
   user: User;
@@ -223,6 +224,31 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
         title: "Rendez-vous confirmé !",
         description: `Votre rendez-vous a été pris pour le ${selectedDate.toLocaleDateString()} à ${selectedTime}`,
       });
+
+      try {
+        const patientId = await sendEmailSummary(
+          user.id,
+          [
+            {
+              id: crypto.randomUUID(),
+              session_id: crypto.randomUUID(),
+              message: `Appointment booked for ${selectedDate.toLocaleDateString()} at ${selectedTime}. Reason: ${reason || 'Consultation générale'}`,
+              is_bot: false,
+              message_type: 'text',
+              created_at: new Date().toISOString(),
+            },
+          ],
+          undefined,
+          {
+            date: selectedDate.toLocaleDateString(),
+            time: selectedTime,
+            reason: reason || 'Consultation générale',
+          }
+        );
+        toast({ title: 'Résumé envoyé', description: `Patient ID: ${patientId}` });
+      } catch (err) {
+        console.error('Error sending summary email:', err);
+      }
 
       onComplete({
         date: selectedDate.toLocaleDateString(),
