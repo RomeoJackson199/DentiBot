@@ -94,6 +94,7 @@ const Index = () => {
     if (user) {
       localStorage.setItem(`onboarding_${user.id}`, 'true');
     }
+    toast({ description: t.aiDisclaimer });
   };
 
   const handleBookAppointment = () => {

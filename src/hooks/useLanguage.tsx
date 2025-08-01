@@ -196,6 +196,9 @@ interface Translations {
   letsStart: string;
   next: string;
   back: string;
+  previewNotice: string;
+  aiDisclaimer: string;
+  acceptTerms: string;
   
   // Language selection
   selectPreferredLanguage: string;
@@ -398,7 +401,7 @@ How can I help you today?`,
     // Onboarding
     welcomeToFirstSmile: 'Welcome to First Smile AI! 🦷',
     yourAIDentalAssistant: 'Your AI Dental Assistant',
-    onboardingIntro: 'I\'m here to help you with all your dental needs, 24/7. Let me show you what I can do!',
+    onboardingIntro: 'I\'m here to help you with all your dental needs, 24/7. This preview shows how First Smile AI will work in the real world.',
     smartFeaturesService: 'Smart Features at Your Service',
     aiChat: 'AI Chat',
     aiChatDesc: 'Get instant answers to dental questions',
@@ -420,6 +423,9 @@ How can I help you today?`,
     letsStart: 'Let\'s Start!',
     next: 'Next',
     back: 'Back',
+    previewNotice: 'This is a working preview of First Smile AI ready for real-world use.',
+    aiDisclaimer: 'This assistant uses AI. Double check any medical advice.',
+    acceptTerms: 'I accept the Terms and Conditions',
     
     // Language selection
     selectPreferredLanguage: 'Select Your Preferred Language',
@@ -620,7 +626,7 @@ Comment puis-je vous aider aujourd'hui ?`,
     // Onboarding
     welcomeToFirstSmile: 'Bienvenue sur First Smile AI ! 🦷',
     yourAIDentalAssistant: 'Votre Assistant Dentaire IA',
-    onboardingIntro: 'Je suis là pour vous aider avec tous vos besoins dentaires, 24h/24. Laissez-moi vous montrer ce que je peux faire !',
+    onboardingIntro: 'Je suis là pour vous aider avec tous vos besoins dentaires, 24h/24. Cette préversion montre comment First Smile AI fonctionnera dans le monde réel.',
     smartFeaturesService: 'Fonctionnalités Intelligentes à Votre Service',
     aiChat: 'Chat IA',
     aiChatDesc: 'Obtenez des réponses instantanées aux questions dentaires',
@@ -642,6 +648,9 @@ Comment puis-je vous aider aujourd'hui ?`,
     letsStart: 'Commençons !',
     next: 'Suivant',
     back: 'Retour',
+    previewNotice: 'Ceci est une préversion fonctionnelle de First Smile AI prête pour le monde réel.',
+    aiDisclaimer: "Cet assistant utilise l'IA. Vérifiez toujours les conseils médicaux.",
+    acceptTerms: "J'accepte les Conditions Générales",
     
     // Language selection
     selectPreferredLanguage: 'Sélectionnez Votre Langue Préférée',
@@ -842,7 +851,7 @@ Hoe kan ik u vandaag helpen?`,
     // Onboarding
     welcomeToFirstSmile: 'Welkom bij First Smile AI! 🦷',
     yourAIDentalAssistant: 'Uw AI Tandheelkundige Assistent',
-    onboardingIntro: 'Ik ben er om u te helpen met al uw tandheelkundige behoeften, 24/7. Laat me u tonen wat ik kan doen!',
+    onboardingIntro: 'Ik ben er om u te helpen met al uw tandheelkundige behoeften, 24/7. Deze preview toont hoe First Smile AI in de echte wereld zal werken.',
     smartFeaturesService: 'Slimme Functies Tot Uw Dienst',
     aiChat: 'AI Chat',
     aiChatDesc: 'Krijg directe antwoorden op tandheelkundige vragen',
@@ -864,6 +873,9 @@ Hoe kan ik u vandaag helpen?`,
     letsStart: 'Laten we Beginnen!',
     next: 'Volgende',
     back: 'Terug',
+    previewNotice: 'Dit is een werkende preview van First Smile AI klaar voor gebruik in de echte wereld.',
+    aiDisclaimer: 'Deze assistent gebruikt AI. Controleer altijd medisch advies.',
+    acceptTerms: 'Ik accepteer de Algemene Voorwaarden',
     
     // Language selection
     selectPreferredLanguage: 'Selecteer Uw Voorkeurstaal',
