@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Activity, Calendar, Camera, MessageSquare, Users, Clock, CheckCircle } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
 
@@ -13,6 +14,7 @@ interface OnboardingPopupProps {
 export const OnboardingPopup = ({ isOpen, onClose }: OnboardingPopupProps) => {
   const { t } = useLanguage();
   const [currentStep, setCurrentStep] = useState(0);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   const steps = [
     {
@@ -91,7 +93,7 @@ export const OnboardingPopup = ({ isOpen, onClose }: OnboardingPopupProps) => {
       )
     },
     {
-      title: "Ready to Get Started?",
+      title: t.readyToStart,
       content: (
         <div className="text-center space-y-4">
           <div className="relative mx-auto">
@@ -99,13 +101,19 @@ export const OnboardingPopup = ({ isOpen, onClose }: OnboardingPopupProps) => {
               <MessageSquare className="h-16 w-16 text-white mx-auto" />
             </div>
           </div>
-          <h3 className="text-xl font-semibold gradient-text">You're All Set! 🎉</h3>
-          <p className="text-dental-muted-foreground">
-            Start chatting with me below to book appointments, ask questions, or get dental advice.
-          </p>
+          <h3 className="text-xl font-semibold gradient-text">{t.youreAllSet}</h3>
+          <p className="text-dental-muted-foreground">{t.onboardingEnd}</p>
+          <p className="text-xs text-dental-muted-foreground">{t.previewNotice}</p>
+          <p className="text-xs text-dental-muted-foreground">{t.aiDisclaimer}</p>
+          <div className="flex items-center justify-center space-x-2">
+            <Checkbox id="accept" checked={acceptedTerms} onCheckedChange={(c) => setAcceptedTerms(!!c)} />
+            <label htmlFor="accept" className="text-sm text-dental-muted-foreground">
+              {t.acceptTerms}
+            </label>
+          </div>
           <div className="bg-dental-primary/10 p-4 rounded-xl">
             <p className="text-sm font-medium text-dental-primary">
-              💡 Pro Tip: Just tell me what's bothering you, and I'll guide you through everything!
+              {t.proTip} {t.proTipText}
             </p>
           </div>
         </div>
@@ -116,7 +124,7 @@ export const OnboardingPopup = ({ isOpen, onClose }: OnboardingPopupProps) => {
   const nextStep = () => {
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
-    } else {
+    } else if (acceptedTerms) {
       onClose();
     }
   };
@@ -158,19 +166,20 @@ export const OnboardingPopup = ({ isOpen, onClose }: OnboardingPopupProps) => {
           
           <div className="flex gap-2">
             {currentStep > 0 && (
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={prevStep}
                 className="border-dental-primary/30 text-dental-primary hover:bg-dental-primary/10"
               >
-                Back
+                {t.back}
               </Button>
             )}
-            <Button 
+            <Button
               onClick={nextStep}
-              className="bg-gradient-primary text-white hover:shadow-glow"
+              disabled={currentStep === steps.length - 1 && !acceptedTerms}
+              className="bg-gradient-primary text-white hover:shadow-glow disabled:opacity-50"
             >
-              {currentStep === steps.length - 1 ? "Let's Start!" : "Next"}
+              {currentStep === steps.length - 1 ? t.letsStart : t.next}
             </Button>
           </div>
         </div>
