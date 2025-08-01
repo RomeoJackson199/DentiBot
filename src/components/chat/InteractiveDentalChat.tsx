@@ -22,8 +22,7 @@ import {
   QuickSettingsWidget,
   ImageUploadWidget,
   QuickActionsWidget,
-  UrgencySliderWidget,
-  SymptomSummaryWidget
+  UrgencySliderWidget
 } from "./InteractiveChatWidgets";
 import { sendEmailSummary } from "@/lib/email";
 import { generateSymptomSummary } from "@/lib/symptoms";
@@ -47,7 +46,6 @@ export const InteractiveDentalChat = ({
   const [showConsentWidget, setShowConsentWidget] = useState(!user);
   const [activeWidget, setActiveWidget] = useState<string | null>(null);
   const [widgetData, setWidgetData] = useState<any>({});
-  const [symptomSummary, setSymptomSummary] = useState<string | null>(null);
   const [userProfile, setUserProfile] = useState<any>(null);
   
   // Booking flow state
@@ -549,18 +547,18 @@ Just type what you need or use the quick action buttons! 😊
   const handleTimeSelection = (time: string) => {
     setBookingFlow({ ...bookingFlow, selectedTime: time, step: 'confirm' });
     setActiveWidget(null);
-    
+
     addBotMessage(`Time selected: **${time}** 🕐`);
-    
-    setTimeout(() => {
+
+    setTimeout(async () => {
       const appointmentData = {
         date: bookingFlow.selectedDate,
         time: time,
         dentist: bookingFlow.selectedDentist,
         reason: bookingFlow.reason
       };
-      
-      setWidgetData({ appointment: appointmentData });
+      const summary = await generateSymptomSummary(messages, userProfile);
+      setWidgetData({ appointment: appointmentData, summary });
       setActiveWidget('appointment-confirmation');
       addBotMessage("Please review and confirm your appointment:");
     }, 1000);
@@ -664,9 +662,6 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
           bookingFlow.urgency === 3 ? 'high' : 'medium'
         );
         addBotMessage(`📧 Summary sent to dentist (Patient ID: ${patientId})`, 'success');
-        const summary = await generateSymptomSummary(messages, userProfile);
-        setSymptomSummary(summary);
-        setActiveWidget('symptom-summary');
       } catch (err) {
         console.error('Error sending email summary:', err);
         addBotMessage('❌ Error sending email summary', 'warning');
@@ -801,6 +796,7 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
         return (
           <AppointmentConfirmationWidget
             appointment={widgetData.appointment}
+            summary={widgetData.summary}
             onConfirm={handleAppointmentConfirmation}
             onCancel={() => {
               setActiveWidget(null);
@@ -855,14 +851,6 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
       
       case 'quick-actions':
         return <QuickActionsWidget onAction={handleQuickAction} />;
-
-      case 'symptom-summary':
-        return (
-          <SymptomSummaryWidget
-            summary={symptomSummary || ''}
-            onClose={() => setActiveWidget(null)}
-          />
-        );
 
       default:
         return null;
