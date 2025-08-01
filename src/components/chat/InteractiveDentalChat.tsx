@@ -212,65 +212,12 @@ export const InteractiveDentalChat = ({
     }
   };
 
-  const handleSuggestions = (suggestions?: string[], recommendedDentists?: string[]) => {
-    if (!suggestions || suggestions.length === 0) return;
-
-    if (suggestions.includes('appointments-list')) {
-      showAppointments();
-      return;
-    }
-
-
-    if (suggestions.includes('recommend-dentist')) {
-      loadDentistsForBooking(false, recommendedDentists);
-      return;
-    }
-
-    if (suggestions.includes('theme-dark')) {
-      setTheme('dark');
-      addBotMessage('Theme changed to dark mode! \uD83C\uDF19');
-      return;
-    }
-
-    if (suggestions.includes('theme-light')) {
-      setTheme('light');
-      addBotMessage('Theme changed to light mode! \u2600\uFE0F');
-      return;
-    }
-
-    if (suggestions.includes('language-en')) {
-      handleLanguageChange('en');
-      return;
-    }
-
-    if (suggestions.includes('language-fr')) {
-      handleLanguageChange('fr');
-      return;
-    }
-
-    if (suggestions.includes('language-nl')) {
-      handleLanguageChange('nl');
-      return;
-    }
-
-    if (suggestions.includes('language-options')) {
-      setActiveWidget('quick-settings');
-      addBotMessage('Please choose your preferred language:');
-      return;
-    }
-
-    if (suggestions.includes('theme-options')) {
-      setActiveWidget('quick-settings');
-      addBotMessage('Please select a theme:');
-      return;
-    }
-
-    if (
-      suggestions.includes('booking') ||
-      suggestions.includes('skip-patient-selection')
-    ) {
-      startBookingFlow();
-    }
+  // This helper used to parse AI-provided suggestion keywords like "appointments-list"
+  // or "language-en" and immediately trigger the related UI actions. To remove
+  // these hard-coded commands, the logic has been stripped out so the assistant
+  // can decide how to respond. The function now does nothing.
+  const handleSuggestions = (_suggestions?: string[], _recommendedDentists?: string[]) => {
+    return;
   };
 
   const handleConsent = (accepted: boolean) => {
@@ -437,9 +384,7 @@ export const InteractiveDentalChat = ({
 - "Find earliest slot"
 
 ⚙️ **Settings**
-- "Change language to English/French/Dutch"
-- "Switch to dark/light mode"
-- "Update my personal information"
+  - Manage language and personal info
 
 📷 **Upload Images**
 - "Upload a photo"
