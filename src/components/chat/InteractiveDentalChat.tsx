@@ -371,8 +371,6 @@ export const InteractiveDentalChat = ({
       step: 'reason'
     });
 
-    addBotMessage("I'll help you book an appointment! What symptoms are you experiencing?");
-
   };
 
   const startEmergencyBooking = () => {
