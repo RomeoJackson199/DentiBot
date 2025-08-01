@@ -19,6 +19,7 @@ interface MedicalRecord {
   visit_date: string;
   record_type: string;
   created_at: string;
+  dentist_id?: string | null;
   dentist?: {
     profile?: {
       first_name: string;
@@ -62,19 +63,10 @@ export const PatientDossier = ({ user, onBack }: PatientDossierProps) => {
 
       setPatientProfile(profile);
 
-      // Load medical records
+      // Load medical records without joins
       const { data: records, error: recordsError } = await supabase
         .from('medical_records')
-        .select(`
-          *,
-          dentist:dentists(
-            profile:profiles(
-              first_name,
-              last_name,
-              specialization
-            )
-          )
-        `)
+        .select('*')
         .eq('patient_id', profile.id)
         .order('visit_date', { ascending: false });
 
@@ -88,7 +80,34 @@ export const PatientDossier = ({ user, onBack }: PatientDossierProps) => {
         return;
       }
 
-      setMedicalRecords((records || []) as MedicalRecord[]);
+      const dentistIds = Array.from(
+        new Set((records || [])
+          .map((r) => r.dentist_id)
+          .filter((id): id is string => Boolean(id))
+        )
+      );
+
+      let dentistsMap: Record<string, any> = {};
+      if (dentistIds.length > 0) {
+        const { data: dentistsData, error: dentistsError } = await supabase
+          .from('dentists')
+          .select('id, profile:profiles(first_name, last_name, specialization)')
+          .in('id', dentistIds);
+        if (dentistsError) {
+          console.error('Error loading dentists info:', dentistsError);
+        } else {
+          dentistsMap = Object.fromEntries(
+            (dentistsData || []).map((d) => [d.id, d])
+          );
+        }
+      }
+
+      const recordsWithDentists = (records || []).map((r) => ({
+        ...r,
+        dentist: dentistsMap[r.dentist_id as string] || null,
+      }));
+
+      setMedicalRecords(recordsWithDentists as MedicalRecord[]);
     } catch (error) {
       console.error('Error loading dossier:', error);
       toast({
