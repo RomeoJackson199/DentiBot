@@ -430,6 +430,7 @@ Just type what you need or use the quick action buttons! 😊
       if (autoSelect && data && data.length > 0) {
         handleDentistSelection(data[0]);
       } else {
+        setBookingFlow(prev => ({ ...prev, step: 'dentist' }));
         setWidgetData({ dentists: data || [], recommendedDentists });
         setActiveWidget('dentist-selection');
         addBotMessage("Please choose your preferred dentist:");
@@ -638,17 +639,10 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
     if (!bookingFlow.reason) {
       setBookingFlow({
         ...bookingFlow,
-        reason: userMessage.message,
-        step: 'dentist'
+        reason: userMessage.message
       });
-    } else {
-      // Avoid repeating the confirmation if the reason was already provided
-      setBookingFlow({ ...bookingFlow, step: 'dentist' });
     }
-
-    await loadDentistsForBooking(false);
-    setIsLoading(false);
-    return;
+    // Wait for AI suggestions before continuing the booking flow
   }
 
     if (currentInput.includes('language')) {
