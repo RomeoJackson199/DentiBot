@@ -9,7 +9,6 @@ import { Calendar } from "@/components/ui/calendar";
 import { Badge } from "@/components/ui/badge";
 import { CalendarDays, Clock, CheckCircle, User as UserIcon } from "lucide-react";
 import { format, addDays, startOfDay } from "date-fns";
-import { sendEmailSummary } from "@/lib/email";
 
 interface ChatBookingFlowProps {
   user: User;
@@ -185,20 +184,6 @@ export const ChatBookingFlow = ({
         description: `Your appointment is scheduled for ${format(selectedDate, "EEEE, MMMM d")} at ${selectedTime}`
       });
 
-      try {
-        await sendEmailSummary(
-          user.id,
-          [],
-          undefined,
-          {
-            date: format(selectedDate, 'yyyy-MM-dd'),
-            time: selectedTime,
-            reason: 'General consultation',
-          }
-        );
-      } catch (err) {
-        console.error('Error sending summary email:', err);
-      }
 
       const confirmationMessage = `🎉 **Appointment Confirmed!**
 

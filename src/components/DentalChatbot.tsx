@@ -18,7 +18,6 @@ import { PatientSelection } from "@/components/PatientSelection";
 import { ChatAppointmentManager } from "@/components/chat/ChatAppointmentManager";
 import { ChatBookingFlow } from "@/components/chat/ChatBookingFlow";
 import { ChatSettingsManager } from "@/components/chat/ChatSettingsManager";
-import { sendEmailSummary } from "@/lib/email";
 import { generateSymptomSummary } from "@/lib/symptoms";
 import { generateMedicalRecordFromChat, createMedicalRecord } from "@/lib/medicalRecords";
 
@@ -629,44 +628,6 @@ Type your request...`;
   };
 
 
-  const sendSummaryEmail = async (appointmentData?: any, urgencyLevel?: string) => {
-    if (!user) return;
-    try {
-      const patientId = await sendEmailSummary(
-        user.id,
-        messages,
-        lastPhotoUrl,
-        appointmentData,
-        urgencyLevel
-      );
-      addSystemMessage(`📧 Summary sent to dentist (Patient ID: ${patientId})`, 'success');
-      toast({
-        title: 'Email sent',
-        description: `Your summary has been sent to the dentist with Patient ID: ${patientId}`,
-      });
-      const summary = await generateSymptomSummary(messages, userProfile);
-      setSymptomSummary(summary);
-      setActiveWidget('symptom-summary');
-      
-      // Create medical record after consultation confirmation
-      if (userProfile) {
-        try {
-          const medicalRecordData = await generateMedicalRecordFromChat(
-            messages, 
-            userProfile, 
-            appointmentData
-          );
-          await createMedicalRecord(medicalRecordData);
-          console.log('Medical record created for patient:', userProfile.id);
-        } catch (error) {
-          console.error('Error creating medical record:', error);
-        }
-      }
-    } catch (error) {
-      console.error('Error sending email:', error);
-      addSystemMessage('❌ Error sending email', 'warning');
-    }
-  };
 
   return (
     <div className="max-w-5xl mx-auto px-2 sm:px-0">
@@ -856,7 +817,6 @@ Type your request...`;
                 prefilledReason={consultationReason}
                 onComplete={(appointmentData) => {
                   addSystemMessage("Appointment confirmed! You'll receive a reminder 24 hours before.", 'success');
-                  sendSummaryEmail(appointmentData);
                   setCurrentFlow('chat');
                 }}
                 onCancel={() => setCurrentFlow('chat')}
