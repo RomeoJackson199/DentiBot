@@ -707,7 +707,7 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
       return;
     }
 
-    if (currentInput.includes('emergency') || currentInput.includes('urgent') || currentInput.includes('pain')) {
+    if (currentInput.includes('emergency') || currentInput.includes('urgent')) {
       startEmergencyBooking();
       setIsLoading(false);
       return;
