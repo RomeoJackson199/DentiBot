@@ -24,7 +24,6 @@ import {
   QuickActionsWidget,
   UrgencySliderWidget
 } from "./InteractiveChatWidgets";
-import { sendEmailSummary } from "@/lib/email";
 import { generateSymptomSummary } from "@/lib/symptoms";
 
 interface InteractiveDentalChatProps {
@@ -648,24 +647,6 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
         step: 'dentist'
       });
 
-      // Send email summary and show symptom description
-      try {
-        const patientId = await sendEmailSummary(
-          user.id,
-          [...messages, { id: crypto.randomUUID(), session_id: sessionId, message: confirmationMessage, is_bot: true, message_type: 'text', created_at: new Date().toISOString() }],
-          undefined,
-          {
-            date: format(bookingFlow.selectedDate, 'yyyy-MM-dd'),
-            time: bookingFlow.selectedTime,
-            reason: bookingFlow.reason || 'General consultation',
-          },
-          bookingFlow.urgency === 3 ? 'high' : 'medium'
-        );
-        addBotMessage(`📧 Summary sent to dentist (Patient ID: ${patientId})`, 'success');
-      } catch (err) {
-        console.error('Error sending email summary:', err);
-        addBotMessage('❌ Error sending email summary', 'warning');
-      }
 
 
   } catch (error) {
