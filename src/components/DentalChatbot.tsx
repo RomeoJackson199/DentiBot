@@ -20,6 +20,7 @@ import { ChatBookingFlow } from "@/components/chat/ChatBookingFlow";
 import { ChatSettingsManager } from "@/components/chat/ChatSettingsManager";
 import { sendEmailSummary } from "@/lib/email";
 import { generateSymptomSummary } from "@/lib/symptoms";
+import { generateMedicalRecordFromChat, createMedicalRecord } from "@/lib/medicalRecords";
 
 interface DentalChatbotProps {
   user: User | null;
@@ -50,6 +51,8 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
   const [consultationReason, setConsultationReason] = useState<string>("");
   const [actionButtons, setActionButtons] = useState<any[]>([]);
   const [showChatBooking, setShowChatBooking] = useState(false);
+  const [symptomSummary, setSymptomSummary] = useState<string>("");
+  const [activeWidget, setActiveWidget] = useState<string>("");
   
   // Voice recording states
   const [isRecording, setIsRecording] = useState(false);
@@ -644,6 +647,21 @@ Type your request...`;
       const summary = await generateSymptomSummary(messages, userProfile);
       setSymptomSummary(summary);
       setActiveWidget('symptom-summary');
+      
+      // Create medical record after consultation confirmation
+      if (userProfile) {
+        try {
+          const medicalRecordData = await generateMedicalRecordFromChat(
+            messages, 
+            userProfile, 
+            appointmentData
+          );
+          await createMedicalRecord(medicalRecordData);
+          console.log('Medical record created for patient:', userProfile.id);
+        } catch (error) {
+          console.error('Error creating medical record:', error);
+        }
+      }
     } catch (error) {
       console.error('Error sending email:', error);
       addSystemMessage('❌ Error sending email', 'warning');

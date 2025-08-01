@@ -11,13 +11,15 @@ import { useToast } from "@/hooks/use-toast";
 import { Activity, MessageSquare, Calendar, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/hooks/useLanguage";
+import { PatientDossier } from "@/components/PatientDossier";
+import { createDossierAfterSignup } from "@/lib/medicalRecords";
 
 const Index = () => {
   const { t } = useLanguage();
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'chat' | 'appointments'>('chat');
+  const [activeTab, setActiveTab] = useState<'chat' | 'appointments' | 'dossier'>('chat');
   const [triggerBooking, setTriggerBooking] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showLanguageSelection, setShowLanguageSelection] = useState(false);
@@ -51,6 +53,9 @@ const Index = () => {
             } else if (!hasSeenOnboarding) {
               setShowOnboarding(true);
             }
+            
+            // Create initial dossier for new users
+            createDossierAfterSignup(session.user.id).catch(console.error);
           }, 0);
         }
       }
@@ -170,34 +175,46 @@ const Index = () => {
       <main className="container mx-auto px-2 sm:px-4 py-4 sm:py-6 lg:py-10">
         {/* Tab Navigation */}
         <div className="flex justify-center mb-6 sm:mb-8">
-          <div className="glass-card rounded-2xl p-2 sm:p-3 animate-fade-in w-full max-w-md">
-            <div className="flex space-x-2 sm:space-x-3">
+          <div className="glass-card rounded-2xl p-2 sm:p-3 animate-fade-in w-full max-w-2xl">
+            <div className="flex space-x-1 sm:space-x-2">
               <Button
                 variant={activeTab === 'chat' ? 'default' : 'ghost'}
                 onClick={() => setActiveTab('chat')}
-                className={`flex items-center space-x-2 sm:space-x-3 px-4 sm:px-6 py-2 sm:py-3 rounded-xl transition-all duration-300 flex-1 justify-center ${
+                className={`flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2 sm:py-3 rounded-xl transition-all duration-300 flex-1 justify-center text-xs sm:text-sm ${
                   activeTab === 'chat' 
                     ? 'bg-gradient-primary text-white shadow-elegant scale-105' 
                     : 'text-dental-muted-foreground hover:text-dental-primary hover:bg-dental-primary/10 hover:scale-105'
                 }`}
               >
-                <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5" />
-                <span className="font-medium text-sm sm:text-base">{t.chat}</span>
+                <MessageSquare className="h-4 w-4" />
+                <span className="font-medium">{t.chat}</span>
               </Button>
-              <div className="flex items-center space-x-2 flex-1">
+              <Button
+                variant={activeTab === 'appointments' ? 'default' : 'ghost'}
+                onClick={() => setActiveTab('appointments')}
+                className={`flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2 sm:py-3 rounded-xl transition-all duration-300 flex-1 justify-center text-xs sm:text-sm ${
+                  activeTab === 'appointments' 
+                    ? 'bg-gradient-primary text-white shadow-elegant scale-105' 
+                    : 'text-dental-muted-foreground hover:text-dental-primary hover:bg-dental-primary/10 hover:scale-105'
+                }`}
+              >
+                <Calendar className="h-4 w-4" />
+                <span className="font-medium">{t.appointments}</span>
+              </Button>
+              {user && (
                 <Button
-                  variant={activeTab === 'appointments' ? 'default' : 'ghost'}
-                  onClick={() => setActiveTab('appointments')}
-                  className={`flex items-center space-x-2 sm:space-x-3 px-4 sm:px-6 py-2 sm:py-3 rounded-xl transition-all duration-300 flex-1 justify-center ${
-                    activeTab === 'appointments' 
+                  variant={activeTab === 'dossier' ? 'default' : 'ghost'}
+                  onClick={() => setActiveTab('dossier')}
+                  className={`flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2 sm:py-3 rounded-xl transition-all duration-300 flex-1 justify-center text-xs sm:text-sm ${
+                    activeTab === 'dossier' 
                       ? 'bg-gradient-primary text-white shadow-elegant scale-105' 
                       : 'text-dental-muted-foreground hover:text-dental-primary hover:bg-dental-primary/10 hover:scale-105'
                   }`}
                 >
-                  <Calendar className="h-4 w-4 sm:h-5 sm:w-5" />
-                  <span className="font-medium text-sm sm:text-base">{t.appointments}</span>
+                  <Activity className="h-4 w-4" />
+                  <span className="font-medium">Dossier</span>
                 </Button>
-              </div>
+              )}
             </div>
           </div>
         </div>
@@ -210,21 +227,27 @@ const Index = () => {
               triggerBooking={triggerBooking}
               onBookingTriggered={() => setTriggerBooking(false)}
             />
-          ) : user ? (
-            <AppointmentsList user={user} />
-          ) : (
-            <div className="text-center py-12">
-              <div className="max-w-md mx-auto space-y-6">
-                <h3 className="text-xl font-semibold text-dental-primary">
-                  {t.signIn} Required
-                </h3>
-                <p className="text-dental-muted-foreground">
-                  Please sign in to view your appointments
-                </p>
-                <AuthForm />
+          ) : activeTab === 'appointments' ? (
+            user ? (
+              <AppointmentsList user={user} />
+            ) : (
+              <div className="text-center py-12">
+                <div className="max-w-md mx-auto space-y-6">
+                  <h3 className="text-xl font-semibold text-dental-primary">
+                    {t.signIn} Required
+                  </h3>
+                  <p className="text-dental-muted-foreground">
+                    Please sign in to view your appointments
+                  </p>
+                  <AuthForm />
+                </div>
               </div>
-            </div>
-          )}
+            )
+          ) : activeTab === 'dossier' ? (
+            user ? (
+              <PatientDossier user={user} />
+            ) : null
+          ) : null}
         </div>
       </main>
 
