@@ -226,6 +226,45 @@ export const InteractiveDentalChat = ({
       return;
     }
 
+    if (suggestions.includes('theme-dark')) {
+      setTheme('dark');
+      addBotMessage('Theme changed to dark mode! \uD83C\uDF19');
+      return;
+    }
+
+    if (suggestions.includes('theme-light')) {
+      setTheme('light');
+      addBotMessage('Theme changed to light mode! \u2600\uFE0F');
+      return;
+    }
+
+    if (suggestions.includes('language-en')) {
+      handleLanguageChange('en');
+      return;
+    }
+
+    if (suggestions.includes('language-fr')) {
+      handleLanguageChange('fr');
+      return;
+    }
+
+    if (suggestions.includes('language-nl')) {
+      handleLanguageChange('nl');
+      return;
+    }
+
+    if (suggestions.includes('language-options')) {
+      setActiveWidget('quick-settings');
+      addBotMessage('Please choose your preferred language:');
+      return;
+    }
+
+    if (suggestions.includes('theme-options')) {
+      setActiveWidget('quick-settings');
+      addBotMessage('Please select a theme:');
+      return;
+    }
+
     if (
       suggestions.includes('booking') ||
       suggestions.includes('skip-patient-selection')
@@ -671,35 +710,6 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
     // Wait for AI suggestions before continuing the booking flow
   }
 
-    if (currentInput.includes('language')) {
-      if (currentInput.includes('english')) {
-        handleLanguageChange('en');
-      } else if (currentInput.includes('french') || currentInput.includes('français')) {
-        handleLanguageChange('fr');
-      } else if (currentInput.includes('dutch') || currentInput.includes('nederlands')) {
-        handleLanguageChange('nl');
-      } else {
-        setActiveWidget('quick-settings');
-        addBotMessage('I can help you change the language. Please select from the options below:');
-      }
-      setIsLoading(false);
-      return;
-    }
-
-    if (currentInput.includes('dark') || currentInput.includes('light') || currentInput.includes('theme')) {
-      if (currentInput.includes('dark')) {
-        setTheme('dark');
-        addBotMessage('Theme changed to dark mode! 🌙');
-      } else if (currentInput.includes('light')) {
-        setTheme('light');
-        addBotMessage('Theme changed to light mode! ☀️');
-      } else {
-        setActiveWidget('quick-settings');
-        addBotMessage('I can help you change the theme. Please select from the options below:');
-      }
-      setIsLoading(false);
-      return;
-    }
 
     if (currentInput.includes('help')) {
       showHelp();

@@ -370,10 +370,32 @@ PROFESSIONAL LANGUAGE EXAMPLES WITH RECOMMENDATIONS:
     } else if (recommendedDentist.length > 0 && suggestions.includes('skip-patient-selection')) {
       // If we have both a recommendation and patient info, go directly to dentist selection
       suggestions.push('skip-patient-selection');
-    } else if (lowerResponse.includes('dentist') || 
+    } else if (lowerResponse.includes('dentist') ||
         lowerResponse.includes('appointment') || lowerResponse.includes('booking') ||
         lowerResponse.includes('rendez-vous')) {
       suggestions.push('booking');
+    }
+
+    // Detect language change requests
+    if (lowerMessage.includes('change') && lowerMessage.includes('language')) {
+      if (lowerMessage.includes('english') || lowerMessage.includes('anglais')) {
+        suggestions.push('language-en');
+      } else if (lowerMessage.includes('french') || lowerMessage.includes('francais') || lowerMessage.includes('français')) {
+        suggestions.push('language-fr');
+      } else if (lowerMessage.includes('dutch') || lowerMessage.includes('nederlands')) {
+        suggestions.push('language-nl');
+      } else {
+        suggestions.push('language-options');
+      }
+    }
+
+    // Detect theme change requests
+    if (lowerMessage.includes('dark mode') || (lowerMessage.includes('dark') && lowerMessage.includes('theme'))) {
+      suggestions.push('theme-dark');
+    } else if (lowerMessage.includes('light mode') || (lowerMessage.includes('light') && lowerMessage.includes('theme'))) {
+      suggestions.push('theme-light');
+    } else if (lowerMessage.includes('theme')) {
+      suggestions.push('theme-options');
     }
     
     // No emergency detection - treat all cases as regular consultations
