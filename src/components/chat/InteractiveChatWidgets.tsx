@@ -209,18 +209,16 @@ const DentistSelectionWidget = ({
 };
 
 // Appointment Confirmation Widget
-const AppointmentConfirmationWidget = ({
-  appointment,
-  onConfirm,
+const AppointmentConfirmationWidget = ({ 
+  appointment, 
+  onConfirm, 
   onCancel,
-  loading = false,
-  summary
-}: {
-  appointment: any;
+  loading = false
+}: { 
+  appointment: any; 
   onConfirm: () => void;
   onCancel: () => void;
   loading?: boolean;
-  summary?: string;
 }) => {
   return (
     <Card className="max-w-md mx-auto my-4 border-primary/20 shadow-lg">
@@ -247,9 +245,6 @@ const AppointmentConfirmationWidget = ({
             <span>{appointment.reason || "General consultation"}</span>
           </div>
         </div>
-        {summary && (
-          <p className="text-sm whitespace-pre-wrap border-t pt-2">{summary}</p>
-        )}
         <div className="flex gap-2">
           <Button variant="outline" onClick={onCancel} className="flex-1">
             Cancel
@@ -629,6 +624,31 @@ const UrgencySliderWidget = ({
   );
 };
 
+// Symptom Summary Widget
+const SymptomSummaryWidget = ({
+  summary,
+  onClose,
+}: {
+  summary: string;
+  onClose?: () => void;
+}) => {
+  return (
+    <Card className="max-w-md mx-auto my-4 border-primary/20 shadow-lg">
+      <CardHeader className="text-center">
+        <Activity className="h-8 w-8 mx-auto text-primary mb-2" />
+        <CardTitle className="text-lg">Symptom Summary</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <p className="text-sm whitespace-pre-wrap">{summary}</p>
+        {onClose && (
+          <Button variant="outline" onClick={onClose} className="w-full">
+            Close
+          </Button>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
 
 export {
   PrivacyConsentWidget,
@@ -640,5 +660,6 @@ export {
   QuickSettingsWidget,
   ImageUploadWidget,
   QuickActionsWidget,
-  UrgencySliderWidget
+  UrgencySliderWidget,
+  SymptomSummaryWidget
 };
