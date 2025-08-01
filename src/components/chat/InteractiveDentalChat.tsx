@@ -355,14 +355,25 @@ export const InteractiveDentalChat = ({
   }
 };
 
-  const startBookingFlow = async () => {
+  const startBookingFlow = () => {
     if (!user) {
-      addBotMessage("Please log in to book an appointment. You can find the login button at the top right of the page.");
+      addBotMessage(
+        "Please log in to book an appointment. You can find the login button at the top right of the page."
+      );
       return;
     }
 
-    addBotMessage("I'll help you book an appointment! Please choose a dentist to continue.");
-    await loadDentistsForBooking(false);
+    setBookingFlow({
+      ...bookingFlow,
+      reason: '',
+      selectedDentist: null,
+      selectedDate: null,
+      selectedTime: '',
+      step: 'reason'
+    });
+
+    addBotMessage("I'll help you book an appointment! What symptoms are you experiencing?");
+    setActiveWidget('appointment-reason');
   };
 
   const startEmergencyBooking = () => {
