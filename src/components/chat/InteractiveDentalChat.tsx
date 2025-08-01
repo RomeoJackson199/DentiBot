@@ -641,7 +641,6 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
         reason: userMessage.message,
         step: 'dentist'
       });
-      addBotMessage(`Got it! You're experiencing: **${userMessage.message}**.`);
     } else {
       // Avoid repeating the confirmation if the reason was already provided
       setBookingFlow({ ...bookingFlow, step: 'dentist' });
