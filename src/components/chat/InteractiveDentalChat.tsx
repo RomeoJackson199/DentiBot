@@ -14,7 +14,6 @@ import { ChatMessage } from "@/types/chat";
 import { format } from "date-fns";
 import {
   PrivacyConsentWidget,
-  AppointmentReasonWidget,
   InlineCalendarWidget,
   TimeSlotsWidget,
   DentistSelectionWidget,
@@ -355,14 +354,25 @@ export const InteractiveDentalChat = ({
   }
 };
 
-  const startBookingFlow = async () => {
+  const startBookingFlow = () => {
     if (!user) {
-      addBotMessage("Please log in to book an appointment. You can find the login button at the top right of the page.");
+      addBotMessage(
+        "Please log in to book an appointment. You can find the login button at the top right of the page."
+      );
       return;
     }
 
-    addBotMessage("I'll help you book an appointment! Please choose a dentist to continue.");
-    await loadDentistsForBooking(false);
+    setBookingFlow({
+      ...bookingFlow,
+      reason: '',
+      selectedDentist: null,
+      selectedDate: null,
+      selectedTime: '',
+      step: 'reason'
+    });
+
+    addBotMessage("I'll help you book an appointment! What symptoms are you experiencing?");
+    setActiveWidget(null);
   };
 
   const startEmergencyBooking = () => {
@@ -434,23 +444,6 @@ Just type what you need or use the quick action buttons! 😊
     }
   };
 
-  const handleAppointmentReason = (reason: string) => {
-    const reasonLabels = {
-      routine: 'Routine check-up',
-      braces: 'Braces tightening', 
-      emergency: 'Pain/Emergency',
-      cleaning: 'Cleaning'
-    };
-
-    setBookingFlow({ ...bookingFlow, reason, step: 'dentist' });
-    setActiveWidget(null);
-    
-    addBotMessage(`Great! You selected: **${reasonLabels[reason as keyof typeof reasonLabels]}** 🦷`);
-    
-    setTimeout(() => {
-      loadDentistsForBooking();
-    }, 1000);
-  };
 
   const handleDentistSelection = (dentist: any) => {
     setBookingFlow({ ...bookingFlow, selectedDentist: dentist, step: 'date' });
@@ -639,9 +632,22 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
     const currentInput = inputMessage.toLowerCase();
     setInputMessage("");
     setIsLoading(true);
-    setActiveWidget(null);
+  setActiveWidget(null);
 
-    await saveMessage(userMessage);
+  await saveMessage(userMessage);
+
+  if (bookingFlow.step === 'reason') {
+    setBookingFlow({ ...bookingFlow, reason: userMessage.message, step: 'dentist' });
+
+    const history = [...messages, userMessage].slice(-10);
+    const { message: aiReply } = await generateBotResponse(userMessage.message, history);
+    setMessages(prev => [...prev, aiReply]);
+    await saveMessage(aiReply);
+
+    await loadDentistsForBooking(false);
+    setIsLoading(false);
+    return;
+  }
 
     if (currentInput.includes('language')) {
       if (currentInput.includes('english')) {
@@ -728,8 +734,6 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
     if (!activeWidget) return null;
 
     switch (activeWidget) {
-      case 'appointment-reason':
-        return <AppointmentReasonWidget onSelect={handleAppointmentReason} />;
       
       case 'dentist-selection':
         return (
