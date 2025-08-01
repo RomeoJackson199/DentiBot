@@ -372,7 +372,7 @@ export const InteractiveDentalChat = ({
     });
 
     addBotMessage("I'll help you book an appointment! What symptoms are you experiencing?");
-    setActiveWidget(null);
+
   };
 
   const startEmergencyBooking = () => {
