@@ -372,7 +372,7 @@ export const InteractiveDentalChat = ({
     });
 
     addBotMessage("I'll help you book an appointment! What symptoms are you experiencing?");
- main
+
   };
 
   const startEmergencyBooking = () => {
@@ -633,7 +633,12 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
     setInputMessage("");
     setIsLoading(true);
   setActiveWidget(null);
- main
+
+  await saveMessage(userMessage);
+
+  if (bookingFlow.step === 'reason') {
+    setBookingFlow({ ...bookingFlow, reason: userMessage.message, step: 'dentist' });
+    addBotMessage(`Got it! You're experiencing: **${userMessage.message}**.`);
     await loadDentistsForBooking(false);
     setIsLoading(false);
     return;
