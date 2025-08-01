@@ -22,8 +22,7 @@ import {
   QuickSettingsWidget,
   ImageUploadWidget,
   QuickActionsWidget,
-  UrgencySliderWidget,
-  SymptomSummaryWidget
+  UrgencySliderWidget
 } from "./InteractiveChatWidgets";
 import { sendEmailSummary } from "@/lib/email";
 import { generateSymptomSummary } from "@/lib/symptoms";
@@ -47,7 +46,6 @@ export const InteractiveDentalChat = ({
   const [showConsentWidget, setShowConsentWidget] = useState(!user);
   const [activeWidget, setActiveWidget] = useState<string | null>(null);
   const [widgetData, setWidgetData] = useState<any>({});
-  const [symptomSummary, setSymptomSummary] = useState<string | null>(null);
   const [userProfile, setUserProfile] = useState<any>(null);
   
   // Booking flow state
@@ -223,6 +221,45 @@ export const InteractiveDentalChat = ({
 
     if (suggestions.includes('recommend-dentist')) {
       loadDentistsForBooking(false, recommendedDentists);
+      return;
+    }
+
+    if (suggestions.includes('theme-dark')) {
+      setTheme('dark');
+      addBotMessage('Theme changed to dark mode! \uD83C\uDF19');
+      return;
+    }
+
+    if (suggestions.includes('theme-light')) {
+      setTheme('light');
+      addBotMessage('Theme changed to light mode! \u2600\uFE0F');
+      return;
+    }
+
+    if (suggestions.includes('language-en')) {
+      handleLanguageChange('en');
+      return;
+    }
+
+    if (suggestions.includes('language-fr')) {
+      handleLanguageChange('fr');
+      return;
+    }
+
+    if (suggestions.includes('language-nl')) {
+      handleLanguageChange('nl');
+      return;
+    }
+
+    if (suggestions.includes('language-options')) {
+      setActiveWidget('quick-settings');
+      addBotMessage('Please choose your preferred language:');
+      return;
+    }
+
+    if (suggestions.includes('theme-options')) {
+      setActiveWidget('quick-settings');
+      addBotMessage('Please select a theme:');
       return;
     }
 
@@ -510,18 +547,18 @@ Just type what you need or use the quick action buttons! 😊
   const handleTimeSelection = (time: string) => {
     setBookingFlow({ ...bookingFlow, selectedTime: time, step: 'confirm' });
     setActiveWidget(null);
-    
+
     addBotMessage(`Time selected: **${time}** 🕐`);
-    
-    setTimeout(() => {
+
+    setTimeout(async () => {
       const appointmentData = {
         date: bookingFlow.selectedDate,
         time: time,
         dentist: bookingFlow.selectedDentist,
         reason: bookingFlow.reason
       };
-      
-      setWidgetData({ appointment: appointmentData });
+      const summary = await generateSymptomSummary(messages, userProfile);
+      setWidgetData({ appointment: appointmentData, summary });
       setActiveWidget('appointment-confirmation');
       addBotMessage("Please review and confirm your appointment:");
     }, 1000);
@@ -625,9 +662,6 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
           bookingFlow.urgency === 3 ? 'high' : 'medium'
         );
         addBotMessage(`📧 Summary sent to dentist (Patient ID: ${patientId})`, 'success');
-        const summary = await generateSymptomSummary(messages, userProfile);
-        setSymptomSummary(summary);
-        setActiveWidget('symptom-summary');
       } catch (err) {
         console.error('Error sending email summary:', err);
         addBotMessage('❌ Error sending email summary', 'warning');
@@ -671,35 +705,6 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
     // Wait for AI suggestions before continuing the booking flow
   }
 
-    if (currentInput.includes('language')) {
-      if (currentInput.includes('english')) {
-        handleLanguageChange('en');
-      } else if (currentInput.includes('french') || currentInput.includes('français')) {
-        handleLanguageChange('fr');
-      } else if (currentInput.includes('dutch') || currentInput.includes('nederlands')) {
-        handleLanguageChange('nl');
-      } else {
-        setActiveWidget('quick-settings');
-        addBotMessage('I can help you change the language. Please select from the options below:');
-      }
-      setIsLoading(false);
-      return;
-    }
-
-    if (currentInput.includes('dark') || currentInput.includes('light') || currentInput.includes('theme')) {
-      if (currentInput.includes('dark')) {
-        setTheme('dark');
-        addBotMessage('Theme changed to dark mode! 🌙');
-      } else if (currentInput.includes('light')) {
-        setTheme('light');
-        addBotMessage('Theme changed to light mode! ☀️');
-      } else {
-        setActiveWidget('quick-settings');
-        addBotMessage('I can help you change the theme. Please select from the options below:');
-      }
-      setIsLoading(false);
-      return;
-    }
 
     if (currentInput.includes('help')) {
       showHelp();
@@ -791,6 +796,7 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
         return (
           <AppointmentConfirmationWidget
             appointment={widgetData.appointment}
+            summary={widgetData.summary}
             onConfirm={handleAppointmentConfirmation}
             onCancel={() => {
               setActiveWidget(null);
@@ -845,14 +851,6 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
       
       case 'quick-actions':
         return <QuickActionsWidget onAction={handleQuickAction} />;
-
-      case 'symptom-summary':
-        return (
-          <SymptomSummaryWidget
-            summary={symptomSummary || ''}
-            onClose={() => setActiveWidget(null)}
-          />
-        );
 
       default:
         return null;
