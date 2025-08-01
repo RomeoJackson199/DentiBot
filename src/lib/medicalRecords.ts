@@ -3,7 +3,7 @@ import { ChatMessage } from "@/types/chat";
 
 export interface CreateMedicalRecordData {
   patientId: string;
-  dentistId: string;
+  dentistId?: string;
   title: string;
   description?: string;
   findings?: string;
@@ -18,7 +18,7 @@ export const createMedicalRecord = async (data: CreateMedicalRecordData) => {
       .from('medical_records')
       .insert({
         patient_id: data.patientId,
-        dentist_id: data.dentistId,
+        dentist_id: data.dentistId || null,
         title: data.title,
         description: data.description,
         findings: data.findings,
@@ -79,7 +79,7 @@ export const generateMedicalRecordFromChat = async (
 
   return {
     patientId: patientProfile.id,
-    dentistId: appointmentData?.dentistId || '', // Will be set when dentist is assigned
+    dentistId: appointmentData?.dentistId, // Will be null initially, updated when dentist is assigned
     title,
     description: `Consultation via chat bot. ${chatContent.substring(0, 500)}...`,
     findings,
@@ -144,7 +144,7 @@ export const createDossierAfterSignup = async (userId: string) => {
     // Create initial welcome record
     const initialRecord: CreateMedicalRecordData = {
       patientId: profile.id,
-      dentistId: '', // Will be assigned later
+      dentistId: undefined, // Will be assigned later
       title: 'Dossier patient créé',
       description: `Nouveau patient inscrit le ${new Date().toLocaleDateString('fr-FR')}`,
       findings: 'Nouveau patient - historique médical à compléter',
