@@ -5,7 +5,7 @@ import { User } from "@supabase/supabase-js";
 import { AvailabilitySettings } from "@/components/AvailabilitySettings";
 import { DentistUrgencyGrid } from "@/components/DentistUrgencyGrid";
 import { DentistManagement } from "@/components/DentistManagement";
-import { PatientManagement } from "@/components/PatientManagement";
+import { NewPatientManagement } from "@/components/NewPatientManagement";
 import { AppointmentManagement } from "@/components/AppointmentManagement";
 import { DentistAnalytics } from "@/components/analytics/DentistAnalytics";
 import { Calendar, Clock, Settings as SettingsIcon, AlertTriangle, BarChart3, UserPlus, LogOut, Users } from "lucide-react";
@@ -226,7 +226,7 @@ export function DentistDashboard({ user }: DentistDashboardProps) {
           )}
 
           {activeTab === 'patients' && (
-            <PatientManagement dentistId={dentistId} />
+            <NewPatientManagement dentistId={dentistId} />
           )}
           
           {activeTab === 'analytics' && (

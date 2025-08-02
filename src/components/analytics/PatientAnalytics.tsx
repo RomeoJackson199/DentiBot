@@ -165,44 +165,32 @@ export const PatientAnalytics = ({ userId }: PatientAnalyticsProps) => {
 
   return (
     <div className="space-y-6">
-      {/* Health Overview */}
+      {/* Next Checkup Recommendation */}
       <Card className="glass-card border-2 border-dental-primary/20">
         <CardHeader className="text-center">
           <CardTitle className="flex items-center justify-center mb-4">
-            <Heart className="h-6 w-6 mr-2 text-red-500" />
-            Your Dental Health Score
+            <Calendar className="h-6 w-6 mr-2 text-dental-primary" />
+            Next Checkup Recommendation
           </CardTitle>
           <div className="space-y-4">
-            <div className="relative w-32 h-32 mx-auto">
-              <svg className="w-32 h-32 transform -rotate-90" viewBox="0 0 100 100">
-                <circle
-                  cx="50" cy="50" r="40"
-                  stroke="currentColor"
-                  strokeWidth="8"
-                  fill="none"
-                  className="text-gray-200"
-                />
-                <circle
-                  cx="50" cy="50" r="40"
-                  stroke="currentColor"
-                  strokeWidth="8"
-                  fill="none"
-                  strokeDasharray={`${2 * Math.PI * 40}`}
-                  strokeDashoffset={`${2 * Math.PI * 40 * (1 - patientData.healthScore / 100)}`}
-                  className="text-dental-primary transition-all duration-1000 ease-out"
-                  strokeLinecap="round"
-                />
-              </svg>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-dental-primary">{patientData.healthScore}</div>
-                  <div className="text-sm text-dental-muted-foreground">Score</div>
-                </div>
+            <div className="text-center">
+              <div className="text-lg font-semibold text-dental-primary mb-2">
+                Annual Dental Checkup
               </div>
+              <p className="text-dental-muted-foreground">
+                It's recommended to have a regular dental checkup every year to maintain optimal oral health.
+              </p>
+              {patientData.lastVisit && (
+                <div className="mt-4 p-4 rounded-xl bg-blue-50 border border-blue-200">
+                  <p className="text-sm text-blue-700">
+                    Last visit: {formatDate(patientData.lastVisit)}
+                  </p>
+                  <p className="text-sm text-blue-700 font-medium">
+                    Next recommended checkup: {new Date(new Date(patientData.lastVisit).getTime() + 365 * 24 * 60 * 60 * 1000).toLocaleDateString()}
+                  </p>
+                </div>
+              )}
             </div>
-            <Badge className={`px-4 py-2 text-lg ${getHealthScoreColor(patientData.healthScore)}`}>
-              {getHealthScoreLabel(patientData.healthScore)}
-            </Badge>
           </div>
         </CardHeader>
       </Card>
@@ -302,50 +290,55 @@ export const PatientAnalytics = ({ userId }: PatientAnalyticsProps) => {
         </Card>
       </div>
 
-      {/* Insights & Recommendations */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Personal Insights */}
+      {/* Next Appointment Info */}
+      <div className="grid grid-cols-1 gap-6">
+        {/* Next Appointment Details */}
         <Card className="glass-card">
           <CardHeader>
             <CardTitle className="flex items-center">
-              <TrendingUp className="h-5 w-5 mr-2 text-dental-primary" />
-              Your Health Insights
+              <Clock className="h-5 w-5 mr-2 text-dental-primary" />
+              Your Next Appointment
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-dental-muted-foreground">Last Visit</span>
-                <span className="font-semibold">
-                  {patientData.lastVisit ? formatDate(patientData.lastVisit) : 'No visits yet'}
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-dental-muted-foreground">Preferred Time</span>
-                <span className="font-semibold">{patientData.preferredTime}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-dental-muted-foreground">Care Notes</span>
-                <span className="font-semibold">{patientData.totalNotes}</span>
-              </div>
-            </div>
-            
-            <div className="pt-4 border-t border-white/10">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Your Rating</span>
-                <div className="flex items-center">
-                  <div className="flex mr-2">
-                    {[...Array(5)].map((_, i) => (
-                      <Star 
-                        key={i} 
-                        className={`h-4 w-4 ${i < Math.floor(patientData.avgRating) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`}
-                      />
-                    ))}
+            {patientData.upcomingAppointments > 0 ? (
+              <div className="space-y-3">
+                <div className="p-4 rounded-xl bg-green-50 border border-green-200">
+                  <div className="flex items-center mb-2">
+                    <CheckCircle className="h-5 w-5 text-green-600 mr-2" />
+                    <span className="font-semibold text-green-800">Upcoming Appointment</span>
                   </div>
-                  <span className="font-semibold">{patientData.avgRating}</span>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-green-700">Date:</span>
+                      <span className="font-semibold text-green-800">This week</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-green-700">Type:</span>
+                      <span className="font-semibold text-green-800">Regular Checkup</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-green-700">Duration:</span>
+                      <span className="font-semibold text-green-800">60 minutes</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-green-700">Preparation:</span>
+                      <span className="font-semibold text-green-800">Brush teeth before visit</span>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
+            ) : (
+              <div className="p-4 rounded-xl bg-blue-50 border border-blue-200 text-center">
+                <div className="flex items-center justify-center mb-2">
+                  <Calendar className="h-5 w-5 text-blue-600 mr-2" />
+                  <span className="font-semibold text-blue-800">No Upcoming Appointments</span>
+                </div>
+                <p className="text-sm text-blue-700">
+                  Book your next appointment to maintain optimal oral health.
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -378,52 +371,10 @@ export const PatientAnalytics = ({ userId }: PatientAnalyticsProps) => {
                   Schedule your next cleaning for optimal oral health maintenance.
                 </p>
               </div>
-              
-              {patientData.healthScore < 80 && (
-                <div className="p-4 rounded-xl bg-yellow-50 border border-yellow-200">
-                  <div className="flex items-center mb-2">
-                    <AlertTriangle className="h-5 w-5 text-yellow-600 mr-2" />
-                    <span className="font-semibold text-yellow-800">Improvement Tip</span>
-                  </div>
-                  <p className="text-sm text-yellow-700">
-                    Regular flossing can improve your health score by 10-15 points.
-                  </p>
-                </div>
-              )}
             </div>
           </CardContent>
         </Card>
       </div>
-
-      {/* Quick Actions */}
-      <Card className="glass-card">
-        <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Button className="h-auto p-4 flex flex-col items-center space-y-2 bg-gradient-primary text-white">
-              <Calendar className="h-6 w-6" />
-              <span>Book Appointment</span>
-            </Button>
-            
-            <Button variant="outline" className="h-auto p-4 flex flex-col items-center space-y-2">
-              <MessageSquare className="h-6 w-6" />
-              <span>Ask AI</span>
-            </Button>
-            
-            <Button variant="outline" className="h-auto p-4 flex flex-col items-center space-y-2">
-              <Activity className="h-6 w-6" />
-              <span>View Records</span>
-            </Button>
-            
-            <Button variant="outline" className="h-auto p-4 flex flex-col items-center space-y-2">
-              <AlertTriangle className="h-6 w-6" />
-              <span>Emergency Triage</span>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 };

@@ -4,20 +4,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { 
   Search, 
   User, 
   Calendar, 
-  FileText, 
   ArrowLeft,
   Clock,
-  Stethoscope,
-  Pill,
   Users,
   CreditCard,
-  MessageSquare
+  MessageSquare,
+  FileText,
+  Stethoscope
 } from "lucide-react";
 import { AIConversationDialog } from "@/components/AIConversationDialog";
 
@@ -34,30 +33,32 @@ interface Patient {
   upcoming_appointments: number;
 }
 
-interface PatientStats {
-  total_appointments: number;
-  upcoming_appointments: number;
-  completed_appointments: number;
-  last_appointment_date?: string;
-  total_notes: number;
-  active_treatment_plans: number;
+interface AppointmentWithSummary {
+  id: string;
+  appointment_date: string;
+  status: string;
+  reason?: string;
+  consultation_notes?: string;
+  ai_summary?: string;
 }
 
 interface PatientManagementProps {
   dentistId: string;
 }
 
-export function PatientManagement({ dentistId }: PatientManagementProps) {
+export function NewPatientManagement({ dentistId }: PatientManagementProps) {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [filteredPatients, setFilteredPatients] = useState<Patient[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [activeView, setActiveView] = useState<'list' | 'profile'>('list');
-  const [patientStats, setPatientStats] = useState<PatientStats | null>(null);
+  const [appointments, setAppointments] = useState<AppointmentWithSummary[]>([]);
   const [paymentAmount, setPaymentAmount] = useState("");
   const [paymentDescription, setPaymentDescription] = useState("");
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [appointmentSummary, setAppointmentSummary] = useState("");
+  const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -72,7 +73,6 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
     try {
       setLoading(true);
       
-      // Get all appointments for this dentist to find patients
       const { data: appointments, error } = await supabase
         .from('appointments')
         .select(`
@@ -97,7 +97,6 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
         return;
       }
 
-      // Group by patient and calculate stats
       const patientMap = new Map();
       
       for (const appointment of appointments) {
@@ -117,10 +116,8 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
         patient.total_appointments++;
       }
 
-      // Convert to array and get additional stats
       const patientsArray = Array.from(patientMap.values());
       
-      // Get upcoming appointments count for each patient
       for (const patient of patientsArray) {
         const { data: upcomingAppts } = await supabase
           .from('appointments')
@@ -132,7 +129,6 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
         
         patient.upcoming_appointments = upcomingAppts?.length || 0;
         
-        // Get last appointment
         const { data: lastAppt } = await supabase
           .from('appointments')
           .select('appointment_date')
@@ -162,19 +158,19 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
     }
   };
 
-  const fetchPatientStats = async (patientId: string) => {
+  const fetchPatientAppointments = async (patientId: string) => {
     try {
-      const { data, error } = await supabase.rpc('get_patient_stats_for_dentist', {
-        p_dentist_id: dentistId,
-        p_patient_id: patientId
-      });
+      const { data, error } = await supabase
+        .from('appointments')
+        .select('id, appointment_date, status, reason, consultation_notes')
+        .eq('patient_id', patientId)
+        .eq('dentist_id', dentistId)
+        .order('appointment_date', { ascending: false });
 
       if (error) throw error;
-      if (data && data.length > 0) {
-        setPatientStats(data[0]);
-      }
+      setAppointments(data || []);
     } catch (error) {
-      console.error('Error fetching patient stats:', error);
+      console.error('Error fetching appointments:', error);
     }
   };
 
@@ -194,13 +190,13 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
   const handlePatientSelect = (patient: Patient) => {
     setSelectedPatient(patient);
     setActiveView('profile');
-    fetchPatientStats(patient.id);
+    fetchPatientAppointments(patient.id);
   };
 
   const handleBackToList = () => {
     setSelectedPatient(null);
     setActiveView('list');
-    setPatientStats(null);
+    setAppointments([]);
   };
 
   const handlePaymentRequest = async () => {
@@ -220,7 +216,7 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
         body: {
           patient_id: selectedPatient.id,
           dentist_id: dentistId,
-          amount: parseFloat(paymentAmount) * 100, // Convert to cents
+          amount: parseFloat(paymentAmount) * 100,
           description: paymentDescription,
           patient_email: selectedPatient.email,
           patient_name: `${selectedPatient.first_name} ${selectedPatient.last_name}`
@@ -248,6 +244,42 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
     }
   };
 
+  const handleAppointmentSummary = async (appointmentId: string) => {
+    if (!appointmentSummary.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter a summary",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('appointments')
+        .update({ consultation_notes: appointmentSummary })
+        .eq('id', appointmentId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Appointment summary saved",
+      });
+
+      setAppointmentSummary("");
+      setSelectedAppointmentId(null);
+      fetchPatientAppointments(selectedPatient!.id);
+      
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Failed to save summary",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (loading) {
     return (
       <Card className="glass-card">
@@ -269,7 +301,6 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {/* Search Bar */}
             <div className="relative mb-6">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input
@@ -280,7 +311,6 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
               />
             </div>
 
-            {/* Statistics */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
               <Card>
                 <CardContent className="p-4 text-center">
@@ -306,7 +336,6 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
               </Card>
             </div>
 
-            {/* Patient List */}
             <div className="space-y-3">
               {filteredPatients.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
@@ -411,36 +440,6 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
         </CardContent>
       </Card>
 
-      {/* Patient Stats */}
-      {patientStats && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-primary">{patientStats.total_appointments}</div>
-              <div className="text-sm text-muted-foreground">Total Appointments</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-green-600">{patientStats.upcoming_appointments}</div>
-              <div className="text-sm text-muted-foreground">Upcoming</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-blue-600">{patientStats.total_notes}</div>
-              <div className="text-sm text-muted-foreground">Clinical Notes</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-purple-600">{patientStats.active_treatment_plans}</div>
-              <div className="text-sm text-muted-foreground">Treatment Plans</div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
       {/* Patient Actions */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* AI Chat */}
@@ -494,32 +493,102 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
             </div>
             <Button 
               onClick={handlePaymentRequest}
-              disabled={!paymentAmount || !paymentDescription || isProcessingPayment}
+              disabled={isProcessingPayment}
               className="w-full"
             >
-              {isProcessingPayment ? "Sending..." : "Send Payment Request"}
+              {isProcessingPayment ? "Processing..." : "Send Payment Request"}
             </Button>
-            <p className="text-xs text-muted-foreground">
-              Patient will receive an email with secure payment link
-            </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Medical Information */}
-      {selectedPatient.medical_history && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <FileText className="h-5 w-5 text-primary" />
-              <span>Medical History</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm">{selectedPatient.medical_history}</p>
-          </CardContent>
-        </Card>
-      )}
+      {/* Appointment History with AI Summary */}
+      <Card className="glass-card">
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <Calendar className="h-5 w-5 text-primary" />
+            <span>Appointment History</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {appointments.length === 0 ? (
+            <p className="text-center py-8 text-muted-foreground">No appointments found.</p>
+          ) : (
+            <div className="space-y-4">
+              {appointments.map((appointment) => (
+                <Card key={appointment.id} className="border">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <p className="font-semibold">
+                          {new Date(appointment.appointment_date).toLocaleDateString()}
+                        </p>
+                        <Badge variant={appointment.status === 'completed' ? 'default' : 'secondary'}>
+                          {appointment.status}
+                        </Badge>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedAppointmentId(appointment.id);
+                          setAppointmentSummary(appointment.consultation_notes || "");
+                        }}
+                      >
+                        <Stethoscope className="h-4 w-4 mr-2" />
+                        Add Summary
+                      </Button>
+                    </div>
+                    
+                    {appointment.reason && (
+                      <p className="text-sm text-muted-foreground mb-2">
+                        <strong>Reason:</strong> {appointment.reason}
+                      </p>
+                    )}
+                    
+                    {appointment.consultation_notes && (
+                      <div className="p-3 bg-blue-50 rounded-lg">
+                        <p className="text-sm text-blue-800">
+                          <strong>Notes:</strong> {appointment.consultation_notes}
+                        </p>
+                      </div>
+                    )}
+                    
+                    {selectedAppointmentId === appointment.id && (
+                      <div className="mt-4 space-y-3">
+                        <Textarea
+                          placeholder="Enter consultation notes and summary..."
+                          value={appointmentSummary}
+                          onChange={(e) => setAppointmentSummary(e.target.value)}
+                          className="min-h-[100px]"
+                        />
+                        <div className="flex space-x-2">
+                          <Button
+                            onClick={() => handleAppointmentSummary(appointment.id)}
+                            size="sm"
+                          >
+                            Save Summary
+                          </Button>
+                          <Button
+                            variant="outline"
+                            onClick={() => {
+                              setSelectedAppointmentId(null);
+                              setAppointmentSummary("");
+                            }}
+                            size="sm"
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

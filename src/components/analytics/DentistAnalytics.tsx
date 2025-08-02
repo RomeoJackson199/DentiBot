@@ -92,20 +92,32 @@ export const DentistAnalytics = ({ dentistId }: DentistAnalyticsProps) => {
       const avgRating = ratings?.length ? 
         ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length : 0;
 
-      // Simulate other metrics (in real app, calculate from actual data)
+      // Calculate real metrics based on actual data
+      const uniquePatients = new Set(appointments?.map(apt => apt.patient_id)).size;
+      const completedAppointments = appointments?.filter(apt => apt.status === 'completed').length || 0;
+      const noShowAppointments = appointments?.filter(apt => apt.status === 'cancelled').length || 0;
+      const totalAppointments = appointments?.length || 0;
+      const noShowRate = totalAppointments > 0 ? Math.round((noShowAppointments / totalAppointments) * 100) : 0;
+      
+      // Calculate estimated revenue (€80 per completed appointment)
+      const avgAppointmentRevenue = 80;
+      const todayRevenue = todayAppointments * avgAppointmentRevenue;
+      const weekRevenue = weekAppointments * avgAppointmentRevenue;
+      const monthRevenue = completedAppointments * avgAppointmentRevenue;
+      
       setAnalytics({
-        dailyRevenue: Math.floor(Math.random() * 2000) + 800,
-        weeklyRevenue: Math.floor(Math.random() * 12000) + 5000,
-        monthlyRevenue: Math.floor(Math.random() * 45000) + 20000,
+        dailyRevenue: todayRevenue,
+        weeklyRevenue: weekRevenue,
+        monthlyRevenue: monthRevenue,
         appointmentsToday: todayAppointments,
         appointmentsWeek: weekAppointments,
-        patientsTotal: Math.floor(Math.random() * 300) + 150,
+        patientsTotal: uniquePatients,
         averageRating: avgRating,
-        noShowRate: Math.floor(Math.random() * 15) + 5,
-        utilizationRate: Math.floor(Math.random() * 20) + 75,
+        noShowRate: noShowRate,
+        utilizationRate: Math.round((completedAppointments / Math.max(totalAppointments, 1)) * 100),
         emergencyAppointments: emergencyCount,
-        revenueGrowth: Math.floor(Math.random() * 30) + 10,
-        patientRetention: Math.floor(Math.random() * 15) + 80
+        revenueGrowth: Math.max(0, Math.round(((weekRevenue - monthRevenue/4) / Math.max(monthRevenue/4, 1)) * 100)),
+        patientRetention: Math.round((uniquePatients / Math.max(totalAppointments, 1)) * 100)
       });
 
     } catch (error) {
