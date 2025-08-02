@@ -29,6 +29,8 @@ import {
   BookOpen
 } from "lucide-react";
 import { format } from "date-fns";
+import { generateSymptomSummary } from "@/lib/symptoms";
+import { AIConversationDialog } from "@/components/AIConversationDialog";
 
 interface Appointment {
   id: string;
