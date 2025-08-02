@@ -824,6 +824,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      get_current_user_role: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       get_patient_stats_for_dentist: {
         Args: { p_dentist_id: string; p_patient_id: string }
         Returns: {
