@@ -210,14 +210,49 @@ PROFESSIONAL LANGUAGE EXAMPLES WITH RECOMMENDATIONS:
     let responseFormat = {};
 
     if (mode === 'dentist_consultation') {
-      systemPrompt = `You are an advanced dental AI assistant helping a dentist with patient care. You have access to the patient's medical history, notes, and current context.
+      systemPrompt = `You are an advanced dental AI assistant helping a dentist with patient care. You have access to comprehensive patient information and clinical context.
 
-PATIENT CONTEXT:
-${patient_context?.patient ? `Name: ${patient_context.patient.first_name} ${patient_context.patient.last_name}` : ''}
-${patient_context?.patient?.medical_history ? `Medical History: ${patient_context.patient.medical_history}` : ''}
-${patient_context?.medical_history ? `Previous Records: ${JSON.stringify(patient_context.medical_history)}` : ''}
-${patient_context?.notes ? `Clinical Notes: ${JSON.stringify(patient_context.notes)}` : ''}
-${patient_context?.treatment_plans ? `Treatment Plans: ${JSON.stringify(patient_context.treatment_plans)}` : ''}
+PATIENT INFORMATION:
+${patient_context?.patient ? `
+Patient Name: ${patient_context.patient.first_name} ${patient_context.patient.last_name}
+Email: ${patient_context.patient.email || 'Not provided'}
+Phone: ${patient_context.patient.phone || 'Not provided'}
+Date of Birth: ${patient_context.patient.date_of_birth || 'Not provided'}
+Medical History: ${patient_context.patient.medical_history || 'No medical history recorded'}
+` : 'No patient profile information available'}
+
+CLINICAL HISTORY:
+${patient_context?.medical_history?.length > 0 ? `
+Previous Medical Records:
+${patient_context.medical_history.map((record: any) => `
+- Date: ${record.visit_date}
+- Type: ${record.record_type}
+- Title: ${record.title}
+- Description: ${record.description || 'No description'}
+- Findings: ${record.findings || 'No findings recorded'}
+- Recommendations: ${record.recommendations || 'No recommendations'}
+`).join('\n')}` : 'No previous medical records found'}
+
+${patient_context?.notes?.length > 0 ? `
+Clinical Notes:
+${patient_context.notes.map((note: any) => `
+- Date: ${note.created_at}
+- Note: ${note.content}
+`).join('\n')}` : 'No clinical notes found'}
+
+${patient_context?.treatment_plans?.length > 0 ? `
+Treatment Plans:
+${patient_context.treatment_plans.map((plan: any) => `
+- Title: ${plan.title}
+- Status: ${plan.status}
+- Priority: ${plan.priority}
+- Description: ${plan.description || 'No description'}
+- Diagnosis: ${plan.diagnosis || 'No diagnosis recorded'}
+- Estimated Duration: ${plan.estimated_duration_weeks || 'Not specified'} weeks
+- Estimated Cost: €${plan.estimated_cost || 'Not specified'}
+- Start Date: ${plan.start_date || 'Not scheduled'}
+- Treatment Steps: ${plan.treatment_steps ? JSON.stringify(plan.treatment_steps) : 'No steps defined'}
+`).join('\n')}` : 'No treatment plans found'}
 
 Your role is to:
 1. Analyze patient information and provide clinical insights

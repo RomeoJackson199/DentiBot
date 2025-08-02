@@ -11,19 +11,14 @@ import {
   User, 
   Calendar, 
   FileText, 
-  Plus,
   ArrowLeft,
   Clock,
-  AlertTriangle,
   Stethoscope,
   Pill,
-  Users
+  Users,
+  CreditCard,
+  MessageSquare
 } from "lucide-react";
-import { PatientDossier } from "@/components/PatientDossier";
-import { PatientAppointments } from "@/components/PatientAppointments";
-import { PatientNotes } from "@/components/PatientNotes";
-import { PatientTreatmentPlans } from "@/components/PatientTreatmentPlans";
-import { SimpleAppointmentBooking } from "@/components/SimpleAppointmentBooking";
 import { AIConversationDialog } from "@/components/AIConversationDialog";
 
 interface Patient {
@@ -39,6 +34,15 @@ interface Patient {
   upcoming_appointments: number;
 }
 
+interface PatientStats {
+  total_appointments: number;
+  upcoming_appointments: number;
+  completed_appointments: number;
+  last_appointment_date?: string;
+  total_notes: number;
+  active_treatment_plans: number;
+}
+
 interface PatientManagementProps {
   dentistId: string;
 }
@@ -49,7 +53,11 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
-  const [activeView, setActiveView] = useState<'list' | 'dossier' | 'appointments' | 'notes' | 'treatment'>('list');
+  const [activeView, setActiveView] = useState<'list' | 'profile'>('list');
+  const [patientStats, setPatientStats] = useState<PatientStats | null>(null);
+  const [paymentAmount, setPaymentAmount] = useState("");
+  const [paymentDescription, setPaymentDescription] = useState("");
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -64,113 +72,109 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
     try {
       setLoading(true);
       
-      // Get all unique patient IDs who have any relationship with this dentist
-      const patientIds = new Set<string>();
-      
-      // 1. Patients with appointments
-      const { data: appointments } = await supabase
+      // Get all appointments for this dentist to find patients
+      const { data: appointments, error } = await supabase
         .from('appointments')
-        .select('patient_id')
-        .eq('dentist_id', dentistId);
-       
-       console.log('Appointments for dentist:', appointments);
-       appointments?.forEach(apt => patientIds.add(apt.patient_id));
-      
-      // 2. Patients with medical records
-      const { data: medicalRecords } = await supabase
-        .from('medical_records')
-        .select('patient_id')
-        .eq('dentist_id', dentistId);
-      
-      medicalRecords?.forEach(record => patientIds.add(record.patient_id));
-      
-      // 3. Patients with treatment plans
-      const { data: treatmentPlans } = await supabase
-        .from('treatment_plans')
-        .select('patient_id')
-        .eq('dentist_id', dentistId);
-      
-      treatmentPlans?.forEach(plan => patientIds.add(plan.patient_id));
-      
-      // 4. Patients with notes from this dentist
-      const { data: notes } = await supabase
-        .from('notes')
-        .select('patient_id')
-        .eq('dentist_id', dentistId);
-      
-      notes?.forEach(note => patientIds.add(note.patient_id));
-
-      // If no patients found, return empty array
-       if (patientIds.size === 0) {
-         console.log('No patient IDs found for dentist:', dentistId);
-         setPatients([]);
-         setFilteredPatients([]);
-         return;
-       }
-
-       console.log('Found patient IDs:', Array.from(patientIds));
-
-      // Get patient profiles
-      const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
         .select(`
-          id,
-          first_name,
-          last_name,
-          email,
-          phone,
-          date_of_birth,
-          medical_history
+          patient_id,
+          profiles!appointments_patient_id_fkey (
+            id,
+            first_name,
+            last_name,
+            email,
+            phone,
+            date_of_birth,
+            medical_history
+          )
         `)
-        .in('id', Array.from(patientIds));
+        .eq('dentist_id', dentistId);
 
-       if (profilesError) {
-         console.error('Profile error:', profilesError);
-         throw profilesError;
-       }
+      if (error) throw error;
 
-       console.log('Retrieved profiles:', profiles);
+      if (!appointments || appointments.length === 0) {
+        setPatients([]);
+        setFilteredPatients([]);
+        return;
+      }
 
-      // Build patient data with statistics
-      const patientsWithStats = await Promise.all(
-        (profiles || []).map(async (profile) => {
-          // Get appointment statistics
-          const { data: appointmentStats } = await supabase
-            .from('appointments')
-            .select('appointment_date, status')
-            .eq('patient_id', profile.id)
-            .eq('dentist_id', dentistId)
-            .order('appointment_date', { ascending: false });
-
-          const total_appointments = appointmentStats?.length || 0;
-          const upcoming_appointments = appointmentStats?.filter(
-            a => new Date(a.appointment_date) > new Date() && a.status !== 'cancelled'
-          ).length || 0;
-          
-          const lastAppointment = appointmentStats?.find(
-            a => new Date(a.appointment_date) <= new Date() && a.status === 'completed'
-          );
-
-          return {
+      // Group by patient and calculate stats
+      const patientMap = new Map();
+      
+      for (const appointment of appointments) {
+        const profile = appointment.profiles;
+        if (!profile) continue;
+        
+        if (!patientMap.has(profile.id)) {
+          patientMap.set(profile.id, {
             ...profile,
-            total_appointments,
-            upcoming_appointments,
-            last_appointment: lastAppointment?.appointment_date || null
-          };
-        })
-      );
+            total_appointments: 0,
+            upcoming_appointments: 0,
+            last_appointment: null
+          });
+        }
+        
+        const patient = patientMap.get(profile.id);
+        patient.total_appointments++;
+      }
 
-      setPatients(patientsWithStats);
-      setFilteredPatients(patientsWithStats);
+      // Convert to array and get additional stats
+      const patientsArray = Array.from(patientMap.values());
+      
+      // Get upcoming appointments count for each patient
+      for (const patient of patientsArray) {
+        const { data: upcomingAppts } = await supabase
+          .from('appointments')
+          .select('id')
+          .eq('patient_id', patient.id)
+          .eq('dentist_id', dentistId)
+          .gt('appointment_date', new Date().toISOString())
+          .neq('status', 'cancelled');
+        
+        patient.upcoming_appointments = upcomingAppts?.length || 0;
+        
+        // Get last appointment
+        const { data: lastAppt } = await supabase
+          .from('appointments')
+          .select('appointment_date')
+          .eq('patient_id', patient.id)
+          .eq('dentist_id', dentistId)
+          .eq('status', 'completed')
+          .order('appointment_date', { ascending: false })
+          .limit(1);
+        
+        if (lastAppt && lastAppt.length > 0) {
+          patient.last_appointment = lastAppt[0].appointment_date;
+        }
+      }
+
+      setPatients(patientsArray);
+      setFilteredPatients(patientsArray);
       
     } catch (error: any) {
+      console.error('Error fetching patients:', error);
       toast({
         title: "Error",
-        description: error.message || "Failed to load patients",
+        description: "Failed to load patients",
         variant: "destructive",
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchPatientStats = async (patientId: string) => {
+    try {
+      const { data, error } = await supabase.rpc('get_patient_stats_for_dentist', {
+        p_dentist_id: dentistId,
+        p_patient_id: patientId
+      });
+
+      if (error) throw error;
+      if (data && data.length > 0) {
+        setPatientStats(data[0]);
+      }
+    } catch (error) {
+      console.error('Error fetching patient stats:', error);
     }
   };
 
@@ -189,12 +193,59 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
 
   const handlePatientSelect = (patient: Patient) => {
     setSelectedPatient(patient);
-    setActiveView('dossier');
+    setActiveView('profile');
+    fetchPatientStats(patient.id);
   };
 
   const handleBackToList = () => {
     setSelectedPatient(null);
     setActiveView('list');
+    setPatientStats(null);
+  };
+
+  const handlePaymentRequest = async () => {
+    if (!selectedPatient || !paymentAmount || !paymentDescription) {
+      toast({
+        title: "Error",
+        description: "Please fill in all payment fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setIsProcessingPayment(true);
+      
+      const { data, error } = await supabase.functions.invoke('create-payment-request', {
+        body: {
+          patient_id: selectedPatient.id,
+          dentist_id: dentistId,
+          amount: parseFloat(paymentAmount) * 100, // Convert to cents
+          description: paymentDescription,
+          patient_email: selectedPatient.email,
+          patient_name: `${selectedPatient.first_name} ${selectedPatient.last_name}`
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Payment Request Sent",
+        description: `Payment request for €${paymentAmount} sent to ${selectedPatient.first_name}`,
+      });
+
+      setPaymentAmount("");
+      setPaymentDescription("");
+      
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to send payment request",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessingPayment(false);
+    }
   };
 
   if (loading) {
@@ -213,7 +264,7 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
         <Card className="glass-card">
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
-              <Users className="h-6 w-6 text-dental-primary" />
+              <Users className="h-6 w-6 text-primary" />
               <span>Patient Management</span>
             </CardTitle>
           </CardHeader>
@@ -233,7 +284,7 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
               <Card>
                 <CardContent className="p-4 text-center">
-                  <div className="text-2xl font-bold text-dental-primary">{patients.length}</div>
+                  <div className="text-2xl font-bold text-primary">{patients.length}</div>
                   <div className="text-sm text-muted-foreground">Total Patients</div>
                 </CardContent>
               </Card>
@@ -270,8 +321,8 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
                         onClick={() => handlePatientSelect(patient)}
                       >
                         <div className="flex items-center space-x-4">
-                          <div className="w-12 h-12 bg-dental-primary/10 rounded-full flex items-center justify-center">
-                            <User className="h-6 w-6 text-dental-primary" />
+                          <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+                            <User className="h-6 w-6 text-primary" />
                           </div>
                           <div>
                             <h3 className="font-semibold">
@@ -300,24 +351,9 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
                               </div>
                             )}
                           </div>
-                          <SimpleAppointmentBooking 
-                            dentistId={dentistId}
-                            patientId={patient.id}
-                            patientName={`${patient.first_name} ${patient.last_name}`}
-                            onSuccess={fetchPatients}
-                          />
-                          <div className="flex space-x-2">
-                            <Button variant="outline" size="sm">
-                              View Dossier
-                            </Button>
-                            <AIConversationDialog
-                              patientId={patient.id}
-                              dentistId={dentistId}
-                              patientName={`${patient.first_name} ${patient.last_name}`}
-                              contextType="patient"
-                              onUpdate={fetchPatients}
-                            />
-                          </div>
+                          <Button variant="outline" size="sm">
+                            View Patient
+                          </Button>
                         </div>
                       </div>
                     </CardContent>
@@ -346,8 +382,8 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Patients
               </Button>
-              <div className="w-16 h-16 bg-dental-primary/10 rounded-full flex items-center justify-center">
-                <User className="h-8 w-8 text-dental-primary" />
+              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
+                <User className="h-8 w-8 text-primary" />
               </div>
               <div>
                 <h2 className="text-2xl font-bold">
@@ -375,59 +411,115 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
         </CardContent>
       </Card>
 
-      {/* Patient Navigation */}
-      <Tabs value={activeView} onValueChange={(value: any) => setActiveView(value)}>
-        <Card className="glass-card">
-          <CardContent className="p-4">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="dossier" className="flex items-center space-x-2">
-                <FileText className="h-4 w-4" />
-                <span>Medical Dossier</span>
-              </TabsTrigger>
-              <TabsTrigger value="appointments" className="flex items-center space-x-2">
-                <Calendar className="h-4 w-4" />
-                <span>Appointments</span>
-              </TabsTrigger>
-              <TabsTrigger value="notes" className="flex items-center space-x-2">
-                <Stethoscope className="h-4 w-4" />
-                <span>Clinical Notes</span>
-              </TabsTrigger>
-              <TabsTrigger value="treatment" className="flex items-center space-x-2">
-                <Pill className="h-4 w-4" />
-                <span>Treatment Plans</span>
-              </TabsTrigger>
-            </TabsList>
+      {/* Patient Stats */}
+      {patientStats && (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card>
+            <CardContent className="p-4 text-center">
+              <div className="text-2xl font-bold text-primary">{patientStats.total_appointments}</div>
+              <div className="text-sm text-muted-foreground">Total Appointments</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4 text-center">
+              <div className="text-2xl font-bold text-green-600">{patientStats.upcoming_appointments}</div>
+              <div className="text-sm text-muted-foreground">Upcoming</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4 text-center">
+              <div className="text-2xl font-bold text-blue-600">{patientStats.total_notes}</div>
+              <div className="text-sm text-muted-foreground">Clinical Notes</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4 text-center">
+              <div className="text-2xl font-bold text-purple-600">{patientStats.active_treatment_plans}</div>
+              <div className="text-sm text-muted-foreground">Treatment Plans</div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Patient Actions */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* AI Chat */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <MessageSquare className="h-5 w-5 text-primary" />
+              <span>AI Consultation</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-4">
+              Chat with AI about {selectedPatient.first_name}'s care, get treatment suggestions, and clinical insights.
+            </p>
+            <AIConversationDialog
+              patientId={selectedPatient.id}
+              dentistId={dentistId}
+              patientName={`${selectedPatient.first_name} ${selectedPatient.last_name}`}
+              contextType="patient"
+              onUpdate={fetchPatients}
+            />
           </CardContent>
         </Card>
 
-        <TabsContent value="dossier">
-          <PatientDossier 
-            user={{ id: selectedPatient.id } as any}
-            onBack={handleBackToList}
-          />
-        </TabsContent>
+        {/* Payment Request */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <CreditCard className="h-5 w-5 text-primary" />
+              <span>Payment Request</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Amount (€)</label>
+              <Input
+                type="number"
+                step="0.01"
+                placeholder="0.00"
+                value={paymentAmount}
+                onChange={(e) => setPaymentAmount(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Description</label>
+              <Input
+                placeholder="e.g., Dental cleaning, Root canal treatment"
+                value={paymentDescription}
+                onChange={(e) => setPaymentDescription(e.target.value)}
+              />
+            </div>
+            <Button 
+              onClick={handlePaymentRequest}
+              disabled={!paymentAmount || !paymentDescription || isProcessingPayment}
+              className="w-full"
+            >
+              {isProcessingPayment ? "Sending..." : "Send Payment Request"}
+            </Button>
+            <p className="text-xs text-muted-foreground">
+              Patient will receive an email with secure payment link
+            </p>
+          </CardContent>
+        </Card>
+      </div>
 
-        <TabsContent value="appointments">
-          <PatientAppointments 
-            patientId={selectedPatient.id}
-            dentistId={dentistId}
-          />
-        </TabsContent>
-
-        <TabsContent value="notes">
-          <PatientNotes 
-            patientId={selectedPatient.id}
-            dentistId={dentistId}
-          />
-        </TabsContent>
-
-        <TabsContent value="treatment">
-          <PatientTreatmentPlans 
-            patientId={selectedPatient.id}
-            dentistId={dentistId}
-          />
-        </TabsContent>
-      </Tabs>
+      {/* Medical Information */}
+      {selectedPatient.medical_history && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <FileText className="h-5 w-5 text-primary" />
+              <span>Medical History</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm">{selectedPatient.medical_history}</p>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
