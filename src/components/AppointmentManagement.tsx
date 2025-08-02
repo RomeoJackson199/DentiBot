@@ -94,7 +94,7 @@ export function AppointmentManagement({ dentistId }: AppointmentManagementProps)
           patient_name
         `)
         .eq('dentist_id', dentistId)
-        .order('appointment_date', { ascending: false });
+        .order('appointment_date', { ascending: true });
 
       if (error) throw error;
       setAppointments(data || []);
@@ -220,10 +220,34 @@ export function AppointmentManagement({ dentistId }: AppointmentManagementProps)
     }
   };
 
-  const filteredAppointments = appointments.filter(appointment =>
-    appointment.patient_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    appointment.reason?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const today = new Date();
+  const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+
+  const todayAppointments = appointments
+    .filter(apt => {
+      const date = new Date(apt.appointment_date);
+      return date >= startOfDay && date < endOfDay;
+    })
+    .sort((a, b) =>
+      new Date(a.appointment_date).getTime() - new Date(b.appointment_date).getTime()
+    );
+
+  const filteredAppointments = searchTerm
+    ? appointments
+        .filter(appointment =>
+          appointment.patient_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          appointment.reason?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          format(new Date(appointment.appointment_date), 'PPP p')
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase())
+        )
+        .sort(
+          (a, b) =>
+            new Date(a.appointment_date).getTime() -
+            new Date(b.appointment_date).getTime()
+        )
+    : todayAppointments;
 
   if (loading) {
     return (
@@ -322,10 +346,13 @@ export function AppointmentManagement({ dentistId }: AppointmentManagementProps)
 
       {/* Appointments List */}
       <div className="space-y-4">
+        <h3 className="text-lg font-semibold">
+          {searchTerm ? "Search Results" : "Today's Appointments"}
+        </h3>
         {filteredAppointments.length === 0 ? (
           <Card>
             <CardContent className="p-8 text-center text-muted-foreground">
-              {searchTerm ? "No appointments found matching your search." : "No appointments found."}
+              {searchTerm ? "No appointments found matching your search." : "No appointments for today."}
             </CardContent>
           </Card>
         ) : (
