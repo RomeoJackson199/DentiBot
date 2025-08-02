@@ -5,7 +5,8 @@ import { User } from "@supabase/supabase-js";
 import { AvailabilitySettings } from "@/components/AvailabilitySettings";
 import { DentistUrgencyGrid } from "@/components/DentistUrgencyGrid";
 import { DentistManagement } from "@/components/DentistManagement";
-import { Calendar, Clock, Settings as SettingsIcon, AlertTriangle, BarChart3, UserPlus, LogOut } from "lucide-react";
+import { PatientManagement } from "@/components/PatientManagement";
+import { Calendar, Clock, Settings as SettingsIcon, AlertTriangle, BarChart3, UserPlus, LogOut, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
@@ -15,7 +16,7 @@ interface DentistDashboardProps {
 }
 
 export function DentistDashboard({ user }: DentistDashboardProps) {
-  const [activeTab, setActiveTab] = useState<'urgency' | 'availability' | 'analytics' | 'manage'>('urgency');
+  const [activeTab, setActiveTab] = useState<'urgency' | 'availability' | 'patients' | 'analytics' | 'manage'>('urgency');
   const [dentistId, setDentistId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
@@ -126,7 +127,7 @@ export function DentistDashboard({ user }: DentistDashboardProps) {
         {/* Tab Navigation */}
         <div className="flex justify-center mb-6 sm:mb-8">
           <div className="glass-card rounded-2xl p-2 sm:p-3 animate-fade-in w-full max-w-3xl">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-1 sm:gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-1 sm:gap-2">
               <Button
                 variant={activeTab === 'urgency' ? 'default' : 'ghost'}
                 onClick={() => setActiveTab('urgency')}
@@ -151,6 +152,19 @@ export function DentistDashboard({ user }: DentistDashboardProps) {
               >
                 <Clock className="h-4 w-4" />
                 <span className="font-medium">Availability</span>
+              </Button>
+
+              <Button
+                variant={activeTab === 'patients' ? 'default' : 'ghost'}
+                onClick={() => setActiveTab('patients')}
+                className={`flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2 sm:py-3 rounded-xl transition-all duration-300 text-xs sm:text-sm ${
+                  activeTab === 'patients' 
+                    ? 'bg-gradient-primary text-white shadow-elegant scale-105' 
+                    : 'text-dental-muted-foreground hover:text-dental-primary hover:bg-dental-primary/10 hover:scale-105'
+                }`}
+              >
+                <Users className="h-4 w-4" />
+                <span className="font-medium">Patients</span>
               </Button>
 
               <Button
@@ -190,6 +204,10 @@ export function DentistDashboard({ user }: DentistDashboardProps) {
           
           {activeTab === 'availability' && (
             <AvailabilitySettings dentistId={dentistId} />
+          )}
+
+          {activeTab === 'patients' && (
+            <PatientManagement dentistId={dentistId} />
           )}
           
           {activeTab === 'analytics' && (
