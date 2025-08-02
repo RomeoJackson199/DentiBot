@@ -300,6 +300,48 @@ export type Database = {
           },
         ]
       }
+      dentist_ratings: {
+        Row: {
+          appointment_id: string | null
+          communication_rating: number | null
+          created_at: string
+          dentist_id: string
+          expertise_rating: number | null
+          id: string
+          patient_id: string
+          rating: number
+          review: string | null
+          updated_at: string
+          wait_time_rating: number | null
+        }
+        Insert: {
+          appointment_id?: string | null
+          communication_rating?: number | null
+          created_at?: string
+          dentist_id: string
+          expertise_rating?: number | null
+          id?: string
+          patient_id: string
+          rating: number
+          review?: string | null
+          updated_at?: string
+          wait_time_rating?: number | null
+        }
+        Update: {
+          appointment_id?: string | null
+          communication_rating?: number | null
+          created_at?: string
+          dentist_id?: string
+          expertise_rating?: number | null
+          id?: string
+          patient_id?: string
+          rating?: number
+          review?: string | null
+          updated_at?: string
+          wait_time_rating?: number | null
+        }
+        Relationships: []
+      }
       dentist_schedules: {
         Row: {
           created_at: string
@@ -340,31 +382,46 @@ export type Database = {
       }
       dentists: {
         Row: {
+          average_rating: number | null
+          communication_score: number | null
           created_at: string
+          expertise_score: number | null
           id: string
           is_active: boolean | null
           license_number: string | null
           profile_id: string
           specialization: string | null
+          total_ratings: number | null
           updated_at: string
+          wait_time_score: number | null
         }
         Insert: {
+          average_rating?: number | null
+          communication_score?: number | null
           created_at?: string
+          expertise_score?: number | null
           id?: string
           is_active?: boolean | null
           license_number?: string | null
           profile_id: string
           specialization?: string | null
+          total_ratings?: number | null
           updated_at?: string
+          wait_time_score?: number | null
         }
         Update: {
+          average_rating?: number | null
+          communication_score?: number | null
           created_at?: string
+          expertise_score?: number | null
           id?: string
           is_active?: boolean | null
           license_number?: string | null
           profile_id?: string
           specialization?: string | null
+          total_ratings?: number | null
           updated_at?: string
+          wait_time_score?: number | null
         }
         Relationships: [
           {

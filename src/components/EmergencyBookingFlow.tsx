@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguageDetection } from "@/hooks/useLanguageDetection";
 import { EmergencyTriageWizard } from "./EmergencyTriageWizard";
+import { DentistRecommendations } from "./DentistRecommendations";
 import { SimpleCalendar } from "./SimpleCalendar";
 import { 
   AlertTriangle, 
@@ -422,26 +423,35 @@ export const EmergencyBookingFlow = ({ user, onComplete, onCancel }: EmergencyBo
         </CardHeader>
         
         <CardContent className="space-y-6">
-          {/* Dentist Selection */}
-          <div>
-            <h3 className="font-semibold mb-3 flex items-center">
-              <Users className="h-4 w-4 mr-2" />
-              Available Dentist
-            </h3>
-            {selectedDentist && (
-              <Card className="p-4 bg-primary/5 border-primary/20">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">
-                      Dr. {selectedDentist.profiles.first_name} {selectedDentist.profiles.last_name}
-                    </p>
-                    <p className="text-sm text-muted-foreground">{selectedDentist.specialization}</p>
-                  </div>
-                  <Badge variant="outline">Available</Badge>
+          {/* Dentist Recommendations */}
+          <DentistRecommendations
+            urgencyLevel={urgencyLevel}
+            symptoms={triageData?.symptoms}
+            onSelectDentist={(dentist) => {
+              setSelectedDentist(dentist);
+              // Auto-suggest first available date when dentist is selected
+              const suggestedDates = getSuggestedDates(urgencyLevel);
+              if (suggestedDates.length > 0) {
+                setSelectedDate(suggestedDates[0]);
+                fetchAvailableSlots(dentist.id, suggestedDates[0]);
+              }
+            }}
+          />
+
+          {/* Selected Dentist Display */}
+          {selectedDentist && (
+            <Card className="p-4 bg-primary/5 border-primary/20">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium">
+                    ✅ Dentiste sélectionné: Dr. {selectedDentist.profiles.first_name} {selectedDentist.profiles.last_name}
+                  </p>
+                  <p className="text-sm text-muted-foreground">{selectedDentist.specialization}</p>
                 </div>
-              </Card>
-            )}
-          </div>
+                <Badge variant="default">Sélectionné</Badge>
+              </div>
+            </Card>
+          )}
 
           {/* Suggested Dates for High Urgency */}
           {urgencyLevel >= 4 && (
