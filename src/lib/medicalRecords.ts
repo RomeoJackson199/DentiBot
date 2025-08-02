@@ -84,7 +84,7 @@ export const generateMedicalRecordFromChat = async (
     description: `Consultation via chat bot. ${chatContent.substring(0, 500)}...`,
     findings,
     recommendations,
-    recordType: appointmentData?.urgency === 'high' ? 'urgence' : 'consultation',
+    recordType: appointmentData?.urgency === 'high' ? 'treatment' : 'consultation',
     visitDate: appointmentData?.appointmentDate 
       ? new Date(appointmentData.appointmentDate).toISOString().split('T')[0]
       : new Date().toISOString().split('T')[0]
@@ -149,7 +149,7 @@ export const createDossierAfterSignup = async (userId: string) => {
       description: `Nouveau patient inscrit le ${new Date().toLocaleDateString('fr-FR')}`,
       findings: 'Nouveau patient - historique médical à compléter',
       recommendations: 'Planifier une consultation initiale pour évaluation complète',
-      recordType: 'administratif'
+      recordType: 'consultation'
     };
 
     await createMedicalRecord(initialRecord);
