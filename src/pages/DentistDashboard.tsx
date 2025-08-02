@@ -4,7 +4,8 @@ import { User } from "@supabase/supabase-js";
 
 import { AvailabilitySettings } from "@/components/AvailabilitySettings";
 import { DentistUrgencyGrid } from "@/components/DentistUrgencyGrid";
-import { Calendar, Clock, Settings as SettingsIcon, AlertTriangle, BarChart3 } from "lucide-react";
+import { DentistManagement } from "@/components/DentistManagement";
+import { Calendar, Clock, Settings as SettingsIcon, AlertTriangle, BarChart3, UserPlus, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
@@ -14,7 +15,7 @@ interface DentistDashboardProps {
 }
 
 export function DentistDashboard({ user }: DentistDashboardProps) {
-  const [activeTab, setActiveTab] = useState<'urgency' | 'availability' | 'analytics'>('urgency');
+  const [activeTab, setActiveTab] = useState<'urgency' | 'availability' | 'analytics' | 'manage'>('urgency');
   const [dentistId, setDentistId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
@@ -56,6 +57,24 @@ export function DentistDashboard({ user }: DentistDashboardProps) {
     }
   };
 
+  const handleSignOut = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      
+      toast({
+        title: "Signed Out",
+        description: "You have been signed out successfully",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to sign out",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (loading) {
     return <div className="flex justify-center p-8">Loading dentist dashboard...</div>;
   }
@@ -91,6 +110,15 @@ export function DentistDashboard({ user }: DentistDashboardProps) {
               <p className="text-sm text-dental-muted-foreground">Dentist Dashboard</p>
             </div>
           </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleSignOut}
+            className="glass-card border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400 transition-all duration-300"
+          >
+            <LogOut className="h-4 w-4 mr-2" />
+            Sign Out
+          </Button>
         </div>
       </header>
 
@@ -98,7 +126,7 @@ export function DentistDashboard({ user }: DentistDashboardProps) {
         {/* Tab Navigation */}
         <div className="flex justify-center mb-6 sm:mb-8">
           <div className="glass-card rounded-2xl p-2 sm:p-3 animate-fade-in w-full max-w-3xl">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-1 sm:gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-1 sm:gap-2">
               <Button
                 variant={activeTab === 'urgency' ? 'default' : 'ghost'}
                 onClick={() => setActiveTab('urgency')}
@@ -137,6 +165,19 @@ export function DentistDashboard({ user }: DentistDashboardProps) {
                 <BarChart3 className="h-4 w-4" />
                 <span className="font-medium">Analytics</span>
               </Button>
+
+              <Button
+                variant={activeTab === 'manage' ? 'default' : 'ghost'}
+                onClick={() => setActiveTab('manage')}
+                className={`flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2 sm:py-3 rounded-xl transition-all duration-300 text-xs sm:text-sm ${
+                  activeTab === 'manage' 
+                    ? 'bg-gradient-primary text-white shadow-elegant scale-105' 
+                    : 'text-dental-muted-foreground hover:text-dental-primary hover:bg-dental-primary/10 hover:scale-105'
+                }`}
+              >
+                <UserPlus className="h-4 w-4" />
+                <span className="font-medium">Manage</span>
+              </Button>
             </div>
           </div>
         </div>
@@ -161,6 +202,10 @@ export function DentistDashboard({ user }: DentistDashboardProps) {
                 </p>
               </CardContent>
             </Card>
+          )}
+
+          {activeTab === 'manage' && (
+            <DentistManagement currentDentistId={dentistId} />
           )}
         </div>
       </main>
