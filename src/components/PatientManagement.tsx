@@ -23,6 +23,7 @@ import { PatientDossier } from "@/components/PatientDossier";
 import { PatientAppointments } from "@/components/PatientAppointments";
 import { PatientNotes } from "@/components/PatientNotes";
 import { PatientTreatmentPlans } from "@/components/PatientTreatmentPlans";
+import { SimpleAppointmentBooking } from "@/components/SimpleAppointmentBooking";
 
 interface Patient {
   id: string;
@@ -289,6 +290,12 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
                               </div>
                             )}
                           </div>
+                          <SimpleAppointmentBooking 
+                            dentistId={dentistId}
+                            patientId={patient.id}
+                            patientName={`${patient.first_name} ${patient.last_name}`}
+                            onSuccess={fetchPatients}
+                          />
                           <Button variant="outline" size="sm">
                             View Dossier
                           </Button>
