@@ -5,8 +5,12 @@ import { UnifiedDashboard } from "@/components/UnifiedDashboard";
 import { AuthForm } from "@/components/AuthForm";
 import { OnboardingPopup } from "@/components/OnboardingPopup";
 import { LanguageSelection } from "@/components/LanguageSelection";
+import { Header } from "@/components/homepage/Header";
+import { HeroSection } from "@/components/homepage/HeroSection";
+import { FeatureCards } from "@/components/homepage/FeatureCards";
+import { StatsSection } from "@/components/homepage/StatsSection";
 import { useToast } from "@/hooks/use-toast";
-import { Stethoscope, MessageSquare, Calendar } from "lucide-react";
+import { Stethoscope } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
 import { createDossierAfterSignup } from "@/lib/medicalRecords";
 
@@ -132,101 +136,40 @@ const Index = () => {
     );
   }
 
-  // Show main app with login button in corner (no auth required for chat)
+  // If user is authenticated, show the dashboard
+  if (user) {
+    return <UnifiedDashboard user={user} />;
+  }
 
+  // Show the new professional homepage for non-authenticated users
   return (
     <div className="min-h-screen mesh-bg">
-      <header className="glass-card sticky top-0 z-50 border-0 border-b border-border/20">
-        <div className="container mx-auto px-4 py-4 sm:py-6 flex items-center justify-between">
-          <div className="flex items-center space-x-3 sm:space-x-4">
-            <div className="relative">
-              <div className="pulse-ring w-16 h-16 -top-4 -left-4 sm:w-20 sm:h-20 sm:-top-5 sm:-left-5"></div>
-              <div className="relative p-2 sm:p-3 rounded-2xl shadow-glow animate-glow bg-white">
-                <Stethoscope className="h-6 w-6 sm:h-8 sm:w-8 text-dental-primary" />
-              </div>
-              <div className="absolute -top-1 -right-1 w-3 h-3 sm:w-4 sm:h-4 bg-gradient-secondary rounded-full animate-pulse shadow-float"></div>
+      <Header user={user} />
+      <HeroSection />
+      <FeatureCards />
+      <StatsSection />
+      
+      {/* Footer CTA Section */}
+      <section className="py-20 border-t border-white/10">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="max-w-2xl mx-auto space-y-8">
+            <h2 className="text-3xl sm:text-4xl font-bold gradient-text">
+              Ready to Transform Your Practice?
+            </h2>
+            <p className="text-xl text-dental-muted-foreground">
+              Join thousands of dental professionals who have revolutionized patient care with AI.
+            </p>
+            <div className="space-y-4">
+              <AuthForm />
+              <p className="text-sm text-dental-muted-foreground">
+                Free 30-day trial • No credit card required • HIPAA compliant
+              </p>
             </div>
-            <div className="hidden sm:block">
-              <h2 className="text-2xl font-bold gradient-text">Denti Bot Unified</h2>
-              <p className="text-sm text-dental-muted-foreground">AI-Powered Dental Care Platform</p>
-            </div>
-          </div>
-          <div className="flex items-center space-x-3">
-            {!user && <AuthForm compact />}
           </div>
         </div>
-      </header>
+      </section>
 
-      {/* Main Content */}
-      {user ? (
-        <UnifiedDashboard user={user} />
-      ) : (
-        <main className="container mx-auto px-2 sm:px-4 py-4 sm:py-6 lg:py-10">
-          <div className="text-center py-12 space-y-8">
-            <div className="max-w-2xl mx-auto space-y-6">
-              <div className="relative">
-                <div className="pulse-ring w-32 h-32 -top-8 -left-8 mx-auto"></div>
-                <div className="relative p-6 rounded-3xl shadow-glow animate-float bg-white mx-auto w-fit">
-                  <Stethoscope className="w-12 h-12 text-dental-primary mx-auto" />
-                </div>
-              </div>
-              
-              <h1 className="text-4xl sm:text-5xl font-bold gradient-text">
-                Denti Bot Unified
-              </h1>
-              
-              <p className="text-xl text-dental-muted-foreground">
-                AI-Powered Emergency Triage & Dental Care Platform
-              </p>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-12">
-                <div className="glass-card p-6 rounded-2xl text-center space-y-4">
-                  <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center mx-auto">
-                    <Stethoscope className="w-6 h-6 text-white" />
-                  </div>
-                  <h3 className="text-lg font-semibold">Emergency Triage</h3>
-                  <p className="text-sm text-dental-muted-foreground">
-                    Assess urgency in 1 minute for tailored appointments
-                  </p>
-                </div>
-                
-                <div className="glass-card p-6 rounded-2xl text-center space-y-4">
-                  <div className="w-12 h-12 bg-gradient-secondary rounded-xl flex items-center justify-center mx-auto">
-                    <MessageSquare className="w-6 h-6 text-white" />
-                  </div>
-                  <h3 className="text-lg font-semibold">AI Assistant</h3>
-                  <p className="text-sm text-dental-muted-foreground">
-                    24/7 intelligent dental consultation
-                  </p>
-                </div>
-                
-                <div className="glass-card p-6 rounded-2xl text-center space-y-4">
-                  <div className="w-12 h-12 bg-gradient-accent rounded-xl flex items-center justify-center mx-auto">
-                    <Calendar className="w-6 h-6 text-white" />
-                  </div>
-                  <h3 className="text-lg font-semibold">Smart Booking</h3>
-                  <p className="text-sm text-dental-muted-foreground">
-                    Automatic scheduling based on urgency
-                  </p>
-                </div>
-              </div>
-              
-              <div className="pt-8 space-y-4">
-                <a 
-                  href="/emergency-triage"
-                  className="inline-flex items-center justify-center px-8 py-4 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors space-x-2 mb-4"
-                >
-                  <Stethoscope className="w-5 h-5" />
-                  <span>Emergency Triage - Start Now</span>
-                </a>
-                <AuthForm />
-              </div>
-            </div>
-          </div>
-        </main>
-      )}
-
-      {/* Language Selection */}
+      {/* Language Selection Modal */}
       {showLanguageSelection && (
         <LanguageSelection onLanguageSelected={handleLanguageSelected} />
       )}
