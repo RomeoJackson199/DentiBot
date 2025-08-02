@@ -211,7 +211,14 @@ const Index = () => {
                 </div>
               </div>
               
-              <div className="pt-8">
+              <div className="pt-8 space-y-4">
+                <a 
+                  href="/emergency-triage"
+                  className="inline-flex items-center justify-center px-8 py-4 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors space-x-2 mb-4"
+                >
+                  <Stethoscope className="w-5 h-5" />
+                  <span>Emergency Triage - Start Now</span>
+                </a>
                 <AuthForm />
               </div>
             </div>
