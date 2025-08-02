@@ -5,6 +5,7 @@ import { AppointmentsList } from "@/components/AppointmentsList";
 import { Settings } from "@/components/Settings";
 import { PatientDossier } from "@/components/PatientDossier";
 import { EmergencyTriageForm } from "@/components/EmergencyTriageForm";
+import { PatientAnalytics } from "@/components/analytics/PatientAnalytics";
 import { useLanguage } from "@/hooks/useLanguage";
 import { Button } from "@/components/ui/button";
 import { 
@@ -13,7 +14,8 @@ import {
   Activity, 
   AlertTriangle,
   Stethoscope,
-  Clock
+  Clock,
+  BarChart3
 } from "lucide-react";
 
 interface PatientDashboardProps {
@@ -22,7 +24,7 @@ interface PatientDashboardProps {
 
 export const PatientDashboard = ({ user }: PatientDashboardProps) => {
   const { t } = useLanguage();
-  const [activeTab, setActiveTab] = useState<'chat' | 'appointments' | 'dossier' | 'emergency'>('chat');
+  const [activeTab, setActiveTab] = useState<'chat' | 'appointments' | 'dossier' | 'analytics' | 'emergency'>('chat');
   const [triggerBooking, setTriggerBooking] = useState<'low' | 'medium' | 'high' | 'emergency' | false>(false);
 
   const handleEmergencyComplete = (urgency: 'low' | 'medium' | 'high' | 'emergency') => {
@@ -68,8 +70,8 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
 
         {/* Tab Navigation */}
         <div className="flex justify-center mb-6 sm:mb-8">
-          <div className="glass-card rounded-2xl p-2 sm:p-3 animate-fade-in w-full max-w-3xl">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-1 sm:gap-2">
+          <div className="glass-card rounded-2xl p-2 sm:p-3 animate-fade-in w-full max-w-4xl">
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-1 sm:gap-2">
               <Button
                 variant={activeTab === 'chat' ? 'default' : 'ghost'}
                 onClick={() => setActiveTab('chat')}
@@ -106,7 +108,20 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
                 }`}
               >
                 <Activity className="h-4 w-4" />
-                <span className="font-medium">Dossier</span>
+                <span className="font-medium">Health</span>
+              </Button>
+
+              <Button
+                variant={activeTab === 'analytics' ? 'default' : 'ghost'}
+                onClick={() => setActiveTab('analytics')}
+                className={`flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2 sm:py-3 rounded-xl transition-all duration-300 text-xs sm:text-sm ${
+                  activeTab === 'analytics' 
+                    ? 'bg-gradient-primary text-white shadow-elegant scale-105' 
+                    : 'text-dental-muted-foreground hover:text-dental-primary hover:bg-dental-primary/10 hover:scale-105'
+                }`}
+              >
+                <BarChart3 className="h-4 w-4" />
+                <span className="font-medium">Analytics</span>
               </Button>
 
               <Button
@@ -141,6 +156,10 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
           
           {activeTab === 'dossier' && (
             <PatientDossier user={user} />
+          )}
+          
+          {activeTab === 'analytics' && (
+            <PatientAnalytics userId={user.id} />
           )}
           
           {activeTab === 'emergency' && (

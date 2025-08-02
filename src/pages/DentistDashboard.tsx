@@ -7,6 +7,7 @@ import { DentistUrgencyGrid } from "@/components/DentistUrgencyGrid";
 import { DentistManagement } from "@/components/DentistManagement";
 import { PatientManagement } from "@/components/PatientManagement";
 import { AppointmentManagement } from "@/components/AppointmentManagement";
+import { DentistAnalytics } from "@/components/analytics/DentistAnalytics";
 import { Calendar, Clock, Settings as SettingsIcon, AlertTriangle, BarChart3, UserPlus, LogOut, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -229,15 +230,7 @@ export function DentistDashboard({ user }: DentistDashboardProps) {
           )}
           
           {activeTab === 'analytics' && (
-            <Card className="glass-card">
-              <CardContent className="p-8 text-center">
-                <BarChart3 className="h-12 w-12 text-dental-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Analytics Dashboard</h3>
-                <p className="text-dental-muted-foreground">
-                  Patient analytics, no-show tracking, and appointment insights coming soon.
-                </p>
-              </CardContent>
-            </Card>
+            <DentistAnalytics dentistId={dentistId} />
           )}
 
           {activeTab === 'manage' && (
