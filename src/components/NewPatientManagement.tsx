@@ -19,6 +19,7 @@ import {
   Stethoscope
 } from "lucide-react";
 import { AIConversationDialog } from "@/components/AIConversationDialog";
+import { generateSymptomSummary } from "@/lib/symptoms";
 
 interface Patient {
   id: string;
@@ -40,6 +41,8 @@ interface AppointmentWithSummary {
   reason?: string;
   consultation_notes?: string;
   ai_summary?: string;
+  urgency?: string;
+  patient_name?: string;
 }
 
 interface PatientManagementProps {
@@ -59,6 +62,7 @@ export function NewPatientManagement({ dentistId }: PatientManagementProps) {
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [appointmentSummary, setAppointmentSummary] = useState("");
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | null>(null);
+  const [generatingAISummary, setGeneratingAISummary] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -162,7 +166,15 @@ export function NewPatientManagement({ dentistId }: PatientManagementProps) {
     try {
       const { data, error } = await supabase
         .from('appointments')
-        .select('id, appointment_date, status, reason, consultation_notes')
+        .select(`
+          id, 
+          appointment_date, 
+          status, 
+          reason, 
+          consultation_notes,
+          urgency,
+          patient_name
+        `)
         .eq('patient_id', patientId)
         .eq('dentist_id', dentistId)
         .order('appointment_date', { ascending: false });
@@ -171,6 +183,11 @@ export function NewPatientManagement({ dentistId }: PatientManagementProps) {
       setAppointments(data || []);
     } catch (error) {
       console.error('Error fetching appointments:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load patient appointments",
+        variant: "destructive",
+      });
     }
   };
 
@@ -277,6 +294,65 @@ export function NewPatientManagement({ dentistId }: PatientManagementProps) {
         description: "Failed to save summary",
         variant: "destructive",
       });
+    }
+  };
+
+  const generateAISummary = async (appointmentId: string) => {
+    if (!selectedPatient) return;
+    
+    try {
+      setGeneratingAISummary(appointmentId);
+      
+      // Get chat messages related to this patient if any
+      const { data: chatMessages } = await supabase
+        .from('chat_messages')
+        .select('message, is_bot, created_at, metadata')
+        .eq('user_id', selectedPatient.id)
+        .order('created_at', { ascending: true });
+
+      const messages = (chatMessages || []).map(msg => ({
+        id: msg.message,
+        session_id: '',
+        message: msg.message,
+        is_bot: msg.is_bot,
+        user_id: selectedPatient.id,
+        created_at: msg.created_at,
+        message_type: 'text',
+        metadata: msg.metadata
+      }));
+
+      const userProfile = {
+        name: `${selectedPatient.first_name} ${selectedPatient.last_name}`,
+        medical_history: selectedPatient.medical_history
+      };
+
+      const summary = await generateSymptomSummary(messages, userProfile);
+      
+      if (summary) {
+        // Update appointment with AI summary
+        const { error } = await supabase
+          .from('appointments')
+          .update({ consultation_notes: summary })
+          .eq('id', appointmentId);
+
+        if (error) throw error;
+
+        toast({
+          title: "AI Summary Generated",
+          description: "Appointment summary has been created and saved",
+        });
+
+        fetchPatientAppointments(selectedPatient.id);
+      }
+    } catch (error) {
+      console.error('Error generating AI summary:', error);
+      toast({
+        title: "Error",
+        description: "Failed to generate AI summary",
+        variant: "destructive",
+      });
+    } finally {
+      setGeneratingAISummary(null);
     }
   };
 
@@ -516,29 +592,66 @@ export function NewPatientManagement({ dentistId }: PatientManagementProps) {
           ) : (
             <div className="space-y-4">
               {appointments.map((appointment) => (
-                <Card key={appointment.id} className="border">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <div>
-                        <p className="font-semibold">
-                          {new Date(appointment.appointment_date).toLocaleDateString()}
-                        </p>
-                        <Badge variant={appointment.status === 'completed' ? 'default' : 'secondary'}>
-                          {appointment.status}
-                        </Badge>
-                      </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          setSelectedAppointmentId(appointment.id);
-                          setAppointmentSummary(appointment.consultation_notes || "");
-                        }}
-                      >
-                        <Stethoscope className="h-4 w-4 mr-2" />
-                        Add Summary
-                      </Button>
-                    </div>
+                  <Card key={appointment.id} className="border">
+                   <CardContent className="p-4">
+                     <div className="flex items-center justify-between mb-3">
+                       <div className="flex items-center space-x-3">
+                         <div>
+                           <p className="font-semibold">
+                             {new Date(appointment.appointment_date).toLocaleDateString()}
+                           </p>
+                           <div className="flex items-center space-x-2">
+                             <Badge variant={appointment.status === 'completed' ? 'default' : 'secondary'}>
+                               {appointment.status}
+                             </Badge>
+                             {appointment.urgency && (
+                               <Badge variant={
+                                 appointment.urgency === 'high' ? 'destructive' : 
+                                 appointment.urgency === 'medium' ? 'default' : 'secondary'
+                               }>
+                                 {appointment.urgency}
+                               </Badge>
+                             )}
+                           </div>
+                         </div>
+                         <div className="flex items-center space-x-2">
+                           <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                             <MessageSquare className="h-4 w-4 text-white" />
+                           </div>
+                         </div>
+                       </div>
+                       <div className="flex space-x-2">
+                         <Button
+                           variant="outline"
+                           size="sm"
+                           onClick={() => generateAISummary(appointment.id)}
+                           disabled={generatingAISummary === appointment.id}
+                         >
+                           {generatingAISummary === appointment.id ? (
+                             <>
+                               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2"></div>
+                               Generating...
+                             </>
+                           ) : (
+                             <>
+                               <MessageSquare className="h-4 w-4 mr-2" />
+                               AI Summary
+                             </>
+                           )}
+                         </Button>
+                         <Button
+                           variant="outline"
+                           size="sm"
+                           onClick={() => {
+                             setSelectedAppointmentId(appointment.id);
+                             setAppointmentSummary(appointment.consultation_notes || "");
+                           }}
+                         >
+                           <Stethoscope className="h-4 w-4 mr-2" />
+                           Add Notes
+                         </Button>
+                       </div>
+                     </div>
                     
                     {appointment.reason && (
                       <p className="text-sm text-muted-foreground mb-2">
@@ -546,13 +659,13 @@ export function NewPatientManagement({ dentistId }: PatientManagementProps) {
                       </p>
                     )}
                     
-                    {appointment.consultation_notes && (
-                      <div className="p-3 bg-blue-50 rounded-lg">
-                        <p className="text-sm text-blue-800">
-                          <strong>Notes:</strong> {appointment.consultation_notes}
-                        </p>
-                      </div>
-                    )}
+                     {appointment.consultation_notes && (
+                       <div className="p-3 bg-blue-50 rounded-lg border-l-4 border-blue-400">
+                         <p className="text-sm text-blue-800">
+                           <strong>Clinical Notes:</strong> {appointment.consultation_notes}
+                         </p>
+                       </div>
+                     )}
                     
                     {selectedAppointmentId === appointment.id && (
                       <div className="mt-4 space-y-3">
