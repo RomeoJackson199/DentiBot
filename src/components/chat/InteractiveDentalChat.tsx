@@ -28,7 +28,7 @@ import { generateSymptomSummary } from "@/lib/symptoms";
 
 interface InteractiveDentalChatProps {
   user: User | null;
-  triggerBooking?: boolean;
+  triggerBooking?: 'low' | 'medium' | 'high' | 'emergency' | false;
   onBookingTriggered?: () => void;
 }
 
@@ -79,7 +79,11 @@ export const InteractiveDentalChat = ({
 
   useEffect(() => {
     if (triggerBooking && hasConsented) {
-      handleQuickAction('book_appointment');
+      if (triggerBooking === 'high' || triggerBooking === 'emergency') {
+        startEmergencyBookingWithUrgency(triggerBooking);
+      } else {
+        handleQuickAction('book_appointment');
+      }
       onBookingTriggered?.();
     }
   }, [triggerBooking, hasConsented, onBookingTriggered]);
@@ -424,6 +428,31 @@ export const InteractiveDentalChat = ({
     loadDentistsForBooking(true);
   };
 
+  const startEmergencyBookingWithUrgency = (urgencyLevel: 'low' | 'medium' | 'high' | 'emergency') => {
+    if (!user) {
+      addBotMessage("Please log in to book an emergency appointment.");
+      return;
+    }
+
+    const urgencyScore = urgencyLevel === 'emergency' ? 5 : 
+                        urgencyLevel === 'high' ? 4 : 
+                        urgencyLevel === 'medium' ? 3 : 2;
+
+    setBookingFlow({ 
+      ...bookingFlow, 
+      reason: `${urgencyLevel} priority appointment`, 
+      urgency: urgencyScore, 
+      step: 'dentist' 
+    });
+    
+    const urgencyMessage = urgencyLevel === 'emergency' ? 
+      "🚨 **EMERGENCY** - Finding immediate care with available dentist..." :
+      `⚡ **${urgencyLevel.toUpperCase()} PRIORITY** - Finding urgent appointment with available dentist...`;
+    
+    addBotMessage(urgencyMessage);
+    loadDentistsForBooking(true); // Auto-select first available dentist for urgent cases
+  };
+
   const showHelp = () => {
     const helpMessage = `
 **Here's what I can help you with:** ❓
@@ -519,9 +548,10 @@ Just type what you need or use the quick action buttons! 😊
 
       if (error) throw error;
 
-      const slots = (data || []).map(slot => ({
+       const slots = (data || []).map(slot => ({
         time: slot.slot_time.substring(0, 5),
-        available: slot.is_available && !slot.emergency_only
+        available: slot.is_available && (bookingFlow.urgency >= 4 ? true : !slot.emergency_only),
+        emergency_only: slot.emergency_only
       }));
 
       setWidgetData({ slots });
@@ -602,7 +632,9 @@ Just type what you need or use the quick action buttons! 😊
           appointment_date: appointmentDateTime.toISOString(),
           reason: bookingFlow.reason || "General consultation",
           status: "pending",
-          urgency: bookingFlow.urgency === 3 ? "high" : "medium"
+           urgency: bookingFlow.urgency >= 5 ? "emergency" : 
+                   bookingFlow.urgency === 4 ? "high" : 
+                   bookingFlow.urgency === 3 ? "medium" : "low"
         })
         .select()
         .single();

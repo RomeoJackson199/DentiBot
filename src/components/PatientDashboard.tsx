@@ -23,12 +23,12 @@ interface PatientDashboardProps {
 export const PatientDashboard = ({ user }: PatientDashboardProps) => {
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<'chat' | 'appointments' | 'dossier' | 'emergency'>('chat');
-  const [triggerBooking, setTriggerBooking] = useState(false);
+  const [triggerBooking, setTriggerBooking] = useState<'low' | 'medium' | 'high' | 'emergency' | false>(false);
 
   const handleEmergencyComplete = (urgency: 'low' | 'medium' | 'high' | 'emergency') => {
     setActiveTab('chat');
-    // Trigger emergency booking with urgency level
-    setTriggerBooking(true);
+    // Trigger emergency booking with urgency level and pass urgency data
+    setTriggerBooking(urgency);
   };
 
   return (
