@@ -31,7 +31,7 @@ export const UnifiedDashboard = ({ user }: UnifiedDashboardProps) => {
 
       if (profileError) throw profileError;
 
-      // Check if user is a dentist
+      // Check if user is a dentist by checking both role and dentist table
       if (profile.role === 'dentist') {
         const { data: dentist, error: dentistError } = await supabase
           .from('dentists')
