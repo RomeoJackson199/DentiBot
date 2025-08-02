@@ -806,6 +806,16 @@ export type Database = {
         Args: { appointment_id: string; user_id: string }
         Returns: boolean
       }
+      create_simple_appointment: {
+        Args: {
+          p_patient_id: string
+          p_dentist_id: string
+          p_appointment_date: string
+          p_reason?: string
+          p_urgency?: Database["public"]["Enums"]["urgency_level"]
+        }
+        Returns: string
+      }
       generate_daily_slots: {
         Args: { p_dentist_id: string; p_date: string }
         Returns: undefined
