@@ -820,6 +820,10 @@ export type Database = {
         Args: { p_dentist_id: string; p_date: string }
         Returns: undefined
       }
+      get_current_dentist_id: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       get_patient_stats_for_dentist: {
         Args: { p_dentist_id: string; p_patient_id: string }
         Returns: {
