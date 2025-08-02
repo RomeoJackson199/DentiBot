@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instanciate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "12.2.3 (519615d)"
+    PostgrestVersion: "13.0.4"
   }
   public: {
     Tables: {
@@ -218,6 +218,41 @@ export type Database = {
         }
         Relationships: []
       }
+      consents: {
+        Row: {
+          consent_text: string | null
+          created_at: string
+          id: string
+          ip_address: string | null
+          patient_id: string | null
+          withdrawn_at: string | null
+        }
+        Insert: {
+          consent_text?: string | null
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          patient_id?: string | null
+          withdrawn_at?: string | null
+        }
+        Update: {
+          consent_text?: string | null
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          patient_id?: string | null
+          withdrawn_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consents_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       dentist_availability: {
         Row: {
           break_end_time: string | null
@@ -345,7 +380,7 @@ export type Database = {
         Row: {
           attachments: Json | null
           created_at: string
-          dentist_id: string
+          dentist_id: string | null
           description: string | null
           findings: string | null
           id: string
@@ -359,7 +394,7 @@ export type Database = {
         Insert: {
           attachments?: Json | null
           created_at?: string
-          dentist_id: string
+          dentist_id?: string | null
           description?: string | null
           findings?: string | null
           id?: string
@@ -373,7 +408,7 @@ export type Database = {
         Update: {
           attachments?: Json | null
           created_at?: string
-          dentist_id?: string
+          dentist_id?: string | null
           description?: string | null
           findings?: string | null
           id?: string
@@ -385,6 +420,45 @@ export type Database = {
           visit_date?: string
         }
         Relationships: []
+      }
+      notes: {
+        Row: {
+          content: string | null
+          created_at: string
+          dentist_id: string | null
+          id: string
+          patient_id: string | null
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          dentist_id?: string | null
+          id?: string
+          patient_id?: string | null
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          dentist_id?: string | null
+          id?: string
+          patient_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notes_dentist_id_fkey"
+            columns: ["dentist_id"]
+            isOneToOne: false
+            referencedRelation: "dentists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notes_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       patient_documents: {
         Row: {
