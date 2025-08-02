@@ -246,7 +246,7 @@ For treatment_plans: data should include "title", "description", "diagnosis", "t
 Always maintain professional medical standards and suggest only appropriate treatments.`;
 
       responseFormat = {
-        response_format: { type: "json_object" }
+        type: "json_object"
       };
     } else {
       const content = getLanguageContent(detectedLanguage);

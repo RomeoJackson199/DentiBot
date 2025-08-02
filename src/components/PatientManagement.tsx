@@ -72,9 +72,8 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
         .from('appointments')
         .select('patient_id')
         .eq('dentist_id', dentistId);
-       
-       console.log('Appointments for dentist:', appointments);
-       appointments?.forEach(apt => patientIds.add(apt.patient_id));
+      
+      appointments?.forEach(apt => patientIds.add(apt.patient_id));
       
       // 2. Patients with medical records
       const { data: medicalRecords } = await supabase
@@ -101,14 +100,11 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
       notes?.forEach(note => patientIds.add(note.patient_id));
 
       // If no patients found, return empty array
-       if (patientIds.size === 0) {
-         console.log('No patient IDs found for dentist:', dentistId);
-         setPatients([]);
-         setFilteredPatients([]);
-         return;
-       }
-
-       console.log('Found patient IDs:', Array.from(patientIds));
+      if (patientIds.size === 0) {
+        setPatients([]);
+        setFilteredPatients([]);
+        return;
+      }
 
       // Get patient profiles
       const { data: profiles, error: profilesError } = await supabase
@@ -124,12 +120,7 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
         `)
         .in('id', Array.from(patientIds));
 
-       if (profilesError) {
-         console.error('Profile error:', profilesError);
-         throw profilesError;
-       }
-
-       console.log('Retrieved profiles:', profiles);
+      if (profilesError) throw profilesError;
 
       // Build patient data with statistics
       const patientsWithStats = await Promise.all(
