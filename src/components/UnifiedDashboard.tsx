@@ -22,29 +22,51 @@ export const UnifiedDashboard = ({ user }: UnifiedDashboardProps) => {
 
   const fetchUserRole = async () => {
     try {
+      console.log('Fetching user role for user:', user.id);
+      
       // First get the user's profile
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('id, role')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
-      if (profileError) throw profileError;
+      console.log('Profile query result:', { profile, profileError });
+
+      if (profileError) {
+        console.error('Profile error:', profileError);
+        throw profileError;
+      }
+
+      if (!profile) {
+        console.log('No profile found, defaulting to patient');
+        setUserRole('patient');
+        return;
+      }
+
+      console.log('User profile role:', profile.role);
 
       // Check if user is a dentist by checking both role and dentist table
       if (profile.role === 'dentist') {
+        console.log('User has dentist role, checking dentist table...');
+        
         const { data: dentist, error: dentistError } = await supabase
           .from('dentists')
           .select('id, is_active')
           .eq('profile_id', profile.id)
-          .single();
+          .maybeSingle();
+
+        console.log('Dentist query result:', { dentist, dentistError });
 
         if (!dentistError && dentist?.is_active) {
+          console.log('User is an active dentist, setting role to dentist');
           setUserRole('dentist');
         } else {
+          console.log('User is not an active dentist, defaulting to patient');
           setUserRole('patient');
         }
       } else {
+        console.log('User role is not dentist, setting to patient');
         setUserRole('patient');
       }
     } catch (error: any) {
@@ -52,8 +74,9 @@ export const UnifiedDashboard = ({ user }: UnifiedDashboardProps) => {
       // Default to patient if there's an error
       setUserRole('patient');
       toast({
-        title: "Note",
-        description: "Defaulting to patient dashboard",
+        title: "Error",
+        description: `Error loading dashboard: ${error.message}`,
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
