@@ -31,6 +31,12 @@ interface TriageData {
   symptoms: string[];
   duration: string;
   medicalHistory: string[];
+  problemType: string;
+  previousTreatment: string;
+  allergies: string[];
+  urgencyIndicators: string[];
+  painDescription: string;
+  triggeredBy: string[];
 }
 
 interface Dentist {
@@ -427,6 +433,14 @@ export const EmergencyBookingFlow = ({ user, onComplete, onCancel }: EmergencyBo
           <DentistRecommendations
             urgencyLevel={urgencyLevel}
             symptoms={triageData?.symptoms}
+            triageData={{
+              problemType: triageData?.problemType,
+              allergies: triageData?.allergies,
+              urgencyIndicators: triageData?.urgencyIndicators,
+              painDescription: triageData?.painDescription,
+              triggeredBy: triageData?.triggeredBy,
+              medicalHistory: triageData?.medicalHistory
+            }}
             onSelectDentist={(dentist) => {
               setSelectedDentist(dentist);
               // Auto-suggest first available date when dentist is selected

@@ -37,12 +37,21 @@ interface DentistRecommendation {
 interface DentistRecommendationsProps {
   urgencyLevel?: 1 | 2 | 3 | 4 | 5;
   symptoms?: string[];
+  triageData?: {
+    problemType?: string;
+    allergies?: string[];
+    urgencyIndicators?: string[];
+    painDescription?: string;
+    triggeredBy?: string[];
+    medicalHistory?: string[];
+  };
   onSelectDentist: (dentist: DentistRecommendation) => void;
 }
 
 export const DentistRecommendations = ({ 
   urgencyLevel = 3, 
-  symptoms = [], 
+  symptoms = [],
+  triageData,
   onSelectDentist 
 }: DentistRecommendationsProps) => {
   const { t } = useLanguageDetection();
@@ -51,7 +60,7 @@ export const DentistRecommendations = ({
 
   useEffect(() => {
     fetchRecommendations();
-  }, [urgencyLevel, symptoms]);
+  }, [urgencyLevel, symptoms, triageData]);
 
   const fetchRecommendations = async () => {
     try {
@@ -79,9 +88,9 @@ export const DentistRecommendations = ({
 
       if (error) throw error;
 
-      // Calculate recommendation scores
+      // Calculate recommendation scores with enhanced triage data
       const scoredDentists = (dentists || []).map(dentist => {
-        const recommendation = calculateRecommendationScore(dentist, urgencyLevel, symptoms);
+        const recommendation = calculateRecommendationScore(dentist, urgencyLevel, symptoms, triageData);
         return {
           ...dentist,
           recommendation_score: recommendation.score,
@@ -103,7 +112,15 @@ export const DentistRecommendations = ({
   const calculateRecommendationScore = (
     dentist: any, 
     urgency: number, 
-    symptoms: string[]
+    symptoms: string[],
+    triageData?: {
+      problemType?: string;
+      allergies?: string[];
+      urgencyIndicators?: string[];
+      painDescription?: string;
+      triggeredBy?: string[];
+      medicalHistory?: string[];
+    }
   ): { score: number; reason: string } => {
     let score = 0;
     const reasons = [];
@@ -122,11 +139,53 @@ export const DentistRecommendations = ({
       reasons.push("Dentiste expérimenté");
     }
 
-    // Specialization matching (20% of total score)
-    const specializationScore = getSpecializationScore(dentist.specialization, symptoms, urgency);
+    // Enhanced specialization matching with triage data (30% of total score)
+    const specializationScore = getSpecializationScore(
+      dentist.specialization, 
+      symptoms, 
+      urgency, 
+      triageData
+    );
     score += specializationScore.score;
     if (specializationScore.reason) {
       reasons.push(specializationScore.reason);
+    }
+
+    // Allergy compatibility (critical factor)
+    if (triageData?.allergies?.length) {
+      const allergyCompatibilityScore = getAllergyCompatibilityScore(
+        dentist.specialization,
+        triageData.allergies
+      );
+      score += allergyCompatibilityScore.score;
+      if (allergyCompatibilityScore.reason) {
+        reasons.push(allergyCompatibilityScore.reason);
+      }
+    }
+
+    // Problem type specialization bonus
+    if (triageData?.problemType) {
+      const problemScore = getProblemTypeScore(
+        dentist.specialization,
+        triageData.problemType,
+        urgency
+      );
+      score += problemScore.score;
+      if (problemScore.reason) {
+        reasons.push(problemScore.reason);
+      }
+    }
+
+    // Emergency indicators penalty for non-specialists
+    if (triageData?.urgencyIndicators?.length && urgency >= 4) {
+      const emergencyScore = getEmergencySpecialistScore(
+        dentist.specialization,
+        triageData.urgencyIndicators
+      );
+      score += emergencyScore.score;
+      if (emergencyScore.reason) {
+        reasons.push(emergencyScore.reason);
+      }
     }
 
     // Communication score for urgent cases (10% of total score)
@@ -156,35 +215,157 @@ export const DentistRecommendations = ({
   const getSpecializationScore = (
     specialization: string,
     symptoms: string[],
-    urgency: number
+    urgency: number,
+    triageData?: {
+      problemType?: string;
+      allergies?: string[];
+      urgencyIndicators?: string[];
+      painDescription?: string;
+      triggeredBy?: string[];
+      medicalHistory?: string[];
+    }
   ): { score: number; reason?: string } => {
     const spec = specialization?.toLowerCase() || '';
     
+    // Critical emergency indicators require specialists
+    if (triageData?.urgencyIndicators?.some(indicator => 
+      ['difficulty_breathing', 'facial_swelling', 'difficulty_swallowing', 'severe_bleeding'].includes(indicator)
+    )) {
+      if (spec.includes('urgence') || spec.includes('chirurgie') || spec.includes('maxillo')) {
+        return { score: 25, reason: "Spécialiste des urgences graves" };
+      } else {
+        return { score: 5, reason: "Non spécialisé en urgences graves" };
+      }
+    }
+
+    // Problem type matching
+    if (triageData?.problemType) {
+      switch (triageData.problemType) {
+        case 'abscess':
+          if (spec.includes('endodontie') || spec.includes('urgence')) {
+            return { score: 22, reason: "Spécialiste des infections dentaires" };
+          }
+          break;
+        case 'broken_tooth':
+          if (spec.includes('chirurgie') || spec.includes('urgence')) {
+            return { score: 20, reason: "Spécialiste des traumatismes dentaires" };
+          }
+          break;
+        case 'gum_problem':
+          if (spec.includes('parodontie')) {
+            return { score: 20, reason: "Spécialiste des gencives" };
+          }
+          break;
+        case 'orthodontic':
+          if (spec.includes('orthodontie')) {
+            return { score: 20, reason: "Spécialiste orthodontique" };
+          }
+          break;
+        case 'jaw_problem':
+          if (spec.includes('maxillo') || spec.includes('atm')) {
+            return { score: 20, reason: "Spécialiste des troubles de l'ATM" };
+          }
+          break;
+      }
+    }
+
     // Emergency and oral surgery for trauma/bleeding
     if (symptoms.includes('trauma') || symptoms.includes('bleeding')) {
       if (spec.includes('urgence') || spec.includes('chirurgie')) {
-        return { score: 20, reason: "Spécialiste des urgences" };
+        return { score: 18, reason: "Spécialiste des urgences" };
       }
     }
 
     // Endodontist for severe pain
     if (urgency >= 4 && spec.includes('endodontie')) {
-      return { score: 18, reason: "Spécialiste de la douleur dentaire" };
-    }
-
-    // Periodontist for gum issues
-    if (symptoms.includes('bleeding') || symptoms.includes('swelling')) {
-      if (spec.includes('parodontie')) {
-        return { score: 18, reason: "Spécialiste des gencives" };
-      }
+      return { score: 16, reason: "Spécialiste de la douleur dentaire" };
     }
 
     // General dentistry gets standard score
     if (spec.includes('générale') || spec.includes('general')) {
-      return { score: 10, reason: "Dentiste généraliste" };
+      return { score: 12, reason: "Dentiste généraliste" };
     }
 
-    return { score: 5 };
+    return { score: 8 };
+  };
+
+  const getAllergyCompatibilityScore = (
+    specialization: string,
+    allergies: string[]
+  ): { score: number; reason?: string } => {
+    const spec = specialization?.toLowerCase() || '';
+    
+    // Critical allergies that require specialist knowledge
+    const criticalAllergies = ['local_anesthetic', 'latex'];
+    const hasCriticalAllergy = allergies.some(allergy => criticalAllergies.includes(allergy));
+    
+    if (hasCriticalAllergy) {
+      if (spec.includes('anesthésie') || spec.includes('urgence') || spec.includes('chirurgie')) {
+        return { score: 10, reason: "Expérience avec allergies complexes" };
+      } else {
+        return { score: -5, reason: "Allergie nécessitant une expertise spécialisée" };
+      }
+    }
+
+    // Standard medication allergies
+    if (allergies.includes('penicillin')) {
+      return { score: 2, reason: "Adaptation des prescriptions" };
+    }
+
+    return { score: 0 };
+  };
+
+  const getProblemTypeScore = (
+    specialization: string,
+    problemType: string,
+    urgency: number
+  ): { score: number; reason?: string } => {
+    const spec = specialization?.toLowerCase() || '';
+    
+    const problemSpecializations = {
+      'abscess': ['endodontie', 'urgence'],
+      'broken_tooth': ['chirurgie', 'urgence', 'prothèse'],
+      'gum_problem': ['parodontie'],
+      'orthodontic': ['orthodontie'],
+      'jaw_problem': ['maxillo', 'atm'],
+      'post_surgery': ['chirurgie', 'urgence']
+    };
+
+    const requiredSpecs = problemSpecializations[problemType as keyof typeof problemSpecializations] || [];
+    const hasSpecialization = requiredSpecs.some(reqSpec => spec.includes(reqSpec));
+
+    if (hasSpecialization) {
+      const bonus = urgency >= 4 ? 5 : 3;
+      return { score: 15 + bonus, reason: `Spécialisé en ${problemType.replace('_', ' ')}` };
+    }
+
+    return { score: 0 };
+  };
+
+  const getEmergencySpecialistScore = (
+    specialization: string,
+    urgencyIndicators: string[]
+  ): { score: number; reason?: string } => {
+    const spec = specialization?.toLowerCase() || '';
+    
+    const criticalIndicators = [
+      'difficulty_breathing', 'facial_swelling', 'difficulty_swallowing', 
+      'severe_bleeding', 'spreading_infection'
+    ];
+    
+    const hasCriticalIndicators = urgencyIndicators.some(indicator => 
+      criticalIndicators.includes(indicator)
+    );
+    
+    if (hasCriticalIndicators) {
+      if (spec.includes('urgence') || spec.includes('chirurgie') || spec.includes('maxillo')) {
+        return { score: 15, reason: "Spécialiste des urgences critiques" };
+      } else {
+        return { score: -10, reason: "Urgence nécessitant un spécialiste" };
+      }
+    }
+
+    return { score: 0 };
   };
 
   const StarRating = ({ rating, size = "sm" }: { rating: number; size?: "sm" | "lg" }) => {
