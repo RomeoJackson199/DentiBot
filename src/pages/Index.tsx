@@ -9,6 +9,9 @@ import { Header } from "@/components/homepage/Header";
 import { HeroSection } from "@/components/homepage/HeroSection";
 import { FeatureCards } from "@/components/homepage/FeatureCards";
 import { StatsSection } from "@/components/homepage/StatsSection";
+import { AppointmentBookingWithAuth } from "@/components/AppointmentBookingWithAuth";
+import { EmergencyTriageWizard } from "@/components/EmergencyTriageWizard";
+import { FloatingEmergencyButton } from "@/components/FloatingEmergencyButton";
 import { useToast } from "@/hooks/use-toast";
 import { Stethoscope } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
@@ -23,6 +26,8 @@ const Index = () => {
   const [loading, setLoading] = useState(true);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showLanguageSelection, setShowLanguageSelection] = useState(false);
+  const [showAppointmentBooking, setShowAppointmentBooking] = useState(false);
+  const [showEmergencyTriage, setShowEmergencyTriage] = useState(false);
   const {
     toast
   } = useToast();
@@ -111,6 +116,22 @@ const Index = () => {
       description: t.aiDisclaimer
     });
   };
+
+  const handleAppointmentComplete = () => {
+    setShowAppointmentBooking(false);
+    toast({
+      title: "Appointment Booked",
+      description: "Your appointment has been successfully scheduled.",
+    });
+  };
+
+  const handleTriageComplete = () => {
+    setShowEmergencyTriage(false);
+    toast({
+      title: "Triage Complete",
+      description: "Your emergency assessment has been completed.",
+    });
+  };
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center mesh-bg">
         <div className="text-center space-y-8 animate-fade-in">
@@ -147,10 +168,38 @@ const Index = () => {
     return <UnifiedDashboard user={user} />;
   }
 
+  // Show appointment booking modal
+  if (showAppointmentBooking) {
+    return (
+      <AppointmentBookingWithAuth
+        user={user}
+        onComplete={handleAppointmentComplete}
+        onCancel={() => setShowAppointmentBooking(false)}
+      />
+    );
+  }
+
+  // Show emergency triage modal
+  if (showEmergencyTriage) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-100 p-4">
+        <div className="max-w-4xl mx-auto">
+          <EmergencyTriageWizard
+            onComplete={handleTriageComplete}
+            onCancel={() => setShowEmergencyTriage(false)}
+          />
+        </div>
+      </div>
+    );
+  }
+
   // Show the new professional homepage for non-authenticated users
   return <div className="min-h-screen mesh-bg">
       <Header user={user} />
-      <HeroSection />
+      <HeroSection 
+        onBookAppointment={() => setShowAppointmentBooking(true)}
+        onStartTriage={() => setShowEmergencyTriage(true)}
+      />
       <FeatureCards />
       <StatsSection />
       
@@ -171,6 +220,9 @@ const Index = () => {
           </div>
         </div>
       </section>
+
+      {/* Floating Emergency Button */}
+      <FloatingEmergencyButton onEmergencyClick={() => setShowEmergencyTriage(true)} />
 
       {/* Language Selection Modal */}
       {showLanguageSelection && <LanguageSelection onLanguageSelected={handleLanguageSelected} />}

@@ -53,7 +53,6 @@ export type Database = {
       appointments: {
         Row: {
           appointment_date: string
-          checked_in_at: string | null
           consultation_notes: string | null
           created_at: string
           dentist_id: string
@@ -65,18 +64,14 @@ export type Database = {
           patient_id: string
           patient_name: string | null
           patient_relationship: string | null
-          patient_status: string | null
           photo_url: string | null
           reason: string | null
           status: Database["public"]["Enums"]["appointment_status"] | null
-          treatment_completed_at: string | null
-          treatment_started_at: string | null
           updated_at: string
           urgency: Database["public"]["Enums"]["urgency_level"] | null
         }
         Insert: {
           appointment_date: string
-          checked_in_at?: string | null
           consultation_notes?: string | null
           created_at?: string
           dentist_id: string
@@ -88,18 +83,14 @@ export type Database = {
           patient_id: string
           patient_name?: string | null
           patient_relationship?: string | null
-          patient_status?: string | null
           photo_url?: string | null
           reason?: string | null
           status?: Database["public"]["Enums"]["appointment_status"] | null
-          treatment_completed_at?: string | null
-          treatment_started_at?: string | null
           updated_at?: string
           urgency?: Database["public"]["Enums"]["urgency_level"] | null
         }
         Update: {
           appointment_date?: string
-          checked_in_at?: string | null
           consultation_notes?: string | null
           created_at?: string
           dentist_id?: string
@@ -111,12 +102,9 @@ export type Database = {
           patient_id?: string
           patient_name?: string | null
           patient_relationship?: string | null
-          patient_status?: string | null
           photo_url?: string | null
           reason?: string | null
           status?: Database["public"]["Enums"]["appointment_status"] | null
-          treatment_completed_at?: string | null
-          treatment_started_at?: string | null
           updated_at?: string
           urgency?: Database["public"]["Enums"]["urgency_level"] | null
         }
@@ -136,39 +124,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      audit_logs: {
-        Row: {
-          action: string
-          created_at: string
-          details: Json | null
-          id: string
-          ip_address: string | null
-          resource_id: string | null
-          resource_type: string | null
-          user_id: string
-        }
-        Insert: {
-          action: string
-          created_at?: string
-          details?: Json | null
-          id?: string
-          ip_address?: string | null
-          resource_id?: string | null
-          resource_type?: string | null
-          user_id: string
-        }
-        Update: {
-          action?: string
-          created_at?: string
-          details?: Json | null
-          id?: string
-          ip_address?: string | null
-          resource_id?: string | null
-          resource_type?: string | null
-          user_id?: string
-        }
-        Relationships: []
       }
       calendar_events: {
         Row: {
@@ -263,42 +218,6 @@ export type Database = {
         }
         Relationships: []
       }
-      communications: {
-        Row: {
-          communication_type: string
-          created_at: string
-          dentist_id: string
-          id: string
-          message: string
-          patient_id: string | null
-          sent_at: string | null
-          status: string
-          subject: string | null
-        }
-        Insert: {
-          communication_type?: string
-          created_at?: string
-          dentist_id: string
-          id?: string
-          message: string
-          patient_id?: string | null
-          sent_at?: string | null
-          status?: string
-          subject?: string | null
-        }
-        Update: {
-          communication_type?: string
-          created_at?: string
-          dentist_id?: string
-          id?: string
-          message?: string
-          patient_id?: string | null
-          sent_at?: string | null
-          status?: string
-          subject?: string | null
-        }
-        Relationships: []
-      }
       consents: {
         Row: {
           consent_text: string | null
@@ -333,39 +252,6 @@ export type Database = {
             referencedColumns: ["user_id"]
           },
         ]
-      }
-      dashboard_preferences: {
-        Row: {
-          created_at: string
-          dentist_id: string
-          id: string
-          layout_config: Json | null
-          notifications_enabled: boolean | null
-          theme: string | null
-          updated_at: string
-          widget_positions: Json | null
-        }
-        Insert: {
-          created_at?: string
-          dentist_id: string
-          id?: string
-          layout_config?: Json | null
-          notifications_enabled?: boolean | null
-          theme?: string | null
-          updated_at?: string
-          widget_positions?: Json | null
-        }
-        Update: {
-          created_at?: string
-          dentist_id?: string
-          id?: string
-          layout_config?: Json | null
-          notifications_enabled?: boolean | null
-          theme?: string | null
-          updated_at?: string
-          widget_positions?: Json | null
-        }
-        Relationships: []
       }
       dentist_availability: {
         Row: {
@@ -493,54 +379,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      dentist_tasks: {
-        Row: {
-          appointment_id: string | null
-          assigned_to: string | null
-          created_at: string
-          dentist_id: string
-          description: string | null
-          due_date: string | null
-          id: string
-          patient_id: string | null
-          priority: string
-          status: string
-          task_type: string
-          title: string
-          updated_at: string
-        }
-        Insert: {
-          appointment_id?: string | null
-          assigned_to?: string | null
-          created_at?: string
-          dentist_id: string
-          description?: string | null
-          due_date?: string | null
-          id?: string
-          patient_id?: string | null
-          priority?: string
-          status?: string
-          task_type?: string
-          title: string
-          updated_at?: string
-        }
-        Update: {
-          appointment_id?: string | null
-          assigned_to?: string | null
-          created_at?: string
-          dentist_id?: string
-          description?: string | null
-          due_date?: string | null
-          id?: string
-          patient_id?: string | null
-          priority?: string
-          status?: string
-          task_type?: string
-          title?: string
-          updated_at?: string
-        }
-        Relationships: []
       }
       dentists: {
         Row: {
@@ -981,18 +819,6 @@ export type Database = {
       generate_daily_slots: {
         Args: { p_dentist_id: string; p_date: string }
         Returns: undefined
-      }
-      get_dashboard_overview: {
-        Args: { p_dentist_id: string }
-        Returns: {
-          today_appointments_count: number
-          urgent_cases_count: number
-          patients_waiting_count: number
-          patients_in_treatment_count: number
-          revenue_today: number
-          pending_tasks_count: number
-          unread_messages_count: number
-        }[]
       }
       get_patient_stats_for_dentist: {
         Args: { p_dentist_id: string; p_patient_id: string }
