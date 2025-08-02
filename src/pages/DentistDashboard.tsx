@@ -8,9 +8,11 @@ import { DentistManagement } from "@/components/DentistManagement";
 import { NewPatientManagement } from "@/components/NewPatientManagement";
 import { AppointmentManagement } from "@/components/AppointmentManagement";
 import { DentistAnalytics } from "@/components/analytics/DentistAnalytics";
-import { Calendar, Clock, Settings as SettingsIcon, AlertTriangle, BarChart3, UserPlus, LogOut, Users } from "lucide-react";
+import { AdvancedDentistDashboard } from "@/components/dashboard/AdvancedDentistDashboard";
+import { Calendar, Clock, Settings as SettingsIcon, AlertTriangle, BarChart3, UserPlus, LogOut, Users, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 
 interface DentistDashboardProps {
@@ -18,9 +20,10 @@ interface DentistDashboardProps {
 }
 
 export function DentistDashboard({ user }: DentistDashboardProps) {
-  const [activeTab, setActiveTab] = useState<'urgency' | 'availability' | 'appointments' | 'patients' | 'analytics' | 'manage'>('urgency');
+  const [activeTab, setActiveTab] = useState<'advanced' | 'urgency' | 'availability' | 'appointments' | 'patients' | 'analytics' | 'manage'>('advanced');
   const [dentistId, setDentistId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [useAdvancedDashboard, setUseAdvancedDashboard] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -96,6 +99,11 @@ export function DentistDashboard({ user }: DentistDashboardProps) {
     );
   }
 
+  // If advanced dashboard is enabled, render it
+  if (useAdvancedDashboard) {
+    return <AdvancedDentistDashboard dentistId={dentistId} />;
+  }
+
   return (
     <div className="min-h-screen mesh-bg">
       <header className="glass-card sticky top-0 z-50 border-0 border-b border-border/20">
@@ -113,23 +121,48 @@ export function DentistDashboard({ user }: DentistDashboardProps) {
               <p className="text-sm text-dental-muted-foreground">Dentist Dashboard</p>
             </div>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleSignOut}
-            className="glass-card border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400 transition-all duration-300"
-          >
-            <LogOut className="h-4 w-4 mr-2" />
-            Sign Out
-          </Button>
+          <div className="flex items-center space-x-4">
+            {/* Advanced Dashboard Toggle */}
+            <div className="flex items-center space-x-2 glass-card p-2 rounded-lg">
+              <Zap className="h-4 w-4 text-dental-primary" />
+              <span className="text-sm font-medium">Advanced</span>
+              <Switch
+                checked={useAdvancedDashboard}
+                onCheckedChange={setUseAdvancedDashboard}
+                className="data-[state=checked]:bg-dental-primary"
+              />
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleSignOut}
+              className="glass-card border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400 transition-all duration-300"
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Sign Out
+            </Button>
+          </div>
         </div>
       </header>
 
       <main className="container mx-auto px-2 sm:px-4 py-4 sm:py-6 lg:py-10">
         {/* Tab Navigation */}
         <div className="flex justify-center mb-6 sm:mb-8">
-          <div className="glass-card rounded-2xl p-2 sm:p-3 animate-fade-in w-full max-w-3xl">
-            <div className="grid grid-cols-2 sm:grid-cols-6 gap-1 sm:gap-2">
+          <div className="glass-card rounded-2xl p-2 sm:p-3 animate-fade-in w-full max-w-4xl">
+            <div className="grid grid-cols-2 sm:grid-cols-7 gap-1 sm:gap-2">
+              <Button
+                variant={activeTab === 'advanced' ? 'default' : 'ghost'}
+                onClick={() => setActiveTab('advanced')}
+                className={`flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2 sm:py-3 rounded-xl transition-all duration-300 text-xs sm:text-sm ${
+                  activeTab === 'advanced' 
+                    ? 'bg-gradient-primary text-white shadow-elegant scale-105' 
+                    : 'text-dental-muted-foreground hover:text-dental-primary hover:bg-dental-primary/10 hover:scale-105'
+                }`}
+              >
+                <Zap className="h-4 w-4" />
+                <span className="font-medium">Advanced</span>
+              </Button>
+              
               <Button
                 variant={activeTab === 'urgency' ? 'default' : 'ghost'}
                 onClick={() => setActiveTab('urgency')}
@@ -140,7 +173,7 @@ export function DentistDashboard({ user }: DentistDashboardProps) {
                 }`}
               >
                 <AlertTriangle className="h-4 w-4" />
-                <span className="font-medium">Urgency Triage</span>
+                <span className="font-medium">Urgency</span>
               </Button>
               
               <Button
@@ -213,6 +246,10 @@ export function DentistDashboard({ user }: DentistDashboardProps) {
 
         {/* Content */}
         <div className="animate-fade-in">
+          {activeTab === 'advanced' && (
+            <AdvancedDentistDashboard dentistId={dentistId} />
+          )}
+          
           {activeTab === 'urgency' && (
             <DentistUrgencyGrid dentistId={dentistId} />
           )}
