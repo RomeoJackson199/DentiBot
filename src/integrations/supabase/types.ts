@@ -810,6 +810,31 @@ export type Database = {
         Args: { p_dentist_id: string; p_date: string }
         Returns: undefined
       }
+      get_patient_stats_for_dentist: {
+        Args: { p_dentist_id: string; p_patient_id: string }
+        Returns: {
+          total_appointments: number
+          upcoming_appointments: number
+          completed_appointments: number
+          last_appointment_date: string
+          total_notes: number
+          active_treatment_plans: number
+        }[]
+      }
+      get_upcoming_appointments_with_urgency: {
+        Args: { p_dentist_id: string }
+        Returns: {
+          appointment_id: string
+          patient_id: string
+          patient_name: string
+          appointment_date: string
+          urgency: Database["public"]["Enums"]["urgency_level"]
+          reason: string
+          pain_level: number
+          has_bleeding: boolean
+          has_swelling: boolean
+        }[]
+      }
       release_appointment_slot: {
         Args: { p_appointment_id: string }
         Returns: boolean
