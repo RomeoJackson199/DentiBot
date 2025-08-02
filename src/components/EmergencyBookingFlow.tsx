@@ -236,14 +236,41 @@ export const EmergencyBookingFlow = ({ user, onComplete, onCancel }: EmergencyBo
     try {
       setLoading(true);
 
-      // Get patient profile
-      const { data: profileData, error: profileError } = await supabase
+      // Get or create patient profile
+      let profileData;
+      const { data: existingProfile, error: profileError } = await supabase
         .from('profiles')
         .select('id')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
-      if (profileError) throw profileError;
+      if (profileError && profileError.code !== 'PGRST116') {
+        throw profileError;
+      }
+
+      if (existingProfile) {
+        profileData = existingProfile;
+      } else {
+        // Create profile if it doesn't exist
+        const { data: newProfile, error: createError } = await supabase
+          .from('profiles')
+          .insert({
+            user_id: user.id,
+            email: user.email || '',
+            first_name: user.user_metadata?.first_name || '',
+            last_name: user.user_metadata?.last_name || '',
+            role: 'patient'
+          })
+          .select('id')
+          .single();
+
+        if (createError) throw createError;
+        profileData = newProfile;
+      }
+
+      if (!profileData) {
+        throw new Error('Unable to create or find user profile');
+      }
 
       // Create appointment
       const appointmentDateTime = new Date(selectedDate);
