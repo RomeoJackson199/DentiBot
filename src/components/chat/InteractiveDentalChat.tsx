@@ -21,8 +21,7 @@ import {
   PersonalInfoFormWidget,
   QuickSettingsWidget,
   ImageUploadWidget,
-  QuickActionsWidget,
-  UrgencySliderWidget
+  QuickActionsWidget
 } from "./InteractiveChatWidgets";
 import { generateSymptomSummary } from "@/lib/symptoms";
 
@@ -44,8 +43,8 @@ export const InteractiveDentalChat = ({
   const [hasConsented, setHasConsented] = useState(true);
   const [showConsentWidget, setShowConsentWidget] = useState(!user);
   const [activeWidget, setActiveWidget] = useState<string | null>(null);
-  const [widgetData, setWidgetData] = useState<any>({});
-  const [userProfile, setUserProfile] = useState<any>(null);
+  const [widgetData, setWidgetData] = useState<Record<string, unknown>>({});
+  const [userProfile, setUserProfile] = useState<Record<string, unknown> | null>(null);
   
   // Booking flow state
   const [bookingFlow, setBookingFlow] = useState({
@@ -158,7 +157,7 @@ export const InteractiveDentalChat = ({
   const generateBotResponse = async (
     userMessage: string,
     history: ChatMessage[]
-  ): Promise<{ message: ChatMessage; fallback: boolean; suggestions: string[]; recommendedDentists: string[] }> => {
+  ): Promise<{ message: ChatMessage; fallback: boolean; suggestions: string[]; recommendedDentists: string[]; urgencyDetected: boolean }> => {
     try {
       const { data, error } = await supabase.functions.invoke('dental-ai-chat', {
         body: {
@@ -189,7 +188,8 @@ export const InteractiveDentalChat = ({
         message: result,
         fallback: Boolean(data.fallback_response && !data.response),
         suggestions: data.suggestions || [],
-        recommendedDentists: data.recommended_dentist || []
+        recommendedDentists: data.recommended_dentist || [],
+        urgencyDetected: data.urgency_detected || false
       };
     } catch (error) {
       console.error('Error generating AI response:', error);
@@ -204,7 +204,8 @@ export const InteractiveDentalChat = ({
         },
         fallback: true,
         suggestions: [],
-        recommendedDentists: []
+        recommendedDentists: [],
+        urgencyDetected: false
       };
     }
   };
@@ -484,7 +485,7 @@ Just type what you need or use the quick action buttons! 😊
   };
 
 
-  const handleDentistSelection = (dentist: any) => {
+  const handleDentistSelection = (dentist: Record<string, unknown>) => {
     setBookingFlow({ ...bookingFlow, selectedDentist: dentist, step: 'date' });
     setActiveWidget(null);
     
@@ -492,7 +493,7 @@ Just type what you need or use the quick action buttons! 😊
     
     setTimeout(() => {
       setActiveWidget('calendar');
-      addBotMessage("Now, please select your preferred date:");
+      addBotMessage("I'll open the calendar.");
     }, 1000);
   };
 
@@ -532,7 +533,7 @@ Just type what you need or use the quick action buttons! 😊
         setTimeout(() => setActiveWidget('calendar'), 1000);
       } else {
         setActiveWidget('time-slots');
-        addBotMessage("Please choose your preferred time:");
+        addBotMessage("Here are the available times:");
       }
       
   } catch (error) {
@@ -700,11 +701,17 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
     }
 
     const history = [...messages, userMessage].slice(-10);
-    const { message: botResponse, fallback, suggestions, recommendedDentists } = await generateBotResponse(userMessage.message, history);
+    const { message: botResponse, fallback, suggestions, recommendedDentists, urgencyDetected } = await generateBotResponse(userMessage.message, history);
     setMessages(prev => [...prev, botResponse]);
     await saveMessage(botResponse);
 
     handleSuggestions(suggestions, recommendedDentists);
+
+    if (urgencyDetected) {
+      addBotMessage("It sounds urgent.");
+      setTimeout(() => addBotMessage("How severe is the pain on a scale from 1 to 10?"), 500);
+      setTimeout(() => addBotMessage("Is there any swelling or bleeding?"), 1000);
+    }
 
     if (fallback) {
       setTimeout(() => setActiveWidget('quick-actions'), 1000);

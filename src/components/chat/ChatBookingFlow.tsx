@@ -12,8 +12,8 @@ import { format, addDays, startOfDay } from "date-fns";
 
 interface ChatBookingFlowProps {
   user: User;
-  selectedDentist?: any;
-  onComplete: (appointmentData: any) => void;
+    selectedDentist?: Record<string, unknown>;
+    onComplete: (appointmentData: Record<string, unknown>) => void;
   onCancel: () => void;
   onResponse: (message: string) => void;
 }
@@ -33,7 +33,7 @@ export const ChatBookingFlow = ({
 }: ChatBookingFlowProps) => {
   const { t } = useLanguage();
   const { toast } = useToast();
-  const [dentists, setDentists] = useState<any[]>([]);
+    const [dentists, setDentists] = useState<Record<string, unknown>[]>([]);
   const [currentDentist, setCurrentDentist] = useState(selectedDentist);
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
@@ -45,7 +45,7 @@ export const ChatBookingFlow = ({
     fetchDentists();
     if (selectedDentist) {
       setStep('date');
-      onResponse(`Great! I'll help you book an appointment with Dr. ${selectedDentist.profiles?.first_name} ${selectedDentist.profiles?.last_name}. Please select your preferred date:`);
+      onResponse(`Great! I'll help you book an appointment with Dr. ${selectedDentist.profiles?.first_name} ${selectedDentist.profiles?.last_name}. I'm opening the calendar now.`);
     }
   }, []);
 

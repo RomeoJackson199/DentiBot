@@ -56,9 +56,9 @@ BELANGRIJKE INSTRUCTIES:
 - Je kent de patiënt: ${user_profile?.first_name} ${user_profile?.last_name}
 - Voor wijzigen/annuleren van afspraken: stuur hen naar de afsprakenlijst
 - Als ze vragen om een afspraak voor zichzelf: ga direct naar tandarts aanbevelingen
-  - STEL 2-5 RELEVANTE VRAGEN om de behoeften van de patiënt beter te begrijpen
-- ALTIJD de patiënt toestaan door te gaan spreken als ze meer informatie willen verstrekken
-- GEEN spoedgevallen detecteren - behandel alle gevallen als reguliere consulten
+  - STEL relevante vragen één voor één om de behoeften van de patiënt beter te begrijpen
+ - ALTIJD de patiënt toestaan door te gaan spreken als ze meer informatie willen verstrekken
+ - Detecteer urgentie en verzamel extra informatie bij urgente situaties
 - ALTIJD een specifieke tandarts aanbevelen op basis van hun diensten en behoeften van de patiënt
 - Alle afspraken beschikbaar van 9:00 tot 17:00
 
@@ -108,9 +108,9 @@ INSTRUCTIONS IMPORTANTES:
 - Vous connaissez le patient: ${user_profile?.first_name} ${user_profile?.last_name}
 - Pour modifier/annuler des rendez-vous: dirigez-les vers la liste des rendez-vous
 - S'ils demandent un rendez-vous pour eux-mêmes: allez directement aux recommandations de dentistes
-  - POSEZ 2-5 QUESTIONS PERTINENTES pour mieux comprendre les besoins du patient
-- TOUJOURS permettre au patient de continuer à parler s'il veut fournir plus d'informations
-- NE PAS détecter les urgences - traiter tous les cas comme des consultations régulières
+  - POSEZ des questions pertinentes une à une pour mieux comprendre les besoins du patient
+ - TOUJOURS permettre au patient de continuer à parler s'il veut fournir plus d'informations
+ - Détectez les situations urgentes et recueillez des informations supplémentaires si nécessaire
 - TOUJOURS recommander un dentiste spécifique basé sur leurs services et les besoins du patient
 - Tous les rendez-vous disponibles de 9h00 à 17h00
 
@@ -160,9 +160,9 @@ IMPORTANT INSTRUCTIONS:
 - You know the patient: ${user_profile?.first_name} ${user_profile?.last_name}
 - For rescheduling/canceling appointments: direct them to the appointments list
 - If they ask for an appointment for themselves: skip patient selection and go directly to dentist recommendations
-  - ASK 2-5 RELEVANT QUESTIONS to better understand the patient's needs
-- ALWAYS allow the patient to continue speaking if they want to provide more information
-- DO NOT detect emergencies - treat all cases as regular consultations
+  - ASK follow-up questions one at a time to better understand the patient's needs
+ - ALWAYS allow the patient to continue speaking if they want to provide more information
+ - Detect urgent situations and gather additional details when necessary
 - ALWAYS recommend a specific dentist based on their services and the patient's needs
 - All appointments are available from 9:00 AM to 5:00 PM
 
@@ -214,12 +214,12 @@ PROFESSIONAL LANGUAGE EXAMPLES WITH RECOMMENDATIONS:
       content.dentists,
       content.examples,
       `Patient Information: ${JSON.stringify(user_profile)}`,
-      `Conversation History:\n${conversation_history.map((msg: any) => (msg.is_bot ? 'Assistant' : 'Patient') + ': ' + msg.message).join('\n')}`
+        `Conversation History:\n${conversation_history.map((msg: { is_bot: boolean; message: string }) => (msg.is_bot ? 'Assistant' : 'Patient') + ': ' + msg.message).join('\n')}`
     ].join('\n\n');
 
     const messages = [
       { role: 'system', content: systemPrompt },
-      ...conversation_history.map((msg: any) => ({
+        ...conversation_history.map((msg: { is_bot: boolean; message: string }) => ({
         role: msg.is_bot ? 'assistant' : 'user',
         content: msg.message
       })),
@@ -256,7 +256,7 @@ PROFESSIONAL LANGUAGE EXAMPLES WITH RECOMMENDATIONS:
     const botResponse = data.choices[0].message.content;
 
     // Extract consultation reason from conversation
-    const extractConsultationReason = (message: string, history: any[]): string => {
+      const extractConsultationReason = (message: string, history: Array<{ message: string }>): string => {
       const lowerMessage = message.toLowerCase();
       
       // Extract from current message
@@ -302,7 +302,7 @@ PROFESSIONAL LANGUAGE EXAMPLES WITH RECOMMENDATIONS:
     const consultationReason = extractConsultationReason(message, conversation_history);
 
     // Enhanced keyword-based suggestions and recommendations
-    const suggestions = [];
+    const suggestions: string[] = [];
     const lowerResponse = botResponse.toLowerCase();
     const lowerMessage = message.toLowerCase();
     
@@ -330,7 +330,7 @@ PROFESSIONAL LANGUAGE EXAMPLES WITH RECOMMENDATIONS:
     }
     
     // Extract dentist recommendations from response (improved matching for multiple dentists)
-    let recommendedDentists = [];
+      const recommendedDentists: string[] = [];
     if (lowerResponse.includes('virginie pauwels') || lowerResponse.includes('dr. virginie')) {
       recommendedDentists.push('Virginie Pauwels');
     }
@@ -398,9 +398,9 @@ PROFESSIONAL LANGUAGE EXAMPLES WITH RECOMMENDATIONS:
       suggestions.push('theme-options');
     }
     
-    // No emergency detection - treat all cases as regular consultations
-    const urgency_detected = false;
-    const emergency_detected = false;
+      const fullText = `${message} ${conversation_history.map((m: { message: string }) => m.message).join(' ')}`.toLowerCase();
+    const emergency_detected = /emergency|bleeding|swelling|uncontrollable pain|fracture|broken/i.test(fullText);
+    const urgency_detected = emergency_detected || /urgent|asap|immediate|severe pain|very pain|dringend|urgence|urgente|pijn|douleur intense/i.test(fullText);
 
     return new Response(JSON.stringify({ 
       response: botResponse,
