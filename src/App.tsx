@@ -12,6 +12,8 @@ import DentistProfiles from "./pages/DentistProfiles";
 import Terms from "./pages/Terms";
 import NotFound from "./pages/NotFound";
 import EmergencyTriage from "./pages/EmergencyTriage";
+import { PaymentSuccess } from "./pages/PaymentSuccess";
+import { PaymentCancelled } from "./pages/PaymentCancelled";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +37,8 @@ const App = () => (
                 <Route path="/emergency-triage" element={<EmergencyTriage />} />
                 <Route path="/dentists" element={<DentistProfiles />} />
                 <Route path="/terms" element={<Terms />} />
+                <Route path="/payment-success" element={<PaymentSuccess />} />
+                <Route path="/payment-cancelled" element={<PaymentCancelled />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
