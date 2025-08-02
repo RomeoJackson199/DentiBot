@@ -1,0 +1,33 @@
+{
+  "name": "DentiSmart Scheduler",
+  "short_name": "DentiSmart",
+  "description": "Smart dental practice management and patient booking system",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/lovable-uploads/bd9069b9-f5b0-427d-8acb-8b6a25ccba24.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/lovable-uploads/dd1b725d-745a-4f59-a31a-2b7df6e48a1c.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["medical", "health", "productivity"],
+  "screenshots": [
+    {
+      "src": "/lovable-uploads/bd9069b9-f5b0-427d-8acb-8b6a25ccba24.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide"
+    }
+  ]
+}

@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { LanguageProvider } from "./hooks/useLanguage";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { PWAInstallPrompt } from "./components/PWAInstallPrompt";
 import Index from "./pages/Index";
 import DentistProfiles from "./pages/DentistProfiles";
 import Terms from "./pages/Terms";
@@ -27,6 +28,7 @@ const App = () => (
           <TooltipProvider>
             <Toaster />
             <Sonner />
+            <PWAInstallPrompt />
             <BrowserRouter>
               <Routes>
                 <Route path="/" element={<Index />} />
