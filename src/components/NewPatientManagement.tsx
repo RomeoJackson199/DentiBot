@@ -76,87 +76,128 @@ export function NewPatientManagement({ dentistId }: PatientManagementProps) {
   const fetchPatients = async () => {
     try {
       setLoading(true);
+      console.log('Fetching patients for dentist:', dentistId);
       
-      const { data: appointments, error } = await supabase
+      // Get all unique patients who have appointments with this dentist
+      const { data: appointmentsData, error: appointmentsError } = await supabase
         .from('appointments')
-        .select(`
-          patient_id,
-          profiles!appointments_patient_id_fkey (
-            id,
-            first_name,
-            last_name,
-            email,
-            phone,
-            date_of_birth,
-            medical_history
-          )
-        `)
+        .select('patient_id')
         .eq('dentist_id', dentistId);
 
-      if (error) throw error;
+      if (appointmentsError) {
+        console.error('Error fetching appointments:', appointmentsError);
+        throw appointmentsError;
+      }
 
-      if (!appointments || appointments.length === 0) {
+      console.log('Found appointments:', appointmentsData?.length || 0);
+
+      if (!appointmentsData || appointmentsData.length === 0) {
+        console.log('No appointments found for this dentist');
         setPatients([]);
         setFilteredPatients([]);
         return;
       }
 
-      const patientMap = new Map();
-      
-      for (const appointment of appointments) {
-        const profile = appointment.profiles;
-        if (!profile) continue;
-        
-        if (!patientMap.has(profile.id)) {
-          patientMap.set(profile.id, {
-            ...profile,
-            total_appointments: 0,
-            upcoming_appointments: 0,
-            last_appointment: null
-          });
-        }
-        
-        const patient = patientMap.get(profile.id);
-        patient.total_appointments++;
+      // Get unique patient IDs
+      const uniquePatientIds = [...new Set(appointmentsData.map(a => a.patient_id))];
+      console.log('Unique patient IDs:', uniquePatientIds.length);
+
+      // Fetch patient profiles
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select(`
+          id,
+          first_name,
+          last_name,
+          email,
+          phone,
+          date_of_birth,
+          medical_history
+        `)
+        .in('id', uniquePatientIds);
+
+      if (profilesError) {
+        console.error('Error fetching profiles:', profilesError);
+        throw profilesError;
       }
 
-      const patientsArray = Array.from(patientMap.values());
-      
-      for (const patient of patientsArray) {
-        const { data: upcomingAppts } = await supabase
-          .from('appointments')
-          .select('id')
-          .eq('patient_id', patient.id)
-          .eq('dentist_id', dentistId)
-          .gt('appointment_date', new Date().toISOString())
-          .neq('status', 'cancelled');
-        
-        patient.upcoming_appointments = upcomingAppts?.length || 0;
-        
-        const { data: lastAppt } = await supabase
-          .from('appointments')
-          .select('appointment_date')
-          .eq('patient_id', patient.id)
-          .eq('dentist_id', dentistId)
-          .eq('status', 'completed')
-          .order('appointment_date', { ascending: false })
-          .limit(1);
-        
-        if (lastAppt && lastAppt.length > 0) {
-          patient.last_appointment = lastAppt[0].appointment_date;
-        }
+      console.log('Found profiles:', profilesData?.length || 0);
+
+      if (!profilesData || profilesData.length === 0) {
+        console.log('No profiles found for patients');
+        setPatients([]);
+        setFilteredPatients([]);
+        return;
       }
 
-      setPatients(patientsArray);
-      setFilteredPatients(patientsArray);
+      // Calculate stats for each patient
+      const patientsWithStats = await Promise.all(
+        profilesData.map(async (profile) => {
+          try {
+            // Get total appointments
+            const { data: totalAppts, error: totalError } = await supabase
+              .from('appointments')
+              .select('id', { count: 'exact', head: true })
+              .eq('patient_id', profile.id)
+              .eq('dentist_id', dentistId);
+
+            if (totalError) console.error('Error getting total appointments:', totalError);
+
+            // Get upcoming appointments
+            const { data: upcomingAppts, error: upcomingError } = await supabase
+              .from('appointments')
+              .select('id', { count: 'exact', head: true })
+              .eq('patient_id', profile.id)
+              .eq('dentist_id', dentistId)
+              .gt('appointment_date', new Date().toISOString())
+              .neq('status', 'cancelled');
+
+            if (upcomingError) console.error('Error getting upcoming appointments:', upcomingError);
+
+            // Get last completed appointment
+            const { data: lastAppt, error: lastError } = await supabase
+              .from('appointments')
+              .select('appointment_date')
+              .eq('patient_id', profile.id)
+              .eq('dentist_id', dentistId)
+              .eq('status', 'completed')
+              .order('appointment_date', { ascending: false })
+              .limit(1)
+              .maybeSingle();
+
+            if (lastError) console.error('Error getting last appointment:', lastError);
+
+            return {
+              ...profile,
+              total_appointments: totalAppts?.length || 0,
+              upcoming_appointments: upcomingAppts?.length || 0,
+              last_appointment: lastAppt?.appointment_date || null
+            };
+          } catch (err) {
+            console.error('Error processing patient stats for:', profile.id, err);
+            return {
+              ...profile,
+              total_appointments: 0,
+              upcoming_appointments: 0,
+              last_appointment: null
+            };
+          }
+        })
+      );
+
+      console.log('Patients with stats:', patientsWithStats.length);
+      setPatients(patientsWithStats);
+      setFilteredPatients(patientsWithStats);
       
     } catch (error: any) {
       console.error('Error fetching patients:', error);
       toast({
         title: "Error",
-        description: "Failed to load patients",
+        description: `Failed to load patients: ${error.message}`,
         variant: "destructive",
       });
+      setPatients([]);
+      setFilteredPatients([]);
     } finally {
       setLoading(false);
     }
