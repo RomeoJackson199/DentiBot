@@ -8,11 +8,6 @@ import { LanguageProvider } from "./hooks/useLanguage";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import Index from "./pages/Index";
 import DentistProfiles from "./pages/DentistProfiles";
-import { DentistDashboard } from "./pages/DentistDashboard";
-import { DentistAgenda } from "./pages/DentistAgenda";
-import { DentistPatients } from "./pages/DentistPatients";
-import { DentistCreateAppointment } from "./pages/DentistCreateAppointment";
-import { DentistLayout } from "./components/DentistLayout";
 import Terms from "./pages/Terms";
 import NotFound from "./pages/NotFound";
 
@@ -35,26 +30,6 @@ const App = () => (
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/dentists" element={<DentistProfiles />} />
-                <Route path="/dashboard" element={
-                  <DentistLayout>
-                    {(user) => <DentistDashboard user={user} />}
-                  </DentistLayout>
-                } />
-                <Route path="/agenda" element={
-                  <DentistLayout>
-                    {(user) => <DentistAgenda user={user} />}
-                  </DentistLayout>
-                } />
-                <Route path="/patients" element={
-                  <DentistLayout>
-                    {(user) => <DentistPatients user={user} />}
-                  </DentistLayout>
-                } />
-                <Route path="/appointments/create" element={
-                  <DentistLayout>
-                    {(user) => <DentistCreateAppointment user={user} />}
-                  </DentistLayout>
-                } />
                 <Route path="/terms" element={<Terms />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
