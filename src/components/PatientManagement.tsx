@@ -24,6 +24,7 @@ import { PatientAppointments } from "@/components/PatientAppointments";
 import { PatientNotes } from "@/components/PatientNotes";
 import { PatientTreatmentPlans } from "@/components/PatientTreatmentPlans";
 import { SimpleAppointmentBooking } from "@/components/SimpleAppointmentBooking";
+import { AIConversationDialog } from "@/components/AIConversationDialog";
 
 interface Patient {
   id: string;
@@ -296,9 +297,18 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
                             patientName={`${patient.first_name} ${patient.last_name}`}
                             onSuccess={fetchPatients}
                           />
-                          <Button variant="outline" size="sm">
-                            View Dossier
-                          </Button>
+                          <div className="flex space-x-2">
+                            <Button variant="outline" size="sm">
+                              View Dossier
+                            </Button>
+                            <AIConversationDialog
+                              patientId={patient.id}
+                              dentistId={dentistId}
+                              patientName={`${patient.first_name} ${patient.last_name}`}
+                              contextType="patient"
+                              onUpdate={fetchPatients}
+                            />
+                          </div>
                         </div>
                       </div>
                     </CardContent>

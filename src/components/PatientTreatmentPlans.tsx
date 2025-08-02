@@ -19,6 +19,8 @@ import {
   AlertTriangle
 } from "lucide-react";
 import { format } from "date-fns";
+import { AIWritingAssistant } from "@/components/AIWritingAssistant";
+import { AIConversationDialog } from "@/components/AIConversationDialog";
 
 interface TreatmentPlan {
   id: string;
@@ -214,10 +216,19 @@ export function PatientTreatmentPlans({ patientId, dentistId }: PatientTreatment
               <Pill className="h-6 w-6 text-dental-primary" />
               <span>Treatment Plans</span>
             </CardTitle>
-            <Button onClick={() => setIsAddingPlan(true)} disabled={isAddingPlan}>
-              <Plus className="h-4 w-4 mr-2" />
-              Create Treatment Plan
-            </Button>
+            <div className="flex space-x-2">
+              <Button onClick={() => setIsAddingPlan(true)} disabled={isAddingPlan}>
+                <Plus className="h-4 w-4 mr-2" />
+                Create Treatment Plan
+              </Button>
+              <AIConversationDialog
+                patientId={patientId}
+                dentistId={dentistId}
+                patientName="Patient"
+                contextType="treatment"
+                onUpdate={fetchTreatmentPlans}
+              />
+            </div>
           </div>
         </CardHeader>
       </Card>

@@ -444,6 +444,18 @@ export function AppointmentManagement({ dentistId }: AppointmentManagementProps)
                   )}
                 </div>
 
+                {/* AI Conversation Button */}
+                <div className="pt-4 border-t">
+                  <AIConversationDialog
+                    patientId={appointment.patient_id}
+                    dentistId={dentistId}
+                    patientName={appointment.patient_name || 'Patient'}
+                    contextType="appointment"
+                    contextId={appointment.id}
+                    onUpdate={fetchAppointments}
+                  />
+                </div>
+
                 {/* Action Buttons for Completed Appointments */}
                 {appointment.status === 'completed' && (
                   <div className="flex items-center space-x-2 pt-4 border-t">

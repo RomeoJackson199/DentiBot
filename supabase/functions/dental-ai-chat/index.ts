@@ -14,9 +14,9 @@ serve(async (req) => {
   }
 
   try {
-    const { message, conversation_history, user_profile } = await req.json();
+    const { message, conversation_history, user_profile, patient_context, mode } = await req.json();
 
-    console.log('Received request:', { message, user_profile });
+    console.log('Received request:', { message, user_profile, mode });
     
     // Validate input
     if (!message || typeof message !== 'string') {
@@ -206,22 +206,66 @@ PROFESSIONAL LANGUAGE EXAMPLES WITH RECOMMENDATIONS:
       }
     };
 
-    const content = getLanguageContent(detectedLanguage);
+    let systemPrompt = '';
+    let responseFormat = {};
 
-    const systemPrompt = [
-      content.persona,
-      content.guidelines,
-      content.dentists,
-      content.examples,
-      `Patient Information: ${JSON.stringify(user_profile)}`,
-      `Conversation History:\n${conversation_history.map((msg: any) => (msg.is_bot ? 'Assistant' : 'Patient') + ': ' + msg.message).join('\n')}`
-    ].join('\n\n');
+    if (mode === 'dentist_consultation') {
+      systemPrompt = `You are an advanced dental AI assistant helping a dentist with patient care. You have access to the patient's medical history, notes, and current context.
+
+PATIENT CONTEXT:
+${patient_context?.patient ? `Name: ${patient_context.patient.first_name} ${patient_context.patient.last_name}` : ''}
+${patient_context?.patient?.medical_history ? `Medical History: ${patient_context.patient.medical_history}` : ''}
+${patient_context?.medical_history ? `Previous Records: ${JSON.stringify(patient_context.medical_history)}` : ''}
+${patient_context?.notes ? `Clinical Notes: ${JSON.stringify(patient_context.notes)}` : ''}
+${patient_context?.treatment_plans ? `Treatment Plans: ${JSON.stringify(patient_context.treatment_plans)}` : ''}
+
+Your role is to:
+1. Analyze patient information and provide clinical insights
+2. Suggest appropriate clinical notes, prescriptions, or treatment plans
+3. Help the dentist make informed decisions
+4. Provide professional medical language and recommendations
+
+When suggesting actions, format your response to include actionable suggestions in this JSON structure:
+{
+  "response": "Your conversational response",
+  "suggestions": [
+    {
+      "id": "unique_id",
+      "type": "note|prescription|treatment_plan",
+      "data": {
+        // Relevant data based on type
+      }
+    }
+  ]
+}
+
+For notes: data should include "content"
+For prescriptions: data should include "medication_name", "dosage", "frequency", "duration_days", "instructions"
+For treatment_plans: data should include "title", "description", "diagnosis", "treatment_steps", "estimated_duration_weeks", "estimated_cost", "priority"
+
+Always maintain professional medical standards and suggest only appropriate treatments.`;
+
+      responseFormat = {
+        type: "json_object"
+      };
+    } else {
+      const content = getLanguageContent(detectedLanguage);
+
+      systemPrompt = [
+        content.persona,
+        content.guidelines,
+        content.dentists,
+        content.examples,
+        `Patient Information: ${JSON.stringify(user_profile)}`,
+        `Conversation History:\n${conversation_history.map((msg: any) => (msg.is_bot ? 'Assistant' : 'Patient') + ': ' + msg.message).join('\n')}`
+      ].join('\n\n');
+    }
 
     const messages = [
       { role: 'system', content: systemPrompt },
-      ...conversation_history.map((msg: any) => ({
-        role: msg.is_bot ? 'assistant' : 'user',
-        content: msg.message
+      ...(conversation_history || []).map((msg: any) => ({
+        role: msg.is_bot || msg.role === 'assistant' ? 'assistant' : 'user',
+        content: msg.message || msg.content
       })),
       { role: 'user', content: message }
     ];
@@ -235,12 +279,13 @@ PROFESSIONAL LANGUAGE EXAMPLES WITH RECOMMENDATIONS:
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4.1-2025-04-14',
+        model: 'gpt-4o-mini',
         messages: messages,
-        max_tokens: 500,
+        max_tokens: mode === 'dentist_consultation' ? 1000 : 500,
         temperature: 0.7,
         presence_penalty: 0.1,
         frequency_penalty: 0.1,
+        ...responseFormat
       }),
     });
 
@@ -253,7 +298,26 @@ PROFESSIONAL LANGUAGE EXAMPLES WITH RECOMMENDATIONS:
     const data = await response.json();
     console.log('OpenAI response received');
 
-    const botResponse = data.choices[0].message.content;
+    let result = data.choices[0].message.content;
+
+    if (mode === 'dentist_consultation') {
+      try {
+        const parsedResult = JSON.parse(result);
+        return new Response(JSON.stringify(parsedResult), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      } catch (e) {
+        // If JSON parsing fails, return as simple response
+        return new Response(JSON.stringify({
+          response: result,
+          suggestions: []
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+    }
+
+    const botResponse = result;
 
     // Extract consultation reason from conversation
     const extractConsultationReason = (message: string, history: any[]): string => {
