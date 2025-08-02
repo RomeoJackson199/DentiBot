@@ -62,72 +62,95 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
     try {
       setLoading(true);
       
-      // Get all patients who have appointments with this dentist
-      const { data: appointments, error: appointmentsError } = await supabase
-        .from('appointments')
-        .select(`
-          patient_id,
-          profiles!inner(
-            id,
-            first_name,
-            last_name,
-            email,
-            phone,
-            date_of_birth,
-            medical_history
-          )
-        `)
-        .eq('dentist_id', dentistId);
-
-      if (appointmentsError) throw appointmentsError;
-
-      // Group by patient and get statistics
-      const patientMap = new Map();
+      // Get all unique patient IDs who have any relationship with this dentist
+      const patientIds = new Set<string>();
       
-      for (const appointment of appointments || []) {
-        const profile = appointment.profiles;
-        if (!profile) continue;
-        
-        if (!patientMap.has(profile.id)) {
-          patientMap.set(profile.id, {
-            ...profile,
-            total_appointments: 0,
-            upcoming_appointments: 0,
-            last_appointment: null
-          });
-        }
+      // 1. Patients with appointments
+      const { data: appointments } = await supabase
+        .from('appointments')
+        .select('patient_id')
+        .eq('dentist_id', dentistId);
+      
+      appointments?.forEach(apt => patientIds.add(apt.patient_id));
+      
+      // 2. Patients with medical records
+      const { data: medicalRecords } = await supabase
+        .from('medical_records')
+        .select('patient_id')
+        .eq('dentist_id', dentistId);
+      
+      medicalRecords?.forEach(record => patientIds.add(record.patient_id));
+      
+      // 3. Patients with treatment plans
+      const { data: treatmentPlans } = await supabase
+        .from('treatment_plans')
+        .select('patient_id')
+        .eq('dentist_id', dentistId);
+      
+      treatmentPlans?.forEach(plan => patientIds.add(plan.patient_id));
+      
+      // 4. Patients with notes from this dentist
+      const { data: notes } = await supabase
+        .from('notes')
+        .select('patient_id')
+        .eq('dentist_id', dentistId);
+      
+      notes?.forEach(note => patientIds.add(note.patient_id));
+
+      // If no patients found, return empty array
+      if (patientIds.size === 0) {
+        setPatients([]);
+        setFilteredPatients([]);
+        return;
       }
 
-      // Get appointment statistics for each patient
-      const patientIds = Array.from(patientMap.keys());
-      
-      for (const patientId of patientIds) {
-        const { data: appointmentStats } = await supabase
-          .from('appointments')
-          .select('appointment_date, status')
-          .eq('patient_id', patientId)
-          .eq('dentist_id', dentistId)
-          .order('appointment_date', { ascending: false });
+      // Get patient profiles
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select(`
+          id,
+          first_name,
+          last_name,
+          email,
+          phone,
+          date_of_birth,
+          medical_history
+        `)
+        .in('id', Array.from(patientIds));
 
-        if (appointmentStats) {
-          const patient = patientMap.get(patientId);
-          patient.total_appointments = appointmentStats.length;
-          patient.upcoming_appointments = appointmentStats.filter(
+      if (profilesError) throw profilesError;
+
+      // Build patient data with statistics
+      const patientsWithStats = await Promise.all(
+        (profiles || []).map(async (profile) => {
+          // Get appointment statistics
+          const { data: appointmentStats } = await supabase
+            .from('appointments')
+            .select('appointment_date, status')
+            .eq('patient_id', profile.id)
+            .eq('dentist_id', dentistId)
+            .order('appointment_date', { ascending: false });
+
+          const total_appointments = appointmentStats?.length || 0;
+          const upcoming_appointments = appointmentStats?.filter(
             a => new Date(a.appointment_date) > new Date() && a.status !== 'cancelled'
-          ).length;
+          ).length || 0;
           
-          const lastAppointment = appointmentStats.find(
+          const lastAppointment = appointmentStats?.find(
             a => new Date(a.appointment_date) <= new Date() && a.status === 'completed'
           );
-          if (lastAppointment) {
-            patient.last_appointment = lastAppointment.appointment_date;
-          }
-        }
-      }
 
-      const patientsArray = Array.from(patientMap.values());
-      setPatients(patientsArray);
-      setFilteredPatients(patientsArray);
+          return {
+            ...profile,
+            total_appointments,
+            upcoming_appointments,
+            last_appointment: lastAppointment?.appointment_date || null
+          };
+        })
+      );
+
+      setPatients(patientsWithStats);
+      setFilteredPatients(patientsWithStats);
       
     } catch (error: any) {
       toast({
