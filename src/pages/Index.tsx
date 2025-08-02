@@ -1,39 +1,45 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { User, Session } from "@supabase/supabase-js";
-import { InteractiveDentalChat } from "@/components/chat/InteractiveDentalChat";
+import { UnifiedDashboard } from "@/components/UnifiedDashboard";
 import { AuthForm } from "@/components/AuthForm";
 import { OnboardingPopup } from "@/components/OnboardingPopup";
 import { LanguageSelection } from "@/components/LanguageSelection";
-import { AppointmentsList } from "@/components/AppointmentsList";
-import { Settings } from "@/components/Settings";
 import { useToast } from "@/hooks/use-toast";
-import { Activity, MessageSquare, Calendar, Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Stethoscope, MessageSquare, Calendar } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
-import { PatientDossier } from "@/components/PatientDossier";
 import { createDossierAfterSignup } from "@/lib/medicalRecords";
 
 const Index = () => {
-  const { t } = useLanguage();
+  const { t, setLanguage } = useLanguage();
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'chat' | 'appointments' | 'dossier'>('chat');
-  const [triggerBooking, setTriggerBooking] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showLanguageSelection, setShowLanguageSelection] = useState(false);
   const { toast } = useToast();
 
-  // Function to scroll to dentists section
-  const scrollToDentists = () => {
-    // Since we don't have a dentists section on this page, 
-    // we'll scroll to the bottom where booking typically happens
-    window.scrollTo({ 
-      top: document.body.scrollHeight, 
-      behavior: 'smooth' 
-    });
-  };
+  // Auto-detect language based on browser locale
+  useEffect(() => {
+    const detectLanguage = () => {
+      const savedLanguage = localStorage.getItem('preferred-language');
+      if (!savedLanguage) {
+        const browserLang = navigator.language.toLowerCase();
+        if (browserLang.startsWith('fr')) {
+          setLanguage('fr');
+          localStorage.setItem('preferred-language', 'fr');
+        } else if (browserLang.startsWith('nl')) {
+          setLanguage('nl');
+          localStorage.setItem('preferred-language', 'nl');
+        } else {
+          setLanguage('en');
+          localStorage.setItem('preferred-language', 'en');
+        }
+      }
+    };
+    detectLanguage();
+  }, [setLanguage]);
+
 
   useEffect(() => {
     // Set up auth state listener
@@ -47,10 +53,7 @@ const Index = () => {
         if (event === 'SIGNED_IN' && session?.user) {
           setTimeout(() => {
             const hasSeenOnboarding = localStorage.getItem(`onboarding_${session.user.id}`);
-            const hasSelectedLanguage = localStorage.getItem('preferred-language');
-            if (!hasSelectedLanguage) {
-              setShowLanguageSelection(true);
-            } else if (!hasSeenOnboarding) {
+            if (!hasSeenOnboarding) {
               setShowOnboarding(true);
             }
             
@@ -67,13 +70,10 @@ const Index = () => {
       setUser(session?.user ?? null);
       setLoading(false);
       
-      // Check language selection and onboarding for existing session
+      // Check onboarding for existing session
       if (session?.user) {
         const hasSeenOnboarding = localStorage.getItem(`onboarding_${session.user.id}`);
-        const hasSelectedLanguage = localStorage.getItem('preferred-language');
-        if (!hasSelectedLanguage) {
-          setShowLanguageSelection(true);
-        } else if (!hasSeenOnboarding) {
+        if (!hasSeenOnboarding) {
           setShowOnboarding(true);
         }
       }
@@ -102,10 +102,6 @@ const Index = () => {
     toast({ description: t.aiDisclaimer });
   };
 
-  const handleBookAppointment = () => {
-    setActiveTab('chat');
-    setTriggerBooking(true);
-  };
 
   if (loading) {
     return (
@@ -114,15 +110,11 @@ const Index = () => {
           <div className="relative">
             <div className="pulse-ring w-32 h-32 -top-8 -left-8"></div>
             <div className="relative p-6 rounded-3xl shadow-glow animate-float bg-white">
-              <img 
-                src="/lovable-uploads/bd9069b9-f5b0-427d-8acb-8b6a25ccba24.png" 
-                alt="First Smile AI Logo" 
-                className="w-12 h-12 object-contain mx-auto"
-              />
+              <Stethoscope className="w-12 h-12 text-dental-primary mx-auto" />
             </div>
           </div>
           <div className="space-y-4">
-            <h1 className="text-3xl font-bold gradient-text">First Smile AI</h1>
+            <h1 className="text-3xl font-bold gradient-text">Denti Bot Unified</h1>
             <p className="text-xl font-semibold text-dental-primary">{t.initializingExperience}</p>
             <p className="text-dental-muted-foreground max-w-md mx-auto">
               {t.preparingAssistant}
@@ -150,106 +142,82 @@ const Index = () => {
             <div className="relative">
               <div className="pulse-ring w-16 h-16 -top-4 -left-4 sm:w-20 sm:h-20 sm:-top-5 sm:-left-5"></div>
               <div className="relative p-2 sm:p-3 rounded-2xl shadow-glow animate-glow bg-white">
-                <img 
-                  src="/lovable-uploads/bd9069b9-f5b0-427d-8acb-8b6a25ccba24.png" 
-                  alt="First Smile AI Logo" 
-                  className="h-6 w-6 sm:h-8 sm:w-8 object-contain"
-                />
+                <Stethoscope className="h-6 w-6 sm:h-8 sm:w-8 text-dental-primary" />
               </div>
               <div className="absolute -top-1 -right-1 w-3 h-3 sm:w-4 sm:h-4 bg-gradient-secondary rounded-full animate-pulse shadow-float"></div>
             </div>
             <div className="hidden sm:block">
-              <h2 className="text-2xl font-bold gradient-text">First Smile AI</h2>
+              <h2 className="text-2xl font-bold gradient-text">Denti Bot Unified</h2>
+              <p className="text-sm text-dental-muted-foreground">AI-Powered Dental Care Platform</p>
             </div>
           </div>
           <div className="flex items-center space-x-3">
-            {user ? (
-              <Settings user={user} />
-            ) : (
-              <AuthForm compact />
-            )}
+            {!user && <AuthForm compact />}
           </div>
         </div>
       </header>
 
-      <main className="container mx-auto px-2 sm:px-4 py-4 sm:py-6 lg:py-10">
-        {/* Tab Navigation */}
-        <div className="flex justify-center mb-6 sm:mb-8">
-          <div className="glass-card rounded-2xl p-2 sm:p-3 animate-fade-in w-full max-w-2xl">
-            <div className="flex space-x-1 sm:space-x-2">
-              <Button
-                variant={activeTab === 'chat' ? 'default' : 'ghost'}
-                onClick={() => setActiveTab('chat')}
-                className={`flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2 sm:py-3 rounded-xl transition-all duration-300 flex-1 justify-center text-xs sm:text-sm ${
-                  activeTab === 'chat' 
-                    ? 'bg-gradient-primary text-white shadow-elegant scale-105' 
-                    : 'text-dental-muted-foreground hover:text-dental-primary hover:bg-dental-primary/10 hover:scale-105'
-                }`}
-              >
-                <MessageSquare className="h-4 w-4" />
-                <span className="font-medium">{t.chat}</span>
-              </Button>
-              <Button
-                variant={activeTab === 'appointments' ? 'default' : 'ghost'}
-                onClick={() => setActiveTab('appointments')}
-                className={`flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2 sm:py-3 rounded-xl transition-all duration-300 flex-1 justify-center text-xs sm:text-sm ${
-                  activeTab === 'appointments' 
-                    ? 'bg-gradient-primary text-white shadow-elegant scale-105' 
-                    : 'text-dental-muted-foreground hover:text-dental-primary hover:bg-dental-primary/10 hover:scale-105'
-                }`}
-              >
-                <Calendar className="h-4 w-4" />
-                <span className="font-medium">{t.appointments}</span>
-              </Button>
-              {user && (
-                <Button
-                  variant={activeTab === 'dossier' ? 'default' : 'ghost'}
-                  onClick={() => setActiveTab('dossier')}
-                  className={`flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2 sm:py-3 rounded-xl transition-all duration-300 flex-1 justify-center text-xs sm:text-sm ${
-                    activeTab === 'dossier' 
-                      ? 'bg-gradient-primary text-white shadow-elegant scale-105' 
-                      : 'text-dental-muted-foreground hover:text-dental-primary hover:bg-dental-primary/10 hover:scale-105'
-                  }`}
-                >
-                  <Activity className="h-4 w-4" />
-                  <span className="font-medium">Dossier</span>
-                </Button>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="animate-fade-in space-y-6">          
-          {activeTab === 'chat' ? (
-            <InteractiveDentalChat
-              user={user}
-              triggerBooking={triggerBooking}
-              onBookingTriggered={() => setTriggerBooking(false)}
-            />
-          ) : activeTab === 'appointments' ? (
-            user ? (
-              <AppointmentsList user={user} />
-            ) : (
-              <div className="text-center py-12">
-                <div className="max-w-md mx-auto space-y-6">
-                  <h3 className="text-xl font-semibold text-dental-primary">
-                    {t.signIn} Required
-                  </h3>
-                  <p className="text-dental-muted-foreground">
-                    Please sign in to view your appointments
-                  </p>
-                  <AuthForm />
+      {/* Main Content */}
+      {user ? (
+        <UnifiedDashboard user={user} />
+      ) : (
+        <main className="container mx-auto px-2 sm:px-4 py-4 sm:py-6 lg:py-10">
+          <div className="text-center py-12 space-y-8">
+            <div className="max-w-2xl mx-auto space-y-6">
+              <div className="relative">
+                <div className="pulse-ring w-32 h-32 -top-8 -left-8 mx-auto"></div>
+                <div className="relative p-6 rounded-3xl shadow-glow animate-float bg-white mx-auto w-fit">
+                  <Stethoscope className="w-12 h-12 text-dental-primary mx-auto" />
                 </div>
               </div>
-            )
-          ) : activeTab === 'dossier' ? (
-            user ? (
-              <PatientDossier user={user} />
-            ) : null
-          ) : null}
-        </div>
-      </main>
+              
+              <h1 className="text-4xl sm:text-5xl font-bold gradient-text">
+                Denti Bot Unified
+              </h1>
+              
+              <p className="text-xl text-dental-muted-foreground">
+                AI-Powered Emergency Triage & Dental Care Platform
+              </p>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-12">
+                <div className="glass-card p-6 rounded-2xl text-center space-y-4">
+                  <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center mx-auto">
+                    <Stethoscope className="w-6 h-6 text-white" />
+                  </div>
+                  <h3 className="text-lg font-semibold">Emergency Triage</h3>
+                  <p className="text-sm text-dental-muted-foreground">
+                    Assess urgency in 1 minute for tailored appointments
+                  </p>
+                </div>
+                
+                <div className="glass-card p-6 rounded-2xl text-center space-y-4">
+                  <div className="w-12 h-12 bg-gradient-secondary rounded-xl flex items-center justify-center mx-auto">
+                    <MessageSquare className="w-6 h-6 text-white" />
+                  </div>
+                  <h3 className="text-lg font-semibold">AI Assistant</h3>
+                  <p className="text-sm text-dental-muted-foreground">
+                    24/7 intelligent dental consultation
+                  </p>
+                </div>
+                
+                <div className="glass-card p-6 rounded-2xl text-center space-y-4">
+                  <div className="w-12 h-12 bg-gradient-accent rounded-xl flex items-center justify-center mx-auto">
+                    <Calendar className="w-6 h-6 text-white" />
+                  </div>
+                  <h3 className="text-lg font-semibold">Smart Booking</h3>
+                  <p className="text-sm text-dental-muted-foreground">
+                    Automatic scheduling based on urgency
+                  </p>
+                </div>
+              </div>
+              
+              <div className="pt-8">
+                <AuthForm />
+              </div>
+            </div>
+          </div>
+        </main>
+      )}
 
       {/* Language Selection */}
       {showLanguageSelection && (
