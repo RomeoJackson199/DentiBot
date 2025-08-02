@@ -845,6 +845,10 @@ export type Database = {
           has_swelling: boolean
         }[]
       }
+      is_dentist_for_patient: {
+        Args: { patient_profile_id: string }
+        Returns: boolean
+      }
       release_appointment_slot: {
         Args: { p_appointment_id: string }
         Returns: boolean
