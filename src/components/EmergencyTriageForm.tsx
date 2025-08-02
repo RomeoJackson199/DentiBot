@@ -1,14 +1,17 @@
 import { useState } from "react";
+import { StreamlinedTriage } from "@/components/StreamlinedTriage";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Slider } from "@/components/ui/slider";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-
-import { AlertTriangle, Activity, Clock, Heart } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { useLanguage } from "@/hooks/useLanguage";
+import { 
+  CheckCircle, 
+  Calendar, 
+  MapPin, 
+  Clock,
+  Phone,
+  ArrowRight,
+  Stethoscope
+} from "lucide-react";
 
 interface EmergencyTriageFormProps {
   onComplete: (urgency: 'low' | 'medium' | 'high' | 'emergency') => void;
@@ -16,308 +19,217 @@ interface EmergencyTriageFormProps {
 }
 
 export const EmergencyTriageForm = ({ onComplete, onCancel }: EmergencyTriageFormProps) => {
-  const { t } = useLanguage();
-  const [painLevel, setPainLevel] = useState([5]);
-  const [hasBleeding, setHasBleeding] = useState(false);
-  const [hasSwelling, setHasSwelling] = useState(false);
-  const [hasFever, setHasFever] = useState(false);
-  const [hasDifficultySpeaking, setHasDifficultySpeaking] = useState(false);
-  const [symptoms, setSymptoms] = useState("");
-  const [duration, setDuration] = useState("");
-  const [previousTreatment, setPreviousTreatment] = useState("");
-  const [medicalConditions, setMedicalConditions] = useState<string[]>([]);
+  const [showResults, setShowResults] = useState(false);
+  const [urgencyLevel, setUrgencyLevel] = useState<'low' | 'medium' | 'high' | 'emergency'>('medium');
+  const [triageData, setTriageData] = useState<any>(null);
 
-  const calculateUrgency = () => {
-    let score = 0;
-    
-    // Pain level scoring (0-4 points)
-    if (painLevel[0] >= 9) score += 4;
-    else if (painLevel[0] >= 7) score += 3;
-    else if (painLevel[0] >= 5) score += 2;
-    else if (painLevel[0] >= 3) score += 1;
-    
-    // Critical symptoms (2 points each)
-    if (hasBleeding) score += 2;
-    if (hasSwelling) score += 2;
-    if (hasFever) score += 3; // Fever is more serious
-    if (hasDifficultySpeaking) score += 3; // Difficulty speaking indicates severe issue
-    
-    // Medical conditions increase urgency
-    if (medicalConditions.includes('diabetes') || medicalConditions.includes('heart_condition')) {
-      score += 2;
-    }
-    if (medicalConditions.includes('blood_thinner')) {
-      score += 1;
-    }
-    
-    // Duration (urgent if recent and severe)
-    if ((duration.includes("today") || duration.includes("tonight") || duration.includes("hour")) && painLevel[0] >= 7) {
-      score += 2;
-    }
-    
-    // Determine urgency level based on enhanced scoring
-    if (score >= 10 || hasFever || hasDifficultySpeaking) return 'emergency';
-    if (score >= 7) return 'high';
-    if (score >= 4) return 'medium';
-    return 'low';
+  const handleTriageComplete = (urgency: 'low' | 'medium' | 'high' | 'emergency', data: any) => {
+    setUrgencyLevel(urgency);
+    setTriageData(data);
+    setShowResults(true);
   };
 
-  const handleSubmit = () => {
-    const urgency = calculateUrgency();
-    onComplete(urgency);
+  const handleBookAppointment = () => {
+    onComplete(urgencyLevel);
   };
 
-  const getUrgencyColor = (level: number) => {
-    if (level <= 3) return "text-green-600 bg-green-50";
-    if (level <= 6) return "text-yellow-600 bg-yellow-50";
-    if (level <= 8) return "text-orange-600 bg-orange-50";
-    return "text-red-600 bg-red-50";
-  };
-
-  const getUrgencyText = () => {
-    const urgency = calculateUrgency();
-    switch(urgency) {
-      case 'emergency': return { text: 'EMERGENCY - Immediate Care Needed', color: 'bg-red-100 text-red-800', icon: Heart };
-      case 'high': return { text: 'HIGH - Same Day Appointment', color: 'bg-orange-100 text-orange-800', icon: AlertTriangle };
-      case 'medium': return { text: 'MEDIUM - 24-48 Hour Window', color: 'bg-yellow-100 text-yellow-800', icon: Clock };
-      case 'low': return { text: 'LOW - Standard Appointment', color: 'bg-green-100 text-green-800', icon: Activity };
+  const getUrgencyInfo = () => {
+    switch(urgencyLevel) {
+      case 'emergency': 
+        return {
+          title: 'EMERGENCY - Immediate Care Required',
+          color: 'bg-red-100 text-red-800 border-red-300',
+          description: 'You need immediate dental attention. Please call our emergency line or visit the nearest dental emergency clinic.',
+          action: 'Call Emergency Line: (555) 123-HELP',
+          timeframe: 'NOW',
+          priority: 1
+        };
+      case 'high': 
+        return {
+          title: 'HIGH PRIORITY - Same Day Appointment',
+          color: 'bg-orange-100 text-orange-800 border-orange-300',
+          description: 'Your symptoms indicate you need to be seen today. We\'ll prioritize your appointment.',
+          action: 'Book Same-Day Appointment',
+          timeframe: 'Today',
+          priority: 2
+        };
+      case 'medium': 
+        return {
+          title: 'MEDIUM PRIORITY - 24-48 Hours',
+          color: 'bg-yellow-100 text-yellow-800 border-yellow-300',
+          description: 'You should be seen within the next day or two. We have priority slots available.',
+          action: 'Book Priority Appointment',
+          timeframe: '1-2 Days',
+          priority: 3
+        };
+      case 'low': 
+        return {
+          title: 'STANDARD APPOINTMENT',
+          color: 'bg-green-100 text-green-800 border-green-300',
+          description: 'You can schedule a regular appointment at your convenience.',
+          action: 'Book Standard Appointment',
+          timeframe: 'This Week',
+          priority: 4
+        };
     }
   };
 
-  const urgencyInfo = getUrgencyText();
-  const IconComponent = urgencyInfo.icon;
-
-  const handleMedicalConditionChange = (condition: string, checked: boolean) => {
-    if (checked) {
-      setMedicalConditions(prev => [...prev, condition]);
-    } else {
-      setMedicalConditions(prev => prev.filter(c => c !== condition));
-    }
-  };
-
-  return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      {/* Header */}
-      <Card className="glass-card border-destructive/20">
-        <CardHeader className="text-center">
-          <div className="flex justify-center mb-4">
-            <div className="p-4 rounded-full bg-destructive/10">
-              <AlertTriangle className="h-8 w-8 text-destructive animate-pulse" />
+  if (showResults) {
+    const urgencyInfo = getUrgencyInfo();
+    
+    return (
+      <div className="max-w-3xl mx-auto space-y-6">
+        {/* Results Header */}
+        <Card className="glass-card border-0">
+          <CardHeader className="text-center">
+            <div className="flex justify-center mb-4">
+              <div className="p-4 rounded-full bg-green-100">
+                <CheckCircle className="h-8 w-8 text-green-600" />
+              </div>
             </div>
-          </div>
-          <CardTitle className="text-2xl gradient-text">Emergency Dental Triage</CardTitle>
-          <p className="text-dental-muted-foreground">
-            Please complete this assessment to help us prioritize your care
-          </p>
-        </CardHeader>
-      </Card>
+            <CardTitle className="text-2xl gradient-text">Assessment Complete</CardTitle>
+            <p className="text-dental-muted-foreground">
+              Based on your symptoms, here's your recommended care level
+            </p>
+          </CardHeader>
+        </Card>
 
-      {/* Current Urgency Level */}
-      <Card className="glass-card">
-        <CardContent className="p-6">
-          <div className="flex items-center justify-center space-x-3">
-            <IconComponent className="h-6 w-6" />
-            <Badge className={`text-lg py-2 px-4 ${urgencyInfo.color}`}>
-              {urgencyInfo.text}
+        {/* Urgency Level Display */}
+        <Card className="glass-card border-0">
+          <CardContent className="p-8 text-center">
+            <Badge className={`text-xl py-3 px-6 border-2 ${urgencyInfo.color} font-bold`}>
+              {urgencyInfo.title}
             </Badge>
-          </div>
-        </CardContent>
-      </Card>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Pain Assessment */}
-        <Card className="glass-card">
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Activity className="h-5 w-5 mr-2 text-dental-primary" />
-              Pain Assessment
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div>
-              <Label className="text-base font-medium">
-                Pain level (1-10 scale)
-              </Label>
-              <div className="mt-3">
-                <Slider
-                  value={painLevel}
-                  onValueChange={setPainLevel}
-                  max={10}
-                  min={1}
-                  step={1}
-                  className="w-full"
-                />
-                <div className="flex justify-between text-sm text-muted-foreground mt-1">
-                  <span>No pain (1)</span>
-                  <span className={`font-medium px-2 py-1 rounded ${getUrgencyColor(painLevel[0])}`}>
-                    {painLevel[0]}/10
-                  </span>
-                  <span>Unbearable (10)</span>
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <Label htmlFor="duration">How long have you had these symptoms?</Label>
-              <Textarea
-                id="duration"
-                placeholder="e.g., Since this morning, for 3 days, started 2 hours ago..."
-                value={duration}
-                onChange={(e) => setDuration(e.target.value)}
-                className="mt-2"
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Symptoms */}
-        <Card className="glass-card">
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <AlertTriangle className="h-5 w-5 mr-2 text-orange-500" />
-              Symptoms
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-4">
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="bleeding" 
-                  checked={hasBleeding}
-                  onCheckedChange={(checked) => setHasBleeding(checked === true)}
-                />
-                <Label htmlFor="bleeding">Bleeding from gums or tooth</Label>
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="swelling" 
-                  checked={hasSwelling}
-                  onCheckedChange={(checked) => setHasSwelling(checked === true)}
-                />
-                <Label htmlFor="swelling">Facial or gum swelling</Label>
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="fever" 
-                  checked={hasFever}
-                  onCheckedChange={(checked) => setHasFever(checked === true)}
-                />
-                <Label htmlFor="fever" className="text-red-600 font-medium">Fever or feeling unwell</Label>
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="speaking" 
-                  checked={hasDifficultySpeaking}
-                  onCheckedChange={(checked) => setHasDifficultySpeaking(checked === true)}
-                />
-                <Label htmlFor="speaking" className="text-red-600 font-medium">Difficulty speaking or swallowing</Label>
-              </div>
-            </div>
-
-            <div>
-              <Label htmlFor="symptoms">Describe your symptoms in detail:</Label>
-              <Textarea
-                id="symptoms"
-                placeholder="e.g., Throbbing pain, sensitivity to hot/cold, swollen jaw..."
-                value={symptoms}
-                onChange={(e) => setSymptoms(e.target.value)}
-                className="mt-2"
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Medical History */}
-        <Card className="glass-card">
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Heart className="h-5 w-5 mr-2 text-red-500" />
-              Medical Conditions
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Label className="text-base font-medium">Do you have any of these conditions?</Label>
+            <p className="text-lg text-dental-muted-foreground mt-4 mb-6">
+              {urgencyInfo.description}
+            </p>
             
-            <div className="space-y-3">
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="diabetes" 
-                  checked={medicalConditions.includes('diabetes')}
-                  onCheckedChange={(checked) => handleMedicalConditionChange('diabetes', checked === true)}
-                />
-                <Label htmlFor="diabetes">Diabetes</Label>
+            {/* Key Metrics */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-8">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-dental-primary">Priority {urgencyInfo.priority}</div>
+                <div className="text-sm text-dental-muted-foreground">Urgency Level</div>
               </div>
-
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="heart_condition" 
-                  checked={medicalConditions.includes('heart_condition')}
-                  onCheckedChange={(checked) => handleMedicalConditionChange('heart_condition', checked === true)}
-                />
-                <Label htmlFor="heart_condition">Heart condition</Label>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-dental-secondary">{urgencyInfo.timeframe}</div>
+                <div className="text-sm text-dental-muted-foreground">Recommended Window</div>
               </div>
-
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="blood_thinner" 
-                  checked={medicalConditions.includes('blood_thinner')}
-                  onCheckedChange={(checked) => handleMedicalConditionChange('blood_thinner', checked === true)}
-                />
-                <Label htmlFor="blood_thinner">Taking blood thinners</Label>
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="allergies" 
-                  checked={medicalConditions.includes('allergies')}
-                  onCheckedChange={(checked) => handleMedicalConditionChange('allergies', checked === true)}
-                />
-                <Label htmlFor="allergies">Drug allergies</Label>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-dental-accent">{triageData?.painLevel}/10</div>
+                <div className="text-sm text-dental-muted-foreground">Pain Level</div>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Previous Treatment */}
+        {/* Action Buttons */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {urgencyLevel === 'emergency' ? (
+            <>
+              <Card className="glass-card border-red-200 hover:shadow-elegant transition-all cursor-pointer">
+                <CardContent className="p-6 text-center">
+                  <Phone className="h-8 w-8 text-red-600 mx-auto mb-3" />
+                  <h3 className="font-bold text-red-800 mb-2">Call Emergency Line</h3>
+                  <p className="text-sm text-dental-muted-foreground mb-4">
+                    Immediate assistance available 24/7
+                  </p>
+                  <Button className="w-full bg-red-600 hover:bg-red-700 text-white">
+                    <Phone className="h-4 w-4 mr-2" />
+                    Call (555) 123-HELP
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <Card className="glass-card border-orange-200 hover:shadow-elegant transition-all cursor-pointer">
+                <CardContent className="p-6 text-center">
+                  <MapPin className="h-8 w-8 text-orange-600 mx-auto mb-3" />
+                  <h3 className="font-bold text-orange-800 mb-2">Find Emergency Clinic</h3>
+                  <p className="text-sm text-dental-muted-foreground mb-4">
+                    Locate nearest emergency dental facility
+                  </p>
+                  <Button variant="outline" className="w-full border-orange-300 text-orange-700">
+                    <MapPin className="h-4 w-4 mr-2" />
+                    Find Clinic
+                  </Button>
+                </CardContent>
+              </Card>
+            </>
+          ) : (
+            <>
+              <Card className="glass-card hover:shadow-elegant transition-all cursor-pointer" onClick={handleBookAppointment}>
+                <CardContent className="p-6 text-center">
+                  <Calendar className="h-8 w-8 text-dental-primary mx-auto mb-3" />
+                  <h3 className="font-bold text-dental-primary mb-2">{urgencyInfo.action}</h3>
+                  <p className="text-sm text-dental-muted-foreground mb-4">
+                    Smart scheduling based on your urgency level
+                  </p>
+                  <Button className="w-full bg-gradient-primary text-white shadow-elegant">
+                    <Calendar className="h-4 w-4 mr-2" />
+                    Book Now
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <Card className="glass-card hover:shadow-elegant transition-all cursor-pointer">
+                <CardContent className="p-6 text-center">
+                  <Stethoscope className="h-8 w-8 text-dental-secondary mx-auto mb-3" />
+                  <h3 className="font-bold text-dental-secondary mb-2">AI Consultation</h3>
+                  <p className="text-sm text-dental-muted-foreground mb-4">
+                    Get immediate guidance and care tips
+                  </p>
+                  <Button variant="outline" className="w-full border-dental-secondary text-dental-secondary">
+                    <Stethoscope className="h-4 w-4 mr-2" />
+                    Start Chat
+                  </Button>
+                </CardContent>
+              </Card>
+            </>
+          )}
+        </div>
+
+        {/* Additional Info */}
         <Card className="glass-card">
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Clock className="h-5 w-5 mr-2 text-dental-secondary" />
-              Recent Treatment
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div>
-              <Label htmlFor="treatment">Any recent dental work or medications?</Label>
-              <Textarea
-                id="treatment"
-                placeholder="e.g., Had a filling last week, taking antibiotics, recent tooth extraction..."
-                value={previousTreatment}
-                onChange={(e) => setPreviousTreatment(e.target.value)}
-                className="mt-2"
-              />
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-3 mb-4">
+              <Clock className="h-5 w-5 text-dental-muted-foreground" />
+              <h3 className="font-semibold">What to expect next:</h3>
+            </div>
+            <ul className="space-y-2 text-sm text-dental-muted-foreground">
+              {urgencyLevel === 'emergency' ? (
+                <>
+                  <li>• Call our emergency line immediately</li>
+                  <li>• Have your insurance information ready</li>
+                  <li>• If severe swelling affects breathing, call 911</li>
+                </>
+              ) : (
+                <>
+                  <li>• You'll receive appointment confirmation within minutes</li>
+                  <li>• SMS reminders will be sent before your visit</li>
+                  <li>• Bring your insurance card and ID</li>
+                  <li>• Arrive 15 minutes early for check-in</li>
+                </>
+              )}
+            </ul>
+          </CardContent>
+        </Card>
+
+        {/* Navigation */}
+        <Card className="glass-card">
+          <CardContent className="p-6">
+            <div className="flex justify-between">
+              <Button variant="outline" onClick={() => setShowResults(false)}>
+                Retake Assessment
+              </Button>
+              <Button variant="outline" onClick={onCancel}>
+                Back to Dashboard
+              </Button>
             </div>
           </CardContent>
         </Card>
       </div>
+    );
+  }
 
-      {/* Action Buttons */}
-      <Card className="glass-card">
-        <CardContent className="p-6">
-          <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3">
-            <Button onClick={handleSubmit} className="flex-1 bg-gradient-primary text-white shadow-elegant">
-              <Activity className="h-4 w-4 mr-2" />
-              Complete Assessment & Book Emergency Slot
-            </Button>
-            <Button variant="outline" onClick={onCancel} className="sm:w-auto">
-              Cancel
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
+  return <StreamlinedTriage onComplete={handleTriageComplete} onCancel={onCancel} />;
 };
