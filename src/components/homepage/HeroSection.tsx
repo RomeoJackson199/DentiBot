@@ -1,13 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Stethoscope, Activity, Shield, Clock, Users, Star, ArrowRight } from "lucide-react";
-
 interface HeroSectionProps {
   onBookAppointment: () => void;
   onStartTriage: () => void;
 }
-
-export const HeroSection = ({ onBookAppointment, onStartTriage }: HeroSectionProps) => {
+export const HeroSection = ({
+  onBookAppointment,
+  onStartTriage
+}: HeroSectionProps) => {
   return <section className="relative py-20 sm:py-24 lg:py-32 overflow-hidden">
       {/* Background Pattern */}
       <div className="absolute inset-0 hero-pattern opacity-30"></div>
@@ -53,42 +54,20 @@ export const HeroSection = ({ onBookAppointment, onStartTriage }: HeroSectionPro
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
-            <Button 
-              size="lg" 
-              className="bg-destructive hover:bg-destructive/90 text-white px-8 py-4 text-lg font-semibold shadow-elegant group transition-all duration-300 hover:scale-105" 
-              onClick={onStartTriage}
-            >
+            <Button size="lg" className="bg-destructive hover:bg-destructive/90 text-white px-8 py-4 text-lg font-semibold shadow-elegant group transition-all duration-300 hover:scale-105" onClick={onStartTriage}>
               <Activity className="w-5 h-5 mr-2 group-hover:animate-pulse" />
               Start Emergency Triage
               <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
             </Button>
 
-            <Button 
-              size="lg" 
-              variant="outline" 
-              className="bg-white/10 backdrop-blur-sm border-white/20 text-dental-primary px-8 py-4 text-lg font-semibold hover:bg-white/20 hover:scale-105 transition-all duration-300"
-              onClick={onBookAppointment}
-            >
+            <Button size="lg" variant="outline" className="bg-white/10 backdrop-blur-sm border-white/20 text-dental-primary px-8 py-4 text-lg font-semibold hover:bg-white/20 hover:scale-105 transition-all duration-300" onClick={onBookAppointment}>
               <Clock className="w-5 h-5 mr-2" />
               Book Appointment
             </Button>
           </div>
 
           {/* Social Proof */}
-          <div className="flex flex-wrap justify-center items-center gap-8 text-sm text-dental-muted-foreground">
-            <div className="flex items-center gap-2">
-              <Star className="w-4 h-4 text-yellow-500 fill-current" />
-              <span>Rated 4.9/5 by 500+ practices</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Users className="w-4 h-4 text-dental-primary" />
-              <span>25,000+ patients served</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Shield className="w-4 h-4 text-dental-secondary" />
-              <span>HIPAA Compliant</span>
-            </div>
-          </div>
+          
         </div>
       </div>
 
@@ -98,12 +77,16 @@ export const HeroSection = ({ onBookAppointment, onStartTriage }: HeroSectionPro
           <Activity className="w-8 h-8 text-dental-primary" />
         </div>
       </div>
-      <div className="absolute top-1/3 right-10 hidden lg:block animate-float" style={{ animationDelay: "1s" }}>
+      <div className="absolute top-1/3 right-10 hidden lg:block animate-float" style={{
+      animationDelay: "1s"
+    }}>
         <div className="glass-card p-4 rounded-2xl">
           <Clock className="w-8 h-8 text-dental-secondary" />
         </div>
       </div>
-      <div className="absolute bottom-1/4 left-1/4 hidden lg:block animate-float" style={{ animationDelay: "2s" }}>
+      <div className="absolute bottom-1/4 left-1/4 hidden lg:block animate-float" style={{
+      animationDelay: "2s"
+    }}>
         <div className="glass-card p-4 rounded-2xl">
           <Stethoscope className="w-8 h-8 text-dental-accent" />
         </div>
