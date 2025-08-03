@@ -11,7 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 interface Dentist {
   id: string;
   profile_id: string;
-  specialty: string;
+  specialization: string;
   is_active: boolean;
   profiles: {
     first_name: string;
@@ -122,7 +122,7 @@ export const DentistSelection = ({ onSelectDentist, selectedDentistId, recommend
 
   const filteredDentists = selectedSpecialty === 'all' 
     ? dentists 
-    : dentists.filter(dentist => dentist.specialty?.toLowerCase() === selectedSpecialty);
+            : dentists.filter(dentist => dentist.specialization?.toLowerCase() === selectedSpecialty);
 
   const specialties = [
     { key: 'all', label: 'All Specialties', icon: '🦷' },
@@ -182,7 +182,7 @@ export const DentistSelection = ({ onSelectDentist, selectedDentistId, recommend
       {/* Dentists Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {filteredDentists.map((dentist) => {
-          const specialtyInfo = getSpecialtyInfo(dentist.specialty);
+          const specialtyInfo = getSpecialtyInfo(dentist.specialization);
           const isSelected = selectedDentistId === dentist.id;
           const isRecommendedDentist = isRecommended(dentist);
 
@@ -236,19 +236,19 @@ export const DentistSelection = ({ onSelectDentist, selectedDentistId, recommend
 
                 {/* Specializations */}
                 <div className="space-y-2">
-                  {dentist.specialty?.toLowerCase() === 'pediatric' && (
+                  {dentist.specialization?.toLowerCase() === 'pediatric' && (
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Heart className="w-4 h-4 text-pink-500" />
                       <span>Child-friendly approach</span>
                     </div>
                   )}
-                  {dentist.specialty?.toLowerCase() === 'orthodontics' && (
+                  {dentist.specialization?.toLowerCase() === 'orthodontics' && (
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Award className="w-4 h-4 text-blue-500" />
                       <span>Braces & Invisalign</span>
                     </div>
                   )}
-                  {dentist.specialty?.toLowerCase() === 'general' && (
+                  {dentist.specialization?.toLowerCase() === 'general' && (
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Shield className="w-4 h-4 text-green-500" />
                       <span>General & emergency care</span>
