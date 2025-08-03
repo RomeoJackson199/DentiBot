@@ -5,7 +5,7 @@ ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS ai_opt_out BOOLEAN DEFAULT 
 CREATE TABLE IF NOT EXISTS public.reviews (
   review_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   patient_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
-  dentist_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+  dentist_id UUID REFERENCES public.dentists(id) ON DELETE CASCADE NOT NULL,
   appointment_id UUID REFERENCES public.appointments(id) ON DELETE CASCADE NOT NULL,
   rating INT NOT NULL CHECK (rating >= 1 AND rating <= 5),
   comment TEXT,
@@ -33,7 +33,8 @@ CREATE POLICY "Patients manage their reviews" ON public.reviews
 CREATE POLICY "Dentists view their reviews" ON public.reviews
   FOR SELECT USING (
     EXISTS (
-      SELECT 1 FROM public.profiles p
-      WHERE p.id = reviews.dentist_id AND p.user_id = auth.uid()
+      SELECT 1 FROM public.dentists d
+      JOIN public.profiles p ON p.id = d.profile_id
+      WHERE d.id = reviews.dentist_id AND p.user_id = auth.uid()
     )
   );
