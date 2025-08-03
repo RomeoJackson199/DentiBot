@@ -225,6 +225,9 @@ interface Translations {
   // Language selection
   selectPreferredLanguage: string;
   languageSelectionDescription: string;
+
+  // Emergency Triage
+  'triage.title': string;
 }
 
 const translations: Record<Language, Translations> = {
@@ -484,6 +487,9 @@ How can I help you today?`,
     selectPreferredLanguage: "Select Your Preferred Language",
     languageSelectionDescription:
       "Choose your language to get started with First Smile AI",
+
+    // Emergency Triage
+    'triage.title': "Emergency Dental Triage",
   },
   fr: {
     // Error & status messages
@@ -750,6 +756,9 @@ Comment puis-je vous aider aujourd'hui ?`,
     selectPreferredLanguage: "Sélectionnez Votre Langue Préférée",
     languageSelectionDescription:
       "Choisissez votre langue pour commencer avec First Smile AI",
+
+    // Emergency Triage
+    'triage.title': "Triage Dentaire d'Urgence",
   },
   nl: {
     // Error & status messages
@@ -1012,6 +1021,9 @@ Hoe kan ik u vandaag helpen?`,
     selectPreferredLanguage: "Selecteer Uw Voorkeurstaal",
     languageSelectionDescription:
       "Kies uw taal om te beginnen met First Smile AI",
+
+    // Emergency Triage
+    'triage.title': "Spoed Tandheelkundige Triage",
   },
 };
 
