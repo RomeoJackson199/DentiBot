@@ -81,9 +81,10 @@ import { Separator } from "@/components/ui/separator";
 
 interface EnhancedPatientManagementProps {
   dentistId: string;
+  user?: User | null;
 }
 
-export function EnhancedPatientManagement({ dentistId }: EnhancedPatientManagementProps) {
+export function EnhancedPatientManagement({ dentistId, user }: EnhancedPatientManagementProps) {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [filteredPatients, setFilteredPatients] = useState<Patient[]>([]);
   const [searchTerm, setSearchTerm] = useState("");

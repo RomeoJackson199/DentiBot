@@ -6,8 +6,14 @@ import { ChatMessage } from "@/types/chat";
  */
 export const generateSymptomSummary = async (
   messages: ChatMessage[],
-  userProfile: any
+  userProfile: any,
+  user?: any
 ): Promise<string> => {
+  // Check if user has opted out of AI features
+  if (userProfile?.ai_opt_out || user?.ai_opt_out) {
+    return '';
+  }
+
   try {
     const { data, error } = await supabase.functions.invoke('dental-ai-chat', {
       body: {

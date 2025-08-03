@@ -163,6 +163,24 @@ export const InteractiveDentalChat = ({
     userMessage: string,
     history: ChatMessage[]
   ): Promise<{ message: ChatMessage; fallback: boolean; suggestions: string[]; recommendedDentists: string[] }> => {
+    // Check if user has opted out of AI features
+    if (userProfile?.ai_opt_out) {
+      const optOutMessage = {
+        id: crypto.randomUUID(),
+        session_id: sessionId,
+        message: "I'm sorry, but AI features are currently disabled for your account. You can re-enable them in your settings if you'd like to use AI-powered assistance.",
+        is_bot: true,
+        message_type: 'text',
+        created_at: new Date().toISOString(),
+      };
+      return {
+        message: optOutMessage,
+        fallback: true,
+        suggestions: [],
+        recommendedDentists: []
+      };
+    }
+
     try {
       const { data, error } = await supabase.functions.invoke('dental-ai-chat', {
         body: {

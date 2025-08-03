@@ -58,9 +58,10 @@ interface Patient {
 
 interface AppointmentManagementProps {
   dentistId: string;
+  user?: User | null;
 }
 
-export function AppointmentManagement({ dentistId }: AppointmentManagementProps) {
+export function AppointmentManagement({ dentistId, user }: AppointmentManagementProps) {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [patients, setPatients] = useState<Patient[]>([]);
   const [loading, setLoading] = useState(true);

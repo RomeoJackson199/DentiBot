@@ -27,6 +27,7 @@ interface AIConversationDialogProps {
   contextType: 'patient' | 'appointment' | 'treatment';
   contextId?: string;
   onUpdate?: () => void;
+  user?: User | null;
 }
 
 export function AIConversationDialog({ 
@@ -35,7 +36,8 @@ export function AIConversationDialog({
   patientName, 
   contextType, 
   contextId,
-  onUpdate 
+  onUpdate,
+  user
 }: AIConversationDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -59,6 +61,27 @@ export function AIConversationDialog({
     setIsLoading(true);
 
     try {
+      // Check if user has opted out of AI features
+      if (user) {
+        const { data: userProfile } = await supabase
+          .from('profiles')
+          .select('ai_opt_out')
+          .eq('user_id', user.id)
+          .single();
+
+        if (userProfile?.ai_opt_out) {
+          const assistantMessage: Message = {
+            id: (Date.now() + 1).toString(),
+            role: 'assistant',
+            content: "I'm sorry, but AI features are currently disabled for your account. You can re-enable them in your settings if you'd like to use AI-powered assistance.",
+            timestamp: new Date()
+          };
+          setMessages(prev => [...prev, assistantMessage]);
+          setIsLoading(false);
+          return;
+        }
+      }
+
       // Get patient context
       const { data: patient } = await supabase
         .from('profiles')

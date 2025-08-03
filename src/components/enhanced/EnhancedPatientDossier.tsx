@@ -681,6 +681,7 @@ export const EnhancedPatientDossier = ({
           dentistId={dentistId}
           patientName={`${patientProfile.first_name} ${patientProfile.last_name}`}
           contextType="dentist_consultation"
+          user={user}
         />
       )}
     </div>
