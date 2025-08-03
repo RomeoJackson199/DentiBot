@@ -55,7 +55,7 @@ export const ChatBookingFlow = ({
         .from("dentists")
         .select(`
           id,
-          specialization,
+          specialty,
           profiles:profile_id (
             first_name,
             last_name

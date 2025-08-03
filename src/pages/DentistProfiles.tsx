@@ -74,7 +74,7 @@ const DentistProfiles = () => {
                   Dr. {dentist.profiles?.first_name} {dentist.profiles?.last_name}
                 </CardTitle>
                 <Badge variant="secondary" className="w-fit mx-auto">
-                  {dentist.specialization}
+                  {dentist.specialty}
                 </Badge>
               </CardHeader>
               <CardContent className="space-y-4">

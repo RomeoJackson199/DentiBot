@@ -581,42 +581,48 @@ export type Database = {
       dentists: {
         Row: {
           average_rating: number | null
+          clinic_address: string | null
           communication_score: number | null
           created_at: string
           expertise_score: number | null
           id: string
           is_active: boolean | null
+          languages: string[] | null
           license_number: string | null
           profile_id: string
-          specialization: string | null
+          specialty: string | null
           total_ratings: number | null
           updated_at: string
           wait_time_score: number | null
         }
         Insert: {
           average_rating?: number | null
+          clinic_address?: string | null
           communication_score?: number | null
           created_at?: string
           expertise_score?: number | null
           id?: string
           is_active?: boolean | null
+          languages?: string[] | null
           license_number?: string | null
           profile_id: string
-          specialization?: string | null
+          specialty?: string | null
           total_ratings?: number | null
           updated_at?: string
           wait_time_score?: number | null
         }
         Update: {
           average_rating?: number | null
+          clinic_address?: string | null
           communication_score?: number | null
           created_at?: string
           expertise_score?: number | null
           id?: string
           is_active?: boolean | null
+          languages?: string[] | null
           license_number?: string | null
           profile_id?: string
-          specialization?: string | null
+          specialty?: string | null
           total_ratings?: number | null
           updated_at?: string
           wait_time_score?: number | null

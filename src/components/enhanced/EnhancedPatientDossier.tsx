@@ -187,7 +187,7 @@ export const EnhancedPatientDossier = ({
       .select(`
         *,
         dentist:dentists(
-          profile:profiles(first_name, last_name, specialization)
+          profile:profiles(first_name, last_name, specialty)
         )
       `)
       .eq('patient_id', profileId)

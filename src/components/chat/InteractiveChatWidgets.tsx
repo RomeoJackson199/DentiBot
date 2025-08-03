@@ -193,7 +193,7 @@ const DentistSelectionWidget = ({
                   <h3 className="font-semibold">
                     Dr. {dentist.profiles?.first_name} {dentist.profiles?.last_name}
                   </h3>
-                  <p className="text-sm text-muted-foreground">{dentist.specialization}</p>
+                  <p className="text-sm text-muted-foreground">{dentist.specialty}</p>
                   <Badge variant="secondary" className="text-xs mt-1">Available</Badge>
                 </div>
                 <Button size="sm" onClick={() => onSelect(dentist)}>
