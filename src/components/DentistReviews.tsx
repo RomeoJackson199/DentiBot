@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguageDetection } from "@/hooks/useLanguageDetection";
+import { computeAverageRating } from "@/lib/utils";
 import { 
   Star, 
   MessageCircle, 
@@ -83,19 +84,16 @@ export const DentistReviews = ({ dentistId, compact = false }: DentistReviewsPro
 
       // Calculate statistics
       if (reviews.length > 0) {
-        const avgRating = reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length;
-        const avgExpertise = reviews
-          .filter(r => r.expertise_rating)
-          .reduce((sum, r) => sum + (r.expertise_rating || 0), 0) / 
-          reviews.filter(r => r.expertise_rating).length || 0;
-        const avgCommunication = reviews
-          .filter(r => r.communication_rating)
-          .reduce((sum, r) => sum + (r.communication_rating || 0), 0) / 
-          reviews.filter(r => r.communication_rating).length || 0;
-        const avgWaitTime = reviews
-          .filter(r => r.wait_time_rating)
-          .reduce((sum, r) => sum + (r.wait_time_rating || 0), 0) / 
-          reviews.filter(r => r.wait_time_rating).length || 0;
+        const avgRating = computeAverageRating(reviews);
+        const avgExpertise =
+          reviews.filter(r => r.expertise_rating).reduce((sum, r) => sum + (r.expertise_rating || 0), 0) /
+            (reviews.filter(r => r.expertise_rating).length || 1);
+        const avgCommunication =
+          reviews.filter(r => r.communication_rating).reduce((sum, r) => sum + (r.communication_rating || 0), 0) /
+            (reviews.filter(r => r.communication_rating).length || 1);
+        const avgWaitTime =
+          reviews.filter(r => r.wait_time_rating).reduce((sum, r) => sum + (r.wait_time_rating || 0), 0) /
+            (reviews.filter(r => r.wait_time_rating).length || 1);
 
         setStats({
           averageRating: avgRating,
