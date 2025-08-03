@@ -31,7 +31,7 @@ interface Appointment {
   notes?: string;
   dentist: {
     id: string;
-    specialization?: string;
+    specialty?: string;
     profile: {
       id: string;
       first_name: string;
@@ -104,7 +104,7 @@ export const AppointmentsList = ({ user }: AppointmentsListProps) => {
           notes,
           dentists:dentist_id (
             id,
-            specialization,
+            specialty,
             profiles:profile_id (
               id,
               first_name,
@@ -132,7 +132,7 @@ export const AppointmentsList = ({ user }: AppointmentsListProps) => {
         notes: apt.notes,
         dentist: {
           id: apt.dentists.id,
-          specialization: apt.dentists.specialization,
+          specialty: apt.dentists.specialty,
           profile: {
             id: apt.dentists.profiles.id,
             first_name: apt.dentists.profiles.first_name,
@@ -326,14 +326,14 @@ export const AppointmentsList = ({ user }: AppointmentsListProps) => {
                                     Dr. {appointment.dentist.profile.first_name} {appointment.dentist.profile.last_name}
                                   </span>
                                 </div>
-                                {appointment.dentist.specialization && (
-                                  <div className="flex items-center gap-2 mb-2">
-                                    <MapPin className="h-3 w-3 sm:h-4 sm:w-4 text-dental-muted-foreground flex-shrink-0" />
-                                    <span className="text-xs sm:text-sm text-dental-muted-foreground truncate">
-                                      {appointment.dentist.specialization}
-                                    </span>
-                                  </div>
-                                )}
+                                  {appointment.dentist.specialty && (
+                                    <div className="flex items-center gap-2 mb-2">
+                                      <MapPin className="h-3 w-3 sm:h-4 sm:w-4 text-dental-muted-foreground flex-shrink-0" />
+                                      <span className="text-xs sm:text-sm text-dental-muted-foreground truncate">
+                                        {appointment.dentist.specialty}
+                                      </span>
+                                    </div>
+                                  )}
                                 {appointment.dentist.profile.phone && (
                                   <div className="flex items-center gap-2">
                                     <Phone className="h-3 w-3 sm:h-4 sm:w-4 text-dental-muted-foreground flex-shrink-0" />

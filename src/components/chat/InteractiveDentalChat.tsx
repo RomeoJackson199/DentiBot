@@ -486,7 +486,7 @@ Just type what you need or use the quick action buttons! 😊
         .from("dentists")
         .select(`
           id,
-          specialization,
+          specialty,
           profiles:profile_id (
             first_name,
             last_name

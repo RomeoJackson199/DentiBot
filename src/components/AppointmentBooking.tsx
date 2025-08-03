@@ -24,7 +24,7 @@ interface AppointmentBookingProps {
 interface Dentist {
   id: string;
   profile_id: string;
-  specialization: string;
+  specialty: string;
   profiles: {
     first_name: string;
     last_name: string;
@@ -133,7 +133,7 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
         .select(`
           id,
           profile_id,
-          specialization,
+          specialty,
           profiles:profile_id (
             first_name,
             last_name
@@ -289,7 +289,7 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
                         <UserIcon className="h-4 w-4 mr-3 text-blue-600" />
                         <div>
                           <div className="font-medium">Dr {dentist.profiles.first_name} {dentist.profiles.last_name}</div>
-                          <div className="text-sm text-gray-500">{dentist.specialization}</div>
+                          <div className="text-sm text-gray-500">{dentist.specialty}</div>
                         </div>
                       </div>
                     </SelectItem>

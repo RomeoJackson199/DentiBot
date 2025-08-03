@@ -24,7 +24,7 @@ interface MedicalRecord {
     profile?: {
       first_name: string;
       last_name: string;
-      specialization?: string;
+      specialty?: string;
     };
   } | null;
 }
@@ -91,7 +91,7 @@ export const PatientDossier = ({ user, onBack }: PatientDossierProps) => {
       if (dentistIds.length > 0) {
         const { data: dentistsData, error: dentistsError } = await supabase
           .from('dentists')
-          .select('id, profile:profiles(first_name, last_name, specialization)')
+          .select('id, profile:profiles(first_name, last_name, specialty)')
           .in('id', dentistIds);
         if (dentistsError) {
           console.error('Error loading dentists info:', dentistsError);
@@ -234,8 +234,8 @@ export const PatientDossier = ({ user, onBack }: PatientDossierProps) => {
                           {record.dentist?.profile && (
                             <p className="text-xs text-muted-foreground text-right">
                               Dr. {record.dentist.profile.first_name} {record.dentist.profile.last_name}
-                              {record.dentist.profile.specialization && (
-                                <span className="block">{record.dentist.profile.specialization}</span>
+                              {record.dentist.profile.specialty && (
+                                <span className="block">{record.dentist.profile.specialty}</span>
                               )}
                             </p>
                           )}

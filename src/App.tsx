@@ -7,6 +7,7 @@ import { ThemeProvider } from "next-themes";
 import { LanguageProvider } from "./hooks/useLanguage";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { PWAInstallPrompt } from "./components/PWAInstallPrompt";
+import ProfileCompletionDialog from "./components/ProfileCompletionDialog";
 import Index from "./pages/Index";
 import DentistProfiles from "./pages/DentistProfiles";
 import Terms from "./pages/Terms";
@@ -28,11 +29,12 @@ const App = () => (
         disableTransitionOnChange={false}
       >
         <LanguageProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <PWAInstallPrompt />
-            <BrowserRouter>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              <PWAInstallPrompt />
+              <ProfileCompletionDialog />
+              <BrowserRouter>
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/emergency-triage" element={<EmergencyTriage />} />

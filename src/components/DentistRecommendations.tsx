@@ -18,7 +18,7 @@ import {
 interface DentistRecommendation {
   id: string;
   profile_id: string;
-  specialization: string;
+  specialty: string;
   average_rating: number;
   total_ratings: number;
   expertise_score: number;
@@ -71,7 +71,7 @@ export const DentistRecommendations = ({
         .select(`
           id,
           profile_id,
-          specialization,
+          specialty,
           average_rating,
           total_ratings,
           expertise_score,
@@ -139,22 +139,22 @@ export const DentistRecommendations = ({
       reasons.push("Dentiste expérimenté");
     }
 
-    // Enhanced specialization matching with triage data (30% of total score)
-    const specializationScore = getSpecializationScore(
-      dentist.specialization, 
+    // Enhanced specialty matching with triage data (30% of total score)
+    const specialtyScore = getSpecialtyScore(
+      dentist.specialty, 
       symptoms, 
       urgency, 
       triageData
     );
-    score += specializationScore.score;
-    if (specializationScore.reason) {
-      reasons.push(specializationScore.reason);
+    score += specialtyScore.score;
+    if (specialtyScore.reason) {
+      reasons.push(specialtyScore.reason);
     }
 
     // Allergy compatibility (critical factor)
     if (triageData?.allergies?.length) {
       const allergyCompatibilityScore = getAllergyCompatibilityScore(
-        dentist.specialization,
+        dentist.specialty,
         triageData.allergies
       );
       score += allergyCompatibilityScore.score;
@@ -163,10 +163,10 @@ export const DentistRecommendations = ({
       }
     }
 
-    // Problem type specialization bonus
+    // Problem type specialty bonus
     if (triageData?.problemType) {
       const problemScore = getProblemTypeScore(
-        dentist.specialization,
+        dentist.specialty,
         triageData.problemType,
         urgency
       );
@@ -179,7 +179,7 @@ export const DentistRecommendations = ({
     // Emergency indicators penalty for non-specialists
     if (triageData?.urgencyIndicators?.length && urgency >= 4) {
       const emergencyScore = getEmergencySpecialistScore(
-        dentist.specialization,
+        dentist.specialty,
         triageData.urgencyIndicators
       );
       score += emergencyScore.score;
@@ -212,8 +212,8 @@ export const DentistRecommendations = ({
     };
   };
 
-  const getSpecializationScore = (
-    specialization: string,
+  const getSpecialtyScore = (
+    specialty: string,
     symptoms: string[],
     urgency: number,
     triageData?: {
@@ -225,7 +225,7 @@ export const DentistRecommendations = ({
       medicalHistory?: string[];
     }
   ): { score: number; reason?: string } => {
-    const spec = specialization?.toLowerCase() || '';
+    const spec = specialty?.toLowerCase() || '';
     
     // Critical emergency indicators require specialists
     if (triageData?.urgencyIndicators?.some(indicator => 
@@ -290,10 +290,10 @@ export const DentistRecommendations = ({
   };
 
   const getAllergyCompatibilityScore = (
-    specialization: string,
+    specialty: string,
     allergies: string[]
   ): { score: number; reason?: string } => {
-    const spec = specialization?.toLowerCase() || '';
+    const spec = specialty?.toLowerCase() || '';
     
     // Critical allergies that require specialist knowledge
     const criticalAllergies = ['local_anesthetic', 'latex'];
@@ -316,13 +316,13 @@ export const DentistRecommendations = ({
   };
 
   const getProblemTypeScore = (
-    specialization: string,
+    specialty: string,
     problemType: string,
     urgency: number
   ): { score: number; reason?: string } => {
-    const spec = specialization?.toLowerCase() || '';
+    const spec = specialty?.toLowerCase() || '';
     
-    const problemSpecializations = {
+    const problemSpecialties = {
       'abscess': ['endodontie', 'urgence'],
       'broken_tooth': ['chirurgie', 'urgence', 'prothèse'],
       'gum_problem': ['parodontie'],
@@ -331,10 +331,10 @@ export const DentistRecommendations = ({
       'post_surgery': ['chirurgie', 'urgence']
     };
 
-    const requiredSpecs = problemSpecializations[problemType as keyof typeof problemSpecializations] || [];
-    const hasSpecialization = requiredSpecs.some(reqSpec => spec.includes(reqSpec));
+    const requiredSpecs = problemSpecialties[problemType as keyof typeof problemSpecialties] || [];
+    const hasSpecialty = requiredSpecs.some(reqSpec => spec.includes(reqSpec));
 
-    if (hasSpecialization) {
+    if (hasSpecialty) {
       const bonus = urgency >= 4 ? 5 : 3;
       return { score: 15 + bonus, reason: `Spécialisé en ${problemType.replace('_', ' ')}` };
     }
@@ -343,10 +343,10 @@ export const DentistRecommendations = ({
   };
 
   const getEmergencySpecialistScore = (
-    specialization: string,
+    specialty: string,
     urgencyIndicators: string[]
   ): { score: number; reason?: string } => {
-    const spec = specialization?.toLowerCase() || '';
+    const spec = specialty?.toLowerCase() || '';
     
     const criticalIndicators = [
       'difficulty_breathing', 'facial_swelling', 'difficulty_swallowing', 
@@ -440,7 +440,7 @@ export const DentistRecommendations = ({
                           Dr. {dentist.profiles.first_name} {dentist.profiles.last_name}
                         </h4>
                         <p className="text-sm text-muted-foreground">
-                          {dentist.specialization}
+                          {dentist.specialty}
                         </p>
                       </div>
                       <Badge variant={badge.variant}>

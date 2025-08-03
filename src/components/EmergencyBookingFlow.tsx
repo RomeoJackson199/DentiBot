@@ -42,7 +42,7 @@ interface TriageData {
 interface Dentist {
   id: string;
   profile_id: string;
-  specialization: string;
+  specialty: string;
   profiles: {
     first_name: string;
     last_name: string;
@@ -80,7 +80,7 @@ export const EmergencyBookingFlow = ({ user, onComplete, onCancel }: EmergencyBo
         .select(`
           id,
           profile_id,
-          specialization,
+          specialty,
           profiles (
             first_name,
             last_name
@@ -460,7 +460,7 @@ export const EmergencyBookingFlow = ({ user, onComplete, onCancel }: EmergencyBo
                   <p className="font-medium">
                     ✅ Dentiste sélectionné: Dr. {selectedDentist.profiles.first_name} {selectedDentist.profiles.last_name}
                   </p>
-                  <p className="text-sm text-muted-foreground">{selectedDentist.specialization}</p>
+                  <p className="text-sm text-muted-foreground">{selectedDentist.specialty}</p>
                 </div>
                 <Badge variant="default">Sélectionné</Badge>
               </div>

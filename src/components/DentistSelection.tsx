@@ -10,7 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 interface Dentist {
   id: string;
   profile_id: string;
-  specialization: string;
+  specialty: string;
   is_active: boolean;
   profiles: {
     first_name: string;
@@ -75,8 +75,8 @@ export const DentistSelection = ({ onSelectDentist, selectedDentistId, recommend
     return `${dentist.profiles.first_name[0]}${dentist.profiles.last_name[0]}`;
   };
 
-  const getSpecializationColor = (specialization: string | null) => {
-    switch (specialization?.toLowerCase()) {
+  const getSpecialtyColor = (specialty: string | null) => {
+    switch (specialty?.toLowerCase()) {
       case 'orthodontics':
         return 'bg-blue-100 text-blue-800';
       case 'oral surgery':
@@ -187,9 +187,9 @@ export const DentistSelection = ({ onSelectDentist, selectedDentistId, recommend
                   
                   <Badge 
                     variant="secondary" 
-                    className={`mt-1 ${getSpecializationColor(dentist.specialization)}`}
+                    className={`mt-1 ${getSpecialtyColor(dentist.specialty)}`}
                   >
-                    {dentist.specialization || 'General Dentist'}
+                    {dentist.specialty || 'General Dentist'}
                   </Badge>
 
                   <div className="flex items-center mt-3 space-x-4 text-sm text-gray-600">
