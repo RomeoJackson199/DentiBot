@@ -95,7 +95,7 @@ serve(async (req) => {
             guidelines: `
 BELANGRIJKE INSTRUCTIES:
 - Je kent de patiënt: ${user_profile?.first_name} ${user_profile?.last_name}
-- Voor wijzigen/annuleren van afspraken: stuur hen naar de afsprakenlijst
+- VOOR ALLE INTERACTIES: Laat de conversatie natuurlijk verlopen zonder keyword-detectie
 - VOOR NIEUWE AFSPRAKEN: Verzamel eerst voldoende informatie voordat je tandarts aanbevelingen doet
   - Vraag eerst wie de afspraak is voor (patiënt zelf, kind, partner, etc.)
   - Vraag dan naar specifieke symptomen of behoeften
@@ -108,10 +108,11 @@ BELANGRIJKE INSTRUCTIES:
 - NOOIT praten over tijd, datum of beschikbaarheid - focus alleen op symptomen en behoeften
 - Alle afspraken beschikbaar van 9:00 tot 17:00
 
-AFSPRAAK BEHEER:
-- Voor wijzigen afspraken: "U kunt uw afspraken bekijken en wijzigen in de afsprakenlijst bovenaan"
-- Voor annuleren: "Ga naar uw afsprakenlijst om afspraken te annuleren"
-- Voor nieuwe afspraak: verzamel eerst informatie over patiënt en symptomen
+WIDGET BEHEER:
+- BESLISSING OVER WIDGETS: Jij beslist wanneer widgets moeten worden getoond op basis van de conversatie
+- GEEN KEYWORD-DETECTIE: Vertrouw op je natuurlijke taalbegrip, niet op keywords
+- VOOR AFSPRAAKEN: "U kunt uw afspraken bekijken en wijzigen in de afsprakenlijst bovenaan"
+- VOOR ANNULEREN: "Ga naar uw afsprakenlijst om afspraken te annuleren"
 
 ANTWOORD STRATEGIE:
 - Wees warm, professioneel en behulpzaam
@@ -120,7 +121,7 @@ ANTWOORD STRATEGIE:
 - Focus op het begrijpen van de situatie van de patiënt
 - Vermijd generieke antwoorden - wees specifiek en behulpzaam
 - Begeleid patiënten natuurlijk naar het juiste type zorg
-- VERZAMEL EERST INFORMATIE voordat je tandarts aanbevelingen doet`,
+- BESLISSING OVER WIDGETS: Jij bepaalt wanneer widgets moeten verschijnen op basis van de conversatie`,
             
             dentists: `
 BESCHIKBARE TANDARTSEN & HUN SPECIALISATIES:
@@ -163,7 +164,7 @@ PROFESSIONELE TAALVOORBEELDEN:
             guidelines: `
 INSTRUCTIONS IMPORTANTES:
 - Vous connaissez le patient: ${user_profile?.first_name} ${user_profile?.last_name}
-- Pour modifier/annuler des rendez-vous: dirigez-les vers la liste des rendez-vous
+- POUR TOUTES LES INTERACTIONS: Laissez la conversation se dérouler naturellement sans détection de mots-clés
 - POUR NOUVEAUX RENDEZ-VOUS: Collectez d'abord suffisamment d'informations avant de faire des recommandations de dentistes
   - Demandez d'abord pour qui est le rendez-vous (patient lui-même, enfant, partenaire, etc.)
   - Demandez ensuite les symptômes ou besoins spécifiques
@@ -176,10 +177,11 @@ INSTRUCTIONS IMPORTANTES:
 - NE JAMAIS parler de temps, date ou disponibilité - concentrez-vous uniquement sur les symptômes et les besoins
 - Tous les rendez-vous disponibles de 9h00 à 17h00
 
-GESTION DES RENDEZ-VOUS:
-- Pour modifier des rendez-vous: "Vous pouvez consulter et modifier vos rendez-vous dans la liste en haut"
-- Pour annuler: "Allez dans votre liste de rendez-vous pour annuler"
-- Pour nouveau rendez-vous: collectez d'abord les informations sur le patient et les symptômes
+GESTION DES WIDGETS:
+- DÉCISION SUR LES WIDGETS: Vous décidez quand les widgets doivent être affichés sur la base de la conversation
+- AUCUNE DÉTECTION DE MOTS-CLÉS: Faites confiance à votre compréhension naturelle du langage, pas aux mots-clés
+- POUR LES RENDEZ-VOUS: "Vous pouvez consulter et modifier vos rendez-vous dans la liste en haut"
+- POUR ANNULER: "Allez dans votre liste de rendez-vous pour annuler"
 
 STRATÉGIE DE RÉPONSE:
 - Soyez chaleureux, professionnel et serviable
@@ -188,7 +190,7 @@ STRATÉGIE DE RÉPONSE:
 - Concentrez-vous sur la compréhension de la situation du patient
 - Évitez les réponses génériques - soyez spécifique et utile
 - Guidez naturellement les patients vers le bon type de soins
-- COLLECTEZ D'ABORD LES INFORMATIONS avant de faire des recommandations de dentistes`,
+- DÉCISION SUR LES WIDGETS: Vous déterminez quand les widgets doivent apparaître sur la base de la conversation`,
             
             dentists: `
 DENTISTES DISPONIBLES & LEURS SPÉCIALISATIONS:
@@ -231,7 +233,7 @@ EXEMPLES DE LANGAGE PROFESSIONNEL:
             guidelines: `
 IMPORTANT INSTRUCTIONS:
 - You know the patient: ${user_profile?.first_name} ${user_profile?.last_name}
-- For rescheduling/canceling appointments: direct them to the appointments list
+- FOR ALL INTERACTIONS: Let the conversation flow naturally without keyword detection
 - FOR NEW APPOINTMENTS: Collect sufficient information first before making dentist recommendations
   - Ask first who the appointment is for (patient themselves, child, partner, etc.)
   - Then ask about specific symptoms or needs
@@ -244,10 +246,11 @@ IMPORTANT INSTRUCTIONS:
 - NEVER talk about time, date, or availability - focus only on symptoms and needs
 - All appointments are available from 9:00 AM to 5:00 PM
 
-APPOINTMENT MANAGEMENT:
-- For rescheduling appointments: "You can view and reschedule your appointments in the appointments list above"
-- For canceling: "Go to your appointments list to cancel appointments"
-- For new appointment: collect information about patient and symptoms first
+WIDGET MANAGEMENT:
+- WIDGET DECISIONS: You decide when widgets should be shown based on the conversation
+- NO KEYWORD DETECTION: Trust your natural language understanding, not keywords
+- FOR APPOINTMENTS: "You can view and reschedule your appointments in the appointments list above"
+- FOR CANCELING: "Go to your appointments list to cancel appointments"
 
 RESPONSE STRATEGY:
 - Be warm, professional, and helpful
@@ -256,7 +259,7 @@ RESPONSE STRATEGY:
 - Focus on understanding the patient's situation
 - Avoid generic responses - be specific and helpful
 - Guide patients toward the right type of care naturally
-- COLLECT INFORMATION FIRST before making dentist recommendations`,
+- WIDGET DECISIONS: You determine when widgets should appear based on the conversation`,
             
             dentists: `
 AVAILABLE DENTISTS & THEIR SPECIALIZATIONS:
@@ -494,71 +497,12 @@ Always maintain professional medical standards and suggest only appropriate trea
     const lowerResponse = botResponse.toLowerCase();
     const lowerMessage = message.toLowerCase();
     
-    // Check for appointment management requests
-    if (lowerMessage.includes('reschedule') || lowerMessage.includes('change') || 
-        lowerMessage.includes('modify') || lowerMessage.includes('reprogrammer') || 
-        lowerMessage.includes('changer') || lowerMessage.includes('modifier') ||
-        lowerMessage.includes('verschuiven') || lowerMessage.includes('wijzigen')) {
-      suggestions.push('appointments-list');
-    }
+    // Let the AI handle all suggestions naturally through conversation
+    // No keyword-based logic - the AI will decide when to show widgets
     
-    if (lowerMessage.includes('cancel') || lowerMessage.includes('delete') || 
-        lowerMessage.includes('remove') || lowerMessage.includes('annuler') || 
-        lowerMessage.includes('supprimer') || lowerMessage.includes('annuleren') ||
-        lowerMessage.includes('verwijderen')) {
-      suggestions.push('appointments-list');
-    }
-    
-    // Check for new appointment requests for themselves
-    if ((lowerMessage.includes('appointment for me') || lowerMessage.includes('book for myself') ||
-        lowerMessage.includes('rendez-vous pour moi') || lowerMessage.includes('afspraak voor mij')) ||
-        (lowerMessage.includes('book') && lowerMessage.includes('appointment') && 
-         !lowerMessage.includes('for someone') && !lowerMessage.includes('for my'))) {
-      suggestions.push('skip-patient-selection');
-    }
-    
-    // Enhanced dentist recommendation logic based on symptoms and needs
+    // Let the AI handle dentist recommendations naturally through conversation
+    // No keyword-based logic - the AI will decide when to recommend dentists
     const recommendedDentists = [];
-    
-    // Analyze symptoms and needs to recommend appropriate dentists
-    const hasChildSymptoms = lowerMessage.includes('enfant') || lowerMessage.includes('child') || lowerMessage.includes('kind') ||
-                           lowerMessage.includes('fille') || lowerMessage.includes('fils') || lowerMessage.includes('daughter') || 
-                           lowerMessage.includes('son') || lowerMessage.includes('dochter') || lowerMessage.includes('zoon') ||
-                           /\d+\s*(ans|years|jaar)/.test(lowerMessage) && parseInt(lowerMessage.match(/\d+/)?.[0] || '0') < 16;
-    
-    const hasOrthodonticNeeds = lowerMessage.includes('appareil') || lowerMessage.includes('braces') || lowerMessage.includes('beugel') ||
-                               lowerMessage.includes('alignement') || lowerMessage.includes('alignment') || lowerMessage.includes('uitlijning') ||
-                               lowerMessage.includes('droit') || lowerMessage.includes('straight') || lowerMessage.includes('recht') ||
-                               lowerMessage.includes('invisalign') || lowerMessage.includes('esthétique') || lowerMessage.includes('cosmetic');
-    
-    const hasGeneralDentalNeeds = lowerMessage.includes('douleur') || lowerMessage.includes('pain') || lowerMessage.includes('pijn') ||
-                                 lowerMessage.includes('cavité') || lowerMessage.includes('cavity') || lowerMessage.includes('cariës') ||
-                                 lowerMessage.includes('nettoyage') || lowerMessage.includes('cleaning') || lowerMessage.includes('reiniging') ||
-                                 lowerMessage.includes('extraction') || lowerMessage.includes('extraction') || lowerMessage.includes('extractie') ||
-                                 lowerMessage.includes('plombage') || lowerMessage.includes('filling') || lowerMessage.includes('vulling');
-    
-    // Only recommend dentists if we have enough specific information
-    // This prevents premature dentist widget triggering
-    const hasSpecificDentalNeeds = hasChildSymptoms || hasOrthodonticNeeds || hasGeneralDentalNeeds;
-    const hasPatientInfo = lowerMessage.includes('moi') || lowerMessage.includes('me') || lowerMessage.includes('myself') ||
-                          lowerMessage.includes('voor mij') || lowerMessage.includes('for me') ||
-                          lowerMessage.includes('ma fille') || lowerMessage.includes('mon fils') ||
-                          lowerMessage.includes('my daughter') || lowerMessage.includes('my son') ||
-                          lowerMessage.includes('mijn dochter') || lowerMessage.includes('mijn zoon') ||
-                          /\d+\s*(ans|years|jaar)/.test(lowerMessage) ||
-                          lowerMessage.includes('ma femme') || lowerMessage.includes('mon mari') ||
-                          lowerMessage.includes('my wife') || lowerMessage.includes('my husband');
-    
-    // Only recommend dentists when we have both specific needs AND patient information
-    if (hasSpecificDentalNeeds && hasPatientInfo) {
-      if (hasChildSymptoms) {
-        recommendedDentists.push('Virginie Pauwels', 'Emeline Hubin');
-      } else if (hasOrthodonticNeeds) {
-        recommendedDentists.push('Justine Peters', 'Anne-Sophie Haas');
-      } else if (hasGeneralDentalNeeds) {
-        recommendedDentists.push('Firdaws Benhsain');
-      }
-    }
     
     // Don't check for specific dentist names in AI response - let the system handle recommendations naturally
     // This prevents the AI from mentioning specific dentists in responses
@@ -568,59 +512,8 @@ Always maintain professional medical standards and suggest only appropriate trea
     const uniqueDentists = [...new Set(recommendedDentists)];
     const recommendedDentist = []; // Empty array to let frontend handle recommendations naturally
     
-    // Detect patient selection responses (when bot asked who the appointment is for)
-    if (lowerMessage.includes('moi') || lowerMessage.includes('me') || 
-        lowerMessage.includes('myself') || lowerMessage.includes('voor mij') ||
-        lowerMessage.includes('for me')) {
-      if (!suggestions.includes('skip-patient-selection')) {
-        suggestions.push('skip-patient-selection');
-      }
-    } else if (lowerMessage.includes('ma fille') || lowerMessage.includes('mon fils') ||
-               lowerMessage.includes('my daughter') || lowerMessage.includes('my son') ||
-               lowerMessage.includes('mijn dochter') || lowerMessage.includes('mijn zoon') ||
-               /\d+\s*(ans|years|jaar)/.test(lowerMessage) ||
-               lowerMessage.includes('ma femme') || lowerMessage.includes('mon mari') ||
-               lowerMessage.includes('my wife') || lowerMessage.includes('my husband')) {
-      if (!suggestions.includes('skip-patient-selection')) {
-        suggestions.push('skip-patient-selection');
-      }
-    }
-
-    // Suggest recommend-dentist for recommendations instead of direct booking
-    if (recommendedDentists.length > 0 && !suggestions.includes('skip-patient-selection')) {
-      suggestions.push('recommend-dentist');
-    } else if (recommendedDentists.length > 0 && suggestions.includes('skip-patient-selection')) {
-      // If we have both a recommendation and patient info, go directly to dentist selection
-      // Don't add duplicate skip-patient-selection
-    } else if (lowerResponse.includes('dentist') ||
-        lowerResponse.includes('appointment') || lowerResponse.includes('booking') ||
-        lowerResponse.includes('rendez-vous')) {
-      if (!suggestions.includes('booking')) {
-        suggestions.push('booking');
-      }
-    }
-
-    // Detect language change requests
-    if (lowerMessage.includes('change') && lowerMessage.includes('language')) {
-      if (lowerMessage.includes('english') || lowerMessage.includes('anglais')) {
-        suggestions.push('language-en');
-      } else if (lowerMessage.includes('french') || lowerMessage.includes('francais') || lowerMessage.includes('français')) {
-        suggestions.push('language-fr');
-      } else if (lowerMessage.includes('dutch') || lowerMessage.includes('nederlands')) {
-        suggestions.push('language-nl');
-      } else {
-        suggestions.push('language-options');
-      }
-    }
-
-    // Detect theme change requests
-    if (lowerMessage.includes('dark mode') || (lowerMessage.includes('dark') && lowerMessage.includes('theme'))) {
-      suggestions.push('theme-dark');
-    } else if (lowerMessage.includes('light mode') || (lowerMessage.includes('light') && lowerMessage.includes('theme'))) {
-      suggestions.push('theme-light');
-    } else if (lowerMessage.includes('theme')) {
-      suggestions.push('theme-options');
-    }
+    // Let the AI handle all suggestions naturally through conversation
+    // The AI will decide when to show widgets based on the conversation context
     
     // No emergency detection - treat all cases as regular consultations
     const urgency_detected = false;
