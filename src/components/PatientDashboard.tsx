@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { InteractiveDentalChat } from "@/components/chat/InteractiveDentalChat";
 import { Settings } from "@/components/Settings";
 import RealAppointmentsList from "@/components/RealAppointmentsList";
-import { EnhancedPatientDossier } from "@/components/enhanced/EnhancedPatientDossier";
+import { HealthData } from "@/components/HealthData";
 import { EmergencyTriageForm } from "@/components/EmergencyTriageForm";
 import { PatientAnalytics } from "@/components/analytics/PatientAnalytics";
 import { useLanguage } from "@/hooks/useLanguage";
@@ -41,7 +41,6 @@ interface PatientDashboardProps {
 interface PatientStats {
   upcomingAppointments: number;
   completedAppointments: number;
-  healthScore: number;
   lastVisit: string | null;
   totalNotes: number;
   activeTreatmentPlans: number;
@@ -80,7 +79,6 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
   const [patientStats, setPatientStats] = useState<PatientStats>({
     upcomingAppointments: 0,
     completedAppointments: 0,
-    healthScore: 85,
     lastVisit: null,
     totalNotes: 0,
     activeTreatmentPlans: 0,
@@ -198,13 +196,9 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
         apt.status === 'completed'
       )?.appointment_date || null;
 
-      // Calculate health score based on various factors
-      const healthScore = calculateHealthScore(appointments, notes, treatmentPlans);
-
       setPatientStats({
         upcomingAppointments: upcoming,
         completedAppointments: completed,
-        healthScore,
         lastVisit,
         totalNotes: notes?.length || 0,
         activeTreatmentPlans: treatmentPlans?.length || 0,
@@ -246,29 +240,7 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
     }
   };
 
-  const calculateHealthScore = (appointments: any[], notes: any[], treatmentPlans: any[]) => {
-    let score = 85; // Base score
-    
-    // Factor in appointment regularity
-    const completedAppointments = appointments?.filter(apt => apt.status === 'completed').length || 0;
-    if (completedAppointments >= 3) score += 10;
-    else if (completedAppointments >= 1) score += 5;
-    
-    // Factor in active treatment plans (negative impact)
-    const activePlans = treatmentPlans?.length || 0;
-    score -= activePlans * 5;
-    
-    // Factor in recent notes (positive impact)
-    const recentNotes = notes?.filter(note => {
-      const noteDate = new Date(note.created_at);
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-      return noteDate >= thirtyDaysAgo;
-    }).length || 0;
-    score += recentNotes * 2;
-    
-    return Math.max(0, Math.min(100, score));
-  };
+
 
   const getWelcomeMessage = () => {
     if (!userProfile) return "Welcome to your dashboard!";
@@ -286,17 +258,7 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
     return `${greeting}, ${firstName}!`;
   };
 
-  const getHealthScoreColor = (score: number) => {
-    if (score >= 80) return "text-green-600";
-    if (score >= 60) return "text-yellow-600";
-    return "text-red-600";
-  };
 
-  const getHealthScoreIcon = (score: number) => {
-    if (score >= 80) return <CheckCircle className="h-6 w-6 text-green-500" />;
-    if (score >= 60) return <AlertTriangle className="h-6 w-6 text-yellow-500" />;
-    return <XCircle className="h-6 w-6 text-red-500" />;
-  };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -387,7 +349,7 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
         </div>
 
         {/* Enhanced Quick Stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6">
           <Card className="glass-card border-0 hover:shadow-lg transition-shadow">
             <CardContent className="p-4 text-center">
               <Calendar className="h-6 w-6 text-blue-500 mx-auto mb-2" />
@@ -402,15 +364,7 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
               <p className="text-xs text-dental-muted-foreground">Completed</p>
             </CardContent>
           </Card>
-          <Card className="glass-card border-0 hover:shadow-lg transition-shadow">
-            <CardContent className="p-4 text-center">
-              {getHealthScoreIcon(patientStats.healthScore)}
-              <p className={`text-2xl font-bold ${getHealthScoreColor(patientStats.healthScore)}`}>
-                {patientStats.healthScore}%
-              </p>
-              <p className="text-xs text-dental-muted-foreground">Health Score</p>
-            </CardContent>
-          </Card>
+
           <Card className="glass-card border-0 hover:shadow-lg transition-shadow">
             <CardContent className="p-4 text-center">
               <Clock className="h-6 w-6 text-orange-500 mx-auto mb-2" />
@@ -536,7 +490,7 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
                 }`}
               >
                 <Activity className="h-4 w-4" />
-                <span className="font-medium">Health</span>
+                <span className="font-medium">Health Data</span>
               </Button>
 
               <Button
@@ -588,7 +542,7 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
           )}
           
           {activeTab === 'dossier' && (
-            <EnhancedPatientDossier user={user} mode="patient" />
+            <HealthData user={user} mode="patient" />
           )}
           
           {activeTab === 'analytics' && (
