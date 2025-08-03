@@ -90,6 +90,13 @@ describe('AI opt-in prompt', () => {
     profile = handleAiPromptResponse(profile, 'never');
     expect(shouldShowAiPrompt(profile)).toBe(false);
   });
+
+  it('disables opt-out when enabling', () => {
+    let profile: PatientProfile = { id: 'p2', aiOptOut: true };
+    profile = handleAiPromptResponse(profile, 'enable');
+    expect(profile.aiOptOut).toBe(false);
+    expect(shouldShowAiPrompt(profile)).toBe(false);
+  });
 });
 
 describe('dentist profile editing', () => {
