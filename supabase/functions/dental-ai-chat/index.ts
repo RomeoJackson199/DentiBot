@@ -1,7 +1,5 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-
-const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -24,6 +22,7 @@ serve(async (req) => {
     }
 
     // Check if OpenAI API key is available
+    const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
     if (!openAIApiKey) {
       console.warn('OpenAI API key not found, using fallback responses');
       
@@ -498,7 +497,6 @@ Always maintain professional medical standards and suggest only appropriate trea
     
     // Enhanced dentist recommendation logic based on symptoms and needs
     const recommendedDentists = [];
-    const lowerMessage = message.toLowerCase();
     
     // Analyze symptoms and needs to recommend appropriate dentists
     const hasChildSymptoms = lowerMessage.includes('enfant') || lowerMessage.includes('child') || lowerMessage.includes('kind') ||
