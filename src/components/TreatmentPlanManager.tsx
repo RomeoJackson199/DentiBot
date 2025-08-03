@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
 import { useToast } from "@/hooks/use-toast";
 import { AIWritingAssistant } from "@/components/AIWritingAssistant";
 import { BookOpen } from "lucide-react";
@@ -24,8 +25,8 @@ export function TreatmentPlanManager({ appointmentId, patientId, dentistId }: Tr
     description: '',
     diagnosis: '',
     priority: 'normal',
-    estimated_duration_weeks: '',
-    estimated_cost: '',
+    estimated_duration_weeks: [4],
+    estimated_cost: [150],
     notes: ''
   });
   const { toast } = useToast();
@@ -54,8 +55,8 @@ export function TreatmentPlanManager({ appointmentId, patientId, dentistId }: Tr
           description: formData.description,
           diagnosis: formData.diagnosis,
           priority: formData.priority,
-          estimated_duration_weeks: formData.estimated_duration_weeks ? parseInt(formData.estimated_duration_weeks) : null,
-          estimated_cost: formData.estimated_cost ? parseFloat(formData.estimated_cost) : null,
+          estimated_duration_weeks: formData.estimated_duration_weeks[0] || null,
+          estimated_cost: formData.estimated_cost[0] || null,
           notes: formData.notes,
           status: 'draft',
           start_date: new Date().toISOString().split('T')[0]
@@ -74,8 +75,8 @@ export function TreatmentPlanManager({ appointmentId, patientId, dentistId }: Tr
         description: '',
         diagnosis: '',
         priority: 'normal',
-        estimated_duration_weeks: '',
-        estimated_cost: '',
+        estimated_duration_weeks: [4],
+        estimated_cost: [150],
         notes: ''
       });
     } catch (error: unknown) {
@@ -165,27 +166,30 @@ export function TreatmentPlanManager({ appointmentId, patientId, dentistId }: Tr
               </Select>
             </div>
 
-                        <div className="space-y-2">
-              <Label htmlFor="estimated_duration_weeks">Duration (weeks)</Label>
-              <Input
+            <div className="space-y-2">
+              <Label htmlFor="estimated_duration_weeks">Duration: {formData.estimated_duration_weeks[0]} weeks</Label>
+              <Slider
                 id="estimated_duration_weeks"
-                type="number"
-                placeholder="e.g., 4"
                 value={formData.estimated_duration_weeks}
-                onChange={(e) => setFormData(prev => ({ ...prev, estimated_duration_weeks: e.target.value }))}
+                onValueChange={(value) => setFormData(prev => ({ ...prev, estimated_duration_weeks: value }))}
+                max={52}
+                min={1}
+                step={1}
+                className="w-full"
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="estimated_cost">Estimated Cost (€)</Label>
-            <Input
+            <Label htmlFor="estimated_cost">Estimated Cost: €{formData.estimated_cost[0]}</Label>
+            <Slider
               id="estimated_cost"
-              type="number"
-              step="0.01"
-              placeholder="e.g., 150.00"
               value={formData.estimated_cost}
-              onChange={(e) => setFormData(prev => ({ ...prev, estimated_cost: e.target.value }))}
+              onValueChange={(value) => setFormData(prev => ({ ...prev, estimated_cost: value }))}
+              max={5000}
+              min={50}
+              step={50}
+              className="w-full"
             />
           </div>
 

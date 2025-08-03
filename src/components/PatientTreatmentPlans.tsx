@@ -1,26 +1,24 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Slider } from "@/components/ui/slider";
 import { useToast } from "@/hooks/use-toast";
+import { AIConversationDialog } from "@/components/AIConversationDialog";
 import { 
-  Pill, 
   Plus, 
-  Save,
-  Edit,
-  Eye,
-  Calendar,
-  DollarSign,
-  Clock,
-  AlertTriangle
+  Save, 
+  Clock, 
+  DollarSign, 
+  Calendar, 
+  AlertTriangle,
+  Pill
 } from "lucide-react";
 import { format } from "date-fns";
-import { AIWritingAssistant } from "@/components/AIWritingAssistant";
-import { AIConversationDialog } from "@/components/AIConversationDialog";
 
 interface TreatmentPlan {
   id: string;
@@ -55,8 +53,8 @@ export function PatientTreatmentPlans({ patientId, dentistId }: PatientTreatment
     diagnosis: "",
     status: "draft",
     priority: "normal",
-    estimated_duration_weeks: 0,
-    estimated_cost: 0,
+    estimated_duration_weeks: [4],
+    estimated_cost: [150],
     start_date: "",
     notes: ""
   });
@@ -111,8 +109,8 @@ export function PatientTreatmentPlans({ patientId, dentistId }: PatientTreatment
           diagnosis: newPlan.diagnosis.trim() || null,
           status: newPlan.status,
           priority: newPlan.priority,
-          estimated_duration_weeks: newPlan.estimated_duration_weeks || null,
-          estimated_cost: newPlan.estimated_cost || null,
+          estimated_duration_weeks: newPlan.estimated_duration_weeks[0] || null,
+          estimated_cost: newPlan.estimated_cost[0] || null,
           start_date: newPlan.start_date || null,
           notes: newPlan.notes.trim() || null
         })
@@ -128,8 +126,8 @@ export function PatientTreatmentPlans({ patientId, dentistId }: PatientTreatment
         diagnosis: "",
         status: "draft",
         priority: "normal",
-        estimated_duration_weeks: 0,
-        estimated_cost: 0,
+        estimated_duration_weeks: [4],
+        estimated_cost: [150],
         start_date: "",
         notes: ""
       });
@@ -227,81 +225,108 @@ export function PatientTreatmentPlans({ patientId, dentistId }: PatientTreatment
                 dentistId={dentistId}
                 patientName="Patient"
                 contextType="treatment"
-                onUpdate={fetchTreatmentPlans}
               />
             </div>
           </div>
         </CardHeader>
       </Card>
 
-      {/* Add New Treatment Plan */}
+      {/* Add Treatment Plan Form */}
       {isAddingPlan && (
-        <Card className="glass-card border-dental-primary">
+        <Card className="glass-card">
           <CardContent className="p-6">
-            <h3 className="font-semibold mb-4">Create New Treatment Plan</h3>
+            <h3 className="text-lg font-semibold mb-4">Create New Treatment Plan</h3>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div className="space-y-4">
               <div>
-                <label className="text-sm font-medium mb-2 block">Title *</label>
+                <label className="text-sm font-medium mb-2 block">Treatment Plan Title *</label>
                 <Input
                   value={newPlan.title}
                   onChange={(e) => setNewPlan(prev => ({ ...prev, title: e.target.value }))}
-                  placeholder="Treatment plan title"
+                  placeholder="e.g., Root Canal Treatment"
                 />
               </div>
-              
+
+              <div>
+                <label className="text-sm font-medium mb-2 block">Description</label>
+                <Textarea
+                  value={newPlan.description}
+                  onChange={(e) => setNewPlan(prev => ({ ...prev, description: e.target.value }))}
+                  placeholder="Detailed treatment description..."
+                  className="min-h-[80px]"
+                />
+              </div>
+
               <div>
                 <label className="text-sm font-medium mb-2 block">Diagnosis</label>
-                <Input
+                <Textarea
                   value={newPlan.diagnosis}
                   onChange={(e) => setNewPlan(prev => ({ ...prev, diagnosis: e.target.value }))}
-                  placeholder="Primary diagnosis"
+                  placeholder="Clinical diagnosis..."
+                  className="min-h-[60px]"
                 />
               </div>
-            </div>
 
-            <div className="mb-4">
-              <label className="text-sm font-medium mb-2 block">Description</label>
-              <Textarea
-                value={newPlan.description}
-                onChange={(e) => setNewPlan(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="Detailed treatment description"
-                className="min-h-[100px]"
-              />
-            </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Status</label>
+                  <Select 
+                    value={newPlan.status} 
+                    onValueChange={(value) => setNewPlan(prev => ({ ...prev, status: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="draft">Draft</SelectItem>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="on_hold">On Hold</SelectItem>
+                      <SelectItem value="completed">Completed</SelectItem>
+                      <SelectItem value="cancelled">Cancelled</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-              <div>
-                <label className="text-sm font-medium mb-2 block">Priority</label>
-                <Select value={newPlan.priority} onValueChange={(value) => setNewPlan(prev => ({ ...prev, priority: value }))}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="low">Low</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="high">High</SelectItem>
-                  </SelectContent>
-                </Select>
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Priority</label>
+                  <Select 
+                    value={newPlan.priority} 
+                    onValueChange={(value) => setNewPlan(prev => ({ ...prev, priority: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="low">Low</SelectItem>
+                      <SelectItem value="normal">Normal</SelectItem>
+                      <SelectItem value="high">High</SelectItem>
+                      <SelectItem value="urgent">Urgent</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               <div>
-                <label className="text-sm font-medium mb-2 block">Duration (weeks)</label>
-                <Input
-                  type="number"
+                <label className="text-sm font-medium mb-2 block">Duration: {newPlan.estimated_duration_weeks[0]} weeks</label>
+                <Slider
                   value={newPlan.estimated_duration_weeks}
-                  onChange={(e) => setNewPlan(prev => ({ ...prev, estimated_duration_weeks: parseInt(e.target.value) || 0 }))}
-                  placeholder="e.g., 4"
+                  onValueChange={(value) => setNewPlan(prev => ({ ...prev, estimated_duration_weeks: value }))}
+                  max={52}
+                  min={1}
+                  step={1}
+                  className="w-full"
                 />
               </div>
 
               <div>
-                <label className="text-sm font-medium mb-2 block">Estimated Cost</label>
-                <Input
-                  type="number"
+                <label className="text-sm font-medium mb-2 block">Estimated Cost: €{newPlan.estimated_cost[0]}</label>
+                <Slider
                   value={newPlan.estimated_cost}
-                  onChange={(e) => setNewPlan(prev => ({ ...prev, estimated_cost: parseFloat(e.target.value) || 0 }))}
-                  placeholder="0.00"
+                  onValueChange={(value) => setNewPlan(prev => ({ ...prev, estimated_cost: value }))}
+                  max={5000}
+                  min={50}
+                  step={50}
+                  className="w-full"
                 />
               </div>
 
@@ -340,8 +365,8 @@ export function PatientTreatmentPlans({ patientId, dentistId }: PatientTreatment
                     diagnosis: "",
                     status: "draft",
                     priority: "normal",
-                    estimated_duration_weeks: 0,
-                    estimated_cost: 0,
+                    estimated_duration_weeks: [4],
+                    estimated_cost: [150],
                     start_date: "",
                     notes: ""
                   });
@@ -423,7 +448,7 @@ export function PatientTreatmentPlans({ patientId, dentistId }: PatientTreatment
                   {plan.estimated_cost && (
                     <div className="flex items-center space-x-2">
                       <DollarSign className="h-4 w-4 text-muted-foreground" />
-                      <span>${plan.estimated_cost.toFixed(2)}</span>
+                      <span>€{plan.estimated_cost.toFixed(2)}</span>
                     </div>
                   )}
                   

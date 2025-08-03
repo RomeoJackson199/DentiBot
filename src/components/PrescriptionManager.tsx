@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
 import { useToast } from "@/hooks/use-toast";
 import { AIWritingAssistant } from "@/components/AIWritingAssistant";
 import { Pill, Plus } from "lucide-react";
@@ -23,7 +24,7 @@ export function PrescriptionManager({ appointmentId, patientId, dentistId }: Pre
     medication_name: '',
     dosage: '',
     frequency: '',
-    duration: '',
+    duration_days: [7],
     instructions: ''
   });
   const { toast } = useToast();
@@ -51,7 +52,7 @@ export function PrescriptionManager({ appointmentId, patientId, dentistId }: Pre
           medication_name: formData.medication_name,
           dosage: formData.dosage,
           frequency: formData.frequency,
-          duration: formData.duration,
+          duration: `${formData.duration_days[0]} days`,
           instructions: formData.instructions,
           prescribed_date: new Date().toISOString().split('T')[0],
           status: 'active'
@@ -69,7 +70,7 @@ export function PrescriptionManager({ appointmentId, patientId, dentistId }: Pre
         medication_name: '',
         dosage: '',
         frequency: '',
-        duration: '',
+        duration_days: [7],
         instructions: ''
       });
     } catch (error: unknown) {
@@ -128,32 +129,35 @@ export function PrescriptionManager({ appointmentId, patientId, dentistId }: Pre
                 <SelectValue placeholder="Select frequency" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Once daily">Once daily</SelectItem>
-                <SelectItem value="Twice daily">Twice daily</SelectItem>
-                <SelectItem value="Three times daily">Three times daily</SelectItem>
-                <SelectItem value="Four times daily">Four times daily</SelectItem>
-                <SelectItem value="As needed">As needed</SelectItem>
-                <SelectItem value="Before meals">Before meals</SelectItem>
-                <SelectItem value="After meals">After meals</SelectItem>
+                <SelectItem value="once daily">Once daily</SelectItem>
+                <SelectItem value="twice daily">Twice daily</SelectItem>
+                <SelectItem value="three times daily">Three times daily</SelectItem>
+                <SelectItem value="four times daily">Four times daily</SelectItem>
+                <SelectItem value="as needed">As needed</SelectItem>
+                <SelectItem value="before meals">Before meals</SelectItem>
+                <SelectItem value="after meals">After meals</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="duration">Duration</Label>
-            <Input
-              id="duration"
-              placeholder="e.g., 7 days"
-              value={formData.duration}
-              onChange={(e) => setFormData(prev => ({ ...prev, duration: e.target.value }))}
+            <Label htmlFor="duration_days">Duration: {formData.duration_days[0]} days</Label>
+            <Slider
+              id="duration_days"
+              value={formData.duration_days}
+              onValueChange={(value) => setFormData(prev => ({ ...prev, duration_days: value }))}
+              max={90}
+              min={1}
+              step={1}
+              className="w-full"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="instructions">Special Instructions</Label>
+            <Label htmlFor="instructions">Instructions</Label>
             <Textarea
               id="instructions"
-              placeholder="Additional instructions for the patient..."
+              placeholder="Special instructions, side effects to watch for..."
               value={formData.instructions}
               onChange={(e) => setFormData(prev => ({ ...prev, instructions: e.target.value }))}
               className="min-h-[80px]"
