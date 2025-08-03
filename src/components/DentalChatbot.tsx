@@ -645,265 +645,171 @@ Type your request...`;
 
 
   return (
-    <div className="max-w-5xl mx-auto px-2 sm:px-0">
-      <Card className="h-[85vh] sm:h-[700px] flex flex-col floating-card animate-scale-in">
-        <CardHeader className="bg-gradient-primary text-white rounded-t-xl border-0 p-3 sm:p-6">
-          <CardTitle className="flex items-center text-lg sm:text-xl">
-            <div className="relative">
-              <Bot className="h-6 w-6 sm:h-7 sm:w-7 mr-2 sm:mr-3" />
-              <div className="absolute -top-1 -right-1 w-2 h-2 sm:w-3 sm:h-3 bg-green-400 rounded-full animate-pulse"></div>
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 sm:gap-3">
-                <span className="truncate">DentiBot</span>
-                <Badge variant="secondary" className="bg-white/20 text-white border-white/30 text-xs">
-                  <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-400 rounded-full mr-1 sm:mr-2 animate-pulse"></div>
-                  Online
-                </Badge>
-              </div>
-              <p className="text-xs sm:text-sm text-white/80 font-normal truncate">Your AI Dental Assistant</p>
-            </div>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="flex-1 flex flex-col p-0 bg-gradient-hero">
-          <AiDisclaimer />
-          <ScrollArea className="flex-1 p-3 sm:p-6">
-            <div className="space-y-4 sm:space-y-6">
-              {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex ${message.is_bot ? "justify-start" : "justify-end"}`}
-                >
-                  <div
-                    className={`max-w-[85%] rounded-2xl p-4 shadow-float animate-slide-in ${
-                      message.is_bot
-                        ? "bg-white/90 backdrop-blur-sm text-gray-900 border border-dental-primary/10"
-                        : "bg-gradient-primary text-white shadow-glow"
-                    }`}
-                  >
-                    <div className="flex items-start space-x-2">
-                      {message.is_bot ? (
-                        <Bot className="h-4 w-4 mt-1 flex-shrink-0" />
-                      ) : (
-                        <UserIcon className="h-4 w-4 mt-1 flex-shrink-0" />
-                      )}
-                      <div className="flex-1">
-                        <p className="whitespace-pre-wrap">{message.message}</p>
-                        <p className="text-xs opacity-70 mt-1">
-                          {new Date(message.created_at).toLocaleTimeString()}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-              {isLoading && (
-                <div className="flex justify-start">
-                  <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-3 sm:p-4 max-w-[80%] shadow-float border border-dental-primary/10 animate-scale-in">
-                    <div className="flex items-center space-x-2 sm:space-x-3">
-                      <Bot className="h-4 w-4 sm:h-5 sm:w-5 text-dental-primary" />
-                      <div className="flex space-x-1">
-                        <div className="w-2 h-2 sm:w-3 sm:h-3 bg-dental-primary rounded-full animate-bounce"></div>
-                        <div className="w-2 h-2 sm:w-3 sm:h-3 bg-dental-primary rounded-full animate-bounce" style={{ animationDelay: "0.1s" }}></div>
-                        <div className="w-2 h-2 sm:w-3 sm:h-3 bg-dental-primary rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
-                      </div>
-                      <span className="text-xs sm:text-sm text-dental-muted-foreground">DentiBot is thinking...</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-            <div ref={messagesEndRef} />
-          </ScrollArea>
+    <div className="flex flex-col h-full max-h-[600px] bg-white rounded-lg border shadow-sm">
+      {/* Chat Header */}
+      <div className="flex items-center justify-between p-4 border-b bg-gradient-to-r from-blue-50 to-indigo-50">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
+            <Bot className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-gray-900">DentiBot Assistant</h3>
+            <p className="text-sm text-gray-600">How can I help you today?</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsRecording(!isRecording)}
+            className={`${isRecording ? 'bg-red-100 text-red-600' : ''}`}
+          >
+            <Mic className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
 
-          {/* Chat Input - Always at bottom */}
-          <div className="border-t border-dental-primary/20 p-3 sm:p-6 glass-card rounded-t-none">
-            <div className="flex space-x-2 sm:space-x-3">
-              <Input
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Type your message..."
-                disabled={isLoading}
-                className="flex-1 border-dental-primary/20 focus:border-dental-primary focus:ring-dental-primary/20 bg-white/90 backdrop-blur-sm text-sm sm:text-base"
-              />
-              <Button 
-                variant="outline" 
-                size="icon"
-                onClick={() => setCurrentFlow('quick-photo')}
-                className="shrink-0 floating-card border-dental-accent/30 text-dental-accent hover:bg-dental-accent/10 w-10 h-10 sm:w-11 sm:h-11"
-              >
-                <ImageIcon className="h-4 w-4" />
-              </Button>
-              <Button 
-                onClick={handleVoiceOrSend}
-                disabled={isLoading}
-                className={`shrink-0 hover:shadow-glow text-white px-4 sm:px-6 rounded-xl transition-all duration-300 hover:scale-105 h-10 sm:h-11 ${
-                  inputMessage.trim() 
-                    ? 'bg-gradient-primary' 
-                    : isRecording 
-                      ? 'bg-red-500 hover:bg-red-600 animate-pulse' 
-                      : 'bg-gradient-secondary'
-                }`}
-              >
-                {inputMessage.trim() ? (
-                  <Send className="h-4 w-4" />
-                ) : isRecording ? (
-                  <Square className="h-4 w-4" />
-                ) : (
-                  <Mic className="h-4 w-4" />
+      {/* Messages Area */}
+      <ScrollArea className="flex-1 p-4 space-y-4">
+        {messages.map((message) => (
+          <div
+            key={message.id}
+            className={`flex ${message.is_bot ? 'justify-start' : 'justify-end'}`}
+          >
+            <div
+              className={`max-w-[80%] rounded-2xl px-4 py-3 ${
+                message.is_bot
+                  ? 'bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100'
+                  : 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white'
+              }`}
+            >
+              <div className="flex items-start gap-2">
+                {message.is_bot && (
+                  <div className="w-6 h-6 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                    <Bot className="w-3 h-3 text-white" />
+                  </div>
                 )}
-              </Button>
+                <div className="flex-1">
+                  <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                    {message.message}
+                  </p>
+                  {message.metadata?.ai_generated && (
+                    <div className="mt-2 text-xs opacity-70">
+                      AI Assistant
+                    </div>
+                  )}
+                </div>
+                {!message.is_bot && (
+                  <div className="w-6 h-6 bg-gradient-to-r from-gray-500 to-gray-600 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                    <UserIcon className="w-3 h-3 text-white" />
+                  </div>
+                )}
+              </div>
             </div>
-            
-            {/* Action Buttons - only show when in chat mode */}
-            {currentFlow === 'chat' && (
-              <div className="flex flex-wrap gap-2 sm:gap-3 mt-3 sm:mt-4">
-                <Button
-                  variant="outline"
-                  size="sm"
-                 onClick={() => {
-                   if (!user) {
-                     const loginMessage: ChatMessage = {
-                       id: crypto.randomUUID(),
-                       session_id: sessionId,
-                       message: "Vous devez vous connecter pour prendre un rendez-vous. Cliquez sur le bouton 'Se connecter' en haut à droite.",
-                       is_bot: true,
-                       message_type: "text",
-                       created_at: new Date().toISOString(),
-                     };
-                     setMessages(prev => [...prev, loginMessage]);
-                   } else {
-                     // Skip patient selection if it's for the user
-                     setIsForUser(true);
-                     setPatientInfo(userProfile);
-                     setCurrentFlow('dentist-selection');
-                   }
-                 }}
-                  className="flex items-center gap-1 sm:gap-2 floating-card border-dental-primary/30 text-dental-primary hover:bg-dental-primary/10 hover:scale-105 transition-all duration-300 text-xs sm:text-sm px-3 sm:px-4 py-2"
-                >
-                  <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
-                  <span className="hidden xs:inline">Book Appointment</span>
-                  <span className="xs:hidden">Book</span>
-                </Button>
+          </div>
+        ))}
+        
+        {isLoading && (
+          <div className="flex justify-start">
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-2xl px-4 py-3">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
+                  <Bot className="w-3 h-3 text-white" />
+                </div>
+                <div className="flex space-x-1">
+                  <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
+                  <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                  <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        <div ref={messagesEndRef} />
+      </ScrollArea>
+
+      {/* Action Buttons */}
+      {actionButtons.length > 0 && (
+        <div className="p-4 border-t bg-gray-50">
+          <div className="flex flex-wrap gap-2">
+            {actionButtons.map((button, index) => (
+              <Button
+                key={index}
+                variant="outline"
+                size="sm"
+                onClick={() => handleActionButton(button.action, button.data)}
+                className="rounded-full"
+              >
+                {button.icon && <button.icon className="w-4 h-4 mr-2" />}
+                {button.label}
+              </Button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Input Area */}
+      <div className="p-4 border-t bg-white">
+        <div className="flex items-center gap-2">
+          <div className="flex-1 relative">
+            <Input
+              value={inputMessage}
+              onChange={(e) => setInputMessage(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="Type your message..."
+              className="pr-12 rounded-full border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+              disabled={isLoading}
+            />
+            {isRecording && (
+              <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
               </div>
             )}
           </div>
-
-          {/* Action Panels - Above chat input */}
-          {currentFlow === 'patient-selection' && user && (
-            <div className="border-t border-dental-primary/20 p-6 glass-card animate-fade-in">
-              <PatientSelection 
-                onSelectPatient={(isForUserSelected, patientInfoSelected) => {
-                  setIsForUser(isForUserSelected);
-                  setPatientInfo(patientInfoSelected);
-                  addSystemMessage(
-                    isForUserSelected 
-                      ? "Appointment will be booked for you" 
-                      : `Appointment will be booked for ${patientInfoSelected?.name}`, 
-                    'success'
-                  );
-                  setCurrentFlow('dentist-selection');
-                }}
-                onCancel={() => setCurrentFlow('chat')}
-              />
-            </div>
-          )}
-
-          {currentFlow === 'dentist-selection' && user && (
-            <div className="border-t border-dental-primary/20 p-6 glass-card animate-fade-in">
-              <DentistSelection
-                onSelectDentist={(dentist) => {
-                  setSelectedDentist(dentist);
-                  addSystemMessage(`Dentist selected: Dr ${dentist.profiles.first_name} ${dentist.profiles.last_name}`, 'success');
-                  setCurrentFlow('booking');
-                }}
-                selectedDentistId={selectedDentist?.id}
-                recommendedDentist={recommendedDentist}
-              />
-            </div>
-          )}
-
-          {currentFlow === 'booking' && user && (
-            <div className="border-t border-dental-secondary/20 p-6 glass-card animate-fade-in">
-              <AppointmentBookingWithAuth
-                user={user}
-                selectedDentist={selectedDentist}
-                prefilledReason={consultationReason}
-                onComplete={(appointmentData) => {
-                  addSystemMessage("Appointment confirmed! You'll receive a reminder 24 hours before.", 'success');
-                  setCurrentFlow('chat');
-                }}
-                onCancel={() => setCurrentFlow('chat')}
-              />
-            </div>
-          )}
-
-          {currentFlow === 'quick-photo' && (
-            <div className="border-t border-dental-accent/20 p-6 glass-card animate-fade-in">
-              <QuickPhotoUpload
-                onPhotoUploaded={(url) => {
-                  setLastPhotoUrl(url);
-                  addSystemMessage("📸 Photo added successfully", 'success');
-                  setCurrentFlow('chat');
-                }}
-                onCancel={() => setCurrentFlow('chat')}
-              />
-            </div>
-          )}
-
-          {currentFlow === 'photo' && (
-            <div className="border-t border-dental-accent/20 p-6 glass-card animate-fade-in">
-              <PhotoUpload
-                onComplete={(url) => {
-                  setLastPhotoUrl(url);
-                  addSystemMessage("Photo uploaded successfully. It will be sent to the dentist.", 'success');
-                  setCurrentFlow('chat');
-                }}
-                onCancel={() => setCurrentFlow('chat')}
-              />
-            </div>
-          )}
-          
-          {/* Chat Booking Flow */}
-          {showChatBooking && user && (
-            <div className="border-t border-dental-primary/20 p-6 glass-card animate-fade-in">
-              <ChatBookingFlow
-                user={user}
-                selectedDentist={selectedDentist}
-                onComplete={(appointmentData) => {
-                  addChatResponse(appointmentData.message);
-                  setShowChatBooking(false);
-                }}
-                onCancel={() => setShowChatBooking(false)}
-                onResponse={addChatResponse}
-              />
-            </div>
-          )}
-
-          {/* Action Buttons for chat responses */}
-          {actionButtons.length > 0 && currentFlow === 'chat' && (
-            <div className="border-t border-dental-primary/20 p-4 glass-card">
-              <div className="flex flex-wrap gap-2">
-                {actionButtons.map((button, index) => (
-                  <Button
-                    key={index}
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleActionButton(button.action, button.data)}
-                    className="text-dental-primary border-dental-primary/30 hover:bg-dental-primary/10"
-                  >
-                    {button.label}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Settings Form */}
-          {settingsManager && <settingsManager.PersonalInfoForm />}
-        </CardContent>
-      </Card>
+          <Button
+            onClick={handleVoiceOrSend}
+            disabled={isLoading || (!inputMessage.trim() && !isRecording)}
+            className="rounded-full w-10 h-10 p-0 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700"
+          >
+            {isRecording ? (
+              <Square className="w-4 h-4 text-white" />
+            ) : inputMessage.trim() ? (
+              <Send className="w-4 h-4 text-white" />
+            ) : (
+              <Mic className="w-4 h-4 text-white" />
+            )}
+          </Button>
+        </div>
+        
+        {/* Quick Actions */}
+        <div className="flex gap-2 mt-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setInputMessage("I need an appointment")}
+            className="text-xs rounded-full"
+          >
+            📅 Book Appointment
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setInputMessage("I have tooth pain")}
+            className="text-xs rounded-full"
+          >
+            🦷 Tooth Pain
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setInputMessage("I need a cleaning")}
+            className="text-xs rounded-full"
+          >
+            🧼 Dental Cleaning
+          </Button>
+        </div>
+      </div>
     </div>
   );
 };

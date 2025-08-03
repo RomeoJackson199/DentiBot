@@ -2,10 +2,11 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Star, MapPin, Clock, Check } from "lucide-react";
+import { Star, MapPin, Clock, Check, User, Award, Heart, Shield } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Dentist {
   id: string;
@@ -28,6 +29,7 @@ interface DentistSelectionProps {
 export const DentistSelection = ({ onSelectDentist, selectedDentistId, recommendedDentist }: DentistSelectionProps) => {
   const [dentists, setDentists] = useState<Dentist[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedSpecialty, setSelectedSpecialty] = useState<string>('all');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -75,18 +77,36 @@ export const DentistSelection = ({ onSelectDentist, selectedDentistId, recommend
     return `${dentist.profiles.first_name[0]}${dentist.profiles.last_name[0]}`;
   };
 
-  const getSpecialtyColor = (specialty: string | null) => {
+  const getSpecialtyInfo = (specialty: string | null) => {
     switch (specialty?.toLowerCase()) {
       case 'orthodontics':
-        return 'bg-blue-100 text-blue-800';
-      case 'oral surgery':
-        return 'bg-red-100 text-red-800';
-      case 'endodontics':
-        return 'bg-green-100 text-green-800';
-      case 'periodontics':
-        return 'bg-purple-100 text-purple-800';
+        return {
+          name: 'Orthodontics',
+          color: 'bg-gradient-to-r from-blue-500 to-purple-600',
+          icon: '🦷',
+          description: 'Braces & teeth alignment'
+        };
+      case 'pediatric':
+        return {
+          name: 'Pediatric',
+          color: 'bg-gradient-to-r from-pink-500 to-rose-600',
+          icon: '👶',
+          description: 'Children\'s dental care'
+        };
+      case 'general':
+        return {
+          name: 'General',
+          color: 'bg-gradient-to-r from-green-500 to-emerald-600',
+          icon: '🦷',
+          description: 'General dental care'
+        };
       default:
-        return 'bg-gray-100 text-gray-800';
+        return {
+          name: 'General',
+          color: 'bg-gradient-to-r from-gray-500 to-slate-600',
+          icon: '🦷',
+          description: 'Dental care'
+        };
     }
   };
 
@@ -94,133 +114,172 @@ export const DentistSelection = ({ onSelectDentist, selectedDentistId, recommend
     if (!recommendedDentist) return false;
     const dentistFullName = `${dentist.profiles.first_name} ${dentist.profiles.last_name}`;
     
-    // Handle both string and array formats
     if (Array.isArray(recommendedDentist)) {
       return recommendedDentist.includes(dentistFullName);
     }
-    return dentistFullName === recommendedDentist;
+    return recommendedDentist === dentistFullName;
   };
+
+  const filteredDentists = selectedSpecialty === 'all' 
+    ? dentists 
+    : dentists.filter(dentist => dentist.specialty?.toLowerCase() === selectedSpecialty);
+
+  const specialties = [
+    { key: 'all', label: 'All Specialties', icon: '🦷' },
+    { key: 'pediatric', label: 'Pediatric', icon: '👶' },
+    { key: 'orthodontics', label: 'Orthodontics', icon: '🦷' },
+    { key: 'general', label: 'General', icon: '🦷' }
+  ];
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <Card key={i} className="animate-pulse">
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-4">
-                <div className="w-16 h-16 bg-gray-200 rounded-full"></div>
-                <div className="flex-1 space-y-2">
-                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                  <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+      <div className="space-y-4">
+        <div className="flex gap-2 overflow-x-auto pb-2">
+          {specialties.map((specialty) => (
+            <Skeleton key={specialty.key} className="h-10 w-24 rounded-full" />
+          ))}
+        </div>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <Card key={i} className="overflow-hidden">
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-3">
+                  <Skeleton className="h-12 w-12 rounded-full" />
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-3 w-24" />
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-20 w-full" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
-        <div className="text-center">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            Choose your dentist
-          </h3>
-          <p className="text-sm text-gray-600">
-            {recommendedDentist && (Array.isArray(recommendedDentist) ? recommendedDentist.length > 1 : true) 
-              ? "We've highlighted our recommendations based on your needs" 
-              : "Select the dentist you'd like to book an appointment with"}
-          </p>
-        </div>
+    <div className="space-y-6">
+      {/* Specialty Filter */}
+      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+        {specialties.map((specialty) => (
+          <Button
+            key={specialty.key}
+            variant={selectedSpecialty === specialty.key ? "default" : "outline"}
+            size="sm"
+            onClick={() => setSelectedSpecialty(specialty.key)}
+            className="whitespace-nowrap rounded-full"
+          >
+            <span className="mr-2">{specialty.icon}</span>
+            {specialty.label}
+          </Button>
+        ))}
+      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {dentists.map((dentist) => {
-          const recommended = isRecommended(dentist);
+      {/* Dentists Grid */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {filteredDentists.map((dentist) => {
+          const specialtyInfo = getSpecialtyInfo(dentist.specialty);
+          const isSelected = selectedDentistId === dentist.id;
+          const isRecommendedDentist = isRecommended(dentist);
+
           return (
             <Card 
               key={dentist.id} 
-              className={`cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-105 ${
-                selectedDentistId === dentist.id 
-                  ? 'ring-2 ring-blue-500 bg-blue-50' 
-                  : recommended
-                  ? 'ring-2 ring-green-500 bg-green-50 shadow-lg'
-                  : 'hover:bg-gray-50'
-              }`}
+              className={`relative overflow-hidden transition-all duration-200 hover:shadow-lg cursor-pointer ${
+                isSelected ? 'ring-2 ring-primary shadow-lg' : 'hover:scale-105'
+              } ${isRecommendedDentist ? 'border-2 border-yellow-400 bg-gradient-to-br from-yellow-50 to-orange-50' : ''}`}
               onClick={() => onSelectDentist(dentist)}
             >
-            <CardContent className="p-6">
-              <div className="flex items-start space-x-4">
-                <div className="relative">
-                  <Avatar className="w-16 h-16">
-                    <AvatarImage 
-                      src={`https://images.unsplash.com/photo-155983973420${dentist.id}?w=150&h=150&fit=crop&crop=face`} 
-                      alt={`Dr ${dentist.profiles.first_name} ${dentist.profiles.last_name}`}
-                    />
-                    <AvatarFallback className="bg-blue-100 text-blue-800 font-semibold">
+              {isRecommendedDentist && (
+                <div className="absolute top-2 right-2 z-10">
+                  <Badge className="bg-yellow-500 text-white border-0">
+                    <Star className="w-3 h-3 mr-1" />
+                    Recommended
+                  </Badge>
+                </div>
+              )}
+
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-3">
+                  <Avatar className="h-12 w-12">
+                    <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${getDentistInitials(dentist)}`} />
+                    <AvatarFallback className={`${specialtyInfo.color} text-white font-semibold`}>
                       {getDentistInitials(dentist)}
                     </AvatarFallback>
                   </Avatar>
-                  {recommended && (
-                    <div className="absolute -top-1 -right-1 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                      <Check className="w-4 h-4 text-white" />
-                    </div>
-                  )}
-                  {selectedDentistId === dentist.id && !recommended && (
-                    <div className="absolute -top-1 -right-1 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
-                      <Check className="w-4 h-4 text-white" />
+                  <div className="flex-1 min-w-0">
+                    <CardTitle className="text-lg font-semibold truncate">
+                      Dr. {dentist.profiles.first_name} {dentist.profiles.last_name}
+                    </CardTitle>
+                    <p className="text-sm text-muted-foreground">{specialtyInfo.name}</p>
+                  </div>
+                  {isSelected && (
+                    <div className="flex-shrink-0">
+                      <Check className="w-5 h-5 text-primary" />
                     </div>
                   )}
                 </div>
+              </CardHeader>
 
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center space-x-2">
-                    <h4 className="text-lg font-semibold text-gray-900 truncate">
-                      Dr {dentist.profiles.first_name} {dentist.profiles.last_name}
-                    </h4>
-                    {recommended && (
-                      <Badge variant="default" className="bg-green-500 text-white text-xs">
-                        Recommended
-                      </Badge>
-                    )}
-                  </div>
-                  
-                  <Badge 
-                    variant="secondary" 
-                    className={`mt-1 ${getSpecialtyColor(dentist.specialty)}`}
-                  >
-                    {dentist.specialty || 'General Dentist'}
+              <CardContent className="space-y-3">
+                {/* Specialty Badge */}
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary" className={`${specialtyInfo.color} text-white border-0`}>
+                    <span className="mr-1">{specialtyInfo.icon}</span>
+                    {specialtyInfo.name}
                   </Badge>
-
-                  <div className="flex items-center mt-3 space-x-4 text-sm text-gray-600">
-                    <div className="flex items-center">
-                      <Star className="w-4 h-4 text-yellow-400 mr-1" />
-                      <span>4.8</span>
-                    </div>
-                    <div className="flex items-center">
-                      <Clock className="w-4 h-4 mr-1" />
-                      <span>Available today</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center mt-2 text-sm text-gray-500">
-                    <MapPin className="w-4 h-4 mr-1" />
-                    <span>Downtown Dental Office</span>
-                  </div>
                 </div>
-              </div>
 
-              <div className="mt-4 pt-4 border-t border-gray-100">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Next availability</span>
-                  <span className="text-sm font-medium text-green-600">Today 2:30 PM</span>
+                {/* Specializations */}
+                <div className="space-y-2">
+                  {dentist.specialty?.toLowerCase() === 'pediatric' && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Heart className="w-4 h-4 text-pink-500" />
+                      <span>Child-friendly approach</span>
+                    </div>
+                  )}
+                  {dentist.specialty?.toLowerCase() === 'orthodontics' && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Award className="w-4 h-4 text-blue-500" />
+                      <span>Braces & Invisalign</span>
+                    </div>
+                  )}
+                  {dentist.specialty?.toLowerCase() === 'general' && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Shield className="w-4 h-4 text-green-500" />
+                      <span>General & emergency care</span>
+                    </div>
+                  )}
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+
+                {/* Action Button */}
+                <Button 
+                  className="w-full mt-3" 
+                  variant={isSelected ? "default" : "outline"}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onSelectDentist(dentist);
+                  }}
+                >
+                  {isSelected ? 'Selected' : 'Select Dentist'}
+                </Button>
+              </CardContent>
+            </Card>
           );
         })}
       </div>
+
+      {filteredDentists.length === 0 && (
+        <div className="text-center py-8">
+          <div className="text-4xl mb-4">🦷</div>
+          <h3 className="text-lg font-semibold mb-2">No dentists found</h3>
+          <p className="text-muted-foreground">Try changing the specialty filter or contact support.</p>
+        </div>
+      )}
     </div>
   );
 };

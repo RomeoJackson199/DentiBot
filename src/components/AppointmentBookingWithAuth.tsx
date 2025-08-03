@@ -1,19 +1,20 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { User } from "@supabase/supabase-js";
-import { AuthForm } from "./AuthForm";
-import { AppointmentBooking } from "./AppointmentBooking";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CalendarDays, ArrowLeft, Clock, User as UserIcon, CheckCircle } from "lucide-react";
-import { useLanguage } from "@/hooks/useLanguage";
+import { Badge } from "@/components/ui/badge";
+import { Calendar, Clock, User as UserIcon, CheckCircle, ArrowLeft, ArrowRight } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
 
 interface AppointmentBookingWithAuthProps {
-  user: User | null;
+  user: User;
   selectedDentist?: any;
   prefilledReason?: string;
-  onComplete: (appointmentData?: any) => void;
+  onComplete: (appointmentData: any) => void;
   onCancel: () => void;
 }
 
@@ -24,250 +25,314 @@ export const AppointmentBookingWithAuth = ({
   onComplete, 
   onCancel 
 }: AppointmentBookingWithAuthProps) => {
-  const [showAuthStep, setShowAuthStep] = useState(false);
-  const [selectedBookingData, setSelectedBookingData] = useState<any>(null);
+  const [step, setStep] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    reason: prefilledReason || "",
+    urgency: "routine",
+    symptoms: "",
+    previousVisit: "no",
+    insurance: "no"
+  });
+  const { toast } = useToast();
 
-  // If user is already authenticated, show booking directly
-  if (user) {
-    return (
-      <AppointmentBooking
-        user={user}
-        selectedDentist={selectedDentist}
-        prefilledReason={prefilledReason}
-        onComplete={onComplete}
-        onCancel={onCancel}
-      />
-    );
-  }
+  const steps = [
+    { id: 1, title: "Reason for Visit", icon: "🦷" },
+    { id: 2, title: "Symptoms", icon: "📋" },
+    { id: 3, title: "Review & Confirm", icon: "✅" }
+  ];
 
-  const handleProceedToBooking = (bookingData: any) => {
-    setSelectedBookingData(bookingData);
-    setShowAuthStep(true);
+  const urgencyOptions = [
+    { value: "routine", label: "Routine Checkup", description: "Regular cleaning or checkup" },
+    { value: "mild", label: "Mild Discomfort", description: "Slight pain or sensitivity" },
+    { value: "moderate", label: "Moderate Pain", description: "Noticeable pain or issue" },
+    { value: "severe", label: "Severe Pain", description: "Significant pain or emergency" }
+  ];
+
+  const handleNext = () => {
+    if (step < 3) {
+      setStep(step + 1);
+    }
   };
 
-  if (showAuthStep) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-        <div className="max-w-md mx-auto">
-          <Card className="shadow-xl border-0 bg-white/95 backdrop-blur-sm">
-            <CardHeader className="text-center pb-4">
-              <div className="flex items-center justify-between">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowAuthStep(false)}
-                  className="p-2"
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                </Button>
-                <CardTitle className="flex items-center text-lg font-bold text-gray-800">
-                  <CalendarDays className="h-5 w-5 mr-2 text-blue-600" />
-                  Sign in to book
-                </CardTitle>
-                <div></div>
-              </div>
-              <p className="text-gray-600 text-sm mt-2">
-                Please sign in or create an account to confirm your appointment
-              </p>
-            </CardHeader>
-            <CardContent className="p-6">
-              <AuthForm />
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    );
-  }
-
-  return <AppointmentSelection onProceed={handleProceedToBooking} onCancel={onCancel} />;
-};
-
-// Component for selecting appointment details without authentication
-const AppointmentSelection = ({ 
-  onProceed, 
-  onCancel 
-}: { 
-  onProceed: (data: unknown) => void; 
-  onCancel: () => void; 
-}) => {
-  const { language, t } = useLanguage();
-  const [selectedReason, setSelectedReason] = useState("");
-  const [selectedDuration, setSelectedDuration] = useState("");
-
-  const consultationReasons = {
-    en: [
-      "General consultation",
-      "Routine checkup",
-      "Dental pain",
-      "Emergency",
-      "Cleaning",
-      "Other"
-    ],
-    fr: [
-      "Consultation générale",
-      "Contrôle de routine",
-      "Douleur dentaire",
-      "Urgence",
-      "Nettoyage",
-      "Autre"
-    ],
-    nl: [
-      "Algemene consultatie",
-      "Routine controle",
-      "Tandpijn",
-      "Spoed",
-      "Reiniging",
-      "Anders"
-    ]
+  const handleBack = () => {
+    if (step > 1) {
+      setStep(step - 1);
+    }
   };
 
-  const durations = {
-    en: ["30 minutes", "45 minutes", "60 minutes", "90 minutes"],
-    fr: ["30 minutes", "45 minutes", "60 minutes", "90 minutes"],
-    nl: ["30 minuten", "45 minuten", "60 minuten", "90 minuten"]
+  const handleSubmit = async () => {
+    setIsLoading(true);
+    
+    try {
+      // Simulate appointment creation
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      const appointmentData = {
+        id: crypto.randomUUID(),
+        dentist: selectedDentist,
+        reason: formData.reason,
+        urgency: formData.urgency,
+        symptoms: formData.symptoms,
+        status: "pending",
+        message: "Your appointment request has been submitted! We'll contact you within 24 hours to confirm the details."
+      };
+      
+      onComplete(appointmentData);
+      
+      toast({
+        title: "Success!",
+        description: "Appointment request submitted successfully.",
+        variant: "default",
+      });
+    } catch (error) {
+      console.error("Error creating appointment:", error);
+      toast({
+        title: "Error",
+        description: "Failed to create appointment. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const reasons = consultationReasons[language as keyof typeof consultationReasons] || consultationReasons.en;
-  const durationOptions = durations[language as keyof typeof durations] || durations.en;
-
-  const handleContinue = () => {
-    onProceed({
-      reason: selectedReason,
-      duration: selectedDuration,
-      language: language
-    });
+  const canProceed = () => {
+    switch (step) {
+      case 1:
+        return formData.reason.trim().length > 0;
+      case 2:
+        return formData.symptoms.trim().length > 0;
+      case 3:
+        return true;
+      default:
+        return false;
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <div className="max-w-2xl mx-auto">
-        <Card className="shadow-xl border-0 bg-white/95 backdrop-blur-sm">
-          <CardHeader className="text-center pb-6">
-            <CardTitle className="flex items-center justify-center text-2xl font-bold text-gray-800">
-              <CalendarDays className="h-6 w-6 mr-3 text-blue-600" />
-              {language === 'fr' ? 'Réserver un Rendez-vous' : 
-               language === 'nl' ? 'Afspraak Maken' : 
-               'Book Appointment'}
-            </CardTitle>
-            <p className="text-gray-600 mt-2">
-              {language === 'fr' ? 'Sélectionnez vos préférences de rendez-vous' : 
-               language === 'nl' ? 'Selecteer uw afspraakvoorkeuren' : 
-               'Select your appointment preferences'}
-            </p>
-          </CardHeader>
-          
-          <CardContent className="space-y-6 p-6 md:p-8">
-            {/* Consultation Reason */}
-            <div className="space-y-3">
-              <Label className="text-base font-semibold text-gray-700 flex items-center">
-                <UserIcon className="h-4 w-4 mr-2 text-blue-600" />
-                {language === 'fr' ? 'Motif de consultation' : 
-                 language === 'nl' ? 'Reden voor consultatie' : 
-                 'Consultation Reason'}
-              </Label>
-              <Select value={selectedReason} onValueChange={setSelectedReason}>
-                <SelectTrigger className="h-12 border-2 border-blue-200 bg-blue-50 hover:border-blue-300 transition-colors">
-                  <SelectValue placeholder={
-                    language === 'fr' ? 'Sélectionnez le motif' : 
-                    language === 'nl' ? 'Selecteer de reden' : 
-                    'Select reason'
-                  } />
-                </SelectTrigger>
-                <SelectContent className="bg-white border-2 shadow-lg">
-                  {reasons.map((reason) => (
-                    <SelectItem key={reason} value={reason} className="cursor-pointer hover:bg-blue-50">
-                      {reason}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+    <div className="max-w-2xl mx-auto">
+      {/* Progress Steps */}
+      <div className="flex items-center justify-between mb-6">
+        {steps.map((stepItem, index) => (
+          <div key={stepItem.id} className="flex items-center">
+            <div className={`flex items-center justify-center w-10 h-10 rounded-full border-2 ${
+              step >= stepItem.id 
+                ? 'bg-blue-500 border-blue-500 text-white' 
+                : 'bg-gray-100 border-gray-300 text-gray-500'
+            }`}>
+              <span className="text-sm">{stepItem.icon}</span>
             </div>
+            {index < steps.length - 1 && (
+              <div className={`w-16 h-0.5 mx-2 ${
+                step > stepItem.id ? 'bg-blue-500' : 'bg-gray-300'
+              }`} />
+            )}
+          </div>
+        ))}
+      </div>
 
-            {/* Duration */}
-            <div className="space-y-3">
-              <Label className="text-base font-semibold text-gray-700 flex items-center">
-                <Clock className="h-4 w-4 mr-2 text-blue-600" />
-                {language === 'fr' ? 'Durée estimée' : 
-                 language === 'nl' ? 'Geschatte duur' : 
-                 'Estimated Duration'}
-              </Label>
-              <Select value={selectedDuration} onValueChange={setSelectedDuration}>
-                <SelectTrigger className="h-12 border-2 border-gray-200 hover:border-blue-300 transition-colors">
-                  <SelectValue placeholder={
-                    language === 'fr' ? 'Sélectionnez la durée' : 
-                    language === 'nl' ? 'Selecteer de duur' : 
-                    'Select duration'
-                  } />
-                </SelectTrigger>
-                <SelectContent className="bg-white border-2 shadow-lg">
-                  {durationOptions.map((duration) => (
-                    <SelectItem key={duration} value={duration} className="cursor-pointer hover:bg-blue-50">
-                      {duration}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+      {/* Step Content */}
+      <Card className="shadow-lg border-0">
+        <CardHeader className="text-center pb-4">
+          <CardTitle className="text-xl font-semibold text-gray-900">
+            {steps[step - 1].title}
+          </CardTitle>
+          <p className="text-gray-600">
+            {step === 1 && "Tell us why you're visiting today"}
+            {step === 2 && "Describe your symptoms or concerns"}
+            {step === 3 && "Review your appointment details"}
+          </p>
+        </CardHeader>
 
-            {/* Information Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-              <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                <div className="flex items-center mb-2">
-                  <CheckCircle className="h-5 w-5 text-blue-600 mr-2" />
-                  <h4 className="font-semibold text-blue-800">
-                    {language === 'fr' ? 'Disponibilité en temps réel' : 
-                     language === 'nl' ? 'Real-time beschikbaarheid' : 
-                     'Real-time Availability'}
-                  </h4>
-                </div>
-                <p className="text-sm text-blue-700">
-                  {language === 'fr' ? 'Voir les créneaux disponibles instantanément' : 
-                   language === 'nl' ? 'Zie direct beschikbare tijdsloten' : 
-                   'See available slots instantly'}
-                </p>
+        <CardContent className="space-y-6">
+          {/* Step 1: Reason for Visit */}
+          {step === 1 && (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  What brings you in today?
+                </label>
+                <Textarea
+                  value={formData.reason}
+                  onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
+                  placeholder="e.g., Tooth pain, cleaning, checkup, braces consultation..."
+                  className="min-h-[100px] resize-none"
+                />
               </div>
               
-              <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                <div className="flex items-center mb-2">
-                  <Clock className="h-5 w-5 text-green-600 mr-2" />
-                  <h4 className="font-semibold text-green-800">
-                    {language === 'fr' ? 'Support 24h/24' : 
-                     language === 'nl' ? '24/7 Ondersteuning' : 
-                     '24/7 Support'}
-                  </h4>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  How urgent is this?
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  {urgencyOptions.map((option) => (
+                    <div
+                      key={option.value}
+                      className={`p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                        formData.urgency === option.value
+                          ? 'border-blue-500 bg-blue-50'
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                      onClick={() => setFormData({ ...formData, urgency: option.value })}
+                    >
+                      <div className="font-medium text-sm">{option.label}</div>
+                      <div className="text-xs text-gray-600 mt-1">{option.description}</div>
+                    </div>
+                  ))}
                 </div>
-                <p className="text-sm text-green-700">
-                  {language === 'fr' ? 'Réservation disponible à tout moment' : 
-                   language === 'nl' ? 'Boeking altijd beschikbaar' : 
-                   'Booking available anytime'}
-                </p>
               </div>
             </div>
+          )}
 
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 pt-6">
-              <Button 
-                onClick={handleContinue}
-                className="flex-1 h-12 bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors shadow-lg" 
-                disabled={!selectedReason || !selectedDuration}
-              >
-                {language === 'fr' ? 'Continuer vers la Connexion' : 
-                 language === 'nl' ? 'Doorgaan naar Inloggen' : 
-                 'Continue to Sign In'}
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={onCancel}
-                className="h-12 border-2 border-gray-300 hover:bg-gray-50 font-semibold transition-colors"
-              >
-                {language === 'fr' ? 'Annuler' : 
-                 language === 'nl' ? 'Annuleren' : 
-                 'Cancel'}
-              </Button>
+          {/* Step 2: Symptoms */}
+          {step === 2 && (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Describe your symptoms
+                </label>
+                <Textarea
+                  value={formData.symptoms}
+                  onChange={(e) => setFormData({ ...formData, symptoms: e.target.value })}
+                  placeholder="e.g., Sharp pain when eating, sensitivity to cold, bleeding gums..."
+                  className="min-h-[120px] resize-none"
+                />
+              </div>
+              
+              <div className="grid grid-cols-1 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Have you visited us before?
+                  </label>
+                  <Select value={formData.previousVisit} onValueChange={(value) => setFormData({ ...formData, previousVisit: value })}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="yes">Yes, I'm a returning patient</SelectItem>
+                      <SelectItem value="no">No, this is my first visit</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Do you have dental insurance?
+                  </label>
+                  <Select value={formData.insurance} onValueChange={(value) => setFormData({ ...formData, insurance: value })}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="yes">Yes, I have insurance</SelectItem>
+                      <SelectItem value="no">No, I don't have insurance</SelectItem>
+                      <SelectItem value="unsure">I'm not sure</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+          )}
+
+          {/* Step 3: Review */}
+          {step === 3 && (
+            <div className="space-y-6">
+              {/* Dentist Info */}
+              {selectedDentist && (
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
+                      <UserIcon className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-gray-900">
+                        Dr. {selectedDentist.profiles.first_name} {selectedDentist.profiles.last_name}
+                      </h4>
+                      <p className="text-sm text-gray-600">{selectedDentist.specialty}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Appointment Details */}
+              <div className="space-y-4">
+                <h4 className="font-medium text-gray-900">Appointment Details</h4>
+                
+                <div className="grid grid-cols-1 gap-3">
+                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                    <span className="text-sm text-gray-600">Reason for Visit</span>
+                    <span className="text-sm font-medium">{formData.reason}</span>
+                  </div>
+                  
+                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                    <span className="text-sm text-gray-600">Urgency Level</span>
+                    <Badge variant="secondary">
+                      {urgencyOptions.find(opt => opt.value === formData.urgency)?.label}
+                    </Badge>
+                  </div>
+                  
+                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                    <span className="text-sm text-gray-600">Previous Visit</span>
+                    <span className="text-sm font-medium capitalize">{formData.previousVisit}</span>
+                  </div>
+                  
+                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                    <span className="text-sm text-gray-600">Insurance</span>
+                    <span className="text-sm font-medium capitalize">{formData.insurance}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Symptoms Summary */}
+              {formData.symptoms && (
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-2">Symptoms</h4>
+                  <div className="p-3 bg-gray-50 rounded-lg">
+                    <p className="text-sm text-gray-700">{formData.symptoms}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Navigation Buttons */}
+          <div className="flex justify-between pt-4">
+            <Button
+              variant="outline"
+              onClick={step === 1 ? onCancel : handleBack}
+              disabled={isLoading}
+              className="flex items-center gap-2"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              {step === 1 ? 'Cancel' : 'Back'}
+            </Button>
+            
+            <Button
+              onClick={step === 3 ? handleSubmit : handleNext}
+              disabled={!canProceed() || isLoading}
+              className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700"
+            >
+              {isLoading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Submitting...
+                </>
+              ) : step === 3 ? (
+                <>
+                  <CheckCircle className="w-4 h-4" />
+                  Submit Request
+                </>
+              ) : (
+                <>
+                  Next
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

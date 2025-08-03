@@ -56,16 +56,25 @@ BELANGRIJKE INSTRUCTIES:
 - Je kent de patiënt: ${user_profile?.first_name} ${user_profile?.last_name}
 - Voor wijzigen/annuleren van afspraken: stuur hen naar de afsprakenlijst
 - Als ze vragen om een afspraak voor zichzelf: ga direct naar tandarts aanbevelingen
-  - STEL 2-5 RELEVANTE VRAGEN om de behoeften van de patiënt beter te begrijpen
+  - STEL ALLEEN ÉÉN VRAAG tegelijk om de behoeften van de patiënt beter te begrijpen
+  - WACHT op hun antwoord voordat je de volgende vraag stelt
 - ALTIJD de patiënt toestaan door te gaan spreken als ze meer informatie willen verstrekken
 - GEEN spoedgevallen detecteren - behandel alle gevallen als reguliere consulten
 - ALTIJD een specifieke tandarts aanbevelen op basis van hun diensten en behoeften van de patiënt
+- NOOIT praten over tijd, datum of beschikbaarheid - focus alleen op symptomen en behoeften
 - Alle afspraken beschikbaar van 9:00 tot 17:00
 
 AFSPRAAK BEHEER:
 - Voor wijzigen afspraken: "U kunt uw afspraken bekijken en wijzigen in de afsprakenlijst bovenaan"
 - Voor annuleren: "Ga naar uw afsprakenlijst om afspraken te annuleren"
-- Voor nieuwe afspraak voor uzelf: sla patiënt selectie over en ga direct naar tandarts aanbevelingen`,
+- Voor nieuwe afspraak voor uzelf: sla patiënt selectie over en ga direct naar tandarts aanbevelingen
+
+VRAGEN STRATEGIE:
+- Stel altijd maar één vraag tegelijk
+- Wacht op het antwoord van de patiënt
+- Gebruik de informatie om de juiste tandarts te vinden
+- Focus op symptomen, pijn, en specifieke behoeften
+- Vermijd vragen over tijd of datum`,
             
             dentists: `
 BESCHIKBARE TANDARTSEN & HUN SPECIALISATIES:
@@ -108,16 +117,25 @@ INSTRUCTIONS IMPORTANTES:
 - Vous connaissez le patient: ${user_profile?.first_name} ${user_profile?.last_name}
 - Pour modifier/annuler des rendez-vous: dirigez-les vers la liste des rendez-vous
 - S'ils demandent un rendez-vous pour eux-mêmes: allez directement aux recommandations de dentistes
-  - POSEZ 2-5 QUESTIONS PERTINENTES pour mieux comprendre les besoins du patient
+  - POSEZ ALLEE UN SEUL QUESTION à la fois pour mieux comprendre les besoins du patient
+  - ATTENDEZ leur réponse avant de poser la question suivante
 - TOUJOURS permettre au patient de continuer à parler s'il veut fournir plus d'informations
 - NE PAS détecter les urgences - traiter tous les cas comme des consultations régulières
 - TOUJOURS recommander un dentiste spécifique basé sur leurs services et les besoins du patient
+- NE JAMAIS parler de temps, date ou disponibilité - concentrez-vous uniquement sur les symptômes et les besoins
 - Tous les rendez-vous disponibles de 9h00 à 17h00
 
 GESTION DES RENDEZ-VOUS:
 - Pour modifier des rendez-vous: "Vous pouvez consulter et modifier vos rendez-vous dans la liste en haut"
 - Pour annuler: "Allez dans votre liste de rendez-vous pour annuler"
-- Pour nouveau rendez-vous pour vous-même: passer la sélection patient et aller directement aux recommandations dentistes`,
+- Pour nouveau rendez-vous pour vous-même: passer la sélection patient et aller directement aux recommandations dentistes
+
+QUESTIONS STRATÉGIQUES:
+- Posez toujours une seule question à la fois
+- Attendez la réponse du patient
+- Utilisez l'information pour trouver le bon dentiste
+- Concentrez-vous sur les symptômes, la douleur et les besoins spécifiques
+- Évitez les questions sur le temps ou la date`,
             
             dentists: `
 DENTISTES DISPONIBLES & LEURS SPÉCIALISATIONS:
@@ -160,16 +178,25 @@ IMPORTANT INSTRUCTIONS:
 - You know the patient: ${user_profile?.first_name} ${user_profile?.last_name}
 - For rescheduling/canceling appointments: direct them to the appointments list
 - If they ask for an appointment for themselves: skip patient selection and go directly to dentist recommendations
-  - ASK 2-5 RELEVANT QUESTIONS to better understand the patient's needs
+  - ASK ONLY ONE QUESTION at a time to better understand the patient's needs
+  - WAIT for their response before asking the next question
 - ALWAYS allow the patient to continue speaking if they want to provide more information
 - DO NOT detect emergencies - treat all cases as regular consultations
 - ALWAYS recommend a specific dentist based on their services and the patient's needs
+- NEVER talk about time, date, or availability - focus only on symptoms and needs
 - All appointments are available from 9:00 AM to 5:00 PM
 
 APPOINTMENT MANAGEMENT:
 - For rescheduling appointments: "You can view and reschedule your appointments in the appointments list above"
 - For canceling: "Go to your appointments list to cancel appointments"
-- For new appointment for yourself: skip patient selection and go directly to dentist recommendations`,
+- For new appointment for yourself: skip patient selection and go directly to dentist recommendations
+
+QUESTION STRATEGY:
+- Always ask only one question at a time
+- Wait for the patient's response
+- Use the information to find the right dentist
+- Focus on symptoms, pain, and specific needs
+- Avoid questions about time or date`,
             
             dentists: `
 AVAILABLE DENTISTS & THEIR SPECIALIZATIONS:
@@ -428,26 +455,59 @@ Always maintain professional medical standards and suggest only appropriate trea
       suggestions.push('skip-patient-selection');
     }
     
-    // Extract dentist recommendations from response (improved matching for multiple dentists)
+    // Enhanced dentist recommendation logic based on symptoms and needs
     const recommendedDentists = [];
-    if (lowerResponse.includes('virginie pauwels') || lowerResponse.includes('dr. virginie')) {
-      recommendedDentists.push('Virginie Pauwels');
-    }
-    if (lowerResponse.includes('emeline hubin') || lowerResponse.includes('dr. emeline')) {
-      recommendedDentists.push('Emeline Hubin');
-    }
-    if (lowerResponse.includes('firdaws benhsain') || lowerResponse.includes('dr. firdaws')) {
+    const lowerMessage = message.toLowerCase();
+    
+    // Analyze symptoms and needs to recommend appropriate dentists
+    const hasChildSymptoms = lowerMessage.includes('enfant') || lowerMessage.includes('child') || lowerMessage.includes('kind') ||
+                           lowerMessage.includes('fille') || lowerMessage.includes('fils') || lowerMessage.includes('daughter') || 
+                           lowerMessage.includes('son') || lowerMessage.includes('dochter') || lowerMessage.includes('zoon') ||
+                           /\d+\s*(ans|years|jaar)/.test(lowerMessage) && parseInt(lowerMessage.match(/\d+/)?.[0] || '0') < 16;
+    
+    const hasOrthodonticNeeds = lowerMessage.includes('appareil') || lowerMessage.includes('braces') || lowerMessage.includes('beugel') ||
+                               lowerMessage.includes('alignement') || lowerMessage.includes('alignment') || lowerMessage.includes('uitlijning') ||
+                               lowerMessage.includes('droit') || lowerMessage.includes('straight') || lowerMessage.includes('recht') ||
+                               lowerMessage.includes('invisalign') || lowerMessage.includes('esthétique') || lowerMessage.includes('cosmetic');
+    
+    const hasGeneralDentalNeeds = lowerMessage.includes('douleur') || lowerMessage.includes('pain') || lowerMessage.includes('pijn') ||
+                                 lowerMessage.includes('cavité') || lowerMessage.includes('cavity') || lowerMessage.includes('cariës') ||
+                                 lowerMessage.includes('nettoyage') || lowerMessage.includes('cleaning') || lowerMessage.includes('reiniging') ||
+                                 lowerMessage.includes('extraction') || lowerMessage.includes('extraction') || lowerMessage.includes('extractie') ||
+                                 lowerMessage.includes('plombage') || lowerMessage.includes('filling') || lowerMessage.includes('vulling');
+    
+    // Recommend based on symptoms and needs
+    if (hasChildSymptoms) {
+      recommendedDentists.push('Virginie Pauwels', 'Emeline Hubin');
+    } else if (hasOrthodonticNeeds) {
+      recommendedDentists.push('Justine Peters', 'Anne-Sophie Haas');
+    } else if (hasGeneralDentalNeeds) {
+      recommendedDentists.push('Firdaws Benhsain');
+    } else {
+      // Default recommendation for general consultation
       recommendedDentists.push('Firdaws Benhsain');
     }
+    
+    // Also check if AI explicitly mentioned dentists in response
+    if (lowerResponse.includes('virginie pauwels') || lowerResponse.includes('dr. virginie')) {
+      if (!recommendedDentists.includes('Virginie Pauwels')) recommendedDentists.push('Virginie Pauwels');
+    }
+    if (lowerResponse.includes('emeline hubin') || lowerResponse.includes('dr. emeline')) {
+      if (!recommendedDentists.includes('Emeline Hubin')) recommendedDentists.push('Emeline Hubin');
+    }
+    if (lowerResponse.includes('firdaws benhsain') || lowerResponse.includes('dr. firdaws')) {
+      if (!recommendedDentists.includes('Firdaws Benhsain')) recommendedDentists.push('Firdaws Benhsain');
+    }
     if (lowerResponse.includes('justine peters') || lowerResponse.includes('dr. justine')) {
-      recommendedDentists.push('Justine Peters');
+      if (!recommendedDentists.includes('Justine Peters')) recommendedDentists.push('Justine Peters');
     }
     if (lowerResponse.includes('anne-sophie haas') || lowerResponse.includes('dr. anne-sophie')) {
-      recommendedDentists.push('Anne-Sophie Haas');
+      if (!recommendedDentists.includes('Anne-Sophie Haas')) recommendedDentists.push('Anne-Sophie Haas');
     }
     
-    // Limit to maximum 2 recommendations
-    const recommendedDentist = recommendedDentists.slice(0, 2);
+    // Remove duplicates and limit to maximum 2 recommendations
+    const uniqueDentists = [...new Set(recommendedDentists)];
+    const recommendedDentist = uniqueDentists.slice(0, 2);
     
     // Detect patient selection responses (when bot asked who the appointment is for)
     if (lowerMessage.includes('moi') || lowerMessage.includes('me') || 
