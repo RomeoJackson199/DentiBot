@@ -23,7 +23,7 @@ export const saveProfileData = async (user: User, profileData: ProfileData) => {
     }
 
     // Clean and prepare data - only include fields that exist in the database
-    const cleanData: any = {
+    const cleanData: Record<string, unknown> = {
       first_name: profileData.first_name.trim(),
       last_name: profileData.last_name.trim(),
       phone: profileData.phone?.trim() || null,

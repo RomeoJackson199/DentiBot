@@ -28,8 +28,8 @@ export const createMedicalRecord = async (data: CreateMedicalRecordData) => {
 
 export const generateMedicalRecordFromChat = async (
   messages: ChatMessage[],
-  patientProfile: any,
-  appointmentData?: any
+  patientProfile: Record<string, unknown>,
+  appointmentData?: Record<string, unknown>
 ): Promise<CreateMedicalRecordData> => {
   // Extract symptoms and relevant information from chat
   const chatContent = messages

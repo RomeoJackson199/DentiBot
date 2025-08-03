@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -15,9 +15,9 @@ import { createMedicalRecord } from "@/lib/medicalRecords";
 
 interface AppointmentBookingProps {
   user: User;
-  selectedDentist?: any;
+  selectedDentist?: Dentist;
   prefilledReason?: string;
-  onComplete: (appointmentData?: any) => void;
+  onComplete: (appointmentData?: Record<string, unknown>) => void;
   onCancel: () => void;
 }
 
@@ -45,13 +45,40 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { toast } = useToast();
 
+  const fetchDentists = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from('dentists')
+        .select(`
+          id,
+          profile_id,
+          specialty,
+          profiles (
+            first_name,
+            last_name
+          )
+        `)
+        .eq('is_active', true);
+
+      if (error) throw error;
+      setDentists(data || []);
+    } catch (error) {
+      console.error('Failed to fetch dentists:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load dentists",
+        variant: "destructive"
+      });
+    }
+  }, [toast]);
+
   useEffect(() => {
     fetchDentists();
     // Set prefilled reason if provided
     if (prefilledReason) {
       setReason(prefilledReason);
     }
-  }, [prefilledReason]);
+  }, [prefilledReason, fetchDentists]);
 
   // Auto-select dentist when dentists are loaded
   useEffect(() => {
@@ -126,32 +153,7 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
     }
   };
 
-  const fetchDentists = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("dentists")
-        .select(`
-          id,
-          profile_id,
-          specialty,
-          profiles:profile_id (
-            first_name,
-            last_name
-          )
-        `)
-        .eq("is_active", true);
 
-      if (error) throw error;
-      setDentists(data || []);
-    } catch (error) {
-      console.error("Error fetching dentists:", error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de charger la liste des dentistes",
-        variant: "destructive",
-      });
-    }
-  };
 
   const handleBookAppointment = async () => {
     if (!selectedDentist || !selectedDate || !selectedTime) {

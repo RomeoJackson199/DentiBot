@@ -45,7 +45,7 @@ describe('UnifiedDashboard', () => {
   });
 
   it('shows patient dashboard for patient users', async () => {
-    const { supabase } = require('@/integrations/supabase/client');
+    const { supabase } = await import('@/integrations/supabase/client');
     supabase.from.mockReturnValue({
       select: jest.fn(() => ({
         eq: jest.fn(() => ({
@@ -69,7 +69,7 @@ describe('UnifiedDashboard', () => {
   });
 
   it('shows dentist dashboard for dentist users', async () => {
-    const { supabase } = require('@/integrations/supabase/client');
+    const { supabase } = await import('@/integrations/supabase/client');
     supabase.from.mockReturnValue({
       select: jest.fn(() => ({
         eq: jest.fn(() => ({
@@ -99,7 +99,7 @@ describe('UnifiedDashboard', () => {
   });
 
   it('handles error when fetching user role', async () => {
-    const { supabase } = require('@/integrations/supabase/client');
+    const { supabase } = await import('@/integrations/supabase/client');
     supabase.from.mockReturnValue({
       select: jest.fn(() => ({
         eq: jest.fn(() => ({
