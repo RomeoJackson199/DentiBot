@@ -9,7 +9,7 @@ export interface ProfileData {
   medical_history: string;
   address: string;
   emergency_contact: string;
-  ai_opt_out: boolean;
+  ai_opt_out?: boolean;
 }
 
 export const saveProfileData = async (user: User, profileData: ProfileData) => {
@@ -39,9 +39,10 @@ export const saveProfileData = async (user: User, profileData: ProfileData) => {
     if (profileData.emergency_contact !== undefined) {
       cleanData.emergency_contact = profileData.emergency_contact.trim() || null;
     }
-    if (profileData.ai_opt_out !== undefined) {
-      cleanData.ai_opt_out = profileData.ai_opt_out;
-    }
+    // Temporarily comment out ai_opt_out until migration is applied
+    // if (profileData.ai_opt_out !== undefined) {
+    //   cleanData.ai_opt_out = profileData.ai_opt_out;
+    // }
 
     console.log('Cleaned data to save:', cleanData);
 
@@ -90,7 +91,7 @@ export const loadProfileData = async (user: User): Promise<ProfileData> => {
     // Try to load from database first
     const { data, error } = await supabase
       .from('profiles')
-      .select('first_name, last_name, phone, date_of_birth, medical_history, address, emergency_contact, ai_opt_out')
+      .select('first_name, last_name, phone, date_of_birth, medical_history, address, emergency_contact')
       .eq('user_id', user.id)
       .single();
 
@@ -109,7 +110,7 @@ export const loadProfileData = async (user: User): Promise<ProfileData> => {
       medical_history: data.medical_history || '',
       address: data.address || '',
       emergency_contact: data.emergency_contact || '',
-      ai_opt_out: data.ai_opt_out || false
+      ai_opt_out: false // Temporarily set to false until migration is applied
     };
 
     console.log('Processed profile data:', profileData);

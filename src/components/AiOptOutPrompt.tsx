@@ -26,23 +26,24 @@ export const AiOptOutPrompt = ({ user }: AiOptOutPromptProps) => {
 
   const checkAiOptOutStatus = async () => {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('ai_opt_out')
-        .eq('user_id', user.id)
-        .single();
+      // Temporarily disabled until ai_opt_out migration is applied
+      // const { data, error } = await supabase
+      //   .from('profiles')
+      //   .select('ai_opt_out')
+      //   .eq('user_id', user.id)
+      //   .single();
 
-      if (error) throw error;
+      // if (error) throw error;
 
       // Check if user has AI features disabled and hasn't been prompted today
-      if (data?.ai_opt_out) {
-        const lastPromptDate = localStorage.getItem(`ai_opt_out_prompt_${user.id}`);
-        const today = new Date().toDateString();
+      // if (data?.ai_opt_out) {
+      //   const lastPromptDate = localStorage.getItem(`ai_opt_out_prompt_${user.id}`);
+      //   const today = new Date().toDateString();
         
-        if (lastPromptDate !== today) {
-          setShowPrompt(true);
-        }
-      }
+      //   if (lastPromptDate !== today) {
+      //     setShowPrompt(true);
+      //   }
+      // }
     } catch (error) {
       console.error('Error checking AI opt-out status:', error);
     }
@@ -51,12 +52,13 @@ export const AiOptOutPrompt = ({ user }: AiOptOutPromptProps) => {
   const handleEnableAi = async () => {
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ ai_opt_out: false })
-        .eq('user_id', user.id);
+      // Temporarily disabled until ai_opt_out migration is applied
+      // const { error } = await supabase
+      //   .from('profiles')
+      //   .update({ ai_opt_out: false })
+      //   .eq('user_id', user.id);
 
-      if (error) throw error;
+      // if (error) throw error;
 
       // Mark as prompted today
       localStorage.setItem(`ai_opt_out_prompt_${user.id}`, new Date().toDateString());

@@ -42,7 +42,7 @@ interface UserProfile {
   medical_history: string;
   address: string;
   emergency_contact: string;
-  ai_opt_out: boolean;
+  ai_opt_out?: boolean;
 }
 
 type TabType = 'general' | 'theme' | 'personal';
@@ -154,12 +154,13 @@ export const Settings = ({ user }: SettingsProps) => {
 
   const updateAiOptOut = async (optOut: boolean) => {
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ ai_opt_out: optOut })
-        .eq('user_id', user.id);
+      // Temporarily disabled until ai_opt_out migration is applied
+      // const { error } = await supabase
+      //   .from('profiles')
+      //   .update({ ai_opt_out: optOut })
+      //   .eq('user_id', user.id);
 
-      if (error) throw error;
+      // if (error) throw error;
 
       setProfile(prev => ({ ...prev, ai_opt_out: optOut }));
       
