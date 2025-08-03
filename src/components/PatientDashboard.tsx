@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { User } from "@supabase/supabase-js";
 import { InteractiveDentalChat } from "@/components/chat/InteractiveDentalChat";
 import { AppointmentsList } from "@/components/AppointmentsList";
@@ -24,7 +24,14 @@ interface PatientDashboardProps {
 
 export const PatientDashboard = ({ user }: PatientDashboardProps) => {
   const { t } = useLanguage();
-  const [activeTab, setActiveTab] = useState<'chat' | 'appointments' | 'dossier' | 'analytics' | 'emergency'>('chat');
+  type Tab = 'chat' | 'appointments' | 'dossier' | 'analytics' | 'emergency';
+  const [activeTab, setActiveTab] = useState<Tab>(() => {
+    try {
+      return (localStorage.getItem('pd_tab') as Tab) || 'chat';
+    } catch {
+      return 'chat';
+    }
+  });
   const [triggerBooking, setTriggerBooking] = useState<'low' | 'medium' | 'high' | 'emergency' | false>(false);
 
   const handleEmergencyComplete = (urgency: 'low' | 'medium' | 'high' | 'emergency') => {
@@ -32,6 +39,15 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
     // Trigger emergency booking with urgency level and pass urgency data
     setTriggerBooking(urgency);
   };
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('pd_tab', activeTab);
+      localStorage.setItem('session_token', user.id);
+    } catch {
+      // ignore write errors
+    }
+  }, [activeTab, user.id]);
 
   return (
     <>

@@ -43,7 +43,7 @@ interface UrgencyAppointment {
   }>;
   symptom_summaries?: Array<{
     summary_text: string;
-    extracted_symptoms: any;
+    extracted_symptoms: unknown;
     pain_level: number;
     urgency_level: string;
   }>;
@@ -166,7 +166,7 @@ export const EnhancedUrgencyDashboard = ({ dentistId }: EnhancedUrgencyDashboard
         }
       });
 
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error fetching enhanced data:', error);
       toast({
         title: "Error",
@@ -182,12 +182,17 @@ export const EnhancedUrgencyDashboard = ({ dentistId }: EnhancedUrgencyDashboard
     const waitTimes = appointments
       .filter(apt => apt.status === 'completed')
       .map(apt => {
-        const appointmentTime = new Date(apt.appointment_date);
-        const createdTime = new Date(apt.created_at);
-        return (appointmentTime.getTime() - createdTime.getTime()) / (1000 * 60); // minutes
+        const diff =
+          (new Date(apt.appointment_date).getTime() -
+            new Date(apt.created_at).getTime()) /
+          60000;
+        // clamp between 0 and 240 minutes
+        return Math.min(Math.max(diff, 0), 240);
       });
 
-    return waitTimes.length > 0 ? waitTimes.reduce((a, b) => a + b, 0) / waitTimes.length : 0;
+    if (waitTimes.length === 0) return 0;
+    const total = waitTimes.reduce((a, b) => a + b, 0);
+    return Math.round(total / waitTimes.length);
   };
 
   const getUrgencyConfig = (urgency: string) => {
@@ -266,10 +271,11 @@ export const EnhancedUrgencyDashboard = ({ dentistId }: EnhancedUrgencyDashboard
         description: `Reminder sent to ${appointment.patient_name}`,
       });
 
-    } catch (error: any) {
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to send SMS reminder';
       toast({
         title: "SMS Failed",
-        description: error.message || "Failed to send SMS reminder",
+        description: message,
         variant: "destructive",
       });
     } finally {

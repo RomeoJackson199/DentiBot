@@ -31,7 +31,7 @@ const EmergencyTriage = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const handleComplete = (appointmentData?: any) => {
+  const handleComplete = (appointmentData?: unknown) => {
     if (appointmentData) {
       toast({
         title: "Success!",
@@ -71,12 +71,11 @@ const EmergencyTriage = () => {
   }
 
   return (
-    <EmergencyTriageEntry
-      user={user}
-      onComplete={handleComplete}
-      onCancel={handleCancel}
-    />
-  );
-};
+      <EmergencyTriageEntry
+        onComplete={handleComplete}
+        onCancel={handleCancel}
+      />
+    );
+  };
 
 export default EmergencyTriage;

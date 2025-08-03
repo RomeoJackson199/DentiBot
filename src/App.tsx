@@ -16,6 +16,10 @@ import NotFound from "./pages/NotFound";
 import EmergencyTriage from "./pages/EmergencyTriage";
 import { PaymentSuccess } from "./pages/PaymentSuccess";
 import { PaymentCancelled } from "./pages/PaymentCancelled";
+import Schedule from "./pages/Schedule";
+import Analytics from "./pages/Analytics";
+import Support from "./pages/Support";
+import FeatureDetail from "./pages/FeatureDetail";
 
 const queryClient = new QueryClient();
 
@@ -43,6 +47,10 @@ const App = () => (
                 <Route path="/privacy" element={<PrivacyPolicy />} />
                 <Route path="/payment-success" element={<PaymentSuccess />} />
                 <Route path="/payment-cancelled" element={<PaymentCancelled />} />
+                <Route path="/schedule" element={<Schedule />} />
+                <Route path="/analytics" element={<Analytics />} />
+                <Route path="/support" element={<Support />} />
+                <Route path="/features/:id" element={<FeatureDetail />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

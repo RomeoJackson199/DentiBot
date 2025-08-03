@@ -1,6 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Brain, Clock, BarChart3, MessageSquare, Calendar, Shield, Smartphone, Zap, Heart } from "lucide-react";
+import { Link } from "react-router-dom";
 export const FeatureCards = () => {
   const features = [{
     icon: Brain,
@@ -85,13 +86,16 @@ export const FeatureCards = () => {
                 </p>
 
                 {/* Hover Effect */}
-                <div className="mt-6 pt-4 border-t border-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <span className="text-sm text-dental-primary font-medium">
-                    Learn more →
-                  </span>
-                </div>
-              </CardContent>
-            </Card>)}
+                  <div className="mt-6 pt-4 border-t border-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <Link
+                      to={`/features/${index}`}
+                      className="text-sm text-dental-primary font-medium"
+                    >
+                      Learn more →
+                    </Link>
+                  </div>
+                </CardContent>
+              </Card>)}
         </div>
 
         {/* Bottom CTA */}
