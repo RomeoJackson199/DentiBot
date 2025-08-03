@@ -497,23 +497,45 @@ Always maintain professional medical standards and suggest only appropriate trea
     const lowerResponse = botResponse.toLowerCase();
     const lowerMessage = message.toLowerCase();
     
-    // Let the AI handle all suggestions naturally through conversation
-    // No keyword-based logic - the AI will decide when to show widgets
-    
-    // Let the AI handle dentist recommendations naturally through conversation
-    // No keyword-based logic - the AI will decide when to recommend dentists
+    // Extract dentist recommendations from AI response
     const recommendedDentists = [];
+    const availableDentists = [
+      'Virginie Pauwels',
+      'Emeline Hubin', 
+      'Firdaws Benhsain',
+      'Justine Peters',
+      'Anne-Sophie Haas'
+    ];
     
-    // Don't check for specific dentist names in AI response - let the system handle recommendations naturally
-    // This prevents the AI from mentioning specific dentists in responses
+    // Check if AI response indicates need for specific dentist types
+    if (lowerResponse.includes('pediatric') || lowerResponse.includes('child') || lowerResponse.includes('children') || 
+        lowerMessage.includes('enfant') || lowerMessage.includes('child') || lowerMessage.includes('kid')) {
+      recommendedDentists.push('Virginie Pauwels', 'Emeline Hubin');
+    }
+    
+    if (lowerResponse.includes('orthodontic') || lowerResponse.includes('braces') || lowerResponse.includes('alignment') ||
+        lowerMessage.includes('orthodontie') || lowerMessage.includes('braces') || lowerMessage.includes('alignement')) {
+      recommendedDentists.push('Justine Peters', 'Anne-Sophie Haas');
+    }
+    
+    if (lowerResponse.includes('general') || lowerResponse.includes('routine') || lowerResponse.includes('cleaning') ||
+        lowerMessage.includes('général') || lowerMessage.includes('routine') || lowerMessage.includes('nettoyage')) {
+      recommendedDentists.push('Firdaws Benhsain');
+    }
+    
+    // If AI suggests seeing a dentist but doesn't specify type, recommend general dentist
+    if ((lowerResponse.includes('dentist') || lowerResponse.includes('dentiste')) && recommendedDentists.length === 0) {
+      recommendedDentists.push('Firdaws Benhsain');
+    }
+    
+    // Add recommend-dentist suggestion if we have recommendations
+    if (recommendedDentists.length > 0 && !suggestions.includes('skip-patient-selection')) {
+      suggestions.push('recommend-dentist');
+    }
     
     // Remove duplicates and limit to maximum 2 recommendations
-    // For now, don't return specific dentist names - let the frontend handle recommendations
     const uniqueDentists = [...new Set(recommendedDentists)];
-    const recommendedDentist = []; // Empty array to let frontend handle recommendations naturally
-    
-    // Let the AI handle all suggestions naturally through conversation
-    // The AI will decide when to show widgets based on the conversation context
+    const finalRecommendations = uniqueDentists.slice(0, 2);
     
     // No emergency detection - treat all cases as regular consultations
     const urgency_detected = false;
@@ -524,7 +546,7 @@ Always maintain professional medical standards and suggest only appropriate trea
       suggestions,
       urgency_detected,
       emergency_detected,
-      recommended_dentist: recommendedDentists, // Pass the recommended dentists to frontend
+      recommended_dentist: finalRecommendations, // Pass the recommended dentists to frontend
       consultation_reason: consultationReason
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
