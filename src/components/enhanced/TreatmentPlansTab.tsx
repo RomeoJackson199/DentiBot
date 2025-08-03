@@ -65,6 +65,8 @@ export function TreatmentPlansTab({
     e.preventDefault();
     
     try {
+      console.log('Submitting treatment plan with data:', { patient, dentistId, formData });
+      
       const planData = {
         patient_id: patient.id,
         dentist_id: dentistId,
@@ -76,23 +78,35 @@ export function TreatmentPlansTab({
         start_date: new Date().toISOString()
       };
 
+      console.log('Final treatment plan data:', planData);
+
       if (editingPlan) {
-        const { error } = await supabase
+        console.log('Updating treatment plan:', editingPlan.id);
+        const { data, error } = await supabase
           .from('treatment_plans')
           .update(planData)
           .eq('id', editingPlan.id);
 
-        if (error) throw error;
+        if (error) {
+          console.error('Treatment plan update error:', error);
+          throw error;
+        }
+        console.log('Treatment plan updated successfully:', data);
         toast({
           title: "Treatment Plan Updated",
           description: "Treatment plan has been updated successfully",
         });
       } else {
-        const { error } = await supabase
+        console.log('Creating new treatment plan');
+        const { data, error } = await supabase
           .from('treatment_plans')
           .insert(planData);
 
-        if (error) throw error;
+        if (error) {
+          console.error('Treatment plan insert error:', error);
+          throw error;
+        }
+        console.log('Treatment plan created successfully:', data);
         toast({
           title: "Treatment Plan Added",
           description: "New treatment plan has been added successfully",
@@ -109,12 +123,13 @@ export function TreatmentPlansTab({
         procedures: [''],
         estimated_cost: '',
         estimated_duration: '',
-        priority: 'normal',
+        priority: 'normal' as const,
         target_completion_date: '',
         notes: ''
       });
       onRefresh();
     } catch (error: unknown) {
+      console.error('Treatment plan save error:', error);
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Unknown error",
