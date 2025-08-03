@@ -9,7 +9,7 @@ export const generateSymptomSummary = async (
   userProfile: UserProfile
 ): Promise<string> => {
   try {
-    const { data, error } = await supabase.functions.invoke('smart-ai-router', {
+    const { data, error } = await supabase.functions.invoke('dental-ai-chat', {
       body: {
         message: 'Summarize the patient symptoms in one or two sentences.',
         conversation_history: messages,
