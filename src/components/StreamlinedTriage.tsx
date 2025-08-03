@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useLanguage } from "@/hooks/useLanguage";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -14,20 +15,27 @@ import {
   Zap
 } from "lucide-react";
 
+interface TriageAnswers {
+  painLevel: number;
+  symptoms: string[];
+  urgency: string[];
+}
+
 interface StreamlinedTriageProps {
-  onComplete: (urgency: 'low' | 'medium' | 'high' | 'emergency', data: any) => void;
+  onComplete: (urgency: 'low' | 'medium' | 'high' | 'emergency', data: TriageAnswers) => void;
   onCancel: () => void;
 }
 
 export const StreamlinedTriage = ({ onComplete, onCancel }: StreamlinedTriageProps) => {
+  const steps = ["pain", "symptoms", "urgency"];
+  const totalSteps = steps.length;
   const [currentStep, setCurrentStep] = useState(1);
-  const [answers, setAnswers] = useState({
+  const [answers, setAnswers] = useState<TriageAnswers>({
     painLevel: 5,
-    symptoms: [] as string[],
-    urgency: [] as string[]
+    symptoms: [],
+    urgency: []
   });
-
-  const totalSteps = 3;
+  useLanguage();
   const progress = (currentStep / totalSteps) * 100;
 
   // Question 1: Pain Level with Emoji Scale

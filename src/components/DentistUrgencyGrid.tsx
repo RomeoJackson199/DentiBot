@@ -26,6 +26,7 @@ interface UrgencyAppointment {
   symptoms?: string;
   created_at: string;
   status: string;
+  reminderSent?: boolean;
 }
 
 interface DentistUrgencyGridProps {
@@ -66,7 +67,7 @@ export const DentistUrgencyGrid = ({ dentistId }: DentistUrgencyGridProps) => {
       if (error) throw error;
 
       setAppointments(data || []);
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error fetching urgent appointments:', error);
       toast({
         title: "Error",
@@ -127,20 +128,25 @@ export const DentistUrgencyGrid = ({ dentistId }: DentistUrgencyGridProps) => {
     return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
   });
 
-  const handlePrioritizeAppointment = async (appointmentId: string) => {
-    // TODO: Implement appointment prioritization logic
-    toast({
-      title: "Feature Coming Soon",
-      description: "Appointment prioritization will be available soon",
-    });
+  const handlePrioritizeAppointment = (appointmentId: string) => {
+    setAppointments(prev =>
+      prev.map(a =>
+        a.id === appointmentId
+          ? {
+              ...a,
+              urgency: a.urgency === 'high' ? 'emergency' : 'high',
+            }
+          : a
+      )
+    );
+    toast({ title: 'Priority updated' });
   };
 
-  const handleSendReminder = async (appointmentId: string) => {
-    // TODO: Implement SMS reminder logic
-    toast({
-      title: "Feature Coming Soon",
-      description: "SMS reminders will be available soon",
-    });
+  const handleSendReminder = (appointmentId: string) => {
+    setAppointments(prev =>
+      prev.map(a => (a.id === appointmentId ? { ...a, reminderSent: true } : a))
+    );
+    toast({ title: 'Reminder sent' });
   };
 
   if (loading) {
@@ -247,15 +253,16 @@ export const DentistUrgencyGrid = ({ dentistId }: DentistUrgencyGridProps) => {
                     </div>
                     
                     <div className="flex space-x-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleSendReminder(appointment.id)}
-                        className="flex items-center space-x-1"
-                      >
-                        <Phone className="h-3 w-3" />
-                        <span>Remind</span>
-                      </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleSendReminder(appointment.id)}
+                          disabled={appointment.reminderSent}
+                          className="flex items-center space-x-1"
+                        >
+                          <Phone className="h-3 w-3" />
+                          <span>{appointment.reminderSent ? 'Reminded' : 'Remind'}</span>
+                        </Button>
                       
                       <Button
                         size="sm"

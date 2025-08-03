@@ -2,8 +2,8 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useLanguageDetection } from "@/hooks/useLanguageDetection";
-import { EmergencyBookingFlow } from "./EmergencyBookingFlow";
+import { useLanguage } from "@/hooks/useLanguage";
+import { EmergencyTriageForm } from "./EmergencyTriageForm";
 import { LanguageSelector } from "./LanguageSelector";
 import { 
   Zap, 
@@ -16,19 +16,17 @@ import {
 } from "lucide-react";
 
 interface EmergencyTriageEntryProps {
-  user: any;
-  onComplete: (appointmentData?: any) => void;
+  onComplete: (appointmentData?: unknown) => void;
   onCancel: () => void;
 }
 
-export const EmergencyTriageEntry = ({ user, onComplete, onCancel }: EmergencyTriageEntryProps) => {
-  const { t } = useLanguageDetection();
+export const EmergencyTriageEntry = ({ onComplete, onCancel }: EmergencyTriageEntryProps) => {
+  const { t } = useLanguage();
   const [showTriage, setShowTriage] = useState(false);
 
   if (showTriage) {
     return (
-      <EmergencyBookingFlow
-        user={user}
+      <EmergencyTriageForm
         onComplete={onComplete}
         onCancel={() => setShowTriage(false)}
       />

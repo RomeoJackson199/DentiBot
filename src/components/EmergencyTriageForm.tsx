@@ -13,6 +13,11 @@ import {
   Stethoscope
 } from "lucide-react";
 
+interface TriageData {
+  painLevel: number;
+  [key: string]: unknown;
+}
+
 interface EmergencyTriageFormProps {
   onComplete: (urgency: 'low' | 'medium' | 'high' | 'emergency') => void;
   onCancel: () => void;
@@ -20,17 +25,26 @@ interface EmergencyTriageFormProps {
 
 export const EmergencyTriageForm = ({ onComplete, onCancel }: EmergencyTriageFormProps) => {
   const [showResults, setShowResults] = useState(false);
+  const [showBooking, setShowBooking] = useState(false);
+  const [bookingDate, setBookingDate] = useState("");
+  const [bookingTime, setBookingTime] = useState("");
   const [urgencyLevel, setUrgencyLevel] = useState<'low' | 'medium' | 'high' | 'emergency'>('medium');
-  const [triageData, setTriageData] = useState<any>(null);
+  const [triageData, setTriageData] = useState<TriageData | null>(null);
 
-  const handleTriageComplete = (urgency: 'low' | 'medium' | 'high' | 'emergency', data: any) => {
+  const handleTriageComplete = (urgency: 'low' | 'medium' | 'high' | 'emergency', data: TriageData) => {
     setUrgencyLevel(urgency);
     setTriageData(data);
     setShowResults(true);
   };
 
   const handleBookAppointment = () => {
+    setShowBooking(true);
+  };
+
+  const handleConfirmBooking = () => {
+    // simply trigger completion; no backend call
     onComplete(urgencyLevel);
+    setShowBooking(false);
   };
 
   const getUrgencyInfo = () => {
@@ -73,6 +87,38 @@ export const EmergencyTriageForm = ({ onComplete, onCancel }: EmergencyTriageFor
         };
     }
   };
+
+  if (showBooking) {
+    return (
+      <Card className="max-w-md mx-auto">
+        <CardHeader>
+          <CardTitle>Choose Appointment</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <input
+            type="date"
+            className="border rounded p-2 w-full"
+            value={bookingDate}
+            onChange={(e) => setBookingDate(e.target.value)}
+          />
+          <input
+            type="time"
+            className="border rounded p-2 w-full"
+            value={bookingTime}
+            onChange={(e) => setBookingTime(e.target.value)}
+          />
+          <div className="flex justify-end space-x-2">
+            <Button variant="outline" onClick={() => setShowBooking(false)}>
+              Back
+            </Button>
+            <Button onClick={handleConfirmBooking} disabled={!bookingDate || !bookingTime}>
+              Confirm
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (showResults) {
     const urgencyInfo = getUrgencyInfo();

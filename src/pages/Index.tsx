@@ -11,7 +11,7 @@ import { FeatureCards } from "@/components/homepage/FeatureCards";
 import { StatsSection } from "@/components/homepage/StatsSection";
 import { Footer } from "@/components/homepage/Footer";
 import { AppointmentBookingWithAuth } from "@/components/AppointmentBookingWithAuth";
-import { EmergencyTriageWizard } from "@/components/EmergencyTriageWizard";
+import { EmergencyTriageForm } from "@/components/EmergencyTriageForm";
 import { FloatingEmergencyButton } from "@/components/FloatingEmergencyButton";
 import { useToast } from "@/hooks/use-toast";
 import { Stethoscope } from "lucide-react";
@@ -185,7 +185,7 @@ const Index = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-100 p-4">
         <div className="max-w-4xl mx-auto">
-          <EmergencyTriageWizard
+          <EmergencyTriageForm
             onComplete={handleTriageComplete}
             onCancel={() => setShowEmergencyTriage(false)}
           />
