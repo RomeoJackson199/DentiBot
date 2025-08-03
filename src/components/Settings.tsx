@@ -24,7 +24,9 @@ import {
   Sun,
   Moon,
   Globe,
-  Heart
+  Heart,
+  Bot,
+  AlertCircle
 } from "lucide-react";
 
 interface SettingsProps {
@@ -61,6 +63,7 @@ export const Settings = ({ user }: SettingsProps) => {
   });
   const [loading, setLoading] = useState(false);
   const [hasIncompleteProfile, setHasIncompleteProfile] = useState(false);
+  const [showAiOptOutDialog, setShowAiOptOutDialog] = useState(false);
 
   useEffect(() => {
     fetchProfile();
@@ -149,6 +152,40 @@ export const Settings = ({ user }: SettingsProps) => {
     }
   };
 
+  const handleAiOptOutChange = async (checked: boolean) => {
+    if (checked) {
+      setShowAiOptOutDialog(true);
+    } else {
+      await updateAiOptOut(false);
+    }
+  };
+
+  const updateAiOptOut = async (optOut: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ ai_opt_out: optOut })
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      setProfile(prev => ({ ...prev, ai_opt_out: optOut }));
+      
+      toast({
+        title: optOut ? "AI Features Disabled" : "AI Features Enabled",
+        description: optOut 
+          ? "AI features have been disabled for your account. You can re-enable them anytime in settings."
+          : "AI features have been enabled for your account.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update AI settings",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleDownloadData = async () => {
     const { data: profile } = await supabase.from('profiles').select('*').eq('user_id', user.id).single();
     const { data: appointments } = await supabase.from('appointments').select('*').eq('user_id', user.id);
@@ -180,230 +217,297 @@ export const Settings = ({ user }: SettingsProps) => {
   ];
 
   return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <div className="relative">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="glass-card border-dental-primary/30 text-dental-primary hover:bg-dental-primary/10 hover:border-dental-primary/50 transition-all duration-300"
-          >
-            <SettingsIcon className="h-4 w-4" />
-          </Button>
-          {hasIncompleteProfile && (
-            <div className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full animate-pulse" />
-          )}
-        </div>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto p-0 bg-background border-border">
-        <DialogHeader className="p-6 pb-0">
-          <DialogTitle className="flex items-center space-x-3 text-2xl text-primary">
-            <SettingsIcon className="h-6 w-6" />
-            <span>Settings</span>
-          </DialogTitle>
-        </DialogHeader>
-        
-        <div className="px-6">
-          {/* Tab Navigation */}
-          <div className="flex space-x-1 bg-muted/30 rounded-xl p-1 mb-6">
-            {tabs.map((tab) => {
-              const Icon = tab.icon;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center space-x-2 px-4 py-3 rounded-lg font-medium text-sm transition-all duration-200 flex-1 justify-center ${
-                    activeTab === tab.id
-                      ? 'bg-primary text-primary-foreground shadow-sm'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-                  }`}
-                >
-                  <Icon className="h-4 w-4" />
-                  <span>{tab.label}</span>
-                </button>
-              );
-            })}
+    <>
+      <Dialog>
+        <DialogTrigger asChild>
+          <div className="relative">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="glass-card border-dental-primary/30 text-dental-primary hover:bg-dental-primary/10 hover:border-dental-primary/50 transition-all duration-300"
+            >
+              <SettingsIcon className="h-4 w-4" />
+            </Button>
+            {hasIncompleteProfile && (
+              <div className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full animate-pulse" />
+            )}
           </div>
-        </div>
-
-        {/* Tab Content */}
-        <div className="px-6 pb-6">
-          {activeTab === 'general' && (
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-semibold text-foreground mb-4">Preferred Language</h3>
-                <div className="bg-muted/30 rounded-xl p-4">
-                  <LanguageSettings />
-                </div>
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-foreground mb-4">AI Features</h3>
-                <div className="flex items-center justify-between bg-muted/30 rounded-xl p-4">
-                  <span>Disable AI features in my account</span>
-                  <Switch
-                    checked={profile.ai_opt_out}
-                    onCheckedChange={async (checked) => {
-                      setProfile(prev => ({ ...prev, ai_opt_out: checked }));
-                      await supabase
-                        .from('profiles')
-                        .update({ ai_opt_out: checked })
-                        .eq('user_id', user.id);
-                    }}
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'theme' && (
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-semibold text-foreground mb-4">Theme</h3>
-                <div className="flex space-x-4">
-                  <Button
-                    variant={theme === 'light' ? 'default' : 'outline'}
-                    onClick={() => setTheme('light')}
-                    className={`flex-1 py-6 flex items-center justify-center space-x-3 rounded-xl ${
-                      theme === 'light' 
-                        ? 'bg-primary text-primary-foreground' 
-                        : 'bg-muted/30 text-muted-foreground hover:text-foreground'
+        </DialogTrigger>
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto p-0 bg-background border-border">
+          <DialogHeader className="p-6 pb-0">
+            <DialogTitle className="flex items-center space-x-3 text-2xl text-primary">
+              <SettingsIcon className="h-6 w-6" />
+              <span>Settings</span>
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="px-6">
+            {/* Tab Navigation */}
+            <div className="flex space-x-1 bg-muted/30 rounded-xl p-1 mb-6">
+              {tabs.map((tab) => {
+                const Icon = tab.icon;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`flex items-center space-x-2 px-4 py-3 rounded-lg font-medium text-sm transition-all duration-200 flex-1 justify-center ${
+                      activeTab === tab.id
+                        ? 'bg-primary text-primary-foreground shadow-sm'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                     }`}
                   >
-                    <Sun className="h-5 w-5" />
-                    <span className="font-medium">Light</span>
-                  </Button>
-                  <Button
-                    variant={theme === 'dark' ? 'default' : 'outline'}
-                    onClick={() => setTheme('dark')}
-                    className={`flex-1 py-6 flex items-center justify-center space-x-3 rounded-xl ${
-                      theme === 'dark' 
-                        ? 'bg-primary text-primary-foreground' 
-                        : 'bg-muted/30 text-muted-foreground hover:text-foreground'
-                    }`}
-                  >
-                    <Moon className="h-5 w-5" />
-                    <span className="font-medium">Dark</span>
-                  </Button>
-                </div>
-              </div>
+                    <Icon className="h-4 w-4" />
+                    <span>{tab.label}</span>
+                  </button>
+                );
+              })}
             </div>
-          )}
+          </div>
 
-          {activeTab === 'personal' && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
+          {/* Tab Content */}
+          <div className="px-6 pb-6">
+            {activeTab === 'general' && (
+              <div className="space-y-6">
                 <div>
-                  <Label htmlFor="firstName" className="text-foreground font-medium">First Name</Label>
+                  <h3 className="text-lg font-semibold text-foreground mb-4">Preferred Language</h3>
+                  <div className="bg-muted/30 rounded-xl p-4">
+                    <LanguageSettings />
+                  </div>
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center space-x-2">
+                    <Bot className="h-5 w-5" />
+                    <span>AI Features</span>
+                  </h3>
+                  <div className="bg-muted/30 rounded-xl p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <span className="font-medium">Disable AI features in my account</span>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          When disabled, AI chat and photo analysis features will be unavailable
+                        </p>
+                      </div>
+                      <Switch
+                        checked={profile.ai_opt_out}
+                        onCheckedChange={handleAiOptOutChange}
+                      />
+                    </div>
+                    {profile.ai_opt_out && (
+                      <div className="flex items-start space-x-2 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
+                        <AlertCircle className="h-4 w-4 text-yellow-600 dark:text-yellow-400 mt-0.5 flex-shrink-0" />
+                        <div className="text-sm text-yellow-800 dark:text-yellow-200">
+                          <p className="font-medium">AI Features Disabled</p>
+                          <p>You have disabled AI features. You can re-enable them anytime in settings.</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'theme' && (
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-lg font-semibold text-foreground mb-4">Theme</h3>
+                  <div className="flex space-x-4">
+                    <Button
+                      variant={theme === 'light' ? 'default' : 'outline'}
+                      onClick={() => setTheme('light')}
+                      className={`flex-1 py-6 flex items-center justify-center space-x-3 rounded-xl ${
+                        theme === 'light' 
+                          ? 'bg-primary text-primary-foreground' 
+                          : 'bg-muted/30 text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      <Sun className="h-5 w-5" />
+                      <span className="font-medium">Light</span>
+                    </Button>
+                    <Button
+                      variant={theme === 'dark' ? 'default' : 'outline'}
+                      onClick={() => setTheme('dark')}
+                      className={`flex-1 py-6 flex items-center justify-center space-x-3 rounded-xl ${
+                        theme === 'dark' 
+                          ? 'bg-primary text-primary-foreground' 
+                          : 'bg-muted/30 text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      <Moon className="h-5 w-5" />
+                      <span className="font-medium">Dark</span>
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'personal' && (
+              <div className="space-y-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="firstName" className="text-foreground font-medium">First Name</Label>
+                    <Input
+                      id="firstName"
+                      placeholder="Enter your first name"
+                      value={profile.first_name}
+                      onChange={(e) => setProfile(prev => ({ ...prev, first_name: e.target.value }))}
+                      className="mt-2 bg-muted/30 border-border rounded-xl"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="lastName" className="text-foreground font-medium">Last Name</Label>
+                    <Input
+                      id="lastName"
+                      placeholder="Enter your last name"
+                      value={profile.last_name}
+                      onChange={(e) => setProfile(prev => ({ ...prev, last_name: e.target.value }))}
+                      className="mt-2 bg-muted/30 border-border rounded-xl"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="phone" className="text-foreground font-medium">Phone Number</Label>
+                    <Input
+                      id="phone"
+                      placeholder="Enter your phone number"
+                      value={profile.phone}
+                      onChange={(e) => setProfile(prev => ({ ...prev, phone: e.target.value }))}
+                      className="mt-2 bg-muted/30 border-border rounded-xl"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="dateOfBirth" className="text-foreground font-medium">Date of Birth</Label>
+                    <Input
+                      id="dateOfBirth"
+                      type="date"
+                      value={profile.date_of_birth}
+                      onChange={(e) => setProfile(prev => ({ ...prev, date_of_birth: e.target.value }))}
+                      className="mt-2 bg-muted/30 border-border rounded-xl"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="address" className="text-foreground font-medium">Address</Label>
                   <Input
-                    id="firstName"
-                    placeholder="Enter your first name"
-                    value={profile.first_name}
-                    onChange={(e) => setProfile(prev => ({ ...prev, first_name: e.target.value }))}
+                    id="address"
+                    placeholder="Enter your address"
+                    value={profile.address}
+                    onChange={(e) => setProfile(prev => ({ ...prev, address: e.target.value }))}
                     className="mt-2 bg-muted/30 border-border rounded-xl"
                   />
                 </div>
+
                 <div>
-                  <Label htmlFor="lastName" className="text-foreground font-medium">Last Name</Label>
+                  <Label htmlFor="emergencyContact" className="text-foreground font-medium">Emergency Contact</Label>
                   <Input
-                    id="lastName"
-                    placeholder="Enter your last name"
-                    value={profile.last_name}
-                    onChange={(e) => setProfile(prev => ({ ...prev, last_name: e.target.value }))}
+                    id="emergencyContact"
+                    placeholder="Emergency contact name and phone"
+                    value={profile.emergency_contact}
+                    onChange={(e) => setProfile(prev => ({ ...prev, emergency_contact: e.target.value }))}
                     className="mt-2 bg-muted/30 border-border rounded-xl"
                   />
                 </div>
-              </div>
 
-              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="phone" className="text-foreground font-medium">Phone Number</Label>
-                  <Input
-                    id="phone"
-                    placeholder="Enter your phone number"
-                    value={profile.phone}
-                    onChange={(e) => setProfile(prev => ({ ...prev, phone: e.target.value }))}
-                    className="mt-2 bg-muted/30 border-border rounded-xl"
+                  <Label htmlFor="medicalHistory" className="text-foreground font-medium flex items-center space-x-2">
+                    <Heart className="h-4 w-4" />
+                    <span>Medical History</span>
+                  </Label>
+                  <Textarea
+                    id="medicalHistory"
+                    placeholder="Enter relevant medical history, allergies, medications, etc."
+                    value={profile.medical_history}
+                    onChange={(e) => setProfile(prev => ({ ...prev, medical_history: e.target.value }))}
+                    className="mt-2 bg-muted/30 border-border rounded-xl min-h-[120px] resize-none"
                   />
                 </div>
-                <div>
-                  <Label htmlFor="dateOfBirth" className="text-foreground font-medium">Date of Birth</Label>
-                  <Input
-                    id="dateOfBirth"
-                    type="date"
-                    value={profile.date_of_birth}
-                    onChange={(e) => setProfile(prev => ({ ...prev, date_of_birth: e.target.value }))}
-                    className="mt-2 bg-muted/30 border-border rounded-xl"
-                  />
-                </div>
-              </div>
 
-              <div>
-                <Label htmlFor="address" className="text-foreground font-medium">Address</Label>
-                <Input
-                  id="address"
-                  placeholder="Enter your address"
-                  value={profile.address}
-                  onChange={(e) => setProfile(prev => ({ ...prev, address: e.target.value }))}
-                  className="mt-2 bg-muted/30 border-border rounded-xl"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="emergencyContact" className="text-foreground font-medium">Emergency Contact</Label>
-                <Input
-                  id="emergencyContact"
-                  placeholder="Emergency contact name and phone"
-                  value={profile.emergency_contact}
-                  onChange={(e) => setProfile(prev => ({ ...prev, emergency_contact: e.target.value }))}
-                  className="mt-2 bg-muted/30 border-border rounded-xl"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="medicalHistory" className="text-foreground font-medium flex items-center space-x-2">
-                  <Heart className="h-4 w-4" />
-                  <span>Medical History</span>
-                </Label>
-                <Textarea
-                  id="medicalHistory"
-                  placeholder="Enter relevant medical history, allergies, medications, etc."
-                  value={profile.medical_history}
-                  onChange={(e) => setProfile(prev => ({ ...prev, medical_history: e.target.value }))}
-                  className="mt-2 bg-muted/30 border-border rounded-xl min-h-[120px] resize-none"
-                />
-              </div>
-
-              <Button
-                onClick={handleSaveProfile}
-                disabled={loading}
-                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium py-4 rounded-xl"
-              >
-                {loading ? 'Saving...' : 'Save Personal Information'}
-              </Button>
-
-              <div className="space-y-2">
-                <Button onClick={handleDownloadData} variant="outline" className="w-full">
-                  {t.downloadMyData}
-                </Button>
-                <Button onClick={handleDeleteAccount} variant="destructive" className="w-full">
-                  {t.deleteAccount}
-                </Button>
-              </div>
-
-              <div className="pt-4 border-t border-border">
-                <Button 
-                  variant="destructive" 
-                  onClick={handleSignOut}
-                  className="w-full bg-red-500 hover:bg-red-600 text-white font-medium py-3 rounded-xl"
+                <Button
+                  onClick={handleSaveProfile}
+                  disabled={loading}
+                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium py-4 rounded-xl"
                 >
-                  <LogOut className="h-4 w-4 mr-2" />
-                  {t.signOut}
+                  {loading ? 'Saving...' : 'Save Personal Information'}
                 </Button>
+
+                <div className="space-y-2">
+                  <Button onClick={handleDownloadData} variant="outline" className="w-full">
+                    {t.downloadMyData}
+                  </Button>
+                  <Button onClick={handleDeleteAccount} variant="destructive" className="w-full">
+                    {t.deleteAccount}
+                  </Button>
+                </div>
+
+                <div className="pt-4 border-t border-border">
+                  <Button 
+                    variant="destructive" 
+                    onClick={handleSignOut}
+                    className="w-full bg-red-500 hover:bg-red-600 text-white font-medium py-3 rounded-xl"
+                  >
+                    <LogOut className="h-4 w-4 mr-2" />
+                    {t.signOut}
+                  </Button>
+                </div>
               </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* AI Opt-Out Confirmation Dialog */}
+      <Dialog open={showAiOptOutDialog} onOpenChange={setShowAiOptOutDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center space-x-2">
+              <Bot className="h-5 w-5" />
+              <span>Disable AI Features</span>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-muted-foreground">
+              Are you sure you want to disable AI features? This will:
+            </p>
+            <ul className="space-y-2 text-sm">
+              <li className="flex items-start space-x-2">
+                <span className="text-red-500">•</span>
+                <span>Disable AI chat functionality</span>
+              </li>
+              <li className="flex items-start space-x-2">
+                <span className="text-red-500">•</span>
+                <span>Disable photo analysis features</span>
+              </li>
+              <li className="flex items-start space-x-2">
+                <span className="text-red-500">•</span>
+                <span>Remove AI-powered appointment suggestions</span>
+              </li>
+            </ul>
+            <p className="text-sm text-muted-foreground">
+              You can re-enable AI features anytime in your settings.
+            </p>
+            <div className="flex space-x-2 pt-4">
+              <Button
+                variant="outline"
+                onClick={() => setShowAiOptOutDialog(false)}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={async () => {
+                  await updateAiOptOut(true);
+                  setShowAiOptOutDialog(false);
+                }}
+                className="flex-1 bg-red-500 hover:bg-red-600"
+              >
+                Disable AI Features
+              </Button>
             </div>
-          )}
-        </div>
-      </DialogContent>
-    </Dialog>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
