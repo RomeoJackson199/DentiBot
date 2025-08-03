@@ -1,27 +1,25 @@
 import { useState, useEffect } from "react";
 import { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 import { 
-  FileText, 
-  Calendar, 
   User as UserIcon, 
+  Calendar, 
+  Phone, 
+  Mail, 
   ArrowLeft,
-  Pill,
-  ClipboardList,
-  MessageSquare,
-  Brain,
-  Activity,
-  Heart,
-  Phone,
-  Mail,
-  MapPin
+  Clock,
+  MapPin,
+  AlertCircle,
+  CheckCircle,
+  XCircle
 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { loadProfileData } from "@/lib/profileUtils";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { LoadingSkeleton } from "@/components/ui/loading-skeleton";
 import { PrescriptionManager } from "@/components/PrescriptionManager";
 import { TreatmentPlanManager } from "@/components/TreatmentPlanManager";
@@ -110,25 +108,35 @@ export const EnhancedPatientDossier = ({
       let profile: any = null;
       
       if (mode === 'patient') {
-        // Load current user's profile
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('user_id', user.id)
-          .single();
-
-        if (profileError) throw profileError;
-        profile = profileData;
+        // Load current user's profile using the utility function
+        console.log('Loading patient profile for user:', user.id);
+        try {
+          const profileData = await loadProfileData(user);
+          profile = {
+            id: user.id, // We need the profile ID for other operations
+            user_id: user.id,
+            ...profileData
+          };
+          console.log('Loaded patient profile:', profile);
+        } catch (error) {
+          console.error('Error loading patient profile:', error);
+          throw error;
+        }
       } else if (mode === 'dentist' && patientId) {
         // Load specific patient profile for dentist view
+        console.log('Loading patient profile for dentist view, patient ID:', patientId);
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
           .select('*')
           .eq('id', patientId)
           .single();
 
-        if (profileError) throw profileError;
+        if (profileError) {
+          console.error('Error loading patient profile for dentist:', profileError);
+          throw profileError;
+        }
         profile = profileData;
+        console.log('Loaded patient profile for dentist:', profile);
       }
 
       if (!profile) {
@@ -271,7 +279,7 @@ export const EnhancedPatientDossier = ({
         <CardHeader className="bg-gradient-primary text-white rounded-t-xl">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <FileText className="h-6 w-6" />
+              <UserIcon className="h-6 w-6" />
               <div>
                 <CardTitle className="text-xl">
                   {mode === 'patient' ? 'Mon Dossier Médical' : 'Dossier Patient'}
@@ -289,7 +297,7 @@ export const EnhancedPatientDossier = ({
                   onClick={() => setShowAIConsultation(true)}
                   className="text-white hover:bg-white/20"
                 >
-                  <Brain className="h-4 w-4 mr-2" />
+                  <UserIcon className="h-4 w-4 mr-2" />
                   AI Consultation
                 </Button>
               )}
@@ -326,9 +334,12 @@ export const EnhancedPatientDossier = ({
               <div>
                 <p className="text-sm text-muted-foreground">Date de naissance</p>
                 <p className="font-medium">
-                  {patientProfile?.date_of_birth 
-                    ? formatDate(patientProfile.date_of_birth)
-                    : 'Non renseigné'}
+                  {(() => {
+                    console.log('Date of birth value:', patientProfile?.date_of_birth);
+                    return patientProfile?.date_of_birth 
+                      ? formatDate(patientProfile.date_of_birth)
+                      : 'Non renseigné';
+                  })()}
                 </p>
               </div>
             </div>
@@ -411,10 +422,16 @@ export const EnhancedPatientDossier = ({
                       <strong>Historique médical:</strong> {patientProfile?.medical_history || 'Aucun historique enregistré'}
                     </p>
                     <p className="text-sm">
-                      <strong>Adresse:</strong> {patientProfile?.address || 'Non renseignée'}
+                      <strong>Adresse:</strong> {(() => {
+                        console.log('Address value:', patientProfile?.address);
+                        return patientProfile?.address || 'Non renseignée';
+                      })()}
                     </p>
                     <p className="text-sm">
-                      <strong>Contact d'urgence:</strong> {patientProfile?.emergency_contact || 'Non renseigné'}
+                      <strong>Contact d'urgence:</strong> {(() => {
+                        console.log('Emergency contact value:', patientProfile?.emergency_contact);
+                        return patientProfile?.emergency_contact || 'Non renseigné';
+                      })()}
                     </p>
                   </div>
                 </div>
@@ -500,7 +517,7 @@ export const EnhancedPatientDossier = ({
             <CardContent>
               {medicalRecords.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
-                  <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <UserIcon className="h-12 w-12 mx-auto mb-4 opacity-50" />
                   <p>Aucun dossier médical trouvé</p>
                 </div>
               ) : (
@@ -553,14 +570,14 @@ export const EnhancedPatientDossier = ({
           <Card className="floating-card">
             <CardHeader>
               <CardTitle className="flex items-center">
-                <Pill className="h-5 w-5 mr-2" />
+                <UserIcon className="h-5 w-5 mr-2" />
                 Prescriptions
               </CardTitle>
             </CardHeader>
             <CardContent>
               {prescriptions.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
-                  <Pill className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <UserIcon className="h-12 w-12 mx-auto mb-4 opacity-50" />
                   <p>Aucune prescription trouvée</p>
                 </div>
               ) : (
@@ -606,14 +623,14 @@ export const EnhancedPatientDossier = ({
           <Card className="floating-card">
             <CardHeader>
               <CardTitle className="flex items-center">
-                <ClipboardList className="h-5 w-5 mr-2" />
+                <UserIcon className="h-5 w-5 mr-2" />
                 Plans de traitement
               </CardTitle>
             </CardHeader>
             <CardContent>
               {treatmentPlans.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
-                  <ClipboardList className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <UserIcon className="h-12 w-12 mx-auto mb-4 opacity-50" />
                   <p>Aucun plan de traitement trouvé</p>
                 </div>
               ) : (

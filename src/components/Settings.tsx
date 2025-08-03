@@ -28,6 +28,7 @@ import {
   Bot,
   AlertCircle
 } from "lucide-react";
+import { saveProfileData, loadProfileData, testDatabaseConnection, ProfileData } from "@/lib/profileUtils";
 
 interface SettingsProps {
   user: User;
@@ -51,7 +52,7 @@ export const Settings = ({ user }: SettingsProps) => {
   const { toast } = useToast();
   const { theme, setTheme } = useTheme();
   const [activeTab, setActiveTab] = useState<TabType>('general');
-  const [profile, setProfile] = useState<UserProfile>({
+  const [profile, setProfile] = useState<ProfileData>({
     first_name: '',
     last_name: '',
     phone: '',
@@ -71,31 +72,19 @@ export const Settings = ({ user }: SettingsProps) => {
 
   const fetchProfile = async () => {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('first_name, last_name, phone, date_of_birth, medical_history, address, emergency_contact, ai_opt_out')
-        .eq('user_id', user.id)
-        .single();
-
-      if (data) {
-        const profileData = {
-          first_name: data.first_name || '',
-          last_name: data.last_name || '',
-          phone: data.phone || '',
-          date_of_birth: data.date_of_birth || '',
-          medical_history: data.medical_history || '',
-          address: data.address || '',
-          emergency_contact: data.emergency_contact || '',
-          ai_opt_out: data.ai_opt_out || false
-        };
-        setProfile(profileData);
-        
-        // Check if profile is incomplete (missing first or last name)
-        const isIncomplete = !data.first_name || !data.last_name;
-        setHasIncompleteProfile(isIncomplete);
-      }
+      const profileData = await loadProfileData(user);
+      setProfile(profileData);
+      
+      // Check if profile is incomplete (missing first or last name)
+      const isIncomplete = !profileData.first_name || !profileData.last_name;
+      setHasIncompleteProfile(isIncomplete);
     } catch (error) {
       console.error('Error fetching profile:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load profile data",
+        variant: "destructive",
+      });
     }
   };
 
@@ -118,21 +107,7 @@ export const Settings = ({ user }: SettingsProps) => {
   const handleSaveProfile = async () => {
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          first_name: profile.first_name,
-          last_name: profile.last_name,
-          phone: profile.phone,
-          date_of_birth: profile.date_of_birth || null,
-          medical_history: profile.medical_history,
-          address: profile.address,
-          emergency_contact: profile.emergency_contact,
-          ai_opt_out: profile.ai_opt_out
-        })
-        .eq('user_id', user.id);
-
-      if (error) throw error;
+      await saveProfileData(user, profile);
 
       toast({
         title: "Success",
@@ -142,9 +117,10 @@ export const Settings = ({ user }: SettingsProps) => {
       // Refresh profile to update incomplete status
       fetchProfile();
     } catch (error) {
+      console.error('Profile save error:', error);
       toast({
         title: "Error",
-        description: "Failed to save personal information",
+        description: `Failed to save personal information: ${error instanceof Error ? error.message : 'Unknown error'}`,
         variant: "destructive",
       });
     } finally {
@@ -430,6 +406,66 @@ export const Settings = ({ user }: SettingsProps) => {
                   className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium py-4 rounded-xl"
                 >
                   {loading ? 'Saving...' : 'Save Personal Information'}
+                </Button>
+
+                <Button
+                  onClick={async () => {
+                    console.log('=== PROFILE DATA TEST ===');
+                    console.log('Current profile state:', profile);
+                    
+                    try {
+                      const profileData = await loadProfileData(user);
+                      console.log('Loaded profile data:', profileData);
+                    } catch (error) {
+                      console.error('Failed to load profile data:', error);
+                    }
+                  }}
+                  variant="outline"
+                  className="w-full mb-4"
+                >
+                  Test Profile Data
+                </Button>
+
+                <Button
+                  onClick={async () => {
+                    console.log('=== COMPREHENSIVE DATABASE TEST ===');
+                    
+                    // Test 1: Check database connection
+                    const connectionTest = await testDatabaseConnection();
+                    console.log('Database connection test:', connectionTest);
+                    
+                    // Test 2: Check current user
+                    console.log('Current user ID:', user.id);
+                    console.log('Current user email:', user.email);
+                    
+                    // Test 3: Try to save test data
+                    const testData: ProfileData = {
+                      ...profile,
+                      address: 'Test Address ' + new Date().toISOString(),
+                      emergency_contact: 'Test Contact ' + new Date().toISOString(),
+                      date_of_birth: '1990-01-01'
+                    };
+                    
+                    console.log('Attempting to save test data:', testData);
+                    
+                    try {
+                      const saveResult = await saveProfileData(user, testData);
+                      console.log('Save result:', saveResult);
+                      
+                      // Test 4: Load the data back
+                      const loadResult = await loadProfileData(user);
+                      console.log('Load result:', loadResult);
+                      
+                      // Test 5: Refresh the form data
+                      fetchProfile();
+                    } catch (error) {
+                      console.error('Test failed:', error);
+                    }
+                  }}
+                  variant="outline"
+                  className="w-full mb-4"
+                >
+                  Comprehensive DB Test
                 </Button>
 
                 <div className="space-y-2">
