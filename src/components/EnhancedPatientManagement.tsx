@@ -39,6 +39,13 @@ import {
 } from "lucide-react";
 import { AIConversationDialog } from "@/components/AIConversationDialog";
 import { generateSymptomSummary } from "@/lib/symptoms";
+import { EnhancedPatientOverview } from "@/components/enhanced/EnhancedPatientOverview";
+import { PrescriptionsTab } from "@/components/enhanced/PrescriptionsTab";
+import { TreatmentPlansTab } from "@/components/enhanced/TreatmentPlansTab";
+import { MedicalRecordsTab } from "@/components/enhanced/MedicalRecordsTab";
+import { PatientNotesTab } from "@/components/enhanced/PatientNotesTab";
+import { AppointmentsTab } from "@/components/enhanced/AppointmentsTab";
+import { DentistProfileTab } from "@/components/enhanced/DentistProfileTab";
 import { 
   Patient, 
   Prescription, 
