@@ -131,9 +131,7 @@ export function EnhancedPatientManagement({ dentistId }: EnhancedPatientManageme
     setRetryCount(0);
   }, [dentistId]);
 
-  useEffect(() => {
-    filterPatients();
-  }, [filterPatients]);
+
 
   const fetchDentistProfile = useCallback(async () => {
     try {
@@ -284,6 +282,20 @@ export function EnhancedPatientManagement({ dentistId }: EnhancedPatientManageme
     }
   }, [dentistId, toast]);
 
+  // Add useEffect to filter patients when searchTerm or patients change
+  useEffect(() => {
+    if (!searchTerm.trim()) {
+      setFilteredPatients(patients);
+      return;
+    }
+
+    const filtered = patients.filter(patient =>
+      `${patient.first_name || ''} ${patient.last_name || ''}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (patient.email || '').toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setFilteredPatients(filtered);
+  }, [searchTerm, patients]);
+
   const fetchPatientData = async (patientId: string, retryAttempt = 0) => {
     try {
       setError(null);
@@ -395,18 +407,7 @@ export function EnhancedPatientManagement({ dentistId }: EnhancedPatientManageme
     }
   };
 
-  const filterPatients = useCallback(() => {
-    if (!searchTerm.trim()) {
-      setFilteredPatients(patients);
-      return;
-    }
 
-    const filtered = patients.filter(patient =>
-      `${patient.first_name || ''} ${patient.last_name || ''}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (patient.email || '').toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    setFilteredPatients(filtered);
-  }, [searchTerm, patients]);
 
   const handlePatientSelect = (patient: Patient) => {
     setSelectedPatient(patient);
