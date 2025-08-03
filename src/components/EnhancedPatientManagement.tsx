@@ -123,7 +123,7 @@ export function EnhancedPatientManagement({ dentistId }: EnhancedPatientManageme
   useEffect(() => {
     fetchPatients();
     fetchDentistProfile();
-  }, [dentistId, fetchPatients, fetchDentistProfile]);
+  }, [dentistId]);
 
   // Clear error when component unmounts or dentistId changes
   useEffect(() => {
