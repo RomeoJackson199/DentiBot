@@ -567,9 +567,9 @@ Always maintain professional medical standards and suggest only appropriate trea
     }
 
     // Suggest recommend-dentist for recommendations instead of direct booking
-    if (recommendedDentist.length > 0 && !suggestions.includes('skip-patient-selection')) {
+    if (recommendedDentists.length > 0 && !suggestions.includes('skip-patient-selection')) {
       suggestions.push('recommend-dentist');
-    } else if (recommendedDentist.length > 0 && suggestions.includes('skip-patient-selection')) {
+    } else if (recommendedDentists.length > 0 && suggestions.includes('skip-patient-selection')) {
       // If we have both a recommendation and patient info, go directly to dentist selection
       // Don't add duplicate skip-patient-selection
     } else if (lowerResponse.includes('dentist') ||
@@ -611,7 +611,7 @@ Always maintain professional medical standards and suggest only appropriate trea
       suggestions,
       urgency_detected,
       emergency_detected,
-      recommended_dentist: [], // Always empty to prevent direct dentist widget display
+      recommended_dentist: recommendedDentists, // Pass the recommended dentists to frontend
       consultation_reason: consultationReason
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
