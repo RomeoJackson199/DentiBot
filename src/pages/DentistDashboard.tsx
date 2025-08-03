@@ -8,6 +8,7 @@ import { DentistManagement } from "@/components/DentistManagement";
 import { EnhancedPatientManagement } from "@/components/EnhancedPatientManagement";
 import { AppointmentManagement } from "@/components/AppointmentManagement";
 import { DentistAnalytics } from "@/components/analytics/DentistAnalytics";
+import { ChangelogPopup } from "@/components/ChangelogPopup";
 import { Calendar, Clock, Settings as SettingsIcon, AlertTriangle, BarChart3, UserPlus, LogOut, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,11 +22,19 @@ export function DentistDashboard({ user }: DentistDashboardProps) {
   const [activeTab, setActiveTab] = useState<'urgency' | 'availability' | 'appointments' | 'patients' | 'analytics' | 'manage'>('urgency');
   const [dentistId, setDentistId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showChangelog, setShowChangelog] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
     fetchDentistProfile();
   }, [user]);
+
+  useEffect(() => {
+    // Show changelog popup when dentist dashboard loads
+    if (dentistId && !loading) {
+      setShowChangelog(true);
+    }
+  }, [dentistId, loading]);
 
   const fetchDentistProfile = async () => {
     try {
@@ -98,6 +107,7 @@ export function DentistDashboard({ user }: DentistDashboardProps) {
 
   return (
     <div className="min-h-screen mesh-bg">
+      <ChangelogPopup isOpen={showChangelog} onClose={() => setShowChangelog(false)} />
       <header className="glass-card sticky top-0 z-50 border-0 border-b border-border/20">
         <div className="container mx-auto px-4 py-4 sm:py-6 flex items-center justify-between">
           <div className="flex items-center space-x-3 sm:space-x-4">

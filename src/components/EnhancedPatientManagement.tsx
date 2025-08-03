@@ -35,7 +35,8 @@ import {
   AlertTriangle,
   CheckCircle,
   XCircle,
-  Calendar as CalendarIcon
+  Calendar as CalendarIcon,
+  RefreshCw
 } from "lucide-react";
 import { AIConversationDialog } from "@/components/AIConversationDialog";
 import { generateSymptomSummary } from "@/lib/symptoms";
@@ -96,6 +97,9 @@ export function EnhancedPatientManagement({ dentistId }: EnhancedPatientManageme
   const [appointmentSummary, setAppointmentSummary] = useState("");
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | null>(null);
   const [generatingAISummary, setGeneratingAISummary] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isRetrying, setIsRetrying] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
   
   // New state for enhanced features
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
@@ -118,6 +122,12 @@ export function EnhancedPatientManagement({ dentistId }: EnhancedPatientManageme
   useEffect(() => {
     fetchPatients();
     fetchDentistProfile();
+  }, [dentistId]);
+
+  // Clear error when component unmounts or dentistId changes
+  useEffect(() => {
+    setError(null);
+    setRetryCount(0);
   }, [dentistId]);
 
   useEffect(() => {
@@ -148,9 +158,11 @@ export function EnhancedPatientManagement({ dentistId }: EnhancedPatientManageme
     }
   };
 
-  const fetchPatients = async () => {
+  const fetchPatients = async (retryAttempt = 0) => {
     try {
       setLoading(true);
+      setError(null);
+      setIsRetrying(retryAttempt > 0);
       
       const { data: appointmentsData, error: appointmentsError } = await supabase
         .from('appointments')
@@ -162,6 +174,7 @@ export function EnhancedPatientManagement({ dentistId }: EnhancedPatientManageme
       if (!appointmentsData || appointmentsData.length === 0) {
         setPatients([]);
         setFilteredPatients([]);
+        setRetryCount(0);
         return;
       }
 
@@ -185,6 +198,7 @@ export function EnhancedPatientManagement({ dentistId }: EnhancedPatientManageme
       if (!profilesData || profilesData.length === 0) {
         setPatients([]);
         setFilteredPatients([]);
+        setRetryCount(0);
         return;
       }
 
@@ -241,23 +255,38 @@ export function EnhancedPatientManagement({ dentistId }: EnhancedPatientManageme
 
       setPatients(patientsWithStats);
       setFilteredPatients(patientsWithStats);
+      setRetryCount(0);
       
     } catch (error: any) {
       console.error('Error fetching patients:', error);
+      const errorMessage = error.message || 'Failed to load patients';
+      setError(errorMessage);
+      
+      // Auto-retry logic for network errors
+      if (retryAttempt < 3 && (error.message?.includes('network') || error.message?.includes('timeout'))) {
+        setTimeout(() => {
+          fetchPatients(retryAttempt + 1);
+        }, 1000 * (retryAttempt + 1)); // Exponential backoff
+        return;
+      }
+      
       toast({
         title: "Error",
-        description: `Failed to load patients: ${error.message}`,
+        description: errorMessage,
         variant: "destructive",
       });
       setPatients([]);
       setFilteredPatients([]);
     } finally {
       setLoading(false);
+      setIsRetrying(false);
     }
   };
 
-  const fetchPatientData = async (patientId: string) => {
+  const fetchPatientData = async (patientId: string, retryAttempt = 0) => {
     try {
+      setError(null);
+      
       // Fetch appointments
       const { data: appointmentsData, error: appointmentsError } = await supabase
         .from('appointments')
@@ -274,7 +303,10 @@ export function EnhancedPatientManagement({ dentistId }: EnhancedPatientManageme
         .eq('dentist_id', dentistId)
         .order('appointment_date', { ascending: false });
 
-      if (appointmentsError) throw appointmentsError;
+      if (appointmentsError) {
+        console.error('Error fetching appointments:', appointmentsError);
+        // Don't throw, just log and continue with empty array
+      }
       setAppointments(appointmentsData || []);
 
       // Fetch prescriptions
@@ -285,7 +317,9 @@ export function EnhancedPatientManagement({ dentistId }: EnhancedPatientManageme
         .eq('dentist_id', dentistId)
         .order('prescribed_date', { ascending: false });
 
-      if (prescriptionsError) throw prescriptionsError;
+      if (prescriptionsError) {
+        console.error('Error fetching prescriptions:', prescriptionsError);
+      }
       setPrescriptions(prescriptionsData || []);
 
       // Fetch treatment plans
@@ -296,7 +330,9 @@ export function EnhancedPatientManagement({ dentistId }: EnhancedPatientManageme
         .eq('dentist_id', dentistId)
         .order('created_at', { ascending: false });
 
-      if (treatmentPlansError) throw treatmentPlansError;
+      if (treatmentPlansError) {
+        console.error('Error fetching treatment plans:', treatmentPlansError);
+      }
       setTreatmentPlans(treatmentPlansData || []);
 
       // Fetch medical records
@@ -307,7 +343,9 @@ export function EnhancedPatientManagement({ dentistId }: EnhancedPatientManageme
         .eq('dentist_id', dentistId)
         .order('record_date', { ascending: false });
 
-      if (medicalRecordsError) throw medicalRecordsError;
+      if (medicalRecordsError) {
+        console.error('Error fetching medical records:', medicalRecordsError);
+      }
       setMedicalRecords(medicalRecordsData || []);
 
       // Fetch patient notes
@@ -318,7 +356,9 @@ export function EnhancedPatientManagement({ dentistId }: EnhancedPatientManageme
         .eq('dentist_id', dentistId)
         .order('created_at', { ascending: false });
 
-      if (patientNotesError) throw patientNotesError;
+      if (patientNotesError) {
+        console.error('Error fetching patient notes:', patientNotesError);
+      }
       setPatientNotes(patientNotesData || []);
 
       // Fetch follow-ups
@@ -328,14 +368,27 @@ export function EnhancedPatientManagement({ dentistId }: EnhancedPatientManageme
         .in('appointment_id', appointmentsData?.map(a => a.id) || [])
         .order('scheduled_date', { ascending: false });
 
-      if (followUpsError) throw followUpsError;
+      if (followUpsError) {
+        console.error('Error fetching follow-ups:', followUpsError);
+      }
       setFollowUps(followUpsData || []);
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching patient data:', error);
+      const errorMessage = error.message || 'Failed to load patient data';
+      setError(errorMessage);
+      
+      // Auto-retry logic for network errors
+      if (retryAttempt < 2 && (error.message?.includes('network') || error.message?.includes('timeout'))) {
+        setTimeout(() => {
+          fetchPatientData(patientId, retryAttempt + 1);
+        }, 1000 * (retryAttempt + 1));
+        return;
+      }
+      
       toast({
         title: "Error",
-        description: "Failed to load patient data",
+        description: errorMessage,
         variant: "destructive",
       });
     }
@@ -374,8 +427,16 @@ export function EnhancedPatientManagement({ dentistId }: EnhancedPatientManageme
   if (loading) {
     return (
       <Card className="glass-card">
-        <CardContent className="p-8 text-center">
-          <div className="animate-pulse">Loading patients...</div>
+        <CardContent className="p-8 text-center space-y-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-dental-primary mx-auto"></div>
+          <div className="space-y-2">
+            <p className="text-lg font-semibold">
+              {isRetrying ? `Retrying... (${retryCount + 1}/3)` : 'Loading patients...'}
+            </p>
+            <p className="text-sm text-muted-foreground">
+              {isRetrying ? 'Please wait while we reconnect to the server' : 'Fetching patient data from the database'}
+            </p>
+          </div>
         </CardContent>
       </Card>
     );
@@ -392,6 +453,26 @@ export function EnhancedPatientManagement({ dentistId }: EnhancedPatientManageme
             </CardTitle>
           </CardHeader>
           <CardContent>
+            {error && (
+              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <AlertTriangle className="h-5 w-5 text-red-600" />
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-red-800">Error Loading Patients</h4>
+                    <p className="text-sm text-red-700">{error}</p>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => fetchPatients()}
+                    className="border-red-300 text-red-700 hover:bg-red-100"
+                  >
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Retry
+                  </Button>
+                </div>
+              </div>
+            )}
             <div className="relative mb-6">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input
@@ -402,27 +483,47 @@ export function EnhancedPatientManagement({ dentistId }: EnhancedPatientManageme
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              <Card>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+              <Card className="glass-card border-blue-200 hover:shadow-lg transition-all duration-300">
                 <CardContent className="p-4 text-center">
-                  <div className="text-2xl font-bold text-primary">{patients.length}</div>
+                  <div className="flex items-center justify-center mb-2">
+                    <Users className="h-6 w-6 text-blue-600 mr-2" />
+                    <div className="text-2xl font-bold text-blue-600">{patients.length}</div>
+                  </div>
                   <div className="text-sm text-muted-foreground">Total Patients</div>
                 </CardContent>
               </Card>
-              <Card>
+              <Card className="glass-card border-green-200 hover:shadow-lg transition-all duration-300">
                 <CardContent className="p-4 text-center">
-                  <div className="text-2xl font-bold text-green-600">
-                    {patients.reduce((sum, p) => sum + p.upcoming_appointments, 0)}
+                  <div className="flex items-center justify-center mb-2">
+                    <Calendar className="h-6 w-6 text-green-600 mr-2" />
+                    <div className="text-2xl font-bold text-green-600">
+                      {patients.reduce((sum, p) => sum + p.upcoming_appointments, 0)}
+                    </div>
                   </div>
                   <div className="text-sm text-muted-foreground">Upcoming Appointments</div>
                 </CardContent>
               </Card>
-              <Card>
+              <Card className="glass-card border-purple-200 hover:shadow-lg transition-all duration-300">
                 <CardContent className="p-4 text-center">
-                  <div className="text-2xl font-bold text-blue-600">
-                    {patients.reduce((sum, p) => sum + p.total_appointments, 0)}
+                  <div className="flex items-center justify-center mb-2">
+                    <Clock className="h-6 w-6 text-purple-600 mr-2" />
+                    <div className="text-2xl font-bold text-purple-600">
+                      {patients.reduce((sum, p) => sum + p.total_appointments, 0)}
+                    </div>
                   </div>
                   <div className="text-sm text-muted-foreground">Total Appointments</div>
+                </CardContent>
+              </Card>
+              <Card className="glass-card border-orange-200 hover:shadow-lg transition-all duration-300">
+                <CardContent className="p-4 text-center">
+                  <div className="flex items-center justify-center mb-2">
+                    <CheckCircle className="h-6 w-6 text-orange-600 mr-2" />
+                    <div className="text-2xl font-bold text-orange-600">
+                      {patients.filter(p => p.total_appointments > 0).length}
+                    </div>
+                  </div>
+                  <div className="text-sm text-muted-foreground">Active Patients</div>
                 </CardContent>
               </Card>
             </div>
@@ -434,45 +535,69 @@ export function EnhancedPatientManagement({ dentistId }: EnhancedPatientManageme
                 </div>
               ) : (
                 filteredPatients.map((patient) => (
-                  <Card key={patient.id} className="hover:shadow-md transition-shadow cursor-pointer">
-                    <CardContent className="p-4">
-                      <div 
-                        className="flex items-center justify-between"
-                        onClick={() => handlePatientSelect(patient)}
-                      >
+                  <Card 
+                    key={patient.id} 
+                    className="glass-card hover:shadow-lg transition-all duration-300 cursor-pointer border-l-4 border-l-transparent hover:border-l-dental-primary"
+                    onClick={() => handlePatientSelect(patient)}
+                  >
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-4">
-                          <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
-                            <User className="h-6 w-6 text-primary" />
+                          <div className="relative">
+                            <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-lg">
+                              {patient.first_name.charAt(0)}{patient.last_name.charAt(0)}
+                            </div>
+                            {patient.upcoming_appointments > 0 && (
+                              <div className="absolute -top-1 -right-1 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
+                                <span className="text-white text-xs font-bold">{patient.upcoming_appointments}</span>
+                              </div>
+                            )}
                           </div>
-                          <div>
-                            <h3 className="font-semibold">
+                          <div className="space-y-1">
+                            <h3 className="font-semibold text-lg">
                               {patient.first_name} {patient.last_name}
                             </h3>
-                            <p className="text-sm text-muted-foreground">{patient.email}</p>
+                            <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                              <Mail className="h-4 w-4" />
+                              <span>{patient.email}</span>
+                            </div>
                             {patient.phone && (
-                              <p className="text-sm text-muted-foreground">{patient.phone}</p>
+                              <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                                <Phone className="h-4 w-4" />
+                                <span>{patient.phone}</span>
+                              </div>
                             )}
                           </div>
                         </div>
                         
                         <div className="flex items-center space-x-4">
-                          <div className="text-right">
-                            {patient.upcoming_appointments > 0 && (
-                              <Badge variant="default" className="mb-1">
-                                {patient.upcoming_appointments} upcoming
+                          <div className="text-right space-y-2">
+                            <div className="flex items-center justify-end space-x-2">
+                              {patient.upcoming_appointments > 0 && (
+                                <Badge variant="default" className="bg-green-100 text-green-800 border-green-200">
+                                  <Calendar className="h-3 w-3 mr-1" />
+                                  {patient.upcoming_appointments} upcoming
+                                </Badge>
+                              )}
+                              <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                                <Clock className="h-3 w-3 mr-1" />
+                                {patient.total_appointments} total
                               </Badge>
-                            )}
-                            <div className="text-sm text-muted-foreground">
-                              {patient.total_appointments} total appointments
                             </div>
                             {patient.last_appointment && (
-                              <div className="text-xs text-muted-foreground">
+                              <div className="text-xs text-muted-foreground flex items-center justify-end">
+                                <ClockIcon className="h-3 w-3 mr-1" />
                                 Last: {new Date(patient.last_appointment).toLocaleDateString()}
                               </div>
                             )}
                           </div>
-                          <Button variant="outline" size="sm">
-                            View Patient
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            className="bg-gradient-to-r from-blue-500 to-purple-600 text-white border-0 hover:from-blue-600 hover:to-purple-700"
+                          >
+                            <Eye className="h-4 w-4 mr-2" />
+                            View Profile
                           </Button>
                         </div>
                       </div>
@@ -498,32 +623,53 @@ export function EnhancedPatientManagement({ dentistId }: EnhancedPatientManageme
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <Button variant="outline" size="sm" onClick={handleBackToList}>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleBackToList}
+                className="border-dental-primary text-dental-primary hover:bg-dental-primary hover:text-white"
+              >
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Patients
               </Button>
-              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
-                <User className="h-8 w-8 text-primary" />
+              <div className="relative">
+                <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-xl">
+                  {selectedPatient.first_name.charAt(0)}{selectedPatient.last_name.charAt(0)}
+                </div>
+                {selectedPatient.upcoming_appointments > 0 && (
+                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
+                    <span className="text-white text-sm font-bold">{selectedPatient.upcoming_appointments}</span>
+                  </div>
+                )}
               </div>
-              <div>
-                <h2 className="text-2xl font-bold">
+              <div className="space-y-2">
+                <h2 className="text-3xl font-bold gradient-text">
                   {selectedPatient.first_name} {selectedPatient.last_name}
                 </h2>
-                <p className="text-muted-foreground">{selectedPatient.email}</p>
-                {selectedPatient.phone && (
-                  <p className="text-sm text-muted-foreground">{selectedPatient.phone}</p>
-                )}
+                <div className="flex items-center space-x-4 text-muted-foreground">
+                  <div className="flex items-center space-x-2">
+                    <Mail className="h-4 w-4" />
+                    <span>{selectedPatient.email}</span>
+                  </div>
+                  {selectedPatient.phone && (
+                    <div className="flex items-center space-x-2">
+                      <Phone className="h-4 w-4" />
+                      <span>{selectedPatient.phone}</span>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
             
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-3">
               {selectedPatient.upcoming_appointments > 0 && (
-                <Badge variant="default">
-                  <Clock className="h-3 w-3 mr-1" />
+                <Badge variant="default" className="bg-green-100 text-green-800 border-green-200">
+                  <Calendar className="h-4 w-4 mr-2" />
                   {selectedPatient.upcoming_appointments} upcoming
                 </Badge>
               )}
-              <Badge variant="outline">
+              <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                <Clock className="h-4 w-4 mr-2" />
                 {selectedPatient.total_appointments} total appointments
               </Badge>
             </div>
@@ -533,14 +679,35 @@ export function EnhancedPatientManagement({ dentistId }: EnhancedPatientManageme
 
       {/* Enhanced Patient Management Tabs */}
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-7">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="prescriptions">Prescriptions</TabsTrigger>
-          <TabsTrigger value="treatment-plans">Treatment Plans</TabsTrigger>
-          <TabsTrigger value="medical-records">Medical Records</TabsTrigger>
-          <TabsTrigger value="notes">Notes</TabsTrigger>
-          <TabsTrigger value="appointments">Appointments</TabsTrigger>
-          <TabsTrigger value="profile">Dentist Profile</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-7 bg-white/50 backdrop-blur-sm border border-white/20">
+          <TabsTrigger value="overview" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-600 data-[state=active]:text-white">
+            <User className="h-4 w-4 mr-2" />
+            Overview
+          </TabsTrigger>
+          <TabsTrigger value="prescriptions" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-teal-600 data-[state=active]:text-white">
+            <Pill className="h-4 w-4 mr-2" />
+            Prescriptions
+          </TabsTrigger>
+          <TabsTrigger value="treatment-plans" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-600 data-[state=active]:text-white">
+            <Stethoscope className="h-4 w-4 mr-2" />
+            Treatment Plans
+          </TabsTrigger>
+          <TabsTrigger value="medical-records" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-red-600 data-[state=active]:text-white">
+            <FileText className="h-4 w-4 mr-2" />
+            Medical Records
+          </TabsTrigger>
+          <TabsTrigger value="notes" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-yellow-500 data-[state=active]:to-orange-600 data-[state=active]:text-white">
+            <ClipboardList className="h-4 w-4 mr-2" />
+            Notes
+          </TabsTrigger>
+          <TabsTrigger value="appointments" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-blue-600 data-[state=active]:text-white">
+            <Calendar className="h-4 w-4 mr-2" />
+            Appointments
+          </TabsTrigger>
+          <TabsTrigger value="profile" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-teal-500 data-[state=active]:to-cyan-600 data-[state=active]:text-white">
+            <GraduationCap className="h-4 w-4 mr-2" />
+            Dentist Profile
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">

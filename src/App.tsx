@@ -8,6 +8,7 @@ import { LanguageProvider } from "./hooks/useLanguage";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { PWAInstallPrompt } from "./components/PWAInstallPrompt";
 import ProfileCompletionDialog from "./components/ProfileCompletionDialog";
+import { ChangelogPopup } from "./components/ChangelogPopup";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { User, Session } from "@supabase/supabase-js";
