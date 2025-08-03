@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
 import { useToast } from "@/hooks/use-toast";
 import { AIWritingAssistant } from "@/components/AIWritingAssistant";
 import { BookOpen } from "lucide-react";
@@ -20,12 +21,12 @@ export function TreatmentPlanManager({ appointmentId, patientId, dentistId }: Tr
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    plan_name: '',
+    title: '',
     description: '',
     diagnosis: '',
-    priority: 'medium',
-    estimated_duration_weeks: '',
-    estimated_cost: '',
+    priority: 'normal',
+    estimated_duration_weeks: [4],
+    estimated_cost: [150],
     notes: ''
   });
   const { toast } = useToast();
@@ -33,7 +34,7 @@ export function TreatmentPlanManager({ appointmentId, patientId, dentistId }: Tr
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.plan_name || !formData.description) {
+    if (!formData.title || !formData.description) {
       toast({
         title: "Missing information",
         description: "Please fill in plan name and description",
@@ -50,12 +51,12 @@ export function TreatmentPlanManager({ appointmentId, patientId, dentistId }: Tr
         .insert({
           patient_id: patientId,
           dentist_id: dentistId,
-          plan_name: formData.plan_name,
+          title: formData.title,
           description: formData.description,
           diagnosis: formData.diagnosis,
           priority: formData.priority,
-          estimated_duration_weeks: formData.estimated_duration_weeks ? parseInt(formData.estimated_duration_weeks) : null,
-          estimated_cost: formData.estimated_cost ? parseFloat(formData.estimated_cost) : null,
+          estimated_duration_weeks: formData.estimated_duration_weeks[0] || null,
+          estimated_cost: formData.estimated_cost[0] || null,
           notes: formData.notes,
           status: 'draft',
           start_date: new Date().toISOString().split('T')[0]
@@ -70,12 +71,12 @@ export function TreatmentPlanManager({ appointmentId, patientId, dentistId }: Tr
 
       setOpen(false);
       setFormData({
-        plan_name: '',
+        title: '',
         description: '',
         diagnosis: '',
-        priority: 'medium',
-        estimated_duration_weeks: '',
-        estimated_cost: '',
+        priority: 'normal',
+        estimated_duration_weeks: [4],
+        estimated_cost: [150],
         notes: ''
       });
     } catch (error: unknown) {
@@ -103,12 +104,12 @@ export function TreatmentPlanManager({ appointmentId, patientId, dentistId }: Tr
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="plan_name">Treatment Plan Name *</Label>
+            <Label htmlFor="title">Treatment Plan Name *</Label>
             <Input
-              id="plan_name"
+              id="title"
               placeholder="e.g., Root Canal Treatment"
-              value={formData.plan_name}
-              onChange={(e) => setFormData(prev => ({ ...prev, plan_name: e.target.value }))}
+              value={formData.title}
+              onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
               required
             />
           </div>
@@ -158,7 +159,7 @@ export function TreatmentPlanManager({ appointmentId, patientId, dentistId }: Tr
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="low">Low</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="normal">Normal</SelectItem>
                   <SelectItem value="high">High</SelectItem>
                   <SelectItem value="urgent">Urgent</SelectItem>
                 </SelectContent>
@@ -166,26 +167,29 @@ export function TreatmentPlanManager({ appointmentId, patientId, dentistId }: Tr
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="estimated_duration_weeks">Duration (weeks)</Label>
-              <Input
+              <Label htmlFor="estimated_duration_weeks">Duration: {formData.estimated_duration_weeks[0]} weeks</Label>
+              <Slider
                 id="estimated_duration_weeks"
-                type="number"
-                placeholder="e.g., 4"
                 value={formData.estimated_duration_weeks}
-                onChange={(e) => setFormData(prev => ({ ...prev, estimated_duration_weeks: e.target.value }))}
+                onValueChange={(value) => setFormData(prev => ({ ...prev, estimated_duration_weeks: value }))}
+                max={52}
+                min={1}
+                step={1}
+                className="w-full"
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="estimated_cost">Estimated Cost (€)</Label>
-            <Input
+            <Label htmlFor="estimated_cost">Estimated Cost: €{formData.estimated_cost[0]}</Label>
+            <Slider
               id="estimated_cost"
-              type="number"
-              step="0.01"
-              placeholder="e.g., 150.00"
               value={formData.estimated_cost}
-              onChange={(e) => setFormData(prev => ({ ...prev, estimated_cost: e.target.value }))}
+              onValueChange={(value) => setFormData(prev => ({ ...prev, estimated_cost: value }))}
+              max={5000}
+              min={50}
+              step={50}
+              className="w-full"
             />
           </div>
 

@@ -29,7 +29,7 @@ interface TreatmentPlan {
   diagnosis?: string;
   status: string;
   priority: string;
-  estimated_duration_weeks?: number;
+  estimated_duration?: string;
   estimated_cost?: number;
   start_date?: string;
   notes?: string;
@@ -302,10 +302,10 @@ export function PatientMedicalOverview({ patientId, user }: PatientMedicalOvervi
                     )}
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                      {plan.estimated_duration_weeks && (
+                      {plan.estimated_duration && (
                         <div className="flex items-center space-x-2">
                           <Clock className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm">{plan.estimated_duration_weeks} weeks</span>
+                          <span className="text-sm">{plan.estimated_duration}</span>
                         </div>
                       )}
                       {plan.estimated_cost && (

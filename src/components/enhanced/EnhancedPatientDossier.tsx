@@ -61,7 +61,7 @@ interface TreatmentPlan {
   status: string;
   priority: string;
   estimated_cost: number;
-  estimated_duration_weeks: number;
+  estimated_duration: string;
   start_date: string;
   end_date: string;
   created_at: string;
@@ -652,7 +652,7 @@ export const EnhancedPatientDossier = ({
                         )}
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
                           <div>
-                            <span className="font-medium">Durée estimée:</span> {plan.estimated_duration_weeks} semaines
+                            <span className="font-medium">Durée estimée:</span> {plan.estimated_duration}
                           </div>
                           <div>
                             <span className="font-medium">Coût estimé:</span> €{plan.estimated_cost}
