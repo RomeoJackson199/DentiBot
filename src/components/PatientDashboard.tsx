@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { User } from "@supabase/supabase-js";
 import { InteractiveDentalChat } from "@/components/chat/InteractiveDentalChat";
-import { AppointmentsList } from "@/components/AppointmentsList";
+import MockAppointmentsList from "@/components/MockAppointmentsList";
 import { Settings } from "@/components/Settings";
 import { EnhancedPatientDossier } from "@/components/enhanced/EnhancedPatientDossier";
 import { EmergencyTriageForm } from "@/components/EmergencyTriageForm";
@@ -167,7 +167,7 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
           )}
           
           {activeTab === 'appointments' && (
-            <AppointmentsList user={user} />
+            <MockAppointmentsList user={user} />
           )}
           
           {activeTab === 'dossier' && (

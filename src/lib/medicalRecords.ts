@@ -1,5 +1,5 @@
-import { supabase } from "@/integrations/supabase/client";
 import { ChatMessage } from "@/types/chat";
+import { saveMedicalRecord } from "@/lib/mockApi";
 
 export interface CreateMedicalRecordData {
   patientId: string;
@@ -13,32 +13,17 @@ export interface CreateMedicalRecordData {
 }
 
 export const createMedicalRecord = async (data: CreateMedicalRecordData) => {
-  try {
-    const { data: record, error } = await supabase
-      .from('medical_records')
-      .insert({
-        patient_id: data.patientId,
-        dentist_id: data.dentistId || null,
-        title: data.title,
-        description: data.description,
-        findings: data.findings,
-        recommendations: data.recommendations,
-        record_type: data.recordType || 'consultation',
-        visit_date: data.visitDate || new Date().toISOString().split('T')[0]
-      })
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error creating medical record:', error);
-      throw error;
-    }
-
-    return record;
-  } catch (error) {
-    console.error('Error in createMedicalRecord:', error);
-    throw error;
+  const { data: record, error } = await saveMedicalRecord(data);
+  if (error || !record) {
+    throw new Error(error || 'Failed to save record');
   }
+  // also persist to localStorage for temporary persistence
+  const stored = JSON.parse(localStorage.getItem('medical_records') || '{}') as Record<string, unknown[]>;
+  const list = (stored[data.patientId] as unknown[] | undefined) || [];
+  list.push(record);
+  stored[data.patientId] = list;
+  localStorage.setItem('medical_records', JSON.stringify(stored));
+  return record;
 };
 
 export const generateMedicalRecordFromChat = async (

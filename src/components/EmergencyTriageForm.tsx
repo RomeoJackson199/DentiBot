@@ -3,6 +3,7 @@ import { StreamlinedTriage } from "@/components/StreamlinedTriage";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { bookAppointment } from "@/lib/mockApi";
 import { 
   CheckCircle, 
   Calendar, 
@@ -30,6 +31,8 @@ export const EmergencyTriageForm = ({ onComplete, onCancel }: EmergencyTriageFor
   const [bookingTime, setBookingTime] = useState("");
   const [urgencyLevel, setUrgencyLevel] = useState<'low' | 'medium' | 'high' | 'emergency'>('medium');
   const [triageData, setTriageData] = useState<TriageData | null>(null);
+  const [confirmationId, setConfirmationId] = useState<string | null>(null);
+  const [bookingError, setBookingError] = useState<string | null>(null);
 
   const handleTriageComplete = (urgency: 'low' | 'medium' | 'high' | 'emergency', data: TriageData) => {
     setUrgencyLevel(urgency);
@@ -41,10 +44,13 @@ export const EmergencyTriageForm = ({ onComplete, onCancel }: EmergencyTriageFor
     setShowBooking(true);
   };
 
-  const handleConfirmBooking = () => {
-    // simply trigger completion; no backend call
-    onComplete(urgencyLevel);
-    setShowBooking(false);
+  const handleConfirmBooking = async () => {
+    const { data, error } = await bookAppointment();
+    if (error || !data) {
+      setBookingError('Failed to book appointment');
+      return;
+    }
+    setConfirmationId(data.confirmationId);
   };
 
   const getUrgencyInfo = () => {
@@ -89,6 +95,21 @@ export const EmergencyTriageForm = ({ onComplete, onCancel }: EmergencyTriageFor
   };
 
   if (showBooking) {
+    if (confirmationId) {
+      return (
+        <Card className="max-w-md mx-auto text-center">
+          <CardHeader>
+            <CardTitle>Appointment Confirmed</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <CheckCircle className="h-12 w-12 text-green-600 mx-auto" />
+            <p>Your confirmation ID is {confirmationId}</p>
+            <Button onClick={() => onComplete(urgencyLevel)}>Done</Button>
+          </CardContent>
+        </Card>
+      );
+    }
+
     return (
       <Card className="max-w-md mx-auto">
         <CardHeader>
@@ -115,6 +136,7 @@ export const EmergencyTriageForm = ({ onComplete, onCancel }: EmergencyTriageFor
               Confirm
             </Button>
           </div>
+          {bookingError && <p className="text-red-600 text-sm">{bookingError}</p>}
         </CardContent>
       </Card>
     );
