@@ -360,7 +360,7 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
         }
       }
 
-      return {
+      const botMessage = {
         id: crypto.randomUUID(),
         session_id: sessionId,
         message: response,
@@ -372,6 +372,9 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
         },
         created_at: new Date().toISOString(),
       };
+
+      console.log('Returning AI response:', botMessage);
+      return botMessage;
 
     } catch (error) {
       console.error('Error calling AI:', error);
@@ -396,6 +399,8 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
 Type your request...`;
       }
 
+      console.log('Returning fallback response:', response);
+
       return {
         id: crypto.randomUUID(),
         session_id: sessionId,
@@ -419,7 +424,10 @@ Type your request...`;
       created_at: new Date().toISOString(),
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    setMessages(prev => {
+      console.log('Adding user message to messages. Current count:', prev.length);
+      return [...prev, userMessage];
+    });
     const currentInput = inputMessage;
     setInputMessage("");
     setIsLoading(true);
@@ -436,11 +444,33 @@ Type your request...`;
 
     // Generate bot response
     setTimeout(async () => {
-      const botResponse = await generateBotResponse(userMessage.message);
-      setMessages(prev => [...prev, botResponse]);
-      await saveMessage(botResponse);
-      
-      setIsLoading(false);
+      try {
+        const botResponse = await generateBotResponse(userMessage.message);
+        console.log('Bot response received:', botResponse);
+        setMessages(prev => {
+          console.log('Adding bot response to messages. Current count:', prev.length);
+          return [...prev, botResponse];
+        });
+        await saveMessage(botResponse);
+      } catch (error) {
+        console.error('Error generating bot response:', error);
+        // Add fallback message
+        const fallbackMessage: ChatMessage = {
+          id: crypto.randomUUID(),
+          session_id: sessionId,
+          message: "I'm sorry, I couldn't process your request. Please try again.",
+          is_bot: true,
+          message_type: "text",
+          created_at: new Date().toISOString(),
+        };
+        setMessages(prev => {
+          console.log('Adding fallback message to messages. Current count:', prev.length);
+          return [...prev, fallbackMessage];
+        });
+        await saveMessage(fallbackMessage);
+      } finally {
+        setIsLoading(false);
+      }
     }, 1000);
   };
 
@@ -678,6 +708,7 @@ Type your request...`;
 
       {/* Messages Area */}
       <ScrollArea className="flex-1 p-4 space-y-4">
+        {console.log('Rendering messages. Count:', messages.length)}
         {messages.map((message) => (
           <div
             key={message.id}
