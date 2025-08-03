@@ -25,6 +25,7 @@ import Analytics from "./pages/Analytics";
 import Support from "./pages/Support";
 import FeatureDetail from "./pages/FeatureDetail";
 import { UnifiedDashboard } from "./components/UnifiedDashboard";
+import { LanguageTest } from "./components/LanguageTest";
 
 // Dashboard component that handles authentication
 const Dashboard = () => {
@@ -99,6 +100,7 @@ const App = () => (
                 <Route path="/analytics" element={<Analytics />} />
                 <Route path="/support" element={<Support />} />
                 <Route path="/features/:id" element={<FeatureDetail />} />
+                <Route path="/language-test" element={<LanguageTest />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
