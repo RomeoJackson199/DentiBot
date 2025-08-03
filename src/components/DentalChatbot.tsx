@@ -233,13 +233,11 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
       const suggestions = data.suggestions || [];
       const aiRecommendedDentist = data.recommended_dentist || null;
 
-      if (aiRecommendedDentist) {
+      if (aiRecommendedDentist && aiRecommendedDentist.length > 0) {
         // Handle both string and array formats for recommended dentists
         setRecommendedDentist(Array.isArray(aiRecommendedDentist) ? aiRecommendedDentist : [aiRecommendedDentist]);
-        // Scroll to dentists section when recommendation is made
-        setTimeout(() => {
-          onScrollToDentists?.();
-        }, 2000);
+        // Don't automatically scroll to dentists - let the conversation flow naturally
+        // The user will be guided to the dentist selection through the chat flow
       }
 
       // Extract consultation reason from AI response
@@ -297,10 +295,7 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
             };
             setMessages(prev => [...prev, questionMessage]);
           }, 1000);
-          // Scroll to dentists section when recommendation is requested
-          setTimeout(() => {
-            onScrollToDentists?.();
-          }, 2000);
+          // Don't automatically scroll - let the conversation flow naturally
         }
       }
 
