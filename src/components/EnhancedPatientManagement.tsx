@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -61,6 +61,7 @@ import {
   NewFollowUpForm,
   DentistProfile
 } from "@/types/dental";
+import { Appointment } from "@/types/common";
 import { 
   Dialog, 
   DialogContent, 
@@ -90,7 +91,7 @@ export function EnhancedPatientManagement({ dentistId }: EnhancedPatientManageme
   const [loading, setLoading] = useState(true);
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [activeView, setActiveView] = useState<'list' | 'profile'>('list');
-  const [appointments, setAppointments] = useState<any[]>([]);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [paymentAmount, setPaymentAmount] = useState("");
   const [paymentDescription, setPaymentDescription] = useState("");
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
@@ -122,7 +123,7 @@ export function EnhancedPatientManagement({ dentistId }: EnhancedPatientManageme
   useEffect(() => {
     fetchPatients();
     fetchDentistProfile();
-  }, [dentistId]);
+  }, [dentistId, fetchPatients, fetchDentistProfile]);
 
   // Clear error when component unmounts or dentistId changes
   useEffect(() => {
@@ -132,9 +133,9 @@ export function EnhancedPatientManagement({ dentistId }: EnhancedPatientManageme
 
   useEffect(() => {
     filterPatients();
-  }, [searchTerm, patients]);
+  }, [filterPatients]);
 
-  const fetchDentistProfile = async () => {
+  const fetchDentistProfile = useCallback(async () => {
     try {
       const { data: profile, error } = await supabase
         .from('profiles')
@@ -156,9 +157,9 @@ export function EnhancedPatientManagement({ dentistId }: EnhancedPatientManageme
     } catch (error) {
       console.error('Error fetching dentist profile:', error);
     }
-  };
+  }, []);
 
-  const fetchPatients = async (retryAttempt = 0) => {
+  const fetchPatients = useCallback(async (retryAttempt = 0) => {
     try {
       setLoading(true);
       setError(null);
@@ -281,7 +282,7 @@ export function EnhancedPatientManagement({ dentistId }: EnhancedPatientManageme
       setLoading(false);
       setIsRetrying(false);
     }
-  };
+  }, [dentistId, toast]);
 
   const fetchPatientData = async (patientId: string, retryAttempt = 0) => {
     try {
@@ -394,18 +395,18 @@ export function EnhancedPatientManagement({ dentistId }: EnhancedPatientManageme
     }
   };
 
-  const filterPatients = () => {
+  const filterPatients = useCallback(() => {
     if (!searchTerm.trim()) {
       setFilteredPatients(patients);
       return;
     }
 
     const filtered = patients.filter(patient =>
-      `${patient.first_name} ${patient.last_name}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      patient.email.toLowerCase().includes(searchTerm.toLowerCase())
+      `${patient.first_name || ''} ${patient.last_name || ''}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (patient.email || '').toLowerCase().includes(searchTerm.toLowerCase())
     );
     setFilteredPatients(filtered);
-  };
+  }, [searchTerm, patients]);
 
   const handlePatientSelect = (patient: Patient) => {
     setSelectedPatient(patient);
@@ -545,7 +546,7 @@ export function EnhancedPatientManagement({ dentistId }: EnhancedPatientManageme
                         <div className="flex items-center space-x-4">
                           <div className="relative">
                             <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-lg">
-                              {patient.first_name.charAt(0)}{patient.last_name.charAt(0)}
+                              {(patient.first_name || '').charAt(0)}{(patient.last_name || '').charAt(0)}
                             </div>
                             {patient.upcoming_appointments > 0 && (
                               <div className="absolute -top-1 -right-1 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
@@ -555,11 +556,11 @@ export function EnhancedPatientManagement({ dentistId }: EnhancedPatientManageme
                           </div>
                           <div className="space-y-1">
                             <h3 className="font-semibold text-lg">
-                              {patient.first_name} {patient.last_name}
+                              {patient.first_name || ''} {patient.last_name || ''}
                             </h3>
                             <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                               <Mail className="h-4 w-4" />
-                              <span>{patient.email}</span>
+                              <span>{patient.email || 'No email'}</span>
                             </div>
                             {patient.phone && (
                               <div className="flex items-center space-x-2 text-sm text-muted-foreground">
@@ -634,7 +635,7 @@ export function EnhancedPatientManagement({ dentistId }: EnhancedPatientManageme
               </Button>
               <div className="relative">
                 <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-xl">
-                  {selectedPatient.first_name.charAt(0)}{selectedPatient.last_name.charAt(0)}
+                  {(selectedPatient.first_name || '').charAt(0)}{(selectedPatient.last_name || '').charAt(0)}
                 </div>
                 {selectedPatient.upcoming_appointments > 0 && (
                   <div className="absolute -top-2 -right-2 w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
@@ -644,12 +645,12 @@ export function EnhancedPatientManagement({ dentistId }: EnhancedPatientManageme
               </div>
               <div className="space-y-2">
                 <h2 className="text-3xl font-bold gradient-text">
-                  {selectedPatient.first_name} {selectedPatient.last_name}
+                  {selectedPatient.first_name || ''} {selectedPatient.last_name || ''}
                 </h2>
                 <div className="flex items-center space-x-4 text-muted-foreground">
                   <div className="flex items-center space-x-2">
                     <Mail className="h-4 w-4" />
-                    <span>{selectedPatient.email}</span>
+                    <span>{selectedPatient.email || 'No email'}</span>
                   </div>
                   {selectedPatient.phone && (
                     <div className="flex items-center space-x-2">
@@ -719,7 +720,7 @@ export function EnhancedPatientManagement({ dentistId }: EnhancedPatientManageme
             patientNotes={patientNotes}
             appointments={appointments}
             dentistId={dentistId}
-            onRefresh={() => fetchPatientData(selectedPatient.id)}
+            onRefresh={() => selectedPatient && fetchPatientData(selectedPatient.id)}
           />
         </TabsContent>
 
@@ -728,7 +729,7 @@ export function EnhancedPatientManagement({ dentistId }: EnhancedPatientManageme
             prescriptions={prescriptions}
             patient={selectedPatient}
             dentistId={dentistId}
-            onRefresh={() => fetchPatientData(selectedPatient.id)}
+            onRefresh={() => selectedPatient && fetchPatientData(selectedPatient.id)}
           />
         </TabsContent>
 
@@ -737,7 +738,7 @@ export function EnhancedPatientManagement({ dentistId }: EnhancedPatientManageme
             treatmentPlans={treatmentPlans}
             patient={selectedPatient}
             dentistId={dentistId}
-            onRefresh={() => fetchPatientData(selectedPatient.id)}
+            onRefresh={() => selectedPatient && fetchPatientData(selectedPatient.id)}
           />
         </TabsContent>
 
@@ -746,7 +747,7 @@ export function EnhancedPatientManagement({ dentistId }: EnhancedPatientManageme
             medicalRecords={medicalRecords}
             patient={selectedPatient}
             dentistId={dentistId}
-            onRefresh={() => fetchPatientData(selectedPatient.id)}
+            onRefresh={() => selectedPatient && fetchPatientData(selectedPatient.id)}
           />
         </TabsContent>
 
@@ -755,7 +756,7 @@ export function EnhancedPatientManagement({ dentistId }: EnhancedPatientManageme
             patientNotes={patientNotes}
             patient={selectedPatient}
             dentistId={dentistId}
-            onRefresh={() => fetchPatientData(selectedPatient.id)}
+            onRefresh={() => selectedPatient && fetchPatientData(selectedPatient.id)}
           />
         </TabsContent>
 
@@ -765,7 +766,7 @@ export function EnhancedPatientManagement({ dentistId }: EnhancedPatientManageme
             followUps={followUps}
             patient={selectedPatient}
             dentistId={dentistId}
-            onRefresh={() => fetchPatientData(selectedPatient.id)}
+            onRefresh={() => selectedPatient && fetchPatientData(selectedPatient.id)}
           />
         </TabsContent>
 
