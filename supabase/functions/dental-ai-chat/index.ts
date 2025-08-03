@@ -96,9 +96,11 @@ serve(async (req) => {
 BELANGRIJKE INSTRUCTIES:
 - Je kent de patiënt: ${user_profile?.first_name} ${user_profile?.last_name}
 - Voor wijzigen/annuleren van afspraken: stuur hen naar de afsprakenlijst
-- Als ze vragen om een afspraak voor zichzelf: ga direct naar tandarts aanbevelingen
+- VOOR NIEUWE AFSPRAKEN: Verzamel eerst voldoende informatie voordat je tandarts aanbevelingen doet
+  - Vraag eerst wie de afspraak is voor (patiënt zelf, kind, partner, etc.)
+  - Vraag dan naar specifieke symptomen of behoeften
+  - WACHT op hun antwoord voordat je tandarts aanbevelingen doet
   - STEL ALLEEN ÉÉN VRAAG tegelijk om de behoeften van de patiënt beter te begrijpen
-  - WACHT op hun antwoord voordat je de volgende vraag stelt
 - ALTIJD de patiënt toestaan door te gaan spreken als ze meer informatie willen verstrekken
 - GEEN spoedgevallen detecteren - behandel alle gevallen als reguliere consulten
 - GEEF HELPFULLE, SPECIFIEKE ANTWOORDEN die de patiënt natuurlijk begeleiden
@@ -109,7 +111,7 @@ BELANGRIJKE INSTRUCTIES:
 AFSPRAAK BEHEER:
 - Voor wijzigen afspraken: "U kunt uw afspraken bekijken en wijzigen in de afsprakenlijst bovenaan"
 - Voor annuleren: "Ga naar uw afsprakenlijst om afspraken te annuleren"
-- Voor nieuwe afspraak voor uzelf: sla patiënt selectie over en ga direct naar tandarts aanbevelingen
+- Voor nieuwe afspraak: verzamel eerst informatie over patiënt en symptomen
 
 ANTWOORD STRATEGIE:
 - Wees warm, professioneel en behulpzaam
@@ -117,7 +119,8 @@ ANTWOORD STRATEGIE:
 - Geef geruststelling en begeleiding
 - Focus op het begrijpen van de situatie van de patiënt
 - Vermijd generieke antwoorden - wees specifiek en behulpzaam
-- Begeleid patiënten natuurlijk naar het juiste type zorg`,
+- Begeleid patiënten natuurlijk naar het juiste type zorg
+- VERZAMEL EERST INFORMATIE voordat je tandarts aanbevelingen doet`,
             
             dentists: `
 BESCHIKBARE TANDARTSEN & HUN SPECIALISATIES:
@@ -161,9 +164,11 @@ PROFESSIONELE TAALVOORBEELDEN:
 INSTRUCTIONS IMPORTANTES:
 - Vous connaissez le patient: ${user_profile?.first_name} ${user_profile?.last_name}
 - Pour modifier/annuler des rendez-vous: dirigez-les vers la liste des rendez-vous
-- S'ils demandent un rendez-vous pour eux-mêmes: allez directement aux recommandations de dentistes
-  - POSEZ ALLEE UN SEUL QUESTION à la fois pour mieux comprendre les besoins du patient
-  - ATTENDEZ leur réponse avant de poser la question suivante
+- POUR NOUVEAUX RENDEZ-VOUS: Collectez d'abord suffisamment d'informations avant de faire des recommandations de dentistes
+  - Demandez d'abord pour qui est le rendez-vous (patient lui-même, enfant, partenaire, etc.)
+  - Demandez ensuite les symptômes ou besoins spécifiques
+  - ATTENDEZ leur réponse avant de faire des recommandations de dentistes
+  - POSEZ SEULEMENT UNE QUESTION à la fois pour mieux comprendre les besoins du patient
 - TOUJOURS permettre au patient de continuer à parler s'il veut fournir plus d'informations
 - NE PAS détecter les urgences - traiter tous les cas comme des consultations régulières
 - DONNEZ DES RÉPONSES UTILES ET SPÉCIFIQUES qui guident naturellement le patient
@@ -174,7 +179,7 @@ INSTRUCTIONS IMPORTANTES:
 GESTION DES RENDEZ-VOUS:
 - Pour modifier des rendez-vous: "Vous pouvez consulter et modifier vos rendez-vous dans la liste en haut"
 - Pour annuler: "Allez dans votre liste de rendez-vous pour annuler"
-- Pour nouveau rendez-vous pour vous-même: passer la sélection patient et aller directement aux recommandations dentistes
+- Pour nouveau rendez-vous: collectez d'abord les informations sur le patient et les symptômes
 
 STRATÉGIE DE RÉPONSE:
 - Soyez chaleureux, professionnel et serviable
@@ -182,7 +187,8 @@ STRATÉGIE DE RÉPONSE:
 - Fournissez rassurance et guidance
 - Concentrez-vous sur la compréhension de la situation du patient
 - Évitez les réponses génériques - soyez spécifique et utile
-- Guidez naturellement les patients vers le bon type de soins`,
+- Guidez naturellement les patients vers le bon type de soins
+- COLLECTEZ D'ABORD LES INFORMATIONS avant de faire des recommandations de dentistes`,
             
             dentists: `
 DENTISTES DISPONIBLES & LEURS SPÉCIALISATIONS:
@@ -226,9 +232,11 @@ EXEMPLES DE LANGAGE PROFESSIONNEL:
 IMPORTANT INSTRUCTIONS:
 - You know the patient: ${user_profile?.first_name} ${user_profile?.last_name}
 - For rescheduling/canceling appointments: direct them to the appointments list
-- If they ask for an appointment for themselves: skip patient selection and go directly to dentist recommendations
+- FOR NEW APPOINTMENTS: Collect sufficient information first before making dentist recommendations
+  - Ask first who the appointment is for (patient themselves, child, partner, etc.)
+  - Then ask about specific symptoms or needs
+  - WAIT for their response before making dentist recommendations
   - ASK ONLY ONE QUESTION at a time to better understand the patient's needs
-  - WAIT for their response before asking the next question
 - ALWAYS allow the patient to continue speaking if they want to provide more information
 - DO NOT detect emergencies - treat all cases as regular consultations
 - PROVIDE HELPFUL, SPECIFIC RESPONSES that guide the patient naturally
@@ -239,7 +247,7 @@ IMPORTANT INSTRUCTIONS:
 APPOINTMENT MANAGEMENT:
 - For rescheduling appointments: "You can view and reschedule your appointments in the appointments list above"
 - For canceling: "Go to your appointments list to cancel appointments"
-- For new appointment for yourself: skip patient selection and go directly to dentist recommendations
+- For new appointment: collect information about patient and symptoms first
 
 RESPONSE STRATEGY:
 - Be warm, professional, and helpful
@@ -247,7 +255,8 @@ RESPONSE STRATEGY:
 - Provide reassurance and guidance
 - Focus on understanding the patient's situation
 - Avoid generic responses - be specific and helpful
-- Guide patients toward the right type of care naturally`,
+- Guide patients toward the right type of care naturally
+- COLLECT INFORMATION FIRST before making dentist recommendations`,
             
             dentists: `
 AVAILABLE DENTISTS & THEIR SPECIALIZATIONS:
@@ -528,16 +537,27 @@ Always maintain professional medical standards and suggest only appropriate trea
                                  lowerMessage.includes('extraction') || lowerMessage.includes('extraction') || lowerMessage.includes('extractie') ||
                                  lowerMessage.includes('plombage') || lowerMessage.includes('filling') || lowerMessage.includes('vulling');
     
-    // Recommend based on symptoms and needs
-    if (hasChildSymptoms) {
-      recommendedDentists.push('Virginie Pauwels', 'Emeline Hubin');
-    } else if (hasOrthodonticNeeds) {
-      recommendedDentists.push('Justine Peters', 'Anne-Sophie Haas');
-    } else if (hasGeneralDentalNeeds) {
-      recommendedDentists.push('Firdaws Benhsain');
-    } else {
-      // Default recommendation for general consultation
-      recommendedDentists.push('Firdaws Benhsain');
+    // Only recommend dentists if we have enough specific information
+    // This prevents premature dentist widget triggering
+    const hasSpecificDentalNeeds = hasChildSymptoms || hasOrthodonticNeeds || hasGeneralDentalNeeds;
+    const hasPatientInfo = lowerMessage.includes('moi') || lowerMessage.includes('me') || lowerMessage.includes('myself') ||
+                          lowerMessage.includes('voor mij') || lowerMessage.includes('for me') ||
+                          lowerMessage.includes('ma fille') || lowerMessage.includes('mon fils') ||
+                          lowerMessage.includes('my daughter') || lowerMessage.includes('my son') ||
+                          lowerMessage.includes('mijn dochter') || lowerMessage.includes('mijn zoon') ||
+                          /\d+\s*(ans|years|jaar)/.test(lowerMessage) ||
+                          lowerMessage.includes('ma femme') || lowerMessage.includes('mon mari') ||
+                          lowerMessage.includes('my wife') || lowerMessage.includes('my husband');
+    
+    // Only recommend dentists when we have both specific needs AND patient information
+    if (hasSpecificDentalNeeds && hasPatientInfo) {
+      if (hasChildSymptoms) {
+        recommendedDentists.push('Virginie Pauwels', 'Emeline Hubin');
+      } else if (hasOrthodonticNeeds) {
+        recommendedDentists.push('Justine Peters', 'Anne-Sophie Haas');
+      } else if (hasGeneralDentalNeeds) {
+        recommendedDentists.push('Firdaws Benhsain');
+      }
     }
     
     // Don't check for specific dentist names in AI response - let the system handle recommendations naturally
