@@ -30,25 +30,26 @@ serve(async (req) => {
       const lowerMessage = message.toLowerCase();
       let fallbackResponse = "I'm here to help you with your dental care. How can I assist you today?";
       let suggestions = [];
+      let recommendedDentist = [];
       
       if (lowerMessage.includes('douleur') || lowerMessage.includes('pain') || lowerMessage.includes('mal aux dents')) {
-        fallbackResponse = "I understand you're experiencing dental pain. I recommend scheduling an appointment with Dr. Firdaws Benhsain who specializes in emergency care and general dentistry.";
-        suggestions = ['booking'];
+        fallbackResponse = "I understand you're experiencing dental pain. Let me help you find the right dentist for your needs. Can you tell me more about the pain - is it sharp, throbbing, or constant?";
+        suggestions = ['recommend-dentist'];
       } else if (lowerMessage.includes('appointment') || lowerMessage.includes('rendez-vous') || lowerMessage.includes('booking')) {
-        fallbackResponse = "I can help you book an appointment. Would you like me to recommend a dentist based on your needs?";
+        fallbackResponse = "I can help you book an appointment. To find the best dentist for you, could you tell me what type of dental care you're looking for?";
         suggestions = ['recommend-dentist'];
       } else if (lowerMessage.includes('dentist') || lowerMessage.includes('dentiste')) {
         fallbackResponse = "I can recommend a dentist based on your specific needs. What type of dental care are you looking for?";
         suggestions = ['recommend-dentist'];
       } else if (lowerMessage.includes('cleaning') || lowerMessage.includes('nettoyage') || lowerMessage.includes('routine')) {
-        fallbackResponse = "For routine cleaning, I recommend Dr. Firdaws Benhsain who provides excellent general dental care.";
-        suggestions = ['booking'];
+        fallbackResponse = "For routine cleaning, I can help you find a dentist who specializes in general dental care. Do you have any specific concerns or preferences?";
+        suggestions = ['recommend-dentist'];
       } else if (lowerMessage.includes('child') || lowerMessage.includes('enfant') || lowerMessage.includes('kid')) {
-        fallbackResponse = "For pediatric care, I recommend Dr. Virginie Pauwels who specializes in children's dentistry.";
-        suggestions = ['booking'];
+        fallbackResponse = "For pediatric care, I can recommend dentists who specialize in children's dentistry. How old is your child and what type of care do they need?";
+        suggestions = ['recommend-dentist'];
       } else if (lowerMessage.includes('braces') || lowerMessage.includes('orthodontie') || lowerMessage.includes('align')) {
-        fallbackResponse = "For orthodontic treatment, I recommend Dr. Justine Peters who specializes in braces and teeth alignment.";
-        suggestions = ['booking'];
+        fallbackResponse = "For orthodontic treatment, I can help you find a specialist. What specific concerns do you have about your teeth alignment?";
+        suggestions = ['recommend-dentist'];
       }
       
       return new Response(JSON.stringify({ 
@@ -56,7 +57,7 @@ serve(async (req) => {
         suggestions,
         urgency_detected: false,
         emergency_detected: false,
-        recommended_dentist: [],
+        recommended_dentist: recommendedDentist,
         consultation_reason: "General consultation"
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -100,7 +101,8 @@ BELANGRIJKE INSTRUCTIES:
   - WACHT op hun antwoord voordat je de volgende vraag stelt
 - ALTIJD de patiënt toestaan door te gaan spreken als ze meer informatie willen verstrekken
 - GEEN spoedgevallen detecteren - behandel alle gevallen als reguliere consulten
-- ALTIJD een specifieke tandarts aanbevelen op basis van hun diensten en behoeften van de patiënt
+- GEEF HELPFULLE, SPECIFIEKE ANTWOORDEN die de patiënt natuurlijk begeleiden
+- NOOIT specifieke tandartsnamen noemen in je antwoorden - laat het systeem aanbevelingen afhandelen
 - NOOIT praten over tijd, datum of beschikbaarheid - focus alleen op symptomen en behoeften
 - Alle afspraken beschikbaar van 9:00 tot 17:00
 
@@ -109,12 +111,13 @@ AFSPRAAK BEHEER:
 - Voor annuleren: "Ga naar uw afsprakenlijst om afspraken te annuleren"
 - Voor nieuwe afspraak voor uzelf: sla patiënt selectie over en ga direct naar tandarts aanbevelingen
 
-VRAGEN STRATEGIE:
-- Stel altijd maar één vraag tegelijk
-- Wacht op het antwoord van de patiënt
-- Gebruik de informatie om de juiste tandarts te vinden
-- Focus op symptomen, pijn, en specifieke behoeften
-- Vermijd vragen over tijd of datum`,
+ANTWOORD STRATEGIE:
+- Wees warm, professioneel en behulpzaam
+- Stel specifieke vragen over symptomen en behoeften
+- Geef geruststelling en begeleiding
+- Focus op het begrijpen van de situatie van de patiënt
+- Vermijd generieke antwoorden - wees specifiek en behulpzaam
+- Begeleid patiënten natuurlijk naar het juiste type zorg`,
             
             dentists: `
 BESCHIKBARE TANDARTSEN & HUN SPECIALISATIES:
@@ -140,12 +143,14 @@ Dr. Anne-Sophie Haas - Orthodontist
   * Het beste voor: Volwassenen die discrete behandeling zoeken, complexe gevallen, professionele uitstraling`,
             
             examples: `
-PROFESSIONELE TAALVOORBEELDEN MET AANBEVELINGEN:
+PROFESSIONELE TAALVOORBEELDEN:
 - "Goedendag ${user_profile?.first_name}! Hoe kan ik u vandaag helpen met uw tandheelkundige zorg?"
-- "Kunt u me iets meer vertellen over uw tandprobleem?"
+- "Ik begrijp dat u [symptoom] ervaart. Kunt u me meer vertellen over wanneer dit begon en hoe het aanvoelt?"
+- "Voor routinereiniging kan ik u helpen een tandarts te vinden die gespecialiseerd is in algemene tandheelkundige zorg. Heeft u specifieke zorgen?"
+- "Voor pediatrische zorg kan ik tandartsen aanbevelen die gespecialiseerd zijn in kindertandheelkunde. Hoe oud is uw kind?"
+- "Voor orthodontische behandeling kan ik u helpen een specialist te vinden. Welke specifieke zorgen heeft u over de uitlijning van uw tanden?"
 - "Voor het wijzigen van afspraken kunt u naar uw afsprakenlijst gaan"
 - "Voor annuleren van afspraken bekijkt u uw afsprakenlijst bovenaan"
-- AANBEVELING: "Op basis van uw behoeften aan [specifieke service], beveel ik Dr. [Naam] aan omdat hij/zij gespecialiseerd is in [gebied] en perfect zou zijn voor uw situatie."
 - "Is er nog iets anders dat u me zou willen vertellen over uw tandheelkundige situatie?"`
           };
           
@@ -161,7 +166,8 @@ INSTRUCTIONS IMPORTANTES:
   - ATTENDEZ leur réponse avant de poser la question suivante
 - TOUJOURS permettre au patient de continuer à parler s'il veut fournir plus d'informations
 - NE PAS détecter les urgences - traiter tous les cas comme des consultations régulières
-- TOUJOURS recommander un dentiste spécifique basé sur leurs services et les besoins du patient
+- DONNEZ DES RÉPONSES UTILES ET SPÉCIFIQUES qui guident naturellement le patient
+- NE JAMAIS mentionner de noms de dentistes spécifiques dans vos réponses - laissez le système gérer les recommandations
 - NE JAMAIS parler de temps, date ou disponibilité - concentrez-vous uniquement sur les symptômes et les besoins
 - Tous les rendez-vous disponibles de 9h00 à 17h00
 
@@ -170,12 +176,13 @@ GESTION DES RENDEZ-VOUS:
 - Pour annuler: "Allez dans votre liste de rendez-vous pour annuler"
 - Pour nouveau rendez-vous pour vous-même: passer la sélection patient et aller directement aux recommandations dentistes
 
-QUESTIONS STRATÉGIQUES:
-- Posez toujours une seule question à la fois
-- Attendez la réponse du patient
-- Utilisez l'information pour trouver le bon dentiste
-- Concentrez-vous sur les symptômes, la douleur et les besoins spécifiques
-- Évitez les questions sur le temps ou la date`,
+STRATÉGIE DE RÉPONSE:
+- Soyez chaleureux, professionnel et serviable
+- Posez des questions spécifiques sur les symptômes et les besoins
+- Fournissez rassurance et guidance
+- Concentrez-vous sur la compréhension de la situation du patient
+- Évitez les réponses génériques - soyez spécifique et utile
+- Guidez naturellement les patients vers le bon type de soins`,
             
             dentists: `
 DENTISTES DISPONIBLES & LEURS SPÉCIALISATIONS:
@@ -201,12 +208,14 @@ Dr. Anne-Sophie Haas - Orthodontiste
   * Idéale pour: Adultes cherchant un traitement discret, cas complexes, besoins d'apparence professionnelle`,
             
             examples: `
-EXEMPLES DE LANGAGE PROFESSIONNEL AVEC RECOMMANDATIONS:
+EXEMPLES DE LANGAGE PROFESSIONNEL:
 - "Bonjour ${user_profile?.first_name}! Comment puis-je vous aider avec vos soins dentaires aujourd'hui?"
-- "Pouvez-vous me parler un peu plus de votre problème dentaire?"
+- "Je comprends que vous ressentez [symptôme]. Pouvez-vous me dire quand cela a commencé et comment cela se manifeste?"
+- "Pour un nettoyage de routine, je peux vous aider à trouver un dentiste qui se spécialise dans les soins dentaires généraux. Avez-vous des préoccupations spécifiques?"
+- "Pour les soins pédiatriques, je peux recommander des dentistes qui se spécialisent dans la dentisterie pour enfants. Quel âge a votre enfant?"
+- "Pour un traitement orthodontique, je peux vous aider à trouver un spécialiste. Quelles préoccupations spécifiques avez-vous concernant l'alignement de vos dents?"
 - "Pour modifier des rendez-vous, consultez votre liste de rendez-vous en haut"
 - "Pour annuler un rendez-vous, allez dans votre liste de rendez-vous"
-- RECOMMANDATION: "Selon vos besoins en [service spécifique], je recommande Dr. [Nom] car il/elle se spécialise en [domaine] et serait parfait(e) pour votre situation."
 - "Y a-t-il autre chose que vous aimeriez me dire concernant votre situation dentaire?"`
           };
           
@@ -222,7 +231,8 @@ IMPORTANT INSTRUCTIONS:
   - WAIT for their response before asking the next question
 - ALWAYS allow the patient to continue speaking if they want to provide more information
 - DO NOT detect emergencies - treat all cases as regular consultations
-- ALWAYS recommend a specific dentist based on their services and the patient's needs
+- PROVIDE HELPFUL, SPECIFIC RESPONSES that guide the patient naturally
+- NEVER mention specific dentist names in your responses - let the system handle recommendations
 - NEVER talk about time, date, or availability - focus only on symptoms and needs
 - All appointments are available from 9:00 AM to 5:00 PM
 
@@ -231,12 +241,13 @@ APPOINTMENT MANAGEMENT:
 - For canceling: "Go to your appointments list to cancel appointments"
 - For new appointment for yourself: skip patient selection and go directly to dentist recommendations
 
-QUESTION STRATEGY:
-- Always ask only one question at a time
-- Wait for the patient's response
-- Use the information to find the right dentist
-- Focus on symptoms, pain, and specific needs
-- Avoid questions about time or date`,
+RESPONSE STRATEGY:
+- Be warm, professional, and helpful
+- Ask specific questions about symptoms and needs
+- Provide reassurance and guidance
+- Focus on understanding the patient's situation
+- Avoid generic responses - be specific and helpful
+- Guide patients toward the right type of care naturally`,
             
             dentists: `
 AVAILABLE DENTISTS & THEIR SPECIALIZATIONS:
@@ -262,12 +273,14 @@ Dr. Anne-Sophie Haas - Orthodontist
   * Best for: Adults seeking discreet treatment, complex cases, professional appearance needs`,
             
             examples: `
-PROFESSIONAL LANGUAGE EXAMPLES WITH RECOMMENDATIONS:
+PROFESSIONAL LANGUAGE EXAMPLES:
 - "Good day ${user_profile?.first_name}! How can I help you with your dental care today?"
-- "Can you tell me more about your dental concern?"
+- "I understand you're experiencing [symptom]. Can you tell me more about when this started and how it feels?"
+- "For routine cleaning, I can help you find a dentist who specializes in general dental care. Do you have any specific concerns?"
+- "For pediatric care, I can recommend dentists who specialize in children's dentistry. How old is your child?"
+- "For orthodontic treatment, I can help you find a specialist. What specific concerns do you have about your teeth alignment?"
 - "To reschedule appointments, check your appointments list above"
 - "To cancel an appointment, go to your appointments list"
-- RECOMMENDATION: "Based on your needs for [specific service], I recommend Dr. [Name] because they specialize in [area] and would be perfect for your situation."
 - "Is there anything else you'd like to tell me about your dental situation?"`
           };
       }
@@ -527,39 +540,30 @@ Always maintain professional medical standards and suggest only appropriate trea
       recommendedDentists.push('Firdaws Benhsain');
     }
     
-    // Also check if AI explicitly mentioned dentists in response
-    if (lowerResponse.includes('virginie pauwels') || lowerResponse.includes('dr. virginie')) {
-      if (!recommendedDentists.includes('Virginie Pauwels')) recommendedDentists.push('Virginie Pauwels');
-    }
-    if (lowerResponse.includes('emeline hubin') || lowerResponse.includes('dr. emeline')) {
-      if (!recommendedDentists.includes('Emeline Hubin')) recommendedDentists.push('Emeline Hubin');
-    }
-    if (lowerResponse.includes('firdaws benhsain') || lowerResponse.includes('dr. firdaws')) {
-      if (!recommendedDentists.includes('Firdaws Benhsain')) recommendedDentists.push('Firdaws Benhsain');
-    }
-    if (lowerResponse.includes('justine peters') || lowerResponse.includes('dr. justine')) {
-      if (!recommendedDentists.includes('Justine Peters')) recommendedDentists.push('Justine Peters');
-    }
-    if (lowerResponse.includes('anne-sophie haas') || lowerResponse.includes('dr. anne-sophie')) {
-      if (!recommendedDentists.includes('Anne-Sophie Haas')) recommendedDentists.push('Anne-Sophie Haas');
-    }
+    // Don't check for specific dentist names in AI response - let the system handle recommendations naturally
+    // This prevents the AI from mentioning specific dentists in responses
     
     // Remove duplicates and limit to maximum 2 recommendations
+    // For now, don't return specific dentist names - let the frontend handle recommendations
     const uniqueDentists = [...new Set(recommendedDentists)];
-    const recommendedDentist = uniqueDentists.slice(0, 2);
+    const recommendedDentist = []; // Empty array to let frontend handle recommendations naturally
     
     // Detect patient selection responses (when bot asked who the appointment is for)
     if (lowerMessage.includes('moi') || lowerMessage.includes('me') || 
         lowerMessage.includes('myself') || lowerMessage.includes('voor mij') ||
         lowerMessage.includes('for me')) {
-      suggestions.push('skip-patient-selection');
+      if (!suggestions.includes('skip-patient-selection')) {
+        suggestions.push('skip-patient-selection');
+      }
     } else if (lowerMessage.includes('ma fille') || lowerMessage.includes('mon fils') ||
                lowerMessage.includes('my daughter') || lowerMessage.includes('my son') ||
                lowerMessage.includes('mijn dochter') || lowerMessage.includes('mijn zoon') ||
                /\d+\s*(ans|years|jaar)/.test(lowerMessage) ||
                lowerMessage.includes('ma femme') || lowerMessage.includes('mon mari') ||
                lowerMessage.includes('my wife') || lowerMessage.includes('my husband')) {
-      suggestions.push('skip-patient-selection');
+      if (!suggestions.includes('skip-patient-selection')) {
+        suggestions.push('skip-patient-selection');
+      }
     }
 
     // Suggest recommend-dentist for recommendations instead of direct booking
@@ -567,11 +571,13 @@ Always maintain professional medical standards and suggest only appropriate trea
       suggestions.push('recommend-dentist');
     } else if (recommendedDentist.length > 0 && suggestions.includes('skip-patient-selection')) {
       // If we have both a recommendation and patient info, go directly to dentist selection
-      suggestions.push('skip-patient-selection');
+      // Don't add duplicate skip-patient-selection
     } else if (lowerResponse.includes('dentist') ||
         lowerResponse.includes('appointment') || lowerResponse.includes('booking') ||
         lowerResponse.includes('rendez-vous')) {
-      suggestions.push('booking');
+      if (!suggestions.includes('booking')) {
+        suggestions.push('booking');
+      }
     }
 
     // Detect language change requests
@@ -605,7 +611,7 @@ Always maintain professional medical standards and suggest only appropriate trea
       suggestions,
       urgency_detected,
       emergency_detected,
-      recommended_dentist: recommendedDentist,
+      recommended_dentist: [], // Always empty to prevent direct dentist widget display
       consultation_reason: consultationReason
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
