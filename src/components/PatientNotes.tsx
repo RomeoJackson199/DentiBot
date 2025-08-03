@@ -46,7 +46,7 @@ export function PatientNotes({ patientId, dentistId }: PatientNotesProps) {
       setLoading(true);
       
       const { data, error } = await supabase
-        .from('notes')
+        .from('patient_notes')
         .select('*')
         .eq('patient_id', patientId)
         .order('created_at', { ascending: false });
@@ -69,11 +69,13 @@ export function PatientNotes({ patientId, dentistId }: PatientNotesProps) {
 
     try {
       const { data, error } = await supabase
-        .from('notes')
+        .from('patient_notes')
         .insert({
           patient_id: patientId,
           dentist_id: dentistId,
-          content: newNote.trim()
+          title: 'Clinical Note',
+          content: newNote.trim(),
+          note_type: 'clinical'
         })
         .select()
         .single();
@@ -107,7 +109,7 @@ export function PatientNotes({ patientId, dentistId }: PatientNotesProps) {
 
     try {
       const { error } = await supabase
-        .from('notes')
+        .from('patient_notes')
         .update({ content: editContent.trim() })
         .eq('id', noteId);
 
@@ -142,7 +144,7 @@ export function PatientNotes({ patientId, dentistId }: PatientNotesProps) {
 
     try {
       const { error } = await supabase
-        .from('notes')
+        .from('patient_notes')
         .delete()
         .eq('id', noteId);
 

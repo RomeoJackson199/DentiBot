@@ -23,7 +23,7 @@ export function PrescriptionManager({ appointmentId, patientId, dentistId }: Pre
     medication_name: '',
     dosage: '',
     frequency: '',
-    duration_days: '',
+    duration: '',
     instructions: ''
   });
   const { toast } = useToast();
@@ -51,7 +51,7 @@ export function PrescriptionManager({ appointmentId, patientId, dentistId }: Pre
           medication_name: formData.medication_name,
           dosage: formData.dosage,
           frequency: formData.frequency,
-          duration_days: formData.duration_days ? parseInt(formData.duration_days) : null,
+          duration: formData.duration,
           instructions: formData.instructions,
           prescribed_date: new Date().toISOString().split('T')[0],
           status: 'active'
@@ -69,7 +69,7 @@ export function PrescriptionManager({ appointmentId, patientId, dentistId }: Pre
         medication_name: '',
         dosage: '',
         frequency: '',
-        duration_days: '',
+        duration: '',
         instructions: ''
       });
     } catch (error: unknown) {
@@ -140,13 +140,12 @@ export function PrescriptionManager({ appointmentId, patientId, dentistId }: Pre
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="duration_days">Duration (days)</Label>
+            <Label htmlFor="duration">Duration</Label>
             <Input
-              id="duration_days"
-              type="number"
-              placeholder="e.g., 7"
-              value={formData.duration_days}
-              onChange={(e) => setFormData(prev => ({ ...prev, duration_days: e.target.value }))}
+              id="duration"
+              placeholder="e.g., 7 days"
+              value={formData.duration}
+              onChange={(e) => setFormData(prev => ({ ...prev, duration: e.target.value }))}
             />
           </div>
 
