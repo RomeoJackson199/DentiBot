@@ -107,7 +107,10 @@ export const Settings = ({ user }: SettingsProps) => {
   const handleSaveProfile = async () => {
     setLoading(true);
     try {
-      await saveProfileData(user, profile);
+      console.log('Attempting to save profile data:', profile);
+      
+      const result = await saveProfileData(user, profile);
+      console.log('Profile save result:', result);
 
       toast({
         title: "Success",
@@ -118,9 +121,22 @@ export const Settings = ({ user }: SettingsProps) => {
       fetchProfile();
     } catch (error) {
       console.error('Profile save error:', error);
+      
+      // Provide more specific error messages
+      let errorMessage = 'Unknown error occurred';
+      if (error instanceof Error) {
+        if (error.message.includes('RLS')) {
+          errorMessage = 'Authentication error. Please try logging in again.';
+        } else if (error.message.includes('network')) {
+          errorMessage = 'Network error. Please check your connection.';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
       toast({
         title: "Error",
-        description: `Failed to save personal information: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        description: `Failed to save personal information: ${errorMessage}`,
         variant: "destructive",
       });
     } finally {

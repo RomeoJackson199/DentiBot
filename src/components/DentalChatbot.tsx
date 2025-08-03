@@ -205,6 +205,8 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
 
   const generateBotResponse = async (userMessage: string): Promise<ChatMessage> => {
     try {
+      console.log('Generating AI response for:', userMessage);
+      
       // Call the AI edge function
       const { data, error } = await supabase.functions.invoke('dental-ai-chat', {
         body: {
@@ -220,7 +222,12 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('AI function error:', error);
+        throw error;
+      }
+
+      console.log('AI function response:', data);
 
       const response = data.response || "I'm sorry, I couldn't process your request.";
       const suggestions = data.suggestions || [];
