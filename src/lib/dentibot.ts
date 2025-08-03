@@ -146,3 +146,40 @@ export function updateDentistProfile(
   return { ...profile, ...updates };
 }
 
+// --- New utility helpers for front-end features ---
+
+// Calculate average rating for a dentist
+export function getAverageRating(reviews: Review[], dentistId: string): number {
+  const relevant = reviews.filter(r => r.dentistId === dentistId);
+  if (relevant.length === 0) return 0;
+  const sum = relevant.reduce((acc, r) => acc + r.rating, 0);
+  return sum / relevant.length;
+}
+
+// Retrieve favorites for a patient
+export function getFavoritesForPatient(favorites: Favorite[], patientId: string): Favorite[] {
+  return favorites.filter(f => f.patientId === patientId);
+}
+
+// List family members for a patient
+export function getFamilyMembers(members: FamilyMember[], patientId: string): FamilyMember[] {
+  return members.filter(m => m.patientId === patientId);
+}
+
+// Convert a waitlist entry into an appointment
+export function convertWaitlistToAppointment(
+  waitlist: WaitlistEntry[],
+  appointments: Appointment[],
+  entryId: string,
+  appointment: Appointment,
+): { updatedWaitlist: WaitlistEntry[]; updatedAppointments: Appointment[] } {
+  const updatedWaitlist = waitlist.filter(e => e.waitlistId !== entryId);
+  const updatedAppointments = [...appointments, appointment];
+  return { updatedWaitlist, updatedAppointments };
+}
+
+// Utility to check if a list is empty – useful for rendering empty states
+export function isEmpty<T>(items: T[]): boolean {
+  return items.length === 0;
+}
+
