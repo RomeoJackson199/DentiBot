@@ -2,14 +2,15 @@ import { useState, useEffect } from "react";
 import { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { InteractiveDentalChat } from "@/components/chat/InteractiveDentalChat";
-import MockAppointmentsList from "@/components/MockAppointmentsList";
 import { Settings } from "@/components/Settings";
+import RealAppointmentsList from "@/components/RealAppointmentsList";
 import { EnhancedPatientDossier } from "@/components/enhanced/EnhancedPatientDossier";
 import { EmergencyTriageForm } from "@/components/EmergencyTriageForm";
 import { PatientAnalytics } from "@/components/analytics/PatientAnalytics";
 import { useLanguage } from "@/hooks/useLanguage";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { 
   MessageSquare, 
   Calendar, 
@@ -21,15 +22,49 @@ import {
   User as UserIcon,
   Shield,
   Heart,
-  Bell
+  Bell,
+  FileText,
+  Pill,
+  Target,
+  TrendingUp,
+  CheckCircle,
+  XCircle,
+  Loader2
 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { handleDatabaseError, showErrorToast, retryOperation } from "@/lib/errorHandling";
 
 interface PatientDashboardProps {
   user: User;
 }
 
+interface PatientStats {
+  upcomingAppointments: number;
+  completedAppointments: number;
+  healthScore: number;
+  lastVisit: string | null;
+  totalNotes: number;
+  activeTreatmentPlans: number;
+  totalPrescriptions: number;
+}
+
+interface Appointment {
+  id: string;
+  appointment_date: string;
+  status: string;
+  reason: string;
+  urgency: string;
+  dentist: {
+    profile: {
+      first_name: string;
+      last_name: string;
+    };
+  };
+}
+
 export const PatientDashboard = ({ user }: PatientDashboardProps) => {
   const { t } = useLanguage();
+  const { toast } = useToast();
   type Tab = 'chat' | 'appointments' | 'dossier' | 'analytics' | 'emergency';
   const [activeTab, setActiveTab] = useState<Tab>(() => {
     try {
@@ -42,10 +77,19 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [userProfile, setUserProfile] = useState<any>(null);
+  const [patientStats, setPatientStats] = useState<PatientStats>({
+    upcomingAppointments: 0,
+    completedAppointments: 0,
+    healthScore: 85,
+    lastVisit: null,
+    totalNotes: 0,
+    activeTreatmentPlans: 0,
+    totalPrescriptions: 0
+  });
+  const [recentAppointments, setRecentAppointments] = useState<Appointment[]>([]);
 
   const handleEmergencyComplete = (urgency: 'low' | 'medium' | 'high' | 'emergency') => {
     setActiveTab('chat');
-    // Trigger emergency booking with urgency level and pass urgency data
     setTriggerBooking(urgency);
   };
 
@@ -66,20 +110,164 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
     setLoading(true);
     setError(null);
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
+      const { data, error } = await retryOperation(async () => {
+        const result = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('user_id', user.id)
+          .single();
+        
+        if (result.error) throw result.error;
+        return result;
+      });
 
-      if (error) throw error;
       setUserProfile(data);
+      
+      // Fetch patient statistics
+      await fetchPatientStats(data.id);
+      await fetchRecentAppointments(data.id);
     } catch (err: any) {
-      console.error('Error fetching user profile:', err);
-      setError('Failed to load user profile');
+      const errorInfo = handleDatabaseError(err, 'fetchUserProfile');
+      setError(errorInfo.userFriendly);
+      showErrorToast(errorInfo, 'Profile Loading');
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchPatientStats = async (profileId: string) => {
+    try {
+      // Get appointments
+      const { data: appointments } = await retryOperation(async () => {
+        const result = await supabase
+          .from('appointments')
+          .select('*')
+          .eq('patient_id', profileId)
+          .order('appointment_date', { ascending: false });
+        
+        if (result.error) throw result.error;
+        return result;
+      });
+
+      // Get notes
+      const { data: notes } = await retryOperation(async () => {
+        const result = await supabase
+          .from('patient_notes')
+          .select('*')
+          .eq('patient_id', profileId);
+        
+        if (result.error) throw result.error;
+        return result;
+      });
+
+      // Get treatment plans
+      const { data: treatmentPlans } = await retryOperation(async () => {
+        const result = await supabase
+          .from('treatment_plans')
+          .select('*')
+          .eq('patient_id', profileId)
+          .eq('status', 'active');
+        
+        if (result.error) throw result.error;
+        return result;
+      });
+
+      // Get prescriptions
+      const { data: prescriptions } = await retryOperation(async () => {
+        const result = await supabase
+          .from('prescriptions')
+          .select('*')
+          .eq('patient_id', profileId)
+          .eq('status', 'active');
+        
+        if (result.error) throw result.error;
+        return result;
+      });
+
+      // Calculate stats
+      const now = new Date();
+      const upcoming = appointments?.filter(apt => 
+        new Date(apt.appointment_date) >= now && apt.status !== 'cancelled'
+      ).length || 0;
+
+      const completed = appointments?.filter(apt => 
+        apt.status === 'completed'
+      ).length || 0;
+
+      const lastVisit = appointments?.find(apt => 
+        apt.status === 'completed'
+      )?.appointment_date || null;
+
+      // Calculate health score based on various factors
+      const healthScore = calculateHealthScore(appointments, notes, treatmentPlans);
+
+      setPatientStats({
+        upcomingAppointments: upcoming,
+        completedAppointments: completed,
+        healthScore,
+        lastVisit,
+        totalNotes: notes?.length || 0,
+        activeTreatmentPlans: treatmentPlans?.length || 0,
+        totalPrescriptions: prescriptions?.length || 0
+      });
+    } catch (error) {
+      const errorInfo = handleDatabaseError(error, 'fetchPatientStats');
+      showErrorToast(errorInfo, 'Statistics Loading');
+    }
+  };
+
+  const fetchRecentAppointments = async (profileId: string) => {
+    try {
+      const { data: appointments } = await retryOperation(async () => {
+        const result = await supabase
+          .from('appointments')
+          .select(`
+            id,
+            appointment_date,
+            status,
+            reason,
+            urgency,
+            dentist:dentists(
+              profile:profiles(first_name, last_name)
+            )
+          `)
+          .eq('patient_id', profileId)
+          .order('appointment_date', { ascending: false })
+          .limit(5);
+        
+        if (result.error) throw result.error;
+        return result;
+      });
+
+      setRecentAppointments(appointments || []);
+    } catch (error) {
+      const errorInfo = handleDatabaseError(error, 'fetchRecentAppointments');
+      showErrorToast(errorInfo, 'Appointments Loading');
+    }
+  };
+
+  const calculateHealthScore = (appointments: any[], notes: any[], treatmentPlans: any[]) => {
+    let score = 85; // Base score
+    
+    // Factor in appointment regularity
+    const completedAppointments = appointments?.filter(apt => apt.status === 'completed').length || 0;
+    if (completedAppointments >= 3) score += 10;
+    else if (completedAppointments >= 1) score += 5;
+    
+    // Factor in active treatment plans (negative impact)
+    const activePlans = treatmentPlans?.length || 0;
+    score -= activePlans * 5;
+    
+    // Factor in recent notes (positive impact)
+    const recentNotes = notes?.filter(note => {
+      const noteDate = new Date(note.created_at);
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      return noteDate >= thirtyDaysAgo;
+    }).length || 0;
+    score += recentNotes * 2;
+    
+    return Math.max(0, Math.min(100, score));
   };
 
   const getWelcomeMessage = () => {
@@ -98,24 +286,32 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
     return `${greeting}, ${firstName}!`;
   };
 
-  const getQuickStats = () => {
-    // Mock data - in real app, this would come from the database
-    return {
-      upcomingAppointments: 2,
-      completedAppointments: 15,
-      healthScore: 85,
-      lastVisit: "2 weeks ago"
-    };
+  const getHealthScoreColor = (score: number) => {
+    if (score >= 80) return "text-green-600";
+    if (score >= 60) return "text-yellow-600";
+    return "text-red-600";
   };
 
-  const stats = getQuickStats();
+  const getHealthScoreIcon = (score: number) => {
+    if (score >= 80) return <CheckCircle className="h-6 w-6 text-green-500" />;
+    if (score >= 60) return <AlertTriangle className="h-6 w-6 text-yellow-500" />;
+    return <XCircle className="h-6 w-6 text-red-500" />;
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
 
   if (loading) {
     return (
       <div className="min-h-screen mesh-bg flex items-center justify-center">
         <Card className="glass-card animate-fade-in">
           <CardContent className="p-8 text-center space-y-4">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-dental-primary mx-auto"></div>
+            <Loader2 className="h-8 w-8 animate-spin border-b-2 border-dental-primary mx-auto" />
             <h3 className="text-lg font-semibold">Loading Dashboard</h3>
             <p className="text-dental-muted-foreground">Preparing your personalized experience...</p>
           </CardContent>
@@ -143,7 +339,7 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
 
   return (
     <>
-      {/* Header */}
+      {/* Enhanced Header */}
       <header className="glass-card sticky top-0 z-50 border-0 border-b border-border/20">
         <div className="container mx-auto px-4 py-4 sm:py-6 flex items-center justify-between">
           <div className="flex items-center space-x-3 sm:space-x-4">
@@ -166,7 +362,7 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
       </header>
 
       <main className="container mx-auto px-2 sm:px-4 py-4 sm:py-6 lg:py-10">
-        {/* Welcome Section */}
+        {/* Enhanced Welcome Section */}
         <div className="mb-6">
           <Card className="glass-card border-0">
             <CardContent className="p-6">
@@ -190,34 +386,63 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
           </Card>
         </div>
 
-        {/* Quick Stats */}
+        {/* Enhanced Quick Stats */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
-          <Card className="glass-card border-0">
+          <Card className="glass-card border-0 hover:shadow-lg transition-shadow">
             <CardContent className="p-4 text-center">
               <Calendar className="h-6 w-6 text-blue-500 mx-auto mb-2" />
-              <p className="text-2xl font-bold">{stats.upcomingAppointments}</p>
+              <p className="text-2xl font-bold">{patientStats.upcomingAppointments}</p>
               <p className="text-xs text-dental-muted-foreground">Upcoming</p>
             </CardContent>
           </Card>
-          <Card className="glass-card border-0">
+          <Card className="glass-card border-0 hover:shadow-lg transition-shadow">
             <CardContent className="p-4 text-center">
               <Activity className="h-6 w-6 text-green-500 mx-auto mb-2" />
-              <p className="text-2xl font-bold">{stats.completedAppointments}</p>
+              <p className="text-2xl font-bold">{patientStats.completedAppointments}</p>
               <p className="text-xs text-dental-muted-foreground">Completed</p>
             </CardContent>
           </Card>
-          <Card className="glass-card border-0">
+          <Card className="glass-card border-0 hover:shadow-lg transition-shadow">
             <CardContent className="p-4 text-center">
-              <Heart className="h-6 w-6 text-red-500 mx-auto mb-2" />
-              <p className="text-2xl font-bold">{stats.healthScore}%</p>
+              {getHealthScoreIcon(patientStats.healthScore)}
+              <p className={`text-2xl font-bold ${getHealthScoreColor(patientStats.healthScore)}`}>
+                {patientStats.healthScore}%
+              </p>
               <p className="text-xs text-dental-muted-foreground">Health Score</p>
             </CardContent>
           </Card>
-          <Card className="glass-card border-0">
+          <Card className="glass-card border-0 hover:shadow-lg transition-shadow">
             <CardContent className="p-4 text-center">
               <Clock className="h-6 w-6 text-orange-500 mx-auto mb-2" />
-              <p className="text-sm font-bold">{stats.lastVisit}</p>
+              <p className="text-sm font-bold">
+                {patientStats.lastVisit ? formatDate(patientStats.lastVisit) : 'Never'}
+              </p>
               <p className="text-xs text-dental-muted-foreground">Last Visit</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Additional Stats Row */}
+        <div className="grid grid-cols-3 gap-4 mb-6">
+          <Card className="glass-card border-0 hover:shadow-lg transition-shadow">
+            <CardContent className="p-4 text-center">
+              <FileText className="h-5 w-5 text-purple-500 mx-auto mb-2" />
+              <p className="text-lg font-bold">{patientStats.totalNotes}</p>
+              <p className="text-xs text-dental-muted-foreground">Medical Notes</p>
+            </CardContent>
+          </Card>
+          <Card className="glass-card border-0 hover:shadow-lg transition-shadow">
+            <CardContent className="p-4 text-center">
+              <Target className="h-5 w-5 text-indigo-500 mx-auto mb-2" />
+              <p className="text-lg font-bold">{patientStats.activeTreatmentPlans}</p>
+              <p className="text-xs text-dental-muted-foreground">Active Plans</p>
+            </CardContent>
+          </Card>
+          <Card className="glass-card border-0 hover:shadow-lg transition-shadow">
+            <CardContent className="p-4 text-center">
+              <Pill className="h-5 w-5 text-pink-500 mx-auto mb-2" />
+              <p className="text-lg font-bold">{patientStats.totalPrescriptions}</p>
+              <p className="text-xs text-dental-muted-foreground">Prescriptions</p>
             </CardContent>
           </Card>
         </div>
@@ -234,7 +459,44 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
           </Button>
         </div>
 
-        {/* Tab Navigation */}
+        {/* Recent Appointments Preview */}
+        {recentAppointments.length > 0 && (
+          <div className="mb-6">
+            <Card className="glass-card border-0">
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Calendar className="h-5 w-5" />
+                  <span>Recent Appointments</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {recentAppointments.slice(0, 3).map((apt) => (
+                    <div key={apt.id} className="flex items-center justify-between p-3 bg-white/50 rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                        <div>
+                          <p className="font-medium">{apt.reason}</p>
+                          <p className="text-sm text-dental-muted-foreground">
+                            Dr. {apt.dentist.profile.first_name} {apt.dentist.profile.last_name}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-medium">{formatDate(apt.appointment_date)}</p>
+                        <Badge variant={apt.status === 'confirmed' ? 'default' : 'secondary'}>
+                          {apt.status}
+                        </Badge>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Enhanced Tab Navigation */}
         <div className="flex justify-center mb-6 sm:mb-8">
           <div className="glass-card rounded-2xl p-2 sm:p-3 animate-fade-in w-full max-w-4xl">
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-1 sm:gap-2">
@@ -319,7 +581,10 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
           )}
           
           {activeTab === 'appointments' && (
-            <MockAppointmentsList user={user} />
+            <RealAppointmentsList 
+              user={user} 
+              onBookNew={() => setActiveTab('chat')}
+            />
           )}
           
           {activeTab === 'dossier' && (
