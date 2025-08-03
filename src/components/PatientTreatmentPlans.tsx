@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,7 +31,7 @@ interface TreatmentPlan {
   estimated_cost?: number;
   start_date?: string;
   end_date?: string;
-  treatment_steps?: any;
+  treatment_steps?: unknown;
   notes?: string;
   created_at: string;
   updated_at: string;
@@ -62,9 +62,9 @@ export function PatientTreatmentPlans({ patientId, dentistId }: PatientTreatment
 
   useEffect(() => {
     fetchTreatmentPlans();
-  }, [patientId, dentistId]);
+  }, [patientId, dentistId, fetchTreatmentPlans]);
 
-  const fetchTreatmentPlans = async () => {
+  const fetchTreatmentPlans = useCallback(async () => {
     try {
       setLoading(true);
       
@@ -86,7 +86,7 @@ export function PatientTreatmentPlans({ patientId, dentistId }: PatientTreatment
     } finally {
       setLoading(false);
     }
-  };
+  }, [patientId, dentistId, toast]);
 
   const handleAddTreatmentPlan = async () => {
     if (!newPlan.title.trim()) {

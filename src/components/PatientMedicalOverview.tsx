@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -21,6 +21,7 @@ import {
   Target
 } from "lucide-react";
 import { format } from "date-fns";
+import type { User } from "@/types/common";
 
 interface TreatmentPlan {
   id: string;
@@ -92,7 +93,7 @@ interface MedicalRecord {
 
 interface PatientMedicalOverviewProps {
   patientId: string;
-  user: any;
+  user: User;
 }
 
 export function PatientMedicalOverview({ patientId, user }: PatientMedicalOverviewProps) {
@@ -105,9 +106,9 @@ export function PatientMedicalOverview({ patientId, user }: PatientMedicalOvervi
 
   useEffect(() => {
     fetchPatientData();
-  }, [patientId]);
+  }, [patientId, fetchPatientData]);
 
-  const fetchPatientData = async () => {
+  const fetchPatientData = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -180,7 +181,7 @@ export function PatientMedicalOverview({ patientId, user }: PatientMedicalOvervi
     } finally {
       setLoading(false);
     }
-  };
+  }, [patientId, toast]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
