@@ -9,6 +9,7 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useTheme } from "next-themes";
+import { Switch } from "@/components/ui/switch";
 import { 
   Dialog, 
   DialogContent, 
@@ -38,6 +39,7 @@ interface UserProfile {
   medical_history: string;
   address: string;
   emergency_contact: string;
+  ai_opt_out: boolean;
 }
 
 type TabType = 'general' | 'theme' | 'personal';
@@ -54,7 +56,8 @@ export const Settings = ({ user }: SettingsProps) => {
     date_of_birth: '',
     medical_history: '',
     address: '',
-    emergency_contact: ''
+    emergency_contact: '',
+    ai_opt_out: false
   });
   const [loading, setLoading] = useState(false);
   const [hasIncompleteProfile, setHasIncompleteProfile] = useState(false);
@@ -67,7 +70,7 @@ export const Settings = ({ user }: SettingsProps) => {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('first_name, last_name, phone, date_of_birth, medical_history, address, emergency_contact')
+        .select('first_name, last_name, phone, date_of_birth, medical_history, address, emergency_contact, ai_opt_out')
         .eq('user_id', user.id)
         .single();
 
@@ -79,7 +82,8 @@ export const Settings = ({ user }: SettingsProps) => {
           date_of_birth: data.date_of_birth || '',
           medical_history: data.medical_history || '',
           address: data.address || '',
-          emergency_contact: data.emergency_contact || ''
+          emergency_contact: data.emergency_contact || '',
+          ai_opt_out: data.ai_opt_out || false
         };
         setProfile(profileData);
         
@@ -120,7 +124,8 @@ export const Settings = ({ user }: SettingsProps) => {
           date_of_birth: profile.date_of_birth || null,
           medical_history: profile.medical_history,
           address: profile.address,
-          emergency_contact: profile.emergency_contact
+          emergency_contact: profile.emergency_contact,
+          ai_opt_out: profile.ai_opt_out
         })
         .eq('user_id', user.id);
 
@@ -229,6 +234,22 @@ export const Settings = ({ user }: SettingsProps) => {
                 <h3 className="text-lg font-semibold text-foreground mb-4">Preferred Language</h3>
                 <div className="bg-muted/30 rounded-xl p-4">
                   <LanguageSettings />
+                </div>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-foreground mb-4">AI Features</h3>
+                <div className="flex items-center justify-between bg-muted/30 rounded-xl p-4">
+                  <span>Disable AI features in my account</span>
+                  <Switch
+                    checked={profile.ai_opt_out}
+                    onCheckedChange={async (checked) => {
+                      setProfile(prev => ({ ...prev, ai_opt_out: checked }));
+                      await supabase
+                        .from('profiles')
+                        .update({ ai_opt_out: checked })
+                        .eq('user_id', user.id);
+                    }}
+                  />
                 </div>
               </div>
             </div>
