@@ -7,6 +7,11 @@ import {
   toggleFavorite,
   addWaitlistEntry,
   getDentistWaitlist,
+  getAverageRating,
+  convertWaitlistToAppointment,
+  getFavoritesForPatient,
+  getFamilyMembers,
+  isEmpty,
   shouldShowAiPrompt,
   handleAiPromptResponse,
   updateDentistProfile,
@@ -35,6 +40,15 @@ describe('review system', () => {
     expect(afterFirst).toHaveLength(1);
     expect(() => submitReview(afterFirst, review)).toThrow();
   });
+
+  it('calculates average rating for a dentist', () => {
+    const reviews: Review[] = [
+      { reviewId: '1', patientId: 'p1', dentistId: 'd1', appointmentId: 'a1', rating: 4, createdAt: new Date() },
+      { reviewId: '2', patientId: 'p2', dentistId: 'd1', appointmentId: 'a2', rating: 5, createdAt: new Date() },
+    ];
+    expect(getAverageRating(reviews, 'd1')).toBe(4.5);
+    expect(getAverageRating(reviews, 'd2')).toBe(0);
+  });
 });
 
 describe('dentist filtering', () => {
@@ -60,6 +74,15 @@ describe('family member booking', () => {
     const booked = bookAppointment(appointments, appointment);
     expect(booked[0].familyMemberId).toBe('f1');
   });
+
+  it('lists family members for a patient and handles empty state', () => {
+    const members: FamilyMember[] = [
+      { id: 'f1', patientId: 'p1', name: 'Kid', dob: '2015-01-01' },
+      { id: 'f2', patientId: 'p2', name: 'Parent', dob: '1980-05-05' },
+    ];
+    expect(getFamilyMembers(members, 'p1')).toHaveLength(1);
+    expect(isEmpty(getFamilyMembers(members, 'p3'))).toBe(true);
+  });
 });
 
 describe('favorites', () => {
@@ -69,6 +92,15 @@ describe('favorites', () => {
     expect(favorites).toContainEqual({ patientId: 'p1', dentistId: 'd1' });
     favorites = toggleFavorite(favorites, 'p1', 'd1');
     expect(favorites).toHaveLength(0);
+  });
+
+  it('retrieves favorites for a patient and supports empty state', () => {
+    const favorites: Favorite[] = [
+      { patientId: 'p1', dentistId: 'd1' },
+      { patientId: 'p2', dentistId: 'd2' },
+    ];
+    expect(getFavoritesForPatient(favorites, 'p1')).toHaveLength(1);
+    expect(isEmpty(getFavoritesForPatient(favorites, 'p3'))).toBe(true);
   });
 });
 
@@ -80,6 +112,23 @@ describe('waitlist', () => {
     const dentistEntries = getDentistWaitlist(updated, 'd1');
     expect(dentistEntries).toHaveLength(1);
     expect(dentistEntries[0].waitlistId).toBe('w1');
+  });
+
+  it('converts waitlist entry into appointment', () => {
+    const waitlist: WaitlistEntry[] = [
+      { waitlistId: 'w1', patientId: 'p1', dentistId: 'd1', preferredTime: 'AM', createdAt: new Date() },
+    ];
+    const appointments: Appointment[] = [];
+    const appointment: Appointment = {
+      id: 'a1',
+      patientId: 'p1',
+      dentistId: 'd1',
+      status: 'upcoming',
+    };
+    const { updatedWaitlist, updatedAppointments } = convertWaitlistToAppointment(waitlist, appointments, 'w1', appointment);
+    expect(updatedWaitlist).toHaveLength(0);
+    expect(updatedAppointments).toHaveLength(1);
+    expect(updatedAppointments[0].id).toBe('a1');
   });
 });
 
