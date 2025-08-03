@@ -47,9 +47,10 @@ interface AppointmentWithSummary {
 
 interface PatientManagementProps {
   dentistId: string;
+  user?: User | null;
 }
 
-export function NewPatientManagement({ dentistId }: PatientManagementProps) {
+export function NewPatientManagement({ dentistId, user }: PatientManagementProps) {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [filteredPatients, setFilteredPatients] = useState<Patient[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -577,6 +578,7 @@ export function NewPatientManagement({ dentistId }: PatientManagementProps) {
               patientName={`${selectedPatient.first_name} ${selectedPatient.last_name}`}
               contextType="patient"
               onUpdate={fetchPatients}
+              user={user}
             />
           </CardContent>
         </Card>

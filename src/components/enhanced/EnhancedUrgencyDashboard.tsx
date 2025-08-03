@@ -75,9 +75,10 @@ interface DashboardStats {
 
 interface EnhancedUrgencyDashboardProps {
   dentistId: string;
+  user?: User | null;
 }
 
-export const EnhancedUrgencyDashboard = ({ dentistId }: EnhancedUrgencyDashboardProps) => {
+export const EnhancedUrgencyDashboard = ({ dentistId, user }: EnhancedUrgencyDashboardProps) => {
   const [appointments, setAppointments] = useState<UrgencyAppointment[]>([]);
   const [stats, setStats] = useState<DashboardStats>({
     totalPatients: 0,
@@ -550,6 +551,7 @@ export const EnhancedUrgencyDashboard = ({ dentistId }: EnhancedUrgencyDashboard
             setSelectedPatient(null);
             fetchEnhancedData();
           }}
+          user={user}
         />
       )}
     </div>

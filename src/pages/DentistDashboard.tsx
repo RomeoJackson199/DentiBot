@@ -224,7 +224,7 @@ export function DentistDashboard({ user }: DentistDashboardProps) {
         {/* Content */}
         <div className="animate-fade-in">
           {activeTab === 'urgency' && (
-            <EnhancedUrgencyDashboard dentistId={dentistId} />
+            <EnhancedUrgencyDashboard dentistId={dentistId} user={user} />
           )}
           
           {activeTab === 'availability' && (
@@ -232,11 +232,11 @@ export function DentistDashboard({ user }: DentistDashboardProps) {
           )}
 
           {activeTab === 'appointments' && (
-            <AppointmentManagement dentistId={dentistId} />
+            <AppointmentManagement dentistId={dentistId} user={user} />
           )}
 
           {activeTab === 'patients' && (
-            <EnhancedPatientManagement dentistId={dentistId} />
+            <EnhancedPatientManagement dentistId={dentistId} user={user} />
           )}
           
           {activeTab === 'analytics' && (

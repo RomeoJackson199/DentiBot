@@ -204,6 +204,18 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
   };
 
   const generateBotResponse = async (userMessage: string): Promise<ChatMessage> => {
+    // Check if user has opted out of AI features
+    if (userProfile?.ai_opt_out) {
+      return {
+        id: crypto.randomUUID(),
+        session_id: sessionId,
+        message: "I'm sorry, but AI features are currently disabled for your account. You can re-enable them in your settings if you'd like to use AI-powered assistance.",
+        is_bot: true,
+        message_type: "text",
+        created_at: new Date().toISOString(),
+      };
+    }
+
     try {
       // Call the AI edge function
       const { data, error } = await supabase.functions.invoke('dental-ai-chat', {
@@ -568,6 +580,16 @@ Type your request...`;
   }, [mediaStream]);
 
   const processVoiceMessage = async (audioBlob: Blob) => {
+    // Check if user has opted out of AI features
+    if (userProfile?.ai_opt_out) {
+      toast({
+        title: "AI Features Disabled",
+        description: "Voice-to-text is currently disabled. You can re-enable AI features in your settings.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       setIsLoading(true);
       
