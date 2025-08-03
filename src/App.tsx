@@ -8,6 +8,9 @@ import { LanguageProvider } from "./hooks/useLanguage";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { PWAInstallPrompt } from "./components/PWAInstallPrompt";
 import ProfileCompletionDialog from "./components/ProfileCompletionDialog";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { User, Session } from "@supabase/supabase-js";
 import Index from "./pages/Index";
 import DentistProfiles from "./pages/DentistProfiles";
 import Terms from "./pages/Terms";
@@ -20,6 +23,49 @@ import Schedule from "./pages/Schedule";
 import Analytics from "./pages/Analytics";
 import Support from "./pages/Support";
 import FeatureDetail from "./pages/FeatureDetail";
+import { UnifiedDashboard } from "./components/UnifiedDashboard";
+
+// Dashboard component that handles authentication
+const Dashboard = () => {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
+
+    // Check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      setLoading(false);
+    }).catch(error => {
+      console.error('Error getting session:', error);
+      setLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center mesh-bg">
+      <div className="text-center space-y-4">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-dental-primary mx-auto"></div>
+        <p className="text-dental-muted-foreground">Loading dashboard...</p>
+      </div>
+    </div>;
+  }
+
+  if (!user) {
+    // Redirect to home page if not authenticated
+    window.location.href = '/';
+    return null;
+  }
+
+  return <UnifiedDashboard user={user} />;
+};
 
 const queryClient = new QueryClient();
 
@@ -41,6 +87,7 @@ const App = () => (
               <BrowserRouter>
               <Routes>
                 <Route path="/" element={<Index />} />
+                <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/emergency-triage" element={<EmergencyTriage />} />
                 <Route path="/dentists" element={<DentistProfiles />} />
                 <Route path="/terms" element={<Terms />} />
