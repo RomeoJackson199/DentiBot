@@ -8,33 +8,24 @@ import { DentistManagement } from "@/components/DentistManagement";
 import { NewPatientManagement } from "@/components/NewPatientManagement";
 import { AppointmentManagement } from "@/components/AppointmentManagement";
 import { DentistAnalytics } from "@/components/analytics/DentistAnalytics";
-import { Calendar, Clock, Settings as SettingsIcon, AlertTriangle, BarChart3, UserPlus, LogOut, Users, Star } from "lucide-react";
+import { Calendar, Clock, Settings as SettingsIcon, AlertTriangle, BarChart3, UserPlus, LogOut, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { DentistReviews } from "@/components/DentistReviews";
-import { computeAverageRating } from "@/lib/utils";
 
 interface DentistDashboardProps {
   user: User;
 }
 
 export function DentistDashboard({ user }: DentistDashboardProps) {
-  const [activeTab, setActiveTab] = useState<'urgency' | 'availability' | 'appointments' | 'patients' | 'analytics' | 'manage' | 'reviews'>('urgency');
+  const [activeTab, setActiveTab] = useState<'urgency' | 'availability' | 'appointments' | 'patients' | 'analytics' | 'manage'>('urgency');
   const [dentistId, setDentistId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [reviewStats, setReviewStats] = useState<{ average: number; count: number }>({ average: 0, count: 0 });
   const { toast } = useToast();
 
   useEffect(() => {
     fetchDentistProfile();
   }, [user]);
-
-  useEffect(() => {
-    if (dentistId) {
-      fetchReviewStats();
-    }
-  }, [dentistId]);
 
   const fetchDentistProfile = async () => {
     try {
@@ -66,17 +57,6 @@ export function DentistDashboard({ user }: DentistDashboardProps) {
       });
     } finally {
       setLoading(false);
-    }
-  };
-
-  const fetchReviewStats = async () => {
-    if (!dentistId) return;
-    const { data, error } = await supabase
-      .from('dentist_ratings')
-      .select('rating')
-      .eq('dentist_id', dentistId);
-    if (!error && data) {
-      setReviewStats({ average: computeAverageRating(data), count: data.length });
     }
   };
 
@@ -131,12 +111,6 @@ export function DentistDashboard({ user }: DentistDashboardProps) {
             <div className="hidden sm:block">
               <h2 className="text-2xl font-bold gradient-text">Denti Bot Unified</h2>
               <p className="text-sm text-dental-muted-foreground">Dentist Dashboard</p>
-              <div className="flex items-center mt-1 text-sm text-dental-muted-foreground">
-                <Star className="h-4 w-4 text-yellow-400 mr-1" />
-                <span>
-                  {reviewStats.average.toFixed(1)} ({reviewStats.count} reviews)
-                </span>
-              </div>
             </div>
           </div>
           <Button
@@ -155,7 +129,7 @@ export function DentistDashboard({ user }: DentistDashboardProps) {
         {/* Tab Navigation */}
         <div className="flex justify-center mb-6 sm:mb-8">
           <div className="glass-card rounded-2xl p-2 sm:p-3 animate-fade-in w-full max-w-3xl">
-            <div className="grid grid-cols-2 sm:grid-cols-7 gap-1 sm:gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-6 gap-1 sm:gap-2">
               <Button
                 variant={activeTab === 'urgency' ? 'default' : 'ghost'}
                 onClick={() => setActiveTab('urgency')}
@@ -212,26 +186,13 @@ export function DentistDashboard({ user }: DentistDashboardProps) {
                 variant={activeTab === 'analytics' ? 'default' : 'ghost'}
                 onClick={() => setActiveTab('analytics')}
                 className={`flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2 sm:py-3 rounded-xl transition-all duration-300 text-xs sm:text-sm ${
-                  activeTab === 'analytics'
-                    ? 'bg-gradient-primary text-white shadow-elegant scale-105'
+                  activeTab === 'analytics' 
+                    ? 'bg-gradient-primary text-white shadow-elegant scale-105' 
                     : 'text-dental-muted-foreground hover:text-dental-primary hover:bg-dental-primary/10 hover:scale-105'
                 }`}
               >
                 <BarChart3 className="h-4 w-4" />
                 <span className="font-medium">Analytics</span>
-              </Button>
-
-              <Button
-                variant={activeTab === 'reviews' ? 'default' : 'ghost'}
-                onClick={() => setActiveTab('reviews')}
-                className={`flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2 sm:py-3 rounded-xl transition-all duration-300 text-xs sm:text-sm ${
-                  activeTab === 'reviews'
-                    ? 'bg-gradient-primary text-white shadow-elegant scale-105'
-                    : 'text-dental-muted-foreground hover:text-dental-primary hover:bg-dental-primary/10 hover:scale-105'
-                }`}
-              >
-                <Star className="h-4 w-4" />
-                <span className="font-medium">Reviews</span>
               </Button>
 
               <Button
@@ -270,10 +231,6 @@ export function DentistDashboard({ user }: DentistDashboardProps) {
           
           {activeTab === 'analytics' && (
             <DentistAnalytics dentistId={dentistId} />
-          )}
-
-          {activeTab === 'reviews' && (
-            <DentistReviews dentistId={dentistId} />
           )}
 
           {activeTab === 'manage' && (
