@@ -207,8 +207,8 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
     try {
       console.log('Generating AI response for:', userMessage);
       
-      // Call the AI edge function
-      const { data, error } = await supabase.functions.invoke('dental-ai-chat', {
+      // Call the AI edge function using smart router
+      const { data, error } = await supabase.functions.invoke('smart-ai-router', {
         body: {
           message: userMessage,
           conversation_history: messages.slice(-10), // Last 10 messages for context

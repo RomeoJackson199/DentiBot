@@ -164,7 +164,7 @@ export const InteractiveDentalChat = ({
     history: ChatMessage[]
   ): Promise<{ message: ChatMessage; fallback: boolean; suggestions: string[]; recommendedDentists: string[] }> => {
     try {
-      const { data, error } = await supabase.functions.invoke('dental-ai-chat', {
+      const { data, error } = await supabase.functions.invoke('smart-ai-router', {
         body: {
           message: userMessage,
           conversation_history: history,

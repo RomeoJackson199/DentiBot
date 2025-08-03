@@ -100,8 +100,8 @@ export function AIConversationDialog({
         .eq('patient_id', patientId)
         .eq('dentist_id', dentistId);
 
-      // Call AI with context
-      const { data, error } = await supabase.functions.invoke('dental-ai-chat', {
+      // Call AI with context using smart router
+      const { data, error } = await supabase.functions.invoke('smart-ai-router', {
         body: {
           message: inputMessage,
           conversation_history: messages,
