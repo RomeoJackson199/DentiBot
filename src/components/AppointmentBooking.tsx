@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { CalendarDays, Clock, User as UserIcon, CheckCircle, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createMedicalRecord } from "@/lib/medicalRecords";
+import { AppointmentAPI } from "@/lib/api";
 
 interface AppointmentBookingProps {
   user: User;
@@ -203,29 +204,28 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
         throw new Error("Ce créneau n'est plus disponible");
       }
 
-      // If slot reservation successful, create the appointment
-      const { data: appointmentData, error: appointmentError } = await supabase
-        .from("appointments")
-        .insert({
-          patient_id: profile.id,
-          dentist_id: selectedDentist,
-          appointment_date: appointmentDateTime.toISOString(),
-          reason: reason || "Consultation générale",
-          status: "confirmed", // Set to confirmed since slot is reserved
-          urgency: "medium"
-        })
-        .select()
-        .single();
+      // If slot reservation successful, create the appointment using API service
+      const appointmentResult = await AppointmentAPI.createAppointment({
+        patient_id: profile.id,
+        dentist_id: selectedDentist,
+        appointment_date: appointmentDateTime.toISOString(),
+        reason: reason || "Consultation générale",
+        status: "confirmed", // Set to confirmed since slot is reserved
+        urgency: "medium",
+        patient_name: `${profile.first_name} ${profile.last_name}` // Add patient name
+      });
 
-      if (appointmentError) {
+      if (!appointmentResult.success) {
         // If appointment creation fails, release the reserved slot
         await supabase.rpc('release_appointment_slot', {
           p_dentist_id: selectedDentist,
           p_slot_date: selectedDate.toISOString().split('T')[0],
           p_slot_time: selectedTime + ':00'
         });
-        throw appointmentError;
+        throw new Error(appointmentResult.error || 'Failed to create appointment');
       }
+
+      const appointmentData = appointmentResult.data;
 
       // Link the appointment to the reserved slot
       const { error: slotLinkError } = await supabase.rpc('link_appointment_to_slot', {

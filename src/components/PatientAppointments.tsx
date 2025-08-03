@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { useAppointments } from "@/hooks/useAppointments";
 import { 
   Calendar, 
   Clock, 
@@ -36,39 +37,14 @@ interface PatientAppointmentsProps {
 }
 
 export function PatientAppointments({ patientId, dentistId }: PatientAppointmentsProps) {
-  const [appointments, setAppointments] = useState<Appointment[]>([]);
-  const [loading, setLoading] = useState(true);
   const [editingAppointment, setEditingAppointment] = useState<string | null>(null);
   const [consultationNotes, setConsultationNotes] = useState("");
   const { toast } = useToast();
-
-  useEffect(() => {
-    fetchAppointments();
-  }, [patientId, dentistId]);
-
-  const fetchAppointments = async () => {
-    try {
-      setLoading(true);
-      
-      const { data, error } = await supabase
-        .from('appointments')
-        .select('*')
-        .eq('patient_id', patientId)
-        .eq('dentist_id', dentistId)
-        .order('appointment_date', { ascending: false });
-
-      if (error) throw error;
-      setAppointments(data || []);
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to load appointments",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+  
+  const { appointments, loading, refreshAppointments } = useAppointments({
+    patientId,
+    dentistId
+  });
 
   const handleEditConsultationNotes = (appointmentId: string, currentNotes: string) => {
     setEditingAppointment(appointmentId);
@@ -84,14 +60,8 @@ export function PatientAppointments({ patientId, dentistId }: PatientAppointment
 
       if (error) throw error;
 
-      // Update local state
-      setAppointments(prev => 
-        prev.map(apt => 
-          apt.id === appointmentId 
-            ? { ...apt, consultation_notes: consultationNotes }
-            : apt
-        )
-      );
+      // Refresh appointments to get updated data
+      refreshAppointments();
 
       setEditingAppointment(null);
       setConsultationNotes("");

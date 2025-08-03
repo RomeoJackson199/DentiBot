@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { useAppointments } from "@/hooks/useAppointments";
 import { 
   AlertTriangle, 
   Clock, 
@@ -34,50 +35,16 @@ interface DentistUrgencyGridProps {
 }
 
 export const DentistUrgencyGrid = ({ dentistId }: DentistUrgencyGridProps) => {
-  const [appointments, setAppointments] = useState<UrgencyAppointment[]>([]);
-  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { appointments, loading, refreshAppointments } = useAppointments({
+    dentistId,
+    includeUrgencyAssessments: true
+  });
 
-  useEffect(() => {
-    fetchUrgentAppointments();
-  }, [dentistId]);
-
-  const fetchUrgentAppointments = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('appointments')
-        .select(`
-          id,
-          patient_name,
-          appointment_date,
-          urgency,
-          reason,
-          created_at,
-          status,
-          urgency_assessments (
-            pain_level,
-            duration_symptoms
-          )
-        `)
-        .eq('dentist_id', dentistId)
-        .gte('appointment_date', new Date().toISOString())
-        .order('created_at', { ascending: false })
-        .limit(20);
-
-      if (error) throw error;
-
-      setAppointments(data || []);
-    } catch (error) {
-      console.error('Error fetching urgent appointments:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load urgent appointments",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Filter appointments for urgency dashboard
+  const urgentAppointments = appointments
+    .filter(apt => new Date(apt.appointment_date) >= new Date())
+    .slice(0, 20) as UrgencyAppointment[];
 
   const getUrgencyConfig = (urgency: string) => {
     switch(urgency) {
@@ -119,7 +86,7 @@ export const DentistUrgencyGrid = ({ dentistId }: DentistUrgencyGridProps) => {
     }
   };
 
-  const sortedAppointments = appointments.sort((a, b) => {
+  const sortedAppointments = urgentAppointments.sort((a, b) => {
     const urgencyA = getUrgencyConfig(a.urgency);
     const urgencyB = getUrgencyConfig(b.urgency);
     if (urgencyA.priority !== urgencyB.priority) {
@@ -129,23 +96,27 @@ export const DentistUrgencyGrid = ({ dentistId }: DentistUrgencyGridProps) => {
   });
 
   const handlePrioritizeAppointment = (appointmentId: string) => {
-    setAppointments(prev =>
-      prev.map(a =>
-        a.id === appointmentId
-          ? {
-              ...a,
-              urgency: a.urgency === 'high' ? 'emergency' : 'high',
-            }
-          : a
-      )
-    );
-    toast({ title: 'Priority updated' });
+    // Update urgency in database
+    supabase
+      .from('appointments')
+      .update({ urgency: 'emergency' })
+      .eq('id', appointmentId)
+      .then(() => {
+        refreshAppointments();
+        toast({ title: 'Priority updated' });
+      })
+      .catch((error) => {
+        console.error('Error updating priority:', error);
+        toast({
+          title: "Error",
+          description: "Failed to update priority",
+          variant: "destructive",
+        });
+      });
   };
 
   const handleSendReminder = (appointmentId: string) => {
-    setAppointments(prev =>
-      prev.map(a => (a.id === appointmentId ? { ...a, reminderSent: true } : a))
-    );
+    // In a real implementation, this would send an SMS/email
     toast({ title: 'Reminder sent' });
   };
 
@@ -178,7 +149,7 @@ export const DentistUrgencyGrid = ({ dentistId }: DentistUrgencyGridProps) => {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {['emergency', 'high', 'medium', 'low'].map((urgency) => {
           const config = getUrgencyConfig(urgency);
-          const count = appointments.filter(apt => apt.urgency === urgency).length;
+          const count = urgentAppointments.filter(apt => apt.urgency === urgency).length;
           const IconComponent = config.icon;
           
           return (
