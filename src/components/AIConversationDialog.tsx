@@ -183,9 +183,9 @@ export function AIConversationDialog({
             description: suggestion.data.description,
             diagnosis: suggestion.data.diagnosis,
             treatment_steps: suggestion.data.treatment_steps,
-            estimated_duration_weeks: suggestion.data.estimated_duration_weeks,
+            estimated_duration: suggestion.data.estimated_duration,
             estimated_cost: suggestion.data.estimated_cost,
-            priority: suggestion.data.priority || 'medium'
+            priority: suggestion.data.priority || 'normal'
           });
       }
 

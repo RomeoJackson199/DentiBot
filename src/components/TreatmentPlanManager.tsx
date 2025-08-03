@@ -20,10 +20,10 @@ export function TreatmentPlanManager({ appointmentId, patientId, dentistId }: Tr
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    plan_name: '',
+    title: '',
     description: '',
     diagnosis: '',
-    priority: 'medium',
+    priority: 'normal',
     estimated_duration_weeks: '',
     estimated_cost: '',
     notes: ''
@@ -33,7 +33,7 @@ export function TreatmentPlanManager({ appointmentId, patientId, dentistId }: Tr
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.plan_name || !formData.description) {
+    if (!formData.title || !formData.description) {
       toast({
         title: "Missing information",
         description: "Please fill in plan name and description",
@@ -50,7 +50,7 @@ export function TreatmentPlanManager({ appointmentId, patientId, dentistId }: Tr
         .insert({
           patient_id: patientId,
           dentist_id: dentistId,
-          plan_name: formData.plan_name,
+          title: formData.title,
           description: formData.description,
           diagnosis: formData.diagnosis,
           priority: formData.priority,
@@ -70,10 +70,10 @@ export function TreatmentPlanManager({ appointmentId, patientId, dentistId }: Tr
 
       setOpen(false);
       setFormData({
-        plan_name: '',
+        title: '',
         description: '',
         diagnosis: '',
-        priority: 'medium',
+        priority: 'normal',
         estimated_duration_weeks: '',
         estimated_cost: '',
         notes: ''
@@ -103,12 +103,12 @@ export function TreatmentPlanManager({ appointmentId, patientId, dentistId }: Tr
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="plan_name">Treatment Plan Name *</Label>
+            <Label htmlFor="title">Treatment Plan Name *</Label>
             <Input
-              id="plan_name"
+              id="title"
               placeholder="e.g., Root Canal Treatment"
-              value={formData.plan_name}
-              onChange={(e) => setFormData(prev => ({ ...prev, plan_name: e.target.value }))}
+              value={formData.title}
+              onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
               required
             />
           </div>
@@ -158,14 +158,14 @@ export function TreatmentPlanManager({ appointmentId, patientId, dentistId }: Tr
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="low">Low</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="normal">Normal</SelectItem>
                   <SelectItem value="high">High</SelectItem>
                   <SelectItem value="urgent">Urgent</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            <div className="space-y-2">
+                        <div className="space-y-2">
               <Label htmlFor="estimated_duration_weeks">Duration (weeks)</Label>
               <Input
                 id="estimated_duration_weeks"

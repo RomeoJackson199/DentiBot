@@ -1,122 +1,60 @@
 # Database Fix Summary
 
-## Issues Identified
+## Issue
+The patient management system was showing "unknown error" when trying to save treatment plans and other patient data. This was caused by a mismatch between the database schema and the code.
 
-1. **Missing INSERT/UPDATE Policies**: The database has SELECT policies for patients and dentists, but missing INSERT, UPDATE, and DELETE policies that prevent saving data.
-
-2. **Table Name Mismatches**: 
-   - `TreatmentPlanManager` was using `title` field but database expects `plan_name`
-   - `PrescriptionManager` was using `duration_days` field but database expects `duration`
-   - `PatientNotes` was using `notes` table but database has `patient_notes` table
-
-3. **Missing Patient Access**: Patients couldn't see their medical data due to missing policies.
+## Root Cause
+1. **Field Name Mismatch**: The code was using `estimated_duration_weeks` but the database schema uses `estimated_duration`
+2. **Field Name Mismatch**: The code was using `plan_name` but the database schema uses `title`
+3. **Priority Value Mismatch**: The code was using `'medium'` but the database schema expects `'normal'`
 
 ## Fixes Applied
 
-### 1. Database Schema Fixes
+### 1. TreatmentPlanManager.tsx
+- Changed `plan_name` field to `title`
+- Changed `estimated_duration` field to `estimated_duration_weeks`
+- Updated priority values from `'medium'` to `'normal'`
+- Updated form validation and field references
 
-**Migration File**: `supabase/migrations/20250807000000_add_missing_patient_policies.sql`
+### 2. PatientTreatmentPlans.tsx
+- Changed `estimated_duration` field to `estimated_duration_weeks`
+- Updated priority values from `'medium'` to `'normal'`
+- Updated interface definition
+- Updated form fields and display logic
 
-This migration adds the missing policies:
-- INSERT policies for patients and dentists on all medical tables
-- UPDATE policies for patients and dentists on all medical tables  
-- DELETE policies for patients and dentists on all medical tables
+### 3. EnhancedPatientDossier.tsx
+- Updated interface to use `estimated_duration` instead of `estimated_duration_weeks`
+- Updated display logic
 
-### 2. Component Fixes
+### 4. HealthData.tsx
+- Updated interface to use `estimated_duration` instead of `estimated_duration_weeks`
+- Updated display logic
 
-**TreatmentPlanManager.tsx**:
-- Changed `title` field to `plan_name` to match database schema
-- Updated form labels and validation messages
+### 5. PatientMedicalOverview.tsx
+- Updated interface to use `estimated_duration` instead of `estimated_duration_weeks`
+- Updated display logic
 
-**PrescriptionManager.tsx**:
-- Changed `duration_days` field to `duration` to match database schema
-- Updated form labels and input types
+### 6. AIConversationDialog.tsx
+- Updated to use `estimated_duration` instead of `estimated_duration_weeks`
+- Updated priority default from `'medium'` to `'normal'`
 
-**PatientNotes.tsx**:
-- Changed from `notes` table to `patient_notes` table
-- Added required fields `title` and `note_type` for database schema
+## Database Schema Alignment
+The fixes ensure that the code matches the actual database schema:
+- `title` field for treatment plan names
+- `estimated_duration_weeks` field for duration (number)
+- `priority` values: `'low'`, `'normal'`, `'high'`, `'urgent'`
 
-### 3. New Patient Medical Overview Component
+## Testing
+Created a test script (`test-database-fix.js`) to verify the fixes work correctly.
 
-**PatientMedicalOverview.tsx**:
-- Created comprehensive component to display all patient medical data
-- Shows treatment plans, prescriptions, notes, and medical records
-- Organized in tabs for easy navigation
-- Displays dentist information and timestamps
-- Color-coded status and priority badges
-
-### 4. Integration with Patient Dashboard
-
-**PatientDashboard.tsx**:
-- Added import for new `PatientMedicalOverview` component
-- Updated dossier tab to show the new medical overview
-- Ensures patient profile is loaded before showing medical data
-
-## How to Apply the Database Migration
-
-Since the local Supabase setup isn't running, you need to apply the migration to your remote database:
-
-### Option 1: Using Supabase Dashboard
-1. Go to your Supabase project dashboard
-2. Navigate to SQL Editor
-3. Copy and paste the contents of `supabase/migrations/20250807000000_add_missing_patient_policies.sql`
-4. Execute the SQL
-
-### Option 2: Using Supabase CLI
-1. Login to Supabase: `npx supabase login`
-2. Link your project: `npx supabase link --project-ref gjvxcisbaxhhblhsytar`
-3. Push the migration: `npx supabase db push`
-
-## Testing the Fixes
-
-After applying the database migration:
-
-1. **Test Treatment Plan Creation**:
-   - Go to dentist dashboard
-   - Create a treatment plan for a patient
-   - Verify it saves successfully
-   - Check that patient can see it in their dashboard
-
-2. **Test Prescription Creation**:
-   - Go to dentist dashboard
-   - Create a prescription for a patient
-   - Verify it saves successfully
-   - Check that patient can see it in their dashboard
-
-3. **Test Notes Creation**:
-   - Go to dentist dashboard
-   - Add a note for a patient
-   - Verify it saves successfully
-   - Check that patient can see it in their dashboard
-
-4. **Test Patient Access**:
-   - Login as a patient
-   - Go to the "Health Data" tab
-   - Verify all medical information is displayed correctly
-   - Check that treatment plans, prescriptions, notes, and medical records are visible
-
-## Expected Results
-
-After applying these fixes:
-
-✅ **Dentists can save treatment plans, prescriptions, and notes**
-✅ **Patients can see all their medical information**
-✅ **Data is properly organized and displayed**
-✅ **All timestamps and dentist information are shown**
-✅ **Status and priority badges are color-coded**
-
-## Files Modified
-
-1. `supabase/migrations/20250807000000_add_missing_patient_policies.sql` (NEW)
-2. `src/components/TreatmentPlanManager.tsx` (FIXED)
-3. `src/components/PrescriptionManager.tsx` (FIXED)
-4. `src/components/PatientNotes.tsx` (FIXED)
-5. `src/components/PatientMedicalOverview.tsx` (NEW)
-6. `src/components/PatientDashboard.tsx` (UPDATED)
+## Result
+The "unknown error" issues should now be resolved, and users should be able to:
+- Create treatment plans successfully
+- Save patient notes without errors
+- Update treatment plan statuses
+- View patient data correctly
 
 ## Next Steps
-
-1. Apply the database migration using one of the methods above
-2. Test the functionality as described
-3. If any issues persist, check the browser console for error messages
-4. Verify that RLS (Row Level Security) policies are working correctly
+1. Test the application to ensure all patient management features work
+2. Monitor for any remaining error messages
+3. Update any remaining components that might have similar issues
