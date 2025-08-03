@@ -309,11 +309,13 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
         {/* Content */}
         <div className="animate-fade-in space-y-6">
           {activeTab === 'chat' && (
-            <InteractiveDentalChat
-              user={user}
-              triggerBooking={triggerBooking}
-              onBookingTriggered={() => setTriggerBooking(false)}
-            />
+            <div className="h-[600px]">
+              <InteractiveDentalChat
+                user={user}
+                triggerBooking={triggerBooking}
+                onBookingTriggered={() => setTriggerBooking(false)}
+              />
+            </div>
           )}
           
           {activeTab === 'appointments' && (
