@@ -3,7 +3,7 @@ import { User } from "@supabase/supabase-js";
 import { InteractiveDentalChat } from "@/components/chat/InteractiveDentalChat";
 import { AppointmentsList } from "@/components/AppointmentsList";
 import { Settings } from "@/components/Settings";
-import { PatientDossier } from "@/components/PatientDossier";
+import { EnhancedPatientDossier } from "@/components/enhanced/EnhancedPatientDossier";
 import { EmergencyTriageForm } from "@/components/EmergencyTriageForm";
 import { PatientAnalytics } from "@/components/analytics/PatientAnalytics";
 import { useLanguage } from "@/hooks/useLanguage";
@@ -155,7 +155,7 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
           )}
           
           {activeTab === 'dossier' && (
-            <PatientDossier user={user} />
+            <EnhancedPatientDossier user={user} mode="patient" />
           )}
           
           {activeTab === 'analytics' && (

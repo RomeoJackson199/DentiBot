@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 
-import { AvailabilitySettings } from "@/components/AvailabilitySettings";
-import { DentistUrgencyGrid } from "@/components/DentistUrgencyGrid";
+import { EnhancedAvailabilitySettings } from "@/components/enhanced/EnhancedAvailabilitySettings";
+import { EnhancedUrgencyDashboard } from "@/components/enhanced/EnhancedUrgencyDashboard";
 import { DentistManagement } from "@/components/DentistManagement";
 import { NewPatientManagement } from "@/components/NewPatientManagement";
 import { AppointmentManagement } from "@/components/AppointmentManagement";
@@ -214,11 +214,11 @@ export function DentistDashboard({ user }: DentistDashboardProps) {
         {/* Content */}
         <div className="animate-fade-in">
           {activeTab === 'urgency' && (
-            <DentistUrgencyGrid dentistId={dentistId} />
+            <EnhancedUrgencyDashboard dentistId={dentistId} />
           )}
           
           {activeTab === 'availability' && (
-            <AvailabilitySettings dentistId={dentistId} />
+            <EnhancedAvailabilitySettings dentistId={dentistId} />
           )}
 
           {activeTab === 'appointments' && (
