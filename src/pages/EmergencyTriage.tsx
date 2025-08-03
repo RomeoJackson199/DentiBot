@@ -5,6 +5,7 @@ import { User } from "@supabase/supabase-js";
 import { EmergencyTriageEntry } from "@/components/EmergencyTriageEntry";
 import { AuthForm } from "@/components/AuthForm";
 import { useToast } from "@/hooks/use-toast";
+import { getTriageInfo } from "@/lib/mockApi";
 
 const EmergencyTriage = () => {
   const navigate = useNavigate();
@@ -14,22 +15,24 @@ const EmergencyTriage = () => {
   const [showAuth, setShowAuth] = useState(false);
 
   useEffect(() => {
-    // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setUser(session?.user ?? null);
+    let subscription: { unsubscribe: () => void } | null = null;
+    const init = async () => {
+      try {
+        const sessionRes = await supabase.auth.getSession();
+        setUser(sessionRes.data.session?.user ?? null);
+      } catch {
+        toast({ title: 'Error', description: 'Unable to load session' });
+      } finally {
         setLoading(false);
       }
-    );
-
-    return () => subscription.unsubscribe();
-  }, []);
+      getTriageInfo();
+      subscription = supabase.auth.onAuthStateChange((_event, session) => {
+        setUser(session?.user ?? null);
+      }).data.subscription;
+    };
+    init();
+    return () => subscription?.unsubscribe();
+  }, [toast]);
 
   const handleComplete = (appointmentData?: unknown) => {
     if (appointmentData) {
