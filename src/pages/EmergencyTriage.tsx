@@ -6,6 +6,7 @@ import { EmergencyTriageEntry } from "@/components/EmergencyTriageEntry";
 import { AuthForm } from "@/components/AuthForm";
 import { useToast } from "@/hooks/use-toast";
 import { getTriageInfo } from "@/lib/mockApi";
+import { Button } from "@/components/ui/button";
 
 const EmergencyTriage = () => {
   const navigate = useNavigate();
@@ -20,12 +21,21 @@ const EmergencyTriage = () => {
       try {
         const sessionRes = await supabase.auth.getSession();
         setUser(sessionRes.data.session?.user ?? null);
-      } catch {
+      } catch (error) {
+        console.error('Session error:', error);
         toast({ title: 'Error', description: 'Unable to load session' });
       } finally {
         setLoading(false);
       }
-      getTriageInfo();
+      
+      // Initialize triage info
+      try {
+        await getTriageInfo();
+      } catch (error) {
+        console.error('Failed to load triage info:', error);
+        // Don't show toast for triage info failure as it's not critical
+      }
+      
       subscription = supabase.auth.onAuthStateChange((_event, session) => {
         setUser(session?.user ?? null);
       }).data.subscription;
@@ -73,12 +83,27 @@ const EmergencyTriage = () => {
     );
   }
 
-  return (
+  try {
+    return (
       <EmergencyTriageEntry
         onComplete={handleComplete}
         onCancel={handleCancel}
       />
     );
+  } catch (error) {
+    console.error('EmergencyTriage render error:', error);
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold mb-2">Something went wrong</h2>
+          <p className="text-muted-foreground mb-4">Please try refreshing the page</p>
+          <Button onClick={() => window.location.reload()}>
+            Refresh Page
+          </Button>
+        </div>
+      </div>
+    );
+  }
   };
 
 export default EmergencyTriage;
