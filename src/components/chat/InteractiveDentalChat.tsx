@@ -125,6 +125,8 @@ export const InteractiveDentalChat = ({
       };
       setMessages([welcomeMessage]);
       
+      // Show quick actions widget after welcome message
+      setTimeout(() => setActiveWidget('quick-actions'), 1000);
     }
   };
 
@@ -738,7 +740,8 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
 
     handleSuggestions(suggestions, recommendedDentists);
 
-    if (fallback) {
+    // Show quick actions if no specific suggestions or if it's a fallback response
+    if (fallback || !suggestions || suggestions.length === 0) {
       setTimeout(() => setActiveWidget('quick-actions'), 1000);
     }
 
