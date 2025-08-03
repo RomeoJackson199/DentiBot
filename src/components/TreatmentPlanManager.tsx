@@ -20,7 +20,7 @@ export function TreatmentPlanManager({ appointmentId, patientId, dentistId }: Tr
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    title: '',
+    plan_name: '',
     description: '',
     diagnosis: '',
     priority: 'medium',
@@ -33,10 +33,10 @@ export function TreatmentPlanManager({ appointmentId, patientId, dentistId }: Tr
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.title || !formData.description) {
+    if (!formData.plan_name || !formData.description) {
       toast({
         title: "Missing information",
-        description: "Please fill in title and description",
+        description: "Please fill in plan name and description",
         variant: "destructive",
       });
       return;
@@ -50,7 +50,7 @@ export function TreatmentPlanManager({ appointmentId, patientId, dentistId }: Tr
         .insert({
           patient_id: patientId,
           dentist_id: dentistId,
-          title: formData.title,
+          plan_name: formData.plan_name,
           description: formData.description,
           diagnosis: formData.diagnosis,
           priority: formData.priority,
@@ -70,7 +70,7 @@ export function TreatmentPlanManager({ appointmentId, patientId, dentistId }: Tr
 
       setOpen(false);
       setFormData({
-        title: '',
+        plan_name: '',
         description: '',
         diagnosis: '',
         priority: 'medium',
@@ -103,12 +103,12 @@ export function TreatmentPlanManager({ appointmentId, patientId, dentistId }: Tr
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="title">Treatment Title *</Label>
+            <Label htmlFor="plan_name">Treatment Plan Name *</Label>
             <Input
-              id="title"
+              id="plan_name"
               placeholder="e.g., Root Canal Treatment"
-              value={formData.title}
-              onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+              value={formData.plan_name}
+              onChange={(e) => setFormData(prev => ({ ...prev, plan_name: e.target.value }))}
               required
             />
           </div>

@@ -7,6 +7,8 @@ import RealAppointmentsList from "@/components/RealAppointmentsList";
 import { HealthData } from "@/components/HealthData";
 import { EmergencyTriageForm } from "@/components/EmergencyTriageForm";
 import { PatientAnalytics } from "@/components/analytics/PatientAnalytics";
+import { PatientMedicalOverview } from "@/components/PatientMedicalOverview";
+import { DatabaseTest } from "@/components/DatabaseTest";
 import { useLanguage } from "@/hooks/useLanguage";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -64,7 +66,7 @@ interface Appointment {
 export const PatientDashboard = ({ user }: PatientDashboardProps) => {
   const { t } = useLanguage();
   const { toast } = useToast();
-  type Tab = 'chat' | 'appointments' | 'dossier' | 'analytics' | 'emergency';
+  type Tab = 'chat' | 'appointments' | 'dossier' | 'analytics' | 'emergency' | 'test';
   const [activeTab, setActiveTab] = useState<Tab>(() => {
     try {
       return (localStorage.getItem('pd_tab') as Tab) || 'chat';
@@ -518,6 +520,19 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
                 <Clock className="h-4 w-4" />
                 <span className="font-medium">Urgent</span>
               </Button>
+
+              <Button
+                variant={activeTab === 'test' ? 'default' : 'ghost'}
+                onClick={() => setActiveTab('test')}
+                className={`flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2 sm:py-3 rounded-xl transition-all duration-300 text-xs sm:text-sm ${
+                  activeTab === 'test' 
+                    ? 'bg-blue-500 text-white shadow-elegant scale-105' 
+                    : 'text-dental-muted-foreground hover:text-blue-500 hover:bg-blue-500/10 hover:scale-105'
+                }`}
+              >
+                <CheckCircle className="h-4 w-4" />
+                <span className="font-medium">Test</span>
+              </Button>
             </div>
           </div>
         </div>
@@ -541,8 +556,8 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
             />
           )}
           
-          {activeTab === 'dossier' && (
-            <HealthData user={user} mode="patient" />
+          {activeTab === 'dossier' && userProfile && (
+            <PatientMedicalOverview patientId={userProfile.id} user={user} />
           )}
           
           {activeTab === 'analytics' && (
@@ -554,6 +569,10 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
               onComplete={handleEmergencyComplete}
               onCancel={() => setActiveTab('chat')}
             />
+          )}
+          
+          {activeTab === 'test' && (
+            <DatabaseTest />
           )}
         </div>
       </main>
