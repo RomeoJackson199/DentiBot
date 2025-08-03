@@ -22,17 +22,26 @@ export const saveProfileData = async (user: User, profileData: ProfileData) => {
       throw new Error('First name and last name are required');
     }
 
-    // Clean and prepare data
-    const cleanData = {
+    // Clean and prepare data - only include fields that exist in the database
+    const cleanData: any = {
       first_name: profileData.first_name.trim(),
       last_name: profileData.last_name.trim(),
-      phone: profileData.phone.trim() || null,
+      phone: profileData.phone?.trim() || null,
       date_of_birth: profileData.date_of_birth || null,
-      medical_history: profileData.medical_history.trim() || null,
-      address: profileData.address.trim() || null,
-      emergency_contact: profileData.emergency_contact.trim() || null,
-      ai_opt_out: profileData.ai_opt_out
+      medical_history: profileData.medical_history?.trim() || null,
     };
+
+    // Only add address and emergency_contact if they exist in the database
+    // These fields were added in a later migration
+    if (profileData.address !== undefined) {
+      cleanData.address = profileData.address.trim() || null;
+    }
+    if (profileData.emergency_contact !== undefined) {
+      cleanData.emergency_contact = profileData.emergency_contact.trim() || null;
+    }
+    if (profileData.ai_opt_out !== undefined) {
+      cleanData.ai_opt_out = profileData.ai_opt_out;
+    }
 
     console.log('Cleaned data to save:', cleanData);
 
