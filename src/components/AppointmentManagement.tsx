@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { AIWritingAssistant } from "@/components/AIWritingAssistant";
 import { PrescriptionManager } from "@/components/PrescriptionManager";
 import { TreatmentPlanManager } from "@/components/TreatmentPlanManager";
+import { AppointmentConfirmationWidget } from "@/components/AppointmentConfirmationWidget";
 import { 
   Search, 
   Calendar, 
@@ -26,7 +27,8 @@ import {
   FileText,
   AlertTriangle,
   User,
-  BookOpen
+  BookOpen,
+  Eye
 } from "lucide-react";
 import { format } from "date-fns";
 import { generateSymptomSummary } from "@/lib/symptoms";
@@ -357,169 +359,61 @@ export function AppointmentManagement({ dentistId }: AppointmentManagementProps)
           </Card>
         ) : (
           filteredAppointments.map((appointment) => (
-            <Card key={appointment.id} className="glass-card">
-              <CardContent className="p-6">
-                <div className="flex justify-between items-start mb-4">
-                  <div className="flex items-center space-x-4">
-                    <div className="w-12 h-12 bg-dental-primary/10 rounded-full flex items-center justify-center">
-                      <User className="h-6 w-6 text-dental-primary" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-lg">
-                        {appointment.patient_name || 'Unknown Patient'}
-                      </h3>
-                      <p className="text-muted-foreground flex items-center space-x-2">
-                        <Calendar className="h-4 w-4" />
-                        <span>{format(new Date(appointment.appointment_date), 'PPP')}</span>
-                        <Clock className="h-4 w-4 ml-2" />
-                        <span>{format(new Date(appointment.appointment_date), 'p')}</span>
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center space-x-2">
-                    <Badge className={getStatusColor(appointment.status)}>
-                      {appointment.status}
-                    </Badge>
-                    <Badge className={getUrgencyColor(appointment.urgency)}>
-                      <AlertTriangle className="h-3 w-3 mr-1" />
-                      {appointment.urgency}
-                    </Badge>
-                  </div>
-                </div>
-
-                {/* Appointment Details */}
-                {appointment.reason && (
-                  <div className="mb-4">
-                    <h4 className="font-medium text-sm text-muted-foreground mb-2">Reason for Visit</h4>
-                    <p className="text-sm bg-muted p-3 rounded-md">{appointment.reason}</p>
-                  </div>
-                )}
-
-                {/* Consultation Notes */}
-                <div className="border-t pt-4 mb-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <h4 className="font-medium flex items-center space-x-2">
-                      <Stethoscope className="h-4 w-4" />
-                      <span>Consultation Notes</span>
-                    </h4>
-                    
-                    <div className="flex items-center space-x-2">
-                      {editingNotes === appointment.id ? (
-                        <>
-                          <Button 
-                            size="sm" 
-                            onClick={() => handleSaveNotes(appointment.id)}
-                          >
-                            <Save className="h-4 w-4 mr-1" />
-                            Save
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            variant="outline" 
-                            onClick={() => setEditingNotes(null)}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </>
-                      ) : (
-                        <>
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            onClick={() => handleEditNotes(appointment.id, appointment.consultation_notes || "")}
-                          >
-                            <Edit className="h-4 w-4 mr-1" />
-                            {appointment.consultation_notes ? 'Edit' : 'Add'} Notes
-                          </Button>
-                          {appointment.status !== 'completed' && (
-                            <Button 
-                              size="sm"
-                              onClick={() => handleCompleteAppointment(appointment.id)}
-                            >
-                              <CheckCircle className="h-4 w-4 mr-1" />
-                              Complete
-                            </Button>
-                          )}
-                        </>
-                      )}
-                    </div>
-                  </div>
-                  
-                  {editingNotes === appointment.id ? (
-                    <div className="space-y-2">
-                      <Textarea
-                        value={consultationNotes}
-                        onChange={(e) => setConsultationNotes(e.target.value)}
-                        placeholder="Enter consultation notes, findings, recommendations..."
-                        className="min-h-[120px]"
-                      />
-                      <AIWritingAssistant 
-                        onImprove={(improvedText) => setConsultationNotes(improvedText)}
-                        currentText={consultationNotes}
-                        placeholder="consultation notes"
-                      />
-                    </div>
-                  ) : appointment.consultation_notes ? (
-                    <div className="bg-green-50 border border-green-200 p-4 rounded-md">
-                      <p className="text-sm whitespace-pre-wrap">{appointment.consultation_notes}</p>
-                    </div>
-                  ) : (
-                    <div className="bg-muted p-4 rounded-md text-center">
-                      <p className="text-sm text-muted-foreground">
-                        No consultation notes recorded yet.
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                {/* AI Conversation Button */}
-                <div className="pt-4 border-t">
-                  <AIConversationDialog
-                    patientId={appointment.patient_id}
-                    dentistId={dentistId}
-                    patientName={appointment.patient_name || 'Patient'}
-                    contextType="appointment"
-                    contextId={appointment.id}
-                    onUpdate={fetchAppointments}
-                  />
-                </div>
-
-                {/* Action Buttons for Completed Appointments */}
-                {appointment.status === 'completed' && (
-                  <div className="flex items-center space-x-2 pt-4 border-t">
-                    <PrescriptionManager 
-                      appointmentId={appointment.id}
-                      patientId={appointment.patient_id}
-                      dentistId={dentistId}
-                    />
-                    <TreatmentPlanManager 
-                      appointmentId={appointment.id}
-                      patientId={appointment.patient_id}
-                      dentistId={dentistId}
-                    />
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button variant="outline" size="sm">
-                          <FileText className="h-4 w-4 mr-1" />
-                          Medical Record
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Add to Medical Record</DialogTitle>
-                        </DialogHeader>
-                        <div className="space-y-4">
-                          <p className="text-sm text-muted-foreground">
-                            Medical record integration coming soon.
-                          </p>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+            <AppointmentConfirmationWidget
+              key={appointment.id}
+              appointment={{
+                id: appointment.id,
+                patient_name: appointment.patient_name || 'Unknown Patient',
+                appointment_date: appointment.appointment_date,
+                duration_minutes: appointment.duration_minutes,
+                status: appointment.status,
+                urgency: appointment.urgency,
+                reason: appointment.reason,
+                consultation_notes: appointment.consultation_notes,
+                patient_id: appointment.patient_id
+              }}
+              isDentistView={true}
+              onConfirm={async () => {
+                try {
+                  const { error } = await supabase
+                    .from('appointments')
+                    .update({ status: 'confirmed' })
+                    .eq('id', appointment.id);
+                  if (error) throw error;
+                  fetchAppointments();
+                } catch (error: any) {
+                  throw new Error(error.message || "Failed to confirm appointment");
+                }
+              }}
+              onCancel={async () => {
+                try {
+                  const { error } = await supabase
+                    .from('appointments')
+                    .update({ status: 'cancelled' })
+                    .eq('id', appointment.id);
+                  if (error) throw error;
+                  fetchAppointments();
+                } catch (error: any) {
+                  throw new Error(error.message || "Failed to cancel appointment");
+                }
+              }}
+              onDelete={async () => {
+                try {
+                  const { error } = await supabase
+                    .from('appointments')
+                    .delete()
+                    .eq('id', appointment.id);
+                  if (error) throw error;
+                  fetchAppointments();
+                } catch (error: any) {
+                  throw new Error(error.message || "Failed to delete appointment");
+                }
+              }}
+              onViewDetails={() => {
+                setSelectedAppointment(appointment);
+              }}
+              className="mb-4"
+            />
           ))
         )}
       </div>

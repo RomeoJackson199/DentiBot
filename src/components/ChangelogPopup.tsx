@@ -61,74 +61,74 @@ const changelogEntries: ChangelogEntry[] = [
   {
     id: '1',
     type: 'feature',
-    title: 'Enhanced Patient Management',
-    description: 'Completely redesigned patient management with improved search, filtering, and detailed patient profiles with tabs for prescriptions, treatment plans, medical records, notes, and appointments.',
-    icon: <Users className="h-5 w-5" />,
+    title: 'Redesigned Availability Settings',
+    description: 'Completely redesigned availability management with quick presets, visual day cards, summary statistics, and intuitive controls for easier schedule management.',
+    icon: <Clock className="h-5 w-5" />,
     color: 'text-blue-600 bg-blue-50',
-    date: '2024-01-15'
+    date: '2024-01-20'
   },
   {
     id: '2',
-    type: 'improvement',
-    title: 'Better Error Handling',
-    description: 'Added comprehensive error handling throughout the application with user-friendly error messages and automatic retry mechanisms for failed operations.',
-    icon: <Shield className="h-5 w-5" />,
+    type: 'feature',
+    title: 'Enhanced Appointment Confirmation Widget',
+    description: 'New comprehensive appointment confirmation widget showing all details with confirm/cancel actions, usable for both patients and dentists with detailed information display.',
+    icon: <Calendar className="h-5 w-5" />,
     color: 'text-green-600 bg-green-50',
-    date: '2024-01-15'
+    date: '2024-01-20'
   },
   {
     id: '3',
     type: 'feature',
-    title: 'AI-Powered Patient Summaries',
-    description: 'New AI conversation dialog that can generate patient summaries, treatment recommendations, and medical record entries based on appointment data.',
-    icon: <MessageSquare className="h-5 w-5" />,
-    color: 'text-purple-600 bg-purple-50',
-    date: '2024-01-15'
+    title: 'Redesigned Triage Dashboard',
+    description: 'Complete redesign of the triage dashboard with real-time statistics, patient queue management, search and filtering, and quick actions for emergency cases.',
+    icon: <AlertTriangle className="h-5 w-5" />,
+    color: 'text-red-600 bg-red-50',
+    date: '2024-01-20'
   },
   {
     id: '4',
     type: 'improvement',
-    title: 'Enhanced UI/UX',
-    description: 'Improved user interface with better responsive design, glass morphism effects, improved animations, and more intuitive navigation.',
-    icon: <Settings className="h-5 w-5" />,
-    color: 'text-orange-600 bg-orange-50',
-    date: '2024-01-15'
+    title: 'Enhanced Dentist Management',
+    description: 'Improved dentist profile management with proper dentist profiles display, search functionality, and better user interface for managing dental team members.',
+    icon: <User className="h-5 w-5" />,
+    color: 'text-purple-600 bg-purple-50',
+    date: '2024-01-20'
   },
   {
     id: '5',
-    type: 'feature',
-    title: 'Advanced Analytics Dashboard',
-    description: 'New analytics section with detailed patient statistics, appointment trends, and performance metrics for better practice management.',
-    icon: <BarChart3 className="h-5 w-5" />,
-    color: 'text-indigo-600 bg-indigo-50',
-    date: '2024-01-15'
+    type: 'improvement',
+    title: 'Better UI/UX Design',
+    description: 'Complete UI redesign with modern glass morphism effects, improved color schemes, better responsive design, and enhanced user experience throughout the application.',
+    icon: <Settings className="h-5 w-5" />,
+    color: 'text-orange-600 bg-orange-50',
+    date: '2024-01-20'
   },
   {
     id: '6',
-    type: 'bugfix',
-    title: 'Fixed Patient Data Loading',
-    description: 'Resolved issues with patient data loading and improved the reliability of fetching patient information, prescriptions, and medical records.',
-    icon: <CheckCircle className="h-5 w-5" />,
-    color: 'text-red-600 bg-red-50',
-    date: '2024-01-15'
+    type: 'feature',
+    title: 'Quick Actions & Presets',
+    description: 'Added quick action buttons and preset schedules for availability management, making it much easier for dentists to set up their working hours.',
+    icon: <Zap className="h-5 w-5" />,
+    color: 'text-yellow-600 bg-yellow-50',
+    date: '2024-01-20'
   },
   {
     id: '7',
-    type: 'feature',
-    title: 'Enhanced Appointment Management',
-    description: 'Improved appointment booking with better validation, conflict detection, and integration with patient management system.',
-    icon: <Calendar className="h-5 w-5" />,
-    color: 'text-teal-600 bg-teal-50',
-    date: '2024-01-15'
+    type: 'improvement',
+    title: 'Enhanced Patient Queue',
+    description: 'Improved patient queue display with urgency indicators, pain level tracking, symptom badges, and quick action buttons for better triage management.',
+    icon: <Users className="h-5 w-5" />,
+    color: 'text-indigo-600 bg-indigo-50',
+    date: '2024-01-20'
   },
   {
     id: '8',
-    type: 'improvement',
-    title: 'Better Search and Filtering',
-    description: 'Enhanced search functionality across patients, appointments, and medical records with real-time filtering and improved results display.',
-    icon: <Search className="h-5 w-5" />,
-    color: 'text-cyan-600 bg-cyan-50',
-    date: '2024-01-15'
+    type: 'bugfix',
+    title: 'Fixed Dentist Profile Display',
+    description: 'Resolved the issue where dentist profiles were incorrectly labeled as patient profiles and improved the overall dentist management interface.',
+    icon: <CheckCircle className="h-5 w-5" />,
+    color: 'text-teal-600 bg-teal-50',
+    date: '2024-01-20'
   }
 ];
 
