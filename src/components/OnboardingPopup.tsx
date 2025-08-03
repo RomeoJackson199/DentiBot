@@ -29,7 +29,6 @@ export const OnboardingPopup = ({ isOpen, onClose }: OnboardingPopupProps) => {
   const { t } = useLanguage();
   const [currentStep, setCurrentStep] = useState(0);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
-  const [acceptedHealth, setAcceptedHealth] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
 
   const steps = [
@@ -140,36 +139,24 @@ export const OnboardingPopup = ({ isOpen, onClose }: OnboardingPopupProps) => {
           <p className="text-xs text-dental-muted-foreground">
             {t.aiDisclaimer}
           </p>
-          <div className="flex flex-col items-start space-y-2">
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="accept"
-                checked={acceptedTerms}
-                onCheckedChange={(c) => setAcceptedTerms(!!c)}
-              />
-              <label
-                htmlFor="accept"
-                className="text-sm text-dental-muted-foreground"
-              >
-                {t.acceptTerms}
-              </label>
-              <button
-                onClick={() => setShowTerms(true)}
-                className="text-sm text-dental-primary underline"
-              >
-                {t.viewTerms}
-              </button>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="healthconsent"
-                checked={acceptedHealth}
-                onCheckedChange={(c) => setAcceptedHealth(!!c)}
-              />
-              <label htmlFor="healthconsent" className="text-sm text-dental-muted-foreground">
-                {t.consentHealthData}
-              </label>
-            </div>
+          <div className="flex items-center justify-center space-x-2">
+            <Checkbox
+              id="accept"
+              checked={acceptedTerms}
+              onCheckedChange={(c) => setAcceptedTerms(!!c)}
+            />
+            <label
+              htmlFor="accept"
+              className="text-sm text-dental-muted-foreground"
+            >
+              {t.acceptTerms}
+            </label>
+            <button
+              onClick={() => setShowTerms(true)}
+              className="text-sm text-dental-primary underline"
+            >
+              {t.viewTerms}
+            </button>
           </div>
           <div className="bg-dental-primary/10 p-4 rounded-xl">
             <p className="text-sm font-medium text-dental-primary">
@@ -234,7 +221,7 @@ export const OnboardingPopup = ({ isOpen, onClose }: OnboardingPopupProps) => {
             )}
             <Button
               onClick={nextStep}
-              disabled={currentStep === steps.length - 1 && (!acceptedTerms || !acceptedHealth)}
+              disabled={currentStep === steps.length - 1 && !acceptedTerms}
               className="bg-gradient-primary text-white hover:shadow-glow disabled:opacity-50"
             >
               {currentStep === steps.length - 1 ? t.letsStart : t.next}

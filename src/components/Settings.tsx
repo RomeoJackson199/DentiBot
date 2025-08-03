@@ -9,7 +9,6 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useTheme } from "next-themes";
-import { Switch } from "@/components/ui/switch";
 import { 
   Dialog, 
   DialogContent, 
@@ -39,7 +38,6 @@ interface UserProfile {
   medical_history: string;
   address: string;
   emergency_contact: string;
-  ai_opt_out: boolean;
 }
 
 type TabType = 'general' | 'theme' | 'personal';
@@ -56,8 +54,7 @@ export const Settings = ({ user }: SettingsProps) => {
     date_of_birth: '',
     medical_history: '',
     address: '',
-    emergency_contact: '',
-    ai_opt_out: false
+    emergency_contact: ''
   });
   const [loading, setLoading] = useState(false);
   const [hasIncompleteProfile, setHasIncompleteProfile] = useState(false);
@@ -70,7 +67,7 @@ export const Settings = ({ user }: SettingsProps) => {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('first_name, last_name, phone, date_of_birth, medical_history, address, emergency_contact, ai_opt_out')
+        .select('first_name, last_name, phone, date_of_birth, medical_history, address, emergency_contact')
         .eq('user_id', user.id)
         .single();
 
@@ -82,8 +79,7 @@ export const Settings = ({ user }: SettingsProps) => {
           date_of_birth: data.date_of_birth || '',
           medical_history: data.medical_history || '',
           address: data.address || '',
-          emergency_contact: data.emergency_contact || '',
-          ai_opt_out: data.ai_opt_out || false
+          emergency_contact: data.emergency_contact || ''
         };
         setProfile(profileData);
         
@@ -124,8 +120,7 @@ export const Settings = ({ user }: SettingsProps) => {
           date_of_birth: profile.date_of_birth || null,
           medical_history: profile.medical_history,
           address: profile.address,
-          emergency_contact: profile.emergency_contact,
-          ai_opt_out: profile.ai_opt_out
+          emergency_contact: profile.emergency_contact
         })
         .eq('user_id', user.id);
 
@@ -147,30 +142,6 @@ export const Settings = ({ user }: SettingsProps) => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleDownloadData = async () => {
-    const { data: profile } = await supabase.from('profiles').select('*').eq('user_id', user.id).single();
-    const { data: appointments } = await supabase.from('appointments').select('*').eq('user_id', user.id);
-    const { data: notes } = await supabase.from('notes').select('*').eq('user_id', user.id);
-    const exportData = { profile, appointments, notes };
-    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'dentibot_data.json';
-    link.click();
-    URL.revokeObjectURL(url);
-  };
-
-  const handleDeleteAccount = async () => {
-    const confirmed = window.confirm(t.deleteAccountConfirm);
-    if (!confirmed) return;
-    await supabase.from('appointments').delete().eq('user_id', user.id);
-    await supabase.from('notes').delete().eq('user_id', user.id);
-    await supabase.from('profiles').delete().eq('user_id', user.id);
-    await supabase.auth.signOut();
-    toast({ title: t.deleteAccount, description: 'Your account has been deleted.' });
   };
 
   const tabs = [
@@ -234,22 +205,6 @@ export const Settings = ({ user }: SettingsProps) => {
                 <h3 className="text-lg font-semibold text-foreground mb-4">Preferred Language</h3>
                 <div className="bg-muted/30 rounded-xl p-4">
                   <LanguageSettings />
-                </div>
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-foreground mb-4">AI Features</h3>
-                <div className="flex items-center justify-between bg-muted/30 rounded-xl p-4">
-                  <span>Disable AI features in my account</span>
-                  <Switch
-                    checked={profile.ai_opt_out}
-                    onCheckedChange={async (checked) => {
-                      setProfile(prev => ({ ...prev, ai_opt_out: checked }));
-                      await supabase
-                        .from('profiles')
-                        .update({ ai_opt_out: checked })
-                        .eq('user_id', user.id);
-                    }}
-                  />
                 </div>
               </div>
             </div>
@@ -380,15 +335,6 @@ export const Settings = ({ user }: SettingsProps) => {
               >
                 {loading ? 'Saving...' : 'Save Personal Information'}
               </Button>
-
-              <div className="space-y-2">
-                <Button onClick={handleDownloadData} variant="outline" className="w-full">
-                  {t.downloadMyData}
-                </Button>
-                <Button onClick={handleDeleteAccount} variant="destructive" className="w-full">
-                  {t.deleteAccount}
-                </Button>
-              </div>
 
               <div className="pt-4 border-t border-border">
                 <Button 

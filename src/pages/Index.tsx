@@ -9,7 +9,6 @@ import { Header } from "@/components/homepage/Header";
 import { HeroSection } from "@/components/homepage/HeroSection";
 import { FeatureCards } from "@/components/homepage/FeatureCards";
 import { StatsSection } from "@/components/homepage/StatsSection";
-import { Footer } from "@/components/homepage/Footer";
 import { AppointmentBookingWithAuth } from "@/components/AppointmentBookingWithAuth";
 import { EmergencyTriageWizard } from "@/components/EmergencyTriageWizard";
 import { FloatingEmergencyButton } from "@/components/FloatingEmergencyButton";
@@ -197,13 +196,13 @@ const Index = () => {
   // Show the new professional homepage for non-authenticated users
   return <div className="min-h-screen mesh-bg">
       <Header user={user} />
-      <HeroSection
+      <HeroSection 
         onBookAppointment={() => setShowAppointmentBooking(true)}
         onStartTriage={() => setShowEmergencyTriage(true)}
       />
       <FeatureCards />
       <StatsSection />
-
+      
       {/* Footer CTA Section */}
       <section className="py-20 border-t border-white/10">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -224,8 +223,6 @@ const Index = () => {
 
       {/* Floating Emergency Button */}
       <FloatingEmergencyButton onEmergencyClick={() => setShowEmergencyTriage(true)} />
-
-      <Footer />
 
       {/* Language Selection Modal */}
       {showLanguageSelection && <LanguageSelection onLanguageSelected={handleLanguageSelected} />}

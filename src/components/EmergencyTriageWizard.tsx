@@ -9,7 +9,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { AlertTriangle, Activity, Clock, Heart, ArrowRight, ArrowLeft, Stethoscope, Shield, FileText } from "lucide-react";
 import { useLanguageDetection } from "@/hooks/useLanguageDetection";
-import { AiDisclaimer } from "@/components/AiDisclaimer";
 
 interface TriageData {
   painLevel: number;
@@ -215,9 +214,8 @@ export const EmergencyTriageWizard = ({ onComplete, onCancel }: EmergencyTriageW
             <Progress value={progress} className="w-full" />
           </div>
         </CardHeader>
-
+        
         <CardContent className="space-y-6">
-          <AiDisclaimer />
           {/* Step 1: Pain Level */}
           {currentStep === 1 && (
             <div className="space-y-4">

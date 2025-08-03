@@ -52,12 +52,6 @@ interface Translations {
   informationConfirmed: string;
   changesSaved: string;
   privacyNotice: string;
-  consentHealthData: string;
-  childConsentNote: string;
-  downloadMyData: string;
-  deleteAccount: string;
-  deleteAccountConfirm: string;
-  aiAdviceDisclaimer: string;
 
   // Auth
   signOut: string;
@@ -432,12 +426,6 @@ How can I help you today?`,
     invalidPhoneFormat: "Please enter a valid phone number",
     invalidEmailFormat: "Please enter a valid email address",
     requiredField: "This field is required",
-    consentHealthData: "I consent to DentiBot processing my personal and health data for appointment scheduling and dental service support purposes.",
-    childConsentNote: "If you are entering data for a patient under 16, you confirm you are their parent or legal guardian and consent to processing their data.",
-    downloadMyData: "Download My Data",
-    deleteAccount: "Delete My Account & Data",
-    deleteAccountConfirm: "Deleting your account will permanently remove all your personal and health data from DentiBot's systems. This cannot be undone. Are you sure?",
-    aiAdviceDisclaimer: "⚠️ AI suggestions are for informational purposes only and are not a substitute for professional dental advice.",
 
     // Onboarding
     welcomeToFirstSmile: "Welcome to First Smile AI! 🦷",
@@ -694,12 +682,6 @@ Comment puis-je vous aider aujourd'hui ?`,
     invalidPhoneFormat: "Veuillez entrer un numéro de téléphone valide",
     invalidEmailFormat: "Veuillez entrer une adresse email valide",
     requiredField: "Ce champ est obligatoire",
-    consentHealthData: "Je consens à ce que DentiBot traite mes données personnelles et de santé pour la prise de rendez-vous et le support des services dentaires.",
-    childConsentNote: "Si vous saisissez des données pour un patient de moins de 16 ans, vous confirmez être son parent ou tuteur légal et consentez au traitement de ses données.",
-    downloadMyData: "Télécharger Mes Données",
-    deleteAccount: "Supprimer Mon Compte et Mes Données",
-    deleteAccountConfirm: "La suppression de votre compte effacera définitivement toutes vos données personnelles et de santé des systèmes de DentiBot. Cette action est irréversible. Êtes-vous sûr ?",
-    aiAdviceDisclaimer: "⚠️ Les suggestions de l'IA sont fournies à titre informatif uniquement et ne remplacent pas les conseils dentaires professionnels.",
 
     // Onboarding
     welcomeToFirstSmile: "Bienvenue sur First Smile AI ! 🦷",
@@ -958,12 +940,6 @@ Hoe kan ik u vandaag helpen?`,
     invalidPhoneFormat: "Voer een geldig telefoonnummer in",
     invalidEmailFormat: "Voer een geldig e-mailadres in",
     requiredField: "Dit veld is verplicht",
-    consentHealthData: "Ik stem ermee in dat DentiBot mijn persoonlijke- en gezondheidsgegevens verwerkt voor het plannen van afspraken en ondersteuning van tandheelkundige diensten.",
-    childConsentNote: "Als u gegevens invoert voor een patiënt jonger dan 16 jaar, bevestigt u dat u hun ouder of wettelijke voogd bent en toestemt met de verwerking van hun gegevens.",
-    downloadMyData: "Mijn Gegevens Downloaden",
-    deleteAccount: "Mijn Account en Gegevens Verwijderen",
-    deleteAccountConfirm: "Het verwijderen van uw account verwijdert al uw persoonlijke- en gezondheidsgegevens permanent uit de systemen van DentiBot. Dit kan niet ongedaan worden gemaakt. Weet u het zeker?",
-    aiAdviceDisclaimer: "⚠️ AI-suggesties zijn alleen voor informatiedoeleinden en vervangen geen professioneel tandheelkundig advies.",
 
     // Onboarding
     welcomeToFirstSmile: "Welkom bij First Smile AI! 🦷",

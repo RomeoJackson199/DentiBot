@@ -9,7 +9,6 @@ import { AnimatedCard } from "@/components/ui/animated-card";
 import { toast } from "sonner";
 import useEmblaCarousel from 'embla-carousel-react';
 import { useLanguage } from "@/hooks/useLanguage";
-import { ReviewDialog } from "@/components/ReviewDialog";
 import { 
   AlertDialog, 
   AlertDialogAction, 
@@ -33,7 +32,6 @@ interface Appointment {
     id: string;
     specialization?: string;
     profile: {
-      id: string;
       first_name: string;
       last_name: string;
       phone?: string;
@@ -49,8 +47,6 @@ export const AppointmentsList = ({ user }: AppointmentsListProps) => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const { t, language } = useLanguage();
-  const [profileId, setProfileId] = useState<string | null>(null);
-  const [reviewedAppointments, setReviewedAppointments] = useState<Set<string>>(new Set());
 
   // Move carousel hook to top to avoid conditional hook calls
   const [emblaRef, emblaApi] = useEmblaCarousel({ 
@@ -81,17 +77,6 @@ export const AppointmentsList = ({ user }: AppointmentsListProps) => {
         return;
       }
 
-      setProfileId(profile.id);
-
-      // Fetch existing reviews for this patient
-      const { data: reviewData } = await supabase
-        .from("reviews")
-        .select("appointment_id")
-        .eq("patient_id", profile.id);
-      if (reviewData) {
-        setReviewedAppointments(new Set(reviewData.map(r => r.appointment_id)));
-      }
-
       // Fetch appointments with dentist information
       const { data, error } = await supabase
         .from("appointments")
@@ -106,7 +91,6 @@ export const AppointmentsList = ({ user }: AppointmentsListProps) => {
             id,
             specialization,
             profiles:profile_id (
-              id,
               first_name,
               last_name,
               phone
@@ -133,12 +117,7 @@ export const AppointmentsList = ({ user }: AppointmentsListProps) => {
         dentist: {
           id: apt.dentists.id,
           specialization: apt.dentists.specialization,
-          profile: {
-            id: apt.dentists.profiles.id,
-            first_name: apt.dentists.profiles.first_name,
-            last_name: apt.dentists.profiles.last_name,
-            phone: apt.dentists.profiles.phone
-          }
+          profile: apt.dentists.profiles
         }
       })) || [];
 
@@ -490,22 +469,6 @@ export const AppointmentsList = ({ user }: AppointmentsListProps) => {
                         <p className="text-sm text-dental-muted-foreground">
                           {appointment.reason || t.generalConsultation}
                         </p>
-                        {appointment.status === 'completed' && profileId && (
-                          reviewedAppointments.has(appointment.id) ? (
-                            <p className="text-xs text-dental-muted-foreground mt-2">Feedback submitted</p>
-                          ) : (
-                            <div className="mt-2">
-                              <ReviewDialog
-                                appointmentId={appointment.id}
-                                dentistId={appointment.dentist.profile.id}
-                                patientId={profileId}
-                                onSubmitted={() =>
-                                  setReviewedAppointments(prev => new Set(prev).add(appointment.id))
-                                }
-                              />
-                            </div>
-                          )
-                        )}
                       </div>
                     </div>
                   </CardContent>

@@ -20,7 +20,6 @@ import { ChatBookingFlow } from "@/components/chat/ChatBookingFlow";
 import { ChatSettingsManager } from "@/components/chat/ChatSettingsManager";
 import { generateSymptomSummary } from "@/lib/symptoms";
 import { generateMedicalRecordFromChat, createMedicalRecord } from "@/lib/medicalRecords";
-import { AiDisclaimer } from "@/components/AiDisclaimer";
 
 interface DentalChatbotProps {
   user: User | null;
@@ -651,8 +650,8 @@ Type your request...`;
             </div>
           </CardTitle>
         </CardHeader>
+        
         <CardContent className="flex-1 flex flex-col p-0 bg-gradient-hero">
-          <AiDisclaimer />
           <ScrollArea className="flex-1 p-3 sm:p-6">
             <div className="space-y-4 sm:space-y-6">
               {messages.map((message) => (

@@ -5,7 +5,6 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -26,8 +25,6 @@ export const AuthForm = ({ compact = false }: AuthFormProps) => {
     lastName: "",
     phone: "",
   });
-  const [acceptTerms, setAcceptTerms] = useState(false);
-  const [healthConsent, setHealthConsent] = useState(false);
   const { toast } = useToast();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -43,7 +40,7 @@ export const AuthForm = ({ compact = false }: AuthFormProps) => {
 
     try {
       const redirectUrl = `${window.location.origin}/`;
-
+      
       const { data, error } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
@@ -53,8 +50,6 @@ export const AuthForm = ({ compact = false }: AuthFormProps) => {
             first_name: formData.firstName,
             last_name: formData.lastName,
             phone: formData.phone,
-            health_data_consent: true,
-            health_data_consent_at: new Date().toISOString(),
           },
         },
       });
@@ -364,40 +359,15 @@ export const AuthForm = ({ compact = false }: AuthFormProps) => {
                       className="pl-10"
                     />
                   </div>
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-start space-x-2">
-                  <Checkbox
-                    id="tos"
-                    checked={acceptTerms}
-                    onCheckedChange={(c) => setAcceptTerms(!!c)}
-                  />
-                  <label htmlFor="tos" className="text-sm">
-                    {t.acceptTerms}
-                  </label>
                 </div>
-                <div className="flex items-start space-x-2">
-                  <Checkbox
-                    id="health"
-                    checked={healthConsent}
-                    onCheckedChange={(c) => setHealthConsent(!!c)}
-                  />
-                  <label htmlFor="health" className="text-sm">
-                    {t.consentHealthData}
-                  </label>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  {t.childConsentNote}
-                </p>
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {t.createAccountButton}
+                </Button>
+              </form>
               </div>
-              <Button type="submit" className="w-full" disabled={isLoading || !acceptTerms || !healthConsent}>
-                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {t.createAccountButton}
-              </Button>
-            </form>
-            </div>
-          </TabsContent>
-        </Tabs>
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
     </div>

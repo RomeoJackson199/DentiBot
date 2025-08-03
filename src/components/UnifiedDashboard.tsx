@@ -6,15 +6,6 @@ import { PatientDashboard } from "./PatientDashboard";
 import { DentistDashboard } from "../pages/DentistDashboard";
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 
 interface UnifiedDashboardProps {
   user: User;
@@ -23,13 +14,10 @@ interface UnifiedDashboardProps {
 export const UnifiedDashboard = ({ user }: UnifiedDashboardProps) => {
   const [userRole, setUserRole] = useState<'patient' | 'dentist' | null>(null);
   const [loading, setLoading] = useState(true);
-  const [showAiPrompt, setShowAiPrompt] = useState(false);
-  const [profileId, setProfileId] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
     fetchUserRole();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const fetchUserRole = async () => {
@@ -39,7 +27,7 @@ export const UnifiedDashboard = ({ user }: UnifiedDashboardProps) => {
       // First get the user's profile
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
-        .select('id, role, ai_opt_out, ai_never_prompt')
+        .select('id, role')
         .eq('user_id', user.id)
         .maybeSingle();
 
@@ -54,15 +42,6 @@ export const UnifiedDashboard = ({ user }: UnifiedDashboardProps) => {
         console.log('No profile found, defaulting to patient');
         setUserRole('patient');
         return;
-      }
-
-      setProfileId(profile.id);
-      if (profile.ai_opt_out && !profile.ai_never_prompt) {
-        const promptKey = `ai_prompt_${user.id}`;
-        if (!sessionStorage.getItem(promptKey)) {
-          setShowAiPrompt(true);
-          sessionStorage.setItem(promptKey, 'shown');
-        }
       }
 
       console.log('User profile role:', profile.role);
@@ -90,55 +69,18 @@ export const UnifiedDashboard = ({ user }: UnifiedDashboardProps) => {
         console.log('User role is not dentist, setting to patient');
         setUserRole('patient');
       }
-    } catch (error: unknown) {
+    } catch (error: any) {
       console.error('Error fetching user role:', error);
       // Default to patient if there's an error
       setUserRole('patient');
-      const message = error instanceof Error ? error.message : 'Unknown error';
       toast({
         title: "Error",
-        description: `Error loading dashboard: ${message}`,
+        description: `Error loading dashboard: ${error.message}`,
         variant: "destructive",
       });
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleEnableAi = async () => {
-    if (!profileId) return;
-    const { error } = await supabase
-      .from('profiles')
-      .update({ ai_opt_out: false })
-      .eq('id', profileId);
-    if (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to enable AI',
-        variant: 'destructive',
-      });
-      return;
-    }
-    toast({ title: 'AI Enabled', description: 'Smart assistant activated.' });
-    setShowAiPrompt(false);
-  };
-
-  const handleNeverAsk = async () => {
-    if (!profileId) return;
-    const { error } = await supabase
-      .from('profiles')
-      .update({ ai_never_prompt: true })
-      .eq('id', profileId);
-    if (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to update preference',
-        variant: 'destructive',
-      });
-      return;
-    }
-    toast({ title: 'Preference Saved', description: 'We will not ask again.' });
-    setShowAiPrompt(false);
   };
 
   if (loading) {
@@ -156,33 +98,12 @@ export const UnifiedDashboard = ({ user }: UnifiedDashboardProps) => {
   }
 
   return (
-    <>
-      <div className="min-h-screen mesh-bg">
-        {userRole === 'dentist' ? (
-          <DentistDashboard user={user} />
-        ) : (
-          <PatientDashboard user={user} />
-        )}
-      </div>
-      <Dialog open={showAiPrompt} onOpenChange={setShowAiPrompt}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Enable Smart AI Assistant?</DialogTitle>
-            <DialogDescription>
-              DentiBot’s AI can help you describe your symptoms faster. Would you like to enable it?
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button onClick={handleEnableAi}>Enable AI</Button>
-            <Button variant="secondary" onClick={() => setShowAiPrompt(false)}>
-              Keep Disabled
-            </Button>
-            <Button variant="ghost" onClick={handleNeverAsk}>
-              Never Ask Again
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </>
+    <div className="min-h-screen mesh-bg">
+      {userRole === 'dentist' ? (
+        <DentistDashboard user={user} />
+      ) : (
+        <PatientDashboard user={user} />
+      )}
+    </div>
   );
 };

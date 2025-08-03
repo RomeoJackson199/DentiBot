@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Upload, Camera, Image, X } from "lucide-react";
-import { AiDisclaimer } from "@/components/AiDisclaimer";
 
 interface PhotoUploadProps {
   onComplete: (photoUrl: string) => void;
@@ -115,7 +114,6 @@ export const PhotoUpload = ({ onComplete, onCancel }: PhotoUploadProps) => {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        <AiDisclaimer />
         <div className="text-sm text-muted-foreground">
           <p>Vous pouvez télécharger une photo de la zone dentaire concernée pour aider le dentiste à mieux comprendre votre situation.</p>
           <p className="mt-2">Formats acceptés : JPG, PNG • Taille max : 5MB</p>
