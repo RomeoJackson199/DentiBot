@@ -53,10 +53,10 @@ export function PatientNotes({ patientId, dentistId }: PatientNotesProps) {
 
       if (error) throw error;
       setNotes(data || []);
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Error",
-        description: error.message || "Failed to load notes",
+        description: error instanceof Error ? error.message : "Unknown error",
         variant: "destructive",
       });
     } finally {
@@ -88,10 +88,10 @@ export function PatientNotes({ patientId, dentistId }: PatientNotesProps) {
         title: "Success",
         description: "Note added successfully",
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Error",
-        description: error.message || "Failed to add note",
+        description: error instanceof Error ? error.message : "Unknown error",
         variant: "destructive",
       });
     }
@@ -128,10 +128,10 @@ export function PatientNotes({ patientId, dentistId }: PatientNotesProps) {
         title: "Success",
         description: "Note updated successfully",
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Error",
-        description: error.message || "Failed to update note",
+        description: error instanceof Error ? error.message : "Unknown error",
         variant: "destructive",
       });
     }
@@ -154,10 +154,10 @@ export function PatientNotes({ patientId, dentistId }: PatientNotesProps) {
         title: "Success",
         description: "Note deleted successfully",
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Error",
-        description: error.message || "Failed to delete note",
+        description: error instanceof Error ? error.message : "Unknown error",
         variant: "destructive",
       });
     }

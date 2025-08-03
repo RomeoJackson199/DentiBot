@@ -8,6 +8,22 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Bot, Send, Loader2, Check, X, MessageSquare, User } from "lucide-react";
 import { AIWritingAssistant } from "@/components/AIWritingAssistant";
+import { 
+  ChatMessage, 
+  AiResponse, 
+  AiAction, 
+  Patient, 
+  MedicalRecord, 
+  PatientNote, 
+  TreatmentPlan 
+} from "@/types/common";
+import { 
+  Prescription, 
+  NewPrescriptionForm, 
+  NewTreatmentPlanForm, 
+  NewMedicalRecordForm, 
+  NewPatientNoteForm 
+} from "@/types/dental";
 
 interface Message {
   id: string;
@@ -16,7 +32,7 @@ interface Message {
   timestamp: Date;
   suggestions?: {
     type: 'note' | 'prescription' | 'treatment_plan';
-    data: any;
+    data: NewPrescriptionForm | NewTreatmentPlanForm | NewMedicalRecordForm | NewPatientNoteForm;
   }[];
 }
 
@@ -41,7 +57,7 @@ export function AIConversationDialog({
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [pendingSuggestions, setPendingSuggestions] = useState<any[]>([]);
+  const [pendingSuggestions, setPendingSuggestions] = useState<(NewPrescriptionForm | NewTreatmentPlanForm | NewMedicalRecordForm | NewPatientNoteForm)[]>([]);
   const { toast } = useToast();
 
   const sendMessage = async () => {
@@ -117,10 +133,11 @@ export function AIConversationDialog({
         setPendingSuggestions(data.suggestions);
       }
 
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to send message";
       toast({
         title: "Error",
-        description: error.message || "Failed to send message",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -128,7 +145,7 @@ export function AIConversationDialog({
     }
   };
 
-  const handleSuggestionApproval = async (suggestion: any, approved: boolean) => {
+  const handleSuggestionApproval = async (suggestion: NewPrescriptionForm | NewTreatmentPlanForm | NewMedicalRecordForm | NewPatientNoteForm, approved: boolean) => {
     if (!approved) {
       setPendingSuggestions(prev => prev.filter(s => s.id !== suggestion.id));
       return;
@@ -180,10 +197,11 @@ export function AIConversationDialog({
         description: `${suggestion.type.replace('_', ' ')} has been added successfully`,
       });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to apply suggestion";
       toast({
         title: "Error",
-        description: error.message || "Failed to apply suggestion",
+        description: errorMessage,
         variant: "destructive",
       });
     }

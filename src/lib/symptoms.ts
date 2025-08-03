@@ -6,7 +6,7 @@ import { ChatMessage } from "@/types/chat";
  */
 export const generateSymptomSummary = async (
   messages: ChatMessage[],
-  userProfile: any
+  userProfile: UserProfile
 ): Promise<string> => {
   try {
     const { data, error } = await supabase.functions.invoke('dental-ai-chat', {

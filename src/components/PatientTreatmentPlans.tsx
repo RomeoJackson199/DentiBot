@@ -79,10 +79,10 @@ export function PatientTreatmentPlans({ patientId, dentistId }: PatientTreatment
 
       if (error) throw error;
       setTreatmentPlans(data || []);
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Error",
-        description: error.message || "Failed to load treatment plans",
+        description: error instanceof Error ? error.message : "Unknown error",
         variant: "destructive",
       });
     } finally {
@@ -139,10 +139,10 @@ export function PatientTreatmentPlans({ patientId, dentistId }: PatientTreatment
         title: "Success",
         description: "Treatment plan created successfully",
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Error",
-        description: error.message || "Failed to create treatment plan",
+        description: error instanceof Error ? error.message : "Unknown error",
         variant: "destructive",
       });
     }
@@ -169,10 +169,10 @@ export function PatientTreatmentPlans({ patientId, dentistId }: PatientTreatment
         title: "Success",
         description: "Treatment plan status updated",
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Error",
-        description: error.message || "Failed to update treatment plan",
+        description: error instanceof Error ? error.message : "Unknown error",
         variant: "destructive",
       });
     }

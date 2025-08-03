@@ -163,11 +163,11 @@ const DentistSelectionWidget = ({
   onSelect,
   recommendedDentists
 }: {
-  dentists: any[];
-  onSelect: (dentist: any) => void;
+  dentists: Dentist[];
+  onSelect: (dentist: Dentist) => void;
   recommendedDentists?: string[];
 }) => {
-  const isRecommended = (dentist: any) => {
+  const isRecommended = (dentist: Dentist) => {
     if (!recommendedDentists) return false;
     const fullName = `${dentist.profiles?.first_name} ${dentist.profiles?.last_name}`;
     return recommendedDentists.includes(fullName);
@@ -216,7 +216,7 @@ const AppointmentConfirmationWidget = ({
   loading = false,
   summary
 }: {
-  appointment: any;
+  appointment: Appointment;
   onConfirm: () => void;
   onCancel: () => void;
   loading?: boolean;
@@ -270,7 +270,7 @@ const PersonalInfoFormWidget = ({
   onCancel 
 }: { 
   user: User; 
-  onSave: (data: any) => void;
+  onSave: (data: unknown) => void;
   onCancel: () => void;
 }) => {
   const [formData, setFormData] = useState({

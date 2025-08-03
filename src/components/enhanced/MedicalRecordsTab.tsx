@@ -99,10 +99,10 @@ export function MedicalRecordsTab({
         record_date: ''
       });
       onRefresh();
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Error",
-        description: error.message || "Failed to save medical record",
+        description: error instanceof Error ? error.message : "Unknown error",
         variant: "destructive",
       });
     }

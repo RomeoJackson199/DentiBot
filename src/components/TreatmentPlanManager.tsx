@@ -78,10 +78,10 @@ export function TreatmentPlanManager({ appointmentId, patientId, dentistId }: Tr
         estimated_cost: '',
         notes: ''
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Error",
-        description: error.message || "Failed to create treatment plan",
+        description: error instanceof Error ? error.message : "Unknown error",
         variant: "destructive",
       });
     } finally {

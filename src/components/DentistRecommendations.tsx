@@ -110,7 +110,7 @@ export const DentistRecommendations = ({
   };
 
   const calculateRecommendationScore = (
-    dentist: any, 
+    dentist: Dentist, 
     urgency: number, 
     symptoms: string[],
     triageData?: {

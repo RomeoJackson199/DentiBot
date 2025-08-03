@@ -98,10 +98,10 @@ export function PatientNotesTab({
         is_private: false
       });
       onRefresh();
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Error",
-        description: error.message || "Failed to save note",
+        description: error instanceof Error ? error.message : "Unknown error",
         variant: "destructive",
       });
     }
@@ -131,10 +131,10 @@ export function PatientNotesTab({
         description: "Patient note has been deleted successfully",
       });
       onRefresh();
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Error",
-        description: error.message || "Failed to delete note",
+        description: error instanceof Error ? error.message : "Unknown error",
         variant: "destructive",
       });
     }

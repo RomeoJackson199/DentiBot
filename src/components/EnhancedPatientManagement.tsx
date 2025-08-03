@@ -257,9 +257,9 @@ export function EnhancedPatientManagement({ dentistId }: EnhancedPatientManageme
       setFilteredPatients(patientsWithStats);
       setRetryCount(0);
       
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error fetching patients:', error);
-      const errorMessage = error.message || 'Failed to load patients';
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
       setError(errorMessage);
       
       // Auto-retry logic for network errors
@@ -373,9 +373,9 @@ export function EnhancedPatientManagement({ dentistId }: EnhancedPatientManageme
       }
       setFollowUps(followUpsData || []);
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error fetching patient data:', error);
-      const errorMessage = error.message || 'Failed to load patient data';
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
       setError(errorMessage);
       
       // Auto-retry logic for network errors

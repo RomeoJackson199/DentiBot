@@ -72,10 +72,10 @@ export function PrescriptionManager({ appointmentId, patientId, dentistId }: Pre
         duration_days: '',
         instructions: ''
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Error",
-        description: error.message || "Failed to create prescription",
+        description: error instanceof Error ? error.message : "Unknown error",
         variant: "destructive",
       });
     } finally {

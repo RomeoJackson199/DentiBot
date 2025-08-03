@@ -513,7 +513,7 @@ Just type what you need or use the quick action buttons! 😊
   };
 
 
-  const handleDentistSelection = (dentist: any) => {
+  const handleDentistSelection = (dentist: Dentist) => {
     setBookingFlow({ ...bookingFlow, selectedDentist: dentist, step: 'date' });
     setActiveWidget(null);
     

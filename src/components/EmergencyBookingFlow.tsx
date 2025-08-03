@@ -21,7 +21,7 @@ import {
 import { format, addDays, isBefore, startOfDay } from "date-fns";
 
 interface EmergencyBookingFlowProps {
-  user: any;
+  user: User;
   onComplete: (appointmentData?: any) => void;
   onCancel: () => void;
 }

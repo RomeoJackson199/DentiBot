@@ -114,10 +114,10 @@ export function TreatmentPlansTab({
         notes: ''
       });
       onRefresh();
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Error",
-        description: error.message || "Failed to save treatment plan",
+        description: error instanceof Error ? error.message : "Unknown error",
         variant: "destructive",
       });
     }
@@ -153,10 +153,10 @@ export function TreatmentPlansTab({
         description: "Treatment plan status has been updated",
       });
       onRefresh();
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Error",
-        description: error.message || "Failed to update status",
+        description: error instanceof Error ? error.message : "Unknown error",
         variant: "destructive",
       });
     }
