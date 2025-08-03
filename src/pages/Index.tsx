@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { User, Session } from "@supabase/supabase-js";
 import { UnifiedDashboard } from "@/components/UnifiedDashboard";
-import { AuthForm } from "@/components/AuthForm";
+import { ProgressiveAuthForm } from "@/components/ProgressiveAuthForm";
 import { OnboardingPopup } from "@/components/OnboardingPopup";
 import { LanguageSelection } from "@/components/LanguageSelection";
 import { Header } from "@/components/homepage/Header";
@@ -215,7 +215,7 @@ const Index = () => {
               Join thousands of dental professionals who have revolutionized patient care with AI.
             </p>
             <div className="space-y-4">
-              <AuthForm />
+              <ProgressiveAuthForm />
               
             </div>
           </div>

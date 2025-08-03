@@ -4,6 +4,7 @@ import { User } from "@supabase/supabase-js";
 import { useToast } from "@/hooks/use-toast";
 import { PatientDashboard } from "./PatientDashboard";
 import { DentistDashboard } from "../pages/DentistDashboard";
+import { AiOptOutPrompt } from "./AiOptOutPrompt";
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 
@@ -104,6 +105,7 @@ export const UnifiedDashboard = ({ user }: UnifiedDashboardProps) => {
       ) : (
         <PatientDashboard user={user} />
       )}
+      <AiOptOutPrompt user={user} />
     </div>
   );
 };

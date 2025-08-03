@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { User } from "@supabase/supabase-js";
+import { supabase } from "@/integrations/supabase/client";
 import { InteractiveDentalChat } from "@/components/chat/InteractiveDentalChat";
 import MockAppointmentsList from "@/components/MockAppointmentsList";
 import { Settings } from "@/components/Settings";
@@ -8,6 +9,7 @@ import { EmergencyTriageForm } from "@/components/EmergencyTriageForm";
 import { PatientAnalytics } from "@/components/analytics/PatientAnalytics";
 import { useLanguage } from "@/hooks/useLanguage";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
   MessageSquare, 
   Calendar, 
@@ -15,7 +17,11 @@ import {
   AlertTriangle,
   Stethoscope,
   Clock,
-  BarChart3
+  BarChart3,
+  User as UserIcon,
+  Shield,
+  Heart,
+  Bell
 } from "lucide-react";
 
 interface PatientDashboardProps {
@@ -33,6 +39,9 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
     }
   });
   const [triggerBooking, setTriggerBooking] = useState<'low' | 'medium' | 'high' | 'emergency' | false>(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [userProfile, setUserProfile] = useState<any>(null);
 
   const handleEmergencyComplete = (urgency: 'low' | 'medium' | 'high' | 'emergency') => {
     setActiveTab('chat');
@@ -48,6 +57,89 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
       // ignore write errors
     }
   }, [activeTab, user.id]);
+
+  useEffect(() => {
+    fetchUserProfile();
+  }, [user]);
+
+  const fetchUserProfile = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error) throw error;
+      setUserProfile(data);
+    } catch (err: any) {
+      console.error('Error fetching user profile:', err);
+      setError('Failed to load user profile');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getWelcomeMessage = () => {
+    if (!userProfile) return "Welcome to your dashboard!";
+    
+    const firstName = userProfile.first_name || "User";
+    const timeOfDay = new Date().getHours();
+    let greeting = "Good morning";
+    
+    if (timeOfDay >= 12 && timeOfDay < 17) {
+      greeting = "Good afternoon";
+    } else if (timeOfDay >= 17) {
+      greeting = "Good evening";
+    }
+    
+    return `${greeting}, ${firstName}!`;
+  };
+
+  const getQuickStats = () => {
+    // Mock data - in real app, this would come from the database
+    return {
+      upcomingAppointments: 2,
+      completedAppointments: 15,
+      healthScore: 85,
+      lastVisit: "2 weeks ago"
+    };
+  };
+
+  const stats = getQuickStats();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen mesh-bg flex items-center justify-center">
+        <Card className="glass-card animate-fade-in">
+          <CardContent className="p-8 text-center space-y-4">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-dental-primary mx-auto"></div>
+            <h3 className="text-lg font-semibold">Loading Dashboard</h3>
+            <p className="text-dental-muted-foreground">Preparing your personalized experience...</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen mesh-bg flex items-center justify-center">
+        <Card className="glass-card animate-fade-in">
+          <CardContent className="p-8 text-center space-y-4">
+            <AlertTriangle className="h-8 w-8 text-red-500 mx-auto" />
+            <h3 className="text-lg font-semibold">Error Loading Dashboard</h3>
+            <p className="text-dental-muted-foreground">{error}</p>
+            <Button onClick={fetchUserProfile} variant="outline">
+              Try Again
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -67,16 +159,74 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
               <p className="text-sm text-dental-muted-foreground">Patient Dashboard</p>
             </div>
           </div>
-          <Settings user={user} />
+          <div className="flex items-center space-x-2">
+            <Settings user={user} />
+          </div>
         </div>
       </header>
 
       <main className="container mx-auto px-2 sm:px-4 py-4 sm:py-6 lg:py-10">
+        {/* Welcome Section */}
+        <div className="mb-6">
+          <Card className="glass-card border-0">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h1 className="text-2xl font-bold gradient-text mb-2">
+                    {getWelcomeMessage()}
+                  </h1>
+                  <p className="text-dental-muted-foreground">
+                    Your AI-powered dental assistant is ready to help
+                  </p>
+                </div>
+                <div className="hidden sm:flex items-center space-x-2">
+                  <div className="flex items-center space-x-1 text-sm text-green-600">
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <span>AI Assistant Online</span>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Quick Stats */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+          <Card className="glass-card border-0">
+            <CardContent className="p-4 text-center">
+              <Calendar className="h-6 w-6 text-blue-500 mx-auto mb-2" />
+              <p className="text-2xl font-bold">{stats.upcomingAppointments}</p>
+              <p className="text-xs text-dental-muted-foreground">Upcoming</p>
+            </CardContent>
+          </Card>
+          <Card className="glass-card border-0">
+            <CardContent className="p-4 text-center">
+              <Activity className="h-6 w-6 text-green-500 mx-auto mb-2" />
+              <p className="text-2xl font-bold">{stats.completedAppointments}</p>
+              <p className="text-xs text-dental-muted-foreground">Completed</p>
+            </CardContent>
+          </Card>
+          <Card className="glass-card border-0">
+            <CardContent className="p-4 text-center">
+              <Heart className="h-6 w-6 text-red-500 mx-auto mb-2" />
+              <p className="text-2xl font-bold">{stats.healthScore}%</p>
+              <p className="text-xs text-dental-muted-foreground">Health Score</p>
+            </CardContent>
+          </Card>
+          <Card className="glass-card border-0">
+            <CardContent className="p-4 text-center">
+              <Clock className="h-6 w-6 text-orange-500 mx-auto mb-2" />
+              <p className="text-sm font-bold">{stats.lastVisit}</p>
+              <p className="text-xs text-dental-muted-foreground">Last Visit</p>
+            </CardContent>
+          </Card>
+        </div>
+
         {/* Quick Emergency Access */}
         <div className="mb-6">
           <Button
             onClick={() => setActiveTab('emergency')}
-            className="w-full sm:w-auto bg-destructive hover:bg-destructive/90 text-white shadow-elegant"
+            className="w-full sm:w-auto bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white shadow-elegant"
             size="lg"
           >
             <AlertTriangle className="h-5 w-5 mr-2" />
