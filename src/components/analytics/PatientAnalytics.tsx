@@ -28,7 +28,6 @@ interface PatientData {
   lastVisit: string | null;
   totalNotes: number;
   activeTreatmentPlans: number;
-  healthScore: number;
   appointmentStreak: number;
   preferredTime: string;
   avgRating: number;
@@ -42,7 +41,6 @@ export const PatientAnalytics = ({ userId }: PatientAnalyticsProps) => {
     lastVisit: null,
     totalNotes: 0,
     activeTreatmentPlans: 0,
-    healthScore: 85,
     appointmentStreak: 0,
     preferredTime: 'Morning',
     avgRating: 4.8
@@ -100,12 +98,6 @@ export const PatientAnalytics = ({ userId }: PatientAnalyticsProps) => {
         apt.status === 'completed'
       )?.appointment_date;
 
-      // Calculate health score based on appointment frequency, compliance, etc.
-      let healthScore = 70; // Base score
-      if (completed > 5) healthScore += 10; // Regular patient
-      if (upcoming > 0) healthScore += 10; // Has upcoming appointments
-      if (treatmentPlans && treatmentPlans.length > 0) healthScore += 5; // Active treatment
-      
       setPatientData({
         totalAppointments: appointments?.length || 0,
         upcomingAppointments: upcoming,
@@ -113,7 +105,6 @@ export const PatientAnalytics = ({ userId }: PatientAnalyticsProps) => {
         lastVisit: lastVisitDate,
         totalNotes: notes?.length || 0,
         activeTreatmentPlans: treatmentPlans?.length || 0,
-        healthScore: Math.min(healthScore, 100),
         appointmentStreak: Math.floor(Math.random() * 6) + 3, // Simulate streak
         preferredTime: 'Afternoon', // Could analyze actual appointment times
         avgRating: 4.8 + Math.random() * 0.2 // Simulate rating
@@ -126,19 +117,7 @@ export const PatientAnalytics = ({ userId }: PatientAnalyticsProps) => {
     }
   };
 
-  const getHealthScoreColor = (score: number) => {
-    if (score >= 90) return 'text-green-600 bg-green-100';
-    if (score >= 75) return 'text-blue-600 bg-blue-100';
-    if (score >= 60) return 'text-yellow-600 bg-yellow-100';
-    return 'text-red-600 bg-red-100';
-  };
 
-  const getHealthScoreLabel = (score: number) => {
-    if (score >= 90) return 'Excellent';
-    if (score >= 75) return 'Good';
-    if (score >= 60) return 'Fair';
-    return 'Needs Attention';
-  };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
