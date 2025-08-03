@@ -206,7 +206,7 @@ export const ProgressiveAuthForm = ({ compact = false }: ProgressiveAuthFormProp
           setShowLoginDialog(false);
         }
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: t.signUpError,
         description: error.message,
@@ -235,7 +235,7 @@ export const ProgressiveAuthForm = ({ compact = false }: ProgressiveAuthFormProp
       if (compact) {
         setShowLoginDialog(false);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: t.signInError,
         description: error.message,
@@ -265,7 +265,7 @@ export const ProgressiveAuthForm = ({ compact = false }: ProgressiveAuthFormProp
         throw error;
       }
       console.log('Google sign-in initiated successfully');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Google sign-in catch block:', error);
       toast({
         title: t.signInError,

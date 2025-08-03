@@ -29,7 +29,7 @@ export class AppError extends Error {
   }
 }
 
-export const handleError = (error: any, context: string = 'Unknown'): ErrorInfo => {
+export const handleError = (error: unknown, context: string = 'Unknown'): ErrorInfo => {
   console.error(`Error in ${context}:`, error);
 
   // Handle different types of errors
@@ -100,7 +100,7 @@ export const handleError = (error: any, context: string = 'Unknown'): ErrorInfo 
 
   // Default error
   return {
-    message: error.message || 'An unexpected error occurred.',
+    message: error instanceof Error ? error.message : "Unknown error",
     code: 'UNKNOWN_ERROR',
     details: error.message,
     retryable: false,
@@ -207,17 +207,17 @@ export const sanitizeInput = (input: string): string => {
   return input.trim().replace(/[<>]/g, '');
 };
 
-export const formatErrorForUser = (error: any): string => {
+export const formatErrorForUser = (error: unknown): string => {
   const errorInfo = handleError(error);
   return errorInfo.message;
 };
 
-export const isRetryableError = (error: any): boolean => {
+export const isRetryableError = (error: unknown): boolean => {
   const errorInfo = handleError(error);
   return errorInfo.retryable;
 };
 
-export const getErrorSeverity = (error: any): 'low' | 'medium' | 'high' | 'critical' => {
+export const getErrorSeverity = (error: unknown): 'low' | 'medium' | 'high' | 'critical' => {
   const errorInfo = handleError(error);
   return errorInfo.severity;
 };

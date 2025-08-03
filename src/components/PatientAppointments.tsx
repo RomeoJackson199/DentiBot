@@ -59,10 +59,10 @@ export function PatientAppointments({ patientId, dentistId }: PatientAppointment
 
       if (error) throw error;
       setAppointments(data || []);
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Error",
-        description: error.message || "Failed to load appointments",
+        description: error instanceof Error ? error.message : "Unknown error",
         variant: "destructive",
       });
     } finally {
@@ -100,10 +100,10 @@ export function PatientAppointments({ patientId, dentistId }: PatientAppointment
         title: "Success",
         description: "Consultation notes saved successfully",
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Error",
-        description: error.message || "Failed to save consultation notes",
+        description: error instanceof Error ? error.message : "Unknown error",
         variant: "destructive",
       });
     }

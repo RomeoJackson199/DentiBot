@@ -46,10 +46,10 @@ export const DentistManagement = ({ currentDentistId }: DentistManagementProps) 
 
       if (error) throw error;
       setDentists(data || []);
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Error",
-        description: error.message || "Failed to fetch dentists",
+        description: error instanceof Error ? error.message : "Unknown error",
         variant: "destructive",
       });
     }
@@ -143,11 +143,11 @@ export const DentistManagement = ({ currentDentistId }: DentistManagementProps) 
 
       setNewDentistEmail("");
       fetchDentists(); // Refresh the list
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error adding dentist:', error);
       toast({
         title: "Error",
-        description: error.message || "Failed to add dentist",
+        description: error instanceof Error ? error.message : "Unknown error",
         variant: "destructive",
       });
     } finally {
@@ -169,10 +169,10 @@ export const DentistManagement = ({ currentDentistId }: DentistManagementProps) 
         description: "Dentist removed successfully",
       });
       fetchDentists();
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Error",
-        description: error.message || "Failed to remove dentist",
+        description: error instanceof Error ? error.message : "Unknown error",
         variant: "destructive",
       });
     }

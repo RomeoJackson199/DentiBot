@@ -70,7 +70,7 @@ export const UnifiedDashboard = ({ user }: UnifiedDashboardProps) => {
         console.log('User role is not dentist, setting to patient');
         setUserRole('patient');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error fetching user role:', error);
       // Default to patient if there's an error
       setUserRole('patient');

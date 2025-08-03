@@ -333,7 +333,7 @@ Always maintain professional medical standards and suggest only appropriate trea
     const data = await response.json();
     console.log('OpenAI response received');
 
-    let result = data.choices[0].message.content;
+    const result = data.choices[0].message.content;
 
     if (mode === 'dentist_consultation') {
       try {
@@ -429,7 +429,7 @@ Always maintain professional medical standards and suggest only appropriate trea
     }
     
     // Extract dentist recommendations from response (improved matching for multiple dentists)
-    let recommendedDentists = [];
+    const recommendedDentists = [];
     if (lowerResponse.includes('virginie pauwels') || lowerResponse.includes('dr. virginie')) {
       recommendedDentists.push('Virginie Pauwels');
     }

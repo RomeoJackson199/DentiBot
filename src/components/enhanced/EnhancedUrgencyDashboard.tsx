@@ -126,10 +126,10 @@ export const EnhancedUrgencyDashboard = ({ dentistId }: EnhancedUrgencyDashboard
 
       setAppointments(appointmentsData || []);
       calculateStats(appointmentsData || []);
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Error",
-        description: error.message || "Failed to fetch urgency data",
+        description: error instanceof Error ? error.message : "Unknown error",
         variant: "destructive",
       });
     } finally {

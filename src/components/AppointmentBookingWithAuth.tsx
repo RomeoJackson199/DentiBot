@@ -84,7 +84,7 @@ const AppointmentSelection = ({
   onProceed, 
   onCancel 
 }: { 
-  onProceed: (data: any) => void; 
+  onProceed: (data: unknown) => void; 
   onCancel: () => void; 
 }) => {
   return (

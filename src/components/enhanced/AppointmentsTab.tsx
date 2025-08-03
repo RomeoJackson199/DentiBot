@@ -33,7 +33,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
 interface AppointmentsTabProps {
-  appointments: any[];
+  appointments: Appointment[];
   followUps: AppointmentFollowUp[];
   patient: Patient;
   dentistId: string;
@@ -87,10 +87,10 @@ export function AppointmentsTab({
         notes: ''
       });
       onRefresh();
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Error",
-        description: error.message || "Failed to schedule follow up",
+        description: error instanceof Error ? error.message : "Unknown error",
         variant: "destructive",
       });
     }
@@ -109,10 +109,10 @@ export function AppointmentsTab({
         description: "Appointment status has been updated",
       });
       onRefresh();
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Error",
-        description: error.message || "Failed to update status",
+        description: error instanceof Error ? error.message : "Unknown error",
         variant: "destructive",
       });
     }

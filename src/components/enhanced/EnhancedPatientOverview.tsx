@@ -18,7 +18,7 @@ interface EnhancedPatientOverviewProps {
   treatmentPlans: TreatmentPlan[];
   medicalRecords: MedicalRecord[];
   patientNotes: PatientNote[];
-  appointments: any[];
+  appointments: Appointment[];
   dentistId: string;
   onRefresh: () => void;
 }

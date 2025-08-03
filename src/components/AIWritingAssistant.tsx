@@ -34,10 +34,10 @@ export function AIWritingAssistant({ onImprove, currentText, placeholder = "text
         title: "Text improved!",
         description: "Your text has been made more professional",
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Error",
-        description: error.message || "Failed to improve text",
+        description: error instanceof Error ? error.message : "Unknown error",
         variant: "destructive",
       });
     } finally {

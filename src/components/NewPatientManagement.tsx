@@ -189,7 +189,7 @@ export function NewPatientManagement({ dentistId }: PatientManagementProps) {
       setPatients(patientsWithStats);
       setFilteredPatients(patientsWithStats);
       
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error fetching patients:', error);
       toast({
         title: "Error",
@@ -291,10 +291,10 @@ export function NewPatientManagement({ dentistId }: PatientManagementProps) {
       setPaymentAmount("");
       setPaymentDescription("");
       
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Error",
-        description: error.message || "Failed to send payment request",
+        description: error instanceof Error ? error.message : "Unknown error",
         variant: "destructive",
       });
     } finally {
@@ -329,7 +329,7 @@ export function NewPatientManagement({ dentistId }: PatientManagementProps) {
       setSelectedAppointmentId(null);
       fetchPatientAppointments(selectedPatient!.id);
       
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Error",
         description: "Failed to save summary",

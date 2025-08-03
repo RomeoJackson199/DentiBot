@@ -100,10 +100,10 @@ export function AppointmentManagement({ dentistId }: AppointmentManagementProps)
 
       if (error) throw error;
       setAppointments(data || []);
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Error",
-        description: error.message || "Failed to load appointments",
+        description: error instanceof Error ? error.message : "Unknown error",
         variant: "destructive",
       });
     } finally {
@@ -132,7 +132,7 @@ export function AppointmentManagement({ dentistId }: AppointmentManagementProps)
         if (error) throw error;
         setPatients(profiles || []);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error fetching patients:', error);
     }
   };
@@ -164,10 +164,10 @@ export function AppointmentManagement({ dentistId }: AppointmentManagementProps)
         title: "Success",
         description: "Consultation notes saved successfully",
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Error",
-        description: error.message || "Failed to save notes",
+        description: error instanceof Error ? error.message : "Unknown error",
         variant: "destructive",
       });
     }
@@ -194,10 +194,10 @@ export function AppointmentManagement({ dentistId }: AppointmentManagementProps)
         title: "Success",
         description: "Appointment marked as completed",
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Error",
-        description: error.message || "Failed to complete appointment",
+        description: error instanceof Error ? error.message : "Unknown error",
         variant: "destructive",
       });
     }
@@ -381,8 +381,8 @@ export function AppointmentManagement({ dentistId }: AppointmentManagementProps)
                     .eq('id', appointment.id);
                   if (error) throw error;
                   fetchAppointments();
-                } catch (error: any) {
-                  throw new Error(error.message || "Failed to confirm appointment");
+                } catch (error: unknown) {
+                  throw new Error(error instanceof Error ? error.message : "Unknown error");
                 }
               }}
               onCancel={async () => {
@@ -393,8 +393,8 @@ export function AppointmentManagement({ dentistId }: AppointmentManagementProps)
                     .eq('id', appointment.id);
                   if (error) throw error;
                   fetchAppointments();
-                } catch (error: any) {
-                  throw new Error(error.message || "Failed to cancel appointment");
+                } catch (error: unknown) {
+                  throw new Error(error instanceof Error ? error.message : "Unknown error");
                 }
               }}
               onDelete={async () => {
@@ -405,8 +405,8 @@ export function AppointmentManagement({ dentistId }: AppointmentManagementProps)
                     .eq('id', appointment.id);
                   if (error) throw error;
                   fetchAppointments();
-                } catch (error: any) {
-                  throw new Error(error.message || "Failed to delete appointment");
+                } catch (error: unknown) {
+                  throw new Error(error instanceof Error ? error.message : "Unknown error");
                 }
               }}
               onViewDetails={() => {

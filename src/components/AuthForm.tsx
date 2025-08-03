@@ -71,7 +71,7 @@ export const AuthForm = ({ compact = false }: AuthFormProps) => {
           setShowLoginDialog(false);
         }
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: t.signUpError,
         description: error.message,
@@ -102,7 +102,7 @@ export const AuthForm = ({ compact = false }: AuthFormProps) => {
       if (compact) {
         setShowLoginDialog(false);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: t.signInError,
         description: error.message,
@@ -132,7 +132,7 @@ export const AuthForm = ({ compact = false }: AuthFormProps) => {
         throw error;
       }
       console.log('Google sign-in initiated successfully');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Google sign-in catch block:', error);
       toast({
         title: t.signInError,

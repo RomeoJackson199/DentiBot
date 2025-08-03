@@ -89,10 +89,10 @@ export function DentistProfileTab({
 
       setShowEditDialog(false);
       onRefresh();
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Error",
-        description: error.message || "Failed to update profile",
+        description: error instanceof Error ? error.message : "Unknown error",
         variant: "destructive",
       });
     }
