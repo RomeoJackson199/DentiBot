@@ -58,6 +58,7 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
   const [isRecording, setIsRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
+  const [mediaStream, setMediaStream] = useState<MediaStream | null>(null);
   
   const { toast } = useToast();
   const { t } = useLanguage();
@@ -522,10 +523,14 @@ Type your request...`;
         await processVoiceMessage(audioBlob);
         
         // Stop all tracks
-        stream.getTracks().forEach(track => track.stop());
+        if (stream) {
+          stream.getTracks().forEach(track => track.stop());
+          setMediaStream(null);
+        }
       };
       
       setMediaRecorder(recorder);
+      setMediaStream(stream);
       setAudioChunks(chunks);
       recorder.start();
       setIsRecording(true);
@@ -552,6 +557,15 @@ Type your request...`;
       setMediaRecorder(null);
     }
   };
+
+  // Cleanup media stream on component unmount
+  useEffect(() => {
+    return () => {
+      if (mediaStream) {
+        mediaStream.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, [mediaStream]);
 
   const processVoiceMessage = async (audioBlob: Blob) => {
     try {

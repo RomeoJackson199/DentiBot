@@ -192,6 +192,18 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
       const [hours, minutes] = selectedTime.split(":");
       appointmentDateTime.setHours(parseInt(hours), parseInt(minutes));
 
+      // First, try to reserve the slot atomically
+      const { error: slotReservationError } = await supabase.rpc('reserve_appointment_slot', {
+        p_dentist_id: selectedDentist,
+        p_slot_date: selectedDate.toISOString().split('T')[0],
+        p_slot_time: selectedTime + ':00'
+      });
+
+      if (slotReservationError) {
+        throw new Error("Ce créneau n'est plus disponible");
+      }
+
+      // If slot reservation successful, create the appointment
       const { data: appointmentData, error: appointmentError } = await supabase
         .from("appointments")
         .insert({
@@ -199,26 +211,40 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
           dentist_id: selectedDentist,
           appointment_date: appointmentDateTime.toISOString(),
           reason: reason || "Consultation générale",
-          status: "pending",
+          status: "confirmed", // Set to confirmed since slot is reserved
           urgency: "medium"
         })
         .select()
         .single();
 
-      if (appointmentError) throw appointmentError;
+      if (appointmentError) {
+        // If appointment creation fails, release the reserved slot
+        await supabase.rpc('release_appointment_slot', {
+          p_dentist_id: selectedDentist,
+          p_slot_date: selectedDate.toISOString().split('T')[0],
+          p_slot_time: selectedTime + ':00'
+        });
+        throw appointmentError;
+      }
 
-      const { error: slotError } = await supabase.rpc('book_appointment_slot', {
+      // Link the appointment to the reserved slot
+      const { error: slotLinkError } = await supabase.rpc('link_appointment_to_slot', {
         p_dentist_id: selectedDentist,
         p_slot_date: selectedDate.toISOString().split('T')[0],
         p_slot_time: selectedTime + ':00',
         p_appointment_id: appointmentData.id
       });
 
-      if (slotError) {
+      if (slotLinkError) {
+        // If linking fails, clean up both appointment and slot
         await supabase.from("appointments").delete().eq("id", appointmentData.id);
-        throw new Error("Ce créneau n'est plus disponible");
+        await supabase.rpc('release_appointment_slot', {
+          p_dentist_id: selectedDentist,
+          p_slot_date: selectedDate.toISOString().split('T')[0],
+          p_slot_time: selectedTime + ':00'
+        });
+        throw slotLinkError;
       }
-
 
       toast({
         title: "Rendez-vous confirmé !",
