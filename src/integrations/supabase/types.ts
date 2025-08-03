@@ -590,7 +590,7 @@ export type Database = {
           languages: string[] | null
           license_number: string | null
           profile_id: string
-          specialty: string | null
+          specialization: string | null
           total_ratings: number | null
           updated_at: string
           wait_time_score: number | null
@@ -606,7 +606,7 @@ export type Database = {
           languages?: string[] | null
           license_number?: string | null
           profile_id: string
-          specialty?: string | null
+          specialization?: string | null
           total_ratings?: number | null
           updated_at?: string
           wait_time_score?: number | null
@@ -622,7 +622,7 @@ export type Database = {
           languages?: string[] | null
           license_number?: string | null
           profile_id?: string
-          specialty?: string | null
+          specialization?: string | null
           total_ratings?: number | null
           updated_at?: string
           wait_time_score?: number | null

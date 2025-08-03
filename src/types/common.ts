@@ -71,7 +71,7 @@ export interface Dentist {
   last_name: string;
   email: string;
   phone?: string;
-  specialty?: string;
+  specialization?: string;
   clinic_address?: string;
   languages?: string[];
   bio?: string;
