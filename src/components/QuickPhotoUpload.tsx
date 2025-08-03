@@ -4,6 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ImageIcon, Upload, X } from "lucide-react";
+import { AiDisclaimer } from "@/components/AiDisclaimer";
 
 interface QuickPhotoUploadProps {
   onPhotoUploaded: (url: string) => void;
@@ -96,6 +97,7 @@ export const QuickPhotoUpload = ({ onPhotoUploaded, onCancel }: QuickPhotoUpload
     <Card className="w-full max-w-sm mx-auto">
       <CardContent className="p-4">
         <div className="space-y-4">
+          <AiDisclaimer />
           <div className="text-center">
             <h3 className="font-semibold text-gray-900 mb-1">
               Add a photo

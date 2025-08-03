@@ -144,6 +144,30 @@ export const Settings = ({ user }: SettingsProps) => {
     }
   };
 
+  const handleDownloadData = async () => {
+    const { data: profile } = await supabase.from('profiles').select('*').eq('user_id', user.id).single();
+    const { data: appointments } = await supabase.from('appointments').select('*').eq('user_id', user.id);
+    const { data: notes } = await supabase.from('notes').select('*').eq('user_id', user.id);
+    const exportData = { profile, appointments, notes };
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'dentibot_data.json';
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleDeleteAccount = async () => {
+    const confirmed = window.confirm(t.deleteAccountConfirm);
+    if (!confirmed) return;
+    await supabase.from('appointments').delete().eq('user_id', user.id);
+    await supabase.from('notes').delete().eq('user_id', user.id);
+    await supabase.from('profiles').delete().eq('user_id', user.id);
+    await supabase.auth.signOut();
+    toast({ title: t.deleteAccount, description: 'Your account has been deleted.' });
+  };
+
   const tabs = [
     { id: 'general' as TabType, label: 'Languages', icon: Globe },
     { id: 'theme' as TabType, label: 'Theme', icon: Sun },
@@ -335,6 +359,15 @@ export const Settings = ({ user }: SettingsProps) => {
               >
                 {loading ? 'Saving...' : 'Save Personal Information'}
               </Button>
+
+              <div className="space-y-2">
+                <Button onClick={handleDownloadData} variant="outline" className="w-full">
+                  {t.downloadMyData}
+                </Button>
+                <Button onClick={handleDeleteAccount} variant="destructive" className="w-full">
+                  {t.deleteAccount}
+                </Button>
+              </div>
 
               <div className="pt-4 border-t border-border">
                 <Button 

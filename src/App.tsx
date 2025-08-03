@@ -10,6 +10,7 @@ import { PWAInstallPrompt } from "./components/PWAInstallPrompt";
 import Index from "./pages/Index";
 import DentistProfiles from "./pages/DentistProfiles";
 import Terms from "./pages/Terms";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
 import NotFound from "./pages/NotFound";
 import EmergencyTriage from "./pages/EmergencyTriage";
 import { PaymentSuccess } from "./pages/PaymentSuccess";
@@ -37,6 +38,7 @@ const App = () => (
                 <Route path="/emergency-triage" element={<EmergencyTriage />} />
                 <Route path="/dentists" element={<DentistProfiles />} />
                 <Route path="/terms" element={<Terms />} />
+                <Route path="/privacy" element={<PrivacyPolicy />} />
                 <Route path="/payment-success" element={<PaymentSuccess />} />
                 <Route path="/payment-cancelled" element={<PaymentCancelled />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
