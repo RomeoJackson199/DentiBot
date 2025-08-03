@@ -98,11 +98,12 @@ export async function testBookingFlow(): Promise<TestBookingResult> {
       appointmentId: appointment.id
     };
 
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return {
       success: false,
       message: 'Test failed with unexpected error',
-      error: error.message
+      error: errorMessage
     };
   }
 }
@@ -128,11 +129,12 @@ export async function verifyDatabaseConnection(): Promise<TestBookingResult> {
       message: 'Database connection successful'
     };
 
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return {
       success: false,
       message: 'Database connection test failed',
-      error: error.message
+      error: errorMessage
     };
   }
 }
@@ -170,11 +172,12 @@ export async function checkUserProfile(email: string): Promise<TestBookingResult
       appointmentId: profile.id
     };
 
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return {
       success: false,
       message: 'User profile check failed',
-      error: error.message
+      error: errorMessage
     };
   }
 }

@@ -161,7 +161,7 @@ describe('AppointmentBooking', () => {
     const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     
     // Mock supabase to return error
-    const { supabase } = require('@/integrations/supabase/client');
+    const { supabase } = await import('@/integrations/supabase/client');
     supabase.from.mockReturnValue({
       insert: jest.fn(() => Promise.resolve({ 
         data: null, 

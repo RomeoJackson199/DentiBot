@@ -124,7 +124,7 @@ export const retryOperation = async <T>(
   delay: number = 1000,
   context: string = 'Operation'
 ): Promise<T> => {
-  let lastError: any;
+  let lastError: unknown;
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
@@ -156,11 +156,11 @@ export const validateEmail = (email: string): boolean => {
 };
 
 export const validatePhone = (phone: string): boolean => {
-  const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
-  return phoneRegex.test(phone.replace(/[\s\-\(\)]/g, ''));
+  const phoneRegex = /^[+]?[1-9][\d]{0,15}$/;
+  return phoneRegex.test(phone.replace(/[\s\-()]/g, ''));
 };
 
-export const validateRequired = (value: any, fieldName: string): string | null => {
+export const validateRequired = (value: unknown, fieldName: string): string | null => {
   if (!value || (typeof value === 'string' && value.trim() === '')) {
     return `${fieldName} is required`;
   }
@@ -214,7 +214,7 @@ export const formatErrorForUser = (error: unknown): string => {
 
 export const isRetryableError = (error: unknown): boolean => {
   const errorInfo = handleError(error);
-  return errorInfo.retryable;
+  return errorInfo.retryable ?? false;
 };
 
 export const getErrorSeverity = (error: unknown): 'low' | 'medium' | 'high' | 'critical' => {

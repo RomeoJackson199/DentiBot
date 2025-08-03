@@ -107,7 +107,7 @@ describe('DentalChatbot', () => {
   });
 
   it('handles AI response with suggestions', async () => {
-    const { supabase } = require('@/integrations/supabase/client');
+    const { supabase } = await import('@/integrations/supabase/client');
     supabase.functions.invoke.mockResolvedValue({
       data: {
         response: 'Based on your symptoms, I recommend booking an appointment.',
@@ -133,7 +133,7 @@ describe('DentalChatbot', () => {
   });
 
   it('handles emergency triage assessment', async () => {
-    const { supabase } = require('@/integrations/supabase/client');
+    const { supabase } = await import('@/integrations/supabase/client');
     supabase.functions.invoke.mockResolvedValue({
       data: {
         response: 'This appears to be an emergency. Please seek immediate care.',
@@ -161,7 +161,7 @@ describe('DentalChatbot', () => {
   });
 
   it('allows user to click on AI suggestions', async () => {
-    const { supabase } = require('@/integrations/supabase/client');
+    const { supabase } = await import('@/integrations/supabase/client');
     supabase.functions.invoke.mockResolvedValue({
       data: {
         response: 'I can help you book an appointment.',
@@ -191,7 +191,7 @@ describe('DentalChatbot', () => {
   });
 
   it('handles error when AI service is unavailable', async () => {
-    const { supabase } = require('@/integrations/supabase/client');
+    const { supabase } = await import('@/integrations/supabase/client');
     supabase.functions.invoke.mockRejectedValue(new Error('Service unavailable'));
 
     const user = userEvent.setup();
