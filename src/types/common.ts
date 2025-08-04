@@ -247,9 +247,9 @@ export interface PwaConfig {
 
 // Event handlers
 export type EventHandler<T = Event> = (event: T) => void;
-export type ClickHandler = EventHandler<MouseEvent>;
-export type ChangeHandler = EventHandler<ChangeEvent<HTMLInputElement>>;
-export type SubmitHandler = EventHandler<FormEvent<HTMLFormElement>>;
+export type ClickHandler = (event: React.MouseEvent) => void;
+export type ChangeHandler = (event: React.ChangeEvent<HTMLInputElement>) => void;
+export type SubmitHandler = (event: React.FormEvent<HTMLFormElement>) => void;
 
 // Component props
 export interface BaseComponentProps {
@@ -321,7 +321,7 @@ export interface ApiError {
 
 // Utility types
 export type Optional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
-export type Required<T, K extends keyof T> = T & Required<Pick<T, K>>;
+export type RequiredFields<T, K extends keyof T> = T & Required<Pick<T, K>>;
 export type DeepPartial<T> = {
   [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];
 };
