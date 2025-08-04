@@ -1,5 +1,5 @@
 import { useState } from "react";
-// Removed: import { StreamlinedTriage } from "@/components/StreamlinedTriage";
+import { StreamlinedTriage } from "@/components/StreamlinedTriage";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -21,8 +21,7 @@ import {
   CalendarDays,
   Clock4,
   FileText,
-  CheckSquare,
-  AlertTriangle
+  CheckSquare
 } from "lucide-react";
 
 interface TriageData {
@@ -672,15 +671,5 @@ export const EmergencyTriageForm = ({ onComplete, onCancel }: EmergencyTriageFor
     );
   }
 
-  return (
-    <div className="flex items-center justify-center p-12">
-      <Card className="max-w-md">
-        <CardContent className="p-6 text-center">
-          <AlertTriangle className="h-12 w-12 mx-auto mb-4 text-orange-500" />
-          <h3 className="font-semibold text-lg mb-2">Emergency Triage</h3>
-          <p className="text-gray-600">Feature coming soon - comprehensive triage assessment</p>
-        </CardContent>
-      </Card>
-    </div>
-  );
+  return <StreamlinedTriage onComplete={handleTriageComplete} onCancel={onCancel} />;
 };

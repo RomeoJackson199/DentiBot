@@ -31,7 +31,7 @@ import {
   Eye
 } from "lucide-react";
 import { format } from "date-fns";
-// Removed: import { generateSymptomSummary } from "@/lib/symptoms";
+import { generateSymptomSummary } from "@/lib/symptoms";
 import { AIConversationDialog } from "@/components/AIConversationDialog";
 
 interface Appointment {

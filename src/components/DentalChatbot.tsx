@@ -15,8 +15,11 @@ import { PhotoUpload } from "@/components/PhotoUpload";
 import { DentistSelection } from "@/components/DentistSelection";
 import { QuickPhotoUpload } from "@/components/QuickPhotoUpload";
 import { PatientSelection } from "@/components/PatientSelection";
-// Removed problematic chat imports
-// Removed problematic imports
+import { ChatAppointmentManager } from "@/components/chat/ChatAppointmentManager";
+import { ChatBookingFlow } from "@/components/chat/ChatBookingFlow";
+import { ChatSettingsManager } from "@/components/chat/ChatSettingsManager";
+import { generateSymptomSummary } from "@/lib/symptoms";
+import { generateMedicalRecordFromChat, createMedicalRecord } from "@/lib/medicalRecords";
 import { AiDisclaimer } from "@/components/AiDisclaimer";
 
 interface DentalChatbotProps {
@@ -79,27 +82,9 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
     saveMessage(botMessage);
   };
 
-  const loadUserProfile = async () => {
-    if (!user) return;
-    
-    try {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
-      
-      if (profile) {
-        setUserProfile(profile);
-      }
-    } catch (error) {
-      console.error('Error loading user profile:', error);
-    }
-  };
-
-  // Initialize chat managers - temporarily disabled
-  const appointmentManager = null;
-  const settingsManager = null;
+  // Initialize chat managers
+  const appointmentManager = user ? ChatAppointmentManager({ user, onResponse: addChatResponse }) : null;
+  const settingsManager = user ? ChatSettingsManager({ user, onResponse: addChatResponse }) : null;
 
   useEffect(() => {
     // Load user profile and set welcome message only once
@@ -125,7 +110,7 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
     };
 
     initializeChat();
-  }, [sessionId, user, messages.length, t, userProfile]); // Add all missing dependencies
+  }, [sessionId, user, loadUserProfile, messages.length, t, userProfile]); // Add all missing dependencies
   
   // Effect to update welcome message when language changes
   useEffect(() => {
@@ -139,6 +124,23 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
       setMessages(prev => [updatedWelcomeMessage, ...prev.slice(1)]);
     }
   }, [t, messages, userProfile]); // Add missing dependencies
+
+  const loadUserProfile = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("user_id", user.id)
+        .single();
+
+      if (error) throw error;
+      setUserProfile(data);
+    } catch (error) {
+      console.error("Error loading user profile:", error);
+    }
+  };
 
   useEffect(() => {
     scrollToBottom();
