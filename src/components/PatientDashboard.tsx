@@ -344,6 +344,7 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
             <Plus className="h-4 w-4 mr-2" />
             Book Appointment
           </Button>
+          <Settings user={user} />
         </div>
       </div>
 
