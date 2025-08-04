@@ -5,14 +5,18 @@ export interface Prescription {
   medication_name: string;
   dosage: string;
   frequency: string;
-  duration: string;
-  duration_days?: number;
+  duration_days: number;
   instructions?: string;
   prescribed_date: string;
-  expiry_date?: string;
   status: string;
   created_at: string;
   updated_at: string;
+  dentist?: {
+    profile: {
+      first_name: string;
+      last_name: string;
+    };
+  };
 }
 
 export interface TreatmentPlan {
@@ -22,20 +26,22 @@ export interface TreatmentPlan {
   title: string;
   description?: string;
   diagnosis?: string;
-  treatment_goals?: string[];
-  procedures?: string[];
   estimated_cost?: number;
-  estimated_duration?: string;
+  estimated_duration: string;
   estimated_duration_weeks?: number;
   priority: string;
   status: string;
   start_date: string;
   end_date?: string;
-  target_completion_date?: string;
-  actual_completion_date?: string;
   notes?: string;
   created_at: string;
   updated_at: string;
+  dentist?: {
+    profile: {
+      first_name: string;
+      last_name: string;
+    };
+  };
 }
 
 export interface TreatmentProcedure {
@@ -61,11 +67,16 @@ export interface MedicalRecord {
   description?: string;
   findings?: string;
   recommendations?: string;
-  file_url?: string;
   record_date: string;
-  visit_date?: string;
+  visit_date: string;
   created_at: string;
   updated_at: string;
+  dentist?: {
+    profile: {
+      first_name: string;
+      last_name: string;
+    };
+  };
 }
 
 export interface PatientNote {
@@ -134,14 +145,51 @@ export interface DentistProfile {
   email: string;
   phone?: string;
   specialization?: string;
-  clinic_address?: string;
-  languages?: string[];
-  bio?: string;
-  experience_years?: number;
-  education?: string;
-  certifications?: string[];
   created_at: string;
   updated_at: string;
+}
+
+export interface Appointment {
+  id: string;
+  patient_id: string;
+  dentist_id: string;
+  appointment_date: string;
+  duration: number;
+  duration_minutes: number;
+  status: string;
+  urgency: string;
+  urgency_level: string;
+  reason?: string;
+  notes?: string;
+  patient_name?: string;
+  created_at: string;
+  updated_at: string;
+  dentists?: {
+    profile: {
+      first_name: string;
+      last_name: string;
+    };
+  };
+}
+
+export interface User {
+  id: string;
+  email: string;
+}
+
+export interface Dentist {
+  id: string;
+  specialization: string;
+  profile: {
+    first_name: string;
+    last_name: string;
+  };
+}
+
+export interface DentistRecommendation {
+  id: string;
+  name: string;
+  rating: number;
 }
 
 export interface NewPrescriptionForm {
