@@ -24,7 +24,7 @@ import Schedule from "./pages/Schedule";
 import Analytics from "./pages/Analytics";
 import Support from "./pages/Support";
 import FeatureDetail from "./pages/FeatureDetail";
-
+import { UnifiedDashboard } from "./components/UnifiedDashboard";
 import { LanguageTest } from "./components/LanguageTest";
 
 // Dashboard component that handles authentication
@@ -65,7 +65,7 @@ const Dashboard = () => {
     return <Navigate to="/" replace />;
   }
 
-  return <div>Dashboard placeholder - patient functionality removed</div>;
+  return <UnifiedDashboard user={user} />;
 };
 
 const queryClient = new QueryClient();

@@ -14,7 +14,7 @@ import { AppointmentBookingWithAuth } from "@/components/AppointmentBookingWithA
 import { PhotoUpload } from "@/components/PhotoUpload";
 import { DentistSelection } from "@/components/DentistSelection";
 import { QuickPhotoUpload } from "@/components/QuickPhotoUpload";
-
+import { PatientSelection } from "@/components/PatientSelection";
 import { ChatAppointmentManager } from "@/components/chat/ChatAppointmentManager";
 import { ChatBookingFlow } from "@/components/chat/ChatBookingFlow";
 import { ChatSettingsManager } from "@/components/chat/ChatSettingsManager";

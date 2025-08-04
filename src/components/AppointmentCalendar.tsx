@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SimpleCalendar } from "@/components/SimpleCalendar";
 import { DentistSelection } from "@/components/DentistSelection";
-
+import { PatientSelection } from "@/components/PatientSelection";
 import { CheckCircle, ArrowLeft, ArrowRight } from "lucide-react";
 
 interface AppointmentCalendarProps {
@@ -20,7 +20,7 @@ interface AppointmentCalendarProps {
 }
 
 export const AppointmentCalendar = ({ user, onComplete, onCancel, onBackToDentist }: AppointmentCalendarProps) => {
-  const [step, setStep] = useState<'dentist' | 'datetime' | 'details'>('datetime'); // Start directly at datetime
+  const [step, setStep] = useState<'patient' | 'dentist' | 'datetime' | 'details'>('datetime'); // Start directly at datetime
   const [selectedDentist, setSelectedDentist] = useState<any>(null);
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [selectedTime, setSelectedTime] = useState("");
@@ -128,6 +128,17 @@ export const AppointmentCalendar = ({ user, onComplete, onCancel, onBackToDentis
 
   const renderStepContent = () => {
     switch (step) {
+      case 'patient':
+        return (
+          <PatientSelection
+            onSelectPatient={(isForUserSelected, patientInfoSelected) => {
+              setIsForUser(isForUserSelected);
+              setPatientInfo(patientInfoSelected);
+              setStep('dentist');
+            }}
+            onCancel={onCancel}
+          />
+        );
 
       case 'dentist':
         return (
@@ -214,6 +225,8 @@ export const AppointmentCalendar = ({ user, onComplete, onCancel, onBackToDentis
 
   const canGoNext = () => {
     switch (step) {
+      case 'patient':
+        return true; // PatientSelection handles its own validation
       case 'dentist':
         return selectedDentist !== null;
       case 'datetime':
@@ -226,12 +239,14 @@ export const AppointmentCalendar = ({ user, onComplete, onCancel, onBackToDentis
   };
 
   const handleNext = () => {
+    if (step === 'patient') return; // Handled by PatientSelection
     if (step === 'dentist') return; // Handled by DentistSelection
     if (step === 'datetime') setStep('details');
     if (step === 'details') handleBookAppointment();
   };
 
   const handlePrevious = () => {
+    if (step === 'dentist') setStep('patient');
     if (step === 'datetime') setStep('dentist');
     if (step === 'details') setStep('datetime');
   };
@@ -243,16 +258,16 @@ export const AppointmentCalendar = ({ user, onComplete, onCancel, onBackToDentis
         {step !== 'datetime' && (
           <div className="mb-8">
             <div className="flex items-center justify-center space-x-4">
-              {['dentist', 'datetime', 'details'].map((stepName, index) => (
+              {['patient', 'dentist', 'datetime', 'details'].map((stepName, index) => (
                 <div key={stepName} className="flex items-center">
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
                     step === stepName 
                       ? 'bg-blue-600 text-white' 
-                      : index < ['dentist', 'datetime', 'details'].indexOf(step)
+                      : index < ['patient', 'dentist', 'datetime', 'details'].indexOf(step)
                         ? 'bg-green-500 text-white'
                         : 'bg-gray-200 text-gray-500'
                   }`}>
-                  {index < ['dentist', 'datetime', 'details'].indexOf(step) ? (
+                    {index < ['patient', 'dentist', 'datetime', 'details'].indexOf(step) ? (
                       <CheckCircle className="h-4 w-4" />
                     ) : (
                       index + 1
@@ -263,9 +278,10 @@ export const AppointmentCalendar = ({ user, onComplete, onCancel, onBackToDentis
               ))}
             </div>
             <div className="text-center mt-2 text-sm text-gray-600">
-              Étape {['dentist', 'datetime', 'details'].indexOf(step) + 1}/3: {
+              Étape {['patient', 'dentist', 'datetime', 'details'].indexOf(step) + 1}/4: {
                 step === 'details' ? 'Détails' : 
-                step === 'dentist' ? 'Dentiste' : 'Date et heure'
+                step === 'patient' ? 'Patient' : 
+                'Dentiste'
               }
             </div>
           </div>
@@ -277,7 +293,7 @@ export const AppointmentCalendar = ({ user, onComplete, onCancel, onBackToDentis
         </div>
 
         {/* Navigation Buttons - Hide for datetime step since it has its own back button */}
-        {step !== 'dentist' && step !== 'datetime' && (
+        {step !== 'patient' && step !== 'dentist' && step !== 'datetime' && (
           <div className="flex justify-between max-w-2xl mx-auto">
             <Button
               variant="outline"
