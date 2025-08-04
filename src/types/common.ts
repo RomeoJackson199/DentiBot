@@ -22,11 +22,6 @@ export interface User {
   id: string;
   email: string;
   role: 'patient' | 'dentist' | 'admin';
-  user_metadata?: {
-    first_name?: string;
-    last_name?: string;
-    [key: string]: any;
-  };
   created_at: string;
   updated_at: string;
 }
@@ -61,10 +56,12 @@ export interface Appointment {
   dentist_id: string;
   appointment_date: string;
   duration: number;
-  status: 'scheduled' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled' | 'no_show';
+  duration_minutes?: number;
+  status: 'scheduled' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled' | 'no_show' | 'pending';
   reason?: string;
   notes?: string;
-  urgency_level: 'low' | 'normal' | 'high' | 'urgent';
+  urgency_level: 'low' | 'normal' | 'high' | 'urgent' | 'medium' | 'emergency';
+  urgency?: string;
   created_at: string;
   updated_at: string;
 }
@@ -72,13 +69,11 @@ export interface Appointment {
 export interface Dentist {
   id: string;
   user_id: string;
-  profile_id: string;
   first_name: string;
   last_name: string;
   email: string;
   phone?: string;
   specialization?: string;
-  specialty?: string; // Add for backwards compatibility
   clinic_address?: string;
   languages?: string[];
   bio?: string;
@@ -86,33 +81,8 @@ export interface Dentist {
   education?: string;
   certifications?: string[];
   availability?: AvailabilitySchedule;
-  average_rating?: number;
-  total_ratings?: number;
-  expertise_score?: number;
-  communication_score?: number;
-  wait_time_score?: number;
-  profiles?: {
-    first_name: string;
-    last_name: string;
-  };
   created_at: string;
   updated_at: string;
-}
-
-export interface DentistRecommendation {
-  id: string;
-  profile_id: string;
-  specialization: string;
-  specialty: string; // Required field
-  average_rating: number;
-  total_ratings: number;
-  expertise_score: number;
-  communication_score: number;
-  wait_time_score: number;
-  profiles: {
-    first_name: string;
-    last_name: string;
-  };
 }
 
 export interface AvailabilitySchedule {
@@ -278,8 +248,8 @@ export interface PwaConfig {
 // Event handlers
 export type EventHandler<T = Event> = (event: T) => void;
 export type ClickHandler = EventHandler<MouseEvent>;
-export type ChangeHandler = EventHandler<React.ChangeEvent<HTMLInputElement>>;
-export type SubmitHandler = EventHandler<React.FormEvent<HTMLFormElement>>;
+export type ChangeHandler = EventHandler<ChangeEvent<HTMLInputElement>>;
+export type SubmitHandler = EventHandler<FormEvent<HTMLFormElement>>;
 
 // Component props
 export interface BaseComponentProps {
@@ -351,7 +321,7 @@ export interface ApiError {
 
 // Utility types
 export type Optional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
-export type RequiredFields<T, K extends keyof T> = T & Required<Pick<T, K>>;
+export type Required<T, K extends keyof T> = T & Required<Pick<T, K>>;
 export type DeepPartial<T> = {
   [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];
 };

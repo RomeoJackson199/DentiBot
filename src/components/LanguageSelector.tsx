@@ -1,52 +1,47 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Globe } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
-import { Languages, Check } from "lucide-react";
 
-interface LanguageSelectorProps {
-  onLanguageChange?: (language: string) => void;
-}
+const languages = [
+  { code: 'en', name: 'English', flag: '🇺🇸' },
+  { code: 'nl', name: 'Nederlands', flag: '🇳🇱' },
+  { code: 'fr', name: 'Français', flag: '🇫🇷' },
+];
 
-export const LanguageSelector = ({ onLanguageChange }: LanguageSelectorProps) => {
+export const LanguageSelector = () => {
   const { language, setLanguage } = useLanguage();
   
-  const languages = [
-    { code: 'en', name: 'English', flag: '🇺🇸' },
-    { code: 'fr', name: 'Français', flag: '🇫🇷' },
-    { code: 'nl', name: 'Nederlands', flag: '🇳🇱' },
-  ];
-
-  const handleLanguageSelect = (langCode: 'en' | 'fr' | 'nl') => {
-    setLanguage(langCode);
-    onLanguageChange?.(langCode);
-  };
+  const currentLanguage = languages.find(lang => lang.code === language);
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Languages className="h-5 w-5" />
-          Langue / Language
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3">
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" size="sm" className="gap-2 bg-white/10 backdrop-blur-sm border-white/20 text-dental-primary hover:bg-white/20">
+          <Globe className="h-4 w-4" />
+          <span className="hidden sm:inline">
+            {currentLanguage?.flag} {currentLanguage?.name}
+          </span>
+          <span className="sm:hidden">
+            {currentLanguage?.flag}
+          </span>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="bg-white/95 backdrop-blur-sm border-white/20">
         {languages.map((lang) => (
-          <Button
+          <DropdownMenuItem
             key={lang.code}
-            variant={language === lang.code ? "default" : "outline"}
-            className="w-full justify-between"
-            onClick={() => handleLanguageSelect(lang.code as 'en' | 'fr' | 'nl')}
+            onClick={() => setLanguage(lang.code as 'en' | 'fr' | 'nl')}
+            className={`gap-2 ${language === lang.code ? 'bg-dental-primary/10 text-dental-primary' : 'hover:bg-dental-primary/5'}`}
           >
-            <span className="flex items-center gap-2">
-              <span>{lang.flag}</span>
-              <span>{lang.name}</span>
-            </span>
+            <span>{lang.flag}</span>
+            <span>{lang.name}</span>
             {language === lang.code && (
-              <Check className="h-4 w-4" />
+              <span className="ml-auto text-xs">✓</span>
             )}
-          </Button>
+          </DropdownMenuItem>
         ))}
-      </CardContent>
-    </Card>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 };

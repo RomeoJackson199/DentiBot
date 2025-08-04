@@ -6,13 +6,13 @@ export interface Prescription {
   dosage: string;
   frequency: string;
   duration_days: number;
-  duration?: string;
+  duration?: string; // For compatibility
   instructions?: string;
   prescribed_date: string;
+  expiry_date?: string; // For compatibility
   status: string;
   created_at: string;
   updated_at: string;
-  expiry_date?: string;
   dentist?: {
     profile: {
       first_name: string;
@@ -31,16 +31,16 @@ export interface TreatmentPlan {
   estimated_cost?: number;
   estimated_duration: string;
   estimated_duration_weeks?: number;
-  priority: 'low' | 'normal' | 'high' | 'urgent';
+  priority: string;
   status: string;
   start_date: string;
   end_date?: string;
   notes?: string;
-  created_at: string;
-  updated_at: string;
   treatment_goals?: string[];
   procedures?: string[];
   target_completion_date?: string;
+  created_at: string;
+  updated_at: string;
   dentist?: {
     profile: {
       first_name: string;
@@ -161,16 +161,16 @@ export interface Appointment {
   appointment_date: string;
   duration: number;
   duration_minutes: number;
-  status: 'confirmed' | 'completed' | 'cancelled' | 'scheduled' | 'in_progress' | 'no_show' | 'pending';
+  status: string;
   urgency: string;
-  urgency_level: 'low' | 'normal' | 'high' | 'urgent';
+  urgency_level: string;
   reason?: string;
   notes?: string;
   patient_name?: string;
   created_at: string;
   updated_at: string;
   dentists?: {
-    profile: {
+    profiles?: {
       first_name: string;
       last_name: string;
     };
@@ -184,43 +184,18 @@ export interface User {
 
 export interface Dentist {
   id: string;
-  profile_id?: string;
   specialization: string;
-  profiles?: {
+  profile: {
     first_name: string;
     last_name: string;
   };
-  profile?: {
-    first_name: string;
-    last_name: string;
-  };
-}
-
-export interface TriageData {
-  [key: string]: any;
-  painLevel?: number;
-  symptoms?: string[];
-  duration?: string;
-  medicalHistory?: string[];
-  problemType?: string;
-  previousTreatment?: string;
-  allergies?: string[];
-  urgencyIndicators?: string[];
-  painDescription?: string;
-  triggeredBy?: string[];
-}
-
-export interface TriageAnswers extends TriageData {
-  pain_level?: number;
-  has_bleeding?: boolean;
-  has_swelling?: boolean;
-  duration_symptoms?: string;
 }
 
 export interface DentistRecommendation {
   id: string;
   name: string;
   rating: number;
+  specialization?: string;
 }
 
 export interface NewPrescriptionForm {

@@ -7,9 +7,11 @@ import { ThemeProvider } from "next-themes";
 import { LanguageProvider } from "./hooks/useLanguage";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { PWAInstallPrompt } from "./components/PWAInstallPrompt";
+import ProfileCompletionDialog from "./components/ProfileCompletionDialog";
+import { ChangelogPopup } from "./components/ChangelogPopup";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { User } from "@supabase/supabase-js";
+import { User, Session } from "@supabase/supabase-js";
 import Index from "./pages/Index";
 import DentistProfiles from "./pages/DentistProfiles";
 import Terms from "./pages/Terms";
@@ -22,8 +24,10 @@ import Schedule from "./pages/Schedule";
 import Analytics from "./pages/Analytics";
 import Support from "./pages/Support";
 import FeatureDetail from "./pages/FeatureDetail";
+import { UnifiedDashboard } from "./components/UnifiedDashboard";
 
-// Simple dashboard component without complex dependencies
+
+// Dashboard component that handles authentication
 const Dashboard = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -39,7 +43,8 @@ const Dashboard = () => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       setLoading(false);
-    }).catch(() => {
+    }).catch(error => {
+      console.error('Error getting session:', error);
       setLoading(false);
     });
 
@@ -47,33 +52,20 @@ const Dashboard = () => {
   }, []);
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center space-y-4">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="text-muted-foreground">Loading dashboard...</p>
-        </div>
+    return <div className="min-h-screen flex items-center justify-center mesh-bg">
+      <div className="text-center space-y-4">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-dental-primary mx-auto"></div>
+        <p className="text-dental-muted-foreground">Loading dashboard...</p>
       </div>
-    );
+    </div>;
   }
 
   if (!user) {
+    // Redirect to home page if not authenticated
     return <Navigate to="/" replace />;
   }
 
-  // Simple dashboard content
-  return (
-    <div className="min-h-screen bg-background p-8">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold mb-6">Welcome to your Dashboard</h1>
-        <div className="bg-card p-6 rounded-lg border">
-          <p className="text-muted-foreground">
-            Welcome, {user.email}! Your dashboard is being set up.
-          </p>
-        </div>
-      </div>
-    </div>
-  );
+  return <UnifiedDashboard user={user} />;
 };
 
 const queryClient = new QueryClient();
@@ -88,11 +80,12 @@ const App = () => (
         disableTransitionOnChange={false}
       >
         <LanguageProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <PWAInstallPrompt />
-            <BrowserRouter>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              <PWAInstallPrompt />
+              <ProfileCompletionDialog />
+              <BrowserRouter>
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/dashboard" element={<Dashboard />} />
@@ -106,6 +99,8 @@ const App = () => (
                 <Route path="/analytics" element={<Analytics />} />
                 <Route path="/support" element={<Support />} />
                 <Route path="/features/:id" element={<FeatureDetail />} />
+                
+                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>

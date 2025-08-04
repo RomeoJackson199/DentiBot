@@ -1,71 +1,151 @@
-// Medical records utility functions
-export interface MedicalRecord {
-  id: string;
-  patient_id: string;
-  dentist_id: string;
-  visit_date: string;
-  diagnosis: string;
-  treatment: string;
-  notes?: string;
-  created_at: string;
-  updated_at: string;
+import { ChatMessage } from "@/types/chat";
+import { saveMedicalRecord } from "@/lib/mockApi";
+
+export interface CreateMedicalRecordData {
+  patientId: string;
+  dentistId?: string;
+  title: string;
+  description?: string;
+  findings?: string;
+  recommendations?: string;
+  recordType?: string;
+  visitDate?: string;
 }
 
-export interface MedicalHistory {
-  allergies: string[];
-  medications: string[];
-  conditions: string[];
-  previous_treatments: string[];
-}
+export const createMedicalRecord = async (data: CreateMedicalRecordData) => {
+  const { data: record, error } = await saveMedicalRecord(data);
+  if (error || !record) {
+    throw new Error(error || 'Failed to save record');
+  }
+  // also persist to localStorage for temporary persistence
+  const stored = JSON.parse(localStorage.getItem('medical_records') || '{}') as Record<string, unknown[]>;
+  const list = (stored[data.patientId] as unknown[] | undefined) || [];
+  list.push(record);
+  stored[data.patientId] = list;
+  localStorage.setItem('medical_records', JSON.stringify(stored));
+  return record;
+};
 
-// Mock data for development
-export const getMockMedicalRecords = (): MedicalRecord[] => [
-  {
-    id: '1',
-    patient_id: 'patient-1',
-    dentist_id: 'dentist-1',
-    visit_date: '2024-01-15',
-    diagnosis: 'Regular cleaning',
-    treatment: 'Dental prophylaxis',
-    notes: 'Patient maintains good oral hygiene',
-    created_at: '2024-01-15T10:00:00Z',
-    updated_at: '2024-01-15T10:00:00Z',
-  },
-];
+export const generateMedicalRecordFromChat = async (
+  messages: ChatMessage[],
+  patientProfile: Record<string, unknown>,
+  appointmentData?: Record<string, unknown>
+): Promise<CreateMedicalRecordData> => {
+  // Extract symptoms and relevant information from chat
+  const chatContent = messages
+    .filter(msg => !msg.is_bot && msg.message_type === 'text')
+    .map(msg => msg.message)
+    .join(' ');
 
-export const getMedicalHistory = async (patientId: string): Promise<MedicalHistory> => {
-  // This would normally fetch from the database
+  // Extract bot responses that might contain recommendations
+  const botResponses = messages
+    .filter(msg => msg.is_bot && msg.message_type === 'text')
+    .map(msg => msg.message)
+    .join(' ');
+
+  // Generate title based on symptoms
+  let title = "Consultation dentaire";
+  if (chatContent.toLowerCase().includes('douleur')) {
+    title = "Consultation pour douleur dentaire";
+  } else if (chatContent.toLowerCase().includes('saignement')) {
+    title = "Consultation pour saignement";
+  } else if (chatContent.toLowerCase().includes('urgence')) {
+    title = "Consultation d'urgence";
+  }
+
+  // Extract findings from symptoms
+  const symptoms = extractSymptoms(chatContent);
+  const findings = symptoms.length > 0 
+    ? `Symptômes rapportés: ${symptoms.join(', ')}`
+    : "Consultation générale";
+
+  // Extract recommendations from bot responses
+  const recommendations = extractRecommendations(botResponses);
+
   return {
-    allergies: ['Penicillin'],
-    medications: ['Ibuprofen'],
-    conditions: ['Diabetes Type 2'],
-    previous_treatments: ['Root canal', 'Filling'],
+    patientId: patientProfile.id,
+    dentistId: appointmentData?.dentistId, // Will be null initially, updated when dentist is assigned
+    title,
+    description: `Consultation via chat bot. ${chatContent.substring(0, 500)}...`,
+    findings,
+    recommendations,
+    recordType: appointmentData?.urgency === 'high' ? 'treatment' : 'consultation',
+    visitDate: appointmentData?.appointmentDate 
+      ? new Date(appointmentData.appointmentDate).toISOString().split('T')[0]
+      : new Date().toISOString().split('T')[0]
   };
 };
 
-export const createMedicalRecord = async (record: Omit<MedicalRecord, 'id' | 'created_at' | 'updated_at'>): Promise<MedicalRecord> => {
-  // Mock implementation
-  return {
-    ...record,
-    id: `record-${Date.now()}`,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  };
-};
+const extractSymptoms = (chatContent: string): string[] => {
+  const symptoms: string[] = [];
+  const symptomsKeywords = [
+    'douleur', 'mal', 'saignement', 'gonflement', 'sensibilité',
+    'infection', 'abcès', 'carie', 'gingivite', 'tartre',
+    'mauvaise haleine', 'dent cassée', 'couronne'
+  ];
 
-export const generateMedicalRecordFromChat = async (chatData: any): Promise<MedicalRecord> => {
-  // Mock implementation for generating medical record from chat
-  return createMedicalRecord({
-    patient_id: chatData.patient_id || 'unknown',
-    dentist_id: chatData.dentist_id || 'unknown',
-    visit_date: new Date().toISOString().split('T')[0],
-    diagnosis: 'Chat consultation',
-    treatment: 'Online assessment',
-    notes: `Generated from chat: ${chatData.message || ''}`,
+  symptomsKeywords.forEach(keyword => {
+    if (chatContent.toLowerCase().includes(keyword)) {
+      symptoms.push(keyword);
+    }
   });
+
+  return symptoms;
 };
 
-export const createDossierAfterSignup = async (userId: string): Promise<void> => {
-  // Mock implementation for creating patient dossier after signup
-  console.log(`Creating dossier for user: ${userId}`);
+const extractRecommendations = (botResponses: string): string => {
+  // Simple extraction of recommendations from bot responses
+  const recommendations: string[] = [];
+  
+  if (botResponses.toLowerCase().includes('urgence')) {
+    recommendations.push('Consultation d\'urgence recommandée');
+  }
+  if (botResponses.toLowerCase().includes('brossage')) {
+    recommendations.push('Améliorer l\'hygiène dentaire');
+  }
+  if (botResponses.toLowerCase().includes('rendez-vous')) {
+    recommendations.push('Prise de rendez-vous conseillée');
+  }
+
+  return recommendations.length > 0 
+    ? recommendations.join('. ') + '.'
+    : 'Consultation de suivi recommandée.';
+};
+
+export const createDossierAfterSignup = async (userId: string) => {
+  try {
+    const { createClient } = await import('@supabase/supabase-js');
+    const supabaseClient = createClient(
+      "https://gjvxcisbaxhhblhsytar.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdqdnhjaXNiYXhoaGJsaHN5dGFyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIwNjU4MDUsImV4cCI6MjA2NzY0MTgwNX0.p4HO2McB5IqP9iQ_p_Z6yHKCkKyDXuIm7ono6UJZcmM"
+    );
+    
+    // Get user profile
+    const { data: profile, error: profileError } = await supabaseClient
+      .from('profiles')
+      .select('*')
+      .eq('user_id', userId)
+      .single();
+
+    if (profileError || !profile) {
+      console.error('Error getting profile for new user:', profileError);
+      return;
+    }
+
+    // Create initial welcome record
+    const initialRecord: CreateMedicalRecordData = {
+      patientId: profile.id,
+      dentistId: undefined, // Will be assigned later
+      title: 'Dossier patient créé',
+      description: `Nouveau patient inscrit le ${new Date().toLocaleDateString('fr-FR')}`,
+      findings: 'Nouveau patient - historique médical à compléter',
+      recommendations: 'Planifier une consultation initiale pour évaluation complète',
+      recordType: 'consultation'
+    };
+
+    await createMedicalRecord(initialRecord);
+    console.log('Initial dossier created for new patient:', profile.id);
+  } catch (error) {
+    console.error('Error creating initial dossier:', error);
+  }
 };

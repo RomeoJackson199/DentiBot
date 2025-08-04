@@ -9,7 +9,7 @@ import { AnimatedCard } from "@/components/ui/animated-card";
 import { toast } from "sonner";
 import useEmblaCarousel from 'embla-carousel-react';
 import { useLanguage } from "@/hooks/useLanguage";
-import { RatingForm } from "@/components/RatingForm";
+
 import { 
   AlertDialog, 
   AlertDialogAction, 
@@ -493,11 +493,7 @@ export const AppointmentsList = ({ user }: AppointmentsListProps) => {
                         {appointment.status === 'completed' && profileId && (
                           reviewedAppointments.has(appointment.id) ? (
                             <p className="text-xs text-dental-muted-foreground mt-2">Feedback submitted</p>
-                          ) : (
-                            <div className="mt-2">
-                               <div>Rate this appointment</div>
-                            </div>
-                          )
+                          ) : null
                         )}
                       </div>
                     </div>

@@ -54,7 +54,7 @@ export const EmergencyTriageEntry = ({ onComplete, onCancel }: EmergencyTriageEn
               </div>
               <div>
                 <CardTitle className="text-2xl md:text-3xl font-bold">
-                  {typeof t === 'function' ? t('triage.title') : 'Emergency Triage'}
+                  {t('triage.title')}
                 </CardTitle>
                 <p className="text-white/90 mt-2">
                   Fast, secure, and accurate dental emergency assessment

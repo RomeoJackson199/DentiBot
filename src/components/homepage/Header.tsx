@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { AuthForm } from "@/components/AuthForm";
+import { ProgressiveAuthForm } from "@/components/ProgressiveAuthForm";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { User } from "@supabase/supabase-js";
 import { Stethoscope, Menu, X, Calendar, Activity, BarChart3, Settings, Phone } from "lucide-react";
@@ -74,7 +74,7 @@ export const Header = ({
             {!user ? (
               <>
                 <div className="hidden sm:block">
-                  <AuthForm compact />
+                  <ProgressiveAuthForm compact />
                 </div>
                 <div className="block sm:hidden">
                   <Button size="sm" variant="outline" className="bg-white/10 backdrop-blur-sm border-white/20 text-dental-primary">
@@ -116,7 +116,7 @@ export const Header = ({
               
               {!user && (
                 <div className="pt-4 border-t border-white/10">
-                  <AuthForm />
+                  <ProgressiveAuthForm />
                 </div>
               )}
             </nav>

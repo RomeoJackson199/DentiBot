@@ -211,51 +211,49 @@ export const HealthData = ({
   const loadMedicalRecords = async (profileId: string) => {
     const { data, error } = await supabase
       .from('medical_records')
-      .select('*')
+      .select(`
+        *,
+        dentist:dentists(
+          profile:profiles(first_name, last_name, specialty)
+        )
+      `)
       .eq('patient_id', profileId)
-      .order('record_date', { ascending: false });
+      .order('visit_date', { ascending: false });
 
     if (error) throw error;
-    
-    // Transform data to match expected interface
-    return (data || []).map(record => ({
-      ...record,
-      visit_date: record.record_date,
-      dentist: null // Simplified for now
-    }));
+    return data || [];
   };
 
   const loadPrescriptions = async (profileId: string) => {
     const { data, error } = await supabase
       .from('prescriptions')
-      .select('*')
+      .select(`
+        *,
+        dentist:dentists(
+          profile:profiles(first_name, last_name)
+        )
+      `)
       .eq('patient_id', profileId)
       .order('prescribed_date', { ascending: false });
 
     if (error) throw error;
-    
-    // Transform data to match expected interface
-    return (data || []).map(prescription => ({
-      ...prescription,
-      dentist: null // Simplified for now
-    }));
+    return data || [];
   };
 
   const loadTreatmentPlans = async (profileId: string) => {
     const { data, error } = await supabase
       .from('treatment_plans')
-      .select('*')
+      .select(`
+        *,
+        dentist:dentists(
+          profile:profiles(first_name, last_name)
+        )
+      `)
       .eq('patient_id', profileId)
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    
-    // Transform data to match expected interface
-    return (data || []).map(plan => ({
-      ...plan,
-      estimated_duration: plan.estimated_duration_weeks ? `${plan.estimated_duration_weeks} weeks` : "2 weeks",
-      dentist: null // Simplified for now
-    }));
+    return data || [];
   };
 
   const loadAppointments = async (profileId: string) => {
@@ -267,7 +265,10 @@ export const HealthData = ({
         status, 
         reason, 
         consultation_notes, 
-        urgency
+        urgency,
+        dentist:dentists(
+          profile:profiles(first_name, last_name)
+        )
       `)
       .eq('patient_id', profileId)
       .order('appointment_date', { ascending: false });
@@ -278,12 +279,7 @@ export const HealthData = ({
 
     const { data, error } = await query;
     if (error) throw error;
-    
-    // Transform data to match expected interface
-    return (data || []).map(appointment => ({
-      ...appointment,
-      dentist: null // Simplified for now
-    }));
+    return data || [];
   };
 
   const formatDate = (dateString: string) => {
