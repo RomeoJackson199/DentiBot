@@ -160,7 +160,7 @@ export function EnhancedPrescriptionManager({
         medication_name: formData.medication_name,
         dosage: formData.dosage,
         frequency: formData.frequency,
-        duration: `${formData.duration_days[0]} days`,
+        duration_days: formData.duration_days[0],
         instructions: formData.instructions,
         side_effects: formData.side_effects,
         contraindications: formData.contraindications,
