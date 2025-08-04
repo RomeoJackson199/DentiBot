@@ -61,9 +61,26 @@ export const assessUrgency = (symptoms: string[]): 'low' | 'medium' | 'high' | '
   return 'low';
 };
 
-export const generateSymptomSummary = (symptoms: string[]): string => {
-  if (symptoms.length === 0) return 'No symptoms reported';
-  if (symptoms.length === 1) return `Reported symptom: ${symptoms[0]}`;
-  if (symptoms.length === 2) return `Reported symptoms: ${symptoms.join(' and ')}`;
-  return `Reported ${symptoms.length} symptoms including: ${symptoms.slice(0, 2).join(', ')} and others`;
+export const generateSymptomSummary = (symptoms: string[] | any[], userProfile?: any): string => {
+  // Handle different input types
+  if (Array.isArray(symptoms) && symptoms.length > 0 && typeof symptoms[0] === 'string') {
+    // Array of symptom strings
+    if (symptoms.length === 0) return 'No symptoms reported';
+    if (symptoms.length === 1) return `Reported symptom: ${symptoms[0]}`;
+    if (symptoms.length === 2) return `Reported symptoms: ${symptoms.join(' and ')}`;
+    return `Reported ${symptoms.length} symptoms including: ${symptoms.slice(0, 2).join(', ')} and others`;
+  } else if (Array.isArray(symptoms)) {
+    // Array of messages - extract symptoms from chat
+    const symptomKeywords = ['pain', 'hurt', 'ache', 'sensitive', 'bleeding', 'swollen', 'infection'];
+    const extractedSymptoms = symptoms
+      .filter((msg: any) => msg && msg.message && typeof msg.message === 'string')
+      .map((msg: any) => msg.message.toLowerCase())
+      .filter((text: string) => symptomKeywords.some(keyword => text.includes(keyword)))
+      .slice(0, 3); // Limit to first 3 relevant messages
+    
+    if (extractedSymptoms.length === 0) return 'Patient consultation - no specific symptoms mentioned';
+    return `Patient reported: ${extractedSymptoms.join(', ')}`;
+  }
+  
+  return 'No symptoms reported';
 };
