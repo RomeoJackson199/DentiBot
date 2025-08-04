@@ -197,15 +197,19 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
     try {
       const { data: appointmentsData } = await supabase
         .from('appointments')
-        .select(`
-          *,
-          dentists:dentist_id(first_name, last_name, specialization)
-        `)
+        .select('*')
         .eq('patient_id', profileId)
         .order('appointment_date', { ascending: false })
         .limit(5);
 
-      setRecentAppointments(appointmentsData || []);
+      // Transform data to match expected interface
+      const transformedAppointments = (appointmentsData || []).map(apt => ({
+        ...apt,
+        duration: apt.duration_minutes,
+        urgency_level: apt.urgency
+      }));
+
+      setRecentAppointments(transformedAppointments);
     } catch (error) {
       console.error('Error fetching recent appointments:', error);
     }
@@ -220,10 +224,11 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
         .eq('patient_id', profileId)
         .order('prescribed_date', { ascending: false });
 
-       setPrescriptions((prescriptionsData || []).map(prescription => ({
-         ...prescription,
-         duration: prescription.duration_days?.toString() || "7 days"
-       })));
+        const transformedPrescriptions = (prescriptionsData || []).map(prescription => ({
+          ...prescription,
+          duration: prescription.duration_days?.toString() || "7 days"
+        }));
+        setPrescriptions(transformedPrescriptions);
 
       // Fetch treatment plans
       const { data: treatmentPlansData } = await supabase
@@ -232,11 +237,12 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
         .eq('patient_id', profileId)
         .order('created_at', { ascending: false });
 
-       setTreatmentPlans((treatmentPlansData || []).map(plan => ({
+       const transformedPlans = (treatmentPlansData || []).map(plan => ({
          ...plan,
          title: plan.title || "Treatment Plan",
          estimated_duration: plan.estimated_duration_weeks ? `${plan.estimated_duration_weeks} weeks` : "2 weeks"
-       })));
+       }));
+       setTreatmentPlans(transformedPlans);
 
       // Fetch medical records
       const { data: medicalRecordsData } = await supabase
@@ -245,10 +251,11 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
         .eq('patient_id', profileId)
         .order('record_date', { ascending: false });
 
-       setMedicalRecords((medicalRecordsData || []).map(record => ({
+       const transformedRecords = (medicalRecordsData || []).map(record => ({
          ...record,
          visit_date: record.record_date
-       })));
+       }));
+       setMedicalRecords(transformedRecords);
 
       // Fetch patient notes
       const { data: notesData } = await supabase
@@ -471,11 +478,11 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
 
             <div className="p-6">
               <TabsContent value="chat" className="space-y-4">
-                <InteractiveDentalChat 
-                  user={user} 
-                  triggerBooking={triggerBooking}
-                  onEmergencyComplete={handleEmergencyComplete}
-                />
+            <InteractiveDentalChat 
+              user={user} 
+              triggerBooking={triggerBooking}
+              onBookingTriggered={() => setTriggerBooking(false)}
+            />
               </TabsContent>
 
               <TabsContent value="appointments" className="space-y-4">
@@ -666,11 +673,14 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
               </TabsContent>
 
               <TabsContent value="analytics" className="space-y-4">
-                <PatientAnalytics user={user} />
+                <PatientAnalytics userId={user.id} />
               </TabsContent>
 
               <TabsContent value="emergency" className="space-y-4">
-                <EmergencyTriageForm onComplete={handleEmergencyComplete} />
+                <EmergencyTriageForm 
+                  onComplete={handleEmergencyComplete}
+                  onCancel={() => setActiveTab('chat')}
+                />
               </TabsContent>
 
               <TabsContent value="test" className="space-y-4">
