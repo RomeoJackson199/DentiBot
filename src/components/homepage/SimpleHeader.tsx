@@ -22,7 +22,10 @@ export const SimpleHeader = () => {
             <Button 
               variant="ghost" 
               size="sm" 
-              onClick={() => navigate('/auth')}
+              onClick={() => {
+                console.log('Sign In button clicked - navigating to /auth');
+                navigate('/auth');
+              }}
               className="flex items-center gap-2"
             >
               <LogIn className="h-4 w-4" />
@@ -31,7 +34,10 @@ export const SimpleHeader = () => {
             <Button 
               variant="default" 
               size="sm" 
-              onClick={() => navigate('/auth')}
+              onClick={() => {
+                console.log('Get Started button clicked - navigating to /auth');
+                navigate('/auth');
+              }}
               className="flex items-center gap-2"
             >
               <UserPlus className="h-4 w-4" />
