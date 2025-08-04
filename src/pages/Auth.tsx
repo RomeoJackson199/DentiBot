@@ -23,16 +23,20 @@ const Auth = () => {
     // Check if user is already logged in
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        navigate('/');
+      console.log('Auth page - existing session:', session);
+      if (session?.user) {
+        console.log('User already logged in, redirecting to home');
+        navigate('/dashboard');
       }
     };
     checkUser();
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session) {
-        navigate('/');
+      console.log('Auth state changed:', event, session);
+      if (session?.user && event === 'SIGNED_IN') {
+        console.log('User signed in, redirecting to dashboard');
+        navigate('/dashboard');
       }
     });
 
@@ -56,7 +60,7 @@ const Auth = () => {
       if (error) throw error;
       
       toast({ title: "Success", description: "Welcome back!" });
-      navigate('/');
+      navigate('/dashboard');
     } catch (error) {
       toast({
         title: "Sign In Error",

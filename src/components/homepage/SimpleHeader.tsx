@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Stethoscope, LogIn, UserPlus } from "lucide-react";
 import { Link } from "react-router-dom";
+import { LogoutButton } from "../LogoutButton";
 
 export const SimpleHeader = () => {
   return (
@@ -18,6 +19,7 @@ export const SimpleHeader = () => {
         </div>
         <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
           <nav className="flex items-center space-x-3">
+            <LogoutButton />
             <Link to="/auth">
               <Button 
                 variant="ghost" 
