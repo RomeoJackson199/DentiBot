@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -61,11 +61,7 @@ export const AppointmentsList = ({ user }: AppointmentsListProps) => {
     }
   });
 
-  useEffect(() => {
-    fetchAppointments();
-  }, [user]);
-
-  const fetchAppointments = async () => {
+  const fetchAppointments = useCallback(async () => {
     try {
       setLoading(true);
       
@@ -149,7 +145,11 @@ export const AppointmentsList = ({ user }: AppointmentsListProps) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    fetchAppointments();
+  }, [fetchAppointments]);
 
   const cancelAppointment = async (appointmentId: string) => {
     try {

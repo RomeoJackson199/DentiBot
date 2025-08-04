@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { InteractiveDentalChat } from "@/components/chat/InteractiveDentalChat";
@@ -45,7 +45,7 @@ import {
   MedicalRecord, 
   PatientNote 
 } from "@/types/dental";
-import { Appointment } from "@/types/common";
+import { Appointment, UserProfile } from "@/types/common";
 
 interface PatientDashboardProps {
   user: User;
@@ -75,7 +75,7 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
   const [triggerBooking, setTriggerBooking] = useState<'low' | 'medium' | 'high' | 'emergency' | false>(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [userProfile, setUserProfile] = useState<any>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [patientStats, setPatientStats] = useState<PatientStats>({
     upcomingAppointments: 0,
     completedAppointments: 0,
@@ -104,18 +104,6 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
       // Handle localStorage errors silently
     }
   }, [activeTab, user.id]);
-
-  useEffect(() => {
-    fetchUserProfile();
-  }, [user.id]);
-
-  useEffect(() => {
-    if (userProfile?.id) {
-      fetchPatientStats(userProfile.id);
-      fetchRecentAppointments(userProfile.id);
-      fetchPatientData(userProfile.id);
-    }
-  }, [userProfile?.id]);
 
   const fetchUserProfile = async () => {
     try {
@@ -256,6 +244,24 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
       console.error('Error fetching patient data:', error);
     }
   };
+
+  // Use useCallback to memoize functions to prevent infinite re-renders
+  const fetchUserProfileCallback = useCallback(fetchUserProfile, [user.id]);
+  const fetchPatientStatsCallback = useCallback(fetchPatientStats, []);
+  const fetchRecentAppointmentsCallback = useCallback(fetchRecentAppointments, []);
+  const fetchPatientDataCallback = useCallback(fetchPatientData, []);
+
+  useEffect(() => {
+    fetchUserProfileCallback();
+  }, [fetchUserProfileCallback]);
+
+  useEffect(() => {
+    if (userProfile?.id) {
+      fetchPatientStatsCallback(userProfile.id);
+      fetchRecentAppointmentsCallback(userProfile.id);
+      fetchPatientDataCallback(userProfile.id);
+    }
+  }, [userProfile?.id, fetchPatientStatsCallback, fetchRecentAppointmentsCallback, fetchPatientDataCallback]);
 
   const getWelcomeMessage = () => {
     const hour = new Date().getHours();

@@ -178,15 +178,7 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
     notes: ""
   });
 
-  useEffect(() => {
-    fetchPatients();
-  }, [dentistId]);
-
-  useEffect(() => {
-    filterAndSortPatients();
-  }, [patients, searchTerm, sortBy, sortOrder, filterStatus]);
-
-  const fetchPatients = async () => {
+  const fetchPatients = useCallback(async () => {
     try {
       setLoading(true);
       console.log('Fetching patients for dentist:', dentistId);
@@ -275,9 +267,9 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
       });
       setLoading(false);
     }
-  };
+  }, [dentistId]);
 
-  const filterAndSortPatients = () => {
+  const filterAndSortPatients = useCallback(() => {
     let filtered = [...patients];
 
     // Apply search filter
@@ -319,7 +311,15 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
     });
 
     setFilteredPatients(filtered);
-  };
+  }, [patients, searchTerm, sortBy, sortOrder, filterStatus]);
+
+  useEffect(() => {
+    fetchPatients();
+  }, [fetchPatients]);
+
+  useEffect(() => {
+    filterAndSortPatients();
+  }, [filterAndSortPatients]);
 
   const handlePatientSelect = async (patient: Patient) => {
     setSelectedPatient(patient);
