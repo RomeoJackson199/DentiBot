@@ -419,13 +419,6 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
         </TabsContent>
 
         <TabsContent value="appointments" className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h3 className="text-lg font-semibold">Your Appointments</h3>
-            <Button size="sm">
-              <Plus className="h-4 w-4 mr-2" />
-              Book New Appointment
-            </Button>
-          </div>
           <RealAppointmentsList user={user} />
         </TabsContent>
 
