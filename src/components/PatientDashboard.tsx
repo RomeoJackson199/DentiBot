@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { InteractiveDentalChat } from "@/components/chat/InteractiveDentalChat";
 import { Settings } from "@/components/Settings";
 import RealAppointmentsList from "@/components/RealAppointmentsList";
+import { AppointmentDebug } from "@/components/AppointmentDebug";
+import { SimpleAppointmentTest } from "@/components/SimpleAppointmentTest";
 import { HealthData } from "@/components/HealthData";
 import { EmergencyTriageForm } from "@/components/EmergencyTriageForm";
 import { PatientAnalytics } from "@/components/analytics/PatientAnalytics";
@@ -593,6 +595,8 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
           <div className="space-y-6">
             <NotificationTest user={user} />
             <DatabaseTest />
+            <SimpleAppointmentTest user={user} />
+            <AppointmentDebug user={user} />
           </div>
         </TabsContent>
       </Tabs>
