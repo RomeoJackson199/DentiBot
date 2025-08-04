@@ -18,11 +18,11 @@ export interface TreatmentPlan {
   id: string;
   patient_id: string;
   dentist_id: string;
-  title: string;
+  plan_name: string;
   description?: string;
   diagnosis?: string;
-  treatment_goals: string[];
-  procedures: string[];
+  treatment_goals?: string[];
+  procedures?: string[];
   estimated_cost?: number;
   estimated_duration?: string;
   priority: 'low' | 'normal' | 'high' | 'urgent';
@@ -102,6 +102,7 @@ export interface Patient {
   phone?: string;
   date_of_birth?: string;
   medical_history?: string;
+  address?: string;
   last_appointment?: string;
   total_appointments: number;
   upcoming_appointments: number;
