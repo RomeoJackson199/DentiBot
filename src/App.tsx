@@ -22,6 +22,7 @@ import Analytics from "./pages/Analytics";
 import Support from "./pages/Support";
 import FeatureDetail from "./pages/FeatureDetail";
 import { LanguageTest } from "./components/LanguageTest";
+import { PatientDashboard } from "./components/PatientDashboard";
 
 // Dashboard component that handles authentication
 const DashboardComponent = () => {
@@ -73,8 +74,6 @@ const DashboardComponent = () => {
   }
 
   console.log('DashboardComponent: User authenticated, loading PatientDashboard:', user);
-  // Import PatientDashboard directly
-  const { PatientDashboard } = require('./components/PatientDashboard');
   
   return <PatientDashboard user={user} />;
 };
