@@ -87,11 +87,32 @@ export const UnifiedDashboard = ({ user }: UnifiedDashboardProps) => {
   if (loading) {
     return (
       <div className="min-h-screen mesh-bg flex items-center justify-center">
-        <Card className="glass-card animate-fade-in">
-          <CardContent className="p-8 text-center space-y-4">
-            <Loader2 className="h-8 w-8 animate-spin mx-auto text-dental-primary" />
-            <h3 className="text-lg font-semibold">Loading Dashboard</h3>
-            <p className="text-dental-muted-foreground">Determining your access level...</p>
+        <Card 
+          variant="glass-strong" 
+          className="animate-fade-in p-10 max-w-md mx-auto border-dental-primary/20"
+        >
+          <CardContent className="text-center space-y-6" padding="none">
+            {/* Enhanced loading icon */}
+            <div className="relative">
+              <div className="w-16 h-16 bg-gradient-primary rounded-2xl flex items-center justify-center mx-auto shadow-elegant animate-float">
+                <Loader2 className="h-8 w-8 animate-spin text-white" />
+              </div>
+              <div className="pulse-ring w-20 h-20 -top-2 -left-2"></div>
+            </div>
+            
+            <div className="space-y-3">
+              <h3 className="text-2xl font-bold gradient-text">Loading Dashboard</h3>
+              <p className="text-dental-muted-foreground leading-relaxed">
+                Determining your access level and personalizing your experience...
+              </p>
+            </div>
+            
+            {/* Progress indicator */}
+            <div className="w-full">
+              <div className="w-full bg-dental-muted/20 rounded-full h-2">
+                <div className="bg-gradient-primary h-2 rounded-full animate-pulse" style={{ width: "60%" }}></div>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>

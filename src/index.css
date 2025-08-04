@@ -2,9 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* Enhanced Design System - Modern dental theme with glassmorphism and micro-interactions */
 
 @layer base {
   :root {
@@ -50,36 +48,45 @@ All colors MUST be HSL.
     --dental-surface: 240 8% 8%;
     --dental-surface-foreground: 0 0% 95%;
     
-    /* Advanced gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(var(--dental-primary)), hsl(var(--dental-secondary)));
-    --gradient-secondary: linear-gradient(135deg, hsl(var(--dental-secondary)), hsl(var(--dental-accent)));
-    --gradient-accent: linear-gradient(135deg, hsl(var(--dental-accent)), hsl(279 100% 60%));
-    --gradient-card: linear-gradient(145deg, hsl(240 8% 8%), hsl(240 6% 12%));
-    --gradient-hero: linear-gradient(135deg, hsl(var(--dental-primary) / 0.1), hsl(var(--dental-accent) / 0.1));
-    --gradient-mesh: radial-gradient(ellipse at top, hsl(var(--dental-primary) / 0.1) 0%, transparent 70%),
-                     radial-gradient(ellipse at bottom right, hsl(var(--dental-accent) / 0.1) 0%, transparent 70%);
+    /* New modern color palette */
+    --dental-neutral: 240 5% 96%;
+    --dental-neutral-foreground: 240 10% 20%;
+    --dental-success: 142 71% 45%;
+    --dental-warning: 38 92% 50%;
+    --dental-error: 0 84% 60%;
+    --dental-info: 217 91% 60%;
     
-    /* Enhanced shadows */
-    --shadow-elegant: 0 20px 50px -12px hsl(var(--dental-primary) / 0.3);
-    --shadow-glow: 0 0 60px hsl(var(--dental-primary) / 0.15);
-    --shadow-card: 0 12px 40px -8px hsl(240 10% 3.9% / 0.8);
-    --shadow-float: 0 8px 25px -8px hsl(var(--dental-primary) / 0.2);
+    /* Advanced gradients with modern color stops */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--dental-primary)), hsl(var(--dental-secondary)), hsl(217 91% 60%));
+    --gradient-secondary: linear-gradient(135deg, hsl(var(--dental-secondary)), hsl(var(--dental-accent)), hsl(142 71% 45%));
+    --gradient-accent: linear-gradient(135deg, hsl(var(--dental-accent)), hsl(279 100% 60%), hsl(320 70% 60%));
+    --gradient-card: linear-gradient(145deg, hsl(240 8% 8%), hsl(240 6% 12%), hsl(240 4% 16%));
+    --gradient-hero: linear-gradient(135deg, hsl(var(--dental-primary) / 0.1), hsl(var(--dental-accent) / 0.1), hsl(217 91% 60% / 0.05));
+    --gradient-mesh: 
+      radial-gradient(ellipse at top left, hsl(var(--dental-primary) / 0.15) 0%, transparent 50%),
+      radial-gradient(ellipse at top right, hsl(var(--dental-accent) / 0.1) 0%, transparent 50%),
+      radial-gradient(ellipse at bottom left, hsl(142 71% 45% / 0.1) 0%, transparent 50%),
+      radial-gradient(ellipse at bottom right, hsl(217 91% 60% / 0.08) 0%, transparent 50%);
+    --gradient-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+    
+    /* Enhanced shadows with modern depth */
+    --shadow-elegant: 0 20px 50px -12px hsl(var(--dental-primary) / 0.3), 0 0 0 1px hsl(var(--dental-primary) / 0.05);
+    --shadow-glow: 0 0 60px hsl(var(--dental-primary) / 0.15), 0 0 100px hsl(var(--dental-primary) / 0.1);
+    --shadow-card: 0 12px 40px -8px hsl(240 10% 3.9% / 0.8), 0 0 0 1px hsl(240 10% 3.9% / 0.1);
+    --shadow-float: 0 8px 25px -8px hsl(var(--dental-primary) / 0.2), 0 20px 40px -12px hsl(var(--dental-primary) / 0.1);
     --shadow-inner: inset 0 2px 4px 0 hsl(240 10% 3.9% / 0.3);
+    --shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+    --shadow-soft: 0 2px 8px 0 hsl(var(--dental-primary) / 0.08);
+    --shadow-medium: 0 4px 16px 0 hsl(var(--dental-primary) / 0.12);
+    --shadow-large: 0 8px 32px 0 hsl(var(--dental-primary) / 0.16);
 
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
@@ -123,19 +130,34 @@ All colors MUST be HSL.
     --dental-surface: 250 100% 98%;
     --dental-surface-foreground: 240 10% 3.9%;
     
-    --gradient-primary: linear-gradient(135deg, hsl(var(--dental-primary)), hsl(var(--dental-secondary)));
-    --gradient-secondary: linear-gradient(135deg, hsl(var(--dental-secondary)), hsl(var(--dental-accent)));
-    --gradient-accent: linear-gradient(135deg, hsl(var(--dental-accent)), hsl(279 100% 60%));
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(240 4.8% 98%));
-    --gradient-hero: linear-gradient(135deg, hsl(var(--dental-primary) / 0.05), hsl(var(--dental-accent) / 0.05));
-    --gradient-mesh: radial-gradient(ellipse at top, hsl(var(--dental-primary) / 0.05) 0%, transparent 70%),
-                     radial-gradient(ellipse at bottom right, hsl(var(--dental-accent) / 0.05) 0%, transparent 70%);
+    --dental-neutral: 240 5% 96%;
+    --dental-neutral-foreground: 240 10% 20%;
+    --dental-success: 142 71% 45%;
+    --dental-warning: 38 92% 50%;
+    --dental-error: 0 84% 60%;
+    --dental-info: 217 91% 60%;
     
-    --shadow-elegant: 0 20px 50px -12px hsl(var(--dental-primary) / 0.15);
-    --shadow-glow: 0 0 60px hsl(var(--dental-primary) / 0.08);
-    --shadow-card: 0 12px 40px -8px hsl(240 10% 3.9% / 0.1);
-    --shadow-float: 0 8px 25px -8px hsl(var(--dental-primary) / 0.1);
+    --gradient-primary: linear-gradient(135deg, hsl(var(--dental-primary)), hsl(var(--dental-secondary)), hsl(217 91% 60%));
+    --gradient-secondary: linear-gradient(135deg, hsl(var(--dental-secondary)), hsl(var(--dental-accent)), hsl(142 71% 45%));
+    --gradient-accent: linear-gradient(135deg, hsl(var(--dental-accent)), hsl(279 100% 60%), hsl(320 70% 60%));
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(240 4.8% 98%), hsl(240 4.8% 96%));
+    --gradient-hero: linear-gradient(135deg, hsl(var(--dental-primary) / 0.05), hsl(var(--dental-accent) / 0.05), hsl(217 91% 60% / 0.03));
+    --gradient-mesh: 
+      radial-gradient(ellipse at top left, hsl(var(--dental-primary) / 0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at top right, hsl(var(--dental-accent) / 0.06) 0%, transparent 50%),
+      radial-gradient(ellipse at bottom left, hsl(142 71% 45% / 0.06) 0%, transparent 50%),
+      radial-gradient(ellipse at bottom right, hsl(217 91% 60% / 0.04) 0%, transparent 50%);
+    --gradient-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.25), rgba(255, 255, 255, 0.1));
+    
+    --shadow-elegant: 0 20px 50px -12px hsl(var(--dental-primary) / 0.15), 0 0 0 1px hsl(var(--dental-primary) / 0.05);
+    --shadow-glow: 0 0 60px hsl(var(--dental-primary) / 0.08), 0 0 100px hsl(var(--dental-primary) / 0.05);
+    --shadow-card: 0 12px 40px -8px hsl(240 10% 3.9% / 0.1), 0 0 0 1px hsl(240 10% 3.9% / 0.05);
+    --shadow-float: 0 8px 25px -8px hsl(var(--dental-primary) / 0.1), 0 20px 40px -12px hsl(var(--dental-primary) / 0.05);
     --shadow-inner: inset 0 2px 4px 0 hsl(240 10% 3.9% / 0.1);
+    --shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+    --shadow-soft: 0 2px 8px 0 hsl(var(--dental-primary) / 0.06);
+    --shadow-medium: 0 4px 16px 0 hsl(var(--dental-primary) / 0.08);
+    --shadow-large: 0 8px 32px 0 hsl(var(--dental-primary) / 0.12);
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
@@ -157,42 +179,99 @@ All colors MUST be HSL.
     @apply bg-background text-foreground antialiased;
     background-image: var(--gradient-mesh);
     background-attachment: fixed;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    font-variation-settings: "opsz" 32;
   }
 
   html {
     scroll-behavior: smooth;
   }
+
+  /* Better focus styles */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-dental-primary ring-offset-2 ring-offset-background;
+  }
 }
 
 @layer components {
+  /* Enhanced Glass Morphism Effects */
   .glass-card {
-    @apply bg-white/10 backdrop-blur-xl border border-white/20 shadow-elegant;
+    @apply bg-white/10 backdrop-blur-xl border border-white/20 shadow-glass;
+    background: var(--gradient-glass);
   }
   
   .glass-card-dark {
-    @apply bg-black/10 backdrop-blur-xl border border-white/10 shadow-elegant;
+    @apply bg-black/10 backdrop-blur-xl border border-white/10 shadow-glass;
   }
   
+  .glass-card-strong {
+    @apply bg-white/20 backdrop-blur-2xl border border-white/30 shadow-elegant;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.1));
+  }
+  
+  /* Enhanced Floating Cards */
   .floating-card {
-    @apply bg-card/80 backdrop-blur-lg border border-border/50 shadow-float;
+    @apply bg-card/80 backdrop-blur-lg border border-border/50 shadow-float rounded-2xl;
     transform: translateY(0);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
   
   .floating-card:hover {
-    transform: translateY(-4px);
+    transform: translateY(-8px) scale(1.02);
     box-shadow: var(--shadow-elegant);
   }
-  
-  .pulse-ring {
-    @apply absolute rounded-full animate-ping;
-    background: radial-gradient(circle, hsl(var(--dental-primary) / 0.3) 0%, transparent 70%);
+
+  /* Modern Card Variants */
+  .card-elevated {
+    @apply bg-card shadow-large rounded-2xl border border-border/50;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .card-elevated:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-glow);
+  }
+
+  .card-interactive {
+    @apply bg-card shadow-medium rounded-xl border border-border/30 cursor-pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .card-interactive:hover {
+    @apply shadow-large border-dental-primary/30;
+    transform: translateY(-2px);
+  }
+
+  .card-interactive:active {
+    transform: translateY(0) scale(0.98);
   }
   
+  /* Enhanced Pulse Ring */
+  .pulse-ring {
+    @apply absolute rounded-full animate-ping;
+    background: radial-gradient(circle, hsl(var(--dental-primary) / 0.4) 0%, hsl(var(--dental-primary) / 0.1) 50%, transparent 70%);
+  }
+
+  .pulse-ring-secondary {
+    @apply absolute rounded-full animate-ping;
+    background: radial-gradient(circle, hsl(var(--dental-secondary) / 0.4) 0%, hsl(var(--dental-secondary) / 0.1) 50%, transparent 70%);
+    animation-delay: 0.5s;
+  }
+  
+  /* Enhanced Text Effects */
   .gradient-text {
     @apply bg-gradient-primary bg-clip-text text-transparent;
   }
+
+  .gradient-text-secondary {
+    @apply bg-gradient-secondary bg-clip-text text-transparent;
+  }
+
+  .gradient-text-accent {
+    @apply bg-gradient-accent bg-clip-text text-transparent;
+  }
   
+  /* Background Utilities */
   .mesh-bg {
     background-image: var(--gradient-mesh);
   }
@@ -200,9 +279,11 @@ All colors MUST be HSL.
   .hero-pattern {
     background-image: 
       radial-gradient(circle at 25% 25%, hsl(var(--dental-primary) / 0.05) 0%, transparent 50%),
-      radial-gradient(circle at 75% 75%, hsl(var(--dental-accent) / 0.05) 0%, transparent 50%);
+      radial-gradient(circle at 75% 75%, hsl(var(--dental-accent) / 0.05) 0%, transparent 50%),
+      radial-gradient(circle at 50% 50%, hsl(217 91% 60% / 0.03) 0%, transparent 50%);
   }
   
+  /* Text Utilities */
   .line-clamp-2 {
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -216,11 +297,48 @@ All colors MUST be HSL.
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
-  
+
+  /* Button Enhancement Utilities */
+  .btn-glow {
+    @apply relative overflow-hidden;
+  }
+
+  .btn-glow::before {
+    content: "";
+    @apply absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent;
+    transform: translateX(-100%);
+    transition: transform 0.6s;
+  }
+
+  .btn-glow:hover::before {
+    transform: translateX(100%);
+  }
+
+  /* Micro-interaction Utilities */
+  .interactive-scale {
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .interactive-scale:hover {
+    transform: scale(1.05);
+  }
+
+  .interactive-scale:active {
+    transform: scale(0.95);
+  }
+
+  .interactive-rotate {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .interactive-rotate:hover {
+    transform: rotate(5deg);
+  }
+
   /* Enhanced Animations */
   @keyframes float {
     0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-10px); }
+    50% { transform: translateY(-12px); }
   }
   
   @keyframes glow {
@@ -236,6 +354,31 @@ All colors MUST be HSL.
   @keyframes slide-up {
     from { opacity: 0; transform: translateY(30px); }
     to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes slide-in-left {
+    from { opacity: 0; transform: translateX(-30px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  @keyframes slide-in-right {
+    from { opacity: 0; transform: translateX(30px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  @keyframes scale-in {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  @keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+
+  @keyframes pulse-soft {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
   }
   
   .animate-float {
@@ -253,6 +396,26 @@ All colors MUST be HSL.
   .animate-slide-up {
     animation: slide-up 0.8s ease-out forwards;
   }
+
+  .animate-slide-in-left {
+    animation: slide-in-left 0.6s ease-out forwards;
+  }
+
+  .animate-slide-in-right {
+    animation: slide-in-right 0.6s ease-out forwards;
+  }
+
+  .animate-scale-in {
+    animation: scale-in 0.4s ease-out forwards;
+  }
+
+  .animate-shimmer {
+    animation: shimmer 2s infinite;
+  }
+
+  .animate-pulse-soft {
+    animation: pulse-soft 2s ease-in-out infinite;
+  }
   
   /* Healthcare-specific gradients */
   .bg-gradient-primary {
@@ -265,5 +428,277 @@ All colors MUST be HSL.
   
   .bg-gradient-accent {
     background: var(--gradient-accent);
+  }
+
+  .bg-gradient-glass {
+    background: var(--gradient-glass);
+  }
+
+  /* Status Color Utilities */
+  .text-success {
+    color: hsl(var(--dental-success));
+  }
+
+  .text-warning {
+    color: hsl(var(--dental-warning));
+  }
+
+  .text-error {
+    color: hsl(var(--dental-error));
+  }
+
+  .text-info {
+    color: hsl(var(--dental-info));
+  }
+
+  .bg-success {
+    background-color: hsl(var(--dental-success));
+  }
+
+  .bg-warning {
+    background-color: hsl(var(--dental-warning));
+  }
+
+  .bg-error {
+    background-color: hsl(var(--dental-error));
+  }
+
+  .bg-info {
+    background-color: hsl(var(--dental-info));
+  }
+
+  /* Mobile-First Responsive Utilities */
+  .mobile-container {
+    @apply px-4 mx-auto max-w-screen-sm;
+  }
+
+  .tablet-container {
+    @apply px-6 mx-auto max-w-screen-md;
+  }
+
+  .desktop-container {
+    @apply px-8 mx-auto max-w-screen-lg;
+  }
+
+  /* Touch-Friendly Interactive Elements */
+  .touch-target {
+    @apply min-h-touch min-w-touch;
+  }
+
+  .touch-button {
+    @apply min-h-touch min-w-touch flex items-center justify-center px-4 py-3 rounded-lg transition-all duration-200;
+  }
+
+  .touch-button:active {
+    @apply scale-95;
+  }
+
+  /* Mobile-Optimized Cards */
+  .mobile-card {
+    @apply glass-card p-4 rounded-xl border border-white/10 hover:border-dental-primary/30 transition-all duration-300;
+  }
+
+  .mobile-card-interactive {
+    @apply mobile-card cursor-pointer hover:shadow-medium active:scale-98 touch:active:scale-95;
+  }
+
+  /* Mobile Typography */
+  .mobile-heading-lg {
+    @apply text-mobile-3xl sm:text-4xl lg:text-5xl font-bold leading-tight;
+  }
+
+  .mobile-heading-md {
+    @apply text-mobile-2xl sm:text-3xl lg:text-4xl font-bold;
+  }
+
+  .mobile-heading-sm {
+    @apply text-mobile-xl sm:text-2xl lg:text-3xl font-semibold;
+  }
+
+  .mobile-body {
+    @apply text-mobile-base sm:text-lg leading-relaxed;
+  }
+
+  .mobile-caption {
+    @apply text-mobile-sm text-dental-muted-foreground;
+  }
+
+  /* Mobile Spacing */
+  .mobile-section {
+    @apply py-12 sm:py-16 lg:py-20;
+  }
+
+  .mobile-section-lg {
+    @apply py-16 sm:py-20 lg:py-24;
+  }
+
+  .mobile-gap {
+    @apply gap-4 sm:gap-6 lg:gap-8;
+  }
+
+  .mobile-gap-lg {
+    @apply gap-6 sm:gap-8 lg:gap-12;
+  }
+
+  /* Safe Area Support */
+  .safe-area {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* Mobile Animations - Reduced motion support */
+  @media (prefers-reduced-motion: reduce) {
+    .animate-float,
+    .animate-glow,
+    .animate-bounce,
+    .animate-pulse-soft {
+      animation: none;
+    }
+    
+    .interactive-scale:hover {
+      transform: none;
+    }
+    
+    .floating-card:hover {
+      transform: none;
+    }
+  }
+
+  /* Mobile-Optimized Animations */
+  .mobile-animate-in {
+    animation: mobile-slide-up 0.4s ease-out;
+  }
+
+  .mobile-animate-scale {
+    animation: mobile-scale 0.2s ease-out;
+  }
+
+  /* Touch Feedback */
+  .touch-feedback {
+    @apply transition-all duration-150 active:scale-95 active:bg-dental-primary/10;
+  }
+
+  .touch-feedback:active {
+    transform: scale(0.98);
+  }
+
+  /* Mobile Grid Layouts */
+  .mobile-grid {
+    @apply grid grid-cols-1 mobile-gap;
+  }
+
+  .mobile-grid-2 {
+    @apply grid grid-cols-1 sm:grid-cols-2 mobile-gap;
+  }
+
+  .mobile-grid-3 {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 mobile-gap;
+  }
+
+  .mobile-grid-auto {
+    @apply grid grid-cols-mobile mobile-gap;
+  }
+
+  /* Mobile Navigation */
+  .mobile-nav {
+    @apply fixed bottom-0 left-0 right-0 bg-card/80 backdrop-blur-xl border-t border-border/50 safe-bottom;
+  }
+
+  .mobile-nav-item {
+    @apply flex-1 flex flex-col items-center justify-center py-2 px-1 min-h-touch text-xs font-medium transition-colors;
+  }
+
+  .mobile-nav-item.active {
+    @apply text-dental-primary;
+  }
+
+  /* Mobile Modal */
+  .mobile-modal {
+    @apply fixed inset-0 z-50 bg-background/80 backdrop-blur-sm;
+  }
+
+  .mobile-modal-content {
+    @apply fixed bottom-0 left-0 right-0 bg-card rounded-t-3xl p-6 max-h-[85vh] overflow-y-auto safe-bottom;
+    transform: translateY(100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .mobile-modal-content.open {
+    transform: translateY(0);
+  }
+
+  /* Mobile Form Elements */
+  .mobile-input {
+    @apply w-full min-h-touch px-4 py-3 rounded-lg border border-input bg-background text-mobile-base focus:outline-none focus:ring-2 focus:ring-dental-primary focus:border-transparent;
+  }
+
+  .mobile-textarea {
+    @apply mobile-input min-h-[120px] resize-none;
+  }
+
+  .mobile-select {
+    @apply mobile-input appearance-none bg-no-repeat bg-right bg-[length:16px];
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+  }
+
+  /* Mobile Scrollbar */
+  .mobile-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--dental-primary) / 0.3) transparent;
+  }
+
+  .mobile-scroll::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .mobile-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .mobile-scroll::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--dental-primary) / 0.3);
+    border-radius: 2px;
+  }
+
+  /* Performance Optimizations */
+  .gpu-accelerated {
+    transform: translateZ(0);
+    will-change: transform;
+  }
+
+  .smooth-scroll {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Dark Mode Mobile Adjustments */
+  @media (prefers-color-scheme: dark) {
+    .mobile-card {
+      @apply bg-card/50;
+    }
+    
+    .mobile-input {
+      @apply bg-card/50;
+    }
+  }
+
+  /* High Contrast Mode Support */
+  @media (prefers-contrast: high) {
+    .glass-card,
+    .glass-card-strong,
+    .mobile-card {
+      @apply bg-card border-2 border-border;
+      backdrop-filter: none;
+    }
   }
 }
