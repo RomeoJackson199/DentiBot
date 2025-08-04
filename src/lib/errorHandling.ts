@@ -3,16 +3,16 @@ import { toast } from '@/hooks/use-toast';
 export interface ErrorInfo {
   message: string;
   code?: string;
-  details?: any;
+  details?: unknown;
   userFriendly?: string;
 }
 
 export class DashboardError extends Error {
   public code: string;
-  public details: any;
+  public details: unknown;
   public userFriendly: string;
 
-  constructor(message: string, code?: string, details?: any, userFriendly?: string) {
+  constructor(message: string, code?: string, details?: unknown, userFriendly?: string) {
     super(message);
     this.name = 'DashboardError';
     this.code = code || 'UNKNOWN_ERROR';
@@ -21,7 +21,7 @@ export class DashboardError extends Error {
   }
 }
 
-export const handleDatabaseError = (error: any, context: string): ErrorInfo => {
+export const handleDatabaseError = (error: unknown, context: string): ErrorInfo => {
   console.error(`Database error in ${context}:`, error);
 
   // Handle specific Supabase errors
@@ -124,7 +124,25 @@ export const showSuccessToast = (message: string, title?: string) => {
   });
 };
 
-export const validateProfileData = (data: any): { isValid: boolean; errors: string[] } => {
+// Add interface for profile data
+interface ProfileData {
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+  phone?: string;
+  date_of_birth?: string;
+  [key: string]: unknown;
+}
+
+// Add interface for appointment data
+interface AppointmentData {
+  reason?: string;
+  appointment_date?: string;
+  dentist_id?: string;
+  [key: string]: unknown;
+}
+
+export const validateProfileData = (data: ProfileData): { isValid: boolean; errors: string[] } => {
   const errors: string[] = [];
 
   if (!data.first_name?.trim()) {
@@ -139,7 +157,7 @@ export const validateProfileData = (data: any): { isValid: boolean; errors: stri
     errors.push('Invalid email format');
   }
 
-  if (data.phone && !/^[\+]?[1-9][\d]{0,15}$/.test(data.phone.replace(/\s/g, ''))) {
+  if (data.phone && !/^[+]?[1-9][\d]{0,15}$/.test(data.phone.replace(/\s/g, ''))) {
     errors.push('Invalid phone number format');
   }
 
@@ -160,7 +178,7 @@ export const validateProfileData = (data: any): { isValid: boolean; errors: stri
   };
 };
 
-export const validateAppointmentData = (data: any): { isValid: boolean; errors: string[] } => {
+export const validateAppointmentData = (data: AppointmentData): { isValid: boolean; errors: string[] } => {
   const errors: string[] = [];
 
   if (!data.reason?.trim()) {
@@ -192,7 +210,7 @@ export const retryOperation = async <T>(
   maxRetries: number = 3,
   delay: number = 1000
 ): Promise<T> => {
-  let lastError: any;
+  let lastError: unknown;
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
@@ -212,7 +230,7 @@ export const retryOperation = async <T>(
   throw lastError;
 };
 
-export const debounce = <T extends (...args: any[]) => any>(
+export const debounce = <T extends (...args: unknown[]) => unknown>(
   func: T,
   wait: number
 ): ((...args: Parameters<T>) => void) => {
@@ -224,7 +242,7 @@ export const debounce = <T extends (...args: any[]) => any>(
   };
 };
 
-export const formatErrorForUser = (error: any): string => {
+export const formatErrorForUser = (error: unknown): string => {
   if (typeof error === 'string') {
     return error;
   }
@@ -240,26 +258,29 @@ export const formatErrorForUser = (error: any): string => {
   return 'An unexpected error occurred. Please try again.';
 };
 
-export const isNetworkError = (error: any): boolean => {
-  return error?.message?.includes('fetch') || 
-         error?.message?.includes('network') ||
-         error?.code === 'NETWORK_ERROR';
+export const isNetworkError = (error: unknown): boolean => {
+  const errorObj = error as { message?: string; code?: string };
+  return errorObj?.message?.includes('fetch') || 
+         errorObj?.message?.includes('network') ||
+         errorObj?.code === 'NETWORK_ERROR';
 };
 
-export const isAuthError = (error: any): boolean => {
-  return error?.message?.includes('JWT') || 
-         error?.message?.includes('auth') ||
-         error?.code === 'AUTH_ERROR';
+export const isAuthError = (error: unknown): boolean => {
+  const errorObj = error as { message?: string; code?: string };
+  return errorObj?.message?.includes('JWT') || 
+         errorObj?.message?.includes('auth') ||
+         errorObj?.code === 'AUTH_ERROR';
 };
 
-export const shouldRetry = (error: any): boolean => {
+export const shouldRetry = (error: unknown): boolean => {
+  const errorObj = error as { code?: string };
   // Don't retry auth errors or validation errors
-  if (isAuthError(error) || error?.code?.includes('VALIDATION')) {
+  if (isAuthError(error) || errorObj?.code?.includes('VALIDATION')) {
     return false;
   }
 
   // Retry network errors and temporary database errors
   return isNetworkError(error) || 
-         error?.code?.includes('TEMPORARY') ||
-         error?.code?.includes('TIMEOUT');
+         errorObj?.code?.includes('TEMPORARY') ||
+         errorObj?.code?.includes('TIMEOUT');
 };

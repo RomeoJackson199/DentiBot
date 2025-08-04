@@ -1,9 +1,7 @@
 import { cn } from "@/lib/utils";
 
-interface SkeletonProps extends React.HTMLAttributes<HTMLDivElement> {
-  // Extends HTMLDivElement attributes with no additional properties
-  // This interface is used for type safety and future extensibility
-}
+// Type alias for HTMLDivElement attributes with future extensibility
+type SkeletonProps = React.HTMLAttributes<HTMLDivElement>;
 
 export function Skeleton({ className, ...props }: SkeletonProps) {
   return (

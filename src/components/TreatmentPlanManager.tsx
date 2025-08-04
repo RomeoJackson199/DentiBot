@@ -143,10 +143,11 @@ export function TreatmentPlanManager({ patientId, dentistId }: TreatmentPlanMana
         case 'status':
           comparison = a.status.localeCompare(b.status);
           break;
-        case 'priority':
+        case 'priority': {
           const priorityOrder = { 'low': 0, 'normal': 1, 'high': 2, 'urgent': 3 };
           comparison = priorityOrder[a.priority] - priorityOrder[b.priority];
           break;
+        }
       }
 
       return sortOrder === 'asc' ? comparison : -comparison;

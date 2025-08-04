@@ -1,6 +1,33 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 
+// Add type definitions at the top of the file
+interface MedicalRecord {
+  visit_date: string;
+  record_type: string;
+  title: string;
+  description?: string;
+  findings?: string;
+  recommendations?: string;
+}
+
+interface ClinicalNote {
+  created_at: string;
+  content: string;
+}
+
+interface TreatmentPlan {
+  title: string;
+  status: string;
+  priority: string;
+}
+
+interface PatientContext {
+  medical_history?: MedicalRecord[];
+  notes?: ClinicalNote[];
+  treatment_plans?: TreatmentPlan[];
+}
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -30,7 +57,7 @@ serve(async (req) => {
       const lowerMessage = message.toLowerCase();
       let fallbackResponse = "I'm here to help you with your dental care. How can I assist you today?";
       let suggestions = [];
-      let recommendedDentist = [];
+      const recommendedDentist = [];
       
       if (lowerMessage.includes('douleur') || lowerMessage.includes('pain') || lowerMessage.includes('mal aux dents')) {
         fallbackResponse = "I understand you're experiencing dental pain. Let me help you find the right dentist for your needs. Can you tell me more about the pain - is it sharp, throbbing, or constant?";
@@ -316,7 +343,7 @@ Medical History: ${patient_context.patient.medical_history || 'No medical histor
 CLINICAL HISTORY:
 ${patient_context?.medical_history?.length > 0 ? `
 Previous Medical Records:
-${patient_context.medical_history.map((record: any) => `
+${patient_context.medical_history.map((record: MedicalRecord) => `
 - Date: ${record.visit_date}
 - Type: ${record.record_type}
 - Title: ${record.title}
@@ -327,14 +354,14 @@ ${patient_context.medical_history.map((record: any) => `
 
 ${patient_context?.notes?.length > 0 ? `
 Clinical Notes:
-${patient_context.notes.map((note: any) => `
+${patient_context.notes.map((note: ClinicalNote) => `
 - Date: ${note.created_at}
 - Note: ${note.content}
 `).join('\n')}` : 'No clinical notes found'}
 
 ${patient_context?.treatment_plans?.length > 0 ? `
 Treatment Plans:
-${patient_context.treatment_plans.map((plan: any) => `
+${patient_context.treatment_plans.map((plan: TreatmentPlan) => `
 - Title: ${plan.title}
 - Status: ${plan.status}
 - Priority: ${plan.priority}

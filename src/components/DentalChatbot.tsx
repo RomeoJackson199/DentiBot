@@ -110,7 +110,7 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
     };
 
     initializeChat();
-  }, [sessionId, user]); // Add user dependency
+  }, [sessionId, user, loadUserProfile, messages.length, t, userProfile]); // Add all missing dependencies
   
   // Effect to update welcome message when language changes
   useEffect(() => {
@@ -123,7 +123,7 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
       
       setMessages(prev => [updatedWelcomeMessage, ...prev.slice(1)]);
     }
-  }, [t]); // Only update when translation object changes
+  }, [t, messages, userProfile]); // Add missing dependencies
 
   const loadUserProfile = async () => {
     if (!user) return;
