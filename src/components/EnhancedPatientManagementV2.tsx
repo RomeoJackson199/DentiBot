@@ -54,6 +54,7 @@ import { AppointmentsTab } from "@/components/enhanced/AppointmentsTab";
 import { DentistProfileTab } from "@/components/enhanced/DentistProfileTab";
 import { EnhancedPrescriptionManager } from "@/components/EnhancedPrescriptionManager";
 import { EnhancedTreatmentPlanManager } from "@/components/EnhancedTreatmentPlanManager";
+import { SliderTest } from "@/components/SliderTest";
 import { 
   Patient, 
   Prescription, 
@@ -545,13 +546,14 @@ export function EnhancedPatientManagementV2({ dentistId }: EnhancedPatientManage
 
         {/* Patient Tabs */}
         <Tabs defaultValue="overview" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="prescriptions">Prescriptions</TabsTrigger>
             <TabsTrigger value="treatments">Treatments</TabsTrigger>
             <TabsTrigger value="records">Records</TabsTrigger>
             <TabsTrigger value="notes">Notes</TabsTrigger>
             <TabsTrigger value="appointments">Appointments</TabsTrigger>
+            <TabsTrigger value="slider-test">Slider Test</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview">
@@ -601,6 +603,10 @@ export function EnhancedPatientManagementV2({ dentistId }: EnhancedPatientManage
               dentistId={dentistId}
               onRefresh={() => fetchPatientData(selectedPatient.id)}
             />
+          </TabsContent>
+
+          <TabsContent value="slider-test">
+            <SliderTest />
           </TabsContent>
         </Tabs>
 
