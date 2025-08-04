@@ -419,7 +419,12 @@ export function TreatmentPlanManager({ patientId, dentistId }: TreatmentPlanMana
           <h2 className="text-xl font-semibold">Treatment Plans</h2>
           <p className="text-gray-600">Manage patient treatment plans</p>
         </div>
-        <Button onClick={() => setIsDialogOpen(true)}>
+        <Button onClick={() => {
+          setSelectedTreatmentPlan(null);
+          setIsEditMode(false);
+          resetForm();
+          setIsDialogOpen(true);
+        }}>
           <Plus className="h-4 w-4 mr-2" />
           New Treatment Plan
         </Button>
