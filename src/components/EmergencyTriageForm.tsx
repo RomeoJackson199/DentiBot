@@ -671,5 +671,5 @@ export const EmergencyTriageForm = ({ onComplete, onCancel }: EmergencyTriageFor
     );
   }
 
-  return <StreamlinedTriage onComplete={(urgency, data) => handleTriageComplete(urgency, data as TriageData)} onCancel={onCancel} />;
+  return <StreamlinedTriage onComplete={(urgency, data) => handleTriageComplete(urgency, data as unknown as TriageData)} onCancel={onCancel} />;
 };

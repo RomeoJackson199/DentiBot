@@ -25,8 +25,8 @@ export const handleDatabaseError = (error: unknown, context: string): ErrorInfo 
   console.error(`Database error in ${context}:`, error);
 
   // Handle specific Supabase errors
-  if (error?.code) {
-    switch (error.code) {
+  if (error && typeof error === 'object' && 'code' in error) {
+    switch ((error as any).code) {
       case 'PGRST116':
         return {
           message: 'No rows returned',
@@ -64,8 +64,8 @@ export const handleDatabaseError = (error: unknown, context: string): ErrorInfo 
         };
       default:
         return {
-          message: error.message || 'Unknown database error',
-          code: error.code || 'UNKNOWN_DB_ERROR',
+          message: (error as any).message || 'Unknown database error',
+          code: (error as any).code || 'UNKNOWN_DB_ERROR',
           details: error,
           userFriendly: 'A database error occurred. Please try again.'
         };
@@ -73,7 +73,7 @@ export const handleDatabaseError = (error: unknown, context: string): ErrorInfo 
   }
 
   // Handle network errors
-  if (error?.message?.includes('fetch')) {
+  if ((error as any)?.message?.includes('fetch')) {
     return {
       message: 'Network error',
       code: 'NETWORK_ERROR',
@@ -83,7 +83,7 @@ export const handleDatabaseError = (error: unknown, context: string): ErrorInfo 
   }
 
   // Handle authentication errors
-  if (error?.message?.includes('JWT') || error?.message?.includes('auth')) {
+  if ((error as any)?.message?.includes('JWT') || (error as any)?.message?.includes('auth')) {
     return {
       message: 'Authentication error',
       code: 'AUTH_ERROR',
@@ -94,7 +94,7 @@ export const handleDatabaseError = (error: unknown, context: string): ErrorInfo 
 
   // Default error handling
   return {
-    message: error?.message || 'Unknown error occurred',
+    message: (error as any)?.message || 'Unknown error occurred',
     code: 'UNKNOWN_ERROR',
     details: error,
     userFriendly: 'An unexpected error occurred. Please try again.'
@@ -247,12 +247,12 @@ export const formatErrorForUser = (error: unknown): string => {
     return error;
   }
 
-  if (error?.userFriendly) {
-    return error.userFriendly;
+  if ((error as any)?.userFriendly) {
+    return (error as any).userFriendly;
   }
 
-  if (error?.message) {
-    return error.message;
+  if ((error as any)?.message) {
+    return (error as any).message;
   }
 
   return 'An unexpected error occurred. Please try again.';

@@ -99,7 +99,7 @@ export function TreatmentPlanManager({ patientId, dentistId }: TreatmentPlanMana
         throw error;
       }
 
-      setTreatmentPlans(data || []);
+      setTreatmentPlans((data || []).map(plan => ({ ...plan, estimated_duration: plan.estimated_duration_weeks?.toString() || '' })));
     } catch (error) {
       console.error('Error in fetchTreatmentPlans:', error);
       toast({
@@ -297,7 +297,7 @@ export function TreatmentPlanManager({ patientId, dentistId }: TreatmentPlanMana
       procedures: treatmentPlan.procedures,
       estimated_cost: treatmentPlan.estimated_cost,
       estimated_duration: treatmentPlan.estimated_duration || '',
-      priority: treatmentPlan.priority,
+      priority: treatmentPlan.priority as "low" | "high" | "urgent" | "normal",
       target_completion_date: treatmentPlan.target_completion_date || '',
       notes: treatmentPlan.notes || ''
     });
