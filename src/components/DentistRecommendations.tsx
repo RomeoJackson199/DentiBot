@@ -71,7 +71,7 @@ export const DentistRecommendations = ({
         .select(`
           id,
           profile_id,
-          specialty,
+          specialization,
           average_rating,
           total_ratings,
           expertise_score,
@@ -90,9 +90,13 @@ export const DentistRecommendations = ({
 
       // Calculate recommendation scores with enhanced triage data
       const scoredDentists = (dentists || []).map(dentist => {
-        const recommendation = calculateRecommendationScore(dentist, urgencyLevel, symptoms, triageData);
+        const recommendation = calculateRecommendationScore({
+          ...dentist,
+          specialty: dentist.specialization || "General Dentistry"
+        }, urgencyLevel, symptoms, triageData);
         return {
           ...dentist,
+          specialty: dentist.specialization || "General Dentistry",
           recommendation_score: recommendation.score,
           recommendation_reason: recommendation.reason
         };
@@ -110,7 +114,7 @@ export const DentistRecommendations = ({
   };
 
   const calculateRecommendationScore = (
-    dentist: Dentist, 
+    dentist: DentistRecommendation,
     urgency: number, 
     symptoms: string[],
     triageData?: {

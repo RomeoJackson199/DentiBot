@@ -99,7 +99,12 @@ export function TreatmentPlanManager({ patientId, dentistId }: TreatmentPlanMana
         throw error;
       }
 
-      setTreatmentPlans(data || []);
+      const transformedPlans = (data || []).map(plan => ({
+        ...plan,
+        estimated_duration: plan.estimated_duration_weeks ? `${plan.estimated_duration_weeks} weeks` : "2 weeks",
+        priority: (plan.priority as 'low' | 'normal' | 'high' | 'urgent') || 'normal'
+      }));
+      setTreatmentPlans(transformedPlans);
     } catch (error) {
       console.error('Error in fetchTreatmentPlans:', error);
       toast({
