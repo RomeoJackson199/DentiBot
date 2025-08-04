@@ -34,11 +34,6 @@ export interface UserProfile {
   email: string;
   phone?: string;
   avatar_url?: string;
-  date_of_birth?: string;
-  address?: string;
-  emergency_contact?: string;
-  medical_history?: string;
-  preferred_language?: string;
   preferences?: UserPreferences;
   created_at: string;
   updated_at: string;
