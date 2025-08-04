@@ -8,6 +8,8 @@ import { HealthData } from "@/components/HealthData";
 import { EmergencyTriageForm } from "@/components/EmergencyTriageForm";
 import { PatientAnalytics } from "@/components/analytics/PatientAnalytics";
 import { DatabaseTest } from "@/components/DatabaseTest";
+import { NotificationButton } from "@/components/NotificationButton";
+import { NotificationTest } from "@/components/NotificationTest";
 import { useLanguage } from "@/hooks/useLanguage";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -336,10 +338,7 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
           <p className="text-gray-600">Welcome to your dental health dashboard</p>
         </div>
         <div className="flex items-center space-x-2">
-          <Button variant="outline" size="sm">
-            <Bell className="h-4 w-4 mr-2" />
-            Notifications
-          </Button>
+          <NotificationButton user={user} />
           <Button size="sm">
             <Plus className="h-4 w-4 mr-2" />
             Book Appointment
@@ -598,7 +597,10 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
         </TabsContent>
 
         <TabsContent value="test" className="space-y-4">
-          <DatabaseTest />
+          <div className="space-y-6">
+            <NotificationTest user={user} />
+            <DatabaseTest />
+          </div>
         </TabsContent>
       </Tabs>
     </div>
