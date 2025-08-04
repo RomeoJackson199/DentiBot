@@ -349,7 +349,12 @@ export function PrescriptionManager({ patientId, dentistId }: PrescriptionManage
           <h2 className="text-xl font-semibold">Prescriptions</h2>
           <p className="text-gray-600">Manage patient prescriptions</p>
         </div>
-        <Button onClick={() => setIsDialogOpen(true)}>
+        <Button onClick={() => {
+          setSelectedPrescription(null);
+          setIsEditMode(false);
+          resetForm();
+          setIsDialogOpen(true);
+        }}>
           <Plus className="h-4 w-4 mr-2" />
           New Prescription
         </Button>

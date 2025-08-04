@@ -930,7 +930,14 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
               </Button>
               <Button 
                 size="sm" 
-                onClick={() => setShowAddAppointmentDialog(true)}
+                onClick={() => {
+                  setAddAppointmentForm({
+                    appointment_date: "",
+                    reason: "",
+                    notes: ""
+                  });
+                  setShowAddAppointmentDialog(true);
+                }}
                 className="bg-blue-600 hover:bg-blue-700 text-white"
               >
                 <Plus className="h-4 w-4 mr-2" />
@@ -1134,7 +1141,16 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
           <TabsContent value="prescriptions" className="space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold">Prescriptions</h3>
-              <Button onClick={() => setShowAddPrescriptionDialog(true)}>
+              <Button onClick={() => {
+                setAddPrescriptionForm({
+                  medication_name: "",
+                  dosage: "",
+                  frequency: "",
+                  duration: "",
+                  instructions: ""
+                });
+                setShowAddPrescriptionDialog(true);
+              }}>
                 <Plus className="h-4 w-4 mr-2" />
                 Add Prescription
               </Button>
@@ -1178,7 +1194,17 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
           <TabsContent value="treatment" className="space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold">Treatment Plans</h3>
-              <Button onClick={() => setShowAddTreatmentPlanDialog(true)}>
+              <Button onClick={() => {
+                setAddTreatmentPlanForm({
+                  title: "",
+                  description: "",
+                  diagnosis: "",
+                  priority: "normal",
+                  estimated_cost: "",
+                  estimated_duration: ""
+                });
+                setShowAddTreatmentPlanDialog(true);
+              }}>
                 <Plus className="h-4 w-4 mr-2" />
                 Add Treatment Plan
               </Button>
@@ -1234,7 +1260,15 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
           <TabsContent value="records" className="space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold">Medical Records</h3>
-              <Button onClick={() => setShowAddMedicalRecordDialog(true)}>
+              <Button onClick={() => {
+                setAddMedicalRecordForm({
+                  record_type: "examination",
+                  title: "",
+                  description: "",
+                  record_date: new Date().toISOString().split('T')[0]
+                });
+                setShowAddMedicalRecordDialog(true);
+              }}>
                 <Plus className="h-4 w-4 mr-2" />
                 Add Record
               </Button>
@@ -1277,7 +1311,15 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
           <TabsContent value="notes" className="space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold">Patient Notes</h3>
-              <Button onClick={() => setShowAddNoteDialog(true)}>
+              <Button onClick={() => {
+                setAddNoteForm({
+                  note_type: "general",
+                  title: "",
+                  content: "",
+                  is_private: false
+                });
+                setShowAddNoteDialog(true);
+              }}>
                 <Plus className="h-4 w-4 mr-2" />
                 Add Note
               </Button>
@@ -1347,7 +1389,18 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
             </Button>
             <Button 
               size="sm" 
-              onClick={() => setShowAddPatientDialog(true)}
+              onClick={() => {
+                setAddPatientForm({
+                  first_name: "",
+                  last_name: "",
+                  email: "",
+                  phone: "",
+                  date_of_birth: "",
+                  medical_history: "",
+                  address: ""
+                });
+                setShowAddPatientDialog(true);
+              }}
               className="bg-blue-600 hover:bg-blue-700 text-white"
             >
               <Plus className="h-4 w-4 mr-2" />
@@ -1475,7 +1528,18 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
               {searchTerm ? 'Try adjusting your search terms or filters.' : 'Start by adding your first patient.'}
             </p>
             {!searchTerm && (
-              <Button onClick={() => setShowAddPatientDialog(true)} className="bg-blue-600 hover:bg-blue-700">
+              <Button onClick={() => {
+                setAddPatientForm({
+                  first_name: "",
+                  last_name: "",
+                  email: "",
+                  phone: "",
+                  date_of_birth: "",
+                  medical_history: "",
+                  address: ""
+                });
+                setShowAddPatientDialog(true);
+              }} className="bg-blue-600 hover:bg-blue-700">
                 <Plus className="h-4 w-4 mr-2" />
                 Add Your First Patient
               </Button>
