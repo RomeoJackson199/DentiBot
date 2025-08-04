@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { InteractiveDentalChat } from "@/components/chat/InteractiveDentalChat";
-import { Settings } from "@/components/Settings";
+import { LanguageSettings } from "@/components/LanguageSettings";
 import RealAppointmentsList from "@/components/RealAppointmentsList";
 import { HealthData } from "@/components/HealthData";
 import { EmergencyTriageForm } from "@/components/EmergencyTriageForm";
@@ -206,7 +206,7 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
       const transformedAppointments = (appointmentsData || []).map(apt => ({
         ...apt,
         duration: apt.duration_minutes,
-        urgency_level: apt.urgency === 'emergency' ? 'urgent' : apt.urgency as 'low' | 'normal' | 'high',
+        urgency_level: (apt.urgency === 'emergency' ? 'urgent' : apt.urgency) as 'low' | 'normal' | 'high' | 'urgent',
         status: apt.status as 'confirmed' | 'completed' | 'cancelled' | 'scheduled' | 'in_progress' | 'no_show'
       }));
 
@@ -241,7 +241,8 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
        const transformedPlans = (treatmentPlansData || []).map(plan => ({
          ...plan,
          title: plan.title || "Treatment Plan",
-         estimated_duration: plan.estimated_duration_weeks ? `${plan.estimated_duration_weeks} weeks` : "2 weeks"
+         estimated_duration: plan.estimated_duration_weeks ? `${plan.estimated_duration_weeks} weeks` : "2 weeks",
+         priority: (plan.priority as 'low' | 'normal' | 'high' | 'urgent') || 'normal'
        }));
        setTreatmentPlans(transformedPlans);
 
@@ -378,7 +379,7 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
                   <DialogHeader>
                     <DialogTitle className="text-2xl font-bold">Settings</DialogTitle>
                   </DialogHeader>
-                  <Settings user={user} />
+                  <LanguageSettings user={user} />
                 </DialogContent>
               </Dialog>
             </div>

@@ -184,24 +184,37 @@ export interface User {
 
 export interface Dentist {
   id: string;
+  profile_id?: string;
   specialization: string;
-  profile: {
+  profiles?: {
+    first_name: string;
+    last_name: string;
+  };
+  profile?: {
     first_name: string;
     last_name: string;
   };
 }
 
-// Add triage types
 export interface TriageData {
   [key: string]: any;
+  painLevel?: number;
+  symptoms?: string[];
+  duration?: string;
+  medicalHistory?: string[];
+  problemType?: string;
+  previousTreatment?: string;
+  allergies?: string[];
+  urgencyIndicators?: string[];
+  painDescription?: string;
+  triggeredBy?: string[];
 }
 
-export interface TriageAnswers {
+export interface TriageAnswers extends TriageData {
   pain_level?: number;
   has_bleeding?: boolean;
   has_swelling?: boolean;
   duration_symptoms?: string;
-  [key: string]: any;
 }
 
 export interface DentistRecommendation {

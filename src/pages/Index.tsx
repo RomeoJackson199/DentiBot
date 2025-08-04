@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { User, Session } from "@supabase/supabase-js";
 import { UnifiedDashboard } from "@/components/UnifiedDashboard";
-import { ProgressiveAuthForm } from "@/components/ProgressiveAuthForm";
+import { AuthForm } from "@/components/AuthForm";
 import { OnboardingPopup } from "@/components/OnboardingPopup";
 import { LanguageSelection } from "@/components/LanguageSelection";
 import { Header } from "@/components/homepage/Header";
@@ -17,7 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Stethoscope } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
 import { createDossierAfterSignup } from "@/lib/medicalRecords";
-import { SimpleDatabaseSaveTest } from "@/components/SimpleDatabaseSaveTest";
+import { DatabaseTest } from "@/components/DatabaseTest";
 import { Card } from "@/components/ui/card";
 const Index = () => {
   const {
@@ -196,7 +196,7 @@ const Index = () => {
   if (user) {
     // For testing purposes, show the database test component
     if (window.location.search.includes('test=database')) {
-      return <SimpleDatabaseSaveTest />;
+      return <DatabaseTest />;
     }
     return <UnifiedDashboard user={user} />;
   }
@@ -247,7 +247,7 @@ const Index = () => {
               Join thousands of dental professionals who have revolutionized patient care with AI.
             </p>
             <div className="space-y-4">
-              <ProgressiveAuthForm />
+              <AuthForm />
               
             </div>
           </div>

@@ -7,7 +7,7 @@ import { ThemeProvider } from "next-themes";
 import { LanguageProvider } from "./hooks/useLanguage";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { PWAInstallPrompt } from "./components/PWAInstallPrompt";
-import ProfileCompletionDialog from "./components/ProfileCompletionDialog";
+import { OnboardingPopup } from "./components/OnboardingPopup";
 import { ChangelogPopup } from "./components/ChangelogPopup";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -84,7 +84,7 @@ const App = () => (
               <Toaster />
               <Sonner />
               <PWAInstallPrompt />
-              <ProfileCompletionDialog />
+              <OnboardingPopup />
               <BrowserRouter>
               <Routes>
                 <Route path="/" element={<Index />} />
