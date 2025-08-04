@@ -18,6 +18,7 @@ import { Stethoscope } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
 import { createDossierAfterSignup } from "@/lib/medicalRecords";
 import { SimpleDatabaseSaveTest } from "@/components/SimpleDatabaseSaveTest";
+import { Card } from "@/components/ui/card";
 const Index = () => {
   const {
     t,
@@ -135,34 +136,60 @@ const Index = () => {
     });
   };
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center mesh-bg">
+    return (
+      <div className="min-h-screen flex items-center justify-center mesh-bg">
         <div className="text-center space-y-8 animate-fade-in">
           <div className="relative">
-            <div className="pulse-ring w-32 h-32 -top-8 -left-8"></div>
-            <div className="relative p-6 rounded-3xl shadow-glow animate-float bg-white">
-              <Stethoscope className="w-12 h-12 text-dental-primary mx-auto" />
-            </div>
+            {/* Enhanced pulse rings */}
+            <div className="pulse-ring w-40 h-40 -top-10 -left-10"></div>
+            <div className="pulse-ring-secondary w-32 h-32 -top-6 -left-6"></div>
+            
+            {/* Enhanced main card */}
+            <Card 
+              variant="glass-strong" 
+              className="relative p-8 rounded-3xl shadow-glow animate-float border-dental-primary/20"
+            >
+              <div className="w-16 h-16 bg-gradient-primary rounded-2xl flex items-center justify-center mx-auto shadow-elegant">
+                <Stethoscope className="w-8 h-8 text-white" />
+              </div>
+            </Card>
           </div>
-          <div className="space-y-4">
-            <h1 className="text-3xl font-bold gradient-text">Denti Bot Unified</h1>
-            <p className="text-xl font-semibold text-dental-primary">{t.initializingExperience}</p>
-            <p className="text-dental-muted-foreground max-w-md mx-auto">
+          
+          <div className="space-y-6">
+            <h1 className="text-4xl font-bold gradient-text animate-slide-up">
+              Denti Bot Unified
+            </h1>
+            
+            <p className="text-2xl font-semibold text-dental-primary animate-slide-up" style={{ animationDelay: "0.2s" }}>
+              {t.initializingExperience}
+            </p>
+            
+            <p className="text-dental-muted-foreground max-w-md mx-auto leading-relaxed animate-fade-in" style={{ animationDelay: "0.4s" }}>
               {t.preparingAssistant}
             </p>
-            <div className="flex justify-center">
-              <div className="flex space-x-2">
-                <div className="w-2 h-2 bg-dental-primary rounded-full animate-bounce"></div>
-                <div className="w-2 h-2 bg-dental-primary rounded-full animate-bounce" style={{
-                animationDelay: "0.1s"
-              }}></div>
-                <div className="w-2 h-2 bg-dental-primary rounded-full animate-bounce" style={{
-                animationDelay: "0.2s"
-              }}></div>
+            
+            {/* Enhanced loading dots */}
+            <div className="flex justify-center animate-fade-in" style={{ animationDelay: "0.6s" }}>
+              <div className="flex space-x-3">
+                <div className="w-3 h-3 bg-gradient-primary rounded-full animate-bounce shadow-soft"></div>
+                <div className="w-3 h-3 bg-gradient-primary rounded-full animate-bounce shadow-soft" style={{ animationDelay: "0.1s" }}></div>
+                <div className="w-3 h-3 bg-gradient-primary rounded-full animate-bounce shadow-soft" style={{ animationDelay: "0.2s" }}></div>
               </div>
+            </div>
+            
+            {/* Progress indicator */}
+            <div className="w-64 mx-auto">
+              <div className="w-full bg-dental-muted/20 rounded-full h-2 animate-fade-in" style={{ animationDelay: "0.8s" }}>
+                <div className="bg-gradient-primary h-2 rounded-full animate-pulse" style={{ width: "75%" }}></div>
+              </div>
+              <p className="text-xs text-dental-muted-foreground mt-2 animate-fade-in" style={{ animationDelay: "1.0s" }}>
+                Setting up your personalized experience...
+              </p>
             </div>
           </div>
         </div>
-      </div>;
+      </div>
+    );
   }
 
   // If user is authenticated, show the dashboard
