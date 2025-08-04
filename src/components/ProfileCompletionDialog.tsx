@@ -33,7 +33,7 @@ const ProfileCompletionDialog = () => {
       .from("profiles")
       .select(
         `id, role, first_name, last_name, phone, date_of_birth, address, emergency_contact,
-         dentists!dentists_profile_id_fkey(specialization)`
+         dentists!dentists_profile_id_fkey(clinic_address, languages, specialty)`
       )
       .eq("user_id", userId)
       .single();
@@ -127,7 +127,7 @@ const ProfileCompletionDialog = () => {
     if (field.type === "languages") {
       update = supabase
         .from("dentists")
-        .update({ specialization: selectedLanguages.join(', ') })
+        .update({ languages: selectedLanguages })
         .eq("profile_id", profileId);
     } else if (field.table === "profiles") {
       update = supabase

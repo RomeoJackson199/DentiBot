@@ -76,7 +76,7 @@ export const UnifiedDashboard = ({ user }: UnifiedDashboardProps) => {
       setUserRole('patient');
       toast({
         title: "Error",
-        description: `Error loading dashboard: ${(error as any)?.message || 'Unknown error'}`,
+        description: `Error loading dashboard: ${error.message}`,
         variant: "destructive",
       });
     } finally {

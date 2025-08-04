@@ -13,7 +13,6 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { User, Session } from "@supabase/supabase-js";
 import Index from "./pages/Index";
-import Auth from "./pages/Auth";
 import DentistProfiles from "./pages/DentistProfiles";
 import Terms from "./pages/Terms";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
@@ -26,7 +25,7 @@ import Analytics from "./pages/Analytics";
 import Support from "./pages/Support";
 import FeatureDetail from "./pages/FeatureDetail";
 import { UnifiedDashboard } from "./components/UnifiedDashboard";
-
+import { LanguageTest } from "./components/LanguageTest";
 
 // Dashboard component that handles authentication
 const Dashboard = () => {
@@ -88,8 +87,7 @@ const App = () => (
               <ProfileCompletionDialog />
               <BrowserRouter>
               <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/auth" element={<Auth />} />
+                <Route path="/" element={<Index />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/emergency-triage" element={<EmergencyTriage />} />
                 <Route path="/dentists" element={<DentistProfiles />} />
@@ -101,7 +99,7 @@ const App = () => (
                 <Route path="/analytics" element={<Analytics />} />
                 <Route path="/support" element={<Support />} />
                 <Route path="/features/:id" element={<FeatureDetail />} />
-                
+                <Route path="/language-test" element={<LanguageTest />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

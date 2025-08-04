@@ -209,7 +209,7 @@ export const ProgressiveAuthForm = ({ compact = false }: ProgressiveAuthFormProp
     } catch (error: unknown) {
       toast({
         title: t.signUpError,
-        description: (error as Error)?.message || "Authentication error",
+        description: error.message,
         variant: "destructive",
       });
     } finally {
@@ -238,7 +238,7 @@ export const ProgressiveAuthForm = ({ compact = false }: ProgressiveAuthFormProp
     } catch (error: unknown) {
       toast({
         title: t.signInError,
-        description: (error as Error)?.message || "Sign in error",
+        description: error.message,
         variant: "destructive",
       });
     } finally {
@@ -269,7 +269,7 @@ export const ProgressiveAuthForm = ({ compact = false }: ProgressiveAuthFormProp
       console.error('Google sign-in catch block:', error);
       toast({
         title: t.signInError,
-        description: (error as Error)?.message || "Logout error",
+        description: error.message,
         variant: "destructive",
       });
       setIsLoading(false);

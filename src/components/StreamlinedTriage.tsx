@@ -191,6 +191,7 @@ export const StreamlinedTriage = ({ onComplete, onCancel }: StreamlinedTriagePro
   };
 
   const urgencyDisplay = getUrgencyDisplay();
+  const IconComponent = urgencyDisplay.icon;
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
@@ -220,7 +221,7 @@ export const StreamlinedTriage = ({ onComplete, onCancel }: StreamlinedTriagePro
         <Card className="glass-card">
           <CardContent className="p-6">
             <div className="flex items-center justify-center space-x-3">
-              <Activity className="h-6 w-6" />
+              <IconComponent className="h-6 w-6" />
               <Badge className={`text-lg py-2 px-4 border ${urgencyDisplay.color}`}>
                 {urgencyDisplay.title}
               </Badge>

@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { Dentist } from "@/types/common";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -19,7 +18,7 @@ import {
 interface DentistRecommendation {
   id: string;
   profile_id: string;
-  specialization: string;
+  specialty: string;
   average_rating: number;
   total_ratings: number;
   expertise_score: number;
@@ -72,7 +71,7 @@ export const DentistRecommendations = ({
         .select(`
           id,
           profile_id,
-          specialization,
+          specialty,
           average_rating,
           total_ratings,
           expertise_score,
@@ -111,7 +110,7 @@ export const DentistRecommendations = ({
   };
 
   const calculateRecommendationScore = (
-    dentist: DentistRecommendation,
+    dentist: Dentist, 
     urgency: number, 
     symptoms: string[],
     triageData?: {
@@ -142,7 +141,7 @@ export const DentistRecommendations = ({
 
     // Enhanced specialty matching with triage data (30% of total score)
     const specialtyScore = getSpecialtyScore(
-      dentist.specialization,
+      dentist.specialty, 
       symptoms, 
       urgency, 
       triageData
@@ -155,7 +154,7 @@ export const DentistRecommendations = ({
     // Allergy compatibility (critical factor)
     if (triageData?.allergies?.length) {
       const allergyCompatibilityScore = getAllergyCompatibilityScore(
-        dentist.specialization,
+        dentist.specialty,
         triageData.allergies
       );
       score += allergyCompatibilityScore.score;
@@ -167,7 +166,7 @@ export const DentistRecommendations = ({
     // Problem type specialty bonus
     if (triageData?.problemType) {
       const problemScore = getProblemTypeScore(
-        dentist.specialization,
+        dentist.specialty,
         triageData.problemType,
         urgency
       );
@@ -180,7 +179,7 @@ export const DentistRecommendations = ({
     // Emergency indicators penalty for non-specialists
     if (triageData?.urgencyIndicators?.length && urgency >= 4) {
       const emergencyScore = getEmergencySpecialistScore(
-        dentist.specialization,
+        dentist.specialty,
         triageData.urgencyIndicators
       );
       score += emergencyScore.score;
@@ -441,7 +440,7 @@ export const DentistRecommendations = ({
                           Dr. {dentist.profiles.first_name} {dentist.profiles.last_name}
                         </h4>
                         <p className="text-sm text-muted-foreground">
-                          {dentist.specialization}
+                          {dentist.specialty}
                         </p>
                       </div>
                       <Badge variant={badge.variant}>

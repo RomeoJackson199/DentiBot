@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -22,7 +21,7 @@ import {
 import { format, addDays, isBefore, startOfDay } from "date-fns";
 
 interface EmergencyBookingFlowProps {
-  user: import("@supabase/supabase-js").User;
+  user: User;
   onComplete: (appointmentData?: any) => void;
   onCancel: () => void;
 }
@@ -443,13 +442,7 @@ export const EmergencyBookingFlow = ({ user, onComplete, onCancel }: EmergencyBo
               medicalHistory: triageData?.medicalHistory
             }}
             onSelectDentist={(dentist) => {
-              const updatedDentist: Dentist = {
-                ...dentist,
-                id: dentist.id,
-                specialization: "General Dentistry",
-                profiles: dentist.profiles || { first_name: "Unknown", last_name: "Doctor" }
-              };
-              setSelectedDentist(updatedDentist);
+              setSelectedDentist(dentist);
               // Auto-suggest first available date when dentist is selected
               const suggestedDates = getSuggestedDates(urgencyLevel);
               if (suggestedDates.length > 0) {

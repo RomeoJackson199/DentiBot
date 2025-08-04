@@ -182,14 +182,15 @@ export const HealthData = ({
         loadAppointments(profile.id)
       ]);
 
+      // Handle results
       if (medicalRecordsResult.status === 'fulfilled') {
-        setMedicalRecords(medicalRecordsResult.value as unknown as MedicalRecord[]);
+        setMedicalRecords(medicalRecordsResult.value);
       }
       if (prescriptionsResult.status === 'fulfilled') {
-        setPrescriptions(prescriptionsResult.value as unknown as Prescription[]);
+        setPrescriptions(prescriptionsResult.value);
       }
       if (treatmentPlansResult.status === 'fulfilled') {
-        setTreatmentPlans(treatmentPlansResult.value as unknown as TreatmentPlan[]);
+        setTreatmentPlans(treatmentPlansResult.value);
       }
       if (appointmentsResult.status === 'fulfilled') {
         setAppointments(appointmentsResult.value);

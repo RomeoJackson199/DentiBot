@@ -18,7 +18,7 @@ import {
   CheckCircle,
 } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
-// import { TermsDialog } from "./TermsDialog"; // Removed - using standalone page now
+import { TermsDialog } from "./TermsDialog";
 
 interface OnboardingPopupProps {
   isOpen: boolean;
@@ -30,7 +30,7 @@ export const OnboardingPopup = ({ isOpen, onClose }: OnboardingPopupProps) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [acceptedHealth, setAcceptedHealth] = useState(false);
-  // const [showTerms, setShowTerms] = useState(false); // Removed - using standalone page
+  const [showTerms, setShowTerms] = useState(false);
 
   const steps = [
     {
@@ -154,7 +154,7 @@ export const OnboardingPopup = ({ isOpen, onClose }: OnboardingPopupProps) => {
                 {t.acceptTerms}
               </label>
               <button
-                onClick={() => window.open('/terms', '_blank')}
+                onClick={() => setShowTerms(true)}
                 className="text-sm text-dental-primary underline"
               >
                 {t.viewTerms}
@@ -242,7 +242,7 @@ export const OnboardingPopup = ({ isOpen, onClose }: OnboardingPopupProps) => {
           </div>
         </div>
       </DialogContent>
-      {/* Terms now opens in new tab */}
+      <TermsDialog open={showTerms} onOpenChange={setShowTerms} />
     </Dialog>
   );
 };
