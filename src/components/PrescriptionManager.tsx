@@ -1,296 +1,586 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Slider } from "@/components/ui/slider";
 import { useToast } from "@/hooks/use-toast";
-import { AIWritingAssistant } from "@/components/AIWritingAssistant";
-import { Pill, Plus, Calendar, Clock, Droplets } from "lucide-react";
+import { 
+  Pill,
+  Plus,
+  Edit,
+  Trash2,
+  Eye,
+  Calendar,
+  AlertTriangle,
+  CheckCircle,
+  XCircle,
+  Clock,
+  RefreshCw,
+  Search,
+  Filter,
+  SortAsc,
+  SortDesc
+} from "lucide-react";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogTrigger,
+  DialogFooter
+} from "@/components/ui/dialog";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { Prescription, NewPrescriptionForm } from "@/types/dental";
 
 interface PrescriptionManagerProps {
-  appointmentId: string;
   patientId: string;
   dentistId: string;
 }
 
-export function PrescriptionManager({ appointmentId, patientId, dentistId }: PrescriptionManagerProps) {
-  const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
+export function PrescriptionManager({ patientId, dentistId }: PrescriptionManagerProps) {
+  const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
+  const [filteredPrescriptions, setFilteredPrescriptions] = useState<Prescription[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState<'medication' | 'date' | 'status'>('date');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'completed' | 'discontinued'>('all');
+  const [selectedPrescription, setSelectedPrescription] = useState<Prescription | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [formData, setFormData] = useState<NewPrescriptionForm>({
     medication_name: '',
     dosage: '',
-    dosage_strength: [500],
     frequency: '',
-    duration_days: [7],
-    instructions: ''
+    duration: '',
+    instructions: '',
+    expiry_date: ''
   });
   const { toast } = useToast();
 
-  // Quick frequency buttons
-  const quickFrequencies = [
-    { label: "Once daily", value: "once daily" },
-    { label: "Twice daily", value: "twice daily" },
-    { label: "Three times", value: "three times daily" },
-    { label: "Four times", value: "four times daily" },
-    { label: "As needed", value: "as needed" },
-    { label: "Every 6h", value: "every 6 hours" },
-    { label: "Every 8h", value: "every 8 hours" },
-    { label: "Every 12h", value: "every 12 hours" }
-  ];
+  useEffect(() => {
+    fetchPrescriptions();
+  }, [patientId, dentistId]);
 
-  // Quick duration buttons
-  const quickDurations = [
-    { label: "3 days", value: 3 },
-    { label: "5 days", value: 5 },
-    { label: "7 days", value: 7 },
-    { label: "10 days", value: 10 },
-    { label: "14 days", value: 14 },
-    { label: "21 days", value: 21 },
-    { label: "30 days", value: 30 }
-  ];
+  useEffect(() => {
+    filterAndSortPrescriptions();
+  }, [searchTerm, prescriptions, sortBy, sortOrder, filterStatus]);
 
-  // Common dosage strengths
-  const dosageStrengths = [
-    { label: "250mg", value: 250 },
-    { label: "500mg", value: 500 },
-    { label: "750mg", value: 750 },
-    { label: "1000mg", value: 1000 }
-  ];
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!formData.medication_name || !formData.dosage || !formData.frequency) {
-      toast({
-        title: "Missing information",
-        description: "Please fill in all required fields",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setLoading(true);
-
+  const fetchPrescriptions = async () => {
     try {
-      const { error } = await supabase
+      setLoading(true);
+      const { data, error } = await supabase
         .from('prescriptions')
-        .insert({
-          patient_id: patientId,
-          dentist_id: dentistId,
-          medication_name: formData.medication_name,
-          dosage: formData.dosage,
-          frequency: formData.frequency,
-          duration_days: formData.duration_days[0],
-          instructions: formData.instructions,
-          prescribed_date: new Date().toISOString().split('T')[0],
-          status: 'active'
-        });
+        .select('*')
+        .eq('patient_id', patientId)
+        .eq('dentist_id', dentistId)
+        .order('prescribed_date', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching prescriptions:', error);
+        throw error;
+      }
 
-      toast({
-        title: "Success",
-        description: "Prescription created successfully",
-      });
-
-      setOpen(false);
-      setFormData({
-        medication_name: '',
-        dosage: '',
-        dosage_strength: [500],
-        frequency: '',
-        duration_days: [7],
-        instructions: ''
-      });
-    } catch (error: unknown) {
+      setPrescriptions(data || []);
+    } catch (error) {
+      console.error('Error in fetchPrescriptions:', error);
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Unknown error",
-        variant: "destructive",
+        description: "Failed to fetch prescriptions. Please try again.",
+        variant: "destructive"
       });
     } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
-          <Pill className="h-4 w-4 mr-1" />
-          Add Prescription
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>Create Prescription</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="medication_name">Medication Name *</Label>
-              <Input
-                id="medication_name"
-                placeholder="e.g., Amoxicillin"
-                value={formData.medication_name}
-                onChange={(e) => setFormData(prev => ({ ...prev, medication_name: e.target.value }))}
-                required
-              />
-            </div>
+  const filterAndSortPrescriptions = () => {
+    let filtered = [...prescriptions];
 
-            <div className="space-y-2">
-              <Label htmlFor="dosage">Dosage *</Label>
-              <div className="space-y-2">
+    // Apply search filter
+    if (searchTerm) {
+      filtered = filtered.filter(prescription =>
+        prescription.medication_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        prescription.dosage.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        prescription.frequency.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Apply status filter
+    if (filterStatus !== 'all') {
+      filtered = filtered.filter(prescription => prescription.status === filterStatus);
+    }
+
+    // Apply sorting
+    filtered.sort((a, b) => {
+      let comparison = 0;
+      
+      switch (sortBy) {
+        case 'medication':
+          comparison = a.medication_name.localeCompare(b.medication_name);
+          break;
+        case 'date':
+          comparison = new Date(a.prescribed_date).getTime() - new Date(b.prescribed_date).getTime();
+          break;
+        case 'status':
+          comparison = a.status.localeCompare(b.status);
+          break;
+      }
+
+      return sortOrder === 'asc' ? comparison : -comparison;
+    });
+
+    setFilteredPrescriptions(filtered);
+  };
+
+  const handleCreatePrescription = async () => {
+    try {
+      const { error } = await supabase
+        .from('prescriptions')
+        .insert({
+          patient_id: patientId,
+          dentist_id: dentistId,
+          ...formData,
+          prescribed_date: new Date().toISOString(),
+          status: 'active'
+        });
+
+      if (error) {
+        console.error('Error creating prescription:', error);
+        throw error;
+      }
+
+      toast({
+        title: "Success",
+        description: "Prescription created successfully.",
+      });
+
+      setIsDialogOpen(false);
+      resetForm();
+      fetchPrescriptions();
+    } catch (error) {
+      console.error('Error in handleCreatePrescription:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create prescription. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleUpdatePrescription = async () => {
+    if (!selectedPrescription) return;
+
+    try {
+      const { error } = await supabase
+        .from('prescriptions')
+        .update({
+          ...formData,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', selectedPrescription.id);
+
+      if (error) {
+        console.error('Error updating prescription:', error);
+        throw error;
+      }
+
+      toast({
+        title: "Success",
+        description: "Prescription updated successfully.",
+      });
+
+      setIsDialogOpen(false);
+      setIsEditMode(false);
+      setSelectedPrescription(null);
+      resetForm();
+      fetchPrescriptions();
+    } catch (error) {
+      console.error('Error in handleUpdatePrescription:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update prescription. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleDeletePrescription = async (prescriptionId: string) => {
+    try {
+      const { error } = await supabase
+        .from('prescriptions')
+        .delete()
+        .eq('id', prescriptionId);
+
+      if (error) {
+        console.error('Error deleting prescription:', error);
+        throw error;
+      }
+
+      toast({
+        title: "Success",
+        description: "Prescription deleted successfully.",
+      });
+
+      fetchPrescriptions();
+    } catch (error) {
+      console.error('Error in handleDeletePrescription:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete prescription. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleStatusChange = async (prescriptionId: string, newStatus: 'active' | 'completed' | 'discontinued') => {
+    try {
+      const { error } = await supabase
+        .from('prescriptions')
+        .update({
+          status: newStatus,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', prescriptionId);
+
+      if (error) {
+        console.error('Error updating prescription status:', error);
+        throw error;
+      }
+
+      toast({
+        title: "Success",
+        description: "Prescription status updated successfully.",
+      });
+
+      fetchPrescriptions();
+    } catch (error) {
+      console.error('Error in handleStatusChange:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update prescription status. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleEdit = (prescription: Prescription) => {
+    setSelectedPrescription(prescription);
+    setFormData({
+      medication_name: prescription.medication_name,
+      dosage: prescription.dosage,
+      frequency: prescription.frequency,
+      duration: prescription.duration,
+      instructions: prescription.instructions || '',
+      expiry_date: prescription.expiry_date || ''
+    });
+    setIsEditMode(true);
+    setIsDialogOpen(true);
+  };
+
+  const handleView = (prescription: Prescription) => {
+    setSelectedPrescription(prescription);
+    setIsEditMode(false);
+    setIsDialogOpen(true);
+  };
+
+  const resetForm = () => {
+    setFormData({
+      medication_name: '',
+      dosage: '',
+      frequency: '',
+      duration: '',
+      instructions: '',
+      expiry_date: ''
+    });
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'active': return 'bg-green-100 text-green-800';
+      case 'completed': return 'bg-blue-100 text-blue-800';
+      case 'discontinued': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'active': return <CheckCircle className="h-4 w-4" />;
+      case 'completed': return <Clock className="h-4 w-4" />;
+      case 'discontinued': return <XCircle className="h-4 w-4" />;
+      default: return <AlertTriangle className="h-4 w-4" />;
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="flex items-center space-x-2">
+          <RefreshCw className="h-4 w-4 animate-spin" />
+          <span>Loading prescriptions...</span>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-semibold">Prescriptions</h2>
+          <p className="text-gray-600">Manage patient prescriptions</p>
+        </div>
+        <Button onClick={() => setIsDialogOpen(true)}>
+          <Plus className="h-4 w-4 mr-2" />
+          New Prescription
+        </Button>
+      </div>
+
+      {/* Search and Filters */}
+      <div className="flex flex-col md:flex-row gap-4">
+        <div className="flex-1">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              placeholder="Search prescriptions..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+        </div>
+        <div className="flex items-center space-x-2">
+          <Select value={sortBy} onValueChange={(value: 'medication' | 'date' | 'status') => setSortBy(value)}>
+            <SelectTrigger className="w-32">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="medication">Medication</SelectItem>
+              <SelectItem value="date">Date</SelectItem>
+              <SelectItem value="status">Status</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+          >
+            {sortOrder === 'asc' ? <SortAsc className="h-4 w-4" /> : <SortDesc className="h-4 w-4" />}
+          </Button>
+          <Select value={filterStatus} onValueChange={(value: 'all' | 'active' | 'completed' | 'discontinued') => setFilterStatus(value)}>
+            <SelectTrigger className="w-32">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All</SelectItem>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="completed">Completed</SelectItem>
+              <SelectItem value="discontinued">Discontinued</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {/* Prescriptions List */}
+      <div className="space-y-2">
+        {filteredPrescriptions.map((prescription) => (
+          <Card key={prescription.id}>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <Pill className="h-5 w-5 text-purple-600" />
+                  <div>
+                    <p className="font-medium">{prescription.medication_name}</p>
+                    <p className="text-sm text-gray-600">
+                      {prescription.dosage} - {prescription.frequency}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Duration: {prescription.duration} | Prescribed: {formatDate(prescription.prescribed_date)}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Badge className={getStatusColor(prescription.status)}>
+                    {getStatusIcon(prescription.status)}
+                    <span className="ml-1">{prescription.status}</span>
+                  </Badge>
+                  <Button variant="ghost" size="sm" onClick={() => handleView(prescription)}>
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={() => handleEdit(prescription)}>
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => handleDeletePrescription(prescription.id)}
+                    className="text-red-600 hover:text-red-700"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {filteredPrescriptions.length === 0 && !loading && (
+        <div className="text-center py-8">
+          <Pill className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No prescriptions found</h3>
+          <p className="text-gray-600">
+            {searchTerm ? 'Try adjusting your search terms.' : 'No prescriptions have been added yet.'}
+          </p>
+        </div>
+      )}
+
+      {/* Prescription Dialog */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {isEditMode ? 'Edit Prescription' : selectedPrescription ? 'View Prescription' : 'New Prescription'}
+            </DialogTitle>
+          </DialogHeader>
+          
+          {!selectedPrescription || isEditMode ? (
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="medication_name">Medication Name</Label>
+                <Input
+                  id="medication_name"
+                  value={formData.medication_name}
+                  onChange={(e) => setFormData({ ...formData, medication_name: e.target.value })}
+                  placeholder="Enter medication name"
+                />
+              </div>
+              <div>
+                <Label htmlFor="dosage">Dosage</Label>
                 <Input
                   id="dosage"
-                  placeholder="e.g., 500mg"
                   value={formData.dosage}
-                  onChange={(e) => setFormData(prev => ({ ...prev, dosage: e.target.value }))}
-                  required
+                  onChange={(e) => setFormData({ ...formData, dosage: e.target.value })}
+                  placeholder="e.g., 500mg"
                 />
-                <div className="space-y-2">
-                  <Label className="text-sm">Quick Dosage</Label>
-                  <div className="flex flex-wrap gap-2">
-                    {dosageStrengths.map((strength) => (
-                      <Button
-                        key={strength.value}
-                        type="button"
-                        variant={formData.dosage_strength[0] === strength.value ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => {
-                          setFormData(prev => ({ 
-                            ...prev, 
-                            dosage_strength: [strength.value],
-                            dosage: `${strength.value}mg`
-                          }))
-                        }}
-                        className="text-xs"
-                      >
-                        <Droplets className="h-3 w-3 mr-1" />
-                        {strength.label}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
+              </div>
+              <div>
+                <Label htmlFor="frequency">Frequency</Label>
+                <Input
+                  id="frequency"
+                  value={formData.frequency}
+                  onChange={(e) => setFormData({ ...formData, frequency: e.target.value })}
+                  placeholder="e.g., Twice daily"
+                />
+              </div>
+              <div>
+                <Label htmlFor="duration">Duration</Label>
+                <Input
+                  id="duration"
+                  value={formData.duration}
+                  onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
+                  placeholder="e.g., 7 days"
+                />
+              </div>
+              <div>
+                <Label htmlFor="instructions">Instructions</Label>
+                <Textarea
+                  id="instructions"
+                  value={formData.instructions}
+                  onChange={(e) => setFormData({ ...formData, instructions: e.target.value })}
+                  placeholder="Additional instructions..."
+                  rows={3}
+                />
+              </div>
+              <div>
+                <Label htmlFor="expiry_date">Expiry Date (Optional)</Label>
+                <Input
+                  id="expiry_date"
+                  type="date"
+                  value={formData.expiry_date}
+                  onChange={(e) => setFormData({ ...formData, expiry_date: e.target.value })}
+                />
               </div>
             </div>
-          </div>
-
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>Frequency *</Label>
-              <div className="space-y-3">
-                <div className="flex flex-wrap gap-2">
-                  {quickFrequencies.map((freq) => (
-                    <Button
-                      key={freq.value}
-                      type="button"
-                      variant={formData.frequency === freq.value ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setFormData(prev => ({ ...prev, frequency: freq.value }))}
-                      className="gap-1"
-                    >
-                      <Clock className="h-3 w-3" />
-                      {freq.label}
-                    </Button>
-                  ))}
+          ) : (
+            <div className="space-y-4">
+              <div>
+                <Label className="text-sm font-medium text-gray-600">Medication Name</Label>
+                <p className="text-sm">{selectedPrescription.medication_name}</p>
+              </div>
+              <div>
+                <Label className="text-sm font-medium text-gray-600">Dosage</Label>
+                <p className="text-sm">{selectedPrescription.dosage}</p>
+              </div>
+              <div>
+                <Label className="text-sm font-medium text-gray-600">Frequency</Label>
+                <p className="text-sm">{selectedPrescription.frequency}</p>
+              </div>
+              <div>
+                <Label className="text-sm font-medium text-gray-600">Duration</Label>
+                <p className="text-sm">{selectedPrescription.duration}</p>
+              </div>
+              {selectedPrescription.instructions && (
+                <div>
+                  <Label className="text-sm font-medium text-gray-600">Instructions</Label>
+                  <p className="text-sm">{selectedPrescription.instructions}</p>
                 </div>
-                
-                <div className="space-y-2">
-                  <Label className="text-sm">Custom Frequency</Label>
-                  <Select 
-                    value={formData.frequency} 
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, frequency: value }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select frequency" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="once daily">Once daily</SelectItem>
-                      <SelectItem value="twice daily">Twice daily</SelectItem>
-                      <SelectItem value="three times daily">Three times daily</SelectItem>
-                      <SelectItem value="four times daily">Four times daily</SelectItem>
-                      <SelectItem value="as needed">As needed</SelectItem>
-                      <SelectItem value="before meals">Before meals</SelectItem>
-                      <SelectItem value="after meals">After meals</SelectItem>
-                      <SelectItem value="every 6 hours">Every 6 hours</SelectItem>
-                      <SelectItem value="every 8 hours">Every 8 hours</SelectItem>
-                      <SelectItem value="every 12 hours">Every 12 hours</SelectItem>
-                    </SelectContent>
-                  </Select>
+              )}
+              <div>
+                <Label className="text-sm font-medium text-gray-600">Prescribed Date</Label>
+                <p className="text-sm">{formatDate(selectedPrescription.prescribed_date)}</p>
+              </div>
+              {selectedPrescription.expiry_date && (
+                <div>
+                  <Label className="text-sm font-medium text-gray-600">Expiry Date</Label>
+                  <p className="text-sm">{formatDate(selectedPrescription.expiry_date)}</p>
                 </div>
+              )}
+              <div>
+                <Label className="text-sm font-medium text-gray-600">Status</Label>
+                <Badge className={getStatusColor(selectedPrescription.status)}>
+                  {selectedPrescription.status}
+                </Badge>
               </div>
             </div>
-          </div>
+          )}
 
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>Duration: {formData.duration_days[0]} days</Label>
-              <div className="space-y-3">
-                <div className="flex flex-wrap gap-2">
-                  {quickDurations.map((duration) => (
-                    <Button
-                      key={duration.value}
-                      type="button"
-                      variant={formData.duration_days[0] === duration.value ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setFormData(prev => ({ ...prev, duration_days: [duration.value] }))}
-                      className="gap-1"
-                    >
-                      <Calendar className="h-3 w-3" />
-                      {duration.label}
-                    </Button>
-                  ))}
-                </div>
-                
-                <div className="space-y-2">
-                  <Slider
-                    value={formData.duration_days}
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, duration_days: value }))}
-                    max={90}
-                    min={1}
-                    step={1}
-                    className="w-full"
-                  />
-                  <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>1 day</span>
-                    <span>90 days</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="instructions">Instructions</Label>
-            <Textarea
-              id="instructions"
-              placeholder="Special instructions, side effects to watch for..."
-              value={formData.instructions}
-              onChange={(e) => setFormData(prev => ({ ...prev, instructions: e.target.value }))}
-              className="min-h-[80px]"
-            />
-            <AIWritingAssistant 
-              onImprove={(improvedText) => setFormData(prev => ({ ...prev, instructions: improvedText }))}
-              currentText={formData.instructions}
-              placeholder="prescription instructions"
-            />
-          </div>
-
-          <div className="flex justify-end space-x-2 pt-4">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
               Cancel
             </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? "Creating..." : "Create Prescription"}
-            </Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
+            {!selectedPrescription && (
+              <Button onClick={handleCreatePrescription}>
+                Create Prescription
+              </Button>
+            )}
+            {isEditMode && (
+              <Button onClick={handleUpdatePrescription}>
+                Update Prescription
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 }
