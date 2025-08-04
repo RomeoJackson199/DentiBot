@@ -15,9 +15,7 @@ import { PhotoUpload } from "@/components/PhotoUpload";
 import { DentistSelection } from "@/components/DentistSelection";
 import { QuickPhotoUpload } from "@/components/QuickPhotoUpload";
 import { PatientSelection } from "@/components/PatientSelection";
-import { ChatAppointmentManager } from "@/components/chat/ChatAppointmentManager";
-import { ChatBookingFlow } from "@/components/chat/ChatBookingFlow";
-import { ChatSettingsManager } from "@/components/chat/ChatSettingsManager";
+// Removed problematic chat imports
 // Removed problematic imports
 import { AiDisclaimer } from "@/components/AiDisclaimer";
 
@@ -99,9 +97,9 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
     }
   };
 
-  // Initialize chat managers
-  const appointmentManager = user ? ChatAppointmentManager({ user, onResponse: addChatResponse }) : null;
-  const settingsManager = user ? ChatSettingsManager({ user, onResponse: addChatResponse }) : null;
+  // Initialize chat managers - temporarily disabled
+  const appointmentManager = null;
+  const settingsManager = null;
 
   useEffect(() => {
     // Load user profile and set welcome message only once

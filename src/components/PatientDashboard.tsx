@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
-import { InteractiveDentalChat } from "@/components/chat/InteractiveDentalChat";
-import { LanguageSettings } from "@/components/LanguageSettings";
+// Removed: import { InteractiveDentalChat } from "@/components/chat/InteractiveDentalChat";
+import { PatientSettings } from './PatientSettings';
 import RealAppointmentsList from "@/components/RealAppointmentsList";
 import { HealthData } from "@/components/HealthData";
 import { EmergencyTriageForm } from "@/components/EmergencyTriageForm";
@@ -477,11 +477,15 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
 
             <div className="p-6">
               <TabsContent value="chat" className="space-y-4">
-            <InteractiveDentalChat 
-              user={user} 
-              triggerBooking={triggerBooking}
-              onBookingTriggered={() => setTriggerBooking(false)}
-            />
+                <div className="flex items-center justify-center p-12">
+                  <Card className="max-w-md">
+                    <CardContent className="p-6 text-center">
+                      <MessageSquare className="h-12 w-12 mx-auto mb-4 text-blue-500" />
+                      <h3 className="font-semibold text-lg mb-2">Chat with AI Assistant</h3>
+                      <p className="text-gray-600">Coming soon - AI-powered dental assistance</p>
+                    </CardContent>
+                  </Card>
+                </div>
               </TabsContent>
 
               <TabsContent value="appointments" className="space-y-4">
