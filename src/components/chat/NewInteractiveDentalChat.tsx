@@ -7,10 +7,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Send, Bot, User as UserIcon } from "lucide-react";
 import { ChatMessage } from "@/types/chat";
-import {
-  PrivacyConsentWidget,
-  QuickActionsWidget,
-} from "./InteractiveChatWidgets";
+// import {
+//   PrivacyConsentWidget,
+//   QuickActionsWidget,
+// } from "./InteractiveChatWidgets"; // DISABLED - component deleted due to type errors
 
 interface NewInteractiveDentalChatProps {
   user: User | null;
@@ -118,10 +118,18 @@ export const NewInteractiveDentalChat = ({ user }: NewInteractiveDentalChatProps
     return (
       <div className="flex flex-col h-full">
         <div className="flex-1 p-4 flex items-center justify-center">
-          <PrivacyConsentWidget
-            onAccept={() => handleConsent(true)}
-            onDecline={() => handleConsent(false)}
-          />
+          <Card>
+            <CardContent className="p-6 text-center">
+              <h3 className="text-lg font-semibold mb-4">Privacy Notice</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                By continuing, you agree to our privacy policy and terms of service.
+              </p>
+              <div className="flex gap-2">
+                <Button onClick={() => handleConsent(true)}>Accept</Button>
+                <Button variant="outline" onClick={() => handleConsent(false)}>Decline</Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     );
@@ -160,7 +168,25 @@ export const NewInteractiveDentalChat = ({ user }: NewInteractiveDentalChatProps
           ))}
           
           {activeWidget === 'quick-actions' && (
-            <QuickActionsWidget onAction={handleQuickAction} />
+            <Card>
+              <CardContent className="p-4">
+                <h4 className="font-semibold mb-3">Quick Actions</h4>
+                <div className="grid grid-cols-2 gap-2">
+                  <Button variant="outline" size="sm" onClick={() => handleQuickAction('appointments')}>
+                    My Appointments
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => handleQuickAction('earliest')}>
+                    Book Earliest
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => handleQuickAction('emergency')}>
+                    Emergency
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => handleQuickAction('help')}>
+                    Help
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           )}
           
           <div ref={messagesEndRef} />

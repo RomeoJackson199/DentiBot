@@ -113,19 +113,19 @@ export const EnhancedUrgencyDashboard = ({ dentistId }: EnhancedUrgencyDashboard
           reason,
           created_at,
           status,
-          phone,
-          patient_id,
-          consultation_notes,
-          urgency_assessments,
-          symptom_summaries
+           phone,
+           patient_id,
+           consultation_notes
         `)
         .eq('dentist_id', dentistId)
         .order('created_at', { ascending: false });
 
       if (appointmentsError) throw appointmentsError;
 
-      setAppointments(appointmentsData || []);
-      calculateStats(appointmentsData || []);
+      if (appointmentsData && Array.isArray(appointmentsData) && !appointmentsError) {
+        setAppointments(appointmentsData as unknown as UrgencyAppointment[]);
+        calculateStats(appointmentsData as unknown as UrgencyAppointment[]);
+      }
     } catch (error: unknown) {
       toast({
         title: "Error",
@@ -544,7 +544,7 @@ export const EnhancedUrgencyDashboard = ({ dentistId }: EnhancedUrgencyDashboard
           patientId={selectedPatient}
           dentistId={dentistId}
           patientName={appointments.find(apt => apt.patient_id === selectedPatient)?.patient_name || 'Patient'}
-          contextType="triage"
+          contextType="patient"
           onUpdate={() => {
             setShowAIConsultation(false);
             setSelectedPatient(null);

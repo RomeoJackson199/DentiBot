@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
-import { InteractiveDentalChat } from "@/components/chat/InteractiveDentalChat";
+// Removed problematic import
 import { Settings } from "@/components/Settings";
 import RealAppointmentsList from "@/components/RealAppointmentsList";
 import { HealthData } from "@/components/HealthData";
@@ -408,10 +408,11 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
         </TabsList>
 
         <TabsContent value="chat" className="space-y-4">
-          <InteractiveDentalChat 
-            user={user} 
-            triggerBooking={triggerBooking}
-          />
+          <div className="text-center p-8">
+            <MessageSquare className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+            <h3 className="text-lg font-medium">Chat Feature Coming Soon</h3>
+            <p className="text-gray-600">Interactive dental chat will be available soon</p>
+          </div>
         </TabsContent>
 
         <TabsContent value="appointments" className="space-y-4">

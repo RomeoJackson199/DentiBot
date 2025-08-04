@@ -181,8 +181,8 @@ export const Settings = ({ user }: SettingsProps) => {
 
   const handleDownloadData = async () => {
     const { data: profile } = await supabase.from('profiles').select('*').eq('user_id', user.id).single();
-    const { data: appointments } = await supabase.from('appointments').select('*').eq('user_id', user.id);
-    const { data: notes } = await supabase.from('notes').select('*').eq('user_id', user.id);
+    const { data: appointments } = await supabase.from('appointments').select('*').eq('patient_id', user.id);
+    const { data: notes } = await supabase.from('notes').select('*').eq('patient_id', user.id);
     const exportData = { profile, appointments, notes };
     const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -196,8 +196,8 @@ export const Settings = ({ user }: SettingsProps) => {
   const handleDeleteAccount = async () => {
     const confirmed = window.confirm(t.deleteAccountConfirm);
     if (!confirmed) return;
-    await supabase.from('appointments').delete().eq('user_id', user.id);
-    await supabase.from('notes').delete().eq('user_id', user.id);
+    await supabase.from('appointments').delete().eq('patient_id', (await supabase.from('profiles').select('id').eq('user_id', user.id).single()).data?.id);
+    await supabase.from('notes').delete().eq('patient_id', (await supabase.from('profiles').select('id').eq('user_id', user.id).single()).data?.id);
     await supabase.from('profiles').delete().eq('user_id', user.id);
     await supabase.auth.signOut();
     toast({ title: t.deleteAccount, description: 'Your account has been deleted.' });
