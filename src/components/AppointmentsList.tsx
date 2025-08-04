@@ -29,7 +29,7 @@ interface Appointment {
   status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
   urgency: 'low' | 'medium' | 'high' | 'emergency';
   notes?: string;
-  dentist?: {
+  dentist: {
     id: string;
     specialization?: string;
     profile: {
@@ -88,8 +88,8 @@ export const AppointmentsList = ({ user }: AppointmentsListProps) => {
         setReviewedAppointments(new Set(reviewData.map(r => r.appointment_id)));
       }
 
-      // Fetch appointments with simplified query to avoid nested join issues
-      const { data: appointmentsData, error: appointmentsError } = await supabase
+      // Fetch appointments with dentist information
+      const { data, error } = await supabase
         .from("appointments")
         .select(`
           id,
@@ -98,58 +98,45 @@ export const AppointmentsList = ({ user }: AppointmentsListProps) => {
           status,
           urgency,
           notes,
-          dentist_id
+          dentists:dentist_id (
+            id,
+            specialty,
+            profiles:profile_id (
+              id,
+              first_name,
+              last_name,
+              phone
+            )
+          )
         `)
         .eq("patient_id", profile.id)
         .order("appointment_date", { ascending: true });
 
-      if (appointmentsError) {
-        console.error("Error fetching appointments:", appointmentsError);
+      if (error) {
+        console.error("Error fetching appointments:", error);
         toast.error("Failed to load appointments");
         return;
       }
 
-      // Fetch dentist information separately to avoid complex joins
-      const dentistIds = [...new Set((appointmentsData || []).map(apt => apt.dentist_id))];
-      let dentistsData: any[] = [];
-      
-      if (dentistIds.length > 0) {
-        const { data: dentists, error: dentistsError } = await supabase
-          .from('dentists')
-          .select(`
-            id,
-            specialization,
-            profile:profiles(first_name, last_name, phone)
-          `)
-          .in('id', dentistIds);
-
-        if (!dentistsError) {
-          dentistsData = dentists || [];
-        }
-      }
-
       // Transform the data to match our interface
-      const transformedAppointments = (appointmentsData || []).map((apt: any) => {
-        const dentist = dentistsData.find(d => d.id === apt.dentist_id);
-        return {
-          id: apt.id,
-          appointment_date: apt.appointment_date,
-          reason: apt.reason,
-          status: apt.status,
-          urgency: apt.urgency,
-          notes: apt.notes,
-          dentist: dentist ? {
-            id: dentist.id,
-            specialization: dentist.specialization,
-            profile: {
-              id: dentist.profile?.id || '',
-              first_name: dentist.profile?.first_name || 'Unknown',
-              last_name: dentist.profile?.last_name || 'Dentist',
-              phone: dentist.profile?.phone
-            }
-          } : null
-        };
-      });
+      const transformedAppointments = data?.map((apt: any) => ({
+        id: apt.id,
+        appointment_date: apt.appointment_date,
+        reason: apt.reason,
+        status: apt.status,
+        urgency: apt.urgency,
+        notes: apt.notes,
+        dentist: {
+          id: apt.dentists.id,
+          specialty: apt.dentists.specialty,
+          profile: {
+            id: apt.dentists.profiles.id,
+            first_name: apt.dentists.profiles.first_name,
+            last_name: apt.dentists.profiles.last_name,
+            phone: apt.dentists.profiles.phone
+          }
+        }
+      })) || [];
 
       setAppointments(transformedAppointments);
     } catch (error) {

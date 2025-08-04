@@ -189,72 +189,19 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
 
   const fetchRecentAppointments = async (profileId: string) => {
     try {
-      // Fetch appointments with simplified query
       const { data: appointmentsData } = await supabase
         .from('appointments')
         .select(`
-          id,
-          appointment_date,
-          status,
-          reason,
-          urgency,
-          notes,
-          dentist_id
+          *,
+          dentists:dentist_id(first_name, last_name, specialization)
         `)
         .eq('patient_id', profileId)
         .order('appointment_date', { ascending: false })
         .limit(5);
 
-      if (appointmentsData && appointmentsData.length > 0) {
-        // Fetch dentist information separately
-        const dentistIds = [...new Set(appointmentsData.map(apt => apt.dentist_id))];
-        const { data: dentistsData } = await supabase
-          .from('dentists')
-          .select(`
-            id,
-            specialization,
-            profile:profiles(first_name, last_name)
-          `)
-          .in('id', dentistIds);
-
-        // Combine appointments with dentist data
-        const formattedAppointments = appointmentsData.map(apt => {
-          const dentist = dentistsData?.find(d => d.id === apt.dentist_id);
-          return {
-            ...apt,
-            dentists: dentist ? {
-              id: dentist.id,
-              first_name: dentist.profile?.first_name || 'Unknown',
-              last_name: dentist.profile?.last_name || 'Dentist',
-              specialization: dentist.specialization
-            } : null
-          };
-        });
-
-        const mappedAppointments = formattedAppointments
-          .filter(apt => apt.dentists)
-          .map(apt => ({
-            id: apt.id,
-            patient_id: profileId,
-            dentist_id: apt.dentist_id,
-            appointment_date: apt.appointment_date,
-            duration: 30,
-            status: (apt.status === 'pending' ? 'scheduled' : apt.status) as "confirmed" | "completed" | "cancelled" | "scheduled" | "in_progress" | "no_show",
-            urgency: apt.urgency,
-            urgency_level: (apt.urgency === 'emergency' ? 'urgent' : apt.urgency === 'medium' ? 'normal' : apt.urgency) as "high" | "low" | "normal" | "urgent",
-            reason: apt.reason,
-            notes: apt.notes || '',
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-            dentists: apt.dentists
-          }));
-        setRecentAppointments(mappedAppointments);
-      } else {
-        setRecentAppointments([]);
-      }
+      setRecentAppointments(appointmentsData || []);
     } catch (error) {
       console.error('Error fetching recent appointments:', error);
-      setRecentAppointments([]);
     }
   };
 
@@ -466,17 +413,12 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
           <InteractiveDentalChat 
             user={user} 
             triggerBooking={triggerBooking}
+            onEmergencyComplete={handleEmergencyComplete}
           />
         </TabsContent>
 
         <TabsContent value="appointments" className="space-y-4">
-          <RealAppointmentsList 
-            user={user} 
-            onBookNew={() => {
-              setActiveTab('chat');
-              setTriggerBooking('low');
-            }}
-          />
+          <RealAppointmentsList user={user} />
         </TabsContent>
 
         <TabsContent value="prescriptions" className="space-y-4">
@@ -640,11 +582,11 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
         </TabsContent>
 
         <TabsContent value="analytics" className="space-y-4">
-          <PatientAnalytics userId={user.id} />
+          <PatientAnalytics user={user} />
         </TabsContent>
 
         <TabsContent value="emergency" className="space-y-4">
-          <EmergencyTriageForm onComplete={handleEmergencyComplete} onCancel={() => setActiveTab('chat')} />
+          <EmergencyTriageForm onComplete={handleEmergencyComplete} />
         </TabsContent>
 
         <TabsContent value="test" className="space-y-4">
