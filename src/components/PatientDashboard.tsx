@@ -212,7 +212,10 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
         .eq('patient_id', profileId)
         .order('prescribed_date', { ascending: false });
 
-      setPrescriptions(prescriptionsData || []);
+       setPrescriptions((prescriptionsData || []).map(prescription => ({
+         ...prescription,
+         duration: prescription.duration_days?.toString() || "7 days"
+       })));
 
       // Fetch treatment plans
       const { data: treatmentPlansData } = await supabase
@@ -221,7 +224,11 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
         .eq('patient_id', profileId)
         .order('created_at', { ascending: false });
 
-      setTreatmentPlans(treatmentPlansData || []);
+       setTreatmentPlans((treatmentPlansData || []).map(plan => ({
+         ...plan,
+         title: plan.title || "Treatment Plan",
+         estimated_duration: plan.estimated_duration_weeks ? `${plan.estimated_duration_weeks} weeks` : "2 weeks"
+       })));
 
       // Fetch medical records
       const { data: medicalRecordsData } = await supabase
@@ -230,7 +237,10 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
         .eq('patient_id', profileId)
         .order('record_date', { ascending: false });
 
-      setMedicalRecords(medicalRecordsData || []);
+       setMedicalRecords((medicalRecordsData || []).map(record => ({
+         ...record,
+         visit_date: record.record_date
+       })));
 
       // Fetch patient notes
       const { data: notesData } = await supabase

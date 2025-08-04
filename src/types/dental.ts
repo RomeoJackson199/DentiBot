@@ -6,10 +6,11 @@ export interface Prescription {
   dosage: string;
   frequency: string;
   duration: string;
+  duration_days?: number;
   instructions?: string;
   prescribed_date: string;
   expiry_date?: string;
-  status: 'active' | 'completed' | 'discontinued';
+  status: string;
   created_at: string;
   updated_at: string;
 }
@@ -18,16 +19,18 @@ export interface TreatmentPlan {
   id: string;
   patient_id: string;
   dentist_id: string;
-  plan_name: string;
+  title: string;
   description?: string;
   diagnosis?: string;
   treatment_goals?: string[];
   procedures?: string[];
   estimated_cost?: number;
   estimated_duration?: string;
-  priority: 'low' | 'normal' | 'high' | 'urgent';
-  status: 'draft' | 'active' | 'completed' | 'cancelled';
+  estimated_duration_weeks?: number;
+  priority: string;
+  status: string;
   start_date: string;
+  end_date?: string;
   target_completion_date?: string;
   actual_completion_date?: string;
   notes?: string;
@@ -53,11 +56,14 @@ export interface MedicalRecord {
   id: string;
   patient_id: string;
   dentist_id: string;
-  record_type: 'examination' | 'xray' | 'lab_result' | 'consultation' | 'surgery' | 'other';
+  record_type: string;
   title: string;
   description?: string;
+  findings?: string;
+  recommendations?: string;
   file_url?: string;
   record_date: string;
+  visit_date?: string;
   created_at: string;
   updated_at: string;
 }
@@ -66,7 +72,7 @@ export interface PatientNote {
   id: string;
   patient_id: string;
   dentist_id: string;
-  note_type: 'general' | 'clinical' | 'billing' | 'follow_up' | 'emergency';
+  note_type: string;
   title: string;
   content: string;
   is_private: boolean;

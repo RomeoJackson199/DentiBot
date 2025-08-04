@@ -577,7 +577,7 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
           medication_name: addPrescriptionForm.medication_name,
           dosage: addPrescriptionForm.dosage,
           frequency: addPrescriptionForm.frequency,
-          duration: addPrescriptionForm.duration,
+          duration_days: parseInt(addPrescriptionForm.duration) || 7,
           instructions: addPrescriptionForm.instructions,
           prescribed_date: new Date().toISOString(),
           status: "active"

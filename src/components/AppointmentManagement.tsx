@@ -107,12 +107,17 @@ export function AppointmentManagement({ dentistId }: AppointmentManagementProps)
   const fetchPatients = useCallback(async () => {
     try {
       const { data, error } = await supabase
-        .from('patients')
+        .from('profiles')
         .select('*')
+        .eq('role', 'patient')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setPatients(data || []);
+      setPatients(data?.map(p => ({
+        ...p,
+        total_appointments: 0,
+        upcoming_appointments: 0
+      })) || []);
     } catch (error) {
       console.error('Error fetching patients:', error);
       toast({

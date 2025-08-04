@@ -114,8 +114,14 @@ const extractRecommendations = (botResponses: string): string => {
 
 export const createDossierAfterSignup = async (userId: string) => {
   try {
+    const { createClient } = await import('@supabase/supabase-js');
+    const supabaseClient = createClient(
+      "https://gjvxcisbaxhhblhsytar.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdqdnhjaXNiYXhoaGJsaHN5dGFyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIwNjU4MDUsImV4cCI6MjA2NzY0MTgwNX0.p4HO2McB5IqP9iQ_p_Z6yHKCkKyDXuIm7ono6UJZcmM"
+    );
+    
     // Get user profile
-    const { data: profile, error: profileError } = await supabase
+    const { data: profile, error: profileError } = await supabaseClient
       .from('profiles')
       .select('*')
       .eq('user_id', userId)

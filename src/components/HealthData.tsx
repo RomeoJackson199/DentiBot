@@ -664,19 +664,17 @@ export const HealthData = ({
         {mode === 'dentist' && dentistId && patientProfile && (
           <>
             <TabsContent value="add-prescription">
-              <PrescriptionManager
-                appointmentId=""
-                patientId={patientProfile.id}
-                dentistId={dentistId}
-              />
-            </TabsContent>
-
-            <TabsContent value="add-treatment">
-              <TreatmentPlanManager
-                appointmentId=""
-                patientId={patientProfile.id}
-                dentistId={dentistId}
-              />
+               <PrescriptionManager
+                 patientId={patientProfile.id}
+                 dentistId={dentistId}
+               />
+             </TabsContent>
+ 
+             <TabsContent value="add-treatment">
+               <TreatmentPlanManager
+                 patientId={patientProfile.id}
+                 dentistId={dentistId}
+               />
             </TabsContent>
           </>
         )}
@@ -688,7 +686,7 @@ export const HealthData = ({
           patientId={patientProfile.id}
           dentistId={dentistId}
           patientName={`${patientProfile.first_name} ${patientProfile.last_name}`}
-          contextType="dentist_consultation"
+          contextType="patient"
         />
       )}
     </div>
