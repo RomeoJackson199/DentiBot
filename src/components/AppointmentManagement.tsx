@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -71,71 +71,62 @@ export function AppointmentManagement({ dentistId }: AppointmentManagementProps)
   const [consultationNotes, setConsultationNotes] = useState("");
   const { toast } = useToast();
 
-  useEffect(() => {
-    fetchAppointments();
-    fetchPatients();
-  }, [dentistId]);
-
-  const fetchAppointments = async () => {
+  const fetchAppointments = useCallback(async () => {
     try {
       setLoading(true);
       
       const { data, error } = await supabase
         .from('appointments')
         .select(`
-          id,
-          patient_id,
-          appointment_date,
-          duration_minutes,
-          status,
-          urgency,
-          reason,
-          notes,
-          consultation_notes,
-          patient_age,
-          patient_name
+          *,
+          patients (
+            first_name,
+            last_name,
+            email,
+            phone,
+            date_of_birth
+          )
         `)
         .eq('dentist_id', dentistId)
         .order('appointment_date', { ascending: true });
 
       if (error) throw error;
       setAppointments(data || []);
-    } catch (error: unknown) {
+    } catch (error) {
+      console.error('Error fetching appointments:', error);
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Unknown error",
+        description: "Failed to load appointments. Please try again.",
         variant: "destructive",
       });
     } finally {
       setLoading(false);
     }
-  };
+  }, [dentistId, toast]);
 
-  const fetchPatients = async () => {
+  const fetchPatients = useCallback(async () => {
     try {
-      // Get all patients who have any relationship with this dentist
-      const patientIds = new Set<string>();
-      
-      const { data: appointmentPatients } = await supabase
-        .from('appointments')
-        .select('patient_id')
-        .eq('dentist_id', dentistId);
-      
-      appointmentPatients?.forEach(apt => patientIds.add(apt.patient_id));
+      const { data, error } = await supabase
+        .from('patients')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-      if (patientIds.size > 0) {
-        const { data: profiles, error } = await supabase
-          .from('profiles')
-          .select('id, first_name, last_name, email, phone')
-          .in('id', Array.from(patientIds));
-
-        if (error) throw error;
-        setPatients(profiles || []);
-      }
-    } catch (error: unknown) {
+      if (error) throw error;
+      setPatients(data || []);
+    } catch (error) {
       console.error('Error fetching patients:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load patients. Please try again.",
+        variant: "destructive",
+      });
     }
-  };
+  }, [toast]);
+
+  useEffect(() => {
+    fetchAppointments();
+    fetchPatients();
+  }, [fetchAppointments, fetchPatients]);
 
   const handleEditNotes = (appointmentId: string, currentNotes: string) => {
     setEditingNotes(appointmentId);

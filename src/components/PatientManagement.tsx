@@ -288,11 +288,12 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
         case 'name':
           comparison = `${a.first_name} ${a.last_name}`.localeCompare(`${b.first_name} ${b.last_name}`);
           break;
-        case 'lastVisit':
+        case 'lastVisit': {
           const aDate = a.last_appointment ? new Date(a.last_appointment).getTime() : 0;
           const bDate = b.last_appointment ? new Date(b.last_appointment).getTime() : 0;
           comparison = aDate - bDate;
           break;
+        }
         case 'appointments':
           comparison = a.total_appointments - b.total_appointments;
           break;
