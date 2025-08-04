@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from "react";
-import { User } from '@supabase/supabase-js';
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -20,7 +19,6 @@ import {
   Zap
 } from "lucide-react";
 import { format, addDays, isBefore, startOfDay } from "date-fns";
-import { DentistRecommendation } from '@/types/dental';
 
 interface EmergencyBookingFlowProps {
   user: User;

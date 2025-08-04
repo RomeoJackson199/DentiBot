@@ -211,7 +211,6 @@ export interface TriageData {
 }
 
 export interface TriageAnswers extends TriageData {
-  [key: string]: any;
   pain_level?: number;
   has_bleeding?: boolean;
   has_swelling?: boolean;
@@ -220,16 +219,9 @@ export interface TriageAnswers extends TriageData {
 
 export interface DentistRecommendation {
   id: string;
-  name?: string;
-  rating?: number;
-  specialty?: string;
-  specialization?: string;
-  profile_id?: string;
-  average_rating?: number;
-  profiles?: {
-    first_name: string;
-    last_name: string;
-  };
+  name: string;
+  rating: number;
+  specialty: string;
 }
 
 export interface NewPrescriptionForm {
