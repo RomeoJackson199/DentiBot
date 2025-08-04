@@ -142,12 +142,46 @@ export interface AnalyticsData {
 export interface Notification {
   id: string;
   user_id: string;
-  type: 'appointment' | 'reminder' | 'emergency' | 'system';
+  type: 'appointment' | 'prescription' | 'reminder' | 'emergency' | 'system' | 'treatment_plan' | 'follow_up';
+  category: 'info' | 'warning' | 'success' | 'error' | 'urgent';
   title: string;
   message: string;
   is_read: boolean;
-  created_at: string;
   action_url?: string;
+  metadata?: Record<string, unknown>;
+  expires_at?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface NotificationPreferences {
+  id: string;
+  user_id: string;
+  email_enabled: boolean;
+  sms_enabled: boolean;
+  push_enabled: boolean;
+  in_app_enabled: boolean;
+  appointment_reminders: boolean;
+  prescription_updates: boolean;
+  treatment_plan_updates: boolean;
+  emergency_alerts: boolean;
+  system_notifications: boolean;
+  quiet_hours_start: string;
+  quiet_hours_end: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface NotificationTemplate {
+  id: string;
+  template_key: string;
+  title_template: string;
+  message_template: string;
+  type: string;
+  category: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface FileUpload {
