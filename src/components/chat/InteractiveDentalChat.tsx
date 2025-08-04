@@ -125,8 +125,7 @@ export const InteractiveDentalChat = ({
       };
       setMessages([welcomeMessage]);
       
-      // Show quick actions widget after welcome message
-      setTimeout(() => setActiveWidget('quick-actions'), 1000);
+      // Only show quick actions widget if AI couldn't respond properly
     }
   };
 
