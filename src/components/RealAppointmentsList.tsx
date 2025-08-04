@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -45,11 +45,7 @@ export const RealAppointmentsList = ({ user, onBookNew }: RealAppointmentsListPr
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
-  useEffect(() => {
-    fetchAppointments();
-  }, [user]);
-
-  const fetchAppointments = async () => {
+  const fetchAppointments = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -140,20 +136,24 @@ export const RealAppointmentsList = ({ user, onBookNew }: RealAppointmentsListPr
           variant: "default",
         });
       } else {
-        console.log('No appointments found for patient:', profile.id);
-      }
-    } catch (err: any) {
-      console.error('Error fetching appointments:', err);
-      setError(err.message || 'Failed to load appointments');
-      toast({
-        title: "Error",
-        description: err.message || "Failed to load your appointments. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
+              console.log('No appointments found for patient:', profile.id);
     }
-  };
+  } catch (err: any) {
+    console.error('Error fetching appointments:', err);
+    setError(err.message || 'Failed to load appointments');
+    toast({
+      title: "Error",
+      description: err.message || "Failed to load your appointments. Please try again.",
+      variant: "destructive",
+    });
+  } finally {
+    setLoading(false);
+  }
+  }, [user.id, toast]);
+
+  useEffect(() => {
+    fetchAppointments();
+  }, [fetchAppointments]);
 
   const getStatusIcon = (status: string) => {
     switch (status?.toLowerCase()) {
