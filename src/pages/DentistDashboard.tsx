@@ -5,7 +5,7 @@ import { User } from "@supabase/supabase-js";
 import { EnhancedAvailabilitySettings } from "@/components/enhanced/EnhancedAvailabilitySettings";
 import { EnhancedUrgencyDashboard } from "@/components/enhanced/EnhancedUrgencyDashboard";
 import { DentistManagement } from "@/components/DentistManagement";
-import { EnhancedPatientManagement } from "@/components/EnhancedPatientManagement";
+import { PatientManagement } from "@/components/PatientManagement";
 import { AppointmentManagement } from "@/components/AppointmentManagement";
 import { DentistAnalytics } from "@/components/analytics/DentistAnalytics";
 import { ChangelogPopup } from "@/components/ChangelogPopup";
@@ -250,7 +250,7 @@ export function DentistDashboard({ user }: DentistDashboardProps) {
           )}
 
           {activeTab === 'patients' && (
-            <EnhancedPatientManagement dentistId={dentistId} />
+            <PatientManagement dentistId={dentistId} />
           )}
           
           {activeTab === 'analytics' && (
