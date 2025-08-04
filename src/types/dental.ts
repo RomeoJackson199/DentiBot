@@ -221,6 +221,7 @@ export interface DentistRecommendation {
   id: string;
   name: string;
   rating: number;
+  specialty: string;
 }
 
 export interface NewPrescriptionForm {

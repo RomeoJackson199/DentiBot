@@ -376,10 +376,7 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-                  <DialogHeader>
-                    <DialogTitle className="text-2xl font-bold">Settings</DialogTitle>
-                  </DialogHeader>
-                  <LanguageSelector />
+                  <PatientSettings user={user} />
                 </DialogContent>
               </Dialog>
             </div>

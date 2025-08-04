@@ -18,8 +18,7 @@ import { PatientSelection } from "@/components/PatientSelection";
 import { ChatAppointmentManager } from "@/components/chat/ChatAppointmentManager";
 import { ChatBookingFlow } from "@/components/chat/ChatBookingFlow";
 import { ChatSettingsManager } from "@/components/chat/ChatSettingsManager";
-import { generateSymptomSummary } from "@/lib/symptoms";
-import { generateMedicalRecordFromChat, createMedicalRecord } from "@/lib/medicalRecords";
+// Removed problematic imports
 import { AiDisclaimer } from "@/components/AiDisclaimer";
 
 interface DentalChatbotProps {
