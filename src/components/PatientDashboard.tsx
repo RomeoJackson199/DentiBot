@@ -117,6 +117,7 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
 
   const fetchUserProfile = async () => {
     try {
+      console.log('PatientDashboard: Fetching profile for user:', user.id);
       setLoading(true);
       const { data: profile, error } = await supabase
         .from('profiles')
@@ -125,15 +126,17 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
         .single();
 
       if (error) {
-        console.error('Error fetching user profile:', error);
+        console.error('PatientDashboard: Error fetching user profile:', error);
         setError('Failed to load user profile');
         return;
       }
 
+      console.log('PatientDashboard: Profile loaded:', profile);
       setUserProfile(profile);
       
       // Check if this is a new user who needs onboarding
       const isNewUser = !profile.phone && !profile.date_of_birth && !profile.medical_history;
+      console.log('PatientDashboard: Is new user?', isNewUser);
       if (isNewUser) {
         setShowOnboarding(true);
       }

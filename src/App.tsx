@@ -29,16 +29,25 @@ const DashboardComponent = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    console.log('DashboardComponent: Starting auth check...');
     const getSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setUser(session?.user ?? null);
-      setLoading(false);
+      try {
+        console.log('DashboardComponent: Getting session...');
+        const { data: { session } } = await supabase.auth.getSession();
+        console.log('DashboardComponent: Session data:', session);
+        setUser(session?.user ?? null);
+        setLoading(false);
+      } catch (error) {
+        console.error('DashboardComponent: Error getting session:', error);
+        setLoading(false);
+      }
     };
 
     getSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        console.log('DashboardComponent: Auth state change:', event, session);
         setUser(session?.user ?? null);
         setLoading(false);
       }
@@ -48,6 +57,7 @@ const DashboardComponent = () => {
   }, []);
 
   if (loading) {
+    console.log('DashboardComponent: Still loading...');
     return <div className="min-h-screen flex items-center justify-center mesh-bg">
       <div className="text-center space-y-4">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-dental-primary mx-auto"></div>
@@ -57,10 +67,12 @@ const DashboardComponent = () => {
   }
 
   if (!user) {
+    console.log('DashboardComponent: No user found, redirecting to home');
     // Redirect to home page if not authenticated
     return <Navigate to="/" replace />;
   }
 
+  console.log('DashboardComponent: User authenticated, loading PatientDashboard:', user);
   // Import PatientDashboard directly
   const { PatientDashboard } = require('./components/PatientDashboard');
   
