@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -21,7 +22,7 @@ import {
 import { format, addDays, isBefore, startOfDay } from "date-fns";
 
 interface EmergencyBookingFlowProps {
-  user: User;
+  user: import("@supabase/supabase-js").User;
   onComplete: (appointmentData?: any) => void;
   onCancel: () => void;
 }

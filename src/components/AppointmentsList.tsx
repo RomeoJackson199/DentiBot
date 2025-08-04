@@ -9,7 +9,7 @@ import { AnimatedCard } from "@/components/ui/animated-card";
 import { toast } from "sonner";
 import useEmblaCarousel from 'embla-carousel-react';
 import { useLanguage } from "@/hooks/useLanguage";
-import { ReviewDialog } from "@/components/ReviewDialog";
+
 import { 
   AlertDialog, 
   AlertDialogAction, 
@@ -493,18 +493,7 @@ export const AppointmentsList = ({ user }: AppointmentsListProps) => {
                         {appointment.status === 'completed' && profileId && (
                           reviewedAppointments.has(appointment.id) ? (
                             <p className="text-xs text-dental-muted-foreground mt-2">Feedback submitted</p>
-                          ) : (
-                            <div className="mt-2">
-                              <ReviewDialog
-                                appointmentId={appointment.id}
-                                dentistId={appointment.dentist.profile.id}
-                                patientId={profileId}
-                                onSubmitted={() =>
-                                  setReviewedAppointments(prev => new Set(prev).add(appointment.id))
-                                }
-                              />
-                            </div>
-                          )
+                          ) : null
                         )}
                       </div>
                     </div>

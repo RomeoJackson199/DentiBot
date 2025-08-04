@@ -194,7 +194,13 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
         .order('appointment_date', { ascending: false })
         .limit(5);
 
-      setRecentAppointments(appointmentsData || []);
+      setRecentAppointments((appointmentsData || []).map(apt => ({
+        ...apt,
+        duration: apt.duration_minutes || 60,
+        urgency_level: apt.urgency === 'emergency' ? 'urgent' : 
+                      apt.urgency === 'medium' ? 'normal' : apt.urgency || 'normal',
+        status: apt.status === 'pending' ? 'scheduled' : apt.status
+      })));
     } catch (error) {
       console.error('Error fetching recent appointments:', error);
     }

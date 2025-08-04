@@ -6,8 +6,10 @@ export interface Prescription {
   dosage: string;
   frequency: string;
   duration_days: number;
+  duration?: string; // For compatibility
   instructions?: string;
   prescribed_date: string;
+  expiry_date?: string; // For compatibility
   status: string;
   created_at: string;
   updated_at: string;
@@ -34,6 +36,9 @@ export interface TreatmentPlan {
   start_date: string;
   end_date?: string;
   notes?: string;
+  treatment_goals?: string[];
+  procedures?: string[];
+  target_completion_date?: string;
   created_at: string;
   updated_at: string;
   dentist?: {
@@ -165,7 +170,7 @@ export interface Appointment {
   created_at: string;
   updated_at: string;
   dentists?: {
-    profile: {
+    profiles?: {
       first_name: string;
       last_name: string;
     };
@@ -190,6 +195,7 @@ export interface DentistRecommendation {
   id: string;
   name: string;
   rating: number;
+  specialization?: string;
 }
 
 export interface NewPrescriptionForm {
