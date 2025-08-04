@@ -1,9 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
-// Removed: import { InteractiveDentalChat } from "@/components/chat/InteractiveDentalChat";
-import { PatientSettings } from './PatientSettings';
-import { OnboardingSteps } from './OnboardingSteps';
+import { InteractiveDentalChat } from "@/components/chat/InteractiveDentalChat";
+import { LanguageSettings } from "@/components/LanguageSettings";
 import RealAppointmentsList from "@/components/RealAppointmentsList";
 import { HealthData } from "@/components/HealthData";
 import { EmergencyTriageForm } from "@/components/EmergencyTriageForm";
@@ -99,7 +98,6 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
   const [treatmentPlans, setTreatmentPlans] = useState<TreatmentPlan[]>([]);
   const [medicalRecords, setMedicalRecords] = useState<MedicalRecord[]>([]);
   const [patientNotes, setPatientNotes] = useState<PatientNote[]>([]);
-  const [showOnboarding, setShowOnboarding] = useState(false);
 
   const handleEmergencyComplete = (urgency: 'low' | 'medium' | 'high' | 'emergency') => {
     setActiveTab('chat');
@@ -117,7 +115,6 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
 
   const fetchUserProfile = async () => {
     try {
-      console.log('PatientDashboard: Fetching profile for user:', user.id);
       setLoading(true);
       const { data: profile, error } = await supabase
         .from('profiles')
@@ -126,20 +123,12 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
         .single();
 
       if (error) {
-        console.error('PatientDashboard: Error fetching user profile:', error);
+        console.error('Error fetching user profile:', error);
         setError('Failed to load user profile');
         return;
       }
 
-      console.log('PatientDashboard: Profile loaded:', profile);
       setUserProfile(profile);
-      
-      // Check if this is a new user who needs onboarding
-      const isNewUser = !profile.phone && !profile.date_of_birth && !profile.medical_history;
-      console.log('PatientDashboard: Is new user?', isNewUser);
-      if (isNewUser) {
-        setShowOnboarding(true);
-      }
     } catch (error) {
       console.error('Error in fetchUserProfile:', error);
       setError('Failed to load user profile');
@@ -354,13 +343,7 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
   }
 
   return (
-    <>
-      <OnboardingSteps 
-        isOpen={showOnboarding} 
-        onClose={() => setShowOnboarding(false)} 
-        user={user} 
-      />
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Enhanced Header */}
         <div className="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-100">
@@ -393,7 +376,10 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-                  <PatientSettings user={user} />
+                  <DialogHeader>
+                    <DialogTitle className="text-2xl font-bold">Settings</DialogTitle>
+                  </DialogHeader>
+                  <LanguageSelector />
                 </DialogContent>
               </Dialog>
             </div>
@@ -494,15 +480,11 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
 
             <div className="p-6">
               <TabsContent value="chat" className="space-y-4">
-                <div className="flex items-center justify-center p-12">
-                  <Card className="max-w-md">
-                    <CardContent className="p-6 text-center">
-                      <MessageSquare className="h-12 w-12 mx-auto mb-4 text-blue-500" />
-                      <h3 className="font-semibold text-lg mb-2">Chat with AI Assistant</h3>
-                      <p className="text-gray-600">Coming soon - AI-powered dental assistance</p>
-                    </CardContent>
-                  </Card>
-                </div>
+            <InteractiveDentalChat 
+              user={user} 
+              triggerBooking={triggerBooking}
+              onBookingTriggered={() => setTriggerBooking(false)}
+            />
               </TabsContent>
 
               <TabsContent value="appointments" className="space-y-4">
@@ -710,7 +692,6 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
           </Tabs>
         </div>
       </div>
-      </div>
-    </>
+    </div>
   );
 };

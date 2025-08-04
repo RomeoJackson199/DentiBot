@@ -90,10 +90,7 @@ export const DentistRecommendations = ({
 
       // Calculate recommendation scores with enhanced triage data
       const scoredDentists = (dentists || []).map(dentist => {
-        const recommendation = calculateRecommendationScore({
-          ...dentist,
-          specialty: dentist.specialization || "General Dentistry"
-        }, urgencyLevel, symptoms, triageData);
+        const recommendation = calculateRecommendationScore(dentist, urgencyLevel, symptoms, triageData);
         return {
           ...dentist,
           specialty: dentist.specialization || "General Dentistry",

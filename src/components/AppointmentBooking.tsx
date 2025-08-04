@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { CalendarDays, Clock, User as UserIcon, CheckCircle, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
-// Removed: import { createMedicalRecord } from "@/lib/medicalRecords";
+import { createMedicalRecord } from "@/lib/medicalRecords";
 
 interface AppointmentBookingProps {
   user: User;
@@ -241,7 +241,15 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
         description: `Votre rendez-vous a été pris pour le ${selectedDate.toLocaleDateString()} à ${selectedTime}`,
       });
 
-      // Medical record will be created via database trigger
+      // Create a medical record for this appointment
+      await createMedicalRecord({
+        patientId: profile.id,
+        dentistId: selectedDentist,
+        title: 'Appointment booked',
+        description: `Rendez-vous confirmé le ${selectedDate.toLocaleDateString()} à ${selectedTime}. Motif: ${reason || 'Consultation générale'}`,
+        recordType: 'appointment',
+        visitDate: selectedDate.toISOString().split('T')[0]
+      });
 
       onComplete({
         date: selectedDate.toLocaleDateString(),
