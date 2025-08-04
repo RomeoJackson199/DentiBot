@@ -52,7 +52,7 @@ export function PrescriptionManager({ appointmentId, patientId, dentistId }: Pre
           medication_name: formData.medication_name,
           dosage: formData.dosage,
           frequency: formData.frequency,
-          duration: `${formData.duration_days[0]} days`,
+          duration_days: formData.duration_days[0],
           instructions: formData.instructions,
           prescribed_date: new Date().toISOString().split('T')[0],
           status: 'active'
