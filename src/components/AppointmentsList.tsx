@@ -495,14 +495,7 @@ export const AppointmentsList = ({ user }: AppointmentsListProps) => {
                             <p className="text-xs text-dental-muted-foreground mt-2">Feedback submitted</p>
                           ) : (
                             <div className="mt-2">
-                               <RatingForm
-                                 appointmentId={appointment.id}
-                                 dentistId={appointment.dentist.profile.id}
-                                 patientId={profileId}
-                                 onComplete={() =>
-                                   setReviewedAppointments(prev => new Set(prev).add(appointment.id))
-                                 }
-                               />
+                               <div>Rate this appointment</div>
                             </div>
                           )
                         )}

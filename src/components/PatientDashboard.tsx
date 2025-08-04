@@ -379,7 +379,7 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
                   <DialogHeader>
                     <DialogTitle className="text-2xl font-bold">Settings</DialogTitle>
                   </DialogHeader>
-                  <LanguageSettings user={user} />
+                  <LanguageSelector />
                 </DialogContent>
               </Dialog>
             </div>

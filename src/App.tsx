@@ -84,7 +84,7 @@ const App = () => (
               <Toaster />
               <Sonner />
               <PWAInstallPrompt />
-              <OnboardingPopup />
+              {/* Temporarily removed */}
               <BrowserRouter>
               <Routes>
                 <Route path="/" element={<Index />} />
