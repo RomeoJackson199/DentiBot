@@ -105,7 +105,61 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
   const [sortBy, setSortBy] = useState<'name' | 'lastVisit' | 'appointments'>('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive'>('all');
+  const [showAddPatientDialog, setShowAddPatientDialog] = useState(false);
+  const [showAddAppointmentDialog, setShowAddAppointmentDialog] = useState(false);
+  const [showAddPrescriptionDialog, setShowAddPrescriptionDialog] = useState(false);
+  const [showAddTreatmentPlanDialog, setShowAddTreatmentPlanDialog] = useState(false);
+  const [showAddMedicalRecordDialog, setShowAddMedicalRecordDialog] = useState(false);
+  const [showAddNoteDialog, setShowAddNoteDialog] = useState(false);
   const { toast } = useToast();
+
+  // Form states for dialogs
+  const [addPatientForm, setAddPatientForm] = useState({
+    first_name: "",
+    last_name: "",
+    email: "",
+    phone: "",
+    date_of_birth: "",
+    medical_history: "",
+    address: ""
+  });
+
+  const [addPrescriptionForm, setAddPrescriptionForm] = useState({
+    medication_name: "",
+    dosage: "",
+    frequency: "",
+    duration: "",
+    instructions: ""
+  });
+
+  const [addTreatmentPlanForm, setAddTreatmentPlanForm] = useState({
+    plan_name: "",
+    description: "",
+    diagnosis: "",
+    priority: "normal" as const,
+    estimated_cost: "",
+    estimated_duration: ""
+  });
+
+  const [addMedicalRecordForm, setAddMedicalRecordForm] = useState({
+    record_type: "examination" as const,
+    title: "",
+    description: "",
+    record_date: new Date().toISOString().split('T')[0]
+  });
+
+  const [addNoteForm, setAddNoteForm] = useState({
+    note_type: "general" as const,
+    title: "",
+    content: "",
+    is_private: false
+  });
+
+  const [addAppointmentForm, setAddAppointmentForm] = useState({
+    appointment_date: "",
+    reason: "",
+    notes: ""
+  });
 
   // Fetch patients on component mount
   useEffect(() => {
@@ -343,6 +397,235 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
     }
   };
 
+  // Form handlers
+  const handleAddPatient = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: addPatientForm.email,
+        password: "temporary123",
+        options: {
+          data: {
+            first_name: addPatientForm.first_name,
+            last_name: addPatientForm.last_name,
+            role: "patient"
+          }
+        }
+      });
+
+      if (authError) throw authError;
+
+      if (authData.user) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert({
+            user_id: authData.user.id,
+            first_name: addPatientForm.first_name,
+            last_name: addPatientForm.last_name,
+            email: addPatientForm.email,
+            phone: addPatientForm.phone,
+            date_of_birth: addPatientForm.date_of_birth,
+            medical_history: addPatientForm.medical_history,
+            address: addPatientForm.address,
+            role: "patient"
+          });
+
+        if (profileError) throw profileError;
+
+        toast({
+          title: "Success",
+          description: "Patient added successfully",
+        });
+        setShowAddPatientDialog(false);
+        fetchPatients();
+      }
+    } catch (error) {
+      console.error('Error adding patient:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add patient. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleAddPrescription = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedPatient) return;
+
+    try {
+      const { error } = await supabase
+        .from('prescriptions')
+        .insert({
+          patient_id: selectedPatient.id,
+          dentist_id: dentistId,
+          medication_name: addPrescriptionForm.medication_name,
+          dosage: addPrescriptionForm.dosage,
+          frequency: addPrescriptionForm.frequency,
+          duration_days: parseInt(addPrescriptionForm.duration),
+          instructions: addPrescriptionForm.instructions,
+          prescribed_date: new Date().toISOString(),
+          status: "active"
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Prescription added successfully",
+      });
+      setShowAddPrescriptionDialog(false);
+      fetchPatientData(selectedPatient.id);
+    } catch (error) {
+      console.error('Error adding prescription:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add prescription. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleAddTreatmentPlan = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedPatient) return;
+
+    try {
+      const { error } = await supabase
+        .from('treatment_plans')
+        .insert({
+          patient_id: selectedPatient.id,
+          dentist_id: dentistId,
+          title: addTreatmentPlanForm.plan_name,
+          description: addTreatmentPlanForm.description,
+          diagnosis: addTreatmentPlanForm.diagnosis,
+          priority: addTreatmentPlanForm.priority,
+          estimated_cost: parseFloat(addTreatmentPlanForm.estimated_cost) || 0,
+          estimated_duration_weeks: parseInt(addTreatmentPlanForm.estimated_duration) || 0,
+          start_date: new Date().toISOString(),
+          status: "active"
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Treatment plan added successfully",
+      });
+      setShowAddTreatmentPlanDialog(false);
+      fetchPatientData(selectedPatient.id);
+    } catch (error) {
+      console.error('Error adding treatment plan:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add treatment plan. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleAddMedicalRecord = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedPatient) return;
+
+    try {
+      const { error } = await supabase
+        .from('medical_records')
+        .insert({
+          patient_id: selectedPatient.id,
+          dentist_id: dentistId,
+          record_type: addMedicalRecordForm.record_type,
+          title: addMedicalRecordForm.title,
+          description: addMedicalRecordForm.description,
+          record_date: addMedicalRecordForm.record_date
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Medical record added successfully",
+      });
+      setShowAddMedicalRecordDialog(false);
+      fetchPatientData(selectedPatient.id);
+    } catch (error) {
+      console.error('Error adding medical record:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add medical record. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleAddNote = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedPatient) return;
+
+    try {
+      const { error } = await supabase
+        .from('patient_notes')
+        .insert({
+          patient_id: selectedPatient.id,
+          dentist_id: dentistId,
+          note_type: addNoteForm.note_type,
+          title: addNoteForm.title,
+          content: addNoteForm.content,
+          is_private: addNoteForm.is_private
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Note added successfully",
+      });
+      setShowAddNoteDialog(false);
+      fetchPatientData(selectedPatient.id);
+    } catch (error) {
+      console.error('Error adding note:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add note. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleAddAppointment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedPatient) return;
+
+    try {
+      const { error } = await supabase
+        .from('appointments')
+        .insert({
+          patient_id: selectedPatient.id,
+          dentist_id: dentistId,
+          appointment_date: addAppointmentForm.appointment_date,
+          reason: addAppointmentForm.reason,
+          notes: addAppointmentForm.notes,
+          status: 'confirmed'
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Appointment added successfully",
+      });
+      setShowAddAppointmentDialog(false);
+      fetchPatientData(selectedPatient.id);
+    } catch (error) {
+      console.error('Error adding appointment:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add appointment. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -399,7 +682,7 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
               <Edit className="h-4 w-4 mr-2" />
               Edit Profile
             </Button>
-            <Button size="sm">
+            <Button size="sm" onClick={() => setShowAddAppointmentDialog(true)}>
               <Plus className="h-4 w-4 mr-2" />
               New Appointment
             </Button>
@@ -537,7 +820,7 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
           <TabsContent value="appointments" className="space-y-4">
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-semibold">Appointments</h3>
-              <Button size="sm">
+              <Button size="sm" onClick={() => setShowAddAppointmentDialog(true)}>
                 <Plus className="h-4 w-4 mr-2" />
                 New Appointment
               </Button>
@@ -572,7 +855,7 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
           <TabsContent value="prescriptions" className="space-y-4">
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-semibold">Prescriptions</h3>
-              <Button size="sm">
+              <Button size="sm" onClick={() => setShowAddPrescriptionDialog(true)}>
                 <Plus className="h-4 w-4 mr-2" />
                 New Prescription
               </Button>
@@ -609,7 +892,7 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
           <TabsContent value="treatment" className="space-y-4">
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-semibold">Treatment Plans</h3>
-              <Button size="sm">
+              <Button size="sm" onClick={() => setShowAddTreatmentPlanDialog(true)}>
                 <Plus className="h-4 w-4 mr-2" />
                 New Treatment Plan
               </Button>
@@ -644,7 +927,7 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
           <TabsContent value="records" className="space-y-4">
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-semibold">Medical Records</h3>
-              <Button size="sm">
+              <Button size="sm" onClick={() => setShowAddMedicalRecordDialog(true)}>
                 <Plus className="h-4 w-4 mr-2" />
                 Add Record
               </Button>
@@ -677,7 +960,7 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
           <TabsContent value="notes" className="space-y-4">
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-semibold">Patient Notes</h3>
-              <Button size="sm">
+              <Button size="sm" onClick={() => setShowAddNoteDialog(true)}>
                 <Plus className="h-4 w-4 mr-2" />
                 Add Note
               </Button>
@@ -724,7 +1007,7 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
             <Filter className="h-4 w-4 mr-2" />
             Filter
           </Button>
-          <Button size="sm">
+          <Button size="sm" onClick={() => setShowAddPatientDialog(true)}>
             <Plus className="h-4 w-4 mr-2" />
             Add Patient
           </Button>
@@ -829,6 +1112,401 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
           </p>
         </div>
       )}
+
+      {/* Add Patient Dialog */}
+      <Dialog open={showAddPatientDialog} onOpenChange={setShowAddPatientDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Add New Patient</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleAddPatient} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="first_name">First Name</Label>
+                <Input
+                  id="first_name"
+                  value={addPatientForm.first_name}
+                  onChange={(e) => setAddPatientForm({...addPatientForm, first_name: e.target.value})}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="last_name">Last Name</Label>
+                <Input
+                  id="last_name"
+                  value={addPatientForm.last_name}
+                  onChange={(e) => setAddPatientForm({...addPatientForm, last_name: e.target.value})}
+                  required
+                />
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={addPatientForm.email}
+                onChange={(e) => setAddPatientForm({...addPatientForm, email: e.target.value})}
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="phone">Phone</Label>
+              <Input
+                id="phone"
+                value={addPatientForm.phone}
+                onChange={(e) => setAddPatientForm({...addPatientForm, phone: e.target.value})}
+              />
+            </div>
+            <div>
+              <Label htmlFor="date_of_birth">Date of Birth</Label>
+              <Input
+                id="date_of_birth"
+                type="date"
+                value={addPatientForm.date_of_birth}
+                onChange={(e) => setAddPatientForm({...addPatientForm, date_of_birth: e.target.value})}
+              />
+            </div>
+            <div>
+              <Label htmlFor="medical_history">Medical History</Label>
+              <Textarea
+                id="medical_history"
+                value={addPatientForm.medical_history}
+                onChange={(e) => setAddPatientForm({...addPatientForm, medical_history: e.target.value})}
+              />
+            </div>
+            <div>
+              <Label htmlFor="address">Address</Label>
+              <Textarea
+                id="address"
+                value={addPatientForm.address}
+                onChange={(e) => setAddPatientForm({...addPatientForm, address: e.target.value})}
+              />
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setShowAddPatientDialog(false)}>
+                Cancel
+              </Button>
+              <Button type="submit">
+                Add Patient
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Prescription Dialog */}
+      <Dialog open={showAddPrescriptionDialog} onOpenChange={setShowAddPrescriptionDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Add New Prescription</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleAddPrescription} className="space-y-4">
+            <div>
+              <Label htmlFor="medication_name">Medication Name</Label>
+              <Input
+                id="medication_name"
+                value={addPrescriptionForm.medication_name}
+                onChange={(e) => setAddPrescriptionForm({...addPrescriptionForm, medication_name: e.target.value})}
+                required
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="dosage">Dosage</Label>
+                <Input
+                  id="dosage"
+                  value={addPrescriptionForm.dosage}
+                  onChange={(e) => setAddPrescriptionForm({...addPrescriptionForm, dosage: e.target.value})}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="frequency">Frequency</Label>
+                <Input
+                  id="frequency"
+                  value={addPrescriptionForm.frequency}
+                  onChange={(e) => setAddPrescriptionForm({...addPrescriptionForm, frequency: e.target.value})}
+                  required
+                />
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="duration">Duration (days)</Label>
+              <Input
+                id="duration"
+                type="number"
+                value={addPrescriptionForm.duration}
+                onChange={(e) => setAddPrescriptionForm({...addPrescriptionForm, duration: e.target.value})}
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="instructions">Instructions</Label>
+              <Textarea
+                id="instructions"
+                value={addPrescriptionForm.instructions}
+                onChange={(e) => setAddPrescriptionForm({...addPrescriptionForm, instructions: e.target.value})}
+              />
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setShowAddPrescriptionDialog(false)}>
+                Cancel
+              </Button>
+              <Button type="submit">
+                Add Prescription
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Treatment Plan Dialog */}
+      <Dialog open={showAddTreatmentPlanDialog} onOpenChange={setShowAddTreatmentPlanDialog}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Add New Treatment Plan</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleAddTreatmentPlan} className="space-y-4">
+            <div>
+              <Label htmlFor="plan_name">Plan Name</Label>
+              <Input
+                id="plan_name"
+                value={addTreatmentPlanForm.plan_name}
+                onChange={(e) => setAddTreatmentPlanForm({...addTreatmentPlanForm, plan_name: e.target.value})}
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                value={addTreatmentPlanForm.description}
+                onChange={(e) => setAddTreatmentPlanForm({...addTreatmentPlanForm, description: e.target.value})}
+              />
+            </div>
+            <div>
+              <Label htmlFor="diagnosis">Diagnosis</Label>
+              <Textarea
+                id="diagnosis"
+                value={addTreatmentPlanForm.diagnosis}
+                onChange={(e) => setAddTreatmentPlanForm({...addTreatmentPlanForm, diagnosis: e.target.value})}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="priority">Priority</Label>
+                <Select value={addTreatmentPlanForm.priority} onValueChange={(value: any) => setAddTreatmentPlanForm({...addTreatmentPlanForm, priority: value})}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="low">Low</SelectItem>
+                    <SelectItem value="normal">Normal</SelectItem>
+                    <SelectItem value="high">High</SelectItem>
+                    <SelectItem value="urgent">Urgent</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="estimated_cost">Estimated Cost</Label>
+                <Input
+                  id="estimated_cost"
+                  type="number"
+                  value={addTreatmentPlanForm.estimated_cost}
+                  onChange={(e) => setAddTreatmentPlanForm({...addTreatmentPlanForm, estimated_cost: e.target.value})}
+                />
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="estimated_duration">Estimated Duration (weeks)</Label>
+              <Input
+                id="estimated_duration"
+                type="number"
+                value={addTreatmentPlanForm.estimated_duration}
+                onChange={(e) => setAddTreatmentPlanForm({...addTreatmentPlanForm, estimated_duration: e.target.value})}
+              />
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setShowAddTreatmentPlanDialog(false)}>
+                Cancel
+              </Button>
+              <Button type="submit">
+                Add Treatment Plan
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Medical Record Dialog */}
+      <Dialog open={showAddMedicalRecordDialog} onOpenChange={setShowAddMedicalRecordDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Add Medical Record</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleAddMedicalRecord} className="space-y-4">
+            <div>
+              <Label htmlFor="record_type">Record Type</Label>
+              <Select value={addMedicalRecordForm.record_type} onValueChange={(value: any) => setAddMedicalRecordForm({...addMedicalRecordForm, record_type: value})}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="examination">Examination</SelectItem>
+                  <SelectItem value="xray">X-Ray</SelectItem>
+                  <SelectItem value="lab_result">Lab Result</SelectItem>
+                  <SelectItem value="consultation">Consultation</SelectItem>
+                  <SelectItem value="surgery">Surgery</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="title">Title</Label>
+              <Input
+                id="title"
+                value={addMedicalRecordForm.title}
+                onChange={(e) => setAddMedicalRecordForm({...addMedicalRecordForm, title: e.target.value})}
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                value={addMedicalRecordForm.description}
+                onChange={(e) => setAddMedicalRecordForm({...addMedicalRecordForm, description: e.target.value})}
+              />
+            </div>
+            <div>
+              <Label htmlFor="record_date">Record Date</Label>
+              <Input
+                id="record_date"
+                type="date"
+                value={addMedicalRecordForm.record_date}
+                onChange={(e) => setAddMedicalRecordForm({...addMedicalRecordForm, record_date: e.target.value})}
+                required
+              />
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setShowAddMedicalRecordDialog(false)}>
+                Cancel
+              </Button>
+              <Button type="submit">
+                Add Record
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Appointment Dialog */}
+      <Dialog open={showAddAppointmentDialog} onOpenChange={setShowAddAppointmentDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Add New Appointment</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleAddAppointment} className="space-y-4">
+            <div>
+              <Label htmlFor="appointment_date">Appointment Date</Label>
+              <Input
+                id="appointment_date"
+                type="datetime-local"
+                value={addAppointmentForm.appointment_date}
+                onChange={(e) => setAddAppointmentForm({...addAppointmentForm, appointment_date: e.target.value})}
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="reason">Reason</Label>
+              <Input
+                id="reason"
+                value={addAppointmentForm.reason}
+                onChange={(e) => setAddAppointmentForm({...addAppointmentForm, reason: e.target.value})}
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="notes">Notes</Label>
+              <Textarea
+                id="notes"
+                value={addAppointmentForm.notes}
+                onChange={(e) => setAddAppointmentForm({...addAppointmentForm, notes: e.target.value})}
+              />
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setShowAddAppointmentDialog(false)}>
+                Cancel
+              </Button>
+              <Button type="submit">
+                Add Appointment
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Note Dialog */}
+      <Dialog open={showAddNoteDialog} onOpenChange={setShowAddNoteDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Add Patient Note</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleAddNote} className="space-y-4">
+            <div>
+              <Label htmlFor="note_type">Note Type</Label>
+              <Select value={addNoteForm.note_type} onValueChange={(value: any) => setAddNoteForm({...addNoteForm, note_type: value})}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="general">General</SelectItem>
+                  <SelectItem value="clinical">Clinical</SelectItem>
+                  <SelectItem value="billing">Billing</SelectItem>
+                  <SelectItem value="follow_up">Follow Up</SelectItem>
+                  <SelectItem value="emergency">Emergency</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="note_title">Title</Label>
+              <Input
+                id="note_title"
+                value={addNoteForm.title}
+                onChange={(e) => setAddNoteForm({...addNoteForm, title: e.target.value})}
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="content">Content</Label>
+              <Textarea
+                id="content"
+                value={addNoteForm.content}
+                onChange={(e) => setAddNoteForm({...addNoteForm, content: e.target.value})}
+                required
+              />
+            </div>
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="is_private"
+                checked={addNoteForm.is_private}
+                onChange={(e) => setAddNoteForm({...addNoteForm, is_private: e.target.checked})}
+              />
+              <Label htmlFor="is_private">Private Note</Label>
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setShowAddNoteDialog(false)}>
+                Cancel
+              </Button>
+              <Button type="submit">
+                Add Note
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
