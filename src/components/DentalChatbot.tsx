@@ -196,7 +196,7 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
         message: message.message,
         is_bot: message.is_bot,
         message_type: message.message_type,
-        metadata: message.metadata,
+        metadata: message.metadata as any,
       });
     } catch (error) {
       console.error("Error saving message:", error);
@@ -703,7 +703,6 @@ Type your request...`;
 
       {/* Messages Area */}
       <ScrollArea className="flex-1 p-4 space-y-4">
-        {console.log('Rendering messages. Count:', messages.length)}
         {messages.map((message) => (
           <div
             key={message.id}

@@ -25,12 +25,12 @@ import type { User } from "@/types/common";
 
 interface TreatmentPlan {
   id: string;
-  plan_name: string;
+  title: string;
   description?: string;
   diagnosis?: string;
   status: string;
   priority: string;
-  estimated_duration?: string;
+  estimated_duration_weeks?: number;
   estimated_cost?: number;
   start_date?: string;
   notes?: string;
@@ -49,7 +49,7 @@ interface Prescription {
   medication_name: string;
   dosage: string;
   frequency: string;
-  duration: string;
+  duration_days: number;
   instructions?: string;
   prescribed_date: string;
   status: string;
@@ -106,7 +106,7 @@ export function PatientMedicalOverview({ patientId, user }: PatientMedicalOvervi
 
   useEffect(() => {
     fetchPatientData();
-  }, [patientId, fetchPatientData]);
+  }, [patientId]);
 
   const fetchPatientData = useCallback(async () => {
     try {
@@ -276,7 +276,7 @@ export function PatientMedicalOverview({ patientId, user }: PatientMedicalOvervi
                   <CardContent className="p-6">
                     <div className="flex justify-between items-start mb-4">
                       <div>
-                        <h3 className="font-semibold text-lg">{plan.plan_name}</h3>
+                        <h3 className="font-semibold text-lg">{plan.title}</h3>
                         <p className="text-sm text-muted-foreground">
                           Created on {formatDate(plan.created_at)}
                         </p>
@@ -303,10 +303,10 @@ export function PatientMedicalOverview({ patientId, user }: PatientMedicalOvervi
                     )}
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                      {plan.estimated_duration && (
+                      {plan.estimated_duration_weeks && (
                         <div className="flex items-center space-x-2">
                           <Clock className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm">{plan.estimated_duration}</span>
+                          <span className="text-sm">{plan.estimated_duration_weeks} weeks</span>
                         </div>
                       )}
                       {plan.estimated_cost && (
@@ -381,7 +381,7 @@ export function PatientMedicalOverview({ patientId, user }: PatientMedicalOvervi
                       </div>
                       <div>
                         <p className="text-sm font-medium text-muted-foreground">Duration:</p>
-                        <p className="text-sm">{prescription.duration}</p>
+                        <p className="text-sm">{prescription.duration_days} days</p>
                       </div>
                     </div>
 

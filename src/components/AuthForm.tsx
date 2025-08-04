@@ -74,7 +74,7 @@ export const AuthForm = ({ compact = false }: AuthFormProps) => {
     } catch (error: unknown) {
       toast({
         title: t.signUpError,
-        description: error.message,
+        description: error instanceof Error ? error.message : "Unknown error",
         variant: "destructive",
       });
     } finally {
@@ -105,7 +105,7 @@ export const AuthForm = ({ compact = false }: AuthFormProps) => {
     } catch (error: unknown) {
       toast({
         title: t.signInError,
-        description: error.message,
+        description: error instanceof Error ? error.message : "Unknown error",
         variant: "destructive",
       });
     } finally {
@@ -136,7 +136,7 @@ export const AuthForm = ({ compact = false }: AuthFormProps) => {
       console.error('Google sign-in catch block:', error);
       toast({
         title: t.signInError,
-        description: error.message,
+        description: error instanceof Error ? error.message : "Unknown error",
         variant: "destructive",
       });
       setIsLoading(false);

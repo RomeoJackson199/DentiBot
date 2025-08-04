@@ -85,7 +85,7 @@ export const AppointmentsList = ({ user }: AppointmentsListProps) => {
 
       // Fetch existing reviews for this patient
       const { data: reviewData } = await supabase
-        .from("reviews")
+        .from("dentist_ratings")
         .select("appointment_id")
         .eq("patient_id", profile.id);
       if (reviewData) {

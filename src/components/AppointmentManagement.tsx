@@ -369,8 +369,7 @@ export function AppointmentManagement({ dentistId }: AppointmentManagementProps)
                 status: appointment.status,
                 urgency: appointment.urgency,
                 reason: appointment.reason,
-                consultation_notes: appointment.consultation_notes,
-                patient_id: appointment.patient_id
+                 consultation_notes: appointment.consultation_notes
               }}
               isDentistView={true}
               onConfirm={async () => {
