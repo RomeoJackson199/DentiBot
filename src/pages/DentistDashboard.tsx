@@ -237,32 +237,43 @@ export function DentistDashboard({ user }: DentistDashboardProps) {
 
         {/* Content */}
         <div className="animate-fade-in">
-          {activeTab === 'urgency' && (
-            <EnhancedUrgencyDashboard dentistId={dentistId} />
-          )}
-          
-          {activeTab === 'availability' && (
-            <EnhancedAvailabilitySettings dentistId={dentistId} />
-          )}
+          {dentistId ? (
+            <>
+              {activeTab === 'urgency' && (
+                <EnhancedUrgencyDashboard dentistId={dentistId} />
+              )}
+              
+              {activeTab === 'availability' && (
+                <EnhancedAvailabilitySettings dentistId={dentistId} />
+              )}
 
-          {activeTab === 'appointments' && (
-            <AppointmentManagement dentistId={dentistId} />
-          )}
+              {activeTab === 'appointments' && (
+                <AppointmentManagement dentistId={dentistId} />
+              )}
 
-          {activeTab === 'patients' && (
-            <PatientManagement dentistId={dentistId} />
-          )}
-          
-          {activeTab === 'analytics' && (
-            <DentistAnalytics dentistId={dentistId} />
-          )}
+              {activeTab === 'patients' && (
+                <PatientManagement dentistId={dentistId} />
+              )}
+              
+              {activeTab === 'analytics' && (
+                <DentistAnalytics dentistId={dentistId} />
+              )}
 
-          {activeTab === 'manage' && (
-            <DentistManagement currentDentistId={dentistId} />
-          )}
+              {activeTab === 'manage' && (
+                <DentistManagement currentDentistId={dentistId} />
+              )}
 
-          {activeTab === 'debug' && (
-            <DebugDatabaseConnection />
+              {activeTab === 'debug' && (
+                <DebugDatabaseConnection />
+              )}
+            </>
+          ) : (
+            <div className="flex items-center justify-center h-96">
+              <div className="flex flex-col items-center space-y-4">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                <p className="text-gray-600">Loading dentist profile...</p>
+              </div>
+            </div>
           )}
         </div>
       </main>

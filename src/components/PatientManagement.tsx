@@ -99,6 +99,18 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
   const [filteredPatients, setFilteredPatients] = useState<Patient[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
+
+  // Early return if dentistId is not provided
+  if (!dentistId) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <p className="text-gray-600">Loading dentist information...</p>
+        </div>
+      </div>
+    );
+  }
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [activeView, setActiveView] = useState<'list' | 'profile'>('list');
   const [patientStats, setPatientStats] = useState<PatientStats | null>(null);
@@ -436,6 +448,17 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
   // Form handlers
   const handleAddPatient = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate required fields
+    if (!addPatientForm.first_name || !addPatientForm.last_name || !addPatientForm.email) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields (First Name, Last Name, Email).",
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: addPatientForm.email,
@@ -535,6 +558,16 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
     e.preventDefault();
     if (!selectedPatient) return;
 
+    // Validate required fields
+    if (!addPrescriptionForm.medication_name || !addPrescriptionForm.dosage || !addPrescriptionForm.frequency || !addPrescriptionForm.duration) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields for the prescription.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from('prescriptions')
@@ -544,7 +577,7 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
           medication_name: addPrescriptionForm.medication_name,
           dosage: addPrescriptionForm.dosage,
           frequency: addPrescriptionForm.frequency,
-          duration_days: parseInt(addPrescriptionForm.duration),
+          duration: addPrescriptionForm.duration,
           instructions: addPrescriptionForm.instructions,
           prescribed_date: new Date().toISOString(),
           status: "active"
@@ -577,22 +610,30 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
 
   const handleAddTreatmentPlan = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Submitting treatment plan form');
     if (!selectedPatient) {
-      console.log('No selected patient');
+      toast({
+        title: "Error",
+        description: "No patient selected.",
+        variant: "destructive"
+      });
       return;
     }
 
-    // Check authentication state
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    console.log('Current user:', user);
-    console.log('Auth error:', authError);
+    // Validate required fields
+    if (!addTreatmentPlanForm.title || !addTreatmentPlanForm.description) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in the title and description for the treatment plan.",
+        variant: "destructive"
+      });
+      return;
+    }
 
     try {
       const treatmentPlanData = {
         patient_id: selectedPatient.id,
         dentist_id: dentistId,
-        title: addTreatmentPlanForm.title,
+        plan_name: addTreatmentPlanForm.title,
         description: addTreatmentPlanForm.description,
         diagnosis: addTreatmentPlanForm.diagnosis,
         priority: addTreatmentPlanForm.priority,
@@ -602,17 +643,12 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
         status: "active"
       };
       
-      console.log('Inserting treatment plan data:', treatmentPlanData);
-      
       const { data, error } = await supabase
         .from('treatment_plans')
         .insert(treatmentPlanData)
         .select();
 
-      if (error) {
-        console.error('Database error:', error);
-        throw error;
-      }
+      if (error) throw error;
 
       toast({
         title: "Success",
@@ -640,16 +676,24 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
 
   const handleAddMedicalRecord = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Submitting medical record form');
     if (!selectedPatient) {
-      console.log('No selected patient');
+      toast({
+        title: "Error",
+        description: "No patient selected.",
+        variant: "destructive"
+      });
       return;
     }
 
-    // Check authentication state
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    console.log('Current user:', user);
-    console.log('Auth error:', authError);
+    // Validate required fields
+    if (!addMedicalRecordForm.title || !addMedicalRecordForm.description) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in the title and description for the medical record.",
+        variant: "destructive"
+      });
+      return;
+    }
 
     try {
       const medicalRecordData = {
@@ -661,17 +705,12 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
         record_date: addMedicalRecordForm.record_date
       };
       
-      console.log('Inserting medical record data:', medicalRecordData);
-      
       const { data, error } = await supabase
         .from('medical_records')
         .insert(medicalRecordData)
         .select();
 
-      if (error) {
-        console.error('Database error:', error);
-        throw error;
-      }
+      if (error) throw error;
 
       toast({
         title: "Success",
@@ -697,16 +736,24 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
 
   const handleAddNote = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Submitting note form');
     if (!selectedPatient) {
-      console.log('No selected patient');
+      toast({
+        title: "Error",
+        description: "No patient selected.",
+        variant: "destructive"
+      });
       return;
     }
 
-    // Check authentication state
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    console.log('Current user:', user);
-    console.log('Auth error:', authError);
+    // Validate required fields
+    if (!addNoteForm.title || !addNoteForm.content) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in the title and content for the note.",
+        variant: "destructive"
+      });
+      return;
+    }
 
     try {
       const noteData = {
@@ -718,17 +765,12 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
         is_private: addNoteForm.is_private
       };
       
-      console.log('Inserting note data:', noteData);
-      
       const { data, error } = await supabase
         .from('patient_notes')
         .insert(noteData)
         .select();
 
-      if (error) {
-        console.error('Database error:', error);
-        throw error;
-      }
+      if (error) throw error;
 
       toast({
         title: "Success",
@@ -755,6 +797,16 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
   const handleAddAppointment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedPatient) return;
+
+    // Validate required fields
+    if (!addAppointmentForm.appointment_date || !addAppointmentForm.reason) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in the appointment date and reason.",
+        variant: "destructive"
+      });
+      return;
+    }
 
     try {
       const { error } = await supabase
