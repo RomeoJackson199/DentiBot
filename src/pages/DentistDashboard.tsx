@@ -5,12 +5,12 @@ import { User } from "@supabase/supabase-js";
 import { EnhancedAvailabilitySettings } from "@/components/enhanced/EnhancedAvailabilitySettings";
 import { EnhancedUrgencyDashboard } from "@/components/enhanced/EnhancedUrgencyDashboard";
 import { DentistManagement } from "@/components/DentistManagement";
-
+import { PatientManagement } from "@/components/PatientManagement";
 import { AppointmentManagement } from "@/components/AppointmentManagement";
 import { DentistAnalytics } from "@/components/analytics/DentistAnalytics";
 import { ChangelogPopup } from "@/components/ChangelogPopup";
 import { DebugDatabaseConnection } from "@/components/DebugDatabaseConnection";
-import { Calendar, Clock, Settings as SettingsIcon, AlertTriangle, BarChart3, UserPlus, LogOut, Database } from "lucide-react";
+import { Calendar, Clock, Settings as SettingsIcon, AlertTriangle, BarChart3, UserPlus, LogOut, Users, Database } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
@@ -20,7 +20,7 @@ interface DentistDashboardProps {
 }
 
 export function DentistDashboard({ user }: DentistDashboardProps) {
-  const [activeTab, setActiveTab] = useState<'urgency' | 'availability' | 'appointments' | 'analytics' | 'manage' | 'debug'>('urgency');
+  const [activeTab, setActiveTab] = useState<'urgency' | 'availability' | 'appointments' | 'patients' | 'analytics' | 'manage' | 'debug'>('urgency');
   const [dentistId, setDentistId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [showChangelog, setShowChangelog] = useState(false);
@@ -140,7 +140,7 @@ export function DentistDashboard({ user }: DentistDashboardProps) {
         {/* Tab Navigation */}
         <div className="flex justify-center mb-6 sm:mb-8">
           <div className="glass-card rounded-2xl p-2 sm:p-3 animate-fade-in w-full max-w-3xl">
-            <div className="grid grid-cols-2 sm:grid-cols-6 gap-1 sm:gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-7 gap-1 sm:gap-2">
               <Button
                 variant={activeTab === 'urgency' ? 'default' : 'ghost'}
                 onClick={() => setActiveTab('urgency')}
@@ -180,6 +180,19 @@ export function DentistDashboard({ user }: DentistDashboardProps) {
                 <span className="font-medium">Appointments</span>
               </Button>
 
+
+              <Button
+                variant={activeTab === 'patients' ? 'default' : 'ghost'}
+                onClick={() => setActiveTab('patients')}
+                className={`flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2 sm:py-3 rounded-xl transition-all duration-300 text-xs sm:text-sm ${
+                  activeTab === 'patients' 
+                    ? 'bg-gradient-primary text-white shadow-elegant scale-105' 
+                    : 'text-dental-muted-foreground hover:text-dental-primary hover:bg-dental-primary/10 hover:scale-105'
+                }`}
+              >
+                <Users className="h-4 w-4" />
+                <span className="font-medium">Patients</span>
+              </Button>
 
               <Button
                 variant={activeTab === 'analytics' ? 'default' : 'ghost'}
@@ -239,6 +252,10 @@ export function DentistDashboard({ user }: DentistDashboardProps) {
                 <AppointmentManagement dentistId={dentistId} />
               )}
 
+              
+              {activeTab === 'patients' && (
+                <PatientManagement dentistId={dentistId} />
+              )}
               
               {activeTab === 'analytics' && (
                 <DentistAnalytics dentistId={dentistId} />
