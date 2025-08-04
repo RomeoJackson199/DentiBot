@@ -60,6 +60,47 @@ export function PrescriptionsTab({
     e.preventDefault();
     
     try {
+      console.log('Submitting prescription with data:', { patient, dentistId, formData });
+      
+      // Check authentication first
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) {
+        toast({
+          title: "Authentication Error",
+          description: "Please log in again to continue",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      console.log('User authenticated:', session.user.id);
+      
+      // Verify dentist relationship
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('id, role')
+        .eq('user_id', session.user.id)
+        .single();
+
+      if (profileError || !profile) {
+        console.error('Profile error:', profileError);
+        toast({
+          title: "Profile Error",
+          description: "Unable to verify your profile",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (profile.role !== 'dentist') {
+        toast({
+          title: "Permission Error",
+          description: "Only dentists can create prescriptions",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const prescriptionData = {
         patient_id: patient.id,
         dentist_id: dentistId,
@@ -68,23 +109,35 @@ export function PrescriptionsTab({
         prescribed_date: new Date().toISOString()
       };
 
+      console.log('Final prescription data:', prescriptionData);
+
       if (editingPrescription) {
-        const { error } = await supabase
+        console.log('Updating prescription:', editingPrescription.id);
+        const { data, error } = await supabase
           .from('prescriptions')
           .update(prescriptionData)
           .eq('id', editingPrescription.id);
 
-        if (error) throw error;
+        if (error) {
+          console.error('Prescription update error:', error);
+          throw error;
+        }
+        console.log('Prescription updated successfully:', data);
         toast({
           title: "Prescription Updated",
           description: "Prescription has been updated successfully",
         });
       } else {
-        const { error } = await supabase
+        console.log('Creating new prescription');
+        const { data, error } = await supabase
           .from('prescriptions')
           .insert(prescriptionData);
 
-        if (error) throw error;
+        if (error) {
+          console.error('Prescription insert error:', error);
+          throw error;
+        }
+        console.log('Prescription created successfully:', data);
         toast({
           title: "Prescription Added",
           description: "New prescription has been added successfully",
@@ -103,6 +156,7 @@ export function PrescriptionsTab({
       });
       onRefresh();
     } catch (error: unknown) {
+      console.error('Prescription save error:', error);
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Unknown error",

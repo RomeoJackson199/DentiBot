@@ -110,6 +110,211 @@ export function DebugDatabaseConnection() {
     setLoading(false);
   };
 
+  const testPatientManagementSave = async () => {
+    try {
+      setTestResults(prev => [...prev, "Testing patient management save operations..."]);
+      
+      // Test 1: Check current user authentication
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        setTestResults(prev => [...prev, `✅ User authenticated: ${session.user.id}`]);
+      } else {
+        setTestResults(prev => [...prev, `❌ User not authenticated`]);
+        return;
+      }
+
+      // Test 2: Check user profile
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('id, role, user_id')
+        .eq('user_id', session.user.id)
+        .single();
+
+      if (profileError) {
+        setTestResults(prev => [...prev, `❌ Profile error: ${profileError.message}`]);
+      } else {
+        setTestResults(prev => [...prev, `✅ Profile found: ${profile.id}, role: ${profile.role}`]);
+      }
+
+      // Test 3: Check dentist relationship if user is dentist
+      if (profile?.role === 'dentist') {
+        const { data: dentist, error: dentistError } = await supabase
+          .from('dentists')
+          .select('id, profile_id, is_active')
+          .eq('profile_id', profile.id)
+          .single();
+
+        if (dentistError) {
+          setTestResults(prev => [...prev, `❌ Dentist error: ${dentistError.message}`]);
+        } else {
+          setTestResults(prev => [...prev, `✅ Dentist found: ${dentist.id}, active: ${dentist.is_active}`]);
+        }
+      }
+
+      // Test 4: Try to save a prescription with real IDs
+      if (profile && profile.role === 'dentist') {
+        const { data: dentist } = await supabase
+          .from('dentists')
+          .select('id')
+          .eq('profile_id', profile.id)
+          .single();
+
+        if (dentist) {
+          const testPrescription = {
+            patient_id: profile.id, // Use profile ID as patient ID for testing
+            dentist_id: dentist.id,
+            medication_name: "Test Medication",
+            dosage: "10mg",
+            frequency: "Once daily",
+            duration: "7 days",
+            instructions: "Take with food",
+            status: "active",
+            prescribed_date: new Date().toISOString()
+          };
+
+          const { data: prescriptionData, error: prescriptionError } = await supabase
+            .from('prescriptions')
+            .insert(testPrescription)
+            .select();
+
+          if (prescriptionError) {
+            setTestResults(prev => [...prev, `❌ Prescription save failed: ${prescriptionError.message}`]);
+          } else {
+            setTestResults(prev => [...prev, `✅ Prescription save successful: ${prescriptionData?.length || 0} records`]);
+          }
+        }
+      }
+
+    } catch (error) {
+      setTestResults(prev => [...prev, `❌ Test failed with error: ${error.message}`]);
+    }
+  };
+
+  const testRLSPolicies = async () => {
+    try {
+      setTestResults(prev => [...prev, "Testing RLS policies..."]);
+      
+      // Get current session
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) {
+        setTestResults(prev => [...prev, "❌ No active session"]);
+        return;
+      }
+
+      setTestResults(prev => [...prev, `✅ Session found: ${session.user.id}`]);
+
+      // Test 1: Check if user can read their own profile
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', session.user.id)
+        .single();
+
+      if (profileError) {
+        setTestResults(prev => [...prev, `❌ Profile read error: ${profileError.message}`]);
+      } else {
+        setTestResults(prev => [...prev, `✅ Profile read successful: ${profile.id}`]);
+      }
+
+      // Test 2: Check if user can read prescriptions (should be empty if no data)
+      const { data: prescriptions, error: prescriptionsError } = await supabase
+        .from('prescriptions')
+        .select('*')
+        .limit(1);
+
+      if (prescriptionsError) {
+        setTestResults(prev => [...prev, `❌ Prescriptions read error: ${prescriptionsError.message}`]);
+      } else {
+        setTestResults(prev => [...prev, `✅ Prescriptions read successful: ${prescriptions?.length || 0} records`]);
+      }
+
+      // Test 3: Check if user can read treatment plans
+      const { data: treatmentPlans, error: treatmentPlansError } = await supabase
+        .from('treatment_plans')
+        .select('*')
+        .limit(1);
+
+      if (treatmentPlansError) {
+        setTestResults(prev => [...prev, `❌ Treatment plans read error: ${treatmentPlansError.message}`]);
+      } else {
+        setTestResults(prev => [...prev, `✅ Treatment plans read successful: ${treatmentPlans?.length || 0} records`]);
+      }
+
+      // Test 4: Check if user can read patient notes
+      const { data: patientNotes, error: patientNotesError } = await supabase
+        .from('patient_notes')
+        .select('*')
+        .limit(1);
+
+      if (patientNotesError) {
+        setTestResults(prev => [...prev, `❌ Patient notes read error: ${patientNotesError.message}`]);
+      } else {
+        setTestResults(prev => [...prev, `✅ Patient notes read successful: ${patientNotes?.length || 0} records`]);
+      }
+
+      // Test 5: Check if user can read medical records
+      const { data: medicalRecords, error: medicalRecordsError } = await supabase
+        .from('medical_records')
+        .select('*')
+        .limit(1);
+
+      if (medicalRecordsError) {
+        setTestResults(prev => [...prev, `❌ Medical records read error: ${medicalRecordsError.message}`]);
+      } else {
+        setTestResults(prev => [...prev, `✅ Medical records read successful: ${medicalRecords?.length || 0} records`]);
+      }
+
+    } catch (error) {
+      setTestResults(prev => [...prev, `❌ RLS test failed: ${error.message}`]);
+    }
+  };
+
+  const testBasicDatabaseConnection = async () => {
+    try {
+      setTestResults(prev => [...prev, "Testing basic database connection..."]);
+      
+      // Test 1: Simple select query
+      const { data: testData, error: testError } = await supabase
+        .from('profiles')
+        .select('count')
+        .limit(1);
+
+      if (testError) {
+        setTestResults(prev => [...prev, `❌ Basic connection failed: ${testError.message}`]);
+      } else {
+        setTestResults(prev => [...prev, `✅ Basic connection successful`]);
+      }
+
+      // Test 2: Check if we can insert a test record (will be rolled back)
+      const { data: insertData, error: insertError } = await supabase
+        .from('profiles')
+        .insert({
+          user_id: 'test-user-id',
+          first_name: 'Test',
+          last_name: 'User',
+          email: 'test@example.com'
+        })
+        .select();
+
+      if (insertError) {
+        setTestResults(prev => [...prev, `❌ Insert test failed: ${insertError.message}`]);
+      } else {
+        setTestResults(prev => [...prev, `✅ Insert test successful`]);
+        
+        // Clean up test data
+        if (insertData?.[0]?.id) {
+          await supabase
+            .from('profiles')
+            .delete()
+            .eq('id', insertData[0].id);
+        }
+      }
+
+    } catch (error) {
+      setTestResults(prev => [...prev, `❌ Basic connection test failed: ${error.message}`]);
+    }
+  };
+
   return (
     <Card className="glass-card">
       <CardHeader>
@@ -130,9 +335,20 @@ export function DebugDatabaseConnection() {
               </p>
             )}
           </div>
-          <Button onClick={runDatabaseTests} disabled={loading}>
-            {loading ? "Testing..." : "Run Tests"}
-          </Button>
+          <div className="flex space-x-2 flex-wrap gap-2">
+            <Button onClick={runDatabaseTests} disabled={loading}>
+              {loading ? "Testing..." : "Run Tests"}
+            </Button>
+            <Button onClick={testBasicDatabaseConnection} disabled={loading} variant="outline">
+              Test Basic Connection
+            </Button>
+            <Button onClick={testPatientManagementSave} disabled={loading} variant="outline">
+              Test Patient Management Save
+            </Button>
+            <Button onClick={testRLSPolicies} disabled={loading} variant="outline">
+              Test RLS Policies
+            </Button>
+          </div>
         </div>
 
         {Object.keys(testResults).length > 0 && (
