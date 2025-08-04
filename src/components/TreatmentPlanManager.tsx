@@ -61,7 +61,7 @@ export function TreatmentPlanManager({ patientId, dentistId }: TreatmentPlanMana
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [formData, setFormData] = useState<NewTreatmentPlanForm>({
-    plan_name: '',
+    title: '',
     description: '',
     diagnosis: '',
     treatment_goals: [],
@@ -118,7 +118,7 @@ export function TreatmentPlanManager({ patientId, dentistId }: TreatmentPlanMana
     // Apply search filter
     if (searchTerm) {
       filtered = filtered.filter(plan =>
-        plan.plan_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        plan.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         plan.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         plan.diagnosis?.toLowerCase().includes(searchTerm.toLowerCase())
       );
@@ -135,7 +135,7 @@ export function TreatmentPlanManager({ patientId, dentistId }: TreatmentPlanMana
       
       switch (sortBy) {
         case 'name':
-          comparison = a.plan_name.localeCompare(b.plan_name);
+          comparison = a.title.localeCompare(b.title);
           break;
         case 'date':
           comparison = new Date(a.start_date).getTime() - new Date(b.start_date).getTime();
@@ -289,7 +289,7 @@ export function TreatmentPlanManager({ patientId, dentistId }: TreatmentPlanMana
   const handleEdit = (treatmentPlan: TreatmentPlan) => {
     setSelectedTreatmentPlan(treatmentPlan);
     setFormData({
-      plan_name: treatmentPlan.plan_name,
+      title: treatmentPlan.title,
       description: treatmentPlan.description || '',
       diagnosis: treatmentPlan.diagnosis || '',
       treatment_goals: treatmentPlan.treatment_goals,
@@ -312,7 +312,7 @@ export function TreatmentPlanManager({ patientId, dentistId }: TreatmentPlanMana
 
   const resetForm = () => {
     setFormData({
-      plan_name: '',
+      title: '',
       description: '',
       diagnosis: '',
       treatment_goals: [],
@@ -480,7 +480,7 @@ export function TreatmentPlanManager({ patientId, dentistId }: TreatmentPlanMana
                 <div className="flex items-center space-x-4">
                   <ClipboardList className="h-5 w-5 text-orange-600" />
                   <div>
-                    <p className="font-medium">{plan.plan_name}</p>
+                    <p className="font-medium">{plan.title}</p>
                     <p className="text-sm text-gray-600">{plan.description}</p>
                     <p className="text-xs text-gray-500">
                       Started: {formatDate(plan.start_date)} | Duration: {plan.estimated_duration}
@@ -543,11 +543,11 @@ export function TreatmentPlanManager({ patientId, dentistId }: TreatmentPlanMana
           {!selectedTreatmentPlan || isEditMode ? (
             <div className="space-y-4">
               <div>
-                <Label htmlFor="plan_name">Plan Name</Label>
+                <Label htmlFor="title">Plan Name</Label>
                 <Input
-                  id="plan_name"
-                  value={formData.plan_name}
-                  onChange={(e) => setFormData({ ...formData, plan_name: e.target.value })}
+                  id="title"
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   placeholder="Enter treatment plan name"
                 />
               </div>
@@ -692,7 +692,7 @@ export function TreatmentPlanManager({ patientId, dentistId }: TreatmentPlanMana
             <div className="space-y-4">
               <div>
                 <Label className="text-sm font-medium text-gray-600">Plan Name</Label>
-                <p className="text-sm">{selectedTreatmentPlan.plan_name}</p>
+                <p className="text-sm">{selectedTreatmentPlan.title}</p>
               </div>
               {selectedTreatmentPlan.description && (
                 <div>

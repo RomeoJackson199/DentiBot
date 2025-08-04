@@ -188,7 +188,7 @@ export function AIConversationDialog({
           .insert({
             patient_id: patientId,
             dentist_id: dentistId,
-            title: data.plan_name,
+            title: data.title,
             description: data.description,
             diagnosis: data.diagnosis,
             treatment_steps: data.treatment_goals,
@@ -329,7 +329,7 @@ export function AIConversationDialog({
                           )}
                           {suggestion.type === 'treatment_plan' && (
                             <div>
-                              <p><strong>{(suggestion.data as NewTreatmentPlanForm).plan_name}</strong></p>
+                              <p><strong>{(suggestion.data as NewTreatmentPlanForm).title}</strong></p>
                               <p>{(suggestion.data as NewTreatmentPlanForm).description}</p>
                               <p className="text-muted-foreground">Priority: {(suggestion.data as NewTreatmentPlanForm).priority}</p>
                             </div>

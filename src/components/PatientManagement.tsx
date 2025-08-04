@@ -133,7 +133,7 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
   });
 
   const [addTreatmentPlanForm, setAddTreatmentPlanForm] = useState({
-    plan_name: "",
+    title: "",
     description: "",
     diagnosis: "",
     priority: "normal" as const,
@@ -488,25 +488,42 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
 
   const handleAddTreatmentPlan = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedPatient) return;
+    console.log('Submitting treatment plan form');
+    if (!selectedPatient) {
+      console.log('No selected patient');
+      return;
+    }
+
+    // Check authentication state
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    console.log('Current user:', user);
+    console.log('Auth error:', authError);
 
     try {
-      const { error } = await supabase
+      const treatmentPlanData = {
+        patient_id: selectedPatient.id,
+        dentist_id: dentistId,
+        title: addTreatmentPlanForm.title,
+        description: addTreatmentPlanForm.description,
+        diagnosis: addTreatmentPlanForm.diagnosis,
+        priority: addTreatmentPlanForm.priority,
+        estimated_cost: parseFloat(addTreatmentPlanForm.estimated_cost) || 0,
+        estimated_duration: addTreatmentPlanForm.estimated_duration,
+        start_date: new Date().toISOString(),
+        status: "active"
+      };
+      
+      console.log('Inserting treatment plan data:', treatmentPlanData);
+      
+      const { data, error } = await supabase
         .from('treatment_plans')
-        .insert({
-          patient_id: selectedPatient.id,
-          dentist_id: dentistId,
-          title: addTreatmentPlanForm.plan_name,
-          description: addTreatmentPlanForm.description,
-          diagnosis: addTreatmentPlanForm.diagnosis,
-          priority: addTreatmentPlanForm.priority,
-          estimated_cost: parseFloat(addTreatmentPlanForm.estimated_cost) || 0,
-          estimated_duration_weeks: parseInt(addTreatmentPlanForm.estimated_duration) || 0,
-          start_date: new Date().toISOString(),
-          status: "active"
-        });
+        .insert(treatmentPlanData)
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Database error:', error);
+        throw error;
+      }
 
       toast({
         title: "Success",
@@ -526,21 +543,38 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
 
   const handleAddMedicalRecord = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedPatient) return;
+    console.log('Submitting medical record form');
+    if (!selectedPatient) {
+      console.log('No selected patient');
+      return;
+    }
+
+    // Check authentication state
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    console.log('Current user:', user);
+    console.log('Auth error:', authError);
 
     try {
-      const { error } = await supabase
+      const medicalRecordData = {
+        patient_id: selectedPatient.id,
+        dentist_id: dentistId,
+        record_type: addMedicalRecordForm.record_type,
+        title: addMedicalRecordForm.title,
+        description: addMedicalRecordForm.description,
+        record_date: addMedicalRecordForm.record_date
+      };
+      
+      console.log('Inserting medical record data:', medicalRecordData);
+      
+      const { data, error } = await supabase
         .from('medical_records')
-        .insert({
-          patient_id: selectedPatient.id,
-          dentist_id: dentistId,
-          record_type: addMedicalRecordForm.record_type,
-          title: addMedicalRecordForm.title,
-          description: addMedicalRecordForm.description,
-          record_date: addMedicalRecordForm.record_date
-        });
+        .insert(medicalRecordData)
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Database error:', error);
+        throw error;
+      }
 
       toast({
         title: "Success",
@@ -560,21 +594,38 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
 
   const handleAddNote = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedPatient) return;
+    console.log('Submitting note form');
+    if (!selectedPatient) {
+      console.log('No selected patient');
+      return;
+    }
+
+    // Check authentication state
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    console.log('Current user:', user);
+    console.log('Auth error:', authError);
 
     try {
-      const { error } = await supabase
+      const noteData = {
+        patient_id: selectedPatient.id,
+        dentist_id: dentistId,
+        note_type: addNoteForm.note_type,
+        title: addNoteForm.title,
+        content: addNoteForm.content,
+        is_private: addNoteForm.is_private
+      };
+      
+      console.log('Inserting note data:', noteData);
+      
+      const { data, error } = await supabase
         .from('patient_notes')
-        .insert({
-          patient_id: selectedPatient.id,
-          dentist_id: dentistId,
-          note_type: addNoteForm.note_type,
-          title: addNoteForm.title,
-          content: addNoteForm.content,
-          is_private: addNoteForm.is_private
-        });
+        .insert(noteData)
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Database error:', error);
+        throw error;
+      }
 
       toast({
         title: "Success",
@@ -892,7 +943,10 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
           <TabsContent value="treatment" className="space-y-4">
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-semibold">Treatment Plans</h3>
-              <Button size="sm" onClick={() => setShowAddTreatmentPlanDialog(true)}>
+              <Button size="sm" onClick={() => {
+                console.log('Opening treatment plan dialog');
+                setShowAddTreatmentPlanDialog(true);
+              }}>
                 <Plus className="h-4 w-4 mr-2" />
                 New Treatment Plan
               </Button>
@@ -905,7 +959,7 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
                       <div className="flex items-center space-x-4">
                         <ClipboardList className="h-5 w-5 text-orange-600" />
                         <div>
-                          <p className="font-medium">{plan.plan_name}</p>
+                          <p className="font-medium">{plan.title}</p>
                           <p className="text-sm text-gray-600">{plan.description}</p>
                         </div>
                       </div>
@@ -927,7 +981,10 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
           <TabsContent value="records" className="space-y-4">
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-semibold">Medical Records</h3>
-              <Button size="sm" onClick={() => setShowAddMedicalRecordDialog(true)}>
+              <Button size="sm" onClick={() => {
+                console.log('Opening medical record dialog');
+                setShowAddMedicalRecordDialog(true);
+              }}>
                 <Plus className="h-4 w-4 mr-2" />
                 Add Record
               </Button>
@@ -960,7 +1017,10 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
           <TabsContent value="notes" className="space-y-4">
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-semibold">Patient Notes</h3>
-              <Button size="sm" onClick={() => setShowAddNoteDialog(true)}>
+              <Button size="sm" onClick={() => {
+                console.log('Opening note dialog');
+                setShowAddNoteDialog(true);
+              }}>
                 <Plus className="h-4 w-4 mr-2" />
                 Add Note
               </Button>
@@ -1269,11 +1329,11 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
           </DialogHeader>
           <form onSubmit={handleAddTreatmentPlan} className="space-y-4">
             <div>
-              <Label htmlFor="plan_name">Plan Name</Label>
+              <Label htmlFor="title">Plan Name</Label>
               <Input
-                id="plan_name"
-                value={addTreatmentPlanForm.plan_name}
-                onChange={(e) => setAddTreatmentPlanForm({...addTreatmentPlanForm, plan_name: e.target.value})}
+                id="title"
+                value={addTreatmentPlanForm.title}
+                onChange={(e) => setAddTreatmentPlanForm({...addTreatmentPlanForm, title: e.target.value})}
                 required
               />
             </div>

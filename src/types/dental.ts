@@ -18,7 +18,7 @@ export interface TreatmentPlan {
   id: string;
   patient_id: string;
   dentist_id: string;
-  plan_name: string;
+  title: string;
   description?: string;
   diagnosis?: string;
   treatment_goals: string[];
@@ -147,7 +147,7 @@ export interface NewPrescriptionForm {
 }
 
 export interface NewTreatmentPlanForm {
-  plan_name: string;
+  title: string;
   description?: string;
   diagnosis?: string;
   treatment_goals: string[];

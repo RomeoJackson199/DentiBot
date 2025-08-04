@@ -467,7 +467,7 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
                     <div className="flex items-center space-x-4">
                       <ClipboardList className="h-5 w-5 text-orange-600" />
                       <div>
-                        <p className="font-medium">{plan.plan_name}</p>
+                        <p className="font-medium">{plan.title}</p>
                         <p className="text-sm text-gray-600">{plan.description}</p>
                         <p className="text-xs text-gray-500">
                           Started: {formatDate(plan.start_date)}
