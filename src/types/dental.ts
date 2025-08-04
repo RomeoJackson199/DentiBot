@@ -6,11 +6,13 @@ export interface Prescription {
   dosage: string;
   frequency: string;
   duration_days: number;
+  duration?: string;
   instructions?: string;
   prescribed_date: string;
   status: string;
   created_at: string;
   updated_at: string;
+  expiry_date?: string;
   dentist?: {
     profile: {
       first_name: string;
@@ -29,13 +31,16 @@ export interface TreatmentPlan {
   estimated_cost?: number;
   estimated_duration: string;
   estimated_duration_weeks?: number;
-  priority: string;
+  priority: 'low' | 'normal' | 'high' | 'urgent';
   status: string;
   start_date: string;
   end_date?: string;
   notes?: string;
   created_at: string;
   updated_at: string;
+  treatment_goals?: string[];
+  procedures?: string[];
+  target_completion_date?: string;
   dentist?: {
     profile: {
       first_name: string;
@@ -156,9 +161,9 @@ export interface Appointment {
   appointment_date: string;
   duration: number;
   duration_minutes: number;
-  status: string;
+  status: 'confirmed' | 'completed' | 'cancelled' | 'scheduled' | 'in_progress' | 'no_show' | 'pending';
   urgency: string;
-  urgency_level: string;
+  urgency_level: 'low' | 'normal' | 'high' | 'urgent';
   reason?: string;
   notes?: string;
   patient_name?: string;
@@ -184,6 +189,19 @@ export interface Dentist {
     first_name: string;
     last_name: string;
   };
+}
+
+// Add triage types
+export interface TriageData {
+  [key: string]: any;
+}
+
+export interface TriageAnswers {
+  pain_level?: number;
+  has_bleeding?: boolean;
+  has_swelling?: boolean;
+  duration_symptoms?: string;
+  [key: string]: any;
 }
 
 export interface DentistRecommendation {

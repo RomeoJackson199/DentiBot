@@ -82,6 +82,24 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
     saveMessage(botMessage);
   };
 
+  const loadUserProfile = async () => {
+    if (!user) return;
+    
+    try {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (profile) {
+        setUserProfile(profile);
+      }
+    } catch (error) {
+      console.error('Error loading user profile:', error);
+    }
+  };
+
   // Initialize chat managers
   const appointmentManager = user ? ChatAppointmentManager({ user, onResponse: addChatResponse }) : null;
   const settingsManager = user ? ChatSettingsManager({ user, onResponse: addChatResponse }) : null;
@@ -110,7 +128,7 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
     };
 
     initializeChat();
-  }, [sessionId, user, loadUserProfile, messages.length, t, userProfile]); // Add all missing dependencies
+  }, [sessionId, user, messages.length, t, userProfile]); // Add all missing dependencies
   
   // Effect to update welcome message when language changes
   useEffect(() => {
@@ -124,23 +142,6 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
       setMessages(prev => [updatedWelcomeMessage, ...prev.slice(1)]);
     }
   }, [t, messages, userProfile]); // Add missing dependencies
-
-  const loadUserProfile = async () => {
-    if (!user) return;
-    
-    try {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("user_id", user.id)
-        .single();
-
-      if (error) throw error;
-      setUserProfile(data);
-    } catch (error) {
-      console.error("Error loading user profile:", error);
-    }
-  };
 
   useEffect(() => {
     scrollToBottom();

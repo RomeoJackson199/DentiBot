@@ -206,7 +206,8 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
       const transformedAppointments = (appointmentsData || []).map(apt => ({
         ...apt,
         duration: apt.duration_minutes,
-        urgency_level: apt.urgency
+        urgency_level: apt.urgency === 'emergency' ? 'urgent' : apt.urgency as 'low' | 'normal' | 'high',
+        status: apt.status as 'confirmed' | 'completed' | 'cancelled' | 'scheduled' | 'in_progress' | 'no_show'
       }));
 
       setRecentAppointments(transformedAppointments);
