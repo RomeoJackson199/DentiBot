@@ -35,7 +35,12 @@ import {
   Plus,
   Eye,
   FileImage,
-  ClipboardList
+  ClipboardList,
+  Settings as SettingsIcon,
+  LogOut,
+  Globe,
+  Moon,
+  Sun
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -64,7 +69,7 @@ interface PatientStats {
 export const PatientDashboard = ({ user }: PatientDashboardProps) => {
   const { t } = useLanguage();
   const { toast } = useToast();
-  type Tab = 'chat' | 'appointments' | 'prescriptions' | 'treatment' | 'records' | 'notes' | 'analytics' | 'emergency' | 'test';
+  type Tab = 'chat' | 'appointments' | 'prescriptions' | 'treatment' | 'records' | 'notes' | 'analytics' | 'emergency' | 'settings' | 'test';
   const [activeTab, setActiveTab] = useState<Tab>(() => {
     try {
       return (localStorage.getItem('pd_tab') as Tab) || 'chat';
@@ -397,7 +402,7 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
 
       {/* Main Content Tabs */}
       <Tabs value={activeTab} onValueChange={(value: Tab) => setActiveTab(value)} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-9">
+        <TabsList className="grid w-full grid-cols-10">
           <TabsTrigger value="chat">Chat</TabsTrigger>
           <TabsTrigger value="appointments">Appointments</TabsTrigger>
           <TabsTrigger value="prescriptions">Prescriptions</TabsTrigger>
@@ -406,6 +411,7 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
           <TabsTrigger value="notes">Notes</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
           <TabsTrigger value="emergency">Emergency</TabsTrigger>
+          <TabsTrigger value="settings">Settings</TabsTrigger>
           <TabsTrigger value="test">Test</TabsTrigger>
         </TabsList>
 
@@ -594,6 +600,132 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
 
         <TabsContent value="emergency" className="space-y-4">
           <EmergencyTriageForm onComplete={handleEmergencyComplete} />
+        </TabsContent>
+
+        <TabsContent value="settings" className="space-y-4">
+          <div className="flex justify-between items-center">
+            <h3 className="text-lg font-semibold">Settings</h3>
+          </div>
+          
+          <div className="grid gap-4">
+            {/* Profile Information */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <UserIcon className="h-5 w-5" />
+                  <span>Profile Information</span>
+                </CardTitle>
+                <CardDescription>Your personal information and preferences</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-gray-600">Name</p>
+                    <p className="font-medium">{userProfile?.first_name} {userProfile?.last_name}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Email</p>
+                    <p className="font-medium">{userProfile?.email}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Phone</p>
+                    <p className="font-medium">{userProfile?.phone || 'Not provided'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Date of Birth</p>
+                    <p className="font-medium">{userProfile?.date_of_birth ? formatDate(userProfile.date_of_birth) : 'Not provided'}</p>
+                  </div>
+                </div>
+                {userProfile?.address && (
+                  <div>
+                    <p className="text-sm text-gray-600">Address</p>
+                    <p className="font-medium">{userProfile.address}</p>
+                  </div>
+                )}
+                {userProfile?.emergency_contact && (
+                  <div>
+                    <p className="text-sm text-gray-600">Emergency Contact</p>
+                    <p className="font-medium">{userProfile.emergency_contact}</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Preferences */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <SettingsIcon className="h-5 w-5" />
+                  <span>Preferences</span>
+                </CardTitle>
+                <CardDescription>Customize your experience</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Globe className="h-4 w-4" />
+                    <span>Language</span>
+                  </div>
+                  <Badge variant="outline">{userProfile?.preferred_language || 'French'}</Badge>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Bell className="h-4 w-4" />
+                    <span>Notifications</span>
+                  </div>
+                  <Badge variant="outline">Enabled</Badge>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Medical Information */}
+            {userProfile?.medical_history && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Heart className="h-5 w-5" />
+                    <span>Medical History</span>
+                  </CardTitle>
+                  <CardDescription>Your medical background</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm">{userProfile.medical_history}</p>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Account Actions */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Shield className="h-5 w-5" />
+                  <span>Account</span>
+                </CardTitle>
+                <CardDescription>Manage your account</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button 
+                  variant="destructive" 
+                  onClick={async () => {
+                    try {
+                      await supabase.auth.signOut();
+                      window.location.href = '/';
+                    } catch (error) {
+                      toast({
+                        title: "Error",
+                        description: "Failed to sign out. Please try again.",
+                        variant: "destructive"
+                      });
+                    }
+                  }}
+                  className="w-full"
+                >
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Sign Out
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
         <TabsContent value="test" className="space-y-4">
