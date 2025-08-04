@@ -11,13 +11,13 @@ import { AIWritingAssistant } from "@/components/AIWritingAssistant";
 import { 
   ChatMessage, 
   AiResponse, 
-  AiAction, 
-  Patient, 
-  MedicalRecord, 
-  PatientNote, 
-  TreatmentPlan 
+  AiAction 
 } from "@/types/common";
 import { 
+  Patient,
+  MedicalRecord,
+  PatientNote,
+  TreatmentPlan,
   Prescription, 
   NewPrescriptionForm, 
   NewTreatmentPlanForm, 
@@ -25,15 +25,18 @@ import {
   NewPatientNoteForm 
 } from "@/types/dental";
 
+interface AISuggestion {
+  id: string;
+  type: 'note' | 'prescription' | 'treatment_plan' | 'medical_record';
+  data: NewPrescriptionForm | NewTreatmentPlanForm | NewMedicalRecordForm | NewPatientNoteForm;
+}
+
 interface Message {
   id: string;
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
-  suggestions?: {
-    type: 'note' | 'prescription' | 'treatment_plan';
-    data: NewPrescriptionForm | NewTreatmentPlanForm | NewMedicalRecordForm | NewPatientNoteForm;
-  }[];
+  suggestions?: AISuggestion[];
 }
 
 interface AIConversationDialogProps {
@@ -57,7 +60,7 @@ export function AIConversationDialog({
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [pendingSuggestions, setPendingSuggestions] = useState<(NewPrescriptionForm | NewTreatmentPlanForm | NewMedicalRecordForm | NewPatientNoteForm)[]>([]);
+  const [pendingSuggestions, setPendingSuggestions] = useState<AISuggestion[]>([]);
   const { toast } = useToast();
 
   const sendMessage = async () => {
@@ -145,7 +148,7 @@ export function AIConversationDialog({
     }
   };
 
-  const handleSuggestionApproval = async (suggestion: NewPrescriptionForm | NewTreatmentPlanForm | NewMedicalRecordForm | NewPatientNoteForm, approved: boolean) => {
+  const handleSuggestionApproval = async (suggestion: AISuggestion, approved: boolean) => {
     if (!approved) {
       setPendingSuggestions(prev => prev.filter(s => s.id !== suggestion.id));
       return;
@@ -153,39 +156,59 @@ export function AIConversationDialog({
 
     try {
       if (suggestion.type === 'note') {
+        const data = suggestion.data as NewPatientNoteForm;
         await supabase
-          .from('notes')
+          .from('patient_notes')
           .insert({
             patient_id: patientId,
             dentist_id: dentistId,
-            content: suggestion.data.content
+            note_type: data.note_type,
+            title: data.title,
+            content: data.content,
+            is_private: data.is_private
           });
       } else if (suggestion.type === 'prescription') {
+        const data = suggestion.data as NewPrescriptionForm;
         await supabase
           .from('prescriptions')
           .insert({
             patient_id: patientId,
             dentist_id: dentistId,
-            medication_name: suggestion.data.medication_name,
-            dosage: suggestion.data.dosage,
-            frequency: suggestion.data.frequency,
-            duration_days: suggestion.data.duration_days,
-            instructions: suggestion.data.instructions,
+            medication_name: data.medication_name,
+            dosage: data.dosage,
+            frequency: data.frequency,
+            duration_days: parseInt(data.duration),
+            instructions: data.instructions,
             prescribed_date: new Date().toISOString().split('T')[0]
           });
       } else if (suggestion.type === 'treatment_plan') {
+        const data = suggestion.data as NewTreatmentPlanForm;
         await supabase
           .from('treatment_plans')
           .insert({
             patient_id: patientId,
             dentist_id: dentistId,
-            title: suggestion.data.title,
-            description: suggestion.data.description,
-            diagnosis: suggestion.data.diagnosis,
-            treatment_steps: suggestion.data.treatment_steps,
-            estimated_duration: suggestion.data.estimated_duration,
-            estimated_cost: suggestion.data.estimated_cost,
-            priority: suggestion.data.priority || 'normal'
+            title: data.plan_name,
+            description: data.description,
+            diagnosis: data.diagnosis,
+            treatment_steps: data.treatment_goals,
+            estimated_duration_weeks: data.estimated_duration ? parseInt(data.estimated_duration) : null,
+            estimated_cost: data.estimated_cost,
+            priority: data.priority,
+            notes: data.notes
+          });
+      } else if (suggestion.type === 'medical_record') {
+        const data = suggestion.data as NewMedicalRecordForm;
+        await supabase
+          .from('medical_records')
+          .insert({
+            patient_id: patientId,
+            dentist_id: dentistId,
+            record_type: data.record_type,
+            title: data.title,
+            description: data.description,
+            file_url: data.file_url,
+            record_date: data.record_date || new Date().toISOString().split('T')[0]
           });
       }
 
@@ -295,20 +318,27 @@ export function AIConversationDialog({
                         </Badge>
                         <div className="text-sm">
                           {suggestion.type === 'note' && (
-                            <p>{suggestion.data.content}</p>
+                            <p>{(suggestion.data as NewPatientNoteForm).content}</p>
                           )}
                           {suggestion.type === 'prescription' && (
                             <div>
-                              <p><strong>{suggestion.data.medication_name}</strong> - {suggestion.data.dosage}</p>
-                              <p>{suggestion.data.frequency} for {suggestion.data.duration_days} days</p>
-                              <p className="text-muted-foreground">{suggestion.data.instructions}</p>
+                              <p><strong>{(suggestion.data as NewPrescriptionForm).medication_name}</strong> - {(suggestion.data as NewPrescriptionForm).dosage}</p>
+                              <p>{(suggestion.data as NewPrescriptionForm).frequency} for {(suggestion.data as NewPrescriptionForm).duration} days</p>
+                              <p className="text-muted-foreground">{(suggestion.data as NewPrescriptionForm).instructions}</p>
                             </div>
                           )}
                           {suggestion.type === 'treatment_plan' && (
                             <div>
-                              <p><strong>{suggestion.data.title}</strong></p>
-                              <p>{suggestion.data.description}</p>
-                              <p className="text-muted-foreground">Priority: {suggestion.data.priority}</p>
+                              <p><strong>{(suggestion.data as NewTreatmentPlanForm).plan_name}</strong></p>
+                              <p>{(suggestion.data as NewTreatmentPlanForm).description}</p>
+                              <p className="text-muted-foreground">Priority: {(suggestion.data as NewTreatmentPlanForm).priority}</p>
+                            </div>
+                          )}
+                          {suggestion.type === 'medical_record' && (
+                            <div>
+                              <p><strong>{(suggestion.data as NewMedicalRecordForm).title}</strong></p>
+                              <p>{(suggestion.data as NewMedicalRecordForm).description}</p>
+                              <p className="text-muted-foreground">Type: {(suggestion.data as NewMedicalRecordForm).record_type}</p>
                             </div>
                           )}
                         </div>
