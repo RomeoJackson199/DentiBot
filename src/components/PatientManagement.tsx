@@ -165,7 +165,7 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
     title: "",
     description: "",
     diagnosis: "",
-    priority: "medium",
+    priority: "normal",
     estimated_cost: "",
     estimated_duration: ""
   });
@@ -659,7 +659,7 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
         title: "",
         description: "",
         diagnosis: "",
-        priority: "medium",
+        priority: "normal",
         estimated_cost: "",
         estimated_duration: ""
       });
@@ -1151,7 +1151,7 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
                         <div>
                           <p className="font-medium">{prescription.medication_name}</p>
                           <p className="text-sm text-gray-600">{prescription.dosage} - {prescription.frequency}</p>
-                          <p className="text-xs text-gray-500">Duration: {prescription.duration_days} days</p>
+                          <p className="text-xs text-gray-500">Duration: {prescription.duration}</p>
                         </div>
                       </div>
                       <Badge className={prescription.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}>
@@ -1193,7 +1193,7 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
                           <ClipboardList className="h-4 w-4 text-orange-600" />
                         </div>
                         <div>
-                          <p className="font-medium">{plan.title}</p>
+                          <p className="font-medium">{plan.plan_name}</p>
                           <p className="text-sm text-gray-600">{plan.diagnosis}</p>
                           <div className="flex items-center space-x-4 mt-1">
                             <p className="text-xs text-gray-500">Cost: ${plan.estimated_cost}</p>
@@ -1705,13 +1705,13 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
               </div>
             </div>
             <div>
-              <Label htmlFor="duration">Duration (days)</Label>
+              <Label htmlFor="duration">Duration</Label>
               <Input
                 id="duration"
-                type="number"
                 value={addPrescriptionForm.duration}
                 onChange={(e) => setAddPrescriptionForm({...addPrescriptionForm, duration: e.target.value})}
                 required
+                placeholder="e.g., 7 days, 2 weeks"
               />
             </div>
             <div>
@@ -1776,8 +1776,9 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="low">Low</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="normal">Normal</SelectItem>
                     <SelectItem value="high">High</SelectItem>
+                    <SelectItem value="urgent">Urgent</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -1979,6 +1980,79 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Filter Dialog */}
+      <Dialog open={showFilterDialog} onOpenChange={setShowFilterDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center space-x-2">
+              <Filter className="h-5 w-5" />
+              <span>Filter Patients</span>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="filter_status">Patient Status</Label>
+              <Select value={filterStatus} onValueChange={(value: 'all' | 'active' | 'inactive') => setFilterStatus(value)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Patients</SelectItem>
+                  <SelectItem value="active">Active (with upcoming appointments)</SelectItem>
+                  <SelectItem value="inactive">Inactive (no upcoming appointments)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="sort_by">Sort By</Label>
+              <Select value={sortBy} onValueChange={(value: 'name' | 'lastVisit' | 'appointments') => setSortBy(value)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="name">Name</SelectItem>
+                  <SelectItem value="lastVisit">Last Visit</SelectItem>
+                  <SelectItem value="appointments">Total Appointments</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="sort_order">Sort Order</Label>
+              <Select value={sortOrder} onValueChange={(value: 'asc' | 'desc') => setSortOrder(value)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="asc">Ascending</SelectItem>
+                  <SelectItem value="desc">Descending</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <Separator />
+            <div className="flex items-center justify-between text-sm text-gray-600">
+              <span>Showing {filteredPatients.length} of {patients.length} patients</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setSearchTerm("");
+                  setFilterStatus("all");
+                  setSortBy("name");
+                  setSortOrder("asc");
+                }}
+              >
+                Clear All Filters
+              </Button>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowFilterDialog(false)}>
+              Close
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
