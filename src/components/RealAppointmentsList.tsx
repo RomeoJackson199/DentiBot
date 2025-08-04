@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,7 +13,8 @@ import {
   XCircle,
   Loader2,
   Plus,
-  RefreshCw
+  RefreshCw,
+  Phone
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -24,9 +25,9 @@ interface Appointment {
   reason: string;
   urgency: string;
   notes?: string;
-  dentist: {
+  dentist?: {
     id: string;
-    profile: {
+    profile?: {
       first_name: string;
       last_name: string;
       phone?: string;
@@ -43,15 +44,11 @@ export const RealAppointmentsList = ({ user, onBookNew }: RealAppointmentsListPr
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
   const { toast } = useToast();
 
-  useEffect(() => {
-    fetchAppointments();
-  }, [user]);
-
-  const fetchAppointments = async () => {
+  const fetchAppointments = useCallback(async () => {
     try {
-      setLoading(true);
       setError(null);
 
       // Get user profile first
@@ -70,7 +67,7 @@ export const RealAppointmentsList = ({ user, onBookNew }: RealAppointmentsListPr
         throw new Error('Profile not found. Please complete your profile setup.');
       }
 
-      // Fetch appointments with dentist information
+      // Fetch appointments with simplified query to avoid nested join issues
       const { data: appointmentsData, error: appointmentsError } = await supabase
         .from('appointments')
         .select(`
@@ -80,10 +77,7 @@ export const RealAppointmentsList = ({ user, onBookNew }: RealAppointmentsListPr
           reason,
           urgency,
           notes,
-          dentist:dentists(
-            id,
-            profile:profiles(first_name, last_name, phone)
-          )
+          dentist_id
         `)
         .eq('patient_id', profile.id)
         .order('appointment_date', { ascending: false });
@@ -93,14 +87,36 @@ export const RealAppointmentsList = ({ user, onBookNew }: RealAppointmentsListPr
         throw new Error('Failed to load appointments from database.');
       }
 
-      // Ensure appointments data is properly formatted
-      const formattedAppointments = (appointmentsData || []).map(apt => ({
-        ...apt,
-        appointment_date: apt.appointment_date || new Date().toISOString(),
-        status: apt.status || 'scheduled',
-        reason: apt.reason || 'Dental checkup',
-        urgency: apt.urgency || 'low'
-      }));
+      // Fetch dentist information separately to avoid complex joins
+      const dentistIds = [...new Set((appointmentsData || []).map(apt => apt.dentist_id))];
+      let dentistsData: any[] = [];
+      
+      if (dentistIds.length > 0) {
+        const { data: dentists, error: dentistsError } = await supabase
+          .from('dentists')
+          .select(`
+            id,
+            profile:profiles(first_name, last_name, phone)
+          `)
+          .in('id', dentistIds);
+
+        if (!dentistsError) {
+          dentistsData = dentists || [];
+        }
+      }
+
+      // Combine appointments with dentist data
+      const formattedAppointments = (appointmentsData || []).map(apt => {
+        const dentist = dentistsData.find(d => d.id === apt.dentist_id);
+        return {
+          ...apt,
+          appointment_date: apt.appointment_date || new Date().toISOString(),
+          status: apt.status || 'scheduled',
+          reason: apt.reason || 'Dental checkup',
+          urgency: apt.urgency || 'low',
+          dentist: dentist || null
+        };
+      });
 
       setAppointments(formattedAppointments);
       
@@ -120,12 +136,20 @@ export const RealAppointmentsList = ({ user, onBookNew }: RealAppointmentsListPr
         description: err.message || "Failed to load your appointments. Please try again.",
         variant: "destructive",
       });
-    } finally {
-      setLoading(false);
     }
-  };
+  }, [user.id, toast]);
 
-  const getStatusIcon = (status: string) => {
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchAppointments();
+    setRefreshing(false);
+  }, [fetchAppointments]);
+
+  useEffect(() => {
+    fetchAppointments();
+  }, [fetchAppointments]);
+
+  const getStatusIcon = useCallback((status: string) => {
     switch (status?.toLowerCase()) {
       case 'confirmed':
       case 'completed':
@@ -138,9 +162,9 @@ export const RealAppointmentsList = ({ user, onBookNew }: RealAppointmentsListPr
       default:
         return <AlertTriangle className="h-4 w-4 text-gray-500" />;
     }
-  };
+  }, []);
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = useCallback((status: string) => {
     switch (status?.toLowerCase()) {
       case 'confirmed':
       case 'completed':
@@ -153,9 +177,9 @@ export const RealAppointmentsList = ({ user, onBookNew }: RealAppointmentsListPr
       default:
         return 'bg-gray-100 text-gray-800';
     }
-  };
+  }, []);
 
-  const getUrgencyColor = (urgency: string) => {
+  const getUrgencyColor = useCallback((urgency: string) => {
     switch (urgency?.toLowerCase()) {
       case 'emergency':
         return 'bg-red-500';
@@ -168,9 +192,9 @@ export const RealAppointmentsList = ({ user, onBookNew }: RealAppointmentsListPr
       default:
         return 'bg-gray-500';
     }
-  };
+  }, []);
 
-  const formatDate = (dateString: string) => {
+  const formatDate = useCallback((dateString: string) => {
     try {
       const date = new Date(dateString);
       if (isNaN(date.getTime())) {
@@ -185,9 +209,9 @@ export const RealAppointmentsList = ({ user, onBookNew }: RealAppointmentsListPr
     } catch (error) {
       return 'Date not available';
     }
-  };
+  }, []);
 
-  const formatTime = (dateString: string) => {
+  const formatTime = useCallback((dateString: string) => {
     try {
       const date = new Date(dateString);
       if (isNaN(date.getTime())) {
@@ -200,7 +224,15 @@ export const RealAppointmentsList = ({ user, onBookNew }: RealAppointmentsListPr
     } catch (error) {
       return 'Time not available';
     }
-  };
+  }, []);
+
+  const sortedAppointments = useMemo(() => {
+    return [...appointments].sort((a, b) => {
+      const dateA = new Date(a.appointment_date).getTime();
+      const dateB = new Date(b.appointment_date).getTime();
+      return dateB - dateA; // Most recent first
+    });
+  }, [appointments]);
 
   if (loading) {
     return (
@@ -235,12 +267,15 @@ export const RealAppointmentsList = ({ user, onBookNew }: RealAppointmentsListPr
             <AlertTriangle className="h-8 w-8 text-red-500 mx-auto mb-4" />
             <h3 className="text-lg font-semibold mb-2">Error Loading Appointments</h3>
             <p className="text-dental-muted-foreground mb-4">{error}</p>
-            <Button onClick={fetchAppointments} variant="outline" className="mr-2">
-              Try Again
-            </Button>
-            <Button onClick={() => window.location.reload()} variant="ghost">
-              Refresh Page
-            </Button>
+            <div className="flex justify-center space-x-2">
+              <Button onClick={handleRefresh} variant="outline" disabled={refreshing}>
+                <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+                Try Again
+              </Button>
+              <Button onClick={() => window.location.reload()} variant="ghost">
+                Refresh Page
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -254,17 +289,17 @@ export const RealAppointmentsList = ({ user, onBookNew }: RealAppointmentsListPr
         <div>
           <h2 className="text-2xl font-bold">My Appointments</h2>
           <p className="text-dental-muted-foreground">
-            {appointments.length} appointment{appointments.length !== 1 ? 's' : ''} found
+            {sortedAppointments.length} appointment{sortedAppointments.length !== 1 ? 's' : ''} found
           </p>
         </div>
         <div className="flex items-center space-x-2">
           <Button 
-            onClick={fetchAppointments} 
+            onClick={handleRefresh} 
             variant="outline" 
             size="sm"
-            disabled={loading}
+            disabled={refreshing}
           >
-            <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
           {onBookNew && (
@@ -276,7 +311,7 @@ export const RealAppointmentsList = ({ user, onBookNew }: RealAppointmentsListPr
         </div>
       </div>
 
-      {appointments.length === 0 ? (
+      {sortedAppointments.length === 0 ? (
         <Card className="glass-card border-0">
           <CardContent className="p-8 text-center">
             <Calendar className="h-12 w-12 text-dental-muted-foreground mx-auto mb-4" />
@@ -293,7 +328,7 @@ export const RealAppointmentsList = ({ user, onBookNew }: RealAppointmentsListPr
         </Card>
       ) : (
         <div className="space-y-4">
-          {appointments.map((apt) => (
+          {sortedAppointments.map((apt) => (
             <Card key={apt.id} className="glass-card border-0 hover:shadow-lg transition-shadow">
               <CardContent className="p-6">
                 <div className="flex items-start justify-between">
@@ -343,7 +378,13 @@ export const RealAppointmentsList = ({ user, onBookNew }: RealAppointmentsListPr
                       {apt.urgency} priority
                     </Badge>
                     {apt.dentist?.profile?.phone && (
-                      <Button variant="ghost" size="sm" className="text-xs">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="text-xs"
+                        onClick={() => window.open(`tel:${apt.dentist.profile.phone}`, '_blank')}
+                      >
+                        <Phone className="h-3 w-3 mr-1" />
                         Call Doctor
                       </Button>
                     )}
