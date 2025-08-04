@@ -99,6 +99,9 @@ export const AuthForm = ({ compact = false }: AuthFormProps) => {
         description: t.welcomeToDentiBot,
       });
       
+      // Redirect to dashboard after successful sign in
+      window.location.href = '/dashboard';
+      
       if (compact) {
         setShowLoginDialog(false);
       }

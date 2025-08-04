@@ -3,6 +3,7 @@ import { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 // Removed: import { InteractiveDentalChat } from "@/components/chat/InteractiveDentalChat";
 import { PatientSettings } from './PatientSettings';
+import { OnboardingSteps } from './OnboardingSteps';
 import RealAppointmentsList from "@/components/RealAppointmentsList";
 import { HealthData } from "@/components/HealthData";
 import { EmergencyTriageForm } from "@/components/EmergencyTriageForm";
@@ -98,6 +99,7 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
   const [treatmentPlans, setTreatmentPlans] = useState<TreatmentPlan[]>([]);
   const [medicalRecords, setMedicalRecords] = useState<MedicalRecord[]>([]);
   const [patientNotes, setPatientNotes] = useState<PatientNote[]>([]);
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   const handleEmergencyComplete = (urgency: 'low' | 'medium' | 'high' | 'emergency') => {
     setActiveTab('chat');
@@ -129,6 +131,12 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
       }
 
       setUserProfile(profile);
+      
+      // Check if this is a new user who needs onboarding
+      const isNewUser = !profile.phone && !profile.date_of_birth && !profile.medical_history;
+      if (isNewUser) {
+        setShowOnboarding(true);
+      }
     } catch (error) {
       console.error('Error in fetchUserProfile:', error);
       setError('Failed to load user profile');
@@ -343,7 +351,13 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <>
+      <OnboardingSteps 
+        isOpen={showOnboarding} 
+        onClose={() => setShowOnboarding(false)} 
+        user={user} 
+      />
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Enhanced Header */}
         <div className="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-100">
@@ -693,6 +707,7 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
           </Tabs>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 };
