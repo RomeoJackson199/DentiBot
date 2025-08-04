@@ -243,12 +243,11 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
 
       // Create a medical record for this appointment
       await createMedicalRecord({
-        patientId: profile.id,
-        dentistId: selectedDentist,
-        title: 'Appointment booked',
-        description: `Rendez-vous confirmé le ${selectedDate.toLocaleDateString()} à ${selectedTime}. Motif: ${reason || 'Consultation générale'}`,
-        recordType: 'appointment',
-        visitDate: selectedDate.toISOString().split('T')[0]
+        patient_id: profile.id,
+        dentist_id: selectedDentist,
+        visit_date: selectedDate.toISOString().split('T')[0],
+        diagnosis: 'Appointment booked',
+        treatment: `Rendez-vous confirmé le ${selectedDate.toLocaleDateString()} à ${selectedTime}. Motif: ${reason || 'Consultation générale'}`,
       });
 
       onComplete({

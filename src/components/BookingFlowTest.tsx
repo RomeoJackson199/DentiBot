@@ -27,7 +27,13 @@ export const BookingFlowTest = () => {
     const profileResult = await checkUserProfile('romeo@caberu.be');
     
     // Test booking flow
-    const bookingResult = await testBookingFlow();
+    const bookingResult = await testBookingFlow({
+      dentistId: 'test-dentist',
+      patientId: 'test-patient',
+      appointmentDate: '2024-01-15',
+      duration: 60,
+      reason: 'Test booking'
+    });
     
     setTestResults({
       database: dbResult,

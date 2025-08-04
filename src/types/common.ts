@@ -22,6 +22,11 @@ export interface User {
   id: string;
   email: string;
   role: 'patient' | 'dentist' | 'admin';
+  user_metadata?: {
+    first_name?: string;
+    last_name?: string;
+    [key: string]: any;
+  };
   created_at: string;
   updated_at: string;
 }
@@ -67,11 +72,13 @@ export interface Appointment {
 export interface Dentist {
   id: string;
   user_id: string;
+  profile_id: string;
   first_name: string;
   last_name: string;
   email: string;
   phone?: string;
   specialization?: string;
+  specialty?: string; // Add for backwards compatibility
   clinic_address?: string;
   languages?: string[];
   bio?: string;
@@ -79,8 +86,33 @@ export interface Dentist {
   education?: string;
   certifications?: string[];
   availability?: AvailabilitySchedule;
+  average_rating?: number;
+  total_ratings?: number;
+  expertise_score?: number;
+  communication_score?: number;
+  wait_time_score?: number;
+  profiles?: {
+    first_name: string;
+    last_name: string;
+  };
   created_at: string;
   updated_at: string;
+}
+
+export interface DentistRecommendation {
+  id: string;
+  profile_id: string;
+  specialization: string;
+  specialty: string; // Required field
+  average_rating: number;
+  total_ratings: number;
+  expertise_score: number;
+  communication_score: number;
+  wait_time_score: number;
+  profiles: {
+    first_name: string;
+    last_name: string;
+  };
 }
 
 export interface AvailabilitySchedule {
