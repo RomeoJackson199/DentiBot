@@ -6,9 +6,10 @@
  * This is the most aggressive reset possible - use only when you want to start 100% fresh
  */
 
-const { execSync } = require('child_process');
-const fs = require('fs');
-const path = require('path');
+import { execSync } from 'child_process';
+import fs from 'fs';
+import path from 'path';
+import readline from 'readline';
 
 console.log('☢️  NUCLEAR DATABASE RESET ☢️');
 console.log('');
@@ -22,7 +23,6 @@ console.log('');
 console.log('⚠️  THIS IS IRREVERSIBLE - ALL DATA WILL BE GONE FOREVER! ⚠️');
 console.log('');
 
-const readline = require('readline');
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout
