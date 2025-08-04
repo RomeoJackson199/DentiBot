@@ -187,19 +187,54 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
 
   const fetchRecentAppointments = async (profileId: string) => {
     try {
+      // Fetch appointments with simplified query
       const { data: appointmentsData } = await supabase
         .from('appointments')
         .select(`
-          *,
-          dentists:dentist_id(first_name, last_name, specialization)
+          id,
+          appointment_date,
+          status,
+          reason,
+          urgency,
+          notes,
+          dentist_id
         `)
         .eq('patient_id', profileId)
         .order('appointment_date', { ascending: false })
         .limit(5);
 
-      setRecentAppointments(appointmentsData || []);
+      if (appointmentsData && appointmentsData.length > 0) {
+        // Fetch dentist information separately
+        const dentistIds = [...new Set(appointmentsData.map(apt => apt.dentist_id))];
+        const { data: dentistsData } = await supabase
+          .from('dentists')
+          .select(`
+            id,
+            profile:profiles(first_name, last_name, specialization)
+          `)
+          .in('id', dentistIds);
+
+        // Combine appointments with dentist data
+        const formattedAppointments = appointmentsData.map(apt => {
+          const dentist = dentistsData?.find(d => d.id === apt.dentist_id);
+          return {
+            ...apt,
+            dentists: dentist ? {
+              id: dentist.id,
+              first_name: dentist.profile?.first_name || 'Unknown',
+              last_name: dentist.profile?.last_name || 'Dentist',
+              specialization: dentist.profile?.specialization
+            } : null
+          };
+        });
+
+        setRecentAppointments(formattedAppointments);
+      } else {
+        setRecentAppointments([]);
+      }
     } catch (error) {
       console.error('Error fetching recent appointments:', error);
+      setRecentAppointments([]);
     }
   };
 
@@ -419,7 +454,13 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
         </TabsContent>
 
         <TabsContent value="appointments" className="space-y-4">
-          <RealAppointmentsList user={user} />
+          <RealAppointmentsList 
+            user={user} 
+            onBookNew={() => {
+              setActiveTab('chat');
+              setTriggerBooking('low');
+            }}
+          />
         </TabsContent>
 
         <TabsContent value="prescriptions" className="space-y-4">
