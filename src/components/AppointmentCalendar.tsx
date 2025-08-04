@@ -131,12 +131,12 @@ export const AppointmentCalendar = ({ user, onComplete, onCancel, onBackToDentis
       case 'patient':
         return (
           <PatientSelection
-            onSelectPatient={(isForUserSelected, patientInfoSelected) => {
-              setIsForUser(isForUserSelected);
-              setPatientInfo(patientInfoSelected);
+            onSelect={(patient) => {
+              setIsForUser(false);
+              setPatientInfo(patient);
               setStep('dentist');
             }}
-            onCancel={onCancel}
+            selectedPatient={patientInfo}
           />
         );
 

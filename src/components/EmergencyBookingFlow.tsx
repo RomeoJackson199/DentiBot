@@ -443,7 +443,13 @@ export const EmergencyBookingFlow = ({ user, onComplete, onCancel }: EmergencyBo
               medicalHistory: triageData?.medicalHistory
             }}
             onSelectDentist={(dentist) => {
-              setSelectedDentist(dentist);
+              const updatedDentist: Dentist = {
+                ...dentist,
+                id: dentist.id,
+                specialization: "General Dentistry",
+                profiles: dentist.profiles || { first_name: "Unknown", last_name: "Doctor" }
+              };
+              setSelectedDentist(updatedDentist);
               // Auto-suggest first available date when dentist is selected
               const suggestedDates = getSuggestedDates(urgencyLevel);
               if (suggestedDates.length > 0) {
