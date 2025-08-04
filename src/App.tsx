@@ -22,13 +22,10 @@ import Analytics from "./pages/Analytics";
 import Support from "./pages/Support";
 import FeatureDetail from "./pages/FeatureDetail";
 import { LanguageTest } from "./components/LanguageTest";
-import { PatientDashboard } from "./components/PatientDashboard";
-import { DentistDashboard } from "./components/DentistDashboard";
 
-// Dashboard component that handles authentication and role-based routing
+// Dashboard component that handles authentication
 const DashboardComponent = () => {
   const [user, setUser] = useState<User | null>(null);
-  const [userProfile, setUserProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -39,21 +36,6 @@ const DashboardComponent = () => {
         const { data: { session } } = await supabase.auth.getSession();
         console.log('DashboardComponent: Session data:', session);
         setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          // Fetch user profile to determine role
-          const { data: profile, error } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('user_id', session.user.id)
-            .single();
-            
-          if (!error && profile) {
-            console.log('DashboardComponent: Profile loaded:', profile);
-            setUserProfile(profile);
-          }
-        }
-        
         setLoading(false);
       } catch (error) {
         console.error('DashboardComponent: Error getting session:', error);
@@ -90,14 +72,10 @@ const DashboardComponent = () => {
     return <Navigate to="/" replace />;
   }
 
-  console.log('DashboardComponent: User authenticated, determining dashboard type...');
+  console.log('DashboardComponent: User authenticated, loading PatientDashboard:', user);
+  // Import PatientDashboard directly
+  const { PatientDashboard } = require('./components/PatientDashboard');
   
-  // Route based on user role
-  if (userProfile?.role === 'dentist') {
-    return <DentistDashboard user={user} />;
-  }
-  
-  // Default to PatientDashboard
   return <PatientDashboard user={user} />;
 };
 

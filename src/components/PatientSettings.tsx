@@ -15,10 +15,9 @@ import { Download, Trash2, Shield, Eye, EyeOff } from 'lucide-react';
 
 interface PatientSettingsProps {
   user: User | null;
-  onAiModeChange?: (enabled: boolean) => void;
 }
 
-export const PatientSettings: React.FC<PatientSettingsProps> = ({ user, onAiModeChange }) => {
+export const PatientSettings: React.FC<PatientSettingsProps> = ({ user }) => {
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [aiModeEnabled, setAiModeEnabled] = useState(true);
@@ -264,10 +263,7 @@ export const PatientSettings: React.FC<PatientSettingsProps> = ({ user, onAiMode
                 <Switch
                   id="aiMode"
                   checked={aiModeEnabled}
-                  onCheckedChange={(checked) => {
-                    setAiModeEnabled(checked);
-                    onAiModeChange?.(checked);
-                  }}
+                  onCheckedChange={setAiModeEnabled}
                 />
               </div>
               
