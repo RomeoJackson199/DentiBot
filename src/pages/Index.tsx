@@ -241,10 +241,10 @@ const Index = () => {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="max-w-2xl mx-auto space-y-8">
             <h2 className="text-3xl sm:text-4xl font-bold gradient-text">
-              Ready to Transform Your Practice?
+              {t.readyToTransform}
             </h2>
             <p className="text-xl text-dental-muted-foreground">
-              Join thousands of dental professionals who have revolutionized patient care with AI.
+              {t.joinThousandsProfessionals}
             </p>
             <div className="space-y-4">
               <ProgressiveAuthForm />

@@ -303,7 +303,7 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
       <div className="flex items-center justify-center h-64">
         <div className="flex items-center space-x-2">
           <Loader2 className="h-4 w-4 animate-spin" />
-          <span>Loading your dashboard...</span>
+          <span>{t.loadingDashboard}</span>
         </div>
       </div>
     );
@@ -314,11 +314,11 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Error Loading Dashboard</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">{t.errorLoadingDashboard}</h3>
           <p className="text-gray-600 mb-4">{error}</p>
           <Button onClick={fetchUserProfile}>
             <RefreshCw className="h-4 w-4 mr-2" />
-            Try Again
+            {t.tryAgain}
           </Button>
         </div>
       </div>
@@ -333,16 +333,16 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
           <h1 className="text-2xl font-bold">
             {getWelcomeMessage()}, {userProfile?.first_name || 'Patient'}!
           </h1>
-          <p className="text-gray-600">Welcome to your dental health dashboard</p>
+          <p className="text-gray-600">{t.welcomeToDashboard}</p>
         </div>
         <div className="flex items-center space-x-2">
           <Button variant="outline" size="sm">
             <Bell className="h-4 w-4 mr-2" />
-            Notifications
+            {t.notifications}
           </Button>
           <Button size="sm">
             <Plus className="h-4 w-4 mr-2" />
-            Book Appointment
+            {t.bookAppointment}
           </Button>
           <Settings user={user} />
         </div>
@@ -355,7 +355,7 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
             <div className="flex items-center space-x-2">
               <Calendar className="h-4 w-4 text-blue-600" />
               <div>
-                <p className="text-sm text-gray-600">Upcoming</p>
+                <p className="text-sm text-gray-600">{t.upcoming}</p>
                 <p className="text-xl font-bold">{patientStats.upcomingAppointments}</p>
               </div>
             </div>
@@ -366,7 +366,7 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
             <div className="flex items-center space-x-2">
               <CheckCircle className="h-4 w-4 text-green-600" />
               <div>
-                <p className="text-sm text-gray-600">Completed</p>
+                <p className="text-sm text-gray-600">{t.completed}</p>
                 <p className="text-xl font-bold">{patientStats.completedAppointments}</p>
               </div>
             </div>
@@ -377,7 +377,7 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
             <div className="flex items-center space-x-2">
               <Pill className="h-4 w-4 text-purple-600" />
               <div>
-                <p className="text-sm text-gray-600">Active Rx</p>
+                <p className="text-sm text-gray-600">{t.activeRx}</p>
                 <p className="text-xl font-bold">{patientStats.activePrescriptions}</p>
               </div>
             </div>
@@ -388,7 +388,7 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
             <div className="flex items-center space-x-2">
               <ClipboardList className="h-4 w-4 text-orange-600" />
               <div>
-                <p className="text-sm text-gray-600">Treatment Plans</p>
+                <p className="text-sm text-gray-600">{t.treatmentPlans}</p>
                 <p className="text-xl font-bold">{patientStats.activeTreatmentPlans}</p>
               </div>
             </div>
@@ -399,15 +399,15 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
       {/* Main Content Tabs */}
       <Tabs value={activeTab} onValueChange={(value: Tab) => setActiveTab(value)} className="space-y-4">
         <TabsList className="grid w-full grid-cols-9">
-          <TabsTrigger value="chat">Chat</TabsTrigger>
-          <TabsTrigger value="appointments">Appointments</TabsTrigger>
-          <TabsTrigger value="prescriptions">Prescriptions</TabsTrigger>
-          <TabsTrigger value="treatment">Treatment</TabsTrigger>
-          <TabsTrigger value="records">Records</TabsTrigger>
-          <TabsTrigger value="notes">Notes</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
-          <TabsTrigger value="emergency">Emergency</TabsTrigger>
-          <TabsTrigger value="test">Test</TabsTrigger>
+          <TabsTrigger value="chat">{t.chat}</TabsTrigger>
+          <TabsTrigger value="appointments">{t.appointments}</TabsTrigger>
+          <TabsTrigger value="prescriptions">{t.prescriptions}</TabsTrigger>
+          <TabsTrigger value="treatment">{t.treatmentPlans}</TabsTrigger>
+          <TabsTrigger value="records">{t.medicalRecords}</TabsTrigger>
+          <TabsTrigger value="notes">{t.patientNotes}</TabsTrigger>
+          <TabsTrigger value="analytics">{t.analytics}</TabsTrigger>
+          <TabsTrigger value="emergency">{t.emergency}</TabsTrigger>
+          <TabsTrigger value="test">{t.test}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="chat" className="space-y-4">
@@ -420,10 +420,10 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
 
         <TabsContent value="appointments" className="space-y-4">
           <div className="flex justify-between items-center">
-            <h3 className="text-lg font-semibold">Your Appointments</h3>
+            <h3 className="text-lg font-semibold">{t.yourAppointments}</h3>
             <Button size="sm">
               <Plus className="h-4 w-4 mr-2" />
-              Book New Appointment
+              {t.bookNewAppointment}
             </Button>
           </div>
           <RealAppointmentsList user={user} />
@@ -431,7 +431,7 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
 
         <TabsContent value="prescriptions" className="space-y-4">
           <div className="flex justify-between items-center">
-            <h3 className="text-lg font-semibold">Your Prescriptions</h3>
+            <h3 className="text-lg font-semibold">{t.yourPrescriptions}</h3>
           </div>
           <div className="space-y-2">
             {prescriptions.map((prescription) => (

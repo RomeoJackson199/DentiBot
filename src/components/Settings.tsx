@@ -81,8 +81,8 @@ export const Settings = ({ user }: SettingsProps) => {
     } catch (error) {
       console.error('Error fetching profile:', error);
       toast({
-        title: "Error",
-        description: "Failed to load profile data",
+        title: t.error,
+        description: t.errorLoadingProfile,
         variant: "destructive",
       });
     }
@@ -98,8 +98,8 @@ export const Settings = ({ user }: SettingsProps) => {
       });
     } else {
       toast({
-        title: t.signOut,
-        description: "You have been signed out successfully",
+        title: t.success,
+        description: t.signOutSuccess || "You have been signed out successfully",
       });
     }
   };
@@ -113,8 +113,8 @@ export const Settings = ({ user }: SettingsProps) => {
       console.log('Profile save result:', result);
 
       toast({
-        title: "Success",
-        description: "Personal information saved successfully",
+        title: t.success,
+        description: t.personalInfoSaved,
       });
       
       // Refresh profile to update incomplete status
@@ -123,20 +123,20 @@ export const Settings = ({ user }: SettingsProps) => {
       console.error('Profile save error:', error);
       
       // Provide more specific error messages
-      let errorMessage = 'Unknown error occurred';
+      let errorMessage = t.unknownError;
       if (error instanceof Error) {
         if (error.message.includes('RLS')) {
-          errorMessage = 'Authentication error. Please try logging in again.';
+          errorMessage = t.authenticationError;
         } else if (error.message.includes('network')) {
-          errorMessage = 'Network error. Please check your connection.';
+          errorMessage = t.networkError;
         } else {
           errorMessage = error.message;
         }
       }
       
       toast({
-        title: "Error",
-        description: `Failed to save personal information: ${errorMessage}`,
+        title: t.error,
+        description: `${t.failedToSavePersonalInfo}: ${errorMessage}`,
         variant: "destructive",
       });
     } finally {
@@ -165,15 +165,15 @@ export const Settings = ({ user }: SettingsProps) => {
       setProfile(prev => ({ ...prev, ai_opt_out: optOut }));
       
       toast({
-        title: optOut ? "AI Features Disabled" : "AI Features Enabled",
+        title: optOut ? t.aiFeaturesDisabled : t.aiFeaturesEnabled,
         description: optOut 
-          ? "AI features have been disabled for your account. You can re-enable them anytime in settings."
-          : "AI features have been enabled for your account.",
+          ? t.aiFeaturesDisabledDesc
+          : t.aiFeaturesEnabledDesc,
       });
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to update AI settings",
+        title: t.error,
+        description: t.failedToUpdateAiSettings,
         variant: "destructive",
       });
     }

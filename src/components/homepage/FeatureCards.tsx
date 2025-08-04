@@ -3,59 +3,62 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Brain, Clock, BarChart3, MessageSquare, Calendar, Shield, Smartphone, Zap, Heart, Bot, Sparkles, Users, CheckCircle, ArrowRight, Star } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useLanguage } from "@/hooks/useLanguage";
 
 export const FeatureCards = () => {
+  const { t } = useLanguage();
+  
   const features = [
     {
       icon: Bot,
-      title: "AI Chat Assistant",
-      description: "Get instant answers to dental questions with our intelligent AI assistant. Available 24/7 for all your dental concerns.",
-      badge: "Most Popular",
+      title: t.aiChatAssistant,
+      description: t.getInstantAnswers,
+      badge: t.mostPopular,
       color: "text-blue-500",
       bgColor: "bg-gradient-to-r from-blue-500 to-purple-500",
       delay: "0.2s"
     }, 
     {
       icon: Calendar,
-      title: "Smart Appointment Booking",
-      description: "Book appointments intelligently with duration information and automated scheduling based on your preferences.",
-      badge: "Time Saver",
+      title: t.smartBooking,
+      description: t.bookIntelligently,
+      badge: t.timeSaver,
       color: "text-green-500",
       bgColor: "bg-gradient-to-r from-green-500 to-blue-500",
       delay: "0.4s"
     }, 
     {
       icon: Heart,
-      title: "Health Records Management",
-      description: "Keep track of your dental health with comprehensive medical history and treatment plan management.",
-      badge: "Health Focused",
+      title: t.healthRecordsManagement || "Health Records Management",
+      description: t.healthRecordsDescription || "Keep track of your dental health with comprehensive medical history and treatment plan management.",
+      badge: t.healthFocused,
       color: "text-red-500",
       bgColor: "bg-gradient-to-r from-red-500 to-pink-500",
       delay: "0.6s"
     }, 
     {
       icon: MessageSquare,
-      title: "Family Care Support",
-      description: "Book appointments for your entire family. Manage multiple profiles with ease and convenience.",
-      badge: "Family Friendly",
+      title: t.familyCareSupport || "Family Care Support",
+      description: t.familyCareDescription || "Book appointments for your entire family. Manage multiple profiles with ease and convenience.",
+      badge: t.familyFriendly,
       color: "text-purple-500",
       bgColor: "bg-gradient-to-r from-purple-500 to-indigo-500",
       delay: "0.8s"
     }, 
     {
       icon: Smartphone,
-      title: "Mobile-First Experience",
-      description: "Perfect experience on any device with PWA technology for native app-like performance and offline access.",
-      badge: "Mobile Ready",
+      title: t.mobileFirstExperience || "Mobile-First Experience",
+      description: t.mobileFirstDescription || "Perfect experience on any device with PWA technology for native app-like performance and offline access.",
+      badge: t.mobileReady,
       color: "text-orange-500",
       bgColor: "bg-gradient-to-r from-orange-500 to-red-500",
       delay: "1.0s"
     }, 
     {
       icon: Shield,
-      title: "Privacy & Security",
-      description: "HIPAA/GDPR compliant with end-to-end encryption and secure data handling for your peace of mind.",
-      badge: "Secure",
+      title: t.privacyAndSecurity || "Privacy & Security",
+      description: t.privacySecurityDescription || "HIPAA/GDPR compliant with end-to-end encryption and secure data handling for your peace of mind.",
+      badge: t.secure,
       color: "text-indigo-500",
       bgColor: "bg-gradient-to-r from-indigo-500 to-purple-500",
       delay: "1.2s"
@@ -72,16 +75,15 @@ export const FeatureCards = () => {
             className="mb-4 sm:mb-6 px-4 py-2 sm:px-6 sm:py-3 bg-gradient-glass backdrop-blur-xl border-dental-primary/30 text-dental-primary shadow-elegant hover:shadow-glow hover:scale-105 transition-all duration-300 animate-fade-in touch-target"
           >
             <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 mr-2 animate-pulse-soft" />
-            <span className="font-semibold text-mobile-sm sm:text-base">Advanced Features</span>
+            <span className="font-semibold text-mobile-sm sm:text-base">{t.advancedFeatures}</span>
           </Badge>
           
           <h2 className="mobile-heading-lg animate-slide-up mb-4 sm:mb-6">
-            Everything You Need for Better Dental Care
+            {t.everythingYouNeed}
           </h2>
           
           <p className="mobile-body sm:text-xl text-dental-muted-foreground animate-fade-in" style={{ animationDelay: "0.2s" }}>
-            Experience the future of dental care with AI-powered features designed to make your dental journey 
-            smoother, smarter, and more convenient.
+            {t.futureOfDentalCare}
           </p>
         </div>
 
@@ -122,15 +124,15 @@ export const FeatureCards = () => {
                 <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-6">
                   <div className="flex items-center space-x-2 sm:space-x-3 mobile-caption group-hover:text-dental-primary transition-colors">
                     <CheckCircle className="w-4 h-4 text-success flex-shrink-0" />
-                    <span>Available 24/7</span>
+                    <span>{t.available24_7Feature}</span>
                   </div>
                   <div className="flex items-center space-x-2 sm:space-x-3 mobile-caption group-hover:text-dental-primary transition-colors">
                     <CheckCircle className="w-4 h-4 text-success flex-shrink-0" />
-                    <span>Instant responses</span>
+                    <span>{t.instantResponses}</span>
                   </div>
                   <div className="flex items-center space-x-2 sm:space-x-3 mobile-caption group-hover:text-dental-primary transition-colors">
                     <CheckCircle className="w-4 h-4 text-success flex-shrink-0" />
-                    <span>Secure & private</span>
+                    <span>{t.secureAndPrivateFeature}</span>
                   </div>
                 </div>
 
@@ -140,7 +142,7 @@ export const FeatureCards = () => {
                     to={`/features/${index}`}
                     className="inline-flex items-center mobile-caption sm:text-sm text-dental-primary font-medium hover:underline group/link touch-feedback"
                   >
-                    Learn more 
+                    {t.learnMore}
                     <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 ml-1 group-hover/link:translate-x-1 transition-transform" />
                   </Link>
                 </div>
@@ -161,11 +163,11 @@ export const FeatureCards = () => {
               </div>
               
               <h3 className="mobile-heading-md sm:text-3xl gradient-text mb-3 sm:mb-4">
-                Join Thousands of Happy Patients
+                {t.joinThousands}
               </h3>
               
               <p className="mobile-body sm:text-lg text-dental-muted-foreground mb-6 sm:mb-8">
-                Start your journey to better dental health today. It's free to get started and takes less than 2 minutes!
+                {t.startYourJourney}
               </p>
               
               {/* Enhanced Rating Display - Mobile responsive */}
@@ -175,7 +177,7 @@ export const FeatureCards = () => {
                     <Star key={i} className="w-4 h-4 sm:w-5 sm:h-5 fill-yellow-400 text-yellow-400" />
                   ))}
                 </div>
-                <span className="mobile-caption sm:text-sm text-dental-muted-foreground font-medium">4.9/5 from 2,000+ reviews</span>
+                <span className="mobile-caption sm:text-sm text-dental-muted-foreground font-medium">{t.fromReviews}</span>
               </div>
               
               <div className="flex flex-col gap-3 sm:flex-row sm:gap-4 justify-center">
@@ -185,7 +187,7 @@ export const FeatureCards = () => {
                   className="w-full sm:w-auto px-6 sm:px-8 py-3 font-semibold group touch-target"
                   rightIcon={<ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />}
                 >
-                  Get Started Free
+                  {t.getStartedFree}
                 </Button>
                 
                 <Link to="/emergency-triage" className="w-full sm:w-auto">
@@ -195,7 +197,7 @@ export const FeatureCards = () => {
                     className="w-full px-6 sm:px-8 py-3 font-semibold border-dental-primary/30 hover:border-dental-primary/60 touch-target"
                     icon={<Zap className="w-4 h-4 sm:w-5 sm:h-5" />}
                   >
-                    Emergency Assessment
+                    {t.emergencyAssessment}
                   </Button>
                 </Link>
               </div>

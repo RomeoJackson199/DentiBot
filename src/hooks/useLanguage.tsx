@@ -228,6 +228,167 @@ interface Translations {
 
   // Emergency Triage
   'triage.title': string;
+  
+  // Dashboard & Navigation
+  dashboard: string;
+  welcomeBack: string;
+  welcomeToDashboard: string;
+  notifications: string;
+  bookAppointment: string;
+  upcoming: string;
+  completed: string;
+  activeRx: string;
+  treatmentPlans: string;
+  yourAppointments: string;
+  bookNewAppointment: string;
+  yourPrescriptions: string;
+  yourTreatmentPlans: string;
+  yourRecords: string;
+  yourNotes: string;
+  analytics: string;
+  emergency: string;
+  test: string;
+  
+  // Settings
+  generalSettings: string;
+  themeSettings: string;
+  personalSettings: string;
+  signOut: string;
+  signOutConfirm: string;
+  profileIncomplete: string;
+  completeProfile: string;
+  aiOptOut: string;
+  aiOptOutDescription: string;
+  downloadData: string;
+  deleteAccount: string;
+  deleteAccountConfirm: string;
+  deleteAccountWarning: string;
+  
+  // Loading & Error States
+  loadingDashboard: string;
+  loadingProfile: string;
+  errorLoadingDashboard: string;
+  errorLoadingProfile: string;
+  tryAgain: string;
+  determiningAccess: string;
+  
+  // Stats & Metrics
+  appointments: string;
+  prescriptions: string;
+  treatmentPlans: string;
+  medicalRecords: string;
+  patientNotes: string;
+  
+  // Homepage
+  poweredByAdvancedAI: string;
+  available24_7: string;
+  yourIntelligent: string;
+  dentalAssistant: string;
+  experienceFuture: string;
+  aiPoweredConsultations: string;
+  smartAppointmentBooking: string;
+  personalizedTreatment: string;
+  aiChatAssistant: string;
+  getInstantAnswers: string;
+  smartBooking: string;
+  bookIntelligently: string;
+  emergencyTriage: string;
+  quickAssessment: string;
+  available: string;
+  accuracy: string;
+  avgResponse: string;
+  getStartedFree: string;
+  emergencyAssessment: string;
+  hipaaCompliant: string;
+  secureAndPrivate: string;
+  noCreditCard: string;
+  
+  // Feature Cards
+  advancedFeatures: string;
+  everythingYouNeed: string;
+  futureOfDentalCare: string;
+  aiPoweredFeatures: string;
+  mostPopular: string;
+  timeSaver: string;
+  healthFocused: string;
+  familyFriendly: string;
+  mobileReady: string;
+  secure: string;
+  available24_7Feature: string;
+  instantResponses: string;
+  secureAndPrivateFeature: string;
+  learnMore: string;
+  joinThousands: string;
+  startYourJourney: string;
+  freeToGetStarted: string;
+  fromReviews: string;
+  
+  // Footer
+  readyToTransform: string;
+  joinThousandsProfessionals: string;
+  revolutionizedPatientCare: string;
+  
+  // Common Actions
+  save: string;
+  cancel: string;
+  confirm: string;
+  delete: string;
+  edit: string;
+  view: string;
+  add: string;
+  remove: string;
+  update: string;
+  refresh: string;
+  retry: string;
+  close: string;
+  back: string;
+  next: string;
+  previous: string;
+  submit: string;
+  reset: string;
+  search: string;
+  filter: string;
+  sort: string;
+  
+  // Status Messages
+  success: string;
+  error: string;
+  warning: string;
+  info: string;
+  loading: string;
+  saved: string;
+  updated: string;
+  deleted: string;
+  created: string;
+  failed: string;
+  cancelled: string;
+  confirmed: string;
+  pending: string;
+  completed: string;
+  active: string;
+  inactive: string;
+  
+  // Additional Settings
+  signOutSuccess: string;
+  aiFeaturesDisabled: string;
+  aiFeaturesEnabled: string;
+  aiFeaturesDisabledDesc: string;
+  aiFeaturesEnabledDesc: string;
+  failedToUpdateAiSettings: string;
+  failedToSavePersonalInfo: string;
+  authenticationError: string;
+  networkError: string;
+  unknownError: string;
+  
+  // Feature Descriptions
+  healthRecordsManagement: string;
+  healthRecordsDescription: string;
+  familyCareSupport: string;
+  familyCareDescription: string;
+  mobileFirstExperience: string;
+  mobileFirstDescription: string;
+  privacyAndSecurity: string;
+  privacySecurityDescription: string;
 }
 
 const translations: Record<Language, Translations> = {
@@ -490,6 +651,167 @@ How can I help you today?`,
 
     // Emergency Triage
     'triage.title': "Emergency Dental Triage",
+    
+    // Dashboard & Navigation
+    dashboard: "Dashboard",
+    welcomeBack: "Welcome back",
+    welcomeToDashboard: "Welcome to your dental health dashboard",
+    notifications: "Notifications",
+    bookAppointment: "Book Appointment",
+    upcoming: "Upcoming",
+    completed: "Completed",
+    activeRx: "Active Rx",
+    treatmentPlans: "Treatment Plans",
+    yourAppointments: "Your Appointments",
+    bookNewAppointment: "Book New Appointment",
+    yourPrescriptions: "Your Prescriptions",
+    yourTreatmentPlans: "Your Treatment Plans",
+    yourRecords: "Your Records",
+    yourNotes: "Your Notes",
+    analytics: "Analytics",
+    emergency: "Emergency",
+    test: "Test",
+    
+    // Settings
+    generalSettings: "General Settings",
+    themeSettings: "Theme Settings",
+    personalSettings: "Personal Settings",
+    signOut: "Sign Out",
+    signOutConfirm: "Are you sure you want to sign out?",
+    profileIncomplete: "Profile Incomplete",
+    completeProfile: "Complete Profile",
+    aiOptOut: "AI Opt-Out",
+    aiOptOutDescription: "Opt out of AI-powered features",
+    downloadData: "Download My Data",
+    deleteAccount: "Delete My Account & Data",
+    deleteAccountConfirm: "Are you sure you want to delete your account? This action cannot be undone.",
+    deleteAccountWarning: "This will permanently delete all your data.",
+    
+    // Loading & Error States
+    loadingDashboard: "Loading Dashboard",
+    loadingProfile: "Loading Profile",
+    errorLoadingDashboard: "Error Loading Dashboard",
+    errorLoadingProfile: "Error Loading Profile",
+    tryAgain: "Try Again",
+    determiningAccess: "Determining your access level and personalizing your experience...",
+    
+    // Stats & Metrics
+    appointments: "Appointments",
+    prescriptions: "Prescriptions",
+    treatmentPlans: "Treatment Plans",
+    medicalRecords: "Medical Records",
+    patientNotes: "Patient Notes",
+    
+    // Homepage
+    poweredByAdvancedAI: "Powered by Advanced AI",
+    available24_7: "24/7 Available",
+    yourIntelligent: "Your Intelligent",
+    dentalAssistant: "Dental Assistant",
+    experienceFuture: "Experience the future of dental care with AI-powered consultations, smart appointment booking, and personalized treatment recommendations.",
+    aiPoweredConsultations: "AI-powered consultations",
+    smartAppointmentBooking: "smart appointment booking",
+    personalizedTreatment: "personalized treatment recommendations",
+    aiChatAssistant: "AI Chat Assistant",
+    getInstantAnswers: "Get instant answers to dental questions and concerns",
+    smartBooking: "Smart Booking",
+    bookIntelligently: "Book appointments intelligently with duration info",
+    emergencyTriage: "Emergency Triage",
+    quickAssessment: "Quick assessment for urgent dental situations",
+    available: "Available",
+    accuracy: "Accuracy",
+    avgResponse: "Avg Response",
+    getStartedFree: "Get Started Free",
+    emergencyAssessment: "Emergency Assessment",
+    hipaaCompliant: "HIPAA Compliant",
+    secureAndPrivate: "Secure & Private",
+    noCreditCard: "No Credit Card",
+    
+    // Feature Cards
+    advancedFeatures: "Advanced Features",
+    everythingYouNeed: "Everything You Need for Better Dental Care",
+    futureOfDentalCare: "Experience the future of dental care with AI-powered features designed to make your dental journey smoother, smarter, and more convenient.",
+    aiPoweredFeatures: "AI-powered features",
+    mostPopular: "Most Popular",
+    timeSaver: "Time Saver",
+    healthFocused: "Health Focused",
+    familyFriendly: "Family Friendly",
+    mobileReady: "Mobile Ready",
+    secure: "Secure",
+    available24_7Feature: "Available 24/7",
+    instantResponses: "Instant responses",
+    secureAndPrivateFeature: "Secure & private",
+    learnMore: "Learn more",
+    joinThousands: "Join Thousands of Happy Patients",
+    startYourJourney: "Start your journey to better dental health today. It's free to get started and takes less than 2 minutes!",
+    freeToGetStarted: "free to get started",
+    fromReviews: "4.9/5 from 2,000+ reviews",
+    
+    // Footer
+    readyToTransform: "Ready to Transform Your Practice?",
+    joinThousandsProfessionals: "Join thousands of dental professionals who have revolutionized patient care with AI.",
+    revolutionizedPatientCare: "revolutionized patient care with AI",
+    
+    // Common Actions
+    save: "Save",
+    cancel: "Cancel",
+    confirm: "Confirm",
+    delete: "Delete",
+    edit: "Edit",
+    view: "View",
+    add: "Add",
+    remove: "Remove",
+    update: "Update",
+    refresh: "Refresh",
+    retry: "Retry",
+    close: "Close",
+    back: "Back",
+    next: "Next",
+    previous: "Previous",
+    submit: "Submit",
+    reset: "Reset",
+    search: "Search",
+    filter: "Filter",
+    sort: "Sort",
+    
+    // Status Messages
+    success: "Success",
+    error: "Error",
+    warning: "Warning",
+    info: "Info",
+    loading: "Loading",
+    saved: "Saved",
+    updated: "Updated",
+    deleted: "Deleted",
+    created: "Created",
+    failed: "Failed",
+    cancelled: "Cancelled",
+    confirmed: "Confirmed",
+    pending: "Pending",
+    completed: "Completed",
+    active: "Active",
+    inactive: "Inactive",
+    
+    // Additional Settings
+    signOutSuccess: "You have been signed out successfully",
+    aiFeaturesDisabled: "AI Features Disabled",
+    aiFeaturesEnabled: "AI Features Enabled",
+    aiFeaturesDisabledDesc: "AI features have been disabled for your account. You can re-enable them anytime in settings.",
+    aiFeaturesEnabledDesc: "AI features have been enabled for your account.",
+    failedToUpdateAiSettings: "Failed to update AI settings",
+    failedToSavePersonalInfo: "Failed to save personal information",
+    authenticationError: "Authentication error. Please try logging in again.",
+    networkError: "Network error. Please check your connection.",
+    unknownError: "Unknown error occurred",
+    
+    // Feature Descriptions
+    healthRecordsManagement: "Health Records Management",
+    healthRecordsDescription: "Keep track of your dental health with comprehensive medical history and treatment plan management.",
+    familyCareSupport: "Family Care Support",
+    familyCareDescription: "Book appointments for your entire family. Manage multiple profiles with ease and convenience.",
+    mobileFirstExperience: "Mobile-First Experience",
+    mobileFirstDescription: "Perfect experience on any device with PWA technology for native app-like performance and offline access.",
+    privacyAndSecurity: "Privacy & Security",
+    privacySecurityDescription: "HIPAA/GDPR compliant with end-to-end encryption and secure data handling for your peace of mind.",
   },
   fr: {
     // Error & status messages
@@ -759,6 +1081,167 @@ Comment puis-je vous aider aujourd'hui ?`,
 
     // Emergency Triage
     'triage.title': "Triage Dentaire d'Urgence",
+    
+    // Dashboard & Navigation
+    dashboard: "Tableau de Bord",
+    welcomeBack: "Bon retour",
+    welcomeToDashboard: "Bienvenue sur votre tableau de bord de santé dentaire",
+    notifications: "Notifications",
+    bookAppointment: "Prendre Rendez-vous",
+    upcoming: "À venir",
+    completed: "Terminé",
+    activeRx: "Rx Actifs",
+    treatmentPlans: "Plans de Traitement",
+    yourAppointments: "Vos Rendez-vous",
+    bookNewAppointment: "Prendre un Nouveau Rendez-vous",
+    yourPrescriptions: "Vos Prescriptions",
+    yourTreatmentPlans: "Vos Plans de Traitement",
+    yourRecords: "Vos Dossiers",
+    yourNotes: "Vos Notes",
+    analytics: "Analyses",
+    emergency: "Urgence",
+    test: "Test",
+    
+    // Settings
+    generalSettings: "Paramètres Généraux",
+    themeSettings: "Paramètres de Thème",
+    personalSettings: "Paramètres Personnels",
+    signOut: "Se Déconnecter",
+    signOutConfirm: "Êtes-vous sûr de vouloir vous déconnecter ?",
+    profileIncomplete: "Profil Incomplet",
+    completeProfile: "Compléter le Profil",
+    aiOptOut: "Désactivation IA",
+    aiOptOutDescription: "Désactiver les fonctionnalités alimentées par l'IA",
+    downloadData: "Télécharger Mes Données",
+    deleteAccount: "Supprimer Mon Compte et Mes Données",
+    deleteAccountConfirm: "Êtes-vous sûr de vouloir supprimer votre compte ? Cette action ne peut pas être annulée.",
+    deleteAccountWarning: "Cela supprimera définitivement toutes vos données.",
+    
+    // Loading & Error States
+    loadingDashboard: "Chargement du Tableau de Bord",
+    loadingProfile: "Chargement du Profil",
+    errorLoadingDashboard: "Erreur de Chargement du Tableau de Bord",
+    errorLoadingProfile: "Erreur de Chargement du Profil",
+    tryAgain: "Réessayer",
+    determiningAccess: "Détermination de votre niveau d'accès et personnalisation de votre expérience...",
+    
+    // Stats & Metrics
+    appointments: "Rendez-vous",
+    prescriptions: "Prescriptions",
+    treatmentPlans: "Plans de Traitement",
+    medicalRecords: "Dossiers Médicaux",
+    patientNotes: "Notes du Patient",
+    
+    // Homepage
+    poweredByAdvancedAI: "Alimenté par l'IA Avancée",
+    available24_7: "Disponible 24h/24",
+    yourIntelligent: "Votre Assistant",
+    dentalAssistant: "Dentaire Intelligent",
+    experienceFuture: "Découvrez l'avenir des soins dentaires avec des consultations IA, une prise de rendez-vous intelligente et des recommandations de traitement personnalisées.",
+    aiPoweredConsultations: "consultations alimentées par l'IA",
+    smartAppointmentBooking: "prise de rendez-vous intelligente",
+    personalizedTreatment: "recommandations de traitement personnalisées",
+    aiChatAssistant: "Assistant Chat IA",
+    getInstantAnswers: "Obtenez des réponses instantanées à vos questions et préoccupations dentaires",
+    smartBooking: "Réservation Intelligente",
+    bookIntelligently: "Réservez des rendez-vous intelligemment avec les informations de durée",
+    emergencyTriage: "Triage d'Urgence",
+    quickAssessment: "Évaluation rapide pour les situations dentaires urgentes",
+    available: "Disponible",
+    accuracy: "Précision",
+    avgResponse: "Réponse Moy",
+    getStartedFree: "Commencer Gratuitement",
+    emergencyAssessment: "Évaluation d'Urgence",
+    hipaaCompliant: "Conforme HIPAA",
+    secureAndPrivate: "Sécurisé et Privé",
+    noCreditCard: "Pas de Carte de Crédit",
+    
+    // Feature Cards
+    advancedFeatures: "Fonctionnalités Avancées",
+    everythingYouNeed: "Tout Ce Dont Vous Avez Besoin pour de Meilleurs Soins Dentaires",
+    futureOfDentalCare: "Découvrez l'avenir des soins dentaires avec des fonctionnalités alimentées par l'IA conçues pour rendre votre parcours dentaire plus fluide, plus intelligent et plus pratique.",
+    aiPoweredFeatures: "fonctionnalités alimentées par l'IA",
+    mostPopular: "Le Plus Populaire",
+    timeSaver: "Gain de Temps",
+    healthFocused: "Centré sur la Santé",
+    familyFriendly: "Familial",
+    mobileReady: "Prêt Mobile",
+    secure: "Sécurisé",
+    available24_7Feature: "Disponible 24h/24",
+    instantResponses: "Réponses instantanées",
+    secureAndPrivateFeature: "Sécurisé et privé",
+    learnMore: "En savoir plus",
+    joinThousands: "Rejoignez des Milliers de Patients Heureux",
+    startYourJourney: "Commencez votre parcours vers une meilleure santé dentaire aujourd'hui. C'est gratuit pour commencer et prend moins de 2 minutes !",
+    freeToGetStarted: "gratuit pour commencer",
+    fromReviews: "4,9/5 de plus de 2 000 avis",
+    
+    // Footer
+    readyToTransform: "Prêt à Transformer Votre Pratique ?",
+    joinThousandsProfessionals: "Rejoignez des milliers de professionnels dentaires qui ont révolutionné les soins aux patients avec l'IA.",
+    revolutionizedPatientCare: "révolutionné les soins aux patients avec l'IA",
+    
+    // Common Actions
+    save: "Enregistrer",
+    cancel: "Annuler",
+    confirm: "Confirmer",
+    delete: "Supprimer",
+    edit: "Modifier",
+    view: "Voir",
+    add: "Ajouter",
+    remove: "Supprimer",
+    update: "Mettre à Jour",
+    refresh: "Actualiser",
+    retry: "Réessayer",
+    close: "Fermer",
+    back: "Retour",
+    next: "Suivant",
+    previous: "Précédent",
+    submit: "Soumettre",
+    reset: "Réinitialiser",
+    search: "Rechercher",
+    filter: "Filtrer",
+    sort: "Trier",
+    
+    // Status Messages
+    success: "Succès",
+    error: "Erreur",
+    warning: "Avertissement",
+    info: "Info",
+    loading: "Chargement",
+    saved: "Enregistré",
+    updated: "Mis à Jour",
+    deleted: "Supprimé",
+    created: "Créé",
+    failed: "Échoué",
+    cancelled: "Annulé",
+    confirmed: "Confirmé",
+    pending: "En Attente",
+    completed: "Terminé",
+    active: "Actif",
+    inactive: "Inactif",
+    
+    // Additional Settings
+    signOutSuccess: "Vous avez été déconnecté avec succès",
+    aiFeaturesDisabled: "Fonctionnalités IA Désactivées",
+    aiFeaturesEnabled: "Fonctionnalités IA Activées",
+    aiFeaturesDisabledDesc: "Les fonctionnalités IA ont été désactivées pour votre compte. Vous pouvez les réactiver à tout moment dans les paramètres.",
+    aiFeaturesEnabledDesc: "Les fonctionnalités IA ont été activées pour votre compte.",
+    failedToUpdateAiSettings: "Échec de la mise à jour des paramètres IA",
+    failedToSavePersonalInfo: "Échec de l'enregistrement des informations personnelles",
+    authenticationError: "Erreur d'authentification. Veuillez essayer de vous reconnecter.",
+    networkError: "Erreur réseau. Veuillez vérifier votre connexion.",
+    unknownError: "Une erreur inconnue s'est produite",
+    
+    // Feature Descriptions
+    healthRecordsManagement: "Gestion des Dossiers Médicaux",
+    healthRecordsDescription: "Suivez votre santé dentaire avec un historique médical complet et la gestion des plans de traitement.",
+    familyCareSupport: "Support des Soins Familiaux",
+    familyCareDescription: "Réservez des rendez-vous pour toute votre famille. Gérez plusieurs profils avec facilité et commodité.",
+    mobileFirstExperience: "Expérience Mobile-First",
+    mobileFirstDescription: "Expérience parfaite sur n'importe quel appareil avec la technologie PWA pour des performances natives et un accès hors ligne.",
+    privacyAndSecurity: "Confidentialité et Sécurité",
+    privacySecurityDescription: "Conforme HIPAA/GDPR avec chiffrement de bout en bout et gestion sécurisée des données pour votre tranquillité d'esprit.",
   },
   nl: {
     // Error & status messages
@@ -1024,6 +1507,167 @@ Hoe kan ik u vandaag helpen?`,
 
     // Emergency Triage
     'triage.title': "Spoed Tandheelkundige Triage",
+    
+    // Dashboard & Navigation
+    dashboard: "Dashboard",
+    welcomeBack: "Welkom terug",
+    welcomeToDashboard: "Welkom op uw tandheelkundige gezondheidsdashboard",
+    notifications: "Meldingen",
+    bookAppointment: "Afspraak Maken",
+    upcoming: "Aankomend",
+    completed: "Voltooid",
+    activeRx: "Actieve Rx",
+    treatmentPlans: "Behandelingsplannen",
+    yourAppointments: "Uw Afspraken",
+    bookNewAppointment: "Nieuwe Afspraak Maken",
+    yourPrescriptions: "Uw Voorschriften",
+    yourTreatmentPlans: "Uw Behandelingsplannen",
+    yourRecords: "Uw Dossiers",
+    yourNotes: "Uw Notities",
+    analytics: "Analyses",
+    emergency: "Spoed",
+    test: "Test",
+    
+    // Settings
+    generalSettings: "Algemene Instellingen",
+    themeSettings: "Thema Instellingen",
+    personalSettings: "Persoonlijke Instellingen",
+    signOut: "Uitloggen",
+    signOutConfirm: "Weet u zeker dat u wilt uitloggen?",
+    profileIncomplete: "Profiel Onvolledig",
+    completeProfile: "Profiel Voltooien",
+    aiOptOut: "AI Uitschakelen",
+    aiOptOutDescription: "Schakel AI-aangedreven functies uit",
+    downloadData: "Mijn Gegevens Downloaden",
+    deleteAccount: "Mijn Account en Gegevens Verwijderen",
+    deleteAccountConfirm: "Weet u zeker dat u uw account wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.",
+    deleteAccountWarning: "Dit zal al uw gegevens permanent verwijderen.",
+    
+    // Loading & Error States
+    loadingDashboard: "Dashboard Laden",
+    loadingProfile: "Profiel Laden",
+    errorLoadingDashboard: "Fout bij het Laden van Dashboard",
+    errorLoadingProfile: "Fout bij het Laden van Profiel",
+    tryAgain: "Opnieuw Proberen",
+    determiningAccess: "Uw toegangsniveau bepalen en uw ervaring personaliseren...",
+    
+    // Stats & Metrics
+    appointments: "Afspraken",
+    prescriptions: "Voorschriften",
+    treatmentPlans: "Behandelingsplannen",
+    medicalRecords: "Medische Dossiers",
+    patientNotes: "Patiëntnotities",
+    
+    // Homepage
+    poweredByAdvancedAI: "Aangedreven door Geavanceerde AI",
+    available24_7: "24/7 Beschikbaar",
+    yourIntelligent: "Uw Intelligente",
+    dentalAssistant: "Tandheelkundige Assistent",
+    experienceFuture: "Ervaar de toekomst van tandheelkundige zorg met AI-consultaties, slimme afspraakplanning en gepersonaliseerde behandelingsaanbevelingen.",
+    aiPoweredConsultations: "AI-consultaties",
+    smartAppointmentBooking: "slimme afspraakplanning",
+    personalizedTreatment: "gepersonaliseerde behandelingsaanbevelingen",
+    aiChatAssistant: "AI Chat Assistent",
+    getInstantAnswers: "Krijg directe antwoorden op tandheelkundige vragen en zorgen",
+    smartBooking: "Slimme Boekingen",
+    bookIntelligently: "Boek afspraken intelligent met duurduurinformatie",
+    emergencyTriage: "Spoed Triage",
+    quickAssessment: "Snelle beoordeling voor urgente tandheelkundige situaties",
+    available: "Beschikbaar",
+    accuracy: "Nauwkeurigheid",
+    avgResponse: "Gem Resp",
+    getStartedFree: "Gratis Beginnen",
+    emergencyAssessment: "Spoed Beoordeling",
+    hipaaCompliant: "HIPAA Conform",
+    secureAndPrivate: "Veilig en Privé",
+    noCreditCard: "Geen Creditcard",
+    
+    // Feature Cards
+    advancedFeatures: "Geavanceerde Functies",
+    everythingYouNeed: "Alles Wat U Nodig Heeft voor Betere Tandheelkundige Zorg",
+    futureOfDentalCare: "Ervaar de toekomst van tandheelkundige zorg met AI-functies ontworpen om uw tandheelkundige reis soepeler, slimmer en handiger te maken.",
+    aiPoweredFeatures: "AI-functies",
+    mostPopular: "Meest Populair",
+    timeSaver: "Tijdbesparend",
+    healthFocused: "Gezondheidsgericht",
+    familyFriendly: "Gezinsvriendelijk",
+    mobileReady: "Mobiel Klaar",
+    secure: "Veilig",
+    available24_7Feature: "24/7 Beschikbaar",
+    instantResponses: "Directe antwoorden",
+    secureAndPrivateFeature: "Veilig en privé",
+    learnMore: "Meer informatie",
+    joinThousands: "Doe Mee met Duizenden Blije Patiënten",
+    startYourJourney: "Begin vandaag uw reis naar betere tandheelkundige gezondheid. Het is gratis om te beginnen en duurt minder dan 2 minuten!",
+    freeToGetStarted: "gratis om te beginnen",
+    fromReviews: "4,9/5 van meer dan 2.000 beoordelingen",
+    
+    // Footer
+    readyToTransform: "Klaar om Uw Praktijk te Transformeren?",
+    joinThousandsProfessionals: "Doe mee met duizenden tandheelkundige professionals die patiëntenzorg hebben gerevolutioneerd met AI.",
+    revolutionizedPatientCare: "patiëntenzorg hebben gerevolutioneerd met AI",
+    
+    // Common Actions
+    save: "Opslaan",
+    cancel: "Annuleren",
+    confirm: "Bevestigen",
+    delete: "Verwijderen",
+    edit: "Bewerken",
+    view: "Bekijken",
+    add: "Toevoegen",
+    remove: "Verwijderen",
+    update: "Bijwerken",
+    refresh: "Vernieuwen",
+    retry: "Opnieuw Proberen",
+    close: "Sluiten",
+    back: "Terug",
+    next: "Volgende",
+    previous: "Vorige",
+    submit: "Indienen",
+    reset: "Resetten",
+    search: "Zoeken",
+    filter: "Filteren",
+    sort: "Sorteren",
+    
+    // Status Messages
+    success: "Succes",
+    error: "Fout",
+    warning: "Waarschuwing",
+    info: "Info",
+    loading: "Laden",
+    saved: "Opgeslagen",
+    updated: "Bijgewerkt",
+    deleted: "Verwijderd",
+    created: "Aangemaakt",
+    failed: "Mislukt",
+    cancelled: "Geannuleerd",
+    confirmed: "Bevestigd",
+    pending: "In Afwachting",
+    completed: "Voltooid",
+    active: "Actief",
+    inactive: "Inactief",
+    
+    // Additional Settings
+    signOutSuccess: "U bent succesvol uitgelogd",
+    aiFeaturesDisabled: "AI Functies Uitgeschakeld",
+    aiFeaturesEnabled: "AI Functies Ingeschakeld",
+    aiFeaturesDisabledDesc: "AI-functies zijn uitgeschakeld voor uw account. U kunt ze altijd weer inschakelen in de instellingen.",
+    aiFeaturesEnabledDesc: "AI-functies zijn ingeschakeld voor uw account.",
+    failedToUpdateAiSettings: "Fout bij het bijwerken van AI-instellingen",
+    failedToSavePersonalInfo: "Fout bij het opslaan van persoonlijke informatie",
+    authenticationError: "Authenticatiefout. Probeer opnieuw in te loggen.",
+    networkError: "Netwerkfout. Controleer uw verbinding.",
+    unknownError: "Er is een onbekende fout opgetreden",
+    
+    // Feature Descriptions
+    healthRecordsManagement: "Gezondheidsdossierbeheer",
+    healthRecordsDescription: "Houd uw tandheelkundige gezondheid bij met uitgebreide medische geschiedenis en behandelingsplanbeheer.",
+    familyCareSupport: "Familiezorg Ondersteuning",
+    familyCareDescription: "Boek afspraken voor uw hele gezin. Beheer meerdere profielen met gemak en comfort.",
+    mobileFirstExperience: "Mobiel-Eerst Ervaring",
+    mobileFirstDescription: "Perfecte ervaring op elk apparaat met PWA-technologie voor native app-achtige prestaties en offline toegang.",
+    privacyAndSecurity: "Privacy en Beveiliging",
+    privacySecurityDescription: "HIPAA/GDPR-compliant met end-to-end encryptie en veilige gegevensverwerking voor uw gemoedsrust.",
   },
 };
 

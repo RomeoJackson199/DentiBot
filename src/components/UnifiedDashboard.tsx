@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/hooks/useLanguage";
 import { PatientDashboard } from "./PatientDashboard";
 import { DentistDashboard } from "../pages/DentistDashboard";
 import { AiOptOutPrompt } from "./AiOptOutPrompt";
@@ -16,6 +17,7 @@ export const UnifiedDashboard = ({ user }: UnifiedDashboardProps) => {
   const [userRole, setUserRole] = useState<'patient' | 'dentist' | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   useEffect(() => {
     fetchUserRole();
@@ -75,8 +77,8 @@ export const UnifiedDashboard = ({ user }: UnifiedDashboardProps) => {
       // Default to patient if there's an error
       setUserRole('patient');
       toast({
-        title: "Error",
-        description: `Error loading dashboard: ${error.message}`,
+        title: t.error,
+        description: `${t.errorLoadingDashboard}: ${error.message}`,
         variant: "destructive",
       });
     } finally {
@@ -101,9 +103,9 @@ export const UnifiedDashboard = ({ user }: UnifiedDashboardProps) => {
             </div>
             
             <div className="space-y-3">
-              <h3 className="text-2xl font-bold gradient-text">Loading Dashboard</h3>
+              <h3 className="text-2xl font-bold gradient-text">{t.loadingDashboard}</h3>
               <p className="text-dental-muted-foreground leading-relaxed">
-                Determining your access level and personalizing your experience...
+                {t.determiningAccess}
               </p>
             </div>
             

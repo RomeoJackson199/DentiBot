@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Stethoscope, Activity, Shield, Clock, Users, Star, ArrowRight, Bot, Sparkles, CheckCircle, Zap, Heart, TrendingUp } from "lucide-react";
+import { useLanguage } from "@/hooks/useLanguage";
 
 interface HeroSectionProps {
   onBookAppointment: () => void;
@@ -12,6 +13,8 @@ export const HeroSection = ({
   onBookAppointment,
   onStartTriage
 }: HeroSectionProps) => {
+  const { t } = useLanguage();
+  
   return (
     <section className="relative mobile-section-lg overflow-hidden">
       {/* Enhanced Background Pattern */}
@@ -33,25 +36,24 @@ export const HeroSection = ({
             className="mb-6 sm:mb-8 px-4 py-2 sm:px-6 sm:py-3 bg-gradient-glass backdrop-blur-xl border-dental-primary/30 text-dental-primary shadow-elegant hover:shadow-glow hover:scale-105 transition-all duration-300 animate-fade-in touch-target"
           >
             <Bot className="w-4 h-4 sm:w-5 sm:h-5 mr-2 animate-pulse-soft" />
-            <span className="font-semibold text-mobile-sm sm:text-base">Powered by Advanced AI</span>
+            <span className="font-semibold text-mobile-sm sm:text-base">{t.poweredByAdvancedAI}</span>
             <div className="w-2 h-2 bg-green-500 rounded-full ml-2 animate-pulse"></div>
-            <span className="text-2xs sm:text-xs ml-1 hidden xs:inline">24/7 Available</span>
+            <span className="text-2xs sm:text-xs ml-1 hidden xs:inline">{t.available24_7}</span>
           </Badge>
 
           {/* Enhanced Main Headline - Mobile typography */}
           <div className="space-y-4 sm:space-y-6 mb-6 sm:mb-8">
             <h1 className="mobile-heading-lg animate-slide-up">
-              <span className="gradient-text">Your Intelligent</span>
+              <span className="gradient-text">{t.yourIntelligent}</span>
               <br />
               <span className="text-mobile-2xl sm:text-3xl lg:text-5xl text-dental-muted-foreground animate-slide-up" style={{ animationDelay: "0.2s" }}>
-                Dental Assistant
+                {t.dentalAssistant}
               </span>
             </h1>
 
             {/* Subheadline with mobile-friendly styling */}
             <p className="mobile-body sm:text-xl lg:text-2xl text-dental-muted-foreground max-w-4xl mx-auto animate-fade-in" style={{ animationDelay: "0.4s" }}>
-              Experience the future of dental care with <span className="text-dental-primary font-semibold">AI-powered consultations</span>, 
-              smart appointment booking, and personalized treatment recommendations.
+              {t.experienceFuture}
             </p>
           </div>
 
@@ -60,22 +62,22 @@ export const HeroSection = ({
             {[
               {
                 icon: Bot,
-                title: "AI Chat Assistant",
-                description: "Get instant answers to dental questions and concerns",
+                title: t.aiChatAssistant,
+                description: t.getInstantAnswers,
                 gradient: "from-blue-500 to-purple-500",
                 delay: "0.6s"
               },
               {
                 icon: Clock,
-                title: "Smart Booking",
-                description: "Book appointments intelligently with duration info",
+                title: t.smartBooking,
+                description: t.bookIntelligently,
                 gradient: "from-green-500 to-blue-500",
                 delay: "0.8s"
               },
               {
                 icon: Activity,
-                title: "Emergency Triage",
-                description: "Quick assessment for urgent dental situations",
+                title: t.emergencyTriage,
+                description: t.quickAssessment,
                 gradient: "from-orange-500 to-red-500",
                 delay: "1.0s"
               }
@@ -106,9 +108,9 @@ export const HeroSection = ({
           {/* Enhanced Key Stats - Mobile layout */}
           <div className="flex flex-wrap justify-center mobile-gap sm:gap-8 lg:gap-12 mb-8 sm:mb-12 animate-fade-in" style={{ animationDelay: "1.2s" }}>
             {[
-              { value: "24/7", label: "Available", color: "text-dental-primary", icon: Clock },
-              { value: "98%", label: "Accuracy", color: "text-dental-secondary", icon: TrendingUp },
-              { value: "3 Min", label: "Avg Response", color: "text-dental-accent", icon: Zap }
+              { value: "24/7", label: t.available, color: "text-dental-primary", icon: Clock },
+              { value: "98%", label: t.accuracy, color: "text-dental-secondary", icon: TrendingUp },
+              { value: "3 Min", label: t.avgResponse, color: "text-dental-accent", icon: Zap }
             ].map((stat, index) => (
               <div key={index} className="text-center group cursor-pointer touch-feedback">
                 <div className="flex items-center justify-center mb-1 sm:mb-2">
@@ -132,7 +134,7 @@ export const HeroSection = ({
               icon={<Sparkles className="w-5 h-5 sm:w-6 sm:h-6 group-hover:animate-pulse" />}
               rightIcon={<ArrowRight className="w-5 h-5 sm:w-6 sm:h-6 group-hover:translate-x-1 transition-transform" />}
             >
-              Get Started Free
+              {t.getStartedFree}
             </Button>
 
             <Button 
@@ -142,16 +144,16 @@ export const HeroSection = ({
               onClick={onStartTriage}
               icon={<Activity className="w-5 h-5 sm:w-6 sm:h-6" />}
             >
-              Emergency Assessment
+              {t.emergencyAssessment}
             </Button>
           </div>
 
           {/* Enhanced Trust Indicators - Mobile layout */}
           <div className="flex flex-wrap justify-center items-center mobile-gap text-mobile-sm sm:text-sm text-dental-muted-foreground animate-fade-in" style={{ animationDelay: "1.6s" }}>
             {[
-              { icon: Shield, text: "HIPAA Compliant" },
-              { icon: Heart, text: "Secure & Private" },
-              { icon: CheckCircle, text: "No Credit Card" }
+              { icon: Shield, text: t.hipaaCompliant },
+              { icon: Heart, text: t.secureAndPrivate },
+              { icon: CheckCircle, text: t.noCreditCard }
             ].map((item, index) => (
               <div key={index} className="flex items-center space-x-2 group hover:text-dental-primary transition-colors cursor-pointer touch-feedback">
                 <item.icon className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 group-hover:scale-110 transition-transform flex-shrink-0" />
