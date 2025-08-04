@@ -336,18 +336,36 @@ export const DentistDashboard = ({ user }: DentistDashboardProps) => {
             </TabsContent>
 
             <TabsContent value="appointments" className="p-6">
-              <div className="text-center py-12">
-                <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Appointments Management</h3>
-                <p className="text-gray-600">Appointment management features will be implemented here.</p>
+              <div className="space-y-6">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-xl font-semibold">Today's Appointments</h3>
+                  <Button>
+                    <Plus className="h-4 w-4 mr-2" />
+                    New Appointment
+                  </Button>
+                </div>
+                <Card>
+                  <CardContent className="p-6">
+                    <p className="text-gray-600 text-center py-8">No appointments scheduled for today</p>
+                  </CardContent>
+                </Card>
               </div>
             </TabsContent>
 
             <TabsContent value="patients" className="p-6">
-              <div className="text-center py-12">
-                <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Patient Management</h3>
-                <p className="text-gray-600">Patient management features will be implemented here.</p>
+              <div className="space-y-6">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-xl font-semibold">Patient Directory</h3>
+                  <Button>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Patient
+                  </Button>
+                </div>
+                <Card>
+                  <CardContent className="p-6">
+                    <p className="text-gray-600 text-center py-8">No patients found</p>
+                  </CardContent>
+                </Card>
               </div>
             </TabsContent>
 
@@ -368,10 +386,26 @@ export const DentistDashboard = ({ user }: DentistDashboardProps) => {
             </TabsContent>
 
             <TabsContent value="settings" className="p-6">
-              <div className="text-center py-12">
-                <SettingsIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Practice Settings</h3>
-                <p className="text-gray-600">Practice settings and configuration options will be implemented here.</p>
+              <div className="space-y-6">
+                <h3 className="text-xl font-semibold">Practice Settings</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Profile Information</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-gray-600">Manage your professional profile</p>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Practice Hours</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-gray-600">Set your availability schedule</p>
+                    </CardContent>
+                  </Card>
+                </div>
               </div>
             </TabsContent>
           </Tabs>
