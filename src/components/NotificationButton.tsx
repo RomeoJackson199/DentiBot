@@ -23,7 +23,8 @@ import { Card, CardContent } from './ui/card';
 import { Switch } from './ui/switch';
 import { Label } from './ui/label';
 import { useNotifications } from '../hooks/useNotifications';
-import { Notification, User } from '../types/common';
+import { Notification } from '../types/common';
+import { User } from '@supabase/supabase-js';
 import { formatDistanceToNow } from 'date-fns';
 
 interface NotificationButtonProps {

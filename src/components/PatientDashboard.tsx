@@ -212,7 +212,8 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
           .from('dentists')
           .select(`
             id,
-            profile:profiles(first_name, last_name, specialization)
+            specialization,
+            profile:profiles(first_name, last_name)
           `)
           .in('id', dentistIds);
 
@@ -225,12 +226,29 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
               id: dentist.id,
               first_name: dentist.profile?.first_name || 'Unknown',
               last_name: dentist.profile?.last_name || 'Dentist',
-              specialization: dentist.profile?.specialization
+              specialization: dentist.specialization
             } : null
           };
         });
 
-        setRecentAppointments(formattedAppointments);
+        const mappedAppointments = formattedAppointments
+          .filter(apt => apt.dentists)
+          .map(apt => ({
+            id: apt.id,
+            patient_id: profileId,
+            dentist_id: apt.dentist_id,
+            appointment_date: apt.appointment_date,
+            duration: 30,
+            status: (apt.status === 'pending' ? 'scheduled' : apt.status) as "confirmed" | "completed" | "cancelled" | "scheduled" | "in_progress" | "no_show",
+            urgency: apt.urgency,
+            urgency_level: (apt.urgency === 'emergency' ? 'urgent' : apt.urgency === 'medium' ? 'normal' : apt.urgency) as "high" | "low" | "normal" | "urgent",
+            reason: apt.reason,
+            notes: apt.notes || '',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            dentists: apt.dentists
+          }));
+        setRecentAppointments(mappedAppointments);
       } else {
         setRecentAppointments([]);
       }
@@ -448,7 +466,6 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
           <InteractiveDentalChat 
             user={user} 
             triggerBooking={triggerBooking}
-            onEmergencyComplete={handleEmergencyComplete}
           />
         </TabsContent>
 
@@ -623,11 +640,11 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
         </TabsContent>
 
         <TabsContent value="analytics" className="space-y-4">
-          <PatientAnalytics user={user} />
+          <PatientAnalytics userId={user.id} />
         </TabsContent>
 
         <TabsContent value="emergency" className="space-y-4">
-          <EmergencyTriageForm onComplete={handleEmergencyComplete} />
+          <EmergencyTriageForm onComplete={handleEmergencyComplete} onCancel={() => setActiveTab('chat')} />
         </TabsContent>
 
         <TabsContent value="test" className="space-y-4">
