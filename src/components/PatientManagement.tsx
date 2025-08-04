@@ -494,23 +494,36 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
       return;
     }
 
-    try {
-      const { error } = await supabase
-        .from('treatment_plans')
-        .insert({
-          patient_id: selectedPatient.id,
-          dentist_id: dentistId,
-          title: addTreatmentPlanForm.title,
-          description: addTreatmentPlanForm.description,
-          diagnosis: addTreatmentPlanForm.diagnosis,
-          priority: addTreatmentPlanForm.priority,
-          estimated_cost: parseFloat(addTreatmentPlanForm.estimated_cost) || 0,
-          estimated_duration: addTreatmentPlanForm.estimated_duration,
-          start_date: new Date().toISOString(),
-          status: "active"
-        });
+    // Check authentication state
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    console.log('Current user:', user);
+    console.log('Auth error:', authError);
 
-      if (error) throw error;
+    try {
+      const treatmentPlanData = {
+        patient_id: selectedPatient.id,
+        dentist_id: dentistId,
+        title: addTreatmentPlanForm.title,
+        description: addTreatmentPlanForm.description,
+        diagnosis: addTreatmentPlanForm.diagnosis,
+        priority: addTreatmentPlanForm.priority,
+        estimated_cost: parseFloat(addTreatmentPlanForm.estimated_cost) || 0,
+        estimated_duration: addTreatmentPlanForm.estimated_duration,
+        start_date: new Date().toISOString(),
+        status: "active"
+      };
+      
+      console.log('Inserting treatment plan data:', treatmentPlanData);
+      
+      const { data, error } = await supabase
+        .from('treatment_plans')
+        .insert(treatmentPlanData)
+        .select();
+
+      if (error) {
+        console.error('Database error:', error);
+        throw error;
+      }
 
       toast({
         title: "Success",
@@ -536,19 +549,32 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
       return;
     }
 
-    try {
-      const { error } = await supabase
-        .from('medical_records')
-        .insert({
-          patient_id: selectedPatient.id,
-          dentist_id: dentistId,
-          record_type: addMedicalRecordForm.record_type,
-          title: addMedicalRecordForm.title,
-          description: addMedicalRecordForm.description,
-          record_date: addMedicalRecordForm.record_date
-        });
+    // Check authentication state
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    console.log('Current user:', user);
+    console.log('Auth error:', authError);
 
-      if (error) throw error;
+    try {
+      const medicalRecordData = {
+        patient_id: selectedPatient.id,
+        dentist_id: dentistId,
+        record_type: addMedicalRecordForm.record_type,
+        title: addMedicalRecordForm.title,
+        description: addMedicalRecordForm.description,
+        record_date: addMedicalRecordForm.record_date
+      };
+      
+      console.log('Inserting medical record data:', medicalRecordData);
+      
+      const { data, error } = await supabase
+        .from('medical_records')
+        .insert(medicalRecordData)
+        .select();
+
+      if (error) {
+        console.error('Database error:', error);
+        throw error;
+      }
 
       toast({
         title: "Success",
@@ -574,19 +600,32 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
       return;
     }
 
-    try {
-      const { error } = await supabase
-        .from('patient_notes')
-        .insert({
-          patient_id: selectedPatient.id,
-          dentist_id: dentistId,
-          note_type: addNoteForm.note_type,
-          title: addNoteForm.title,
-          content: addNoteForm.content,
-          is_private: addNoteForm.is_private
-        });
+    // Check authentication state
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    console.log('Current user:', user);
+    console.log('Auth error:', authError);
 
-      if (error) throw error;
+    try {
+      const noteData = {
+        patient_id: selectedPatient.id,
+        dentist_id: dentistId,
+        note_type: addNoteForm.note_type,
+        title: addNoteForm.title,
+        content: addNoteForm.content,
+        is_private: addNoteForm.is_private
+      };
+      
+      console.log('Inserting note data:', noteData);
+      
+      const { data, error } = await supabase
+        .from('patient_notes')
+        .insert(noteData)
+        .select();
+
+      if (error) {
+        console.error('Database error:', error);
+        throw error;
+      }
 
       toast({
         title: "Success",

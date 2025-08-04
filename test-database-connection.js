@@ -1,8 +1,8 @@
-const { createClient } = require('@supabase/supabase-js');
+import { createClient } from '@supabase/supabase-js';
 
-// Initialize Supabase client
-const supabaseUrl = process.env.VITE_SUPABASE_URL || 'https://your-project.supabase.co';
-const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || 'your-anon-key';
+// Initialize Supabase client with actual credentials
+const supabaseUrl = "https://gjvxcisbaxhhblhsytar.supabase.co";
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdqdnhjaXNiYXhoaGJsaHN5dGFyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIwNjU4MDUsImV4cCI6MjA2NzY0MTgwNX0.p4HO2McB5IqP9iQ_p_Z6yHKCkKyDXuIm7ono6UJZcmM";
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
@@ -36,7 +36,7 @@ async function testDatabaseConnection() {
       diagnosis: 'Test diagnosis',
       priority: 'normal',
       estimated_cost: 100.00,
-      estimated_duration_weeks: 4,
+      estimated_duration: '4 weeks',
       start_date: new Date().toISOString(),
       status: 'active'
     };

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Test</title>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <h1>Database Connection Test</h1>
+    <div id="results"></div>
+
+    <script>
+        // Initialize Supabase client
+        const supabaseUrl = "https://gjvxcisbaxhhblhsytar.supabase.co";
+        const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdqdnhjaXNiYXhoaGJsaHN5dGFyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIwNjU4MDUsImV4cCI6MjA2NzY0MTgwNX0.p4HO2McB5IqP9iQ_p_Z6yHKCkKyDXuIm7ono6UJZcmM";
+        
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        async function testDatabase() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<p>Testing database connection...</p>';
+
+            try {
+                // Test 1: Check if treatment_plans table exists
+                const { data: schemaData, error: schemaError } = await supabase
+                    .from('information_schema.columns')
+                    .select('column_name, data_type')
+                    .eq('table_name', 'treatment_plans')
+                    .eq('table_schema', 'public');
+
+                if (schemaError) {
+                    resultsDiv.innerHTML += `<p style="color: red;">Error checking schema: ${schemaError.message}</p>`;
+                    return;
+                }
+
+                resultsDiv.innerHTML += '<h3>Treatment plans table schema:</h3><ul>';
+                schemaData.forEach(col => {
+                    resultsDiv.innerHTML += `<li>${col.column_name}: ${col.data_type}</li>`;
+                });
+                resultsDiv.innerHTML += '</ul>';
+
+                // Test 2: Check if we can read from treatment_plans
+                const { data: readData, error: readError } = await supabase
+                    .from('treatment_plans')
+                    .select('*')
+                    .limit(5);
+
+                if (readError) {
+                    resultsDiv.innerHTML += `<p style="color: red;">Error reading from treatment_plans: ${readError.message}</p>`;
+                } else {
+                    resultsDiv.innerHTML += `<p style="color: green;">Successfully read ${readData.length} records from treatment_plans</p>`;
+                }
+
+                // Test 3: Check if we can insert into treatment_plans (this might fail due to RLS)
+                const testTreatmentPlan = {
+                    patient_id: '00000000-0000-0000-0000-000000000000',
+                    dentist_id: '00000000-0000-0000-0000-000000000000',
+                    title: 'Test Treatment Plan',
+                    description: 'This is a test treatment plan',
+                    diagnosis: 'Test diagnosis',
+                    priority: 'normal',
+                    estimated_cost: 100.00,
+                    estimated_duration: '4 weeks',
+                    start_date: new Date().toISOString(),
+                    status: 'active'
+                };
+
+                const { data: insertData, error: insertError } = await supabase
+                    .from('treatment_plans')
+                    .insert(testTreatmentPlan)
+                    .select();
+
+                if (insertError) {
+                    resultsDiv.innerHTML += `<p style="color: orange;">Insert test failed (expected due to RLS): ${insertError.message}</p>`;
+                } else {
+                    resultsDiv.innerHTML += `<p style="color: green;">Successfully inserted test treatment plan</p>`;
+                    
+                    // Clean up
+                    const { error: deleteError } = await supabase
+                        .from('treatment_plans')
+                        .delete()
+                        .eq('id', insertData[0].id);
+
+                    if (deleteError) {
+                        resultsDiv.innerHTML += `<p style="color: red;">Error deleting test record: ${deleteError.message}</p>`;
+                    } else {
+                        resultsDiv.innerHTML += `<p style="color: green;">Successfully cleaned up test record</p>`;
+                    }
+                }
+
+                // Test 4: Check patient_notes table
+                const { data: notesData, error: notesError } = await supabase
+                    .from('patient_notes')
+                    .select('*')
+                    .limit(5);
+
+                if (notesError) {
+                    resultsDiv.innerHTML += `<p style="color: red;">Error reading from patient_notes: ${notesError.message}</p>`;
+                } else {
+                    resultsDiv.innerHTML += `<p style="color: green;">Successfully read ${notesData.length} records from patient_notes</p>`;
+                }
+
+                // Test 5: Check medical_records table
+                const { data: recordsData, error: recordsError } = await supabase
+                    .from('medical_records')
+                    .select('*')
+                    .limit(5);
+
+                if (recordsError) {
+                    resultsDiv.innerHTML += `<p style="color: red;">Error reading from medical_records: ${recordsError.message}</p>`;
+                } else {
+                    resultsDiv.innerHTML += `<p style="color: green;">Successfully read ${recordsData.length} records from medical_records</p>`;
+                }
+
+            } catch (error) {
+                resultsDiv.innerHTML += `<p style="color: red;">Database test failed: ${error.message}</p>`;
+            }
+        }
+
+        // Run the test when page loads
+        testDatabase();
+    </script>
+</body>
+</html>

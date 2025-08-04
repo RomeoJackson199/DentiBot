@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schema Check</title>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <h1>Database Schema Check</h1>
+    <div id="results"></div>
+
+    <script>
+        // Initialize Supabase client
+        const supabaseUrl = "https://gjvxcisbaxhhblhsytar.supabase.co";
+        const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdqdnhjaXNiYXhoaGJsaHN5dGFyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIwNjU4MDUsImV4cCI6MjA2NzY0MTgwNX0.p4HO2McB5IqP9iQ_p_Z6yHKCkKyDXuIm7ono6UJZcmM";
+        
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        async function checkSchema() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<p>Checking database schema...</p>';
+
+            try {
+                // Check treatment_plans table schema
+                const { data: schemaData, error: schemaError } = await supabase
+                    .from('information_schema.columns')
+                    .select('column_name, data_type, is_nullable, column_default')
+                    .eq('table_name', 'treatment_plans')
+                    .eq('table_schema', 'public')
+                    .order('ordinal_position');
+
+                if (schemaError) {
+                    resultsDiv.innerHTML += `<p style="color: red;">Error checking schema: ${schemaError.message}</p>`;
+                    return;
+                }
+
+                resultsDiv.innerHTML += '<h3>Treatment plans table schema:</h3><table border="1"><tr><th>Column</th><th>Type</th><th>Nullable</th><th>Default</th></tr>';
+                schemaData.forEach(col => {
+                    resultsDiv.innerHTML += `<tr><td>${col.column_name}</td><td>${col.data_type}</td><td>${col.is_nullable}</td><td>${col.column_default || 'NULL'}</td></tr>`;
+                });
+                resultsDiv.innerHTML += '</table>';
+
+                // Check if we can read from treatment_plans
+                const { data: readData, error: readError } = await supabase
+                    .from('treatment_plans')
+                    .select('*')
+                    .limit(1);
+
+                if (readError) {
+                    resultsDiv.innerHTML += `<p style="color: red;">Error reading from treatment_plans: ${readError.message}</p>`;
+                } else {
+                    resultsDiv.innerHTML += `<p style="color: green;">Successfully read from treatment_plans</p>`;
+                    if (readData.length > 0) {
+                        resultsDiv.innerHTML += '<h4>Sample record:</h4><pre>' + JSON.stringify(readData[0], null, 2) + '</pre>';
+                    }
+                }
+
+            } catch (error) {
+                resultsDiv.innerHTML += `<p style="color: red;">Schema check failed: ${error.message}</p>`;
+            }
+        }
+
+        // Run the check when page loads
+        checkSchema();
+    </script>
+</body>
+</html>
