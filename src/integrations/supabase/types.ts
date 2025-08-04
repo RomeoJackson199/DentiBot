@@ -715,6 +715,60 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          action_label: string | null
+          action_url: string | null
+          created_at: string
+          dentist_id: string | null
+          expires_at: string | null
+          id: string
+          is_read: boolean
+          message: string
+          metadata: Json | null
+          patient_id: string | null
+          priority: string
+          title: string
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          action_label?: string | null
+          action_url?: string | null
+          created_at?: string
+          dentist_id?: string | null
+          expires_at?: string | null
+          id?: string
+          is_read?: boolean
+          message: string
+          metadata?: Json | null
+          patient_id?: string | null
+          priority?: string
+          title: string
+          type?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          action_label?: string | null
+          action_url?: string | null
+          created_at?: string
+          dentist_id?: string | null
+          expires_at?: string | null
+          id?: string
+          is_read?: boolean
+          message?: string
+          metadata?: Json | null
+          patient_id?: string | null
+          priority?: string
+          title?: string
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       patient_documents: {
         Row: {
           created_at: string
@@ -1120,6 +1174,15 @@ export type Database = {
       cancel_appointment: {
         Args: { appointment_id: string; user_id: string }
         Returns: boolean
+      }
+      create_prescription_notification: {
+        Args: {
+          p_patient_id: string
+          p_dentist_id: string
+          p_prescription_id: string
+          p_medication_name: string
+        }
+        Returns: string
       }
       create_simple_appointment: {
         Args: {

@@ -127,7 +127,7 @@ const ProfileCompletionDialog = () => {
     if (field.type === "languages") {
       update = supabase
         .from("dentists")
-        .update({ languages: selectedLanguages })
+        .update({ specialization: selectedLanguages.join(', ') })
         .eq("profile_id", profileId);
     } else if (field.table === "profiles") {
       update = supabase
