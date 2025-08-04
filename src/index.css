@@ -499,7 +499,7 @@
   }
 
   .mobile-card-interactive {
-    @apply mobile-card cursor-pointer hover:shadow-medium active:scale-98 touch:active:scale-95;
+    @apply mobile-card cursor-pointer hover:shadow-medium active:scale-95 touch:active:scale-95;
   }
 
   /* Mobile Typography */

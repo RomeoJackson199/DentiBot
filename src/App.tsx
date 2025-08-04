@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { LanguageProvider } from "./hooks/useLanguage";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
@@ -62,8 +62,7 @@ const Dashboard = () => {
 
   if (!user) {
     // Redirect to home page if not authenticated
-    window.location.href = '/';
-    return null;
+    return <Navigate to="/" replace />;
   }
 
   return <UnifiedDashboard user={user} />;
