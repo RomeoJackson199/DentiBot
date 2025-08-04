@@ -69,11 +69,22 @@ export const DentistDashboard = ({ user }: DentistDashboardProps) => {
         .from('dentists')
         .select('*')
         .eq('profile_id', profile.id)
-        .single();
+        .maybeSingle();
 
-      if (dentistError) throw dentistError;
-
-      setDentistProfile({ ...profile, dentist: dentistData });
+      if (dentistError) {
+        console.error('Dentist data error:', dentistError);
+        // If no dentist record found, create one
+        if (dentistError.code === 'PGRST116') {
+          const { data: newDentist } = await supabase
+            .from('dentists')
+            .insert({ profile_id: profile.id, is_active: true })
+            .select()
+            .single();
+          setDentistProfile({ ...profile, dentist: newDentist });
+        }
+      } else {
+        setDentistProfile({ ...profile, dentist: dentistData });
+      }
 
       // Fetch stats
       await fetchStats(dentistData.id);
