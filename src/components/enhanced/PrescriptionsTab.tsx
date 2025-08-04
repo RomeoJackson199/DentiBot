@@ -200,17 +200,227 @@ export function PrescriptionsTab({
     }
   };
 
+  const testSimpleInsert = async () => {
+    try {
+      console.log('Testing simple insert...');
+      
+      // Get current user
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) {
+        console.error('No session found');
+        return;
+      }
+
+      // Get user profile
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', session.user.id)
+        .single();
+
+      if (!profile) {
+        console.error('No profile found');
+        return;
+      }
+
+      // Get dentist record
+      const { data: dentist } = await supabase
+        .from('dentists')
+        .select('id')
+        .eq('profile_id', profile.id)
+        .single();
+
+      if (!dentist) {
+        console.error('No dentist record found');
+        return;
+      }
+
+      // Try simple insert
+      const testData = {
+        patient_id: profile.id,
+        dentist_id: dentist.id,
+        medication_name: "Test Medication",
+        dosage: "10mg",
+        frequency: "Once daily",
+        duration: "7 days",
+        status: "active",
+        prescribed_date: new Date().toISOString()
+      };
+
+      console.log('Attempting insert with data:', testData);
+
+      const { data, error } = await supabase
+        .from('prescriptions')
+        .insert(testData)
+        .select();
+
+      if (error) {
+        console.error('Insert failed:', error);
+        toast({
+          title: "Test Failed",
+          description: `Insert failed: ${error.message}`,
+          variant: "destructive",
+        });
+      } else {
+        console.log('Insert successful:', data);
+        toast({
+          title: "Test Successful",
+          description: "Simple insert test passed",
+        });
+        
+        // Clean up
+        if (data?.[0]?.id) {
+          await supabase
+            .from('prescriptions')
+            .delete()
+            .eq('id', data[0].id);
+        }
+      }
+    } catch (error) {
+      console.error('Test error:', error);
+      toast({
+        title: "Test Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const debugSaveError = async () => {
+    try {
+      console.log('=== DEBUGGING SAVE ERROR ===');
+      
+      // Step 1: Check authentication
+      const { data: { session } } = await supabase.auth.getSession();
+      console.log('Session:', session);
+      
+      if (!session?.user) {
+        console.error('No session found');
+        toast({
+          title: "Debug Error",
+          description: "No session found",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Step 2: Check user profile
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', session.user.id)
+        .single();
+
+      console.log('Profile:', profile);
+      console.log('Profile error:', profileError);
+
+      if (profileError) {
+        console.error('Profile error:', profileError);
+        toast({
+          title: "Debug Error",
+          description: `Profile error: ${profileError.message}`,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Step 3: Check dentist record
+      const { data: dentist, error: dentistError } = await supabase
+        .from('dentists')
+        .select('*')
+        .eq('profile_id', profile.id)
+        .single();
+
+      console.log('Dentist:', dentist);
+      console.log('Dentist error:', dentistError);
+
+      if (dentistError) {
+        console.error('Dentist error:', dentistError);
+        toast({
+          title: "Debug Error",
+          description: `Dentist error: ${dentistError.message}`,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Step 4: Check patient data
+      console.log('Patient data:', patient);
+      console.log('Dentist ID:', dentistId);
+
+      // Step 5: Try to insert with exact same data as the form
+      const testData = {
+        patient_id: patient.id,
+        dentist_id: dentistId,
+        medication_name: "Debug Test",
+        dosage: "10mg",
+        frequency: "Once daily",
+        duration: "7 days",
+        instructions: "Debug test",
+        status: "active",
+        prescribed_date: new Date().toISOString()
+      };
+
+      console.log('Attempting insert with data:', testData);
+
+      const { data: insertData, error: insertError } = await supabase
+        .from('prescriptions')
+        .insert(testData)
+        .select();
+
+      console.log('Insert result:', { data: insertData, error: insertError });
+
+      if (insertError) {
+        console.error('Insert failed:', insertError);
+        toast({
+          title: "Debug Error",
+          description: `Insert failed: ${insertError.message}`,
+          variant: "destructive",
+        });
+      } else {
+        console.log('Insert successful:', insertData);
+        toast({
+          title: "Debug Success",
+          description: "Debug insert successful",
+        });
+        
+        // Clean up
+        if (insertData?.[0]?.id) {
+          await supabase
+            .from('prescriptions')
+            .delete()
+            .eq('id', insertData[0].id);
+        }
+      }
+
+    } catch (error) {
+      console.error('Debug error:', error);
+      toast({
+        title: "Debug Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">Prescriptions</h3>
-        <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Prescription
+              <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold">Prescriptions</h3>
+          <div className="flex space-x-2">
+            <Button onClick={testSimpleInsert} variant="outline" size="sm">
+              Test Insert
             </Button>
-          </DialogTrigger>
+            <Button onClick={debugSaveError} variant="outline" size="sm">
+              Debug Save
+            </Button>
+            <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Prescription
+                </Button>
+              </DialogTrigger>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
               <DialogTitle>

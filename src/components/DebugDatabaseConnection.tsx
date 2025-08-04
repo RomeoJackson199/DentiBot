@@ -315,6 +315,294 @@ export function DebugDatabaseConnection() {
     }
   };
 
+  const comprehensiveDatabaseTest = async () => {
+    try {
+      setTestResults(prev => [...prev, "=== COMPREHENSIVE DATABASE TEST ==="]);
+      
+      // Test 1: Check authentication
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) {
+        setTestResults(prev => [...prev, "❌ No active session - user not authenticated"]);
+        return;
+      }
+      setTestResults(prev => [...prev, `✅ User authenticated: ${session.user.id}`]);
+
+      // Test 2: Check if we can read from profiles table
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('*')
+        .limit(1);
+      
+      if (profilesError) {
+        setTestResults(prev => [...prev, `❌ Cannot read profiles: ${profilesError.message}`]);
+      } else {
+        setTestResults(prev => [...prev, `✅ Can read profiles: ${profiles?.length || 0} records`]);
+      }
+
+      // Test 3: Check if we can read from prescriptions table
+      const { data: prescriptions, error: prescriptionsError } = await supabase
+        .from('prescriptions')
+        .select('*')
+        .limit(1);
+      
+      if (prescriptionsError) {
+        setTestResults(prev => [...prev, `❌ Cannot read prescriptions: ${prescriptionsError.message}`]);
+      } else {
+        setTestResults(prev => [...prev, `✅ Can read prescriptions: ${prescriptions?.length || 0} records`]);
+      }
+
+      // Test 4: Check if we can read from treatment_plans table
+      const { data: treatmentPlans, error: treatmentPlansError } = await supabase
+        .from('treatment_plans')
+        .select('*')
+        .limit(1);
+      
+      if (treatmentPlansError) {
+        setTestResults(prev => [...prev, `❌ Cannot read treatment_plans: ${treatmentPlansError.message}`]);
+      } else {
+        setTestResults(prev => [...prev, `✅ Can read treatment_plans: ${treatmentPlans?.length || 0} records`]);
+      }
+
+      // Test 5: Try to insert a test prescription (with real data)
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', session.user.id)
+        .single();
+
+      if (profile) {
+        const { data: dentist } = await supabase
+          .from('dentists')
+          .select('id')
+          .eq('profile_id', profile.id)
+          .single();
+
+        if (dentist) {
+          const testPrescription = {
+            patient_id: profile.id,
+            dentist_id: dentist.id,
+            medication_name: "Test Medication",
+            dosage: "10mg",
+            frequency: "Once daily",
+            duration: "7 days",
+            instructions: "Test instructions",
+            status: "active",
+            prescribed_date: new Date().toISOString()
+          };
+
+          const { data: insertData, error: insertError } = await supabase
+            .from('prescriptions')
+            .insert(testPrescription)
+            .select();
+
+          if (insertError) {
+            setTestResults(prev => [...prev, `❌ Cannot insert prescription: ${insertError.message}`]);
+          } else {
+            setTestResults(prev => [...prev, `✅ Successfully inserted prescription: ${insertData?.[0]?.id}`]);
+            
+            // Clean up
+            await supabase
+              .from('prescriptions')
+              .delete()
+              .eq('id', insertData[0].id);
+          }
+        } else {
+          setTestResults(prev => [...prev, "❌ No dentist record found for user"]);
+        }
+      } else {
+        setTestResults(prev => [...prev, "❌ No profile found for user"]);
+      }
+
+      // Test 6: Check table structure
+      const { data: tableInfo, error: tableError } = await supabase
+        .rpc('get_table_info', { table_name: 'prescriptions' })
+        .catch(() => ({ data: null, error: { message: 'RPC not available' } }));
+
+      if (tableError) {
+        setTestResults(prev => [...prev, `⚠️ Cannot check table structure: ${tableError.message}`]);
+      } else {
+        setTestResults(prev => [...prev, `✅ Table structure check passed`]);
+      }
+
+      // Test 7: Check if RLS is actually disabled
+      const { data: rlsCheck, error: rlsError } = await supabase
+        .rpc('check_rls_status', { table_name: 'prescriptions' })
+        .catch(() => ({ data: null, error: { message: 'RPC not available' } }));
+
+      if (rlsError) {
+        setTestResults(prev => [...prev, `⚠️ Cannot check RLS status: ${rlsError.message}`]);
+      } else {
+        setTestResults(prev => [...prev, `✅ RLS status check passed`]);
+      }
+
+    } catch (error) {
+      setTestResults(prev => [...prev, `❌ Comprehensive test failed: ${error.message}`]);
+    }
+  };
+
+  const testDatabaseSchema = async () => {
+    try {
+      setTestResults(prev => [...prev, "=== DATABASE SCHEMA TEST ==="]);
+      
+      // Test 1: Check if tables exist by trying to select from them
+      const tables = ['prescriptions', 'treatment_plans', 'patient_notes', 'medical_records'];
+      
+      for (const table of tables) {
+        const { data, error } = await supabase
+          .from(table)
+          .select('*')
+          .limit(0); // Just check if table exists, don't fetch data
+        
+        if (error) {
+          setTestResults(prev => [...prev, `❌ Table ${table} error: ${error.message}`]);
+        } else {
+          setTestResults(prev => [...prev, `✅ Table ${table} exists and accessible`]);
+        }
+      }
+
+      // Test 2: Check if we can get table structure by trying to insert with minimal data
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('user_id', session.user.id)
+          .single();
+
+        if (profile) {
+          const { data: dentist } = await supabase
+            .from('dentists')
+            .select('id')
+            .eq('profile_id', profile.id)
+            .single();
+
+          if (dentist) {
+            // Test minimal insert
+            const minimalData = {
+              patient_id: profile.id,
+              dentist_id: dentist.id,
+              medication_name: "Test",
+              dosage: "Test",
+              frequency: "Test",
+              duration: "Test"
+            };
+
+            const { data: insertData, error: insertError } = await supabase
+              .from('prescriptions')
+              .insert(minimalData)
+              .select();
+
+            if (insertError) {
+              setTestResults(prev => [...prev, `❌ Minimal insert failed: ${insertError.message}`]);
+            } else {
+              setTestResults(prev => [...prev, `✅ Minimal insert successful`]);
+              
+              // Clean up
+              if (insertData?.[0]?.id) {
+                await supabase
+                  .from('prescriptions')
+                  .delete()
+                  .eq('id', insertData[0].id);
+              }
+            }
+          } else {
+            setTestResults(prev => [...prev, "❌ No dentist record found"]);
+          }
+        } else {
+          setTestResults(prev => [...prev, "❌ No profile found"]);
+        }
+      } else {
+        setTestResults(prev => [...prev, "❌ No session found"]);
+      }
+
+    } catch (error) {
+      setTestResults(prev => [...prev, `❌ Schema test failed: ${error.message}`]);
+    }
+  };
+
+  const testDirectDatabaseAccess = async () => {
+    try {
+      setTestResults(prev => [...prev, "=== DIRECT DATABASE ACCESS TEST ==="]);
+      
+      // Test 1: Try to read from prescriptions table directly
+      const { data: readData, error: readError } = await supabase
+        .from('prescriptions')
+        .select('*')
+        .limit(1);
+
+      if (readError) {
+        setTestResults(prev => [...prev, `❌ Direct read failed: ${readError.message}`]);
+      } else {
+        setTestResults(prev => [...prev, `✅ Direct read successful: ${readData?.length || 0} records`]);
+      }
+
+      // Test 2: Try to insert a test record with hardcoded IDs
+      const testRecord = {
+        patient_id: "00000000-0000-0000-0000-000000000001",
+        dentist_id: "00000000-0000-0000-0000-000000000002",
+        medication_name: "Test Medication",
+        dosage: "10mg",
+        frequency: "Once daily",
+        duration: "7 days",
+        status: "active",
+        prescribed_date: new Date().toISOString()
+      };
+
+      const { data: insertData, error: insertError } = await supabase
+        .from('prescriptions')
+        .insert(testRecord)
+        .select();
+
+      if (insertError) {
+        setTestResults(prev => [...prev, `❌ Direct insert failed: ${insertError.message}`]);
+        
+        // Check if it's a foreign key constraint error
+        if (insertError.message.includes('foreign key') || insertError.message.includes('violates')) {
+          setTestResults(prev => [...prev, "⚠️ This is likely a foreign key constraint issue - the test IDs don't exist"]);
+        }
+      } else {
+        setTestResults(prev => [...prev, `✅ Direct insert successful: ${insertData?.[0]?.id}`]);
+        
+        // Clean up
+        if (insertData?.[0]?.id) {
+          await supabase
+            .from('prescriptions')
+            .delete()
+            .eq('id', insertData[0].id);
+        }
+      }
+
+      // Test 3: Check if we can update a record
+      const { data: updateData, error: updateError } = await supabase
+        .from('prescriptions')
+        .update({ medication_name: "Updated Test" })
+        .eq('medication_name', 'Test Medication')
+        .select();
+
+      if (updateError) {
+        setTestResults(prev => [...prev, `❌ Direct update failed: ${updateError.message}`]);
+      } else {
+        setTestResults(prev => [...prev, `✅ Direct update successful: ${updateData?.length || 0} records updated`]);
+      }
+
+      // Test 4: Check if we can delete a record
+      const { data: deleteData, error: deleteError } = await supabase
+        .from('prescriptions')
+        .delete()
+        .eq('medication_name', 'Updated Test')
+        .select();
+
+      if (deleteError) {
+        setTestResults(prev => [...prev, `❌ Direct delete failed: ${deleteError.message}`]);
+      } else {
+        setTestResults(prev => [...prev, `✅ Direct delete successful: ${deleteData?.length || 0} records deleted`]);
+      }
+
+    } catch (error) {
+      setTestResults(prev => [...prev, `❌ Direct access test failed: ${error.message}`]);
+    }
+  };
+
   return (
     <Card className="glass-card">
       <CardHeader>
@@ -347,6 +635,15 @@ export function DebugDatabaseConnection() {
             </Button>
             <Button onClick={testRLSPolicies} disabled={loading} variant="outline">
               Test RLS Policies
+            </Button>
+            <Button onClick={comprehensiveDatabaseTest} disabled={loading} variant="outline">
+              Comprehensive Test
+            </Button>
+            <Button onClick={testDatabaseSchema} disabled={loading} variant="outline">
+              Test Database Schema
+            </Button>
+            <Button onClick={testDirectDatabaseAccess} disabled={loading} variant="outline">
+              Test Direct Access
             </Button>
           </div>
         </div>
