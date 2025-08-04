@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 // Removed: import { InteractiveDentalChat } from "@/components/chat/InteractiveDentalChat";
 import { PatientSettings } from './PatientSettings';
 import { OnboardingSteps } from './OnboardingSteps';
+import { AIChat } from './AIChat';
+import { BasicAppointmentBooking } from './BasicAppointmentBooking';
 import RealAppointmentsList from "@/components/RealAppointmentsList";
 import { HealthData } from "@/components/HealthData";
 import { EmergencyTriageForm } from "@/components/EmergencyTriageForm";
@@ -100,6 +102,7 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
   const [medicalRecords, setMedicalRecords] = useState<MedicalRecord[]>([]);
   const [patientNotes, setPatientNotes] = useState<PatientNote[]>([]);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [aiEnabled, setAiEnabled] = useState(true);
 
   const handleEmergencyComplete = (urgency: 'low' | 'medium' | 'high' | 'emergency') => {
     setActiveTab('chat');
@@ -393,7 +396,7 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-                  <PatientSettings user={user} />
+                  <PatientSettings user={user} onAiModeChange={setAiEnabled} />
                 </DialogContent>
               </Dialog>
             </div>
@@ -492,18 +495,18 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
               </TabsList>
             </div>
 
-            <div className="p-6">
-              <TabsContent value="chat" className="space-y-4">
-                <div className="flex items-center justify-center p-12">
-                  <Card className="max-w-md">
-                    <CardContent className="p-6 text-center">
-                      <MessageSquare className="h-12 w-12 mx-auto mb-4 text-blue-500" />
-                      <h3 className="font-semibold text-lg mb-2">Chat with AI Assistant</h3>
-                      <p className="text-gray-600">Coming soon - AI-powered dental assistance</p>
-                    </CardContent>
-                  </Card>
+            <TabsContent value="chat" className="p-6">
+              {aiEnabled ? (
+                <AIChat user={user} onBookingTrigger={handleEmergencyComplete} />
+              ) : (
+                <div className="text-center py-12">
+                  <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">AI Assistant Disabled</h3>
+                  <p className="text-gray-600 mb-4">AI features are currently disabled. You can enable them in Settings.</p>
+                  <BasicAppointmentBooking />
                 </div>
-              </TabsContent>
+              )}
+            </TabsContent>
 
               <TabsContent value="appointments" className="space-y-4">
                 <div className="flex justify-between items-center mb-6">
@@ -706,10 +709,9 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
               <TabsContent value="test" className="space-y-4">
                 <DatabaseTest />
               </TabsContent>
-            </div>
-          </Tabs>
+            </Tabs>
+          </div>
         </div>
-      </div>
       </div>
     </>
   );

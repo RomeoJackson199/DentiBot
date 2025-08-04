@@ -143,51 +143,6 @@ export const OnboardingSteps = ({ isOpen, onClose, user }: OnboardingStepsProps)
           </p>
         </div>
       )
-    },
-    {
-      title: "AI Preferences",
-      subtitle: "Choose your experience",
-      icon: <Shield className="h-8 w-8 text-blue-600" />,
-      content: (
-        <div className="space-y-6">
-          <div className="space-y-4">
-            <div className="flex items-start space-x-3">
-              <Checkbox
-                id="ai_opt_out"
-                checked={profileData.ai_opt_out}
-                onCheckedChange={(checked) => setProfileData({...profileData, ai_opt_out: !!checked})}
-              />
-              <div className="flex-1">
-                <Label htmlFor="ai_opt_out" className="text-base font-medium">
-                  Disable AI Features
-                </Label>
-                <p className="text-sm text-gray-600 mt-1">
-                  If you prefer a traditional booking experience without AI assistance, check this box. You can change this setting later in your preferences.
-                </p>
-              </div>
-            </div>
-          </div>
-          
-          <div className="bg-blue-50 p-4 rounded-lg">
-            <h4 className="font-medium text-blue-900 mb-2">With AI Features (Recommended):</h4>
-            <ul className="text-sm text-blue-800 space-y-1">
-              <li>• Smart symptom assessment</li>
-              <li>• Intelligent appointment scheduling</li>
-              <li>• Personalized health recommendations</li>
-              <li>• 24/7 chat support</li>
-            </ul>
-          </div>
-          
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <h4 className="font-medium text-gray-900 mb-2">Without AI Features:</h4>
-            <ul className="text-sm text-gray-700 space-y-1">
-              <li>• Simple appointment booking</li>
-              <li>• Manual form filling</li>
-              <li>• Basic contact features</li>
-            </ul>
-          </div>
-        </div>
-      )
     }
   ];
 
@@ -235,8 +190,6 @@ export const OnboardingSteps = ({ isOpen, onClose, user }: OnboardingStepsProps)
         return true; // Contact info is optional
       case 3:
         return true; // Medical history is optional
-      case 4:
-        return true; // AI preferences are optional
       default:
         return false;
     }
