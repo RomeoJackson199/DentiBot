@@ -57,9 +57,13 @@ export const RealAppointmentsList = ({ user, onBookNew }: RealAppointmentsListPr
       // Get user profile first
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
-        .select('id')
+        .select('id, first_name, last_name, role')
         .eq('user_id', user.id)
         .single();
+
+      console.log('User ID:', user.id);
+      console.log('Profile:', profile);
+      console.log('Profile error:', profileError);
 
       if (profileError) {
         console.error('Profile error:', profileError);
@@ -80,13 +84,23 @@ export const RealAppointmentsList = ({ user, onBookNew }: RealAppointmentsListPr
           reason,
           urgency,
           notes,
-          dentist:dentists(
-            id,
-            profile:profiles(first_name, last_name, phone)
-          )
+          dentist_id
         `)
         .eq('patient_id', profile.id)
         .order('appointment_date', { ascending: false });
+
+      console.log('Looking for appointments with patient_id:', profile.id);
+      console.log('Appointments data:', appointmentsData);
+      console.log('Appointments error:', appointmentsError);
+
+      // Also check all appointments to see if any exist
+      const { data: allAppointments, error: allError } = await supabase
+        .from('appointments')
+        .select('*')
+        .limit(5);
+
+      console.log('All appointments sample:', allAppointments);
+      console.log('All appointments error:', allError);
 
       if (appointmentsError) {
         console.error('Appointments error:', appointmentsError);
@@ -95,13 +109,27 @@ export const RealAppointmentsList = ({ user, onBookNew }: RealAppointmentsListPr
 
       // Ensure appointments data is properly formatted
       const formattedAppointments = (appointmentsData || []).map(apt => ({
-        ...apt,
+        id: apt.id,
         appointment_date: apt.appointment_date || new Date().toISOString(),
         status: apt.status || 'scheduled',
         reason: apt.reason || 'Dental checkup',
-        urgency: apt.urgency || 'low'
+        urgency: apt.urgency || 'low',
+        notes: apt.notes,
+        dentist: {
+          id: apt.dentist_id,
+          profile: {
+            first_name: 'Dr.',
+            last_name: 'Dentist',
+            phone: null
+          }
+        }
       }));
 
+
+      
+      console.log('Raw appointments data:', appointmentsData);
+      console.log('Formatted appointments:', formattedAppointments);
+      
       setAppointments(formattedAppointments);
       
       // Show success message if appointments were loaded
@@ -111,6 +139,8 @@ export const RealAppointmentsList = ({ user, onBookNew }: RealAppointmentsListPr
           description: `Loaded ${formattedAppointments.length} appointment${formattedAppointments.length !== 1 ? 's' : ''}`,
           variant: "default",
         });
+      } else {
+        console.log('No appointments found for patient:', profile.id);
       }
     } catch (err: any) {
       console.error('Error fetching appointments:', err);
@@ -247,6 +277,11 @@ export const RealAppointmentsList = ({ user, onBookNew }: RealAppointmentsListPr
     );
   }
 
+
+  
+  console.log('Rendering appointments list. Length:', appointments.length);
+  console.log('Appointments data:', appointments);
+  
   return (
     <div className="space-y-6">
       {/* Header with booking button */}
@@ -266,6 +301,53 @@ export const RealAppointmentsList = ({ user, onBookNew }: RealAppointmentsListPr
           >
             <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
             Refresh
+          </Button>
+          <Button 
+            onClick={async () => {
+              try {
+                // Create a test appointment
+                const { data: dentists } = await supabase
+                  .from('dentists')
+                  .select('id')
+                  .limit(1);
+
+                if (dentists && dentists.length > 0) {
+                  const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('id')
+                    .eq('user_id', user.id)
+                    .single();
+
+                  if (profile) {
+                    const { data: appointment, error } = await supabase
+                      .from('appointments')
+                      .insert({
+                        patient_id: profile.id,
+                        dentist_id: dentists[0].id,
+                        appointment_date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // Tomorrow
+                        status: 'pending',
+                        urgency: 'medium',
+                        reason: 'Test appointment'
+                      })
+                      .select()
+                      .single();
+
+                    if (error) {
+                      console.error('Error creating test appointment:', error);
+                    } else {
+                      console.log('Created test appointment:', appointment);
+                      fetchAppointments();
+                    }
+                  }
+                }
+              } catch (error) {
+                console.error('Error creating test appointment:', error);
+              }
+            }}
+            variant="outline"
+            size="sm"
+          >
+            Create Test Appointment
           </Button>
           {onBookNew && (
             <Button onClick={onBookNew} className="bg-gradient-primary hover:bg-gradient-primary/90">
