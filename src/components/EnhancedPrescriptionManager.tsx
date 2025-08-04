@@ -25,7 +25,13 @@ import {
   Calendar,
   Zap,
   Target,
-  Activity
+  Activity,
+  Timer,
+  Droplets,
+  Clock3,
+  Clock6,
+  Clock9,
+  Clock12
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
@@ -60,7 +66,9 @@ export function EnhancedPrescriptionManager({
   const [formData, setFormData] = useState({
     medication_name: '',
     dosage: '',
+    dosage_strength: [500],
     frequency: '',
+    frequency_times: [2],
     duration_days: [7],
     instructions: '',
     is_urgent: false,
@@ -68,7 +76,8 @@ export function EnhancedPrescriptionManager({
     side_effects: '',
     contraindications: '',
     refills_allowed: [0],
-    expiry_date: ''
+    expiry_date: '',
+    time_interval: [8]
   });
   const { toast } = useToast();
 
@@ -79,6 +88,37 @@ export function EnhancedPrescriptionManager({
     { name: "Paracetamol", dosage: "500mg", frequency: "four times daily", duration: 3, type: "pain_relief" },
     { name: "Chlorhexidine", dosage: "0.12%", frequency: "twice daily", duration: 10, type: "mouthwash" },
     { name: "Metronidazole", dosage: "400mg", frequency: "three times daily", duration: 7, type: "antibiotic" }
+  ];
+
+  // Quick frequency buttons
+  const quickFrequencies = [
+    { label: "Once daily", value: "once daily", icon: Clock12 },
+    { label: "Twice daily", value: "twice daily", icon: Clock6 },
+    { label: "Three times", value: "three times daily", icon: Clock9 },
+    { label: "Four times", value: "four times daily", icon: Clock3 },
+    { label: "As needed", value: "as needed", icon: Timer },
+    { label: "Every 6h", value: "every 6 hours", icon: Clock6 },
+    { label: "Every 8h", value: "every 8 hours", icon: Clock6 },
+    { label: "Every 12h", value: "every 12 hours", icon: Clock12 }
+  ];
+
+  // Quick duration buttons
+  const quickDurations = [
+    { label: "3 days", value: 3 },
+    { label: "5 days", value: 5 },
+    { label: "7 days", value: 7 },
+    { label: "10 days", value: 10 },
+    { label: "14 days", value: 14 },
+    { label: "21 days", value: 21 },
+    { label: "30 days", value: 30 }
+  ];
+
+  // Common dosage strengths
+  const dosageStrengths = [
+    { label: "250mg", value: 250 },
+    { label: "500mg", value: 500 },
+    { label: "750mg", value: 750 },
+    { label: "1000mg", value: 1000 }
   ];
 
   const generateAISuggestions = async () => {
@@ -187,7 +227,9 @@ export function EnhancedPrescriptionManager({
       setFormData({
         medication_name: '',
         dosage: '',
+        dosage_strength: [500],
         frequency: '',
+        frequency_times: [2],
         duration_days: [7],
         instructions: '',
         is_urgent: false,
@@ -195,7 +237,8 @@ export function EnhancedPrescriptionManager({
         side_effects: '',
         contraindications: '',
         refills_allowed: [0],
-        expiry_date: ''
+        expiry_date: '',
+        time_interval: [8]
       });
       setShowSuggestions(false);
       onPrescriptionCreated?.();
@@ -219,7 +262,7 @@ export function EnhancedPrescriptionManager({
           Add Prescription
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Pill className="h-5 w-5" />
@@ -321,55 +364,130 @@ export function EnhancedPrescriptionManager({
 
               <div className="space-y-2">
                 <Label htmlFor="dosage">Dosage *</Label>
-                <Input
-                  id="dosage"
-                  placeholder="e.g., 500mg"
-                  value={formData.dosage}
-                  onChange={(e) => setFormData(prev => ({ ...prev, dosage: e.target.value }))}
-                  required
-                />
+                <div className="space-y-2">
+                  <Input
+                    id="dosage"
+                    placeholder="e.g., 500mg"
+                    value={formData.dosage}
+                    onChange={(e) => setFormData(prev => ({ ...prev, dosage: e.target.value }))}
+                    required
+                  />
+                  <div className="space-y-2">
+                    <Label className="text-sm">Quick Dosage Strength</Label>
+                    <div className="flex flex-wrap gap-2">
+                      {dosageStrengths.map((strength) => (
+                        <Button
+                          key={strength.value}
+                          type="button"
+                          variant={formData.dosage_strength[0] === strength.value ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => {
+                            setFormData(prev => ({ 
+                              ...prev, 
+                              dosage_strength: [strength.value],
+                              dosage: `${strength.value}mg`
+                            }))
+                          }}
+                          className="text-xs"
+                        >
+                          <Droplets className="h-3 w-3 mr-1" />
+                          {strength.label}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="frequency">Frequency *</Label>
-                <Select 
-                  value={formData.frequency} 
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, frequency: value }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select frequency" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="once daily">Once daily</SelectItem>
-                    <SelectItem value="twice daily">Twice daily</SelectItem>
-                    <SelectItem value="three times daily">Three times daily</SelectItem>
-                    <SelectItem value="four times daily">Four times daily</SelectItem>
-                    <SelectItem value="as needed">As needed</SelectItem>
-                    <SelectItem value="before meals">Before meals</SelectItem>
-                    <SelectItem value="after meals">After meals</SelectItem>
-                    <SelectItem value="every 6 hours">Every 6 hours</SelectItem>
-                    <SelectItem value="every 8 hours">Every 8 hours</SelectItem>
-                    <SelectItem value="every 12 hours">Every 12 hours</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label>Frequency *</Label>
+                <div className="space-y-3">
+                  <div className="flex flex-wrap gap-2">
+                    {quickFrequencies.map((freq) => {
+                      const IconComponent = freq.icon;
+                      return (
+                        <Button
+                          key={freq.value}
+                          type="button"
+                          variant={formData.frequency === freq.value ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setFormData(prev => ({ ...prev, frequency: freq.value }))}
+                          className="gap-1"
+                        >
+                          <IconComponent className="h-3 w-3" />
+                          {freq.label}
+                        </Button>
+                      );
+                    })}
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label className="text-sm">Custom Frequency</Label>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label className="text-xs">Times per day: {formData.frequency_times[0]}</Label>
+                        <Slider
+                          value={formData.frequency_times}
+                          onValueChange={(value) => setFormData(prev => ({ ...prev, frequency_times: value }))}
+                          max={6}
+                          min={1}
+                          step={1}
+                          className="w-full"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-xs">Hours between doses: {formData.time_interval[0]}</Label>
+                        <Slider
+                          value={formData.time_interval}
+                          onValueChange={(value) => setFormData(prev => ({ ...prev, time_interval: value }))}
+                          max={24}
+                          min={1}
+                          step={1}
+                          className="w-full"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
+            </div>
 
+            <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="duration_days">Duration: {formData.duration_days[0]} days</Label>
-                <Slider
-                  id="duration_days"
-                  value={formData.duration_days}
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, duration_days: value }))}
-                  max={90}
-                  min={1}
-                  step={1}
-                  className="w-full"
-                />
-                <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>1 day</span>
-                  <span>90 days</span>
+                <Label>Duration: {formData.duration_days[0]} days</Label>
+                <div className="space-y-3">
+                  <div className="flex flex-wrap gap-2">
+                    {quickDurations.map((duration) => (
+                      <Button
+                        key={duration.value}
+                        type="button"
+                        variant={formData.duration_days[0] === duration.value ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setFormData(prev => ({ ...prev, duration_days: [duration.value] }))}
+                        className="gap-1"
+                      >
+                        <Calendar className="h-3 w-3" />
+                        {duration.label}
+                      </Button>
+                    ))}
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Slider
+                      value={formData.duration_days}
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, duration_days: value }))}
+                      max={90}
+                      min={1}
+                      step={1}
+                      className="w-full"
+                    />
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>1 day</span>
+                      <span>90 days</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
