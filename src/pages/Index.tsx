@@ -17,6 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Stethoscope } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
 import { createDossierAfterSignup } from "@/lib/medicalRecords";
+import { DatabaseSaveTest } from "@/components/DatabaseSaveTest";
 const Index = () => {
   const {
     t,
@@ -166,6 +167,10 @@ const Index = () => {
 
   // If user is authenticated, show the dashboard
   if (user) {
+    // For testing purposes, show the database test component
+    if (window.location.search.includes('test=database')) {
+      return <DatabaseSaveTest />;
+    }
     return <UnifiedDashboard user={user} />;
   }
 
