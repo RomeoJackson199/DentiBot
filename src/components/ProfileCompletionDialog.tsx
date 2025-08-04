@@ -33,7 +33,7 @@ const ProfileCompletionDialog = () => {
       .from("profiles")
       .select(
         `id, role, first_name, last_name, phone, date_of_birth, address, emergency_contact,
-         dentists!dentists_profile_id_fkey(clinic_address, languages, specialty)`
+         dentists!dentists_profile_id_fkey(specialization)`
       )
       .eq("user_id", userId)
       .single();

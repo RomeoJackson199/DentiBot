@@ -13,6 +13,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { User, Session } from "@supabase/supabase-js";
 import Index from "./pages/Index";
+import Auth from "./pages/Auth";
 import DentistProfiles from "./pages/DentistProfiles";
 import Terms from "./pages/Terms";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
@@ -87,7 +88,8 @@ const App = () => (
               <ProfileCompletionDialog />
               <BrowserRouter>
               <Routes>
-                <Route path="/" element={<Index />} />
+            <Route path="/" element={<Index />} />
+            <Route path="/auth" element={<Auth />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/emergency-triage" element={<EmergencyTriage />} />
                 <Route path="/dentists" element={<DentistProfiles />} />

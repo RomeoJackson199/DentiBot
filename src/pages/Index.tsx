@@ -6,7 +6,10 @@ import { Footer } from "@/components/homepage/Footer";
 const Index = () => {
   return (
     <div className="min-h-screen">
-      <HeroSection onBookAppointment={() => {}} onStartTriage={() => {}} />
+      <HeroSection 
+        onBookAppointment={() => window.location.href = '/auth'} 
+        onStartTriage={() => window.location.href = '/auth'} 
+      />
       <FeatureCards />
       <StatsSection />
       <Footer />
