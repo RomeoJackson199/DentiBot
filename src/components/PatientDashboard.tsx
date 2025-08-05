@@ -7,6 +7,7 @@ import RealAppointmentsList from "@/components/RealAppointmentsList";
 import { AppointmentDebug } from "@/components/AppointmentDebug";
 import { SimpleAppointmentTest } from "@/components/SimpleAppointmentTest";
 import { HealthData } from "@/components/HealthData";
+import { PatientPaymentHistory } from "@/components/PatientPaymentHistory";
 import { EmergencyTriageForm } from "@/components/EmergencyTriageForm";
 import { PatientAnalytics } from "@/components/analytics/PatientAnalytics";
 import { DatabaseTest } from "@/components/DatabaseTest";
@@ -68,7 +69,7 @@ interface PatientStats {
 export const PatientDashboard = ({ user }: PatientDashboardProps) => {
   const { t } = useLanguage();
   const { toast } = useToast();
-  type Tab = 'chat' | 'appointments' | 'prescriptions' | 'treatment' | 'records' | 'notes' | 'analytics' | 'emergency' | 'test';
+  type Tab = 'chat' | 'appointments' | 'prescriptions' | 'treatment' | 'records' | 'notes' | 'payments' | 'analytics' | 'emergency' | 'test';
   const [activeTab, setActiveTab] = useState<Tab>(() => {
     try {
       return (localStorage.getItem('pd_tab') as Tab) || 'chat';
@@ -201,7 +202,11 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
         .order('appointment_date', { ascending: false })
         .limit(5);
 
-      setRecentAppointments(appointmentsData || []);
+      setRecentAppointments((appointmentsData || []).map(apt => ({
+        ...apt,
+        duration: apt.duration_minutes || 60,
+        urgency_level: apt.urgency || 'medium'
+      })));
     } catch (error) {
       console.error('Error fetching recent appointments:', error);
     }
@@ -399,13 +404,14 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
 
       {/* Main Content Tabs */}
       <Tabs value={activeTab} onValueChange={(value: Tab) => setActiveTab(value)} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-9">
+        <TabsList className="grid w-full grid-cols-10">
           <TabsTrigger value="chat">Chat</TabsTrigger>
           <TabsTrigger value="appointments">Appointments</TabsTrigger>
           <TabsTrigger value="prescriptions">Prescriptions</TabsTrigger>
           <TabsTrigger value="treatment">Treatment</TabsTrigger>
           <TabsTrigger value="records">Records</TabsTrigger>
           <TabsTrigger value="notes">Notes</TabsTrigger>
+          <TabsTrigger value="payments">Payments</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
           <TabsTrigger value="emergency">Emergency</TabsTrigger>
           <TabsTrigger value="test">Test</TabsTrigger>
@@ -415,7 +421,6 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
           <InteractiveDentalChat 
             user={user} 
             triggerBooking={triggerBooking}
-            onEmergencyComplete={handleEmergencyComplete}
           />
         </TabsContent>
 
@@ -583,12 +588,18 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
           </div>
         </TabsContent>
 
+        <TabsContent value="payments" className="space-y-4">
+          {userProfile?.id && (
+            <PatientPaymentHistory patientId={userProfile.id} />
+          )}
+        </TabsContent>
+
         <TabsContent value="analytics" className="space-y-4">
-          <PatientAnalytics user={user} />
+          <PatientAnalytics userId={user.id} />
         </TabsContent>
 
         <TabsContent value="emergency" className="space-y-4">
-          <EmergencyTriageForm onComplete={handleEmergencyComplete} />
+          <EmergencyTriageForm onCancel={() => setActiveTab('chat')} onComplete={handleEmergencyComplete} />
         </TabsContent>
 
         <TabsContent value="test" className="space-y-4">

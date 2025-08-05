@@ -7,10 +7,11 @@ import { EnhancedUrgencyDashboard } from "@/components/enhanced/EnhancedUrgencyD
 import { DentistManagement } from "@/components/DentistManagement";
 import { PatientManagement } from "@/components/PatientManagement";
 import { AppointmentManagement } from "@/components/AppointmentManagement";
+import { PaymentRequestManager } from "@/components/PaymentRequestManager";
 import { DentistAnalytics } from "@/components/analytics/DentistAnalytics";
 import { ChangelogPopup } from "@/components/ChangelogPopup";
 import { DebugDatabaseConnection } from "@/components/DebugDatabaseConnection";
-import { Calendar, Clock, Settings as SettingsIcon, AlertTriangle, BarChart3, UserPlus, LogOut, Users, Database } from "lucide-react";
+import { Calendar, Clock, Settings as SettingsIcon, AlertTriangle, BarChart3, UserPlus, LogOut, Users, Database, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
@@ -20,7 +21,7 @@ interface DentistDashboardProps {
 }
 
 export function DentistDashboard({ user }: DentistDashboardProps) {
-  const [activeTab, setActiveTab] = useState<'urgency' | 'availability' | 'appointments' | 'patients' | 'analytics' | 'manage' | 'debug'>('urgency');
+  const [activeTab, setActiveTab] = useState<'urgency' | 'availability' | 'appointments' | 'patients' | 'payments' | 'analytics' | 'manage' | 'debug'>('urgency');
   const [dentistId, setDentistId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [showChangelog, setShowChangelog] = useState(false);
@@ -140,7 +141,7 @@ export function DentistDashboard({ user }: DentistDashboardProps) {
         {/* Tab Navigation */}
         <div className="flex justify-center mb-6 sm:mb-8">
           <div className="glass-card rounded-2xl p-2 sm:p-3 animate-fade-in w-full max-w-3xl">
-            <div className="grid grid-cols-2 sm:grid-cols-7 gap-1 sm:gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-8 gap-1 sm:gap-2">
               <Button
                 variant={activeTab === 'urgency' ? 'default' : 'ghost'}
                 onClick={() => setActiveTab('urgency')}
@@ -192,6 +193,19 @@ export function DentistDashboard({ user }: DentistDashboardProps) {
               >
                 <Users className="h-4 w-4" />
                 <span className="font-medium">Patients</span>
+              </Button>
+
+              <Button
+                variant={activeTab === 'payments' ? 'default' : 'ghost'}
+                onClick={() => setActiveTab('payments')}
+                className={`flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2 sm:py-3 rounded-xl transition-all duration-300 text-xs sm:text-sm ${
+                  activeTab === 'payments' 
+                    ? 'bg-gradient-primary text-white shadow-elegant scale-105' 
+                    : 'text-dental-muted-foreground hover:text-dental-primary hover:bg-dental-primary/10 hover:scale-105'
+                }`}
+              >
+                <CreditCard className="h-4 w-4" />
+                <span className="font-medium">Payments</span>
               </Button>
 
               <Button
@@ -255,6 +269,10 @@ export function DentistDashboard({ user }: DentistDashboardProps) {
               
               {activeTab === 'patients' && (
                 <PatientManagement dentistId={dentistId} />
+              )}
+
+              {activeTab === 'payments' && (
+                <PaymentRequestManager dentistId={dentistId} />
               )}
               
               {activeTab === 'analytics' && (

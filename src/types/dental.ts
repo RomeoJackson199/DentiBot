@@ -23,7 +23,7 @@ export interface TreatmentPlan {
   id: string;
   patient_id: string;
   dentist_id: string;
-  title: string;
+  title?: string;
   description?: string;
   diagnosis?: string;
   estimated_cost?: number;
