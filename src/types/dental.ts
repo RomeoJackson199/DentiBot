@@ -27,7 +27,7 @@ export interface TreatmentPlan {
   description?: string;
   diagnosis?: string;
   estimated_cost?: number;
-  estimated_duration: string;
+  estimated_duration?: string; // Make optional
   estimated_duration_weeks?: number;
   priority: string;
   status: string;
@@ -68,7 +68,7 @@ export interface MedicalRecord {
   findings?: string;
   recommendations?: string;
   record_date: string;
-  visit_date: string;
+  visit_date?: string; // Make optional to match database
   created_at: string;
   updated_at: string;
   dentist?: {
