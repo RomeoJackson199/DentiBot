@@ -88,30 +88,41 @@ export const PaymentRequestForm: React.FC<PaymentRequestFormProps> = ({
 
       if (error) throw error;
 
-      // Create notification for the patient
-      await supabase
-        .from('notifications')
-        .insert({
-          user_id: selectedPatient.user_id || selectedPatient.id,
-          patient_id: selectedPatient.id,
-          dentist_id: dentistId,
-          type: 'payment',
-          title: 'Payment Request',
-          message: `You have a payment request for €${amount} - ${description}`,
-          priority: 'high',
-          action_url: '/dashboard?tab=payments',
-          action_label: 'Pay Now'
-        });
+      // Get the patient's user_id from profiles table
+      const { data: patientProfile, error: profileError } = await supabase
+        .from('profiles')
+        .select('user_id')
+        .eq('id', selectedPatient.id)
+        .single();
+
+      if (!profileError && patientProfile) {
+        // Create notification for the patient
+        await supabase
+          .from('notifications')
+          .insert({
+            user_id: patientProfile.user_id,
+            patient_id: selectedPatient.id,
+            dentist_id: dentistId,
+            type: 'payment',
+            title: 'Payment Request',
+            message: `You have a payment request for €${amount} - ${description}`,
+            priority: 'high',
+            action_url: data.payment_url || '/dashboard?tab=payments',
+            action_label: 'Pay Now',
+            metadata: {
+              payment_url: data.payment_url,
+              amount: amount,
+              description: description
+            }
+          });
+      }
 
       toast({
         title: "Payment request sent",
-        description: `Payment request for €${amount} has been sent to ${selectedPatient.first_name} ${selectedPatient.last_name}`,
+        description: `Payment request for €${amount} has been sent to ${selectedPatient.first_name} ${selectedPatient.last_name}. They will receive a notification to pay.`,
       });
 
-      // Open payment link in new tab
-      if (data.payment_url) {
-        window.open(data.payment_url, '_blank');
-      }
+      // DO NOT open payment link for dentist - only patient should pay
 
       onClose();
     } catch (error) {

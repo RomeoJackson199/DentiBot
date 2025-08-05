@@ -73,10 +73,31 @@ export const PatientPaymentHistory: React.FC<PatientPaymentHistoryProps> = ({ pa
     return `€${(amount / 100).toFixed(2)}`;
   };
 
-  const handlePayNow = async (stripeSessionId: string) => {
-    if (stripeSessionId) {
-      // Redirect to Stripe checkout (this would need the actual session URL)
-      window.open(`https://checkout.stripe.com/pay/${stripeSessionId}`, '_blank');
+  const handlePayNow = async (paymentRequestId: string) => {
+    try {
+      // Get the payment URL from the payment request
+      const { data: paymentRequest, error } = await supabase
+        .from('payment_requests')
+        .select('stripe_session_id')
+        .eq('id', paymentRequestId)
+        .single();
+
+      if (error) throw error;
+
+      if (paymentRequest?.stripe_session_id) {
+        // Re-create the payment session URL or get it from the edge function
+        const { data, error: funcError } = await supabase.functions.invoke('create-payment-request', {
+          body: {
+            payment_request_id: paymentRequestId
+          }
+        });
+
+        if (!funcError && data?.payment_url) {
+          window.open(data.payment_url, '_blank');
+        }
+      }
+    } catch (error) {
+      console.error('Error processing payment:', error);
     }
   };
 
@@ -133,10 +154,10 @@ export const PatientPaymentHistory: React.FC<PatientPaymentHistoryProps> = ({ pa
                     <p className="font-semibold">{formatAmount(request.amount)}</p>
                     {getStatusBadge(request.status)}
                   </div>
-                  {request.status === 'pending' && request.stripe_session_id && (
+                  {request.status === 'pending' && (
                     <Button
                       size="sm"
-                      onClick={() => handlePayNow(request.stripe_session_id!)}
+                      onClick={() => handlePayNow(request.id)}
                     >
                       <ExternalLink className="h-4 w-4 mr-2" />
                       Pay Now
