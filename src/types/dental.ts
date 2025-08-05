@@ -12,7 +12,7 @@ export interface Prescription {
   created_at: string;
   updated_at: string;
   dentist?: {
-    profile: {
+    profile?: {
       first_name: string;
       last_name: string;
     };
@@ -37,7 +37,7 @@ export interface TreatmentPlan {
   created_at: string;
   updated_at: string;
   dentist?: {
-    profile: {
+    profile?: {
       first_name: string;
       last_name: string;
     };
@@ -61,18 +61,18 @@ export interface TreatmentProcedure {
 export interface MedicalRecord {
   id: string;
   patient_id: string;
-  dentist_id: string;
+  dentist_id?: string;
   record_type: string;
   title: string;
   description?: string;
   findings?: string;
   recommendations?: string;
   record_date: string;
-  visit_date?: string; // Make optional to match database
+  attachments?: any;
   created_at: string;
   updated_at: string;
   dentist?: {
-    profile: {
+    profile?: {
       first_name: string;
       last_name: string;
     };

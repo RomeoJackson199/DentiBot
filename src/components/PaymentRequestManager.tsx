@@ -16,10 +16,6 @@ interface PaymentRequest {
   status: string;
   patient_email: string;
   created_at: string;
-  patient?: {
-    first_name: string;
-    last_name: string;
-  };
 }
 
 interface PaymentRequestManagerProps {
@@ -42,10 +38,7 @@ export const PaymentRequestManager: React.FC<PaymentRequestManagerProps> = ({ de
       setLoading(true);
       const { data, error } = await supabase
         .from('payment_requests')
-        .select(`
-          *,
-          patient:profiles!payment_requests_patient_id_fkey(first_name, last_name)
-        `)
+        .select('*')
         .eq('dentist_id', dentistId)
         .order('created_at', { ascending: false });
 
@@ -76,7 +69,7 @@ export const PaymentRequestManager: React.FC<PaymentRequestManagerProps> = ({ de
   const getStatusBadge = (status: string) => {
     const variants = {
       pending: 'default',
-      paid: 'success',
+      paid: 'secondary',
       cancelled: 'destructive',
     } as const;
 
@@ -137,9 +130,9 @@ export const PaymentRequestManager: React.FC<PaymentRequestManagerProps> = ({ de
                   <div className="flex items-center space-x-4">
                     {getStatusIcon(request.status)}
                     <div>
-                      <h3 className="font-medium">
-                        {request.patient?.first_name} {request.patient?.last_name}
-                      </h3>
+                    <h3 className="font-medium">
+                      {request.patient_email}
+                    </h3>
                       <p className="text-sm text-muted-foreground">
                         {request.description}
                       </p>

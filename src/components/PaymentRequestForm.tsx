@@ -31,6 +31,7 @@ export const PaymentRequestForm: React.FC<PaymentRequestFormProps> = ({
 
   const fetchPatients = async () => {
     try {
+      console.log('Fetching patients for dentist:', dentistId);
       const { data, error } = await supabase
         .from('appointments')
         .select(`
@@ -40,20 +41,31 @@ export const PaymentRequestForm: React.FC<PaymentRequestFormProps> = ({
         .eq('dentist_id', dentistId)
         .not('profiles', 'is', null);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching patients:', error);
+        throw error;
+      }
+
+      console.log('Raw appointment data:', data);
 
       // Get unique patients
-      const uniquePatients = data.reduce((acc: any[], appointment: any) => {
+      const uniquePatients = data?.reduce((acc: any[], appointment: any) => {
         const patient = appointment.profiles;
         if (patient && !acc.find(p => p.id === patient.id)) {
           acc.push(patient);
         }
         return acc;
-      }, []);
+      }, []) || [];
 
+      console.log('Unique patients found:', uniquePatients);
       setPatients(uniquePatients);
     } catch (error) {
       console.error('Error fetching patients:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load patients",
+        variant: "destructive"
+      });
     }
   };
 

@@ -12,12 +12,6 @@ interface PaymentRequest {
   status: string;
   created_at: string;
   stripe_session_id?: string;
-  dentist?: {
-    profile: {
-      first_name: string;
-      last_name: string;
-    };
-  };
 }
 
 interface PatientPaymentHistoryProps {
@@ -37,12 +31,7 @@ export const PatientPaymentHistory: React.FC<PatientPaymentHistoryProps> = ({ pa
       setLoading(true);
       const { data, error } = await supabase
         .from('payment_requests')
-        .select(`
-          *,
-          dentist:dentists!payment_requests_dentist_id_fkey(
-            profile:profiles!dentists_profile_id_fkey(first_name, last_name)
-          )
-        `)
+        .select('*')
         .eq('patient_id', patientId)
         .order('created_at', { ascending: false });
 
@@ -69,7 +58,7 @@ export const PatientPaymentHistory: React.FC<PatientPaymentHistoryProps> = ({ pa
   const getStatusBadge = (status: string) => {
     const variants = {
       pending: 'default',
-      paid: 'success',
+      paid: 'secondary',
       cancelled: 'destructive',
     } as const;
 
@@ -132,7 +121,7 @@ export const PatientPaymentHistory: React.FC<PatientPaymentHistoryProps> = ({ pa
                   <div>
                     <h4 className="font-medium">{request.description}</h4>
                     <p className="text-sm text-muted-foreground">
-                      From: Dr. {request.dentist?.profile?.first_name} {request.dentist?.profile?.last_name}
+                      Payment request from dentist
                     </p>
                     <p className="text-xs text-muted-foreground">
                       {new Date(request.created_at).toLocaleDateString()}
