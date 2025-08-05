@@ -52,22 +52,12 @@ const Dashboard = () => {
   }, []);
 
   if (loading) {
-    return (
-      <div className="min-h-screen mesh-bg flex items-center justify-center">
-        <div className="text-center space-y-6 animate-fade-in">
-          <div className="relative">
-            <div className="w-16 h-16 bg-gradient-primary rounded-2xl flex items-center justify-center mx-auto shadow-elegant animate-float">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
-            </div>
-            <div className="pulse-ring w-20 h-20 -top-2 -left-2"></div>
-          </div>
-          <div className="space-y-2">
-            <h3 className="text-xl font-semibold gradient-text">Loading dashboard</h3>
-            <p className="text-dental-muted-foreground">Preparing your personalized experience...</p>
-          </div>
-        </div>
+    return <div className="min-h-screen flex items-center justify-center mesh-bg">
+      <div className="text-center space-y-4">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-dental-primary mx-auto"></div>
+        <p className="text-dental-muted-foreground">Loading dashboard...</p>
       </div>
-    );
+    </div>;
   }
 
   if (!user) {
