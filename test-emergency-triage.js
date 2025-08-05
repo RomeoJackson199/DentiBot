@@ -8,7 +8,7 @@ async function testEmergencyTriage() {
     console.log('Testing emergency triage page...');
     
     // Navigate to the emergency triage page
-    await page.goto('http://localhost:5173/emergency-triage', { 
+    await page.goto(`${process.env.BASE_URL || 'http://localhost:5173'}/emergency-triage`, { 
       waitUntil: 'networkidle2',
       timeout: 10000 
     });

@@ -48,8 +48,6 @@ serve(async (req) => {
       throw new Error('No audio data provided')
     }
 
-    console.log('Processing audio data...')
-
     // Process audio in chunks
     const binaryAudio = processBase64Chunks(audio)
     
@@ -59,8 +57,6 @@ serve(async (req) => {
     formData.append('file', blob, 'audio.webm')
     formData.append('model', 'whisper-1')
     formData.append('language', 'fr') // French language
-
-    console.log('Sending to OpenAI Whisper...')
 
     // Send to OpenAI
     const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
@@ -78,7 +74,6 @@ serve(async (req) => {
     }
 
     const result = await response.json()
-    console.log('Transcription result:', result)
 
     return new Response(
       JSON.stringify({ text: result.text }),

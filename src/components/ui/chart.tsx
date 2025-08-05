@@ -76,8 +76,11 @@ const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
 
   // Sanitize CSS values to prevent XSS
   const sanitizeCSSValue = (value: string): string => {
-    // Remove any potentially dangerous characters
-    return value.replace(/[<>'"]/g, '');
+    // Remove any potentially dangerous characters and ensure valid CSS
+    return value
+      .replace(/[<>'"\\]/g, '') // Remove dangerous characters
+      .replace(/[^\w\-#]/g, '') // Only allow word chars, hyphens, and hash for colors
+      .slice(0, 50); // Limit length to prevent abuse
   };
 
   const sanitizedCSS = Object.entries(THEMES)
