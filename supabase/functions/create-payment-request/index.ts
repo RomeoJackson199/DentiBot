@@ -18,6 +18,8 @@ serve(async (req) => {
       throw new Error("Stripe secret key not configured");
     }
 
+    const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
+
     const { patient_id, dentist_id, amount, description, patient_email, patient_name, payment_request_id } = await req.json();
 
     // If payment_request_id is provided, get existing payment request
@@ -85,8 +87,6 @@ serve(async (req) => {
     if (!patient_id || !dentist_id || !amount || !description || !patient_email) {
       throw new Error("Missing required fields");
     }
-
-    const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
 
     // Create a Stripe checkout session
     const session = await stripe.checkout.sessions.create({
