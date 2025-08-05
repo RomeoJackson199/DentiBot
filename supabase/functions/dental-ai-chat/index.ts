@@ -41,7 +41,10 @@ serve(async (req) => {
   try {
     const { message, conversation_history, user_profile, patient_context, mode } = await req.json();
 
-    console.log('Received request:', { message, user_profile, mode });
+    // Log request in development only
+    if (Deno.env.get('ENVIRONMENT') === 'development') {
+      console.log('Received request:', { message, user_profile, mode });
+    }
     
     // Validate input
     if (!message || typeof message !== 'string') {
@@ -111,7 +114,10 @@ serve(async (req) => {
     };
 
     const detectedLanguage = detectLanguage(message);
-    console.log('Detected language:', detectedLanguage);
+          // Language detection logging for development
+      if (Deno.env.get('ENVIRONMENT') === 'development') {
+        console.log('Detected language:', detectedLanguage);
+      }
 
     // Language-specific content
     const getLanguageContent = (lang: string) => {
@@ -424,7 +430,10 @@ Always maintain professional medical standards and suggest only appropriate trea
       { role: 'user', content: message }
     ];
 
-    console.log('Sending to OpenAI:', { messageCount: messages.length });
+            // OpenAI request logging for development
+        if (Deno.env.get('ENVIRONMENT') === 'development') {
+          console.log('Sending to OpenAI:', { messageCount: messages.length });
+        }
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -450,7 +459,10 @@ Always maintain professional medical standards and suggest only appropriate trea
     }
 
     const data = await response.json();
-    console.log('OpenAI response received');
+            // Response logging for development
+        if (Deno.env.get('ENVIRONMENT') === 'development') {
+          console.log('OpenAI response received');
+        }
 
     const result = data.choices[0].message.content;
 

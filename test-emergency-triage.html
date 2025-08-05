@@ -14,7 +14,7 @@
             try {
                 statusDiv.innerHTML = 'Testing emergency triage page...';
                 
-                const response = await fetch('http://localhost:8080/emergency-triage');
+                const response = await fetch('/emergency-triage');
                 
                 if (response.ok) {
                     const html = await response.text();
