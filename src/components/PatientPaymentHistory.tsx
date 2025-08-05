@@ -75,29 +75,31 @@ export const PatientPaymentHistory: React.FC<PatientPaymentHistoryProps> = ({ pa
 
   const handlePayNow = async (paymentRequestId: string) => {
     try {
-      // Get the payment URL from the payment request
-      const { data: paymentRequest, error } = await supabase
-        .from('payment_requests')
-        .select('stripe_session_id')
-        .eq('id', paymentRequestId)
-        .single();
-
-      if (error) throw error;
-
-      if (paymentRequest?.stripe_session_id) {
-        // Re-create the payment session URL or get it from the edge function
-        const { data, error: funcError } = await supabase.functions.invoke('create-payment-request', {
-          body: {
-            payment_request_id: paymentRequestId
-          }
-        });
-
-        if (!funcError && data?.payment_url) {
-          window.open(data.payment_url, '_blank');
+      console.log('Processing payment for request:', paymentRequestId);
+      
+      // Call the edge function to create a new payment session for existing request
+      const { data, error } = await supabase.functions.invoke('create-payment-request', {
+        body: {
+          payment_request_id: paymentRequestId
         }
+      });
+
+      if (error) {
+        console.error('Edge function error:', error);
+        throw error;
+      }
+
+      console.log('Payment session created:', data);
+
+      if (data?.payment_url) {
+        // Open payment URL in new tab
+        window.open(data.payment_url, '_blank');
+      } else {
+        throw new Error('No payment URL received');
       }
     } catch (error) {
       console.error('Error processing payment:', error);
+      // You might want to show a toast notification here
     }
   };
 

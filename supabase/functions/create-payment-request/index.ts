@@ -18,7 +18,69 @@ serve(async (req) => {
       throw new Error("Stripe secret key not configured");
     }
 
-    const { patient_id, dentist_id, amount, description, patient_email, patient_name } = await req.json();
+    const { patient_id, dentist_id, amount, description, patient_email, patient_name, payment_request_id } = await req.json();
+
+    // If payment_request_id is provided, get existing payment request
+    if (payment_request_id) {
+      const supabaseClient = createClient(
+        Deno.env.get("SUPABASE_URL") ?? "",
+        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+        { auth: { persistSession: false } }
+      );
+
+      const { data: paymentRequest, error } = await supabaseClient
+        .from('payment_requests')
+        .select('*')
+        .eq('id', payment_request_id)
+        .single();
+
+      if (error) throw new Error("Payment request not found");
+
+      // Create new Stripe session for existing payment request
+      const session = await stripe.checkout.sessions.create({
+        payment_method_types: ["card"],
+        line_items: [
+          {
+            price_data: {
+              currency: "eur",
+              product_data: {
+                name: paymentRequest.description,
+              },
+              unit_amount: paymentRequest.amount,
+            },
+            quantity: 1,
+          },
+        ],
+        mode: "payment",
+        success_url: `${req.headers.get("origin")}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${req.headers.get("origin")}/payment-cancelled`,
+        customer_email: paymentRequest.patient_email,
+        metadata: {
+          patient_id: paymentRequest.patient_id,
+          dentist_id: paymentRequest.dentist_id,
+          payment_request_id: payment_request_id,
+          description: paymentRequest.description,
+        },
+      });
+
+      // Update payment request with new session ID
+      await supabaseClient
+        .from('payment_requests')
+        .update({ stripe_session_id: session.id })
+        .eq('id', payment_request_id);
+
+      return new Response(
+        JSON.stringify({ 
+          payment_url: session.url,
+          session_id: session.id,
+          message: "Payment link created successfully"
+        }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        }
+      );
+    }
 
     if (!patient_id || !dentist_id || !amount || !description || !patient_email) {
       throw new Error("Missing required fields");
