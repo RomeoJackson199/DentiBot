@@ -10,8 +10,25 @@ export const PaymentSuccess: React.FC = () => {
   const sessionId = searchParams.get('session_id');
 
   useEffect(() => {
-    // Payment status will be updated via webhook or edge function
-    // No database update needed here since types aren't available yet
+    const updatePaymentStatus = async () => {
+      if (sessionId) {
+        try {
+          const { data, error } = await supabase.functions.invoke('update-payment-status', {
+            body: { session_id: sessionId }
+          });
+          
+          if (error) {
+            console.error('Error updating payment status:', error);
+          } else {
+            console.log('Payment status updated:', data);
+          }
+        } catch (error) {
+          console.error('Failed to update payment status:', error);
+        }
+      }
+    };
+
+    updatePaymentStatus();
   }, [sessionId]);
 
   return (
