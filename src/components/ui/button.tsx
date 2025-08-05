@@ -5,7 +5,7 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dental-primary focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 relative overflow-hidden",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dental-primary focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 relative overflow-hidden touch-target",
   {
     variants: {
       variant: {
@@ -15,7 +15,7 @@ const buttonVariants = cva(
         secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80 shadow-soft hover:shadow-medium active:scale-95",
         ghost: "hover:bg-accent hover:text-accent-foreground active:scale-95",
         link: "text-primary underline-offset-4 hover:underline",
-        // New modern variants
+        // Enhanced modern variants with better visual hierarchy
         gradient: "bg-gradient-primary text-white shadow-elegant hover:shadow-glow hover:scale-105 active:scale-95 btn-glow",
         "gradient-secondary": "bg-gradient-secondary text-white shadow-elegant hover:shadow-glow hover:scale-105 active:scale-95 btn-glow",
         "gradient-accent": "bg-gradient-accent text-white shadow-elegant hover:shadow-glow hover:scale-105 active:scale-95 btn-glow",
@@ -26,6 +26,11 @@ const buttonVariants = cva(
         warning: "bg-warning text-white hover:bg-warning/90 shadow-soft hover:shadow-medium active:scale-95",
         error: "bg-error text-white hover:bg-error/90 shadow-soft hover:shadow-medium active:scale-95",
         info: "bg-info text-white hover:bg-info/90 shadow-soft hover:shadow-medium active:scale-95",
+        // New sophisticated variants
+        "elegant": "bg-card border border-border text-foreground hover:bg-accent hover:border-dental-primary/30 shadow-soft hover:shadow-medium active:scale-95",
+        "minimal": "text-foreground hover:bg-accent/50 active:scale-95",
+        "glow": "bg-dental-primary text-white shadow-glow hover:shadow-xl hover:scale-105 active:scale-95",
+        "neon": "bg-transparent border border-dental-primary text-dental-primary hover:bg-dental-primary hover:text-white shadow-glow active:scale-95",
       },
       size: {
         default: "h-10 px-4 py-2",
@@ -35,6 +40,9 @@ const buttonVariants = cva(
         icon: "h-10 w-10",
         "icon-sm": "h-8 w-8",
         "icon-lg": "h-12 w-12",
+        // New mobile-optimized sizes
+        "mobile": "h-12 px-6 py-3 text-base font-semibold rounded-xl",
+        "mobile-lg": "h-14 px-8 py-4 text-lg font-semibold rounded-xl",
       },
     },
     defaultVariants: {
@@ -51,15 +59,21 @@ export interface ButtonProps
   loading?: boolean
   icon?: React.ReactNode
   rightIcon?: React.ReactNode
+  pulse?: boolean
+  glow?: boolean
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, loading, icon, rightIcon, children, disabled, ...props }, ref) => {
+  ({ className, variant, size, asChild = false, loading, icon, rightIcon, children, disabled, pulse, glow, ...props }, ref) => {
     const Comp = asChild ? Slot : "button"
     
     return (
       <Comp
-        className={cn(buttonVariants({ variant, size, className }))}
+        className={cn(
+          buttonVariants({ variant, size, className }),
+          pulse && "animate-pulse-soft",
+          glow && "shadow-glow hover:shadow-xl"
+        )}
         ref={ref}
         disabled={disabled || loading}
         {...props}
@@ -67,9 +81,17 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         {loading && (
           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current" />
         )}
-        {!loading && icon && icon}
+        {!loading && icon && (
+          <span className="flex items-center justify-center">
+            {icon}
+          </span>
+        )}
         {children}
-        {!loading && rightIcon && rightIcon}
+        {!loading && rightIcon && (
+          <span className="flex items-center justify-center">
+            {rightIcon}
+          </span>
+        )}
       </Comp>
     )
   }

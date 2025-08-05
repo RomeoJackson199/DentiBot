@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { Send, Bot, User as UserIcon, Mic, MicOff } from "lucide-react";
+import { Send, Bot, User as UserIcon, Mic, MicOff, CheckCircle, AlertTriangle, Info } from "lucide-react";
 import { ChatMessage } from "@/types/chat";
 import { format } from "date-fns";
 import {
@@ -875,7 +875,7 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
 
   if (showConsentWidget) {
     return (
-      <div className="flex flex-col h-full">
+      <div className="flex flex-col h-full mesh-bg">
         <div className="flex-1 p-4 flex items-center justify-center">
           <PrivacyConsentWidget
             onAccept={() => handleConsent(true)}
@@ -887,36 +887,52 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full mesh-bg">
       <ScrollArea className="flex-1 p-4">
-        <div className="space-y-4 max-w-4xl mx-auto">
+        <div className="space-y-6 max-w-4xl mx-auto">
           {messages.map((message) => (
             <div
               key={message.id}
-              className={`flex ${message.is_bot ? "justify-start" : "justify-end"}`}
+              className={`flex ${message.is_bot ? "justify-start" : "justify-end"} animate-fade-in`}
             >
               <div
-                className={`flex items-start space-x-2 max-w-md ${
+                className={`flex items-start space-x-3 max-w-md ${
                   message.is_bot ? "" : "flex-row-reverse space-x-reverse"
                 }`}
               >
                 <div className="flex-shrink-0">
                   {message.is_bot ? (
-                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                      <Bot className="w-4 h-4 text-primary" />
+                    <div className="w-10 h-10 rounded-full bg-gradient-primary flex items-center justify-center shadow-elegant">
+                      <Bot className="w-5 h-5 text-white" />
                     </div>
                   ) : (
-                    <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
-                      <UserIcon className="w-4 h-4 text-secondary-foreground" />
+                    <div className="w-10 h-10 rounded-full bg-gradient-secondary flex items-center justify-center shadow-elegant">
+                      <UserIcon className="w-5 h-5 text-white" />
                     </div>
                   )}
                 </div>
-                <Card className={`${message.is_bot ? "bg-muted/50" : "bg-primary text-primary-foreground"}`}>
-                  <CardContent className="p-3">
-                    <div className="text-sm whitespace-pre-wrap">{message.message}</div>
+                <Card 
+                  variant={message.is_bot ? "elegant" : "gradient"} 
+                  className={`${message.is_bot ? "bg-card/80 backdrop-blur-sm" : ""} max-w-sm sm:max-w-md`}
+                >
+                  <CardContent className="p-4">
+                    <div className="text-sm whitespace-pre-wrap leading-relaxed">{message.message}</div>
                     {message.message_type === 'success' && (
-                      <Badge variant="secondary" className="mt-2">
+                      <Badge variant="secondary" className="mt-3 bg-success text-white">
+                        <CheckCircle className="w-3 h-3 mr-1" />
                         Success
+                      </Badge>
+                    )}
+                    {message.message_type === 'warning' && (
+                      <Badge variant="secondary" className="mt-3 bg-warning text-white">
+                        <AlertTriangle className="w-3 h-3 mr-1" />
+                        Warning
+                      </Badge>
+                    )}
+                    {message.message_type === 'info' && (
+                      <Badge variant="secondary" className="mt-3 bg-info text-white">
+                        <Info className="w-3 h-3 mr-1" />
+                        Info
                       </Badge>
                     )}
                   </CardContent>
@@ -926,17 +942,17 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
           ))}
           
           {isLoading && (
-            <div className="flex justify-start">
-              <div className="flex items-start space-x-2 max-w-md">
-                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Bot className="w-4 h-4 text-primary" />
+            <div className="flex justify-start animate-fade-in">
+              <div className="flex items-start space-x-3 max-w-md">
+                <div className="w-10 h-10 rounded-full bg-gradient-primary flex items-center justify-center shadow-elegant">
+                  <Bot className="w-5 h-5 text-white" />
                 </div>
-                <Card className="bg-muted/50">
-                  <CardContent className="p-3">
-                    <div className="flex space-x-1">
-                      <div className="w-2 h-2 bg-primary rounded-full animate-bounce"></div>
-                      <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: "0.1s" }}></div>
-                      <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
+                <Card variant="elegant" className="bg-card/80 backdrop-blur-sm">
+                  <CardContent className="p-4">
+                    <div className="flex space-x-2">
+                      <div className="w-2 h-2 bg-dental-primary rounded-full animate-bounce"></div>
+                      <div className="w-2 h-2 bg-dental-primary rounded-full animate-bounce" style={{ animationDelay: "0.1s" }}></div>
+                      <div className="w-2 h-2 bg-dental-primary rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
                     </div>
                   </CardContent>
                 </Card>
@@ -951,20 +967,22 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
       </ScrollArea>
 
       {hasConsented && (
-        <div className="border-t p-4">
-          <div className="flex space-x-2 max-w-4xl mx-auto">
+        <div className="border-t border-border/50 bg-card/50 backdrop-blur-sm p-4">
+          <div className="flex space-x-3 max-w-4xl mx-auto">
             <Input
               placeholder={t.typeMessage || "Type your message..."}
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
               onKeyPress={handleKeyPress}
-              className="flex-1"
+              className="flex-1 mobile-input"
               disabled={isLoading}
             />
             <Button 
               onClick={handleSendMessage} 
               disabled={!inputMessage.trim() || isLoading}
               size="icon"
+              variant="gradient"
+              className="shadow-elegant hover:shadow-glow"
             >
               <Send className="h-4 w-4" />
             </Button>

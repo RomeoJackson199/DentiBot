@@ -300,105 +300,126 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'confirmed': return 'bg-green-100 text-green-800';
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'cancelled': return 'bg-red-100 text-red-800';
-      case 'completed': return 'bg-blue-100 text-blue-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'confirmed': return 'bg-success text-white';
+      case 'pending': return 'bg-warning text-white';
+      case 'cancelled': return 'bg-error text-white';
+      case 'completed': return 'bg-info text-white';
+      default: return 'bg-muted text-muted-foreground';
     }
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="flex items-center space-x-2">
-          <Loader2 className="h-4 w-4 animate-spin" />
-          <span>Loading your dashboard...</span>
-        </div>
+      <div className="min-h-screen mesh-bg flex items-center justify-center">
+        <Card 
+          variant="glass-strong" 
+          className="animate-fade-in p-10 max-w-md mx-auto border-dental-primary/20"
+        >
+          <CardContent className="text-center space-y-6" padding="none">
+            {/* Enhanced loading icon */}
+            <div className="relative">
+              <div className="w-16 h-16 bg-gradient-primary rounded-2xl flex items-center justify-center mx-auto shadow-elegant animate-float">
+                <Loader2 className="h-8 w-8 animate-spin text-white" />
+              </div>
+              <div className="pulse-ring w-20 h-20 -top-2 -left-2"></div>
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-xl font-semibold gradient-text">Loading your dashboard</h3>
+              <p className="text-dental-muted-foreground">Preparing your personalized experience...</p>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Error Loading Dashboard</h3>
-          <p className="text-gray-600 mb-4">{error}</p>
-          <Button onClick={fetchUserProfile}>
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Try Again
-          </Button>
-        </div>
+      <div className="min-h-screen mesh-bg flex items-center justify-center">
+        <Card 
+          variant="glass-strong" 
+          className="animate-fade-in p-10 max-w-md mx-auto border-dental-error/20"
+        >
+          <CardContent className="text-center space-y-6" padding="none">
+            <div className="w-16 h-16 bg-error rounded-2xl flex items-center justify-center mx-auto shadow-elegant">
+              <AlertTriangle className="h-8 w-8 text-white" />
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-xl font-semibold text-foreground">Error Loading Dashboard</h3>
+              <p className="text-dental-muted-foreground mb-4">{error}</p>
+              <Button 
+                variant="gradient" 
+                onClick={fetchUserProfile}
+                icon={<RefreshCw className="h-4 w-4" />}
+              >
+                Try Again
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">
+    <div className="space-y-6 mobile-container">
+      {/* Enhanced Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="space-y-2">
+          <h1 className="mobile-heading-lg gradient-text">
             {getWelcomeMessage()}, {userProfile?.first_name || 'Patient'}!
           </h1>
-          <p className="text-gray-600">Welcome to your dental health dashboard</p>
+          <p className="mobile-body text-dental-muted-foreground">Welcome to your personalized dental health dashboard</p>
         </div>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center gap-2">
           <NotificationButton user={user} />
-          <Button size="sm">
-            <Plus className="h-4 w-4 mr-2" />
+          <Button 
+            variant="gradient" 
+            size="mobile"
+            icon={<Plus className="h-4 w-4" />}
+          >
             Book Appointment
           </Button>
           <Settings user={user} />
         </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <Calendar className="h-4 w-4 text-blue-600" />
-              <div>
-                <p className="text-sm text-gray-600">Upcoming</p>
-                <p className="text-xl font-bold">{patientStats.upcomingAppointments}</p>
-              </div>
+      {/* Enhanced Stats Cards */}
+      <div className="mobile-grid-2 lg:grid-cols-4 gap-4">
+        <Card variant="feature" hover className="mobile-card-interactive">
+          <CardContent padding="mobile" className="text-center">
+            <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl flex items-center justify-center mb-4 mx-auto shadow-lg">
+              <Calendar className="h-6 w-6 text-white" />
             </div>
+            <p className="text-sm text-dental-muted-foreground mb-1">Upcoming</p>
+            <p className="text-2xl font-bold text-dental-primary">{patientStats.upcomingAppointments}</p>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <CheckCircle className="h-4 w-4 text-green-600" />
-              <div>
-                <p className="text-sm text-gray-600">Completed</p>
-                <p className="text-xl font-bold">{patientStats.completedAppointments}</p>
-              </div>
+        <Card variant="feature" hover className="mobile-card-interactive">
+          <CardContent padding="mobile" className="text-center">
+            <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-blue-500 rounded-xl flex items-center justify-center mb-4 mx-auto shadow-lg">
+              <CheckCircle className="h-6 w-6 text-white" />
             </div>
+            <p className="text-sm text-dental-muted-foreground mb-1">Completed</p>
+            <p className="text-2xl font-bold text-dental-secondary">{patientStats.completedAppointments}</p>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <Pill className="h-4 w-4 text-purple-600" />
-              <div>
-                <p className="text-sm text-gray-600">Active Rx</p>
-                <p className="text-xl font-bold">{patientStats.activePrescriptions}</p>
-              </div>
+        <Card variant="feature" hover className="mobile-card-interactive">
+          <CardContent padding="mobile" className="text-center">
+            <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center mb-4 mx-auto shadow-lg">
+              <Pill className="h-6 w-6 text-white" />
             </div>
+            <p className="text-sm text-dental-muted-foreground mb-1">Active Rx</p>
+            <p className="text-2xl font-bold text-dental-accent">{patientStats.activePrescriptions}</p>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <ClipboardList className="h-4 w-4 text-orange-600" />
-              <div>
-                <p className="text-sm text-gray-600">Treatment Plans</p>
-                <p className="text-xl font-bold">{patientStats.activeTreatmentPlans}</p>
-              </div>
+        <Card variant="feature" hover className="mobile-card-interactive">
+          <CardContent padding="mobile" className="text-center">
+            <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl flex items-center justify-center mb-4 mx-auto shadow-lg">
+              <ClipboardList className="h-6 w-6 text-white" />
             </div>
+            <p className="text-sm text-dental-muted-foreground mb-1">Treatment Plans</p>
+            <p className="text-2xl font-bold text-dental-warning">{patientStats.activeTreatmentPlans}</p>
           </CardContent>
         </Card>
       </div>
