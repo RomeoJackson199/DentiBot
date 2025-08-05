@@ -99,19 +99,9 @@ export const UnifiedDashboard = ({ user }: UnifiedDashboardProps) => {
               </div>
               <div className="pulse-ring w-20 h-20 -top-2 -left-2"></div>
             </div>
-            
-            <div className="space-y-3">
-              <h3 className="text-2xl font-bold gradient-text">Loading Dashboard</h3>
-              <p className="text-dental-muted-foreground leading-relaxed">
-                Determining your access level and personalizing your experience...
-              </p>
-            </div>
-            
-            {/* Progress indicator */}
-            <div className="w-full">
-              <div className="w-full bg-dental-muted/20 rounded-full h-2">
-                <div className="bg-gradient-primary h-2 rounded-full animate-pulse" style={{ width: "60%" }}></div>
-              </div>
+            <div className="space-y-2">
+              <h3 className="text-xl font-semibold gradient-text">Loading your dashboard</h3>
+              <p className="text-dental-muted-foreground">Preparing your personalized experience...</p>
             </div>
           </CardContent>
         </Card>
