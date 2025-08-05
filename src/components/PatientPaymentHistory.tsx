@@ -62,8 +62,17 @@ export const PatientPaymentHistory: React.FC<PatientPaymentHistoryProps> = ({ pa
       cancelled: 'destructive',
     } as const;
 
+    const colors = {
+      pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+      paid: 'bg-green-100 text-green-800 border-green-200',
+      cancelled: 'bg-red-100 text-red-800 border-red-200',
+    } as const;
+
     return (
-      <Badge variant={variants[status as keyof typeof variants] || 'default'}>
+      <Badge 
+        variant={variants[status as keyof typeof variants] || 'default'}
+        className={`${colors[status as keyof typeof colors] || colors.pending} font-medium px-3 py-1`}
+      >
         {status.charAt(0).toUpperCase() + status.slice(1)}
       </Badge>
     );
@@ -120,48 +129,54 @@ export const PatientPaymentHistory: React.FC<PatientPaymentHistoryProps> = ({ pa
   }
 
   return (
-    <Card>
+    <Card className="bg-gradient-to-br from-dental-primary/5 to-dental-accent/5 border-dental-primary/20">
       <CardHeader>
-        <CardTitle className="flex items-center">
-          <DollarSign className="h-5 w-5 mr-2" />
+        <CardTitle className="flex items-center text-dental-primary">
+          <DollarSign className="h-5 w-5 mr-2 text-dental-accent" />
           Payment History
         </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
           {paymentRequests.length === 0 ? (
-            <div className="text-center text-muted-foreground">
-              No payment requests found
+            <div className="text-center py-8">
+              <DollarSign className="h-12 w-12 mx-auto text-dental-primary/30 mb-4" />
+              <p className="text-dental-text/60 text-lg">No payment requests found</p>
+              <p className="text-sm text-dental-text/40 mt-2">All your payment requests will appear here</p>
             </div>
           ) : (
             paymentRequests.map((request) => (
               <div
                 key={request.id}
-                className="flex items-center justify-between p-4 border rounded-lg"
+                className="flex items-center justify-between p-6 border border-dental-primary/10 rounded-xl bg-white/50 backdrop-blur-sm shadow-sm hover:shadow-md transition-all duration-300 hover:border-dental-accent/30"
               >
                 <div className="flex items-center space-x-4">
-                  {getStatusIcon(request.status)}
+                  <div className="p-2 rounded-full bg-dental-primary/10">
+                    {getStatusIcon(request.status)}
+                  </div>
                   <div>
-                    <h4 className="font-medium">{request.description}</h4>
-                    <p className="text-sm text-muted-foreground">
+                    <h4 className="font-semibold text-dental-primary mb-1">{request.description}</h4>
+                    <p className="text-sm text-dental-text/70 mb-1">
                       Payment request from dentist
                     </p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs text-dental-text/50 flex items-center">
+                      <Clock className="h-3 w-3 mr-1" />
                       {new Date(request.created_at).toLocaleDateString()}
                     </p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-4">
                   <div className="text-right">
-                    <p className="font-semibold">{formatAmount(request.amount)}</p>
+                    <p className="font-bold text-xl text-dental-primary mb-2">{formatAmount(request.amount)}</p>
                     {getStatusBadge(request.status)}
                   </div>
                   {request.status === 'pending' && (
                     <Button
-                      size="sm"
+                      size="lg"
                       onClick={() => handlePayNow(request.id)}
+                      className="bg-gradient-to-r from-dental-accent to-dental-accent/80 hover:from-dental-accent/90 hover:to-dental-accent/70 text-white font-semibold px-6 py-3 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
                     >
-                      <ExternalLink className="h-4 w-4 mr-2" />
+                      <ExternalLink className="h-5 w-5 mr-2" />
                       Pay Now
                     </Button>
                   )}

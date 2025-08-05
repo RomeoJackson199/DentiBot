@@ -6,13 +6,15 @@ export interface Prescription {
   dosage: string;
   frequency: string;
   duration_days: number;
+  duration?: string; // For form compatibility
   instructions?: string;
   prescribed_date: string;
+  expiry_date?: string; // For form compatibility
   status: string;
   created_at: string;
   updated_at: string;
   dentist?: {
-    profile?: {
+    profile: {
       first_name: string;
       last_name: string;
     };
@@ -37,7 +39,7 @@ export interface TreatmentPlan {
   created_at: string;
   updated_at: string;
   dentist?: {
-    profile?: {
+    profile: {
       first_name: string;
       last_name: string;
     };
@@ -68,11 +70,12 @@ export interface MedicalRecord {
   findings?: string;
   recommendations?: string;
   record_date: string;
+  visit_date: string; // Add this for compatibility
   attachments?: any;
   created_at: string;
   updated_at: string;
   dentist?: {
-    profile?: {
+    profile: {
       first_name: string;
       last_name: string;
     };
@@ -179,7 +182,7 @@ export interface User {
 
 export interface Dentist {
   id: string;
-  specialization: string;
+  specialization?: string;
   profile: {
     first_name: string;
     last_name: string;
@@ -190,6 +193,7 @@ export interface DentistRecommendation {
   id: string;
   name: string;
   rating: number;
+  specialization?: string; // Add for compatibility
 }
 
 export interface NewPrescriptionForm {
