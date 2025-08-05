@@ -17,6 +17,24 @@ interface MissingField {
   table: "profiles" | "dentists";
 }
 
+interface DentistData {
+  clinic_address?: string;
+  languages?: string[];
+  specialty?: string;
+}
+
+interface ProfileData {
+  id: string;
+  role: string;
+  first_name?: string;
+  last_name?: string;
+  phone?: string;
+  date_of_birth?: string;
+  address?: string;
+  emergency_contact?: string;
+  dentists?: DentistData[];
+}
+
 const availableLanguages = ["English", "French", "Dutch"];
 
 const ProfileCompletionDialog = () => {
@@ -65,7 +83,8 @@ const ProfileCompletionDialog = () => {
         });
       }
     } else if (data.role === "dentist") {
-      const dentist = (data as any).dentists?.[0];
+      const typedData = data as ProfileData;
+      const dentist = typedData.dentists?.[0];
       if (!dentist?.clinic_address) {
         fields.push({
           key: "clinic_address",

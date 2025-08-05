@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { User, Session } from "@supabase/supabase-js";
 import { UnifiedDashboard } from "@/components/UnifiedDashboard";
@@ -31,6 +31,7 @@ const Index = () => {
   const [showLanguageSelection, setShowLanguageSelection] = useState(false);
   const [showAppointmentBooking, setShowAppointmentBooking] = useState(false);
   const [showEmergencyTriage, setShowEmergencyTriage] = useState(false);
+  const isMountedRef = useRef(true);
   const {
     toast
   } = useToast();
@@ -68,7 +69,10 @@ const Index = () => {
 
       // Use setTimeout to defer async operations and prevent deadlocks
       if (event === 'SIGNED_IN' && session?.user) {
-        setTimeout(() => {
+        const timeoutId = setTimeout(() => {
+          // Only proceed if component is still mounted
+          if (!isMountedRef.current) return;
+          
           const hasSeenOnboarding = localStorage.getItem(`onboarding_${session.user.id}`);
           if (!hasSeenOnboarding) {
             setShowOnboarding(true);
@@ -103,6 +107,14 @@ const Index = () => {
     });
     return () => subscription.unsubscribe();
   }, []);
+  
+  // Cleanup mounted state on unmount
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+  
   const handleLanguageSelected = () => {
     setShowLanguageSelection(false);
     const hasSeenOnboarding = user ? localStorage.getItem(`onboarding_${user.id}`) : null;

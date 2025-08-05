@@ -48,6 +48,9 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
   const [isEmergency, setIsEmergency] = useState(false);
   const [emergencyDetected, setEmergencyDetected] = useState(false);
   const [urgencyLevel, setUrgencyLevel] = useState<string>("medium");
+  
+  // Ref to track mounted state for cleanup
+  const isMountedRef = useRef(true);
   const [consultationReason, setConsultationReason] = useState<string>("");
   const [actionButtons, setActionButtons] = useState<any[]>([]);
   const [showChatBooking, setShowChatBooking] = useState(false);
@@ -429,7 +432,12 @@ Type your request...`;
     setActionButtons([]); // Clear action buttons when new message is sent
 
     // Save user message
-    await saveMessage(userMessage);
+    try {
+      await saveMessage(userMessage);
+    } catch (error) {
+      console.error('Failed to save user message:', error);
+      // Continue with chat flow even if save fails
+    }
 
     // Check for chat commands first
     if (user && handleChatCommands(currentInput)) {
@@ -438,15 +446,23 @@ Type your request...`;
     }
 
     // Generate bot response
-    setTimeout(async () => {
+    const timeoutId = setTimeout(async () => {
       try {
         const botResponse = await generateBotResponse(userMessage.message);
         console.log('Bot response received:', botResponse);
-        setMessages(prev => {
-          console.log('Adding bot response to messages. Current count:', prev.length);
-          return [...prev, botResponse];
-        });
-        await saveMessage(botResponse);
+        
+        // Only update state if component is still mounted
+        if (isMountedRef.current) {
+          setMessages(prev => {
+            console.log('Adding bot response to messages. Current count:', prev.length);
+            return [...prev, botResponse];
+          });
+        }
+        try {
+          await saveMessage(botResponse);
+        } catch (error) {
+          console.error('Failed to save bot response:', error);
+        }
       } catch (error) {
         console.error('Error generating bot response:', error);
         // Add fallback message
@@ -458,13 +474,24 @@ Type your request...`;
           message_type: "text",
           created_at: new Date().toISOString(),
         };
-        setMessages(prev => {
-          console.log('Adding fallback message to messages. Current count:', prev.length);
-          return [...prev, fallbackMessage];
-        });
-        await saveMessage(fallbackMessage);
+        
+        // Only update state if component is still mounted
+        if (isMountedRef.current) {
+          setMessages(prev => {
+            console.log('Adding fallback message to messages. Current count:', prev.length);
+            return [...prev, fallbackMessage];
+          });
+        }
+        try {
+          await saveMessage(fallbackMessage);
+        } catch (error) {
+          console.error('Failed to save fallback message:', error);
+        }
       } finally {
-        setIsLoading(false);
+        // Only update loading state if component is still mounted
+        if (isMountedRef.current) {
+          setIsLoading(false);
+        }
       }
     }, 1000);
   };
@@ -598,6 +625,13 @@ Type your request...`;
       }
     };
   }, [mediaStream]);
+  
+  // Cleanup component mounted state
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   const processVoiceMessage = async (audioBlob: Blob) => {
     try {
