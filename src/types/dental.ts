@@ -159,7 +159,7 @@ export interface Appointment {
   appointment_date: string;
   duration: number;
   duration_minutes: number;
-  status: 'scheduled' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled' | 'no_show';
+  status: 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'scheduled' | 'in_progress' | 'no_show';
   urgency: string;
   urgency_level: string;
   reason?: string;

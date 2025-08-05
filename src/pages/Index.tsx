@@ -6,8 +6,8 @@ import { ProgressiveAuthForm } from "@/components/ProgressiveAuthForm";
 import { OnboardingPopup } from "@/components/OnboardingPopup";
 import { LanguageSelection } from "@/components/LanguageSelection";
 import { Header } from "@/components/homepage/Header";
-import { HeroSection } from "@/components/homepage/HeroSection";
-import { FeatureCards } from "@/components/homepage/FeatureCards";
+import { ModernHeroSection } from "@/components/homepage/ModernHeroSection";
+import { ModernFeatureCards } from "@/components/homepage/ModernFeatureCards";
 import { StatsSection } from "@/components/homepage/StatsSection";
 import { Footer } from "@/components/homepage/Footer";
 import { AppointmentBookingWithAuth } from "@/components/AppointmentBookingWithAuth";
@@ -229,11 +229,11 @@ const Index = () => {
   // Show the new professional homepage for non-authenticated users
   return <div className="min-h-screen mesh-bg">
       <Header user={user} />
-      <HeroSection
+      <ModernHeroSection
         onBookAppointment={() => setShowAppointmentBooking(true)}
         onStartTriage={() => setShowEmergencyTriage(true)}
       />
-      <FeatureCards />
+      <ModernFeatureCards />
       <StatsSection />
 
       {/* Footer CTA Section */}
