@@ -113,12 +113,9 @@ export const PaymentRequestManager: React.FC<PaymentRequestManagerProps> = ({ de
 
       {showForm && (
         <PaymentRequestForm
-          patientId={selectedPatient?.id || ''}
-          patientName={selectedPatient?.name || ''}
-          patientEmail={selectedPatient?.email || ''}
+          dentistId={dentistId}
           onClose={() => {
             setShowForm(false);
-            setSelectedPatient(null);
             fetchPaymentRequests();
           }}
         />

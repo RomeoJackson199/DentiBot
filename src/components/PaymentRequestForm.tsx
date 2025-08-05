@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,61 +9,91 @@ import { useToast } from '@/hooks/use-toast';
 import { CreditCard } from 'lucide-react';
 
 interface PaymentRequestFormProps {
-  patientId: string;
-  patientName: string;
-  patientEmail: string;
+  dentistId: string;
   onClose: () => void;
 }
 
 export const PaymentRequestForm: React.FC<PaymentRequestFormProps> = ({
-  patientId,
-  patientName,
-  patientEmail,
+  dentistId,
   onClose
 }) => {
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
+  const [selectedPatient, setSelectedPatient] = useState<any>(null);
+  const [patients, setPatients] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
+  // Fetch patients for this dentist
+  useEffect(() => {
+    fetchPatients();
+  }, [dentistId]);
+
+  const fetchPatients = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('appointments')
+        .select(`
+          patient_id,
+          profiles!appointments_patient_id_fkey(id, first_name, last_name, email)
+        `)
+        .eq('dentist_id', dentistId)
+        .not('profiles', 'is', null);
+
+      if (error) throw error;
+
+      // Get unique patients
+      const uniquePatients = data.reduce((acc: any[], appointment: any) => {
+        const patient = appointment.profiles;
+        if (patient && !acc.find(p => p.id === patient.id)) {
+          acc.push(patient);
+        }
+        return acc;
+      }, []);
+
+      setPatients(uniquePatients);
+    } catch (error) {
+      console.error('Error fetching patients:', error);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!amount || !description) return;
+    if (!amount || !description || !selectedPatient) return;
 
     setLoading(true);
     try {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
-        .single();
-
-      if (!profile) throw new Error('Dentist profile not found');
-
-      const { data: dentist } = await supabase
-        .from('dentists')
-        .select('id')
-        .eq('profile_id', profile.id)
-        .single();
-
-      if (!dentist) throw new Error('Dentist not found');
-
       const { data, error } = await supabase.functions.invoke('create-payment-request', {
         body: {
-          patient_id: patientId,
-          dentist_id: dentist.id,
+          patient_id: selectedPatient.id,
+          dentist_id: dentistId,
           amount: Math.round(parseFloat(amount) * 100), // Convert to cents
           description,
-          patient_email: patientEmail,
-          patient_name: patientName
+          patient_email: selectedPatient.email,
+          patient_name: `${selectedPatient.first_name} ${selectedPatient.last_name}`
         }
       });
 
       if (error) throw error;
 
+      // Create notification for the patient
+      await supabase
+        .from('notifications')
+        .insert({
+          user_id: selectedPatient.user_id || selectedPatient.id,
+          patient_id: selectedPatient.id,
+          dentist_id: dentistId,
+          type: 'payment',
+          title: 'Payment Request',
+          message: `You have a payment request for €${amount} - ${description}`,
+          priority: 'high',
+          action_url: '/dashboard?tab=payments',
+          action_label: 'Pay Now'
+        });
+
       toast({
         title: "Payment request sent",
-        description: `Payment request for €${amount} has been sent to ${patientName}`,
+        description: `Payment request for €${amount} has been sent to ${selectedPatient.first_name} ${selectedPatient.last_name}`,
       });
 
       // Open payment link in new tab
@@ -92,11 +122,32 @@ export const PaymentRequestForm: React.FC<PaymentRequestFormProps> = ({
           Payment Request
         </CardTitle>
         <p className="text-sm text-muted-foreground">
-          Send payment request to {patientName}
+          Send payment request to patient
         </p>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <Label htmlFor="patient">Select Patient</Label>
+            <select
+              id="patient"
+              className="w-full p-2 border rounded-md"
+              value={selectedPatient?.id || ''}
+              onChange={(e) => {
+                const patient = patients.find(p => p.id === e.target.value);
+                setSelectedPatient(patient);
+              }}
+              required
+            >
+              <option value="">Choose a patient...</option>
+              {patients.map((patient) => (
+                <option key={patient.id} value={patient.id}>
+                  {patient.first_name} {patient.last_name} ({patient.email})
+                </option>
+              ))}
+            </select>
+          </div>
+
           <div>
             <Label htmlFor="amount">Amount (€)</Label>
             <Input
@@ -133,7 +184,7 @@ export const PaymentRequestForm: React.FC<PaymentRequestFormProps> = ({
             </Button>
             <Button
               type="submit"
-              disabled={loading || !amount || !description}
+              disabled={loading || !amount || !description || !selectedPatient}
               className="flex-1"
             >
               {loading ? 'Sending...' : 'Send Request'}

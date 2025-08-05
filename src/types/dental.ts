@@ -156,7 +156,7 @@ export interface Appointment {
   appointment_date: string;
   duration: number;
   duration_minutes: number;
-  status: string;
+  status: 'scheduled' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled' | 'no_show';
   urgency: string;
   urgency_level: string;
   reason?: string;
