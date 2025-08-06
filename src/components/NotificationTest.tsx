@@ -51,7 +51,7 @@ export const NotificationTest: React.FC<NotificationTestProps> = ({ user }) => {
           dentist_id: 'test-dentist-id',
           appointment_date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // Tomorrow
           duration: 60,
-          status: 'scheduled',
+          status: 'confirmed',
           urgency_level: 'normal'
         })
         .select()
@@ -112,7 +112,7 @@ export const NotificationTest: React.FC<NotificationTestProps> = ({ user }) => {
           patient_id: user.id,
           dentist_id: 'test-dentist-id',
           plan_name: 'Test Treatment Plan',
-          description: 'A test treatment plan',
+          title: 'Test Treatment Plan',
           status: 'active'
         })
         .select()

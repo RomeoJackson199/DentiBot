@@ -21,7 +21,7 @@ import {
 import { format, addDays, isBefore, startOfDay } from "date-fns";
 
 interface EmergencyBookingFlowProps {
-  user: User;
+  user: { id: string; email?: string };
   onComplete: (appointmentData?: any) => void;
   onCancel: () => void;
 }
@@ -43,6 +43,7 @@ interface Dentist {
   id: string;
   profile_id: string;
   specialization: string;
+  specialty?: string;
   profiles: {
     first_name: string;
     last_name: string;
@@ -264,8 +265,8 @@ export const EmergencyBookingFlow = ({ user, onComplete, onCancel }: EmergencyBo
           .insert({
             user_id: user.id,
             email: user.email || '',
-            first_name: user.user_metadata?.first_name || '',
-            last_name: user.user_metadata?.last_name || '',
+            first_name: '',
+            last_name: '',
             role: 'patient'
           })
           .select('id')
@@ -442,7 +443,7 @@ export const EmergencyBookingFlow = ({ user, onComplete, onCancel }: EmergencyBo
               medicalHistory: triageData?.medicalHistory
             }}
             onSelectDentist={(dentist) => {
-              setSelectedDentist(dentist);
+              setSelectedDentist(dentist as unknown as Dentist);
               // Auto-suggest first available date when dentist is selected
               const suggestedDates = getSuggestedDates(urgencyLevel);
               if (suggestedDates.length > 0) {

@@ -18,7 +18,8 @@ import {
 interface DentistRecommendation {
   id: string;
   profile_id: string;
-  specialty: string;
+  specialization: string;
+  specialty?: string;
   average_rating: number;
   total_ratings: number;
   expertise_score: number;
@@ -71,7 +72,7 @@ export const DentistRecommendations = ({
         .select(`
           id,
           profile_id,
-          specialty,
+          specialization,
           average_rating,
           total_ratings,
           expertise_score,
@@ -95,7 +96,7 @@ export const DentistRecommendations = ({
           ...dentist,
           recommendation_score: recommendation.score,
           recommendation_reason: recommendation.reason
-        };
+        } as DentistRecommendation;
       });
 
       // Sort by recommendation score
@@ -110,7 +111,7 @@ export const DentistRecommendations = ({
   };
 
   const calculateRecommendationScore = (
-    dentist: Dentist, 
+    dentist: DentistRecommendation, 
     urgency: number, 
     symptoms: string[],
     triageData?: {
@@ -141,7 +142,7 @@ export const DentistRecommendations = ({
 
     // Enhanced specialty matching with triage data (30% of total score)
     const specialtyScore = getSpecialtyScore(
-      dentist.specialty, 
+      dentist.specialization || dentist.specialty || '', 
       symptoms, 
       urgency, 
       triageData
@@ -440,7 +441,7 @@ export const DentistRecommendations = ({
                           Dr. {dentist.profiles.first_name} {dentist.profiles.last_name}
                         </h4>
                         <p className="text-sm text-muted-foreground">
-                          {dentist.specialty}
+                          {dentist.specialization || dentist.specialty}
                         </p>
                       </div>
                       <Badge variant={badge.variant}>

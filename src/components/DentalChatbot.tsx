@@ -113,7 +113,7 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
     };
 
     initializeChat();
-  }, [sessionId, user, loadUserProfile, messages.length, t, userProfile]); // Add all missing dependencies
+  }, [sessionId, user, messages.length, t, userProfile]); // Add all missing dependencies
   
   // Effect to update welcome message when language changes
   useEffect(() => {
