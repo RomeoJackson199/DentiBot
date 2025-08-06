@@ -20,6 +20,7 @@ import NotFound from "./pages/NotFound";
 import EmergencyTriage from "./pages/EmergencyTriage";
 import { PaymentSuccess } from "./pages/PaymentSuccess";
 import { PaymentCancelled } from "./pages/PaymentCancelled";
+import Chat from "./pages/Chat";
 import Schedule from "./pages/Schedule";
 import Analytics from "./pages/Analytics";
 import Support from "./pages/Support";
@@ -100,6 +101,7 @@ const App = () => (
                 <Route path="/support" element={<Support />} />
                 <Route path="/features/:id" element={<FeatureDetail />} />
                 <Route path="/language-test" element={<LanguageTest />} />
+                <Route path="/chat" element={<Chat />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

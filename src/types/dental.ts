@@ -13,6 +13,8 @@ export interface Prescription {
   status: string;
   created_at: string;
   updated_at: string;
+  treatment_plan_id?: string;
+  medical_record_id?: string;
   dentist?: {
     profile: {
       first_name: string;
@@ -36,6 +38,9 @@ export interface TreatmentPlan {
   start_date: string;
   end_date?: string;
   notes?: string;
+  treatment_goals?: string[];
+  procedures?: string[];
+  target_completion_date?: string;
   created_at: string;
   updated_at: string;
   dentist?: {
@@ -70,7 +75,7 @@ export interface MedicalRecord {
   findings?: string;
   recommendations?: string;
   record_date: string;
-  visit_date: string; // Add this for compatibility
+  visit_date?: string; // Optional for compatibility
   attachments?: any;
   created_at: string;
   updated_at: string;

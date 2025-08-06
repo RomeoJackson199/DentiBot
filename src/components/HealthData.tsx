@@ -184,13 +184,33 @@ export const HealthData = ({
 
       // Handle results
       if (medicalRecordsResult.status === 'fulfilled') {
-        setMedicalRecords(medicalRecordsResult.value);
+        const records = medicalRecordsResult.value.map(record => ({
+          ...record,
+          visit_date: record.record_date,
+          dentist: record.dentist && typeof record.dentist === 'object' && 'profile' in record.dentist 
+            ? record.dentist 
+            : { profile: { first_name: '', last_name: '' } }
+        }));
+        setMedicalRecords(records);
       }
       if (prescriptionsResult.status === 'fulfilled') {
-        setPrescriptions(prescriptionsResult.value);
+        const prescriptions = prescriptionsResult.value.map(prescription => ({
+          ...prescription,
+          dentist: prescription.dentist && typeof prescription.dentist === 'object' && 'profile' in prescription.dentist 
+            ? prescription.dentist 
+            : { profile: { first_name: '', last_name: '' } }
+        }));
+        setPrescriptions(prescriptions);
       }
       if (treatmentPlansResult.status === 'fulfilled') {
-        setTreatmentPlans(treatmentPlansResult.value);
+        const plans = treatmentPlansResult.value.map(plan => ({
+          ...plan,
+          estimated_duration: plan.estimated_duration_weeks ? `${plan.estimated_duration_weeks} weeks` : '',
+          dentist: plan.dentist && typeof plan.dentist === 'object' && 'profile' in plan.dentist 
+            ? plan.dentist 
+            : { profile: { first_name: '', last_name: '' } }
+        }));
+        setTreatmentPlans(plans);
       }
       if (appointmentsResult.status === 'fulfilled') {
         setAppointments(appointmentsResult.value);
