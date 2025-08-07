@@ -151,7 +151,7 @@ export class NotificationService {
       .from('notification_preferences')
       .select('*')
       .eq('user_id', userId)
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error('Error fetching notification preferences:', error);
