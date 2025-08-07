@@ -47,7 +47,7 @@ describe('UnifiedDashboard', () => {
 
   it('shows patient dashboard for patient users', async () => {
     const { supabase } = await import('@/integrations/supabase/client');
-    supabase.from.mockReturnValue({
+    (supabase.from as unknown as jest.Mock).mockReturnValue({
       select: jest.fn(() => ({
         eq: jest.fn(() => ({
           single: jest.fn(() => Promise.resolve({ 
@@ -62,7 +62,8 @@ describe('UnifiedDashboard', () => {
       }))
     });
 
-    render(<UnifiedDashboard />);
+    const mockUser: any = { id: 'test-user' };
+    render(<UnifiedDashboard user={mockUser} />);
     
     await waitFor(() => {
       expect(screen.getByText(/patient dashboard/i)).toBeInTheDocument();
@@ -71,7 +72,7 @@ describe('UnifiedDashboard', () => {
 
   it('shows dentist dashboard for dentist users', async () => {
     const { supabase } = await import('@/integrations/supabase/client');
-    supabase.from.mockReturnValue({
+    (supabase.from as unknown as jest.Mock).mockReturnValue({
       select: jest.fn(() => ({
         eq: jest.fn(() => ({
           single: jest.fn(() => Promise.resolve({ 
@@ -86,7 +87,8 @@ describe('UnifiedDashboard', () => {
       }))
     });
 
-    render(<UnifiedDashboard />);
+    const mockUser: any = { id: 'test-user' };
+    render(<UnifiedDashboard user={mockUser} />);
     
     await waitFor(() => {
       expect(screen.getByText(/dentist dashboard/i)).toBeInTheDocument();
@@ -94,14 +96,15 @@ describe('UnifiedDashboard', () => {
   });
 
   it('shows loading state while fetching user role', () => {
-    render(<UnifiedDashboard />);
+    const mockUser: any = { id: 'test-user' };
+    render(<UnifiedDashboard user={mockUser} />);
     
     expect(screen.getByText(/loading/i)).toBeInTheDocument();
   });
 
   it('handles error when fetching user role', async () => {
     const { supabase } = await import('@/integrations/supabase/client');
-    supabase.from.mockReturnValue({
+    (supabase.from as unknown as jest.Mock).mockReturnValue({
       select: jest.fn(() => ({
         eq: jest.fn(() => ({
           single: jest.fn(() => Promise.resolve({ 
@@ -112,7 +115,8 @@ describe('UnifiedDashboard', () => {
       }))
     });
 
-    render(<UnifiedDashboard />);
+    const mockUser: any = { id: 'test-user' };
+    render(<UnifiedDashboard user={mockUser} />);
     
     await waitFor(() => {
       expect(screen.getByText(/error/i)).toBeInTheDocument();
@@ -120,7 +124,8 @@ describe('UnifiedDashboard', () => {
   });
 
   it('shows navigation menu for authenticated users', async () => {
-    render(<UnifiedDashboard />);
+    const mockUser: any = { id: 'test-user' };
+    render(<UnifiedDashboard user={mockUser} />);
     
     await waitFor(() => {
       expect(screen.getByRole('navigation')).toBeInTheDocument();
@@ -128,7 +133,8 @@ describe('UnifiedDashboard', () => {
   });
 
   it('displays user profile information', async () => {
-    render(<UnifiedDashboard />);
+    const mockUser: any = { id: 'test-user' };
+    render(<UnifiedDashboard user={mockUser} />);
     
     await waitFor(() => {
       expect(screen.getByText(/test@example.com/i)).toBeInTheDocument();
@@ -136,7 +142,8 @@ describe('UnifiedDashboard', () => {
   });
 
   it('shows quick action buttons', async () => {
-    render(<UnifiedDashboard />);
+    const mockUser: any = { id: 'test-user' };
+    render(<UnifiedDashboard user={mockUser} />);
     
     await waitFor(() => {
       expect(screen.getByText(/book appointment/i)).toBeInTheDocument();
@@ -146,7 +153,8 @@ describe('UnifiedDashboard', () => {
 
   it('handles navigation between dashboard sections', async () => {
     const user = userEvent.setup();
-    render(<UnifiedDashboard />);
+    const mockUser: any = { id: 'test-user' };
+    render(<UnifiedDashboard user={mockUser} />);
     
     await waitFor(async () => {
       const appointmentsTab = screen.getByText(/appointments/i);
@@ -157,7 +165,8 @@ describe('UnifiedDashboard', () => {
   });
 
   it('shows recent appointments section', async () => {
-    render(<UnifiedDashboard />);
+    const mockUser: any = { id: 'test-user' };
+    render(<UnifiedDashboard user={mockUser} />);
     
     await waitFor(() => {
       expect(screen.getByText(/recent appointments/i)).toBeInTheDocument();
@@ -165,7 +174,8 @@ describe('UnifiedDashboard', () => {
   });
 
   it('shows upcoming appointments section', async () => {
-    render(<UnifiedDashboard />);
+    const mockUser: any = { id: 'test-user' };
+    render(<UnifiedDashboard user={mockUser} />);
     
     await waitFor(() => {
       expect(screen.getByText(/upcoming appointments/i)).toBeInTheDocument();
@@ -173,7 +183,8 @@ describe('UnifiedDashboard', () => {
   });
 
   it('displays appointment statistics', async () => {
-    render(<UnifiedDashboard />);
+    const mockUser: any = { id: 'test-user' };
+    render(<UnifiedDashboard user={mockUser} />);
     
     await waitFor(() => {
       expect(screen.getByText(/total appointments/i)).toBeInTheDocument();
@@ -183,7 +194,8 @@ describe('UnifiedDashboard', () => {
   });
 
   it('shows emergency booking option', async () => {
-    render(<UnifiedDashboard />);
+    const mockUser: any = { id: 'test-user' };
+    render(<UnifiedDashboard user={mockUser} />);
     
     await waitFor(() => {
       expect(screen.getByText(/emergency booking/i)).toBeInTheDocument();
@@ -192,7 +204,8 @@ describe('UnifiedDashboard', () => {
 
   it('handles logout functionality', async () => {
     const user = userEvent.setup();
-    render(<UnifiedDashboard />);
+    const mockUser: any = { id: 'test-user' };
+    render(<UnifiedDashboard user={mockUser} />);
     
     await waitFor(async () => {
       const logoutButton = screen.getByText(/logout/i);
@@ -205,7 +218,8 @@ describe('UnifiedDashboard', () => {
 
   it('shows settings menu', async () => {
     const user = userEvent.setup();
-    render(<UnifiedDashboard />);
+    const mockUser: any = { id: 'test-user' };
+    render(<UnifiedDashboard user={mockUser} />);
     
     await waitFor(async () => {
       const settingsButton = screen.getByText(/settings/i);
@@ -217,7 +231,8 @@ describe('UnifiedDashboard', () => {
   });
 
   it('displays responsive design elements', async () => {
-    render(<UnifiedDashboard />);
+    const mockUser: any = { id: 'test-user' };
+    render(<UnifiedDashboard user={mockUser} />);
     
     await waitFor(() => {
       // Check for mobile-friendly elements
@@ -227,7 +242,8 @@ describe('UnifiedDashboard', () => {
   });
 
   it('shows accessibility features', async () => {
-    render(<UnifiedDashboard />);
+    const mockUser: any = { id: 'test-user' };
+    render(<UnifiedDashboard user={mockUser} />);
     
     await waitFor(() => {
       // Check for ARIA labels and roles
@@ -239,7 +255,8 @@ describe('UnifiedDashboard', () => {
 
   it('handles theme switching', async () => {
     const user = userEvent.setup();
-    render(<UnifiedDashboard />);
+    const mockUser: any = { id: 'test-user' };
+    render(<UnifiedDashboard user={mockUser} />);
     
     await waitFor(async () => {
       const themeToggle = screen.getByLabelText(/toggle theme/i);
@@ -252,7 +269,8 @@ describe('UnifiedDashboard', () => {
 
   it('shows language selection options', async () => {
     const user = userEvent.setup();
-    render(<UnifiedDashboard />);
+    const mockUser: any = { id: 'test-user' };
+    render(<UnifiedDashboard user={mockUser} />);
     
     await waitFor(async () => {
       const languageButton = screen.getByText(/language/i);
@@ -267,7 +285,8 @@ describe('UnifiedDashboard', () => {
 
   it('handles notification preferences', async () => {
     const user = userEvent.setup();
-    render(<UnifiedDashboard />);
+    const mockUser: any = { id: 'test-user' };
+    render(<UnifiedDashboard user={mockUser} />);
     
     await waitFor(async () => {
       const notificationsButton = screen.getByText(/notifications/i);

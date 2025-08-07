@@ -49,7 +49,7 @@ describe('DentalChatbot', () => {
   });
 
   it('renders chatbot interface', () => {
-    render(<DentalChatbot />);
+    render(<DentalChatbot user={null} />);
     
     expect(screen.getByText(/dental assistant/i)).toBeInTheDocument();
     expect(screen.getByPlaceholderText(/type your message/i)).toBeInTheDocument();
@@ -58,7 +58,7 @@ describe('DentalChatbot', () => {
 
   it('allows user to type and send messages', async () => {
     const user = userEvent.setup();
-    render(<DentalChatbot />);
+    render(<DentalChatbot user={null} />);
     
     const messageInput = screen.getByPlaceholderText(/type your message/i);
     const sendButton = screen.getByRole('button', { name: /send/i });
@@ -71,7 +71,7 @@ describe('DentalChatbot', () => {
 
   it('sends message on Enter key press', async () => {
     const user = userEvent.setup();
-    render(<DentalChatbot />);
+    render(<DentalChatbot user={null} />);
     
     const messageInput = screen.getByPlaceholderText(/type your message/i);
     
@@ -82,7 +82,7 @@ describe('DentalChatbot', () => {
 
   it('shows AI response after sending message', async () => {
     const user = userEvent.setup();
-    render(<DentalChatbot />);
+    render(<DentalChatbot user={null} />);
     
     const messageInput = screen.getByPlaceholderText(/type your message/i);
     const sendButton = screen.getByRole('button', { name: /send/i });
@@ -97,7 +97,7 @@ describe('DentalChatbot', () => {
 
   it('shows loading state while AI is processing', async () => {
     const user = userEvent.setup();
-    render(<DentalChatbot />);
+    render(<DentalChatbot user={null} />);
     
     const messageInput = screen.getByPlaceholderText(/type your message/i);
     const sendButton = screen.getByRole('button', { name: /send/i });
@@ -110,7 +110,7 @@ describe('DentalChatbot', () => {
 
   it('handles AI response with suggestions', async () => {
     const { supabase } = await import('@/integrations/supabase/client');
-    supabase.functions.invoke.mockResolvedValue({
+    (supabase.functions.invoke as unknown as jest.Mock).mockResolvedValue({
       data: {
         response: 'Based on your symptoms, I recommend booking an appointment.',
         suggestions: [
@@ -121,7 +121,7 @@ describe('DentalChatbot', () => {
     });
 
     const user = userEvent.setup();
-    render(<DentalChatbot />);
+    render(<DentalChatbot user={null} />);
     
     const messageInput = screen.getByPlaceholderText(/type your message/i);
     const sendButton = screen.getByRole('button', { name: /send/i });
@@ -136,7 +136,7 @@ describe('DentalChatbot', () => {
 
   it('handles emergency triage assessment', async () => {
     const { supabase } = await import('@/integrations/supabase/client');
-    supabase.functions.invoke.mockResolvedValue({
+    (supabase.functions.invoke as unknown as jest.Mock).mockResolvedValue({
       data: {
         response: 'This appears to be an emergency. Please seek immediate care.',
         urgency: 'urgent',
@@ -148,7 +148,7 @@ describe('DentalChatbot', () => {
     });
 
     const user = userEvent.setup();
-    render(<DentalChatbot />);
+    render(<DentalChatbot user={null} />);
     
     const messageInput = screen.getByPlaceholderText(/type your message/i);
     const sendButton = screen.getByRole('button', { name: /send/i });
@@ -164,7 +164,7 @@ describe('DentalChatbot', () => {
 
   it('allows user to click on AI suggestions', async () => {
     const { supabase } = await import('@/integrations/supabase/client');
-    supabase.functions.invoke.mockResolvedValue({
+    (supabase.functions.invoke as unknown as jest.Mock).mockResolvedValue({
       data: {
         response: 'I can help you book an appointment.',
         suggestions: [
@@ -175,7 +175,7 @@ describe('DentalChatbot', () => {
     });
 
     const user = userEvent.setup();
-    render(<DentalChatbot />);
+    render(<DentalChatbot user={null} />);
     
     const messageInput = screen.getByPlaceholderText(/type your message/i);
     const sendButton = screen.getByRole('button', { name: /send/i });
@@ -194,10 +194,10 @@ describe('DentalChatbot', () => {
 
   it('handles error when AI service is unavailable', async () => {
     const { supabase } = await import('@/integrations/supabase/client');
-    supabase.functions.invoke.mockRejectedValue(new Error('Service unavailable'));
+    (supabase.functions.invoke as unknown as jest.Mock).mockRejectedValue(new Error('Service unavailable'));
 
     const user = userEvent.setup();
-    render(<DentalChatbot />);
+    render(<DentalChatbot user={null} />);
     
     const messageInput = screen.getByPlaceholderText(/type your message/i);
     const sendButton = screen.getByRole('button', { name: /send/i });
@@ -216,7 +216,7 @@ describe('DentalChatbot', () => {
 
   it('shows conversation history', async () => {
     const user = userEvent.setup();
-    render(<DentalChatbot />);
+    render(<DentalChatbot user={null} />);
     
     const messageInput = screen.getByPlaceholderText(/type your message/i);
     const sendButton = screen.getByRole('button', { name: /send/i });
@@ -235,7 +235,7 @@ describe('DentalChatbot', () => {
   });
 
   it('provides quick action buttons', () => {
-    render(<DentalChatbot />);
+    render(<DentalChatbot user={null} />);
     
     expect(screen.getByText(/book appointment/i)).toBeInTheDocument();
     expect(screen.getByText(/emergency/i)).toBeInTheDocument();
@@ -244,7 +244,7 @@ describe('DentalChatbot', () => {
 
   it('handles quick action button clicks', async () => {
     const user = userEvent.setup();
-    render(<DentalChatbot />);
+    render(<DentalChatbot user={null} />);
     
     const emergencyButton = screen.getByText(/emergency/i);
     await user.click(emergencyButton);
@@ -253,7 +253,7 @@ describe('DentalChatbot', () => {
   });
 
   it('shows user profile information', async () => {
-    render(<DentalChatbot />);
+    render(<DentalChatbot user={null} />);
     
     await waitFor(() => {
       expect(screen.getByText(/test@example.com/i)).toBeInTheDocument();
@@ -261,7 +261,7 @@ describe('DentalChatbot', () => {
   });
 
   it('handles chat window resizing', () => {
-    render(<DentalChatbot />);
+    render(<DentalChatbot user={null} />);
     
     const chatContainer = screen.getByRole('main');
     expect(chatContainer).toBeInTheDocument();
@@ -269,7 +269,7 @@ describe('DentalChatbot', () => {
 
   it('shows typing indicator when AI is responding', async () => {
     const user = userEvent.setup();
-    render(<DentalChatbot />);
+    render(<DentalChatbot user={null} />);
     
     const messageInput = screen.getByPlaceholderText(/type your message/i);
     const sendButton = screen.getByRole('button', { name: /send/i });
@@ -282,7 +282,7 @@ describe('DentalChatbot', () => {
 
   it('handles empty message submission', async () => {
     const user = userEvent.setup();
-    render(<DentalChatbot />);
+    render(<DentalChatbot user={null} />);
     
     const sendButton = screen.getByRole('button', { name: /send/i });
     await user.click(sendButton);
@@ -292,7 +292,7 @@ describe('DentalChatbot', () => {
   });
 
   it('provides accessibility features', () => {
-    render(<DentalChatbot />);
+    render(<DentalChatbot user={null} />);
     
     const messageInput = screen.getByPlaceholderText(/type your message/i);
     expect(messageInput).toHaveAttribute('aria-label');
@@ -303,7 +303,7 @@ describe('DentalChatbot', () => {
 
   it('handles keyboard navigation', async () => {
     const user = userEvent.setup();
-    render(<DentalChatbot />);
+    render(<DentalChatbot user={null} />);
     
     const messageInput = screen.getByPlaceholderText(/type your message/i);
     messageInput.focus();
@@ -315,7 +315,7 @@ describe('DentalChatbot', () => {
 
   it('shows conversation export option', async () => {
     const user = userEvent.setup();
-    render(<DentalChatbot />);
+    render(<DentalChatbot user={null} />);
     
     await waitFor(async () => {
       const exportButton = screen.getByText(/export conversation/i);
@@ -331,7 +331,7 @@ describe('DentalChatbot', () => {
 
   it('handles conversation clearing', async () => {
     const user = userEvent.setup();
-    render(<DentalChatbot />);
+    render(<DentalChatbot user={null} />);
     
     await waitFor(async () => {
       const clearButton = screen.getByText(/clear conversation/i);

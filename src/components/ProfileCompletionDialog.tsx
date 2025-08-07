@@ -130,19 +130,21 @@ const ProfileCompletionDialog = () => {
     const field = missingFields[currentIndex];
     if (!field) return;
 
-if (field.table === "profiles") {
-  update = supabase
-    .from("profiles")
-    .update({ [field.key]: value })
-    .eq("id", profileId);
-} else {
-  update = supabase
-    .from("dentists")
-    .update({ [field.key]: value })
-    .eq("profile_id", profileId);
-}
+    let updateQuery: any;
 
-    const { error } = await update;
+    if (field.table === "profiles") {
+      updateQuery = supabase
+        .from("profiles")
+        .update({ [field.key]: value })
+        .eq("id", profileId);
+    } else {
+      updateQuery = supabase
+        .from("dentists")
+        .update({ [field.key]: value })
+        .eq("profile_id", profileId);
+    }
+
+    const { error } = await updateQuery;
     if (error) return;
 
 setValue("");

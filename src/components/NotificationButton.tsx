@@ -24,6 +24,7 @@ import { Switch } from './ui/switch';
 import { Label } from './ui/label';
 import { Notification } from '../types/common';
 import { formatDistanceToNow } from 'date-fns';
+import { useNotifications } from '@/hooks/useNotifications';
 
 interface NotificationButtonProps {
   userId: string;
@@ -58,19 +59,19 @@ const getNotificationColor = (category: Notification['category']) => {
   }
 };
 
-export const NotificationButton: React.FC<NotificationButtonProps> = ({ user, className }) => {
+export const NotificationButton: React.FC<NotificationButtonProps> = ({ userId, className }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [showPreferences, setShowPreferences] = useState(false);
   
-const {
-  notifications,
-  unreadCount,
-  preferences,
-  isLoading,
-  markAsRead,
-  markAllAsRead,
-  updatePreferences
-} = useNotifications(userId);
+  const {
+    notifications,
+    unreadCount,
+    preferences,
+    isLoading,
+    markAsRead,
+    markAllAsRead,
+    updatePreferences
+  } = useNotifications(userId);
 
   // Handle notification click
   const handleNotificationClick = async (notification: Notification) => {

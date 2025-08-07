@@ -42,6 +42,9 @@ import {
 } from "lucide-react";
 import { format, startOfDay } from "date-fns";
 
+type Dentist = any;
+type Appointment = any;
+
 interface InteractiveChatWidgetsProps {
   user: User | null;
   onWidgetAction: (action: string, data?: any) => void;

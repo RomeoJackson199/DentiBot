@@ -163,7 +163,7 @@ describe('AppointmentBooking', () => {
     
     // Mock supabase to return error
     const { supabase } = await import('@/integrations/supabase/client');
-    supabase.from.mockReturnValue({
+    (supabase.from as unknown as jest.Mock).mockReturnValue({
       insert: jest.fn(() => Promise.resolve({ 
         data: null, 
         error: { message: 'Database error' } 
