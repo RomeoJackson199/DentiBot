@@ -289,18 +289,20 @@ export function TreatmentPlanManager({ patientId, dentistId }: TreatmentPlanMana
 
   const handleEdit = (treatmentPlan: TreatmentPlan) => {
     setSelectedTreatmentPlan(treatmentPlan);
-    setFormData({
-      title: treatmentPlan.title,
-      description: treatmentPlan.description || '',
-      diagnosis: treatmentPlan.diagnosis || '',
-      treatment_goals: treatmentPlan.treatment_goals,
-      procedures: treatmentPlan.procedures,
-      estimated_cost: treatmentPlan.estimated_cost,
-      estimated_duration: treatmentPlan.estimated_duration || '',
-      priority: treatmentPlan.priority,
-      target_completion_date: treatmentPlan.target_completion_date || '',
-      notes: treatmentPlan.notes || ''
-    });
+setFormData({
+  title: treatmentPlan.title,
+  description: treatmentPlan.description || '',
+  diagnosis: treatmentPlan.diagnosis || '',
+  treatment_goals: treatmentPlan.treatment_goals,
+  procedures: treatmentPlan.procedures,
+  estimated_cost: treatmentPlan.estimated_cost,
+  estimated_duration: treatmentPlan.estimated_duration || '',
+  priority: (['low','normal','high','urgent'] as const).includes(treatmentPlan.priority as any)
+    ? (treatmentPlan.priority as any)
+    : 'normal',
+  target_completion_date: treatmentPlan.target_completion_date || '',
+  notes: treatmentPlan.notes || ''
+});
     setIsEditMode(true);
     setIsDialogOpen(true);
   };

@@ -22,12 +22,14 @@ interface SavedRecord {
   created_at: string;
 }
 
+type RecordType = 'prescription' | 'treatment_plan' | 'medical_record' | 'patient_note';
+
 export function SimpleDatabaseSaveTest() {
   const [isLoading, setIsLoading] = useState(false);
   const [patientData, setPatientData] = useState<PatientData | null>(null);
   const [savedRecords, setSavedRecords] = useState<SavedRecord[]>([]);
   const [formData, setFormData] = useState({
-    type: 'prescription' as const,
+    type: 'prescription' as RecordType,
     title: '',
     description: ''
   });
@@ -78,12 +80,12 @@ export function SimpleDatabaseSaveTest() {
         supabase.from('patient_notes').select('id, title, content as description, created_at').eq('patient_id', profile.id)
       ]);
 
-      const allRecords: SavedRecord[] = [
-        ...(prescriptions.data || []).map(r => ({ ...r, type: 'prescription' as const })),
-        ...(treatmentPlans.data || []).map(r => ({ ...r, type: 'treatment_plan' as const })),
-        ...(medicalRecords.data || []).map(r => ({ ...r, type: 'medical_record' as const })),
-        ...(patientNotes.data || []).map(r => ({ ...r, type: 'patient_note' as const }))
-      ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+const allRecords: SavedRecord[] = [
+  ...((prescriptions.data as any[]) || []).map((r: any) => ({ ...r, type: 'prescription' as const })),
+  ...((treatmentPlans.data as any[]) || []).map((r: any) => ({ ...r, type: 'treatment_plan' as const })),
+  ...((medicalRecords.data as any[]) || []).map((r: any) => ({ ...r, type: 'medical_record' as const })),
+  ...((patientNotes.data as any[]) || []).map((r: any) => ({ ...r, type: 'patient_note' as const }))
+].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
       setSavedRecords(allRecords);
     } catch (error) {
@@ -215,7 +217,7 @@ export function SimpleDatabaseSaveTest() {
               <label className="block text-sm font-medium mb-2">Record Type</label>
               <select 
                 value={formData.type}
-                onChange={(e) => setFormData({ ...formData, type: e.target.value as any })}
+onChange={(e) => setFormData({ ...formData, type: e.target.value as RecordType })}
                 className="w-full p-2 border rounded"
               >
                 <option value="prescription">Prescription</option>

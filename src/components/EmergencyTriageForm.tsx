@@ -24,9 +24,10 @@ import {
   CheckSquare
 } from "lucide-react";
 
-interface TriageData {
+interface TriageAnswers {
   painLevel: number;
-  [key: string]: unknown;
+  symptoms: string[];
+  urgency: string[];
 }
 
 interface EmergencyTriageFormProps {
@@ -65,17 +66,17 @@ export const EmergencyTriageForm = ({ onComplete, onCancel }: EmergencyTriageFor
     urgency: 'medium'
   });
   const [urgencyLevel, setUrgencyLevel] = useState<'low' | 'medium' | 'high' | 'emergency'>('medium');
-  const [triageData, setTriageData] = useState<TriageData | null>(null);
+const [triageData, setTriageData] = useState<TriageAnswers | null>(null);
   const [confirmationData, setConfirmationData] = useState<ConfirmationData | null>(null);
   const [bookingError, setBookingError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleTriageComplete = (urgency: 'low' | 'medium' | 'high' | 'emergency', data: TriageData) => {
-    setUrgencyLevel(urgency);
-    setTriageData(data);
-    setBookingData(prev => ({ ...prev, urgency }));
-    setShowResults(true);
-  };
+const handleTriageComplete = (urgency: 'low' | 'medium' | 'high' | 'emergency', data: TriageAnswers) => {
+  setUrgencyLevel(urgency);
+  setTriageData(data);
+  setBookingData(prev => ({ ...prev, urgency }));
+  setShowResults(true);
+};
 
   const handleBookAppointment = () => {
     setShowBooking(true);

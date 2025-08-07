@@ -26,11 +26,12 @@ const mockToast = {
 (useToast as jest.Mock).mockReturnValue(mockToast);
 
 describe('AppointmentBooking', () => {
-  const defaultProps = {
-    patientId: 'test-patient-id',
-    onBookingComplete: jest.fn()
+  const mockUser: any = { id: 'test-user' };
+  const defaultProps: any = {
+    user: mockUser,
+    onComplete: jest.fn(),
+    onCancel: jest.fn(),
   };
-
   beforeEach(() => {
     jest.clearAllMocks();
   });

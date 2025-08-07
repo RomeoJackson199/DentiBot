@@ -22,12 +22,11 @@ import { ScrollArea } from './ui/scroll-area';
 import { Card, CardContent } from './ui/card';
 import { Switch } from './ui/switch';
 import { Label } from './ui/label';
-import { useNotifications } from '../hooks/useNotifications';
-import { Notification, User } from '../types/common';
+import { Notification } from '../types/common';
 import { formatDistanceToNow } from 'date-fns';
 
 interface NotificationButtonProps {
-  user: User;
+  userId: string;
   className?: string;
 }
 
@@ -63,15 +62,15 @@ export const NotificationButton: React.FC<NotificationButtonProps> = ({ user, cl
   const [isOpen, setIsOpen] = useState(false);
   const [showPreferences, setShowPreferences] = useState(false);
   
-  const {
-    notifications,
-    unreadCount,
-    preferences,
-    isLoading,
-    markAsRead,
-    markAllAsRead,
-    updatePreferences
-  } = useNotifications(user.id);
+const {
+  notifications,
+  unreadCount,
+  preferences,
+  isLoading,
+  markAsRead,
+  markAllAsRead,
+  updatePreferences
+} = useNotifications(userId);
 
   // Handle notification click
   const handleNotificationClick = async (notification: Notification) => {

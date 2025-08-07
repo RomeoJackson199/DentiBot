@@ -183,35 +183,44 @@ export const HealthData = ({
       ]);
 
       // Handle results
-      if (medicalRecordsResult.status === 'fulfilled') {
-        const records = medicalRecordsResult.value.map(record => ({
-          ...record,
-          visit_date: record.record_date,
-          dentist: record.dentist && typeof record.dentist === 'object' && 'profile' in record.dentist 
-            ? record.dentist 
-            : { profile: { first_name: '', last_name: '' } }
-        }));
-        setMedicalRecords(records);
-      }
-      if (prescriptionsResult.status === 'fulfilled') {
-        const prescriptions = prescriptionsResult.value.map(prescription => ({
-          ...prescription,
-          dentist: prescription.dentist && typeof prescription.dentist === 'object' && 'profile' in prescription.dentist 
-            ? prescription.dentist 
-            : { profile: { first_name: '', last_name: '' } }
-        }));
-        setPrescriptions(prescriptions);
-      }
-      if (treatmentPlansResult.status === 'fulfilled') {
-        const plans = treatmentPlansResult.value.map(plan => ({
-          ...plan,
-          estimated_duration: plan.estimated_duration_weeks ? `${plan.estimated_duration_weeks} weeks` : '',
-          dentist: plan.dentist && typeof plan.dentist === 'object' && 'profile' in plan.dentist 
-            ? plan.dentist 
-            : { profile: { first_name: '', last_name: '' } }
-        }));
-        setTreatmentPlans(plans);
-      }
+if (medicalRecordsResult.status === 'fulfilled') {
+  const records = medicalRecordsResult.value.map((record: any) => {
+    const d = record?.dentist;
+    return {
+      ...record,
+      visit_date: record.record_date,
+      dentist: d && typeof d === 'object' && (d as any).profile
+        ? d
+        : { profile: { first_name: '', last_name: '' } }
+    };
+  });
+  setMedicalRecords(records);
+}
+if (prescriptionsResult.status === 'fulfilled') {
+  const prescriptions = prescriptionsResult.value.map((prescription: any) => {
+    const d = prescription?.dentist;
+    return {
+      ...prescription,
+      dentist: d && typeof d === 'object' && (d as any).profile
+        ? d
+        : { profile: { first_name: '', last_name: '' } }
+    };
+  });
+  setPrescriptions(prescriptions);
+}
+if (treatmentPlansResult.status === 'fulfilled') {
+  const plans = treatmentPlansResult.value.map((plan: any) => {
+    const d = plan?.dentist;
+    return {
+      ...plan,
+      estimated_duration: plan.estimated_duration_weeks ? `${plan.estimated_duration_weeks} weeks` : '',
+      dentist: d && typeof d === 'object' && (d as any).profile
+        ? d
+        : { profile: { first_name: '', last_name: '' } }
+    };
+  });
+  setTreatmentPlans(plans);
+}
       if (appointmentsResult.status === 'fulfilled') {
         setAppointments(appointmentsResult.value);
       }

@@ -37,8 +37,9 @@ describe('UnifiedDashboard', () => {
   });
 
   it('renders dashboard with user role detection', async () => {
-    render(<UnifiedDashboard />);
-    
+    const mockUser: any = { id: 'test-user' };
+    render(<UnifiedDashboard user={mockUser} />);
+
     await waitFor(() => {
       expect(screen.getByText(/dashboard/i)).toBeInTheDocument();
     });

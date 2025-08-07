@@ -206,12 +206,13 @@ export const ProgressiveAuthForm = ({ compact = false }: ProgressiveAuthFormProp
           setShowLoginDialog(false);
         }
       }
-    } catch (error: unknown) {
-      toast({
-        title: t.signUpError,
-        description: error.message,
-        variant: "destructive",
-      });
+} catch (error: unknown) {
+  const message = error instanceof Error ? error.message : 'Unknown error';
+  toast({
+    title: t.signUpError,
+    description: message,
+    variant: "destructive",
+  });
     } finally {
       setIsLoading(false);
     }
@@ -235,12 +236,13 @@ export const ProgressiveAuthForm = ({ compact = false }: ProgressiveAuthFormProp
       if (compact) {
         setShowLoginDialog(false);
       }
-    } catch (error: unknown) {
-      toast({
-        title: t.signInError,
-        description: error.message,
-        variant: "destructive",
-      });
+} catch (error: unknown) {
+  const message = error instanceof Error ? error.message : 'Unknown error';
+  toast({
+    title: t.signInError,
+    description: message,
+    variant: "destructive",
+  });
     } finally {
       setIsLoading(false);
     }
@@ -265,15 +267,16 @@ export const ProgressiveAuthForm = ({ compact = false }: ProgressiveAuthFormProp
         throw error;
       }
       console.log('Google sign-in initiated successfully');
-    } catch (error: unknown) {
-      console.error('Google sign-in catch block:', error);
-      toast({
-        title: t.signInError,
-        description: error.message,
-        variant: "destructive",
-      });
-      setIsLoading(false);
-    }
+} catch (error: unknown) {
+  console.error('Google sign-in catch block:', error);
+  const message = error instanceof Error ? error.message : 'Unknown error';
+  toast({
+    title: t.signInError,
+    description: message,
+    variant: "destructive",
+  });
+  setIsLoading(false);
+}
   };
 
   const resetForm = () => {

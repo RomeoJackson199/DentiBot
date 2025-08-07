@@ -8,18 +8,16 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 
 interface MissingField {
   key: string;
   question: string;
-  type: "text" | "date" | "languages";
+  type: "text" | "date";
   table: "profiles" | "dentists";
 }
 
 interface DentistData {
   clinic_address?: string;
-  languages?: string[];
   specialty?: string;
 }
 
@@ -35,8 +33,6 @@ interface ProfileData {
   dentists?: DentistData[];
 }
 
-const availableLanguages = ["English", "French", "Dutch"];
-
 const ProfileCompletionDialog = () => {
   const [open, setOpen] = useState(false);
   const [profileId, setProfileId] = useState<string>("");
@@ -51,7 +47,7 @@ const ProfileCompletionDialog = () => {
       .from("profiles")
       .select(
         `id, role, first_name, last_name, phone, date_of_birth, address, emergency_contact,
-         dentists!dentists_profile_id_fkey(clinic_address, languages, specialty)`
+         dentists!dentists_profile_id_fkey(clinic_address, specialty)`
       )
       .eq("user_id", userId)
       .single();
@@ -90,14 +86,6 @@ const ProfileCompletionDialog = () => {
           key: "clinic_address",
           question: "Clinic address?",
           type: "text",
-          table: "dentists",
-        });
-      }
-      if (!dentist?.languages || dentist.languages.length === 0) {
-        fields.push({
-          key: "languages",
-          question: "Languages spoken?",
-          type: "languages",
           table: "dentists",
         });
       }
@@ -142,29 +130,22 @@ const ProfileCompletionDialog = () => {
     const field = missingFields[currentIndex];
     if (!field) return;
 
-    let update;
-    if (field.type === "languages") {
-      update = supabase
-        .from("dentists")
-        .update({ languages: selectedLanguages })
-        .eq("profile_id", profileId);
-    } else if (field.table === "profiles") {
-      update = supabase
-        .from("profiles")
-        .update({ [field.key]: value })
-        .eq("id", profileId);
-    } else {
-      update = supabase
-        .from("dentists")
-        .update({ [field.key]: value })
-        .eq("profile_id", profileId);
-    }
+if (field.table === "profiles") {
+  update = supabase
+    .from("profiles")
+    .update({ [field.key]: value })
+    .eq("id", profileId);
+} else {
+  update = supabase
+    .from("dentists")
+    .update({ [field.key]: value })
+    .eq("profile_id", profileId);
+}
 
     const { error } = await update;
     if (error) return;
 
-    setValue("");
-    setSelectedLanguages([]);
+setValue("");
     const next = currentIndex + 1;
     if (next < missingFields.length) {
       setCurrentIndex(next);
@@ -192,34 +173,9 @@ const ProfileCompletionDialog = () => {
             {field.type === "date" && (
               <Input type="date" value={value} onChange={(e) => setValue(e.target.value)} />
             )}
-            {field.type === "languages" && (
-              <div className="space-y-2">
-                {availableLanguages.map((lang) => (
-                  <div key={lang} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={lang}
-                      checked={selectedLanguages.includes(lang)}
-                      onCheckedChange={(checked) => {
-                        if (checked) {
-                          setSelectedLanguages([...selectedLanguages, lang]);
-                        } else {
-                          setSelectedLanguages(selectedLanguages.filter((l) => l !== lang));
-                        }
-                      }}
-                    />
-                    <label htmlFor={lang}>{lang}</label>
-                  </div>
-                ))}
-              </div>
-            )}
             <div className="mt-4 flex justify-end">
               <Button
                 onClick={handleNext}
-                disabled={
-                  field.type === "languages"
-                    ? selectedLanguages.length === 0
-                    : value === ""
-                }
               >
                 Next
               </Button>

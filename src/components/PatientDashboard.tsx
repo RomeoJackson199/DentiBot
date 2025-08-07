@@ -346,12 +346,12 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
           <p className="text-gray-600">Welcome to your dental health dashboard</p>
         </div>
         <div className="flex items-center space-x-2">
-          <NotificationButton user={user} />
-          <Button size="sm">
-            <Plus className="h-4 w-4 mr-2" />
-            Book Appointment
-          </Button>
-          <Settings user={user} />
+<NotificationButton userId={user.id} />
+<Button size="sm">
+  <Plus className="h-4 w-4 mr-2" />
+  Book Appointment
+</Button>
+<Settings user={user} />
         </div>
       </div>
 

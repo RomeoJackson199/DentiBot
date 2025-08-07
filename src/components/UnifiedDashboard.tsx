@@ -74,11 +74,11 @@ export const UnifiedDashboard = ({ user }: UnifiedDashboardProps) => {
       console.error('Error fetching user role:', error);
       // Default to patient if there's an error
       setUserRole('patient');
-      toast({
-        title: "Error",
-        description: `Error loading dashboard: ${error.message}`,
-        variant: "destructive",
-      });
+toast({
+  title: "Error",
+  description: `Error loading dashboard: ${error instanceof Error ? error.message : 'Unknown error'}`,
+  variant: "destructive",
+});
     } finally {
       setLoading(false);
     }

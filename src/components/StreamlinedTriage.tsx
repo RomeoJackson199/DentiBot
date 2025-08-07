@@ -190,54 +190,52 @@ export const StreamlinedTriage = ({ onComplete, onCancel }: StreamlinedTriagePro
     }));
   };
 
-  const urgencyDisplay = getUrgencyDisplay();
-  const IconComponent = urgencyDisplay.icon;
+const urgencyDisplay = getUrgencyDisplay();
 
-  return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      {/* Header */}
-      <Card className="glass-card border-destructive/20">
-        <CardHeader className="text-center">
-          <div className="flex justify-center mb-4">
-            <div className="p-4 rounded-full bg-destructive/10">
-              <AlertTriangle className="h-8 w-8 text-destructive animate-pulse" />
-            </div>
+return (
+  <div className="max-w-2xl mx-auto space-y-6">
+    {/* Header */}
+    <Card className="glass-card border-destructive/20">
+      <CardHeader className="text-center">
+        <div className="flex justify-center mb-4">
+          <div className="p-4 rounded-full bg-destructive/10">
+            <AlertTriangle className="h-8 w-8 text-destructive animate-pulse" />
           </div>
-          <CardTitle className="text-2xl gradient-text">Emergency Dental Triage</CardTitle>
-          <p className="text-dental-muted-foreground">
-            3 quick questions to assess your urgency level
+        </div>
+        <CardTitle className="text-2xl gradient-text">Emergency Dental Triage</CardTitle>
+        <p className="text-dental-muted-foreground">
+          3 quick questions to assess your urgency level
+        </p>
+        <div className="mt-4">
+          <Progress value={progress} className="w-full" />
+          <p className="text-sm text-dental-muted-foreground mt-2">
+            Step {currentStep} of {totalSteps}
           </p>
-          <div className="mt-4">
-            <Progress value={progress} className="w-full" />
-            <p className="text-sm text-dental-muted-foreground mt-2">
-              Step {currentStep} of {totalSteps}
-            </p>
-          </div>
-        </CardHeader>
-      </Card>
+        </div>
+      </CardHeader>
+    </Card>
 
-      {/* Current Urgency Level Display */}
-      {currentStep > 1 && (
-        <Card className="glass-card">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-center space-x-3">
-              <IconComponent className="h-6 w-6" />
-              <Badge className={`text-lg py-2 px-4 border ${urgencyDisplay.color}`}>
-                {urgencyDisplay.title}
-              </Badge>
-            </div>
-            <p className="text-center text-sm text-dental-muted-foreground mt-2">
-              {urgencyDisplay.description}
-            </p>
-            <p className="text-center text-sm text-dental-muted-foreground mt-2">
-              Timeframe: {urgencyDisplay.timeframe}
-            </p>
-            <p className="text-center text-sm text-dental-muted-foreground mt-2">
-              Action: {urgencyDisplay.action}
-            </p>
-          </CardContent>
-        </Card>
-      )}
+    {/* Current Urgency Level Display */}
+    {currentStep > 1 && (
+      <Card className="glass-card">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-center space-x-3">
+            <Badge className={`text-lg py-2 px-4 border ${urgencyDisplay.color}`}>
+              {urgencyDisplay.title}
+            </Badge>
+          </div>
+          <p className="text-center text-sm text-dental-muted-foreground mt-2">
+            {urgencyDisplay.description}
+          </p>
+          <p className="text-center text-sm text-dental-muted-foreground mt-2">
+            Timeframe: {urgencyDisplay.timeframe}
+          </p>
+          <p className="text-center text-sm text-dental-muted-foreground mt-2">
+            Action: {urgencyDisplay.action}
+          </p>
+        </CardContent>
+      </Card>
+    )}
 
       {/* Question 1: Pain Level with Visual Scale */}
       {currentStep === 1 && (

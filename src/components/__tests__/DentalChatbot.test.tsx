@@ -39,6 +39,8 @@ const mockToast = {
   toast: jest.fn()
 };
 
+const mockUser: any = { id: 'test-user' };
+
 (useToast as jest.Mock).mockReturnValue(mockToast);
 
 describe('DentalChatbot', () => {

@@ -2,8 +2,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { EnhancedPrescriptionManager } from "@/components/EnhancedPrescriptionManager";
-import { EnhancedTreatmentPlanManager } from "@/components/EnhancedTreatmentPlanManager";
+// Removed unavailable enhanced components
 import { 
   Pill, 
   BookOpen, 
@@ -92,16 +91,7 @@ export function TestEnhancedComponents() {
               <Badge variant="secondary">Active</Badge>
             </div>
             
-            <div className="pt-4">
-              <EnhancedPrescriptionManager
-                appointmentId="test-appointment"
-                patientId="test-patient"
-                dentistId="test-dentist"
-                onPrescriptionCreated={() => {
-                  console.log("Prescription created successfully");
-                }}
-              />
-            </div>
+<div className="pt-4 text-sm text-muted-foreground">Enhanced Prescription Manager component not available in this build.</div>
           </CardContent>
         </Card>
 
@@ -127,16 +117,7 @@ export function TestEnhancedComponents() {
               <Badge variant="secondary">Active</Badge>
             </div>
             
-            <div className="pt-4">
-              <EnhancedTreatmentPlanManager
-                appointmentId="test-appointment"
-                patientId="test-patient"
-                dentistId="test-dentist"
-                onTreatmentPlanCreated={() => {
-                  console.log("Treatment plan created successfully");
-                }}
-              />
-            </div>
+<div className="pt-4 text-sm text-muted-foreground">Enhanced Treatment Plan Manager component not available in this build.</div>
           </CardContent>
         </Card>
       </div>

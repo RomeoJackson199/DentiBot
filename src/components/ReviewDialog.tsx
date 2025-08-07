@@ -19,14 +19,14 @@ export const ReviewDialog = ({ appointmentId, patientId, dentistId, onSubmitted 
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
 
-  const submitReview = async () => {
-    const { error } = await supabase.from("reviews").insert({
-      patient_id: patientId,
-      dentist_id: dentistId,
-      appointment_id: appointmentId,
-      rating,
-      comment: comment || null,
-    });
+const submitReview = async () => {
+  const { error } = await supabase.from("dentist_ratings").insert({
+    patient_id: patientId,
+    dentist_id: dentistId,
+    appointment_id: appointmentId,
+    rating,
+    review: comment || null,
+  });
 
     if (error) {
       toast({ description: "Failed to submit feedback", variant: "destructive" });
