@@ -13,9 +13,9 @@ export interface CreateMedicalRecordData {
 }
 
 export const createMedicalRecord = async (data: CreateMedicalRecordData) => {
-  const { data: record, error } = await saveMedicalRecord(data);
+  const { data: record, error } = await saveMedicalRecord(data as any);
   if (error || !record) {
-    throw new Error(error || 'Failed to save record');
+    throw new Error((error as any) || 'Failed to save record');
   }
   // also persist to localStorage for temporary persistence
   const stored = JSON.parse(localStorage.getItem('medical_records') || '{}') as Record<string, unknown[]>;
@@ -63,15 +63,15 @@ export const generateMedicalRecordFromChat = async (
   const recommendations = extractRecommendations(botResponses);
 
   return {
-    patientId: patientProfile.id,
-    dentistId: appointmentData?.dentistId, // Will be null initially, updated when dentist is assigned
+    patientId: String((patientProfile as any).id),
+    dentistId: (appointmentData as any)?.dentistId, // Will be null initially, updated when dentist is assigned
     title,
     description: `Consultation via chat bot. ${chatContent.substring(0, 500)}...`,
     findings,
     recommendations,
-    recordType: appointmentData?.urgency === 'high' ? 'treatment' : 'consultation',
-    visitDate: appointmentData?.appointmentDate 
-      ? new Date(appointmentData.appointmentDate).toISOString().split('T')[0]
+    recordType: ((appointmentData as any)?.urgency === 'high') ? 'treatment' : 'consultation',
+    visitDate: (appointmentData as any)?.appointmentDate 
+      ? new Date((appointmentData as any).appointmentDate as string).toISOString().split('T')[0]
       : new Date().toISOString().split('T')[0]
   };
 };

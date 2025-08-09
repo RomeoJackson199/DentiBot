@@ -143,11 +143,13 @@ export interface Notification {
   id: string;
   user_id: string;
   type: 'appointment' | 'prescription' | 'reminder' | 'emergency' | 'system' | 'treatment_plan' | 'follow_up';
-  category: 'info' | 'warning' | 'success' | 'error' | 'urgent';
+  category?: 'info' | 'warning' | 'success' | 'error' | 'urgent';
+  priority?: 'low' | 'medium' | 'high';
   title: string;
   message: string;
   is_read: boolean;
   action_url?: string;
+  action_label?: string;
   metadata?: Record<string, unknown>;
   expires_at?: string;
   created_at: string;

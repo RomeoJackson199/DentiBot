@@ -47,19 +47,19 @@ export function ModernHeroSection({ onBookAppointment, onStartTriage }: ModernHe
         
         {/* Floating Elements */}
         <div className="absolute top-20 left-10 animate-float" style={{ animationDelay: "0s" }}>
-          <Card variant="glass" size="sm" className="p-3 backdrop-blur-xl">
+          <Card variant="glass" className="p-3 backdrop-blur-xl">
             <Heart className="h-6 w-6 text-dental-primary" />
           </Card>
         </div>
         
         <div className="absolute top-40 right-20 animate-float" style={{ animationDelay: "2s" }}>
-          <Card variant="glass" size="sm" className="p-3 backdrop-blur-xl">
+          <Card variant="glass" className="p-3 backdrop-blur-xl">
             <Shield className="h-6 w-6 text-dental-secondary" />
           </Card>
         </div>
         
         <div className="absolute bottom-40 left-20 animate-float" style={{ animationDelay: "4s" }}>
-          <Card variant="glass" size="sm" className="p-3 backdrop-blur-xl">
+          <Card variant="glass" className="p-3 backdrop-blur-xl">
             <Zap className="h-6 w-6 text-dental-accent" />
           </Card>
         </div>

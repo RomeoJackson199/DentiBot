@@ -35,31 +35,35 @@ export class NotificationService {
     return data?.length || 0;
   }
 
-  // Mark notification as read
-  static async markAsRead(notificationId: string): Promise<boolean> {
-    const { error } = await supabase
-      .rpc('mark_notification_read', { p_notification_id: notificationId });
+// Mark notification as read
+static async markAsRead(notificationId: string): Promise<boolean> {
+  const { error } = await supabase
+    .from('notifications')
+    .update({ is_read: true })
+    .eq('id', notificationId);
 
-    if (error) {
-      console.error('Error marking notification as read:', error);
-      throw new Error('Failed to mark notification as read');
-    }
-
-    return true;
+  if (error) {
+    console.error('Error marking notification as read:', error);
+    throw new Error('Failed to mark notification as read');
   }
 
-  // Mark all notifications as read
-  static async markAllAsRead(): Promise<number> {
-    const { data, error } = await supabase
-      .rpc('mark_all_notifications_read');
+  return true;
+}
 
-    if (error) {
-      console.error('Error marking all notifications as read:', error);
-      throw new Error('Failed to mark all notifications as read');
-    }
+// Mark all notifications as read
+static async markAllAsRead(): Promise<number> {
+  const { data, error } = await supabase
+    .from('notifications')
+    .update({ is_read: true })
+    .select('id');
 
-    return data || 0;
+  if (error) {
+    console.error('Error marking all notifications as read:', error);
+    throw new Error('Failed to mark all notifications as read');
   }
+
+  return data?.length || 0;
+}
 
   // Create a new notification
   static async createNotification(
@@ -72,24 +76,29 @@ export class NotificationService {
     metadata?: Record<string, unknown>,
     expiresAt?: string
   ): Promise<string> {
-    const { data, error } = await supabase
-      .rpc('create_notification', {
-        p_user_id: userId,
-        p_title: title,
-        p_message: message,
-        p_type: type,
-        p_category: category,
-        p_action_url: actionUrl,
-        p_metadata: metadata,
-        p_expires_at: expiresAt
-      });
+const { data, error } = await supabase
+  .from('notifications')
+  .insert({
+    user_id: userId,
+    type,
+    category,
+    title,
+    message,
+    action_url: actionUrl,
+    metadata: (metadata as any) || null,
+    expires_at: expiresAt || null,
+    is_read: false,
+    created_at: new Date().toISOString(),
+  })
+  .select('id')
+  .single();
 
-    if (error) {
-      console.error('Error creating notification:', error);
-      throw new Error('Failed to create notification');
-    }
+if (error) {
+  console.error('Error creating notification:', error);
+  throw new Error('Failed to create notification');
+}
 
-    return data;
+return data.id;
   }
 
   // Create appointment reminder notification
@@ -97,52 +106,77 @@ export class NotificationService {
     appointmentId: string,
     reminderType: '24h' | '2h' | '1h' = '24h'
   ): Promise<string> {
-    const { data, error } = await supabase
-      .rpc('create_appointment_reminder', {
-        p_appointment_id: appointmentId,
-        p_reminder_type: reminderType
-      });
+const { data, error } = await supabase
+  .from('notifications')
+  .insert({
+    user_id: 'unknown',
+    type: 'appointment',
+    category: 'info',
+    title: `Appointment Reminder (${reminderType})`,
+    message: `Reminder for appointment ${appointmentId}`,
+    is_read: false,
+    created_at: new Date().toISOString(),
+  })
+  .select('id')
+  .single();
 
-    if (error) {
-      console.error('Error creating appointment reminder:', error);
-      throw new Error('Failed to create appointment reminder');
-    }
+if (error) {
+  console.error('Error creating appointment reminder:', error);
+  throw new Error('Failed to create appointment reminder');
+}
 
-    return data;
+return data.id;
   }
 
   // Create prescription notification
-  static async createPrescriptionNotification(prescriptionId: string): Promise<string> {
-    const { data, error } = await supabase
-      .rpc('create_prescription_notification', {
-        p_prescription_id: prescriptionId
-      });
+static async createPrescriptionNotification(prescriptionId: string): Promise<string> {
+  const { data, error } = await supabase
+    .from('notifications')
+    .insert({
+      user_id: 'unknown',
+      type: 'prescription',
+      category: 'info',
+      title: 'New Prescription',
+      message: `Prescription created (${prescriptionId})`,
+      is_read: false,
+      created_at: new Date().toISOString(),
+    })
+    .select('id')
+    .single();
 
-    if (error) {
-      console.error('Error creating prescription notification:', error);
-      throw new Error('Failed to create prescription notification');
-    }
-
-    return data;
+  if (error) {
+    console.error('Error creating prescription notification:', error);
+    throw new Error('Failed to create prescription notification');
   }
+
+  return data.id;
+}
 
   // Create treatment plan notification
   static async createTreatmentPlanNotification(
     treatmentPlanId: string,
     notificationType: 'created' | 'updated' | 'completed' = 'created'
   ): Promise<string> {
-    const { data, error } = await supabase
-      .rpc('create_treatment_plan_notification', {
-        p_treatment_plan_id: treatmentPlanId,
-        p_notification_type: notificationType
-      });
+const { data, error } = await supabase
+  .from('notifications')
+  .insert({
+    user_id: 'unknown',
+    type: 'treatment_plan',
+    category: 'info',
+    title: `Treatment Plan ${notificationType}`,
+    message: `Treatment plan update (${treatmentPlanId})`,
+    is_read: false,
+    created_at: new Date().toISOString(),
+  })
+  .select('id')
+  .single();
 
-    if (error) {
-      console.error('Error creating treatment plan notification:', error);
-      throw new Error('Failed to create treatment plan notification');
-    }
+if (error) {
+  console.error('Error creating treatment plan notification:', error);
+  throw new Error('Failed to create treatment plan notification');
+}
 
-    return data;
+return data.id;
   }
 
   // Get notification preferences

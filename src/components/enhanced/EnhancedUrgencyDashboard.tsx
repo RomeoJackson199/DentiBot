@@ -113,7 +113,6 @@ export const EnhancedUrgencyDashboard = ({ dentistId }: EnhancedUrgencyDashboard
           reason,
           created_at,
           status,
-          phone,
           patient_id,
           consultation_notes,
           urgency_assessments,
@@ -544,7 +543,7 @@ export const EnhancedUrgencyDashboard = ({ dentistId }: EnhancedUrgencyDashboard
           patientId={selectedPatient}
           dentistId={dentistId}
           patientName={appointments.find(apt => apt.patient_id === selectedPatient)?.patient_name || 'Patient'}
-          contextType="triage"
+          contextType="patient"
           onUpdate={() => {
             setShowAIConsultation(false);
             setSelectedPatient(null);

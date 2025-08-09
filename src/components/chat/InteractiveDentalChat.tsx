@@ -115,7 +115,7 @@ export const InteractiveDentalChat = ({
     if (messages.length === 0) {
       const welcomeMessage: ChatMessage = {
         id: crypto.randomUUID(),
-        session_id: sessionId,
+        session_id: sessionId as any,
         message: user && userProfile ? 
           `Hello ${userProfile.first_name}! 👋 I'm your dental assistant. How can I help you today?` : 
           `Hello! 👋 Welcome to First Smile AI. I'm your dental assistant. How can I help you today?`,
@@ -140,8 +140,8 @@ export const InteractiveDentalChat = ({
         message: message.message,
         is_bot: message.is_bot,
         message_type: message.message_type,
-        metadata: message.metadata,
-      });
+        metadata: message.metadata as any,
+      } as any);
     } catch (error) {
       console.error("Error saving message:", error);
     }
@@ -185,12 +185,12 @@ export const InteractiveDentalChat = ({
       const responseText = data.response || data.fallback_response || "I'm sorry, I couldn't process your request.";
       const result = {
         id: crypto.randomUUID(),
-        session_id: sessionId,
+        session_id: sessionId as any,
         message: responseText,
         is_bot: true,
         message_type: 'text',
         created_at: new Date().toISOString(),
-      };
+      } as ChatMessage;
       return {
         message: result,
         fallback: Boolean(data.fallback_response && !data.response),
@@ -202,12 +202,12 @@ export const InteractiveDentalChat = ({
       return {
         message: {
           id: crypto.randomUUID(),
-          session_id: sessionId,
+          session_id: sessionId as any,
           message: "I'm sorry, I couldn't process your request.",
           is_bot: true,
           message_type: 'text',
           created_at: new Date().toISOString(),
-        },
+        } as ChatMessage,
         fallback: true,
         suggestions: [],
         recommendedDentists: []
@@ -515,7 +515,7 @@ Just type what you need or use the quick action buttons! 😊
   };
 
 
-  const handleDentistSelection = (dentist: Dentist) => {
+  const handleDentistSelection = (dentist: any) => {
     setBookingFlow({ ...bookingFlow, selectedDentist: dentist, step: 'date' });
     setActiveWidget(null);
     

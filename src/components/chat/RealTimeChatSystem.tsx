@@ -137,7 +137,7 @@ export function RealTimeChatSystem({
               }
             ])).values()
           );
-          setParticipants(uniquePatients);
+          setParticipants(uniquePatients as ChatParticipant[]);
         }
       }
     } catch (error) {

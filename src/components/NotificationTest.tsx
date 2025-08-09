@@ -3,7 +3,7 @@ import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { NotificationService } from '../lib/notificationService';
 import { NotificationTriggers } from '../lib/notificationTriggers';
-import { User } from '../types/common';
+import { User } from '@supabase/supabase-js';
 import { supabase } from '../integrations/supabase/client';
 
 interface NotificationTestProps {

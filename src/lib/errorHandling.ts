@@ -247,12 +247,13 @@ export const formatErrorForUser = (error: unknown): string => {
     return error;
   }
 
-  if (error?.userFriendly) {
-    return error.userFriendly;
+  const err = error as any;
+  if (err?.userFriendly) {
+    return err.userFriendly;
   }
 
-  if (error?.message) {
-    return error.message;
+  if (err?.message) {
+    return err.message;
   }
 
   return 'An unexpected error occurred. Please try again.';
