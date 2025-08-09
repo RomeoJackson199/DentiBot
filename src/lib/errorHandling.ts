@@ -23,80 +23,81 @@ export class DashboardError extends Error {
 
 export const handleDatabaseError = (error: unknown, context: string): ErrorInfo => {
   console.error(`Database error in ${context}:`, error);
+  const err = error as any;
 
   // Handle specific Supabase errors
-  if (error?.code) {
-    switch (error.code) {
+  if (err?.code) {
+    switch (err.code) {
       case 'PGRST116':
         return {
           message: 'No rows returned',
           code: 'NO_DATA',
-          details: error,
+          details: err,
           userFriendly: 'No data found. Please try again later.'
         };
       case '23505':
         return {
           message: 'Duplicate key violation',
           code: 'DUPLICATE_KEY',
-          details: error,
+          details: err,
           userFriendly: 'This record already exists.'
         };
       case '23503':
         return {
           message: 'Foreign key violation',
           code: 'FOREIGN_KEY',
-          details: error,
+          details: err,
           userFriendly: 'Invalid reference. Please contact support.'
         };
       case '42P01':
         return {
           message: 'Table does not exist',
           code: 'TABLE_NOT_FOUND',
-          details: error,
+          details: err,
           userFriendly: 'System configuration error. Please contact support.'
         };
       case '42501':
         return {
           message: 'Insufficient privileges',
           code: 'PERMISSION_DENIED',
-          details: error,
+          details: err,
           userFriendly: 'You don\'t have permission to perform this action.'
         };
       default:
         return {
-          message: error.message || 'Unknown database error',
-          code: error.code || 'UNKNOWN_DB_ERROR',
-          details: error,
+          message: err?.message || 'Unknown database error',
+          code: err?.code || 'UNKNOWN_DB_ERROR',
+          details: err,
           userFriendly: 'A database error occurred. Please try again.'
         };
     }
   }
 
   // Handle network errors
-  if (error?.message?.includes('fetch')) {
+  if (err?.message?.includes('fetch')) {
     return {
       message: 'Network error',
       code: 'NETWORK_ERROR',
-      details: error,
+      details: err,
       userFriendly: 'Network connection error. Please check your internet connection.'
     };
   }
 
   // Handle authentication errors
-  if (error?.message?.includes('JWT') || error?.message?.includes('auth')) {
+  if (err?.message?.includes('JWT') || err?.message?.includes('auth')) {
     return {
       message: 'Authentication error',
       code: 'AUTH_ERROR',
-      details: error,
+      details: err,
       userFriendly: 'Authentication failed. Please log in again.'
     };
   }
 
   // Default error handling
   return {
-    message: error?.message || 'Unknown error occurred',
+    message: err?.message || 'Unknown error occurred',
     code: 'UNKNOWN_ERROR',
-    details: error,
+    details: err,
     userFriendly: 'An unexpected error occurred. Please try again.'
   };
 };

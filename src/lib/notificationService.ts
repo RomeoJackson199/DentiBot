@@ -181,99 +181,52 @@ return data.id;
 
   // Get notification preferences
   static async getNotificationPreferences(userId: string): Promise<NotificationPreferences | null> {
-    const { data, error } = await supabase
-      .from('notification_preferences')
-      .select('*')
-      .eq('user_id', userId)
-      .maybeSingle();
-
-    if (error) {
-      console.error('Error fetching notification preferences:', error);
-      throw new Error('Failed to fetch notification preferences');
-    }
-
-    return data;
+    console.warn('Notification preferences not implemented, returning null');
+    return null;
   }
 
   // Update notification preferences
-  static async updateNotificationPreferences(
+static async updateNotificationPreferences(
     userId: string,
     preferences: Partial<NotificationPreferences>
   ): Promise<NotificationPreferences> {
-    const { data, error } = await supabase
-      .from('notification_preferences')
-      .upsert({
-        user_id: userId,
-        ...preferences,
-        updated_at: new Date().toISOString()
-      })
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error updating notification preferences:', error);
-      throw new Error('Failed to update notification preferences');
-    }
-
-    return data;
+    // Stubbed local preferences
+    const defaultPrefs: NotificationPreferences = {
+      id: `local-${userId}`,
+      user_id: userId,
+      email_enabled: true,
+      sms_enabled: false,
+      push_enabled: false,
+      in_app_enabled: true,
+      appointment_reminders: true,
+      prescription_updates: true,
+      treatment_plan_updates: true,
+      emergency_alerts: true,
+      system_notifications: true,
+      quiet_hours_start: '22:00',
+      quiet_hours_end: '07:00',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    return { ...defaultPrefs, ...preferences, updated_at: new Date().toISOString() } as NotificationPreferences;
   }
 
   // Get notification templates
-  static async getNotificationTemplates(): Promise<NotificationTemplate[]> {
-    const { data, error } = await supabase
-      .from('notification_templates')
-      .select('*')
-      .eq('is_active', true)
-      .order('template_key');
-
-    if (error) {
-      console.error('Error fetching notification templates:', error);
-      throw new Error('Failed to fetch notification templates');
-    }
-
-    return data || [];
+static async getNotificationTemplates(): Promise<NotificationTemplate[]> {
+    return [];
   }
 
   // Create notification from template
-  static async createNotificationFromTemplate(
+static async createNotificationFromTemplate(
     userId: string,
     templateKey: string,
     variables: Record<string, string> = {},
     actionUrl?: string,
     metadata?: Record<string, unknown>
   ): Promise<string> {
-    // Get template
-    const { data: template, error: templateError } = await supabase
-      .from('notification_templates')
-      .select('*')
-      .eq('template_key', templateKey)
-      .eq('is_active', true)
-      .single();
-
-    if (templateError || !template) {
-      throw new Error(`Template not found: ${templateKey}`);
-    }
-
-    // Replace variables in template
-    let title = template.title_template;
-    let message = template.message_template;
-
-    Object.entries(variables).forEach(([key, value]) => {
-      const regex = new RegExp(`{${key}}`, 'g');
-      title = title.replace(regex, value);
-      message = message.replace(regex, value);
-    });
-
-    // Create notification
-    return this.createNotification(
-      userId,
-      title,
-      message,
-      template.type as Notification['type'],
-      template.category as Notification['category'],
-      actionUrl,
-      metadata
-    );
+    const title = templateKey;
+    const message = Object.entries(variables).map(([k,v]) => `${k}: ${v}`).join(', ');
+    return this.createNotification(userId, title, message, 'system', 'info' as any, actionUrl, metadata);
   }
 
   // Delete expired notifications

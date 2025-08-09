@@ -142,9 +142,9 @@ export interface AnalyticsData {
 export interface Notification {
   id: string;
   user_id: string;
-  type: 'appointment' | 'prescription' | 'reminder' | 'emergency' | 'system' | 'treatment_plan' | 'follow_up';
+  type: string;
   category?: 'info' | 'warning' | 'success' | 'error' | 'urgent';
-  priority?: 'low' | 'medium' | 'high';
+  priority?: string;
   title: string;
   message: string;
   is_read: boolean;

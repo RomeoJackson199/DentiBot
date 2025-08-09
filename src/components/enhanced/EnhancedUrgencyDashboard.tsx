@@ -114,9 +114,7 @@ export const EnhancedUrgencyDashboard = ({ dentistId }: EnhancedUrgencyDashboard
           created_at,
           status,
           patient_id,
-          consultation_notes,
-          urgency_assessments,
-          symptom_summaries
+          consultation_notes
         `)
         .eq('dentist_id', dentistId)
         .order('created_at', { ascending: false });
