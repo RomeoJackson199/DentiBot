@@ -631,6 +631,124 @@ export type Database = {
           },
         ]
       }
+      insurance_pre_approvals: {
+        Row: {
+          coverage_percentage: number | null
+          created_at: string
+          decision_at: string | null
+          dentist_id: string
+          documents: Json
+          estimated_cost: number | null
+          expires_at: string | null
+          id: string
+          member_id: string | null
+          notes: string | null
+          patient_id: string
+          policy_number: string | null
+          provider_id: string | null
+          provider_name: string
+          status: Database["public"]["Enums"]["pre_approval_status"]
+          submitted_at: string | null
+          treatment_codes: Json | null
+          updated_at: string
+        }
+        Insert: {
+          coverage_percentage?: number | null
+          created_at?: string
+          decision_at?: string | null
+          dentist_id: string
+          documents?: Json
+          estimated_cost?: number | null
+          expires_at?: string | null
+          id?: string
+          member_id?: string | null
+          notes?: string | null
+          patient_id: string
+          policy_number?: string | null
+          provider_id?: string | null
+          provider_name: string
+          status?: Database["public"]["Enums"]["pre_approval_status"]
+          submitted_at?: string | null
+          treatment_codes?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          coverage_percentage?: number | null
+          created_at?: string
+          decision_at?: string | null
+          dentist_id?: string
+          documents?: Json
+          estimated_cost?: number | null
+          expires_at?: string | null
+          id?: string
+          member_id?: string | null
+          notes?: string | null
+          patient_id?: string
+          policy_number?: string | null
+          provider_id?: string | null
+          provider_name?: string
+          status?: Database["public"]["Enums"]["pre_approval_status"]
+          submitted_at?: string | null
+          treatment_codes?: Json | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "insurance_pre_approvals_dentist_id_fkey"
+            columns: ["dentist_id"]
+            isOneToOne: false
+            referencedRelation: "dentists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "insurance_pre_approvals_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "insurance_pre_approvals_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "insurance_providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      insurance_providers: {
+        Row: {
+          api_type: string
+          contact_email: string | null
+          contact_phone: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          api_type?: string
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          api_type?: string
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       medical_records: {
         Row: {
           attachments: Json | null
@@ -1305,6 +1423,15 @@ export type Database = {
     }
     Enums: {
       appointment_status: "pending" | "confirmed" | "completed" | "cancelled"
+      pre_approval_status:
+        | "draft"
+        | "pending"
+        | "submitted"
+        | "needs_info"
+        | "approved"
+        | "rejected"
+        | "cancelled"
+        | "expired"
       urgency_level: "low" | "medium" | "high" | "emergency"
       user_role: "patient" | "dentist" | "admin"
     }
@@ -1435,6 +1562,16 @@ export const Constants = {
   public: {
     Enums: {
       appointment_status: ["pending", "confirmed", "completed", "cancelled"],
+      pre_approval_status: [
+        "draft",
+        "pending",
+        "submitted",
+        "needs_info",
+        "approved",
+        "rejected",
+        "cancelled",
+        "expired",
+      ],
       urgency_level: ["low", "medium", "high", "emergency"],
       user_role: ["patient", "dentist", "admin"],
     },
