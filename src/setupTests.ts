@@ -1,12 +1,19 @@
 import '@testing-library/jest-dom';
 
-// Mock IntersectionObserver
-global.IntersectionObserver = class IntersectionObserver {
-  constructor() {}
-  disconnect() {}
-  observe() {}
-  unobserve() {}
-};
+// Mock IntersectionObserver (with full shape)
+Object.defineProperty(global, 'IntersectionObserver', {
+  writable: true,
+  value: class IntersectionObserver {
+    readonly root: Element | null = null;
+    readonly rootMargin: string = '';
+    readonly thresholds: ReadonlyArray<number> = [0];
+    constructor(_callback?: any, _options?: any) {}
+    observe(): void {}
+    unobserve(): void {}
+    disconnect(): void {}
+    takeRecords(): IntersectionObserverEntry[] { return []; }
+  },
+});
 
 // Mock ResizeObserver
 global.ResizeObserver = class ResizeObserver {

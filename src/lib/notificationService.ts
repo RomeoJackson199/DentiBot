@@ -16,7 +16,9 @@ export class NotificationService {
       throw new Error('Failed to fetch notifications');
     }
 
-    return data || [];
+    const rows = (data ?? []) as any[];
+    // Ensure metadata is an object to satisfy Notification type
+    return rows.map((row) => ({ ...row, metadata: (row.metadata && typeof row.metadata === 'object') ? row.metadata : {} })) as unknown as Notification[];
   }
 
   // Get unread notifications count
@@ -242,7 +244,8 @@ static async createNotificationFromTemplate(
       throw new Error('Failed to delete expired notifications');
     }
 
-    return data?.length || 0;
+    const rows = data ?? [];
+    return rows.length;
   }
 
   // Subscribe to real-time notifications

@@ -43,35 +43,51 @@ export class NotificationTriggers {
   // Trigger notification when appointment is confirmed
   static async onAppointmentConfirmed(appointmentId: string): Promise<void> {
     try {
-      // Get appointment details
-      const { data: appointment, error } = await supabase
+      // Get appointment core details
+      const { data: appt, error: apptError } = await supabase
         .from('appointments')
-        .select(`
-          *,
-          profiles!inner(user_id),
-          dentists!inner(profiles!inner(first_name, last_name))
-        `)
+        .select('id, patient_id, dentist_id, appointment_date')
         .eq('id', appointmentId)
         .single();
 
-      if (error || !appointment) {
-        throw new Error('Appointment not found');
-      }
+      if (apptError || !appt) throw new Error('Appointment not found');
 
-      const patientUserId = appointment.profiles.user_id;
-      const dentistName = `${appointment.dentists.profiles.first_name} ${appointment.dentists.profiles.last_name}`;
+      // Get patient user id
+      const { data: patientProfile, error: patientErr } = await supabase
+        .from('profiles')
+        .select('user_id')
+        .eq('id', appt.patient_id)
+        .single();
+      if (patientErr || !patientProfile) throw new Error('Patient profile not found');
+
+      // Get dentist name
+      const { data: dentistRow, error: dentistErr } = await supabase
+        .from('dentists')
+        .select('profile_id')
+        .eq('id', appt.dentist_id)
+        .single();
+      if (dentistErr || !dentistRow) throw new Error('Dentist not found');
+
+      const { data: dentistProfile, error: dentProfErr } = await supabase
+        .from('profiles')
+        .select('first_name, last_name')
+        .eq('id', dentistRow.profile_id)
+        .single();
+      if (dentProfErr || !dentistProfile) throw new Error('Dentist profile not found');
+
+      const dentistName = `${dentistProfile.first_name} ${dentistProfile.last_name}`;
 
       await NotificationService.createNotification(
-        patientUserId,
+        patientProfile.user_id,
         'Appointment Confirmed',
-        `Your appointment with Dr. ${dentistName} has been confirmed for ${new Date(appointment.appointment_date).toLocaleDateString()}.`,
+        `Your appointment with Dr. ${dentistName} has been confirmed for ${new Date(appt.appointment_date).toLocaleDateString()}.`,
         'appointment',
         'success',
         `/appointments/${appointmentId}`,
         {
           appointment_id: appointmentId,
           dentist_name: dentistName,
-          appointment_date: appointment.appointment_date
+          appointment_date: appt.appointment_date
         }
       );
 
@@ -84,35 +100,47 @@ export class NotificationTriggers {
   // Trigger notification when appointment is cancelled
   static async onAppointmentCancelled(appointmentId: string): Promise<void> {
     try {
-      // Get appointment details
-      const { data: appointment, error } = await supabase
+      const { data: appt, error: apptError } = await supabase
         .from('appointments')
-        .select(`
-          *,
-          profiles!inner(user_id),
-          dentists!inner(profiles!inner(first_name, last_name))
-        `)
+        .select('id, patient_id, dentist_id, appointment_date')
         .eq('id', appointmentId)
         .single();
+      if (apptError || !appt) throw new Error('Appointment not found');
 
-      if (error || !appointment) {
-        throw new Error('Appointment not found');
-      }
+      const { data: patientProfile, error: patientErr } = await supabase
+        .from('profiles')
+        .select('user_id')
+        .eq('id', appt.patient_id)
+        .single();
+      if (patientErr || !patientProfile) throw new Error('Patient profile not found');
 
-      const patientUserId = appointment.profiles.user_id;
-      const dentistName = `${appointment.dentists.profiles.first_name} ${appointment.dentists.profiles.last_name}`;
+      const { data: dentistRow, error: dentistErr } = await supabase
+        .from('dentists')
+        .select('profile_id')
+        .eq('id', appt.dentist_id)
+        .single();
+      if (dentistErr || !dentistRow) throw new Error('Dentist not found');
+
+      const { data: dentistProfile, error: dentProfErr } = await supabase
+        .from('profiles')
+        .select('first_name, last_name')
+        .eq('id', dentistRow.profile_id)
+        .single();
+      if (dentProfErr || !dentistProfile) throw new Error('Dentist profile not found');
+
+      const dentistName = `${dentistProfile.first_name} ${dentistProfile.last_name}`;
 
       await NotificationService.createNotification(
-        patientUserId,
+        patientProfile.user_id,
         'Appointment Cancelled',
-        `Your appointment with Dr. ${dentistName} scheduled for ${new Date(appointment.appointment_date).toLocaleDateString()} has been cancelled. Please contact us to reschedule.`,
+        `Your appointment with Dr. ${dentistName} scheduled for ${new Date(appt.appointment_date).toLocaleDateString()} has been cancelled. Please contact us to reschedule.`,
         'appointment',
         'warning',
         `/appointments/${appointmentId}`,
         {
           appointment_id: appointmentId,
           dentist_name: dentistName,
-          appointment_date: appointment.appointment_date
+          appointment_date: appt.appointment_date
         }
       );
 
@@ -126,34 +154,37 @@ export class NotificationTriggers {
   static async onPrescriptionExpiring(prescriptionId: string): Promise<void> {
     try {
       // Get prescription details
-      const { data: prescription, error } = await supabase
+      const { data: rx, error: rxErr } = await supabase
         .from('prescriptions')
-        .select(`
-          *,
-          profiles!inner(user_id)
-        `)
+        .select('id, patient_id, medication_name, prescribed_date, duration_days')
         .eq('id', prescriptionId)
         .single();
 
-      if (error || !prescription) {
-        throw new Error('Prescription not found');
-      }
+      if (rxErr || !rx) throw new Error('Prescription not found');
 
-      const patientUserId = prescription.profiles.user_id;
-      const expiryDate = new Date(prescription.expiry_date);
-      const daysUntilExpiry = Math.ceil((expiryDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+      const { data: patientProfile, error: patientErr } = await supabase
+        .from('profiles')
+        .select('user_id')
+        .eq('id', rx.patient_id)
+        .single();
+      if (patientErr || !patientProfile) throw new Error('Patient profile not found');
+
+      const baseDate = new Date(rx.prescribed_date);
+      const duration = rx.duration_days ?? 0;
+      const expiryDate = new Date(baseDate.getTime() + duration * 24 * 60 * 60 * 1000);
+      const daysUntilExpiry = Math.max(0, Math.ceil((expiryDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
 
       await NotificationService.createNotification(
-        patientUserId,
+        patientProfile.user_id,
         'Prescription Expiring Soon',
-        `Your prescription for ${prescription.medication_name} will expire in ${daysUntilExpiry} days. Please contact your dentist for a renewal.`,
+        `Your prescription for ${rx.medication_name} will expire in ${daysUntilExpiry} days. Please contact your dentist for a renewal.`,
         'prescription',
         'warning',
         `/prescriptions/${prescriptionId}`,
         {
           prescription_id: prescriptionId,
-          medication_name: prescription.medication_name,
-          expiry_date: prescription.expiry_date,
+          medication_name: rx.medication_name,
+          expiry_date: expiryDate.toISOString(),
           days_until_expiry: daysUntilExpiry
         }
       );
@@ -236,18 +267,16 @@ export class NotificationTriggers {
     description: string
   ): Promise<void> {
     try {
-      // Get all active users
       const { data: users, error } = await supabase
         .from('profiles')
-        .select('user_id')
-        .eq('is_active', true);
+        .select('user_id');
 
       if (error) {
         throw new Error('Failed to fetch users');
       }
 
-      // Send notification to all users
-      const notificationPromises = users.map(user =>
+      const usersList = (users ?? []) as Array<{ user_id: string }>;
+      const notificationPromises = usersList.map(user =>
         NotificationService.createNotification(
           user.user_id,
           'System Maintenance Scheduled',

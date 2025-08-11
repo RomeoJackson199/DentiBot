@@ -141,28 +141,18 @@ export async function verifyDatabaseConnection(): Promise<TestBookingResult> {
 
 export async function checkUserProfile(email: string): Promise<TestBookingResult> {
   try {
-    // Check if user exists and has profile
-    const { data: { user }, error: userError } = await supabase.auth.admin.getUserByEmail(email);
-    
-    if (userError || !user) {
-      return {
-        success: false,
-        message: 'User not found',
-        error: `User ${email} does not exist`
-      };
-    }
-
+    // Look up profile by email (avoids admin API differences)
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('email', email)
       .single();
 
     if (profileError || !profile) {
       return {
         success: false,
-        message: 'User profile not found',
-        error: 'User exists but profile is not set up'
+        message: 'User not found',
+        error: `User ${email} does not exist or profile is not set up`
       };
     }
 
