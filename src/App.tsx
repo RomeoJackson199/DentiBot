@@ -27,6 +27,7 @@ import Support from "./pages/Support";
 import FeatureDetail from "./pages/FeatureDetail";
 import { UnifiedDashboard } from "./components/UnifiedDashboard";
 import { LanguageTest } from "./components/LanguageTest";
+import { SeoManager } from "./lib/seo";
 
 // Dashboard component that handles authentication
 const Dashboard = () => {
@@ -87,6 +88,7 @@ const App = () => (
               <PWAInstallPrompt />
               <ProfileCompletionDialog />
               <BrowserRouter>
+                <SeoManager />
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/dashboard" element={<Dashboard />} />
