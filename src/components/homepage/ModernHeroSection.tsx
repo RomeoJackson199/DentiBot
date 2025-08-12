@@ -112,6 +112,7 @@ export function ModernHeroSection({ onBookAppointment, onStartTriage }: ModernHe
               variant="gradient"
               size="xl"
               onClick={onBookAppointment}
+              aria-label="Book a dental appointment"
               className="group min-w-[200px]"
             >
               <Calendar className="h-5 w-5 mr-2 group-hover:scale-110 transition-transform" />
@@ -123,6 +124,7 @@ export function ModernHeroSection({ onBookAppointment, onStartTriage }: ModernHe
               variant="outline"
               size="xl"
               onClick={onStartTriage}
+              aria-label="Start emergency dental triage"
               className="group min-w-[200px] border-dental-primary/30 hover:bg-dental-primary/5"
             >
               <Shield className="h-5 w-5 mr-2 group-hover:scale-110 transition-transform" />
@@ -151,6 +153,7 @@ export function ModernHeroSection({ onBookAppointment, onStartTriage }: ModernHe
                     variant="glass"
                     size="lg"
                     onClick={() => setIsVideoPlaying(true)}
+                    aria-label="Play demo video"
                     className="group hover:scale-110 transition-all duration-300"
                   >
                     <Play className="h-8 w-8 mr-2 group-hover:scale-110 transition-transform" />

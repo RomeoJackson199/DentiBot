@@ -111,7 +111,9 @@ export const QuickPhotoUpload = ({ onPhotoUploaded, onCancel }: QuickPhotoUpload
             <div className="relative">
               <img 
                 src={preview} 
-                alt="Preview" 
+                alt="Dental issue photo preview" 
+                loading="lazy"
+                decoding="async"
                 className="w-full h-32 object-cover rounded-lg border"
               />
               <Button
