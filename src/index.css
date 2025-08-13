@@ -556,14 +556,6 @@
     padding-bottom: env(safe-area-inset-bottom);
   }
 
-  /* Utilities for positioning with safe bottom offsets */
-  .bottom-safe-6 {
-    bottom: calc(1.5rem + env(safe-area-inset-bottom));
-  }
-  .bottom-safe-8 {
-    bottom: calc(2rem + env(safe-area-inset-bottom));
-  }
-
   /* Mobile Animations - Reduced motion support */
   @media (prefers-reduced-motion: reduce) {
     .animate-float,
@@ -708,10 +700,5 @@
       @apply bg-card border-2 border-border;
       backdrop-filter: none;
     }
-  }
-
-  /* Touch-friendly sizing */
-  .min-h-screen-safe {
-    min-height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
   }
 }

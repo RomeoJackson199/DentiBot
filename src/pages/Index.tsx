@@ -239,7 +239,7 @@ const Index = () => {
   }
 
   // Show the new professional homepage for non-authenticated users
-  return <div className="min-h-screen-safe mesh-bg">
+  return <div className="min-h-screen mesh-bg">
       <Header user={user} />
       <ModernHeroSection
         onBookAppointment={() => setShowAppointmentBooking(true)}
