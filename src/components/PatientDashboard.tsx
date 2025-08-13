@@ -69,7 +69,7 @@ interface PatientStats {
 export const PatientDashboard = ({ user }: PatientDashboardProps) => {
   const { t } = useLanguage();
   const { toast } = useToast();
-  type Tab = 'chat' | 'appointments' | 'prescriptions' | 'treatment' | 'records' | 'notes' | 'payments' | 'analytics' | 'emergency' | 'test';
+  type Tab = 'chat' | 'appointments' | 'prescriptions' | 'treatment' | 'records' | 'notes' | 'payments' | 'analytics' | 'emergency' | 'test' | 'all';
   const [activeTab, setActiveTab] = useState<Tab>(() => {
     try {
       return (localStorage.getItem('pd_tab') as Tab) || 'chat';
@@ -109,6 +109,18 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
       // Handle localStorage errors silently
     }
   }, [activeTab, user.id]);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const custom = e as CustomEvent<string>
+      const value = custom?.detail as Tab
+      if (value) {
+        setActiveTab(value)
+      }
+    }
+    window.addEventListener('set_pd_tab', handler as EventListener)
+    return () => window.removeEventListener('set_pd_tab', handler as EventListener)
+  }, [])
 
   const fetchUserProfile = async () => {
     try {
@@ -405,17 +417,18 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
 
       {/* Main Content Tabs */}
       <Tabs value={activeTab} onValueChange={(value: Tab) => setActiveTab(value)} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-10">
+        <TabsList className="grid w-full grid-cols-5 sm:grid-cols-8 lg:grid-cols-10">
           <TabsTrigger value="chat">Chat</TabsTrigger>
           <TabsTrigger value="appointments">Appointments</TabsTrigger>
-          <TabsTrigger value="prescriptions">Prescriptions</TabsTrigger>
-          <TabsTrigger value="treatment">Treatment</TabsTrigger>
-          <TabsTrigger value="records">Records</TabsTrigger>
-          <TabsTrigger value="notes">Notes</TabsTrigger>
+          <TabsTrigger value="all" className="sm:hidden">All</TabsTrigger>
+          <TabsTrigger value="prescriptions" className="hidden sm:inline-flex">Prescriptions</TabsTrigger>
+          <TabsTrigger value="notes" className="hidden sm:inline-flex">Notes</TabsTrigger>
+          <TabsTrigger value="treatment" className="hidden lg:inline-flex">Treatment</TabsTrigger>
+          <TabsTrigger value="records" className="hidden lg:inline-flex">Records</TabsTrigger>
           <TabsTrigger value="payments">Payments</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          <TabsTrigger value="analytics" className="hidden lg:inline-flex">Analytics</TabsTrigger>
           <TabsTrigger value="emergency">Emergency</TabsTrigger>
-          <TabsTrigger value="test">Test</TabsTrigger>
+          <TabsTrigger value="test" className="hidden lg:inline-flex">Test</TabsTrigger>
         </TabsList>
 
         <TabsContent value="chat" className="space-y-4">
@@ -609,6 +622,72 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
             <DatabaseTest />
             <SimpleAppointmentTest user={user} />
             <AppointmentDebug user={user} />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="all" className="space-y-4 sm:hidden">
+          <div className="space-y-6">
+            <div>
+              <h3 className="text-lg font-semibold mb-2">Prescriptions</h3>
+              <div className="space-y-2">
+                {prescriptions.map((prescription) => (
+                  <Card key={prescription.id}>
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-4">
+                          <Pill className="h-5 w-5 text-purple-600" />
+                          <div>
+                            <p className="font-medium">{prescription.medication_name}</p>
+                            <p className="text-sm text-gray-600">
+                              {prescription.dosage} - {prescription.frequency}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              Prescribed: {formatDate(prescription.prescribed_date)}
+                            </p>
+                          </div>
+                        </div>
+                        <Badge className={prescription.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}>
+                          {prescription.status}
+                        </Badge>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+                {prescriptions.length === 0 && (
+                  <div className="text-center py-8">
+                    <Pill className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-600">No prescriptions</p>
+                  </div>
+                )}
+              </div>
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold mb-2">Notes</h3>
+              <div className="space-y-2">
+                {patientNotes.map((note) => (
+                  <Card key={note.id}>
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-4">
+                          <FileText className="h-5 w-5 text-green-600" />
+                          <div>
+                            <p className="font-medium">{note.title}</p>
+                            <p className="text-sm text-gray-600">{note.note_type}</p>
+                            <p className="text-xs text-gray-500">Created: {formatDate(note.created_at)}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+                {patientNotes.length === 0 && (
+                  <div className="text-center py-8">
+                    <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-600">No notes</p>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </TabsContent>
       </Tabs>
