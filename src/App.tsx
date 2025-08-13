@@ -15,6 +15,7 @@ import { User, Session } from "@supabase/supabase-js";
 import { SeoManager } from "./lib/seo";
 import { LazyLoadingWrapper } from "./components/optimized/LazyLoadingWrapper";
 import { MobileOptimizations } from "@/components/mobile/MobileOptimizations";
+import { MobileBottomNav } from "@/components/mobile/MobileBottomNav";
 
 // Lazy load pages for better performance
 const Index = lazy(() => import("./pages/Index"));
@@ -135,6 +136,7 @@ const App = () => (
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<LazyLoadingWrapper><NotFound /></LazyLoadingWrapper>} />
               </Routes>
+              <MobileBottomNav />
             </BrowserRouter>
           </TooltipProvider>
         </LanguageProvider>
