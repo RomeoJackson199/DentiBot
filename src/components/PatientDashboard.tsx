@@ -104,7 +104,7 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
   useEffect(() => {
     try {
       localStorage.setItem('pd_tab', activeTab);
-      localStorage.setItem('session_token', user.id);
+      // Removed session_token storage for security - user IDs are sensitive
     } catch {
       // Handle localStorage errors silently
     }

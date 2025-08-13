@@ -22,22 +22,55 @@ serve(async (req) => {
   }
 
   try {
+    // Get the authorization header and verify JWT
+    const authHeader = req.headers.get('authorization');
+    if (!authHeader) {
+      throw new Error('Authorization header required');
+    }
+
+    // Create Supabase client with user context for authorization checks
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    
+    if (!supabaseUrl || !supabaseServiceKey) {
+      throw new Error('Supabase credentials not configured');
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+
+    // Verify user authentication
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      throw new Error('Invalid or expired token');
+    }
+
     const twilioAccountSid = Deno.env.get('TWILIO_ACCOUNT_SID');
     const twilioAuthToken = Deno.env.get('TWILIO_AUTH_TOKEN');
     const twilioPhoneNumber = Deno.env.get('TWILIO_PHONE_NUMBER');
-    const supabaseUrl = Deno.env.get('SUPABASE_URL');
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
     if (!twilioAccountSid || !twilioAuthToken || !twilioPhoneNumber) {
       throw new Error('Twilio credentials not configured');
     }
 
-    if (!supabaseUrl || !supabaseServiceKey) {
-      throw new Error('Supabase credentials not configured');
-    }
-
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
     const { to, message, messageType, patientId, dentistId }: SMSRequest = await req.json();
+
+    // Authorization check: Only dentists can send SMS notifications
+    if (dentistId) {
+      const { data: dentist, error: dentistError } = await supabase
+        .from('dentists')
+        .select('id')
+        .eq('id', dentistId)
+        .eq('profile_id', (
+          await supabase.from('profiles').select('id').eq('user_id', user.id).single()
+        ).data?.id)
+        .single();
+
+      if (dentistError || !dentist) {
+        throw new Error('Unauthorized: Only the dentist can send SMS notifications');
+      }
+    }
 
     // Create SMS notification record first
     let notificationId;

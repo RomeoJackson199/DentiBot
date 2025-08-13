@@ -75,17 +75,21 @@ export const PhotoUpload = ({ onComplete, onCancel }: PhotoUploadProps) => {
 
       if (error) throw error;
 
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
+      // Get signed URL for security (private access)
+      const { data: signedUrl, error: signedUrlError } = await supabase.storage
         .from('dental-photos')
-        .getPublicUrl(data.path);
+        .createSignedUrl(data.path, 3600); // 1 hour expiry
+
+      if (signedUrlError || !signedUrl) {
+        throw new Error('Failed to create secure photo URL');
+      }
 
       toast({
         title: "Photo téléchargée avec succès",
         description: "Votre photo a été transmise au dentiste",
       });
 
-      onComplete(publicUrl);
+      onComplete(signedUrl.signedUrl);
     } catch (error) {
       console.error("Error uploading photo:", error);
       toast({

@@ -74,8 +74,7 @@ export const saveProfileData = async (user: User, profileData: ProfileData) => {
 
     console.log('Verified saved data:', verifyData);
 
-    // Also save to localStorage as backup
-    localStorage.setItem('profile_backup', JSON.stringify(cleanData));
+    // Removed localStorage backup for security - sensitive PII should not be stored locally
 
     return { success: true, data: verifyData };
   } catch (error) {
@@ -126,13 +125,7 @@ export const loadProfileData = async (user: User): Promise<ProfileData> => {
   } catch (error) {
     console.error('Profile load failed:', error);
     
-    // Try to load from localStorage backup
-    const backup = localStorage.getItem('profile_backup');
-    if (backup) {
-      console.log('Loading from localStorage backup');
-      return JSON.parse(backup);
-    }
-    
+    // Removed localStorage fallback for security - sensitive PII should not be stored locally
     throw error;
   }
 };

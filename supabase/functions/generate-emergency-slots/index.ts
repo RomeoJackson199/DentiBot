@@ -13,14 +13,44 @@ serve(async (req) => {
   }
 
   try {
+    // Verify user authentication
+    const authHeader = req.headers.get('authorization');
+    if (!authHeader) {
+      throw new Error('Authorization header required');
+    }
+
     const { dentist_id, date } = await req.json()
 
     // Create a Supabase client with the Auth context of the user that called the function
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      { global: { headers: { Authorization: req.headers.get('Authorization')! } } }
+      { global: { headers: { Authorization: authHeader } } }
     )
+
+    // Verify user authentication and authorization
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+    if (authError || !user) {
+      throw new Error('Invalid or expired token');
+    }
+
+    // Authorization check: Only dentists can generate slots for themselves
+    const { data: profile } = await supabaseClient
+      .from('profiles')
+      .select('id')
+      .eq('user_id', user.id)
+      .single();
+
+    const { data: dentist, error: dentistError } = await supabaseClient
+      .from('dentists')
+      .select('id')
+      .eq('id', dentist_id)
+      .eq('profile_id', profile?.id)
+      .single();
+
+    if (dentistError || !dentist) {
+      throw new Error('Unauthorized: You can only generate slots for yourself');
+    }
 
     // Call the existing function to generate slots
     const { error: generateError } = await supabaseClient.rpc('generate_daily_slots', {

@@ -17,12 +17,7 @@ export const createMedicalRecord = async (data: CreateMedicalRecordData) => {
   if (error || !record) {
     throw new Error((error as any) || 'Failed to save record');
   }
-  // also persist to localStorage for temporary persistence
-  const stored = JSON.parse(localStorage.getItem('medical_records') || '{}') as Record<string, unknown[]>;
-  const list = (stored[data.patientId] as unknown[] | undefined) || [];
-  list.push(record);
-  stored[data.patientId] = list;
-  localStorage.setItem('medical_records', JSON.stringify(stored));
+  // Removed localStorage persistence for security - medical records contain sensitive PII
   return record;
 };
 

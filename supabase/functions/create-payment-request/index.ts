@@ -13,6 +13,23 @@ serve(async (req) => {
   }
 
   try {
+    // Verify user authentication
+    const authHeader = req.headers.get('authorization');
+    if (!authHeader) {
+      throw new Error('Authorization header required');
+    }
+
+    const supabaseClient = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+    if (authError || !user) {
+      throw new Error('Invalid or expired token');
+    }
+
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     if (!stripeKey) {
       throw new Error("Stripe secret key not configured");
@@ -22,14 +39,28 @@ serve(async (req) => {
 
     const { patient_id, dentist_id, amount, description, patient_email, patient_name, payment_request_id } = await req.json();
 
+    // Authorization check: Only dentists can create payment requests
+    if (dentist_id) {
+      const { data: profile } = await supabaseClient
+        .from('profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      const { data: dentist, error: dentistError } = await supabaseClient
+        .from('dentists')
+        .select('id')
+        .eq('id', dentist_id)
+        .eq('profile_id', profile?.id)
+        .single();
+
+      if (dentistError || !dentist) {
+        throw new Error('Unauthorized: Only the dentist can create payment requests');
+      }
+    }
+
     // If payment_request_id is provided, get existing payment request
     if (payment_request_id) {
-      const supabaseClient = createClient(
-        Deno.env.get("SUPABASE_URL") ?? "",
-        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-        { auth: { persistSession: false } }
-      );
-
       const { data: paymentRequest, error } = await supabaseClient
         .from('payment_requests')
         .select('*')
@@ -37,6 +68,26 @@ serve(async (req) => {
         .single();
 
       if (error) throw new Error("Payment request not found");
+
+      // Verify user owns this payment request (either as dentist or patient)
+      const { data: profile } = await supabaseClient
+        .from('profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      const isDentist = await supabaseClient
+        .from('dentists')
+        .select('id')
+        .eq('id', paymentRequest.dentist_id)
+        .eq('profile_id', profile?.id)
+        .single();
+
+      const isPatient = paymentRequest.patient_id === profile?.id;
+
+      if (!isDentist.data && !isPatient) {
+        throw new Error('Unauthorized: You can only access your own payment requests');
+      }
 
       // Create new Stripe session for existing payment request
       const session = await stripe.checkout.sessions.create({
@@ -115,12 +166,6 @@ serve(async (req) => {
     });
 
     // Save payment request to database for tracking
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-      { auth: { persistSession: false } }
-    );
-
     await supabaseClient.from("payment_requests").insert({
       patient_id,
       dentist_id,

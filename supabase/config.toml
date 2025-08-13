@@ -2,3 +2,18 @@ project_id = "gjvxcisbaxhhblhsytar"
 
 [functions.google-calendar-integration]
 verify_jwt = false
+
+[functions.send-sms]
+verify_jwt = true
+
+[functions.create-payment-request]
+verify_jwt = true
+
+[functions.generate-emergency-slots]
+verify_jwt = true
+
+[functions.voice-to-text]
+verify_jwt = true
+
+[functions.update-payment-status]
+verify_jwt = true
