@@ -40,7 +40,7 @@ export function ModernHeroSection({ onBookAppointment, onStartTriage }: ModernHe
   ];
 
   return (
-    <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
+    <section className="relative min-h-screen-safe flex items-center justify-center overflow-hidden">
       {/* Enhanced Background */}
       <div className="absolute inset-0 hero-pattern">
         <div className="absolute inset-0 bg-gradient-to-br from-background/90 via-background/50 to-background/90" />

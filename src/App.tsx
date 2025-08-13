@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { User, Session } from "@supabase/supabase-js";
 import { SeoManager } from "./lib/seo";
 import { LazyLoadingWrapper } from "./components/optimized/LazyLoadingWrapper";
+import { MobileOptimizations } from "@/components/mobile/MobileOptimizations";
 
 // Lazy load pages for better performance
 const Index = lazy(() => import("./pages/Index"));
@@ -109,6 +110,7 @@ const App = () => (
       >
         <LanguageProvider>
             <TooltipProvider>
+              <MobileOptimizations />
               <Toaster />
               <Sonner />
               <PWAInstallPrompt />
