@@ -9,27 +9,30 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { PWAInstallPrompt } from "./components/PWAInstallPrompt";
 import ProfileCompletionDialog from "./components/ProfileCompletionDialog";
 import { ChangelogPopup } from "./components/ChangelogPopup";
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { User, Session } from "@supabase/supabase-js";
-import Index from "./pages/Index";
-import DentistProfiles from "./pages/DentistProfiles";
-import Terms from "./pages/Terms";
-import PrivacyPolicy from "./pages/PrivacyPolicy";
-import NotFound from "./pages/NotFound";
-import EmergencyTriage from "./pages/EmergencyTriage";
-import { PaymentSuccess } from "./pages/PaymentSuccess";
-import { PaymentCancelled } from "./pages/PaymentCancelled";
-import Chat from "./pages/Chat";
-import Schedule from "./pages/Schedule";
-import Analytics from "./pages/Analytics";
-import Support from "./pages/Support";
-import FeatureDetail from "./pages/FeatureDetail";
-import { UnifiedDashboard } from "./components/UnifiedDashboard";
-import { LanguageTest } from "./components/LanguageTest";
 import { SeoManager } from "./lib/seo";
+import { LazyLoadingWrapper } from "./components/optimized/LazyLoadingWrapper";
 
-// Dashboard component that handles authentication
+// Lazy load pages for better performance
+const Index = lazy(() => import("./pages/Index"));
+const DentistProfiles = lazy(() => import("./pages/DentistProfiles"));
+const Terms = lazy(() => import("./pages/Terms"));
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const EmergencyTriage = lazy(() => import("./pages/EmergencyTriage"));
+const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess").then(module => ({ default: module.PaymentSuccess })));
+const PaymentCancelled = lazy(() => import("./pages/PaymentCancelled").then(module => ({ default: module.PaymentCancelled })));
+const Chat = lazy(() => import("./pages/Chat"));
+const Schedule = lazy(() => import("./pages/Schedule"));
+const Analytics = lazy(() => import("./pages/Analytics"));
+const Support = lazy(() => import("./pages/Support"));
+const FeatureDetail = lazy(() => import("./pages/FeatureDetail"));
+const UnifiedDashboard = lazy(() => import("./components/UnifiedDashboard").then(module => ({ default: module.UnifiedDashboard })));
+const LanguageTest = lazy(() => import("./components/LanguageTest").then(module => ({ default: module.LanguageTest })));
+
+// Dashboard component that handles authentication with lazy loading
 const Dashboard = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -67,10 +70,33 @@ const Dashboard = () => {
     return <Navigate to="/" replace />;
   }
 
-  return <UnifiedDashboard user={user} />;
+  return (
+    <LazyLoadingWrapper>
+      <UnifiedDashboard user={user} />
+    </LazyLoadingWrapper>
+  );
 };
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      gcTime: 10 * 60 * 1000, // 10 minutes (was cacheTime)
+      refetchOnWindowFocus: false,
+      retry: (failureCount, error) => {
+        // Don't retry auth errors
+        if (error && typeof error === 'object' && 'code' in error) {
+          const supabaseError = error as { code?: string };
+          if (supabaseError.code === 'PGRST301' || supabaseError.code === 'PGRST116') {
+            return false;
+          }
+        }
+        return failureCount < 3;
+      },
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    },
+  },
+});
 
 const App = () => (
   <ErrorBoundary>
@@ -90,22 +116,22 @@ const App = () => (
               <BrowserRouter>
                 <SeoManager />
               <Routes>
-                <Route path="/" element={<Index />} />
+                <Route path="/" element={<LazyLoadingWrapper><Index /></LazyLoadingWrapper>} />
                 <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/emergency-triage" element={<EmergencyTriage />} />
-                <Route path="/dentists" element={<DentistProfiles />} />
-                <Route path="/terms" element={<Terms />} />
-                <Route path="/privacy" element={<PrivacyPolicy />} />
-                <Route path="/payment-success" element={<PaymentSuccess />} />
-                <Route path="/payment-cancelled" element={<PaymentCancelled />} />
-                <Route path="/schedule" element={<Schedule />} />
-                <Route path="/analytics" element={<Analytics />} />
-                <Route path="/support" element={<Support />} />
-                <Route path="/features/:id" element={<FeatureDetail />} />
-                <Route path="/language-test" element={<LanguageTest />} />
-                <Route path="/chat" element={<Chat />} />
+                <Route path="/emergency-triage" element={<LazyLoadingWrapper><EmergencyTriage /></LazyLoadingWrapper>} />
+                <Route path="/dentists" element={<LazyLoadingWrapper><DentistProfiles /></LazyLoadingWrapper>} />
+                <Route path="/terms" element={<LazyLoadingWrapper><Terms /></LazyLoadingWrapper>} />
+                <Route path="/privacy" element={<LazyLoadingWrapper><PrivacyPolicy /></LazyLoadingWrapper>} />
+                <Route path="/payment-success" element={<LazyLoadingWrapper><PaymentSuccess /></LazyLoadingWrapper>} />
+                <Route path="/payment-cancelled" element={<LazyLoadingWrapper><PaymentCancelled /></LazyLoadingWrapper>} />
+                <Route path="/schedule" element={<LazyLoadingWrapper><Schedule /></LazyLoadingWrapper>} />
+                <Route path="/analytics" element={<LazyLoadingWrapper><Analytics /></LazyLoadingWrapper>} />
+                <Route path="/support" element={<LazyLoadingWrapper><Support /></LazyLoadingWrapper>} />
+                <Route path="/features/:id" element={<LazyLoadingWrapper><FeatureDetail /></LazyLoadingWrapper>} />
+                <Route path="/language-test" element={<LazyLoadingWrapper><LanguageTest /></LazyLoadingWrapper>} />
+                <Route path="/chat" element={<LazyLoadingWrapper><Chat /></LazyLoadingWrapper>} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
+                <Route path="*" element={<LazyLoadingWrapper><NotFound /></LazyLoadingWrapper>} />
               </Routes>
             </BrowserRouter>
           </TooltipProvider>

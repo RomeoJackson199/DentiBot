@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, memo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { useToast } from "@/hooks/use-toast";
@@ -12,16 +12,12 @@ interface UnifiedDashboardProps {
   user: User;
 }
 
-export const UnifiedDashboard = ({ user }: UnifiedDashboardProps) => {
+export const UnifiedDashboard = memo(({ user }: UnifiedDashboardProps) => {
   const [userRole, setUserRole] = useState<'patient' | 'dentist' | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  useEffect(() => {
-    fetchUserRole();
-  }, [user]);
-
-  const fetchUserRole = async () => {
+  const fetchUserRole = useCallback(async () => {
     try {
       console.log('Fetching user role for user:', user.id);
       
@@ -74,44 +70,32 @@ export const UnifiedDashboard = ({ user }: UnifiedDashboardProps) => {
       console.error('Error fetching user role:', error);
       // Default to patient if there's an error
       setUserRole('patient');
-toast({
-  title: "Error",
-  description: `Error loading dashboard: ${error instanceof Error ? error.message : 'Unknown error'}`,
-  variant: "destructive",
-});
+      toast({
+        title: "Error",
+        description: `Error loading dashboard: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
-  };
+  }, [user.id, toast]);
+
+  useEffect(() => {
+    fetchUserRole();
+  }, [fetchUserRole]);
 
   if (loading) {
     return (
-      <div className="min-h-screen mesh-bg flex items-center justify-center">
-        <Card 
-          variant="glass-strong" 
-          className="animate-fade-in p-10 max-w-md mx-auto border-dental-primary/20"
-        >
-          <CardContent className="text-center space-y-6" padding="none">
-            {/* Enhanced loading icon */}
+      <div className="min-h-screen flex items-center justify-center mesh-bg">
+        <Card className="w-full max-w-md">
+          <CardContent className="flex flex-col items-center justify-center p-8">
             <div className="relative">
-              <div className="w-16 h-16 bg-gradient-primary rounded-2xl flex items-center justify-center mx-auto shadow-elegant animate-float">
-                <Loader2 className="h-8 w-8 animate-spin text-white" />
-              </div>
-              <div className="pulse-ring w-20 h-20 -top-2 -left-2"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-4 border-dental-primary/20 border-t-dental-primary"></div>
+              <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-dental-accent animate-pulse"></div>
             </div>
-            
-            <div className="space-y-3">
-              <h3 className="text-2xl font-bold gradient-text">Loading Dashboard</h3>
-              <p className="text-dental-muted-foreground leading-relaxed">
-                Determining your access level and personalizing your experience...
-              </p>
-            </div>
-            
-            {/* Progress indicator */}
-            <div className="w-full">
-              <div className="w-full bg-dental-muted/20 rounded-full h-2">
-                <div className="bg-gradient-primary h-2 rounded-full animate-pulse" style={{ width: "60%" }}></div>
-              </div>
+            <div className="mt-6 text-center space-y-2">
+              <h3 className="text-lg font-semibold text-dental-foreground">Loading Dashboard</h3>
+              <p className="text-sm text-dental-muted-foreground">Setting up your personalized experience...</p>
             </div>
           </CardContent>
         </Card>
@@ -120,13 +104,15 @@ toast({
   }
 
   return (
-    <div className="min-h-screen mesh-bg">
+    <>
       {userRole === 'dentist' ? (
-        <DentistDashboard user={user} />
+        <DentistDashboard />
       ) : (
         <PatientDashboard user={user} />
       )}
       <AiOptOutPrompt user={user} />
-    </div>
+    </>
   );
-};
+});
+
+UnifiedDashboard.displayName = 'UnifiedDashboard';
