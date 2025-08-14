@@ -248,67 +248,78 @@ export function EnhancedAvailabilitySettings({ dentistId }: EnhancedAvailability
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-4">
           <Clock className="h-6 w-6 text-primary" />
-          <h2 className="text-2xl font-bold">Gestion des Disponibilités</h2>
+          <h2 className="text-xl sm:text-2xl font-bold">Gestion des Disponibilités</h2>
         </div>
-        <Button onClick={saveAvailability} disabled={saving} className="bg-gradient-primary">
-          <Save className="h-4 w-4 mr-2" />
+        <Button 
+          onClick={saveAvailability} 
+          disabled={saving} 
+          size="lg"
+          className="h-12 px-6 rounded-xl bg-gradient-primary"
+        >
+          <Save className="h-5 w-5 mr-2" />
           {saving ? "Sauvegarde..." : "Sauvegarder"}
         </Button>
       </div>
 
       <Tabs defaultValue="schedule" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="schedule">Horaires hebdomadaires</TabsTrigger>
-          <TabsTrigger value="vacation">Congés & Absences</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-2 h-12">
+          <TabsTrigger value="schedule" className="text-sm sm:text-base">Horaires hebdomadaires</TabsTrigger>
+          <TabsTrigger value="vacation" className="text-sm sm:text-base">Congés & Absences</TabsTrigger>
         </TabsList>
 
         <TabsContent value="schedule">
           <Card className="glass-card">
             <CardHeader>
-              <CardTitle className="flex items-center">
+              <CardTitle className="flex items-center text-lg sm:text-xl">
                 <Calendar className="h-5 w-5 mr-2" />
                 Planification hebdomadaire
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* Quick Preset Buttons */}
-              <div className="flex flex-wrap gap-2 p-4 bg-gray-50 rounded-lg">
-                <span className="text-sm font-medium text-gray-700">Presets rapides:</span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setAvailability(prev => prev.map(day => ({
-                      ...day,
-                      is_available: day.day_of_week >= 1 && day.day_of_week <= 5,
-                      start_time: '09:00',
-                      end_time: '17:00',
-                      break_start_time: '12:00',
-                      break_end_time: '13:00'
-                    })));
-                  }}
-                >
-                  Lun-Ven 9h-17h
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setAvailability(prev => prev.map(day => ({
-                      ...day,
-                      is_available: day.day_of_week >= 1 && day.day_of_week <= 6,
-                      start_time: '08:00',
-                      end_time: '18:00',
-                      break_start_time: '12:00',
-                      break_end_time: '13:00'
-                    })));
-                  }}
-                >
-                  Lun-Sam 8h-18h
-                </Button>
+              {/* Quick Preset Buttons - Improved layout */}
+              <div className="p-4 bg-gray-50 rounded-xl space-y-3">
+                <span className="text-sm font-medium text-gray-700 block">Presets rapides:</span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="h-12 justify-start px-4 rounded-xl"
+                    onClick={() => {
+                      setAvailability(prev => prev.map(day => ({
+                        ...day,
+                        is_available: day.day_of_week >= 1 && day.day_of_week <= 5,
+                        start_time: '09:00',
+                        end_time: '17:00',
+                        break_start_time: '12:00',
+                        break_end_time: '13:00'
+                      })));
+                    }}
+                  >
+                    <Clock className="h-4 w-4 mr-2" />
+                    Lun-Ven 9h-17h
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="h-12 justify-start px-4 rounded-xl"
+                    onClick={() => {
+                      setAvailability(prev => prev.map(day => ({
+                        ...day,
+                        is_available: day.day_of_week >= 1 && day.day_of_week <= 6,
+                        start_time: '08:00',
+                        end_time: '18:00',
+                        break_start_time: '12:00',
+                        break_end_time: '13:00'
+                      })));
+                    }}
+                  >
+                    <Clock className="h-4 w-4 mr-2" />
+                    Lun-Sam 8h-18h
+                  </Button>
+                </div>
               </div>
 
               {/* Day Schedule Grid */}
@@ -318,12 +329,12 @@ export function EnhancedAvailabilitySettings({ dentistId }: EnhancedAvailability
                   
                   return (
                     <Card key={day.value} className={`border-2 transition-all ${dayAvailability.is_available ? 'border-green-200 bg-green-50' : 'border-gray-200 bg-gray-50'}`}>
-                      <CardContent className="p-4">
+                      <CardContent className="p-5">
                         <div className="space-y-4">
                           {/* Day Header */}
                           <div className="flex items-center justify-between">
                             <div className="flex items-center space-x-3">
-                              <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${dayAvailability.is_available ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                              <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg ${dayAvailability.is_available ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
                                 {day.short}
                               </div>
                               <Label className="text-lg font-medium">{day.label}</Label>
@@ -333,12 +344,13 @@ export function EnhancedAvailabilitySettings({ dentistId }: EnhancedAvailability
                               onCheckedChange={(checked) => 
                                 updateAvailability(index, 'is_available', checked)
                               }
+                              className="scale-125"
                             />
                           </div>
 
-                          {/* Time Settings */}
+                          {/* Time Settings - Improved responsive grid */}
                           {dayAvailability.is_available && (
-                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                               <div>
                                 <Label htmlFor={`start-${day.value}`} className="text-sm font-medium">Début</Label>
                                 <Input
@@ -348,7 +360,7 @@ export function EnhancedAvailabilitySettings({ dentistId }: EnhancedAvailability
                                   onChange={(e) => 
                                     updateAvailability(index, 'start_time', e.target.value)
                                   }
-                                  className="mt-1"
+                                  className="h-10 mt-1"
                                 />
                               </div>
                               <div>
@@ -360,7 +372,7 @@ export function EnhancedAvailabilitySettings({ dentistId }: EnhancedAvailability
                                   onChange={(e) => 
                                     updateAvailability(index, 'end_time', e.target.value)
                                   }
-                                  className="mt-1"
+                                  className="h-10 mt-1"
                                 />
                               </div>
                               <div>
@@ -375,7 +387,7 @@ export function EnhancedAvailabilitySettings({ dentistId }: EnhancedAvailability
                                   onChange={(e) => 
                                     updateAvailability(index, 'break_start_time', e.target.value || null)
                                   }
-                                  className="mt-1"
+                                  className="h-10 mt-1"
                                 />
                               </div>
                               <div>
@@ -390,7 +402,7 @@ export function EnhancedAvailabilitySettings({ dentistId }: EnhancedAvailability
                                   onChange={(e) => 
                                     updateAvailability(index, 'break_end_time', e.target.value || null)
                                   }
-                                  className="mt-1"
+                                  className="h-10 mt-1"
                                 />
                               </div>
                             </div>
