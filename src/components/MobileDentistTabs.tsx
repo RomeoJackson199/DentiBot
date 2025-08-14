@@ -16,7 +16,7 @@ import {
   Stethoscope
 } from "lucide-react";
 
-type TabType = 'urgency' | 'availability' | 'appointments' | 'patients' | 'payments' | 'analytics' | 'manage' | 'debug' | 'prescriptions' | 'treatment-plans';
+type TabType = 'urgency' | 'appointments' | 'patients' | 'payments' | 'analytics' | 'availability' | 'manage' | 'debug';
 
 interface MobileDentistTabsProps {
   activeTab: TabType;
@@ -36,16 +36,14 @@ export function MobileDentistTabs({ activeTab, setActiveTab, dentistId, children
       tabs: [
         { id: 'urgency' as TabType, label: 'Triage', icon: AlertTriangle, badge: '!' },
         { id: 'appointments' as TabType, label: 'Appointments', icon: Calendar },
-        { id: 'patients' as TabType, label: 'Patients', icon: Users },
       ]
     },
     {
-      id: 'treatment',
-      title: 'Treatment',
-      icon: FileText,
+      id: 'patients',
+      title: 'Patients',
+      icon: Users,
       tabs: [
-        { id: 'prescriptions' as TabType, label: 'Prescriptions', icon: Pill },
-        { id: 'treatment-plans' as TabType, label: 'Treatment Plans', icon: FileText },
+        { id: 'patients' as TabType, label: 'Patients', icon: Users },
       ]
     },
     {
