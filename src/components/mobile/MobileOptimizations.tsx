@@ -39,15 +39,22 @@ export function MobileOptimizations() {
         
         /* Mobile-friendly inputs */
         input, textarea, select {
-          font-size: 16px;
-          border-radius: 8px;
-          padding: 12px;
+          font-size: 16px !important;
+          border-radius: 12px;
+          padding: 16px;
+          min-height: 48px;
+        }
+        
+        /* Safe area support */
+        .safe-area-inset-bottom {
+          padding-bottom: env(safe-area-inset-bottom);
         }
         
         /* Mobile card spacing */
         .mobile-card {
-          margin: 0.5rem;
-          border-radius: 12px;
+          margin: 0.75rem;
+          border-radius: 16px;
+          box-shadow: 0 4px 20px -4px rgba(0,0,0,0.1);
         }
         
         /* Mobile navigation */
@@ -56,29 +63,51 @@ export function MobileOptimizations() {
           bottom: 0;
           left: 0;
           right: 0;
-          background: white;
-          border-top: 1px solid hsl(var(--border));
-          padding: 0.5rem;
+          background: hsl(var(--background) / 0.98);
+          backdrop-filter: blur(16px);
+          border-top: 1px solid hsl(var(--border) / 0.5);
+          padding: 0.75rem;
+          padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
           z-index: 50;
         }
         
         /* Mobile-optimized text */
         .mobile-text {
-          font-size: 14px;
-          line-height: 1.5;
+          font-size: 15px;
+          line-height: 1.6;
         }
         
         /* Mobile-friendly modals */
         .mobile-modal {
           margin: 1rem;
           max-height: calc(100vh - 2rem);
-          border-radius: 16px;
+          border-radius: 20px;
         }
         
         /* Swipe gestures */
         .swipeable {
           touch-action: pan-y;
           user-select: none;
+        }
+        
+        /* Prevent double-tap zoom */
+        input, select, textarea, button {
+          touch-action: manipulation;
+        }
+        
+        /* Better mobile scrolling */
+        body {
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
+        }
+        
+        /* Reduce motion for better performance */
+        @media (prefers-reduced-motion: reduce) {
+          * {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+          }
         }
       `;
       document.head.appendChild(style);

@@ -1,6 +1,5 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { useMobileOptimizations } from "@/components/mobile/MobileOptimizations";
 import { 
@@ -14,8 +13,7 @@ import {
   Database,
   FileText,
   Pill,
-  Stethoscope,
-  ChevronRight
+  Stethoscope
 } from "lucide-react";
 
 type TabType = 'urgency' | 'availability' | 'appointments' | 'patients' | 'payments' | 'analytics' | 'manage' | 'debug' | 'prescriptions' | 'treatment-plans';
@@ -72,76 +70,101 @@ export function MobileDentistTabs({ activeTab, setActiveTab, dentistId, children
   ];
 
   if (isMobile) {
+    // Get current group based on active tab
+    const currentGroup = tabGroups.find(group => 
+      group.tabs.some(tab => tab.id === activeTab)
+    ) || tabGroups[0];
+
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-muted/30">
-        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as TabType)} className="w-full">
-          <div className="sticky top-0 z-50 bg-background/95 backdrop-blur-lg border-b">
-            <TabsList className="grid w-full grid-cols-4 gap-1 p-2 h-auto bg-transparent">
-              {tabGroups.map((group) => (
-                <TabsTrigger
+      <div className="min-h-screen bg-background pb-20">
+        {/* Mobile Tab Content */}
+        <div className="px-4 pt-4 space-y-4">
+          {/* Current Section Header */}
+          <Card className="border-0 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-xl">
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-white/20 rounded-lg">
+                  <currentGroup.icon className="h-5 w-5" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold">{currentGroup.title}</h2>
+                  <p className="text-primary-foreground/80 text-sm">
+                    {currentGroup.tabs.find(t => t.id === activeTab)?.label || 'Dashboard'}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Quick Switch Tabs within current group */}
+          {currentGroup.tabs.length > 1 && (
+            <Card className="border-0 shadow-lg">
+              <CardContent className="p-3">
+                <div className="grid grid-cols-2 gap-2">
+                  {currentGroup.tabs.map((tab) => (
+                    <Button
+                      key={tab.id}
+                      variant={activeTab === tab.id ? "default" : "outline"}
+                      size="lg"
+                      onClick={() => setActiveTab(tab.id)}
+                      className="h-16 flex flex-col space-y-1 rounded-lg relative"
+                    >
+                      <tab.icon className="h-5 w-5" />
+                      <span className="text-xs font-medium text-center leading-tight">{tab.label}</span>
+                      {tab.badge && (
+                        <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 p-0 text-xs">
+                          {tab.badge}
+                        </Badge>
+                      )}
+                    </Button>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Main Content */}
+          <div className="space-y-4 pb-4">
+            {children}
+          </div>
+        </div>
+
+        {/* Bottom Navigation */}
+        <div className="fixed bottom-0 left-0 right-0 bg-background/98 backdrop-blur-lg border-t border-border/50 safe-area-inset-bottom z-50">
+          <div className="grid grid-cols-4 gap-1 p-3">
+            {tabGroups.map((group) => {
+              const isCurrentGroup = group.id === currentGroup.id;
+              const hasUrgentBadge = group.tabs.some(tab => tab.badge);
+              
+              return (
+                <Button
                   key={group.id}
-                  value={group.tabs.find(tab => tab.id === activeTab)?.id || group.tabs[0].id}
-                  className="flex flex-col items-center p-3 space-y-1 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg transition-all duration-200"
+                  variant="ghost"
+                  size="sm"
                   onClick={() => {
-                    const currentTab = group.tabs.find(tab => tab.id === activeTab);
-                    if (!currentTab) {
+                    // Switch to first tab of the group if not already in this group
+                    if (!isCurrentGroup) {
                       setActiveTab(group.tabs[0].id);
                     }
                   }}
+                  className={`h-14 flex flex-col space-y-0.5 rounded-lg relative transition-all duration-200 ${
+                    isCurrentGroup 
+                      ? 'bg-primary/10 text-primary border border-primary/20' 
+                      : 'text-muted-foreground hover:text-primary hover:bg-muted/50'
+                  }`}
                 >
-                  <group.icon className="h-5 w-5" />
+                  <group.icon className={`h-5 w-5 ${isCurrentGroup ? 'scale-110' : ''}`} />
                   <span className="text-xs font-medium truncate">{group.title}</span>
-                  {group.tabs.some(tab => tab.badge && tab.id === activeTab) && (
-                    <Badge variant="destructive" className="h-4 w-4 p-0 text-xs">!</Badge>
+                  {hasUrgentBadge && (
+                    <div className="absolute -top-1 -right-1 h-4 w-4 bg-destructive rounded-full flex items-center justify-center">
+                      <span className="text-xs text-destructive-foreground font-bold">!</span>
+                    </div>
                   )}
-                </TabsTrigger>
-              ))}
-            </TabsList>
+                </Button>
+              );
+            })}
           </div>
-
-          {tabGroups.map((group) => (
-            group.tabs.map((tab) => (
-              <TabsContent key={tab.id} value={tab.id} className="p-4 space-y-4">
-                {/* Quick Actions for current group */}
-                <Card className={`${cardClass} border-0 shadow-lg bg-card/60 backdrop-blur-sm`}>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="flex items-center text-lg">
-                      <group.icon className="h-5 w-5 mr-2 text-primary" />
-                      {group.title} Actions
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="grid grid-cols-1 gap-2">
-                    {group.tabs.map((groupTab) => (
-                      <Button
-                        key={groupTab.id}
-                        variant={activeTab === groupTab.id ? "default" : "ghost"}
-                        size="lg"
-                        onClick={() => setActiveTab(groupTab.id)}
-                        className="justify-between h-12 rounded-xl transition-all duration-200"
-                      >
-                        <div className="flex items-center">
-                          <groupTab.icon className="h-5 w-5 mr-3" />
-                          <span className="font-medium">{groupTab.label}</span>
-                        </div>
-                        {groupTab.badge && (
-                          <Badge variant="destructive" className="ml-2">
-                            {groupTab.badge}
-                          </Badge>
-                        )}
-                        <ChevronRight className="h-4 w-4 opacity-50" />
-                      </Button>
-                    ))}
-                  </CardContent>
-                </Card>
-                
-                {/* Main Content */}
-                <div className="space-y-4">
-                  {children}
-                </div>
-              </TabsContent>
-            ))
-          ))}
-        </Tabs>
+        </div>
       </div>
     );
   }
