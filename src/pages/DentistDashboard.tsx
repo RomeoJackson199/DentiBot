@@ -114,26 +114,26 @@ export function DentistDashboard({ user }: DentistDashboardProps) {
       <ChangelogPopup isOpen={showChangelog} onClose={() => setShowChangelog(false)} />
       
       {/* Mobile-optimized header */}
-      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-lg border-b">
-        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center space-x-3">
+      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-lg border-b safe-top">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center space-x-4">
             <div className="relative">
-              <div className="p-2 rounded-xl bg-gradient-primary shadow-lg">
-                <SettingsIcon className="h-5 w-5 text-white" />
+              <div className="p-3 rounded-xl bg-gradient-primary shadow-lg">
+                <SettingsIcon className="h-6 w-6 text-white" />
               </div>
             </div>
             <div>
-              <h1 className="text-lg font-bold gradient-text">Denti Dashboard</h1>
-              <p className="text-xs text-muted-foreground">Dentist Portal</p>
+              <h1 className="text-xl font-bold gradient-text">Denti Dashboard</h1>
+              <p className="text-sm text-muted-foreground">Dentist Portal</p>
             </div>
           </div>
           <Button
             variant="outline"
-            size="sm"
+            size="lg"
             onClick={handleSignOut}
-            className="border-destructive/20 text-destructive hover:bg-destructive/10"
+            className="border-destructive/20 text-destructive hover:bg-destructive/10 h-12 px-4 transition-all duration-200 hover:scale-105 active:scale-95"
           >
-            <LogOut className="h-4 w-4 mr-1" />
+            <LogOut className="h-5 w-5 mr-2" />
             <span className="hidden sm:inline">Sign Out</span>
           </Button>
         </div>

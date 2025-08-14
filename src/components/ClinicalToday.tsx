@@ -246,51 +246,51 @@ export function ClinicalToday({ user, dentistId, onOpenPatientsTab }: ClinicalTo
 					<div className="mt-2">
 						<Input type="date" value={selectedDate} onChange={e => setSelectedDate(e.target.value)} className="w-auto inline-block" />
 					</div>
-					<div className="mt-3 grid grid-cols-4 gap-2">
-						<Button variant={selectedStatus === 'confirmed' ? 'default' : 'outline'} size="sm" onClick={() => setSelectedStatus('confirmed')} className="flex-col h-12">
-							<span className="text-xs">Confirmed</span>
-							<Badge variant="secondary">{counters.confirmed}</Badge>
+					<div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
+						<Button variant={selectedStatus === 'confirmed' ? 'default' : 'outline'} size="lg" onClick={() => setSelectedStatus('confirmed')} className="flex-col h-16 sm:h-14 transition-all duration-200 hover:scale-105 active:scale-95">
+							<span className="text-sm font-medium">Confirmed</span>
+							<Badge variant="secondary" className="mt-1">{counters.confirmed}</Badge>
 						</Button>
-						<Button variant={selectedStatus === 'pending' ? 'default' : 'outline'} size="sm" onClick={() => setSelectedStatus('pending')} className="flex-col h-12">
-							<span className="text-xs">Pending</span>
-							<Badge variant="secondary">{counters.pending}</Badge>
+						<Button variant={selectedStatus === 'pending' ? 'default' : 'outline'} size="lg" onClick={() => setSelectedStatus('pending')} className="flex-col h-16 sm:h-14 transition-all duration-200 hover:scale-105 active:scale-95">
+							<span className="text-sm font-medium">Pending</span>
+							<Badge variant="secondary" className="mt-1">{counters.pending}</Badge>
 						</Button>
-						<Button variant={selectedStatus === 'cancelled' ? 'default' : 'outline'} size="sm" onClick={() => setSelectedStatus('cancelled')} className="flex-col h-12">
-							<span className="text-xs">Cancelled</span>
-							<Badge variant="secondary">{counters.cancelled}</Badge>
+						<Button variant={selectedStatus === 'cancelled' ? 'default' : 'outline'} size="lg" onClick={() => setSelectedStatus('cancelled')} className="flex-col h-16 sm:h-14 transition-all duration-200 hover:scale-105 active:scale-95">
+							<span className="text-sm font-medium">Cancelled</span>
+							<Badge variant="secondary" className="mt-1">{counters.cancelled}</Badge>
 						</Button>
-						<Button variant={selectedStatus === 'completed' ? 'default' : 'outline'} size="sm" onClick={() => setSelectedStatus('completed')} className="flex-col h-12">
-							<span className="text-xs">Completed</span>
-							<Badge variant="secondary">{counters.completed}</Badge>
+						<Button variant={selectedStatus === 'completed' ? 'default' : 'outline'} size="lg" onClick={() => setSelectedStatus('completed')} className="flex-col h-16 sm:h-14 transition-all duration-200 hover:scale-105 active:scale-95">
+							<span className="text-sm font-medium">Completed</span>
+							<Badge variant="secondary" className="mt-1">{counters.completed}</Badge>
 						</Button>
 					</div>
-					<div className="mt-2 flex gap-2 overflow-x-auto pb-2">
+					<div className="mt-4 flex flex-wrap gap-3 pb-2">
 						{lastEndedAppointment && (
-							<Button size="sm" variant="secondary" onClick={() => openCompletion(lastEndedAppointment)} className="shrink-0">
-								<RotateCcw className="h-4 w-4 mr-1" /> Complete Last Appointment
+							<Button size="lg" variant="secondary" onClick={() => openCompletion(lastEndedAppointment)} className="flex-1 min-w-[200px] h-12 transition-all duration-200 hover:scale-105 active:scale-95">
+								<RotateCcw className="h-5 w-5 mr-2" /> Complete Last Appointment
 							</Button>
 						)}
-						<Button size="sm" onClick={() => openQuickBooking()} className="shrink-0">
-							<Plus className="h-4 w-4 mr-1" /> Book New Appointment
+						<Button size="lg" onClick={() => openQuickBooking()} className="flex-1 min-w-[200px] h-12 transition-all duration-200 hover:scale-105 active:scale-95">
+							<Plus className="h-5 w-5 mr-2" /> Book New Appointment
 						</Button>
-						<Button size="sm" variant="outline" onClick={async () => { setShowFollowUps(true); try {
+						<Button size="lg" variant="outline" onClick={async () => { setShowFollowUps(true); try {
 								const { data } = await supabase.from('appointment_follow_ups').select('*, appointments(*)')
 									.gte('scheduled_date', startOfDay.toISOString())
 									.lt('scheduled_date', endOfDay.toISOString())
 									.eq('status', 'pending');
 								setFollowUps(data || []);
-							} catch {} }} className="shrink-0">
-							<ListChecks className="h-4 w-4 mr-1" /> Follow-Ups Due Today
+							} catch {} }} className="flex-1 min-w-[200px] h-12 transition-all duration-200 hover:scale-105 active:scale-95">
+							<ListChecks className="h-5 w-5 mr-2" /> Follow-Ups Due Today
 						</Button>
-						<Button size="sm" variant={selectedStatus === 'pending' ? 'secondary' : 'outline'} onClick={() => setSelectedStatus('pending')} className="shrink-0">
-							<Clock className="h-4 w-4 mr-1" /> Pending Confirmations
+						<Button size="lg" variant={selectedStatus === 'pending' ? 'secondary' : 'outline'} onClick={() => setSelectedStatus('pending')} className="flex-1 min-w-[200px] h-12 transition-all duration-200 hover:scale-105 active:scale-95">
+							<Clock className="h-5 w-5 mr-2" /> Pending Confirmations
 						</Button>
 					</div>
 				</div>
 			</div>
 
 			{/* Main List */}
-			<div className="px-4 py-3 space-y-3">
+			<div className="px-4 py-6 space-y-4">
 				{loading ? (
 					<Card><CardContent className="p-6 text-center text-muted-foreground">Loading today\'s appointments...</CardContent></Card>
 				) : filteredAppointments.length === 0 ? (
@@ -298,7 +298,7 @@ export function ClinicalToday({ user, dentistId, onOpenPatientsTab }: ClinicalTo
 						<CardContent className="p-8 text-center">
 							<Calendar className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
 							<p className="font-medium">No appointments this day</p>
-							<Button onClick={() => openQuickBooking()} variant="outline" className="mt-3">Book Appointment</Button>
+							<Button onClick={() => openQuickBooking()} variant="outline" size="lg" className="mt-4 h-12 px-6 transition-all duration-200 hover:scale-105 active:scale-95">Book Appointment</Button>
 						</CardContent>
 					</Card>
 				) : (
@@ -337,9 +337,9 @@ export function ClinicalToday({ user, dentistId, onOpenPatientsTab }: ClinicalTo
 									<p><span className="text-muted-foreground">Allergies:</span> None on file</p>
 								</CardContent>
 							</Card>
-							<div className="flex gap-2">
-								<Button className="flex-1" variant="outline" onClick={() => selectedAppointment?.patient && openPatientProfile(selectedAppointment.patient.id)}>Open Patient Profile</Button>
-								<Button className="flex-1" onClick={() => openCompletion(selectedAppointment)}>Complete Appointment</Button>
+							<div className="flex gap-3">
+								<Button className="flex-1 h-12" variant="outline" onClick={() => selectedAppointment?.patient && openPatientProfile(selectedAppointment.patient.id)}>Open Patient Profile</Button>
+								<Button className="flex-1 h-12" onClick={() => openCompletion(selectedAppointment)}>Complete Appointment</Button>
 							</div>
 						</div>
 					)}
@@ -354,9 +354,9 @@ export function ClinicalToday({ user, dentistId, onOpenPatientsTab }: ClinicalTo
 					</DialogHeader>
 					<div className="space-y-3">
 						<Input type="datetime-local" value={rescheduleDate} onChange={e => setRescheduleDate(e.target.value)} />
-						<div className="flex gap-2">
-							<Button className="flex-1" onClick={applyReschedule}>Save</Button>
-							<Button className="flex-1" variant="outline" onClick={() => setRescheduleTarget(null)}>Cancel</Button>
+						<div className="flex gap-3">
+							<Button className="flex-1 h-12" onClick={applyReschedule}>Save</Button>
+							<Button className="flex-1 h-12" variant="outline" onClick={() => setRescheduleTarget(null)}>Cancel</Button>
 						</div>
 					</div>
 				</DialogContent>
@@ -384,41 +384,41 @@ export function ClinicalToday({ user, dentistId, onOpenPatientsTab }: ClinicalTo
 					<DialogHeader>
 						<DialogTitle>Book Appointment</DialogTitle>
 					</DialogHeader>
-					<div className="space-y-3">
+					<div className="space-y-4">
 						<div>
-							<label className="text-sm text-muted-foreground">Patient *</label>
-							<select className="w-full border rounded p-2 mt-1" value={quickPatientId} onChange={e => setQuickPatientId(e.target.value)}>
+							<label className="text-sm font-medium text-muted-foreground">Patient *</label>
+							<select className="w-full border rounded-lg p-3 mt-1 h-12" value={quickPatientId} onChange={e => setQuickPatientId(e.target.value)}>
 								<option value="">Select patient...</option>
 								{quickPatients.map(p => (
 									<option key={p.id} value={p.id}>{p.first_name} {p.last_name}{p.email ? ` (${p.email})` : ''}</option>
 								))}
 							</select>
 						</div>
-						<div className="grid grid-cols-2 gap-2">
+						<div className="grid grid-cols-2 gap-3">
 							<div>
-								<label className="text-sm text-muted-foreground">Date *</label>
-								<Input type="date" value={quickDate} onChange={e => setQuickDate(e.target.value)} />
+								<label className="text-sm font-medium text-muted-foreground">Date *</label>
+								<Input type="date" value={quickDate} onChange={e => setQuickDate(e.target.value)} className="mt-1 h-12" />
 							</div>
 							<div>
-								<label className="text-sm text-muted-foreground">Time *</label>
-								<Input type="time" value={quickTime} onChange={e => setQuickTime(e.target.value)} />
+								<label className="text-sm font-medium text-muted-foreground">Time *</label>
+								<Input type="time" value={quickTime} onChange={e => setQuickTime(e.target.value)} className="mt-1 h-12" />
 							</div>
 						</div>
 						<div>
-							<label className="text-sm text-muted-foreground">Reason</label>
-							<Input placeholder="e.g., Follow-up visit" value={quickReason} onChange={e => setQuickReason(e.target.value)} />
+							<label className="text-sm font-medium text-muted-foreground">Reason</label>
+							<Input placeholder="e.g., Follow-up visit" value={quickReason} onChange={e => setQuickReason(e.target.value)} className="mt-1 h-12" />
 						</div>
 						<div>
-							<label className="text-sm text-muted-foreground">Urgency</label>
-							<select className="w-full border rounded p-2" value={quickUrgency} onChange={e => setQuickUrgency(e.target.value as any)}>
+							<label className="text-sm font-medium text-muted-foreground">Urgency</label>
+							<select className="w-full border rounded-lg p-3 mt-1 h-12" value={quickUrgency} onChange={e => setQuickUrgency(e.target.value as any)}>
 								<option value="low">Low</option>
 								<option value="medium">Medium</option>
 								<option value="high">High</option>
 							</select>
 						</div>
-						<div className="flex gap-2 pt-2">
-							<Button className="flex-1" onClick={handleQuickBook} disabled={!quickPatientId || !quickDate || !quickTime}>Save</Button>
-							<Button className="flex-1" variant="outline" onClick={() => setShowBooking(false)}>Cancel</Button>
+						<div className="flex gap-3 pt-4">
+							<Button className="flex-1 h-12" onClick={handleQuickBook} disabled={!quickPatientId || !quickDate || !quickTime}>Save</Button>
+							<Button className="flex-1 h-12" variant="outline" onClick={() => setShowBooking(false)}>Cancel</Button>
 						</div>
 					</div>
 				</DialogContent>
@@ -447,8 +447,8 @@ export function ClinicalToday({ user, dentistId, onOpenPatientsTab }: ClinicalTo
 			{/* Floating FAB on mobile with quick actions */}
 			<DropdownMenu>
 				<DropdownMenuTrigger asChild>
-					<Button className="fixed bottom-24 right-4 rounded-full h-12 w-12 p-0 shadow-lg">
-						<Plus className="h-5 w-5" />
+					<Button className="fixed bottom-28 right-4 rounded-full h-14 w-14 p-0 shadow-xl bg-primary hover:bg-primary/90 transition-all duration-200 hover:scale-110 active:scale-95">
+						<Plus className="h-6 w-6" />
 					</Button>
 				</DropdownMenuTrigger>
 				<DropdownMenuContent align="end">
@@ -502,10 +502,10 @@ function SwipeableAppointmentCard({ appointment, onOpenDetails, onComplete, onRe
 
 	return (
 		<div className="relative overflow-hidden" onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
-			<div className="absolute right-0 top-0 bottom-0 flex items-center gap-2 pr-3">
-				<Button size="sm" onClick={onComplete}>Complete</Button>
-				<Button size="sm" variant="secondary" onClick={onReschedule}>Reschedule</Button>
-				<Button size="sm" variant="destructive" onClick={onCancel}>Cancel</Button>
+			<div className="absolute right-0 top-0 bottom-0 flex items-center gap-3 pr-4">
+				<Button size="lg" onClick={onComplete} className="h-12 px-4">Complete</Button>
+				<Button size="lg" variant="secondary" onClick={onReschedule} className="h-12 px-4">Reschedule</Button>
+				<Button size="lg" variant="destructive" onClick={onCancel} className="h-12 px-4">Cancel</Button>
 			</div>
 			<Card className="transition-transform" style={{ transform: `translateX(${offset}px)` }}>
 				<CardContent className="p-4" onClick={onOpenDetails}>
