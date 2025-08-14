@@ -12,6 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { Calendar } from "lucide-react";
 import { QuickPhotoUpload } from "@/components/QuickPhotoUpload";
+import { emitAnalyticsEvent } from "@/lib/analyticsEvents";
 
 interface AppointmentCompletionModalProps {
 	open: boolean;
@@ -114,6 +115,7 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 					metadata: { payment_url: pr.payment_url, amount: patientCents }
 				});
 			}
+			await emitAnalyticsEvent('INVOICE_CREATED', dentistId, { appointmentId: appointment.id, amount_cents: patientCents, status: 'unpaid' });
 			toast({ title: 'Payment link sent', description: 'The patient was notified.' });
 		} catch (e: any) {
 			toast({ title: 'Error', description: e.message || 'Failed to send link', variant: 'destructive' });
@@ -159,6 +161,8 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 			}
 			await sb.from('invoices').update({ status: 'paid' }).eq('id', invoiceId as string);
 			await sb.from('appointments').update({ status: 'completed', treatment_completed_at: new Date().toISOString() }).eq('id', appointment.id);
+			await emitAnalyticsEvent('INVOICE_CREATED', dentistId, { appointmentId: appointment.id, amount_cents: patientCents, status: 'paid' });
+			await emitAnalyticsEvent('APPOINTMENT_COMPLETED', dentistId, { appointmentId: appointment.id, totals: { ...totals, total_due_cents: Math.round((totals.patient + totals.vat) * 100) }, outcome });
 			toast({ title: 'Marked as paid' });
 			onCompleted();
 			onOpenChange(false);
@@ -237,6 +241,8 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 			patient_share: shares.patientShare,
 			vat_amount: vatAmount
 		}]));
+		// Emit treatment-performed analytics when adding a line
+		emitAnalyticsEvent('TREATMENTS_PERFORMED', dentistId, { appointmentId: appointment.id, code: tariff.code, description: tariff.description, quantity: 1 });
 	};
 
 	const removeTreatment = (index: number) => {
@@ -286,6 +292,10 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 						vat_amount: t.vat_amount
 					}))
 				);
+				// Emit per code
+				for (const t of treatments) {
+					await emitAnalyticsEvent('TREATMENTS_PERFORMED', dentistId, { appointmentId: appointment.id, code: t.code, quantity: t.quantity });
+				}
 			}
 
 			// Treatment plan (optional)
@@ -304,6 +314,7 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 			}
 
 			// Prescription (optional quick add)
+			let createdRx = false;
 			if (rxMedName.trim()) {
 				await sb.from('prescriptions').insert({
 					patient_id: current.patient_id,
@@ -317,6 +328,7 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 					appointment_id: appointment.id,
 					prescribed_date: new Date().toISOString()
 				});
+				createdRx = true;
 			}
 
 			// Files -> create medical_records entries linked to appointment
@@ -363,6 +375,7 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 						vat_cents: Math.round(t.vat_amount * 100)
 					}))
 				);
+				await emitAnalyticsEvent('INVOICE_CREATED', dentistId, { appointmentId: appointment.id, amount_cents: patientCents, status: 'unpaid' });
 				// Optional: create payment request if starting payment
 				if (startStripe || startPayment) {
 					const { data: payment, error: payErr } = await supabase.functions.invoke('create-payment-request', {
@@ -382,6 +395,10 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 
 			// Mark appointment as completed
 			await sb.from('appointments').update({ status: 'completed', treatment_completed_at: new Date().toISOString() }).eq('id', appointment.id);
+			await emitAnalyticsEvent('APPOINTMENT_COMPLETED', dentistId, { appointmentId: appointment.id, totals: { ...totals, total_due_cents: Math.round((totals.patient + totals.vat) * 100) }, outcome });
+			if (rxMedName.trim()) {
+				await emitAnalyticsEvent('PRESCRIPTION_CREATED', dentistId, { appointmentId: appointment.id, medication_name: rxMedName });
+			}
 
 			toast({ title: 'Saved', description: 'Appointment completion saved.' });
 			onCompleted();
@@ -556,10 +573,10 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 								)}
 							</div>
 							<div className="flex gap-2">
-								<Button variant="outline" onClick={() => saveAll(false)}>Save & Close</Button>
-								<Button onClick={() => { setStartPayment(true); saveAll(true); }}>Charge via Stripe</Button>
-								<Button variant="secondary" onClick={sendPaymentLink}>Send payment link</Button>
-								<Button variant="ghost" onClick={markAsPaid}>Mark as paid</Button>
+								<Button variant="outline" onClick={() => saveAll(false)} disabled={loading}>Save & Close</Button>
+								<Button onClick={() => { setStartPayment(true); saveAll(true); }} disabled={loading}>Charge via Stripe</Button>
+								<Button variant="secondary" onClick={sendPaymentLink} disabled={loading}>Send payment link</Button>
+								<Button variant="ghost" onClick={markAsPaid} disabled={loading}>Mark as paid</Button>
 							</div>
 						</CardContent>
 					</Card>

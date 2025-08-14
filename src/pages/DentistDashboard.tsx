@@ -3,10 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 
 import { EnhancedAvailabilitySettings } from "@/components/enhanced/EnhancedAvailabilitySettings";
-import { EnhancedUrgencyDashboard } from "@/components/enhanced/EnhancedUrgencyDashboard";
 import { DentistManagement } from "@/components/DentistManagement";
 import { PatientManagement } from "@/components/PatientManagement";
-import { AppointmentManagement } from "@/components/AppointmentManagement";
 import { PaymentRequestManager } from "@/components/PaymentRequestManager";
 import { DentistAnalytics } from "@/components/analytics/DentistAnalytics";
 import { ChangelogPopup } from "@/components/ChangelogPopup";
@@ -17,13 +15,14 @@ import { LogOut, Settings as SettingsIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { ClinicalToday } from "@/components/ClinicalToday";
 
 interface DentistDashboardProps {
   user: User;
 }
 
 export function DentistDashboard({ user }: DentistDashboardProps) {
-  const [activeTab, setActiveTab] = useState<'urgency' | 'appointments' | 'patients' | 'payments' | 'analytics' | 'availability' | 'manage' | 'debug'>('appointments');
+  const [activeTab, setActiveTab] = useState<'clinical' | 'patients' | 'payments' | 'analytics' | 'availability' | 'manage' | 'debug'>('clinical');
   const [dentistId, setDentistId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [showChangelog, setShowChangelog] = useState(false);
@@ -147,16 +146,12 @@ export function DentistDashboard({ user }: DentistDashboardProps) {
       >
         {dentistId && (
           <>
-            {activeTab === 'urgency' && (
-              <EnhancedUrgencyDashboard dentistId={dentistId} />
+            {activeTab === 'clinical' && (
+              <ClinicalToday dentistId={dentistId} user={user} onOpenPatientsTab={() => setActiveTab('patients')} />
             )}
             
             {activeTab === 'availability' && (
               <EnhancedAvailabilitySettings dentistId={dentistId} />
-            )}
-
-            {activeTab === 'appointments' && (
-              <AppointmentManagement dentistId={dentistId} />
             )}
 
             {activeTab === 'patients' && (

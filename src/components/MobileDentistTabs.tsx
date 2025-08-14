@@ -3,7 +3,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useMobileOptimizations } from "@/components/mobile/MobileOptimizations";
 import { 
-  AlertTriangle, 
   Clock, 
   Calendar, 
   Users, 
@@ -11,12 +10,10 @@ import {
   BarChart3, 
   Settings, 
   Database,
-  FileText,
-  Pill,
   Stethoscope
 } from "lucide-react";
 
-type TabType = 'urgency' | 'appointments' | 'patients' | 'payments' | 'analytics' | 'availability' | 'manage' | 'debug';
+type TabType = 'clinical' | 'patients' | 'payments' | 'analytics' | 'availability' | 'manage' | 'debug';
 
 interface MobileDentistTabsProps {
   activeTab: TabType;
@@ -31,11 +28,10 @@ export function MobileDentistTabs({ activeTab, setActiveTab, dentistId, children
   const tabGroups = [
     {
       id: 'clinical',
-      title: 'Clinical – Complete Flow',
+      title: 'Clinical',
       icon: Stethoscope,
       tabs: [
-        { id: 'urgency' as TabType, label: 'Triage', icon: AlertTriangle, badge: '!' },
-        { id: 'appointments' as TabType, label: 'Appointments', icon: Calendar },
+        { id: 'clinical' as TabType, label: 'Clinical', icon: Stethoscope },
       ]
     },
     {
@@ -131,8 +127,8 @@ export function MobileDentistTabs({ activeTab, setActiveTab, dentistId, children
         <div className="fixed bottom-0 left-0 right-0 bg-background/98 backdrop-blur-lg border-t border-border/50 safe-area-inset-bottom z-50">
           <div className="grid grid-cols-4 gap-1 p-3">
             {tabGroups.map((group) => {
-              const isCurrentGroup = group.id === currentGroup.id;
-              const hasUrgentBadge = group.tabs.some(tab => tab.badge);
+              const isCurrentGroup = group.tabs.some(tab => tab.id === activeTab);
+              const hasUrgentBadge = group.tabs.some(tab => (tab as any).badge);
               
               return (
                 <Button
@@ -197,9 +193,9 @@ export function MobileDentistTabs({ activeTab, setActiveTab, dentistId, children
                       >
                         <tab.icon className="h-4 w-4 mr-2" />
                         <span className="font-medium">{tab.label}</span>
-                        {tab.badge && (
+                        {(tab as any).badge && (
                           <Badge variant="destructive" className="ml-auto">
-                            {tab.badge}
+                            {(tab as any).badge}
                           </Badge>
                         )}
                       </Button>

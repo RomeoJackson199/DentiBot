@@ -183,6 +183,18 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
     fetchPatients();
   }, [dentistId]);
 
+  // Preselect patient if requested from another tab
+  useEffect(() => {
+    const requestedId = sessionStorage.getItem('requestedPatientId');
+    if (requestedId && patients.length > 0) {
+      const patient = patients.find(p => p.id === requestedId);
+      if (patient) {
+        setSelectedPatient(patient);
+      }
+      sessionStorage.removeItem('requestedPatientId');
+    }
+  }, [patients]);
+
   useEffect(() => {
     if (selectedPatient) {
       fetchPatientData(selectedPatient.id);
