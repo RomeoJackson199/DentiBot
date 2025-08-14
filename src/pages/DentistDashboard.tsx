@@ -8,6 +8,8 @@ import { DentistManagement } from "@/components/DentistManagement";
 import { PatientManagement } from "@/components/PatientManagement";
 import { AppointmentManagement } from "@/components/AppointmentManagement";
 import { PaymentRequestManager } from "@/components/PaymentRequestManager";
+import { PrescriptionManager } from "@/components/PrescriptionManager";
+import { TreatmentPlanManager } from "@/components/TreatmentPlanManager";
 import { DentistAnalytics } from "@/components/analytics/DentistAnalytics";
 import { ChangelogPopup } from "@/components/ChangelogPopup";
 import { DebugDatabaseConnection } from "@/components/DebugDatabaseConnection";
@@ -23,7 +25,7 @@ interface DentistDashboardProps {
 }
 
 export function DentistDashboard({ user }: DentistDashboardProps) {
-  const [activeTab, setActiveTab] = useState<'urgency' | 'appointments' | 'patients' | 'payments' | 'analytics' | 'availability' | 'manage' | 'debug'>('urgency');
+  const [activeTab, setActiveTab] = useState<'urgency' | 'availability' | 'appointments' | 'patients' | 'payments' | 'analytics' | 'manage' | 'debug' | 'prescriptions' | 'treatment-plans'>('urgency');
   const [dentistId, setDentistId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [showChangelog, setShowChangelog] = useState(false);
@@ -161,6 +163,14 @@ export function DentistDashboard({ user }: DentistDashboardProps) {
 
             {activeTab === 'patients' && (
               <PatientManagement dentistId={dentistId} />
+            )}
+
+            {activeTab === 'prescriptions' && (
+              <PrescriptionManager dentistId={dentistId} />
+            )}
+
+            {activeTab === 'treatment-plans' && (
+              <TreatmentPlanManager dentistId={dentistId} patientId="" />
             )}
 
             {activeTab === 'payments' && (
