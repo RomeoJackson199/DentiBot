@@ -120,6 +120,7 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
   const [treatmentsByAppointment, setTreatmentsByAppointment] = useState<Record<string, any[]>>({});
   const [showCompletion, setShowCompletion] = useState(false);
   const [lastAppointment, setLastAppointment] = useState<Appointment | null>(null);
+  const [completionAppointment, setCompletionAppointment] = useState<Appointment | null>(null);
   
   // New filters
   const [filterUnpaid, setFilterUnpaid] = useState(false);
@@ -1059,13 +1060,18 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
                               </p>
                             )}
                           </div>
-                          <div className="flex space-x-2">
+                          <div className="flex space-x-2 items-center">
                             <Badge className={getStatusColor(appointment.status)}>
                               {appointment.status}
                             </Badge>
                             <Badge variant="outline">
                               {appointment.urgency}
                             </Badge>
+                            {appointment.status !== 'completed' && (
+                              <Button size="sm" onClick={() => { setCompletionAppointment(appointment); setShowCompletion(true); }}>
+                                Complete
+                              </Button>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -1413,14 +1419,24 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
               </AccordionItem>
             </Accordion>
 
-            {lastAppointment && (
+            {(completionAppointment || lastAppointment) && (
               <AppointmentCompletionModal
                 open={showCompletion}
-                onOpenChange={setShowCompletion}
-                appointment={{...lastAppointment, dentist_id: dentistId, patient_id: selectedPatient.id}}
+                onOpenChange={(open) => {
+                  setShowCompletion(open);
+                  if (!open) setCompletionAppointment(null);
+                }}
+                appointment={{
+                  id: (completionAppointment ?? lastAppointment)!.id,
+                  patient_id: selectedPatient.id,
+                  dentist_id: dentistId,
+                  appointment_date: (completionAppointment ?? lastAppointment)!.appointment_date,
+                  status: (completionAppointment ?? lastAppointment)!.status
+                }}
                 dentistId={dentistId}
                 onCompleted={() => {
                   setShowCompletion(false);
+                  setCompletionAppointment(null);
                   fetchPatientData(selectedPatient.id);
                   fetchPatientOutcomes(selectedPatient.id);
                 }}
