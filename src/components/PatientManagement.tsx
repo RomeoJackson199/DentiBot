@@ -44,6 +44,9 @@ import {
 } from "@/components/ui/alert-dialog";
 import { AppointmentCompletionModal } from "@/components/mobile/AppointmentCompletionModal";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { PatientPaymentHistory } from "@/components/PatientPaymentHistory";
+import { PaymentRequestForm } from "@/components/PaymentRequestForm";
+import { SimpleAppointmentBooking } from "@/components/SimpleAppointmentBooking";
 
 interface Patient {
   id: string;
@@ -126,15 +129,20 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
   const [filterUnpaid, setFilterUnpaid] = useState(false);
   const [filterUpcoming, setFilterUpcoming] = useState(false);
   const [filterActivePlan, setFilterActivePlan] = useState(false);
+  const [filterFrequentCancels, setFilterFrequentCancels] = useState(false);
+  const [filterFollowUpsDue, setFilterFollowUpsDue] = useState(false);
   
   // Flags per patient for filters and badges
   const [patientFlags, setPatientFlags] = useState<Record<string, {
     hasUnpaidBalance: boolean;
+    outstandingCents?: number;
     hasUpcomingAppointment: boolean;
     hasActiveTreatmentPlan: boolean;
     lastVisitDate?: string;
     nextAppointmentDate?: string;
     nextAppointmentStatus?: string;
+    cancellationsCount?: number;
+    followUpsDueToday?: number;
   }>>({});
 
   // Editing state for inline edit flows
@@ -150,7 +158,8 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
   const [showTreatmentDialog, setShowTreatmentDialog] = useState(false);
   const [showPrescriptionDialog, setShowPrescriptionDialog] = useState(false);
   const [showNoteDialog, setShowNoteDialog] = useState(false);
-  
+  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+
   // Form states
   const [treatmentForm, setTreatmentForm] = useState({
     title: "",
@@ -309,17 +318,48 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
         })
         .sort((a, b) => new Date(a.appointment_date).getTime() - new Date(b.appointment_date).getTime())[0];
       const hasActiveTreatmentPlan = (treatmentData || []).some(t => t.status === 'active');
-      // Unpaid balance placeholder: infer from payment_requests if needed later; default false
-      const hasUnpaidBalance = false;
+
+      // Frequent cancellations
+      const cancellationsCount = (appointmentsData || []).filter(a => a.status === 'cancelled').length;
+
+      // Follow-ups due today
+      let followUpsDueToday = 0;
+      try {
+        const start = new Date(); start.setHours(0,0,0,0);
+        const end = new Date(); end.setHours(23,59,59,999);
+        const { data: fus } = await sb.from('appointment_follow_ups')
+          .select('id')
+          .eq('status', 'pending')
+          .gte('scheduled_date', start.toISOString())
+          .lt('scheduled_date', end.toISOString())
+          .in('appointment_id', (appointmentsData || []).map((a: any) => a.id));
+        followUpsDueToday = (fus || []).length;
+      } catch {}
+
+      // Outstanding balance (sum pending payment_requests + unpaid invoices patient_amount_cents)
+      let outstandingCents = 0;
+      try {
+        const { data: prs } = await sb.from('payment_requests').select('amount, status').eq('patient_id', patientId).eq('dentist_id', dentistId);
+        outstandingCents += (prs || []).filter((p: any) => p.status !== 'paid' && p.status !== 'cancelled').reduce((s: number, p: any) => s + (p.amount || 0), 0);
+      } catch {}
+      try {
+        const { data: inv } = await sb.from('invoices').select('patient_amount_cents, status').eq('patient_id', patientId).eq('dentist_id', dentistId);
+        outstandingCents += (inv || []).filter((i: any) => i.status !== 'paid' && i.status !== 'cancelled').reduce((s: number, i: any) => s + (i.patient_amount_cents || 0), 0);
+      } catch {}
+      const hasUnpaidBalance = outstandingCents > 0;
+
       setPatientFlags(prev => ({
         ...prev,
         [patientId]: { 
-          hasUnpaidBalance, 
+          hasUnpaidBalance,
+          outstandingCents,
           hasUpcomingAppointment, 
           hasActiveTreatmentPlan, 
           lastVisitDate,
           nextAppointmentDate: nextAppointment?.appointment_date,
-          nextAppointmentStatus: nextAppointment?.status
+          nextAppointmentStatus: nextAppointment?.status,
+          cancellationsCount,
+          followUpsDueToday
         }
       }));
 
@@ -372,7 +412,9 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
     const matchesUnpaid = !filterUnpaid || (flags && flags.hasUnpaidBalance);
     const matchesUpcoming = !filterUpcoming || (flags && flags.hasUpcomingAppointment);
     const matchesActive = !filterActivePlan || (flags && flags.hasActiveTreatmentPlan);
-    return matchesSearch && matchesUnpaid && matchesUpcoming && matchesActive;
+    const matchesCancels = !filterFrequentCancels || ((flags?.cancellationsCount || 0) >= 2);
+    const matchesFollowUps = !filterFollowUpsDue || ((flags?.followUpsDueToday || 0) > 0);
+    return matchesSearch && matchesUnpaid && matchesUpcoming && matchesActive && matchesCancels && matchesFollowUps;
   });
 
   const getStatusColor = (status: string) => {
@@ -661,7 +703,7 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
                 className="pl-10"
               />
             </div>
-            <div className="flex items-center gap-2 text-xs">
+            <div className="flex items-center gap-2 text-xs flex-wrap">
               <label className="flex items-center gap-1 cursor-pointer">
                 <input type="checkbox" checked={filterUnpaid} onChange={(e) => setFilterUnpaid(e.target.checked)} />
                 Has unpaid balance
@@ -673,6 +715,14 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
               <label className="flex items-center gap-1 cursor-pointer">
                 <input type="checkbox" checked={filterActivePlan} onChange={(e) => setFilterActivePlan(e.target.checked)} />
                 Active treatment plan
+              </label>
+              <label className="flex items-center gap-1 cursor-pointer">
+                <input type="checkbox" checked={filterFrequentCancels} onChange={(e) => setFilterFrequentCancels(e.target.checked)} />
+                Frequent cancellations
+              </label>
+              <label className="flex items-center gap-1 cursor-pointer">
+                <input type="checkbox" checked={filterFollowUpsDue} onChange={(e) => setFilterFollowUpsDue(e.target.checked)} />
+                Follow-ups due today
               </label>
             </div>
           </div>
@@ -696,6 +746,10 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
                       <p className="font-medium truncate">
                         {patient.first_name} {patient.last_name}
                       </p>
+                      {/* Medical alerts */}
+                      {patient.medical_history && patient.medical_history.toLowerCase().includes('allerg') && (
+                        <Badge variant="destructive" className="text-[10px]">Allergies</Badge>
+                      )}
                       {/* Mutuality badge placeholder */}
                       <Badge variant="secondary" className="text-[10px]">No mutuality</Badge>
                     </div>
@@ -709,7 +763,13 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
                         <Badge variant="outline" className="text-[10px]">Active Plan</Badge>
                       )}
                       {patientFlags[patient.id]?.hasUnpaidBalance && (
-                        <Badge variant="destructive" className="text-[10px]">Unpaid</Badge>
+                        <Badge variant="destructive" className="text-[10px]">Unpaid {patientFlags[patient.id]?.outstandingCents ? `€${(patientFlags[patient.id]!.outstandingCents!/100).toFixed(2)}` : ''}</Badge>
+                      )}
+                      {(patientFlags[patient.id]?.cancellationsCount || 0) >= 2 && (
+                        <Badge variant="outline" className="text-[10px]">Frequent cancels</Badge>
+                      )}
+                      {(patientFlags[patient.id]?.followUpsDueToday || 0) > 0 && (
+                        <Badge variant="secondary" className="text-[10px]">Follow-ups due</Badge>
                       )}
                     </div>
                   </div>
@@ -738,6 +798,9 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
                         <Badge variant="secondary" className="text-[10px]">No mutuality</Badge>
                         {patientFlags[selectedPatient.id]?.hasUnpaidBalance && (
                           <CreditCard className="h-4 w-4 text-red-500" />
+                        )}
+                        {selectedPatient.medical_history && selectedPatient.medical_history.toLowerCase().includes('allerg') && (
+                          <Badge variant="destructive" className="text-[10px]">Allergies</Badge>
                         )}
                       </div>
                       <div className="text-xs text-muted-foreground flex items-center gap-3 mt-1">
@@ -995,6 +1058,8 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
                         <DropdownMenuItem onClick={() => setShowTreatmentDialog(true)}>Add Treatment Plan</DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem onClick={() => setAccordionValue('files')}>Upload Image / File</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setShowPaymentDialog(true)}>Add Payment (request)</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setAccordionValue('appointments')}>Book Appointment</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
@@ -1029,20 +1094,27 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
                     )}
                   </div>
                   <div className="space-y-2">
-                    {selectedPatient.emergency_contact && (
+                    {patientFlags[selectedPatient.id]?.hasUnpaidBalance && (
                       <div className="text-sm">
-                        <span className="font-medium">Emergency Contact:</span>
-                        <p>{selectedPatient.emergency_contact}</p>
+                        <span className="font-medium">Outstanding:</span>
+                        <p>€{((patientFlags[selectedPatient.id]?.outstandingCents || 0) / 100).toFixed(2)}</p>
                       </div>
                     )}
                   </div>
                 </div>
                 {selectedPatient.medical_history && (
                   <div className="mt-4 pt-4 border-t">
-                    <h4 className="font-medium text-sm mb-2">Medical History</h4>
+                    <h4 className="font-medium text-sm mb-2">Medical Alerts</h4>
                     <p className="text-sm bg-muted p-3 rounded-md">{selectedPatient.medical_history}</p>
                   </div>
                 )}
+                {/* Quick actions for booking and payment */}
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <SimpleAppointmentBooking dentistId={dentistId} patientId={selectedPatient.id} patientName={`${selectedPatient.first_name} ${selectedPatient.last_name}`} onSuccess={() => fetchPatientData(selectedPatient.id)} />
+                  <Button size="sm" variant="outline" onClick={() => setShowPaymentDialog(true)}>
+                    <CreditCard className="h-4 w-4 mr-1" /> Create Payment Request
+                  </Button>
+                </div>
               </CardContent>
             </Card>
 
@@ -1276,6 +1348,33 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
                 </Card>
               </AccordionItem>
 
+              <AccordionItem value="payments">
+                <Card className="glass-card">
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <CreditCard className="h-5 w-5 text-dental-primary" />
+                        <span>Payments</span>
+                        {patientFlags[selectedPatient.id]?.hasUnpaidBalance && (
+                          <Badge variant="destructive">Due €{((patientFlags[selectedPatient.id]?.outstandingCents || 0)/100).toFixed(2)}</Badge>
+                        )}
+                      </div>
+                      <AccordionTrigger className="py-0" />
+                    </CardTitle>
+                  </CardHeader>
+                  <AccordionContent>
+                    <CardContent>
+                      <div className="mb-3">
+                        <Button size="sm" variant="outline" onClick={() => setShowPaymentDialog(true)}>
+                          <CreditCard className="h-4 w-4 mr-1" /> Create Payment Request
+                        </Button>
+                      </div>
+                      <PatientPaymentHistory patientId={selectedPatient.id} />
+                    </CardContent>
+                  </AccordionContent>
+                </Card>
+              </AccordionItem>
+
               <AccordionItem value="notes">
                 <Card className="glass-card">
                   <CardHeader>
@@ -1454,6 +1553,16 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
                 }}
               />
             )}
+
+            {/* Payment Request Side Sheet */}
+            <Sheet open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
+              <SheetContent side="right" className="sm:max-w-md">
+                <SheetHeader>
+                  <SheetTitle>Create Payment Request</SheetTitle>
+                </SheetHeader>
+                <PaymentRequestForm dentistId={dentistId} onClose={() => setShowPaymentDialog(false)} />
+              </SheetContent>
+            </Sheet>
 
             {/* Removed floating FAB; consolidated into + menu above */}
           </>
