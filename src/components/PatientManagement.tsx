@@ -23,9 +23,25 @@ import {
   Trash2,
   Phone,
   Mail,
-  MapPin
+  MapPin,
+  AlertTriangle,
+  CreditCard
 } from "lucide-react";
 import { format } from "date-fns";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { PhotoUpload } from "@/components/PhotoUpload";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger
+} from "@/components/ui/alert-dialog";
 
 interface Patient {
   id: string;
@@ -99,6 +115,30 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
   const [notes, setNotes] = useState<PatientNote[]>([]);
   
+  // New filters
+  const [filterUnpaid, setFilterUnpaid] = useState(false);
+  const [filterUpcoming, setFilterUpcoming] = useState(false);
+  const [filterActivePlan, setFilterActivePlan] = useState(false);
+  
+  // Flags per patient for filters and badges
+  const [patientFlags, setPatientFlags] = useState<Record<string, {
+    hasUnpaidBalance: boolean;
+    hasUpcomingAppointment: boolean;
+    hasActiveTreatmentPlan: boolean;
+    lastVisitDate?: string;
+    nextAppointmentDate?: string;
+    nextAppointmentStatus?: string;
+  }>>({});
+
+  // Editing state for inline edit flows
+  const [editingTreatmentId, setEditingTreatmentId] = useState<string | null>(null);
+  const [editingPrescriptionId, setEditingPrescriptionId] = useState<string | null>(null);
+  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
+
+  // Accordion open-state per patient (remembered)
+  const [accordionOpenByPatient, setAccordionOpenByPatient] = useState<Record<string, string>>({});
+  const [accordionValue, setAccordionValue] = useState<string>('prescriptions');
+
   // Dialog states
   const [showTreatmentDialog, setShowTreatmentDialog] = useState(false);
   const [showPrescriptionDialog, setShowPrescriptionDialog] = useState(false);
@@ -232,6 +272,37 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
       if (notesError) throw notesError;
       setNotes(notesData || []);
 
+      // Compute flags for list badges and filters
+      const now = new Date();
+      const hasUpcomingAppointment = (appointmentsData || []).some(a => {
+        try { return new Date(a.appointment_date) > now && a.status !== 'cancelled'; } catch { return false; }
+      });
+      const lastVisitDate = (appointmentsData || [])
+        .filter(a => a.status === 'completed')
+        .map(a => a.appointment_date)
+        .sort((a, b) => new Date(b).getTime() - new Date(a).getTime())[0];
+      const nextAppointment = (appointmentsData || [])
+        .filter(a => {
+          try { return new Date(a.appointment_date) > now && a.status !== 'cancelled'; } catch { return false; }
+        })
+        .sort((a, b) => new Date(a.appointment_date).getTime() - new Date(b.appointment_date).getTime())[0];
+      const hasActiveTreatmentPlan = (treatmentData || []).some(t => t.status === 'active');
+      // Unpaid balance placeholder: infer from payment_requests if needed later; default false
+      const hasUnpaidBalance = false;
+      setPatientFlags(prev => ({
+        ...prev,
+        [patientId]: { 
+          hasUnpaidBalance, 
+          hasUpcomingAppointment, 
+          hasActiveTreatmentPlan, 
+          lastVisitDate,
+          nextAppointmentDate: nextAppointment?.appointment_date,
+          nextAppointmentStatus: nextAppointment?.status
+        }
+      }));
+
+      // Restore accordion state for this patient
+      setAccordionValue(prev => accordionOpenByPatient[patientId] || prev);
     } catch (error: unknown) {
       toast({
         title: "Error",
@@ -241,29 +312,114 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
     }
   };
 
+  const filteredPatients = patients.filter(patient => {
+    const fullName = `${patient.first_name} ${patient.last_name}`.toLowerCase();
+    const search = searchTerm.toLowerCase();
+    const matchesSearch = fullName.includes(search)
+      || patient.email.toLowerCase().includes(search)
+      || (patient.phone || '').toLowerCase().includes(search)
+      || patient.id.toLowerCase().includes(search);
+
+    const flags = patientFlags[patient.id];
+    const matchesUnpaid = !filterUnpaid || (flags && flags.hasUnpaidBalance);
+    const matchesUpcoming = !filterUpcoming || (flags && flags.hasUpcomingAppointment);
+    const matchesActive = !filterActivePlan || (flags && flags.hasActiveTreatmentPlan);
+    return matchesSearch && matchesUnpaid && matchesUpcoming && matchesActive;
+  });
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'completed': return 'bg-green-100 text-green-800';
+      case 'active': return 'bg-blue-100 text-blue-800';
+      case 'draft': return 'bg-yellow-100 text-yellow-800';
+      case 'cancelled': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getAge = (dob?: string) => {
+    if (!dob) return null;
+    const birth = new Date(dob);
+    const today = new Date();
+    let age = today.getFullYear() - birth.getFullYear();
+    const m = today.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+    return age;
+  };
+
+  const openEditTreatment = (plan: TreatmentPlan) => {
+    setEditingTreatmentId(plan.id);
+    setTreatmentForm({
+      title: plan.title || "",
+      description: plan.description || "",
+      diagnosis: plan.diagnosis || "",
+      priority: plan.priority || "medium",
+      estimated_cost: plan.estimated_cost ? String(plan.estimated_cost) : "",
+      estimated_duration_weeks: plan.estimated_duration_weeks ? String(plan.estimated_duration_weeks) : "",
+    });
+    setShowTreatmentDialog(true);
+  };
+
+  const openEditPrescription = (p: Prescription) => {
+    setEditingPrescriptionId(p.id);
+    setPrescriptionForm({
+      medication_name: p.medication_name || "",
+      dosage: p.dosage || "",
+      frequency: p.frequency || "",
+      duration_days: p.duration_days ? String(p.duration_days) : "",
+      instructions: p.instructions || "",
+    });
+    setShowPrescriptionDialog(true);
+  };
+
+  const openEditNote = (n: PatientNote) => {
+    setEditingNoteId(n.id);
+    setNoteForm({
+      title: n.title || "",
+      content: n.content || "",
+      note_type: n.note_type || "general",
+      is_private: n.is_private || false,
+    });
+    setShowNoteDialog(true);
+  };
+
   const handleAddTreatmentPlan = async () => {
     if (!selectedPatient) return;
 
     try {
-      const { error } = await supabase
-        .from('treatment_plans')
-        .insert({
-          patient_id: selectedPatient.id,
-          dentist_id: dentistId,
-          title: treatmentForm.title,
-          description: treatmentForm.description,
-          diagnosis: treatmentForm.diagnosis,
-          priority: treatmentForm.priority,
-          estimated_cost: treatmentForm.estimated_cost ? Number(treatmentForm.estimated_cost) : null,
-          estimated_duration_weeks: treatmentForm.estimated_duration_weeks ? Number(treatmentForm.estimated_duration_weeks) : null,
-          status: 'draft'
-        });
-
-      if (error) throw error;
+      if (editingTreatmentId) {
+        const { error } = await supabase
+          .from('treatment_plans')
+          .update({
+            title: treatmentForm.title,
+            description: treatmentForm.description,
+            diagnosis: treatmentForm.diagnosis,
+            priority: treatmentForm.priority,
+            estimated_cost: treatmentForm.estimated_cost ? Number(treatmentForm.estimated_cost) : null,
+            estimated_duration_weeks: treatmentForm.estimated_duration_weeks ? Number(treatmentForm.estimated_duration_weeks) : null,
+          })
+          .eq('id', editingTreatmentId);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('treatment_plans')
+          .insert({
+            patient_id: selectedPatient.id,
+            dentist_id: dentistId,
+            title: treatmentForm.title,
+            description: treatmentForm.description,
+            diagnosis: treatmentForm.diagnosis,
+            priority: treatmentForm.priority,
+            estimated_cost: treatmentForm.estimated_cost ? Number(treatmentForm.estimated_cost) : null,
+            estimated_duration_weeks: treatmentForm.estimated_duration_weeks ? Number(treatmentForm.estimated_duration_weeks) : null,
+            status: 'draft'
+          });
+        if (error) throw error;
+      }
 
       toast({
         title: "Success",
-        description: "Treatment plan added successfully",
+        description: editingTreatmentId ? "Treatment plan updated" : "Treatment plan added successfully",
       });
 
       setTreatmentForm({
@@ -274,12 +430,13 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
         estimated_cost: "",
         estimated_duration_weeks: "",
       });
+      setEditingTreatmentId(null);
       setShowTreatmentDialog(false);
       fetchPatientData(selectedPatient.id);
     } catch (error: unknown) {
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to add treatment plan",
+        description: error instanceof Error ? error.message : "Failed to save treatment plan",
         variant: "destructive",
       });
     }
@@ -289,24 +446,37 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
     if (!selectedPatient) return;
 
     try {
-      const { error } = await supabase
-        .from('prescriptions')
-        .insert({
-          patient_id: selectedPatient.id,
-          dentist_id: dentistId,
-          medication_name: prescriptionForm.medication_name,
-          dosage: prescriptionForm.dosage,
-          frequency: prescriptionForm.frequency,
-          duration_days: prescriptionForm.duration_days ? Number(prescriptionForm.duration_days) : null,
-          instructions: prescriptionForm.instructions,
-          status: 'active'
-        });
-
-      if (error) throw error;
+      if (editingPrescriptionId) {
+        const { error } = await supabase
+          .from('prescriptions')
+          .update({
+            medication_name: prescriptionForm.medication_name,
+            dosage: prescriptionForm.dosage,
+            frequency: prescriptionForm.frequency,
+            duration_days: prescriptionForm.duration_days ? Number(prescriptionForm.duration_days) : null,
+            instructions: prescriptionForm.instructions,
+          })
+          .eq('id', editingPrescriptionId);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('prescriptions')
+          .insert({
+            patient_id: selectedPatient.id,
+            dentist_id: dentistId,
+            medication_name: prescriptionForm.medication_name,
+            dosage: prescriptionForm.dosage,
+            frequency: prescriptionForm.frequency,
+            duration_days: prescriptionForm.duration_days ? Number(prescriptionForm.duration_days) : null,
+            instructions: prescriptionForm.instructions,
+            status: 'active'
+          });
+        if (error) throw error;
+      }
 
       toast({
         title: "Success",
-        description: "Prescription added successfully",
+        description: editingPrescriptionId ? "Prescription updated" : "Prescription added successfully",
       });
 
       setPrescriptionForm({
@@ -316,12 +486,13 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
         duration_days: "",
         instructions: "",
       });
+      setEditingPrescriptionId(null);
       setShowPrescriptionDialog(false);
       fetchPatientData(selectedPatient.id);
     } catch (error: unknown) {
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to add prescription",
+        description: error instanceof Error ? error.message : "Failed to save prescription",
         variant: "destructive",
       });
     }
@@ -331,22 +502,34 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
     if (!selectedPatient) return;
 
     try {
-      const { error } = await supabase
-        .from('patient_notes')
-        .insert({
-          patient_id: selectedPatient.id,
-          dentist_id: dentistId,
-          title: noteForm.title,
-          content: noteForm.content,
-          note_type: noteForm.note_type,
-          is_private: noteForm.is_private
-        });
-
-      if (error) throw error;
+      if (editingNoteId) {
+        const { error } = await supabase
+          .from('patient_notes')
+          .update({
+            title: noteForm.title,
+            content: noteForm.content,
+            note_type: noteForm.note_type,
+            is_private: noteForm.is_private
+          })
+          .eq('id', editingNoteId);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('patient_notes')
+          .insert({
+            patient_id: selectedPatient.id,
+            dentist_id: dentistId,
+            title: noteForm.title,
+            content: noteForm.content,
+            note_type: noteForm.note_type,
+            is_private: noteForm.is_private
+          });
+        if (error) throw error;
+      }
 
       toast({
         title: "Success",
-        description: "Note added successfully",
+        description: editingNoteId ? "Note updated" : "Note added successfully",
       });
 
       setNoteForm({
@@ -355,29 +538,48 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
         note_type: "general",
         is_private: false,
       });
+      setEditingNoteId(null);
       setShowNoteDialog(false);
       fetchPatientData(selectedPatient.id);
     } catch (error: unknown) {
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to add note",
+        description: error instanceof Error ? error.message : "Failed to save note",
         variant: "destructive",
       });
     }
   };
 
-  const filteredPatients = patients.filter(patient =>
-    `${patient.first_name} ${patient.last_name}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    patient.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const handleDeleteTreatment = async (id: string) => {
+    try {
+      const { error } = await supabase.from('treatment_plans').delete().eq('id', id);
+      if (error) throw error;
+      toast({ title: 'Deleted', description: 'Treatment plan deleted' });
+      if (selectedPatient) fetchPatientData(selectedPatient.id);
+    } catch (error: unknown) {
+      toast({ title: 'Error', description: error instanceof Error ? error.message : 'Failed to delete', variant: 'destructive' });
+    }
+  };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'completed': return 'bg-green-100 text-green-800';
-      case 'active': return 'bg-blue-100 text-blue-800';
-      case 'draft': return 'bg-yellow-100 text-yellow-800';
-      case 'cancelled': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+  const handleDeletePrescription = async (id: string) => {
+    try {
+      const { error } = await supabase.from('prescriptions').delete().eq('id', id);
+      if (error) throw error;
+      toast({ title: 'Deleted', description: 'Prescription deleted' });
+      if (selectedPatient) fetchPatientData(selectedPatient.id);
+    } catch (error: unknown) {
+      toast({ title: 'Error', description: error instanceof Error ? error.message : 'Failed to delete', variant: 'destructive' });
+    }
+  };
+
+  const handleDeleteNote = async (id: string) => {
+    try {
+      const { error } = await supabase.from('patient_notes').delete().eq('id', id);
+      if (error) throw error;
+      toast({ title: 'Deleted', description: 'Note deleted' });
+      if (selectedPatient) fetchPatientData(selectedPatient.id);
+    } catch (error: unknown) {
+      toast({ title: 'Error', description: error instanceof Error ? error.message : 'Failed to delete', variant: 'destructive' });
     }
   };
 
@@ -401,14 +603,30 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
             <span>My Patients</span>
             <Badge variant="outline">{patients.length} total</Badge>
           </CardTitle>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search patients..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
+          <div className="space-y-2">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by name, ID, or phone"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <div className="flex items-center gap-2 text-xs">
+              <label className="flex items-center gap-1 cursor-pointer">
+                <input type="checkbox" checked={filterUnpaid} onChange={(e) => setFilterUnpaid(e.target.checked)} />
+                Has unpaid balance
+              </label>
+              <label className="flex items-center gap-1 cursor-pointer">
+                <input type="checkbox" checked={filterUpcoming} onChange={(e) => setFilterUpcoming(e.target.checked)} />
+                Upcoming appointment
+              </label>
+              <label className="flex items-center gap-1 cursor-pointer">
+                <input type="checkbox" checked={filterActivePlan} onChange={(e) => setFilterActivePlan(e.target.checked)} />
+                Active treatment plan
+              </label>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="p-0">
@@ -426,12 +644,26 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
                     <User className="h-5 w-5 text-dental-primary" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium truncate">
-                      {patient.first_name} {patient.last_name}
-                    </p>
-                    <p className="text-sm text-muted-foreground truncate">
-                      {patient.email}
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium truncate">
+                        {patient.first_name} {patient.last_name}
+                      </p>
+                      {/* Mutuality badge placeholder */}
+                      <Badge variant="secondary" className="text-[10px]">No mutuality</Badge>
+                    </div>
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground truncate">
+                      <span>{patient.phone || 'No phone'}</span>
+                      <span>Last visit: {patientFlags[patient.id]?.lastVisitDate ? format(new Date(patientFlags[patient.id]!.lastVisitDate as string), 'PPP') : '—'}</span>
+                      {patientFlags[patient.id]?.hasUpcomingAppointment && (
+                        <Badge variant="outline" className="text-[10px]">Upcoming</Badge>
+                      )}
+                      {patientFlags[patient.id]?.hasActiveTreatmentPlan && (
+                        <Badge variant="outline" className="text-[10px]">Active Plan</Badge>
+                      )}
+                      {patientFlags[patient.id]?.hasUnpaidBalance && (
+                        <Badge variant="destructive" className="text-[10px]">Unpaid</Badge>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -448,22 +680,47 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
             <Card className="glass-card">
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <User className="h-6 w-6 text-dental-primary" />
-                    <span>{selectedPatient.first_name} {selectedPatient.last_name}</span>
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-dental-primary/10 rounded-full flex items-center justify-center">
+                      <User className="h-5 w-5 text-dental-primary" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold">{selectedPatient.first_name} {selectedPatient.last_name}</span>
+                        <Badge variant="secondary" className="text-[10px]">No mutuality</Badge>
+                        {patientFlags[selectedPatient.id]?.hasUnpaidBalance && (
+                          <CreditCard className="h-4 w-4 text-red-500" />
+                        )}
+                      </div>
+                      <div className="text-xs text-muted-foreground flex items-center gap-3 mt-1">
+                        {selectedPatient.date_of_birth && (
+                          <span>Age: {getAge(selectedPatient.date_of_birth) ?? '—'}</span>
+                        )}
+                        {patientFlags[selectedPatient.id]?.nextAppointmentDate && (
+                          <span className="flex items-center gap-1">
+                            <Calendar className="h-3 w-3" />
+                            Next: {format(new Date(patientFlags[selectedPatient.id]!.nextAppointmentDate as string), 'PPP p')}
+                            {patientFlags[selectedPatient.id]?.nextAppointmentStatus && (
+                              <Badge variant="outline" className="text-[10px] ml-1">{patientFlags[selectedPatient.id]!.nextAppointmentStatus}</Badge>
+                            )}
+                          </span>
+                        )}
+                      </div>
+                    </div>
                   </div>
                   <div className="flex space-x-2">
-                    <Dialog open={showTreatmentDialog} onOpenChange={setShowTreatmentDialog}>
-                      <DialogTrigger asChild>
+                    {/* Slide-up sheets for add actions */}
+                    <Sheet open={showTreatmentDialog} onOpenChange={setShowTreatmentDialog}>
+                      <SheetTrigger asChild>
                         <Button size="sm">
                           <ClipboardList className="h-4 w-4 mr-2" />
                           Add Treatment Plan
                         </Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Add Treatment Plan</DialogTitle>
-                        </DialogHeader>
+                      </SheetTrigger>
+                      <SheetContent side="bottom" className="sm:max-w-lg">
+                        <SheetHeader>
+                          <SheetTitle>{editingTreatmentId ? 'Edit Treatment Plan' : 'Add Treatment Plan'}</SheetTitle>
+                        </SheetHeader>
                         <div className="space-y-4">
                           <div>
                             <Label htmlFor="title">Title *</Label>
@@ -531,28 +788,28 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
                             />
                           </div>
                           <div className="flex justify-end space-x-2 pt-4">
-                            <Button variant="outline" onClick={() => setShowTreatmentDialog(false)}>
+                            <Button variant="outline" onClick={() => { setShowTreatmentDialog(false); setEditingTreatmentId(null); }}>
                               Cancel
                             </Button>
                             <Button onClick={handleAddTreatmentPlan} disabled={!treatmentForm.title}>
-                              Add Treatment Plan
+                              {editingTreatmentId ? 'Save Changes' : 'Add Treatment Plan'}
                             </Button>
                           </div>
                         </div>
-                      </DialogContent>
-                    </Dialog>
+                      </SheetContent>
+                    </Sheet>
 
-                    <Dialog open={showPrescriptionDialog} onOpenChange={setShowPrescriptionDialog}>
-                      <DialogTrigger asChild>
+                    <Sheet open={showPrescriptionDialog} onOpenChange={setShowPrescriptionDialog}>
+                      <SheetTrigger asChild>
                         <Button size="sm" variant="outline">
                           <Pill className="h-4 w-4 mr-2" />
                           Add Prescription
                         </Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Add Prescription</DialogTitle>
-                        </DialogHeader>
+                      </SheetTrigger>
+                      <SheetContent side="bottom" className="sm:max-w-lg">
+                        <SheetHeader>
+                          <SheetTitle>{editingPrescriptionId ? 'Edit Prescription' : 'Add Prescription'}</SheetTitle>
+                        </SheetHeader>
                         <div className="space-y-4">
                           <div>
                             <Label htmlFor="medication">Medication Name *</Label>
@@ -603,31 +860,31 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
                             />
                           </div>
                           <div className="flex justify-end space-x-2 pt-4">
-                            <Button variant="outline" onClick={() => setShowPrescriptionDialog(false)}>
+                            <Button variant="outline" onClick={() => { setShowPrescriptionDialog(false); setEditingPrescriptionId(null); }}>
                               Cancel
                             </Button>
                             <Button 
                               onClick={handleAddPrescription} 
                               disabled={!prescriptionForm.medication_name || !prescriptionForm.dosage || !prescriptionForm.frequency}
                             >
-                              Add Prescription
+                              {editingPrescriptionId ? 'Save Changes' : 'Add Prescription'}
                             </Button>
                           </div>
                         </div>
-                      </DialogContent>
-                    </Dialog>
+                      </SheetContent>
+                    </Sheet>
 
-                    <Dialog open={showNoteDialog} onOpenChange={setShowNoteDialog}>
-                      <DialogTrigger asChild>
+                    <Sheet open={showNoteDialog} onOpenChange={setShowNoteDialog}>
+                      <SheetTrigger asChild>
                         <Button size="sm" variant="outline">
                           <FileText className="h-4 w-4 mr-2" />
                           Add Note
                         </Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Add Note</DialogTitle>
-                        </DialogHeader>
+                      </SheetTrigger>
+                      <SheetContent side="bottom" className="sm:max-w-lg">
+                        <SheetHeader>
+                          <SheetTitle>{editingNoteId ? 'Edit Note' : 'Add Note'}</SheetTitle>
+                        </SheetHeader>
                         <div className="space-y-4">
                           <div>
                             <Label htmlFor="note_title">Title *</Label>
@@ -678,19 +935,19 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
                             </div>
                           </div>
                           <div className="flex justify-end space-x-2 pt-4">
-                            <Button variant="outline" onClick={() => setShowNoteDialog(false)}>
+                            <Button variant="outline" onClick={() => { setShowNoteDialog(false); setEditingNoteId(null); }}>
                               Cancel
                             </Button>
                             <Button 
                               onClick={handleAddNote} 
                               disabled={!noteForm.title || !noteForm.content}
                             >
-                              Add Note
+                              {editingNoteId ? 'Save Changes' : 'Add Note'}
                             </Button>
                           </div>
                         </div>
-                      </DialogContent>
-                    </Dialog>
+                      </SheetContent>
+                    </Sheet>
                   </div>
                 </CardTitle>
               </CardHeader>
@@ -786,148 +1043,303 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
               </CardContent>
             </Card>
 
-            {/* Treatment Plans */}
-            <Card className="glass-card">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <ClipboardList className="h-5 w-5 text-dental-primary" />
-                  <span>Treatment Plans</span>
-                  <Badge variant="outline">{treatmentPlans.length}</Badge>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {treatmentPlans.length > 0 ? (
-                  <div className="space-y-3">
-                    {treatmentPlans.map((plan) => (
-                      <div key={plan.id} className="p-3 border rounded-lg">
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1">
-                            <h4 className="font-medium">{plan.title}</h4>
-                            {plan.description && (
-                              <p className="text-sm text-muted-foreground mt-1">{plan.description}</p>
-                            )}
-                            {plan.diagnosis && (
-                              <p className="text-sm mt-2 bg-muted p-2 rounded">
-                                <span className="font-medium">Diagnosis:</span> {plan.diagnosis}
-                              </p>
-                            )}
-                            <div className="flex space-x-4 mt-2 text-sm">
-                              {plan.estimated_cost && (
-                                <span>Cost: ${plan.estimated_cost}</span>
-                              )}
-                              {plan.estimated_duration_weeks && (
-                                <span>Duration: {plan.estimated_duration_weeks} weeks</span>
-                              )}
+            {/* Collapsible Sections */}
+            <Accordion type="single" collapsible value={accordionValue} onValueChange={(val) => {
+              setAccordionValue(val);
+              if (selectedPatient) {
+                setAccordionOpenByPatient(prev => ({ ...prev, [selectedPatient.id]: val }));
+              }
+            }} className="w-full">
+              <AccordionItem value="prescriptions">
+                <Card className="glass-card">
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Pill className="h-5 w-5 text-dental-primary" />
+                        <span>Prescriptions</span>
+                        <Badge variant="outline">{prescriptions.length}</Badge>
+                      </div>
+                      <AccordionTrigger className="py-0" />
+                    </CardTitle>
+                  </CardHeader>
+                  <AccordionContent>
+                    <CardContent>
+                      {prescriptions.length > 0 ? (
+                        <div className="space-y-3">
+                          {prescriptions
+                            .slice()
+                            .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+                            .map((prescription) => (
+                            <div key={prescription.id} className="p-3 border rounded-lg group">
+                              <div className="flex justify-between items-start">
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2">
+                                    <h4 className="font-medium">{prescription.medication_name}</h4>
+                                    <Badge className={getStatusColor(prescription.status)}>
+                                      {prescription.status}
+                                    </Badge>
+                                  </div>
+                                  <p className="text-sm text-muted-foreground">
+                                    {prescription.dosage} - {prescription.frequency}
+                                  </p>
+                                  {prescription.duration_days && (
+                                    <p className="text-sm">Duration: {prescription.duration_days} days</p>
+                                  )}
+                                  {prescription.instructions && (
+                                    <p className="text-sm mt-2 bg-muted p-2 rounded">
+                                      {prescription.instructions}
+                                    </p>
+                                  )}
+                                  <p className="text-xs text-muted-foreground mt-2">
+                                    Prescribed: {format(new Date(prescription.prescribed_date), 'PPP')}
+                                  </p>
+                                </div>
+                                <div className="flex items-center gap-1 opacity-70 group-hover:opacity-100">
+                                  <Button size="icon" variant="ghost" onClick={() => openEditPrescription(prescription)}>
+                                    <Edit className="h-4 w-4" />
+                                  </Button>
+                                  <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                      <Button size="icon" variant="ghost">
+                                        <Trash2 className="h-4 w-4" />
+                                      </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                      <AlertDialogHeader>
+                                        <AlertDialogTitle>Delete prescription?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                          This action cannot be undone.
+                                        </AlertDialogDescription>
+                                      </AlertDialogHeader>
+                                      <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                        <AlertDialogAction onClick={() => handleDeletePrescription(prescription.id)}>Delete</AlertDialogAction>
+                                      </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                  </AlertDialog>
+                                </div>
+                              </div>
                             </div>
-                          </div>
-                          <div className="flex space-x-2">
-                            <Badge className={getStatusColor(plan.status)}>
-                              {plan.status}
-                            </Badge>
-                            <Badge variant="outline">
-                              {plan.priority}
-                            </Badge>
-                          </div>
+                          ))}
                         </div>
+                      ) : (
+                        <p className="text-muted-foreground text-center py-4">
+                          No prescriptions found
+                        </p>
+                      )}
+                      <div className="pt-3 flex justify-end">
+                        <Button size="sm" variant="ghost">View All</Button>
                       </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-muted-foreground text-center py-4">
-                    No treatment plans found
-                  </p>
-                )}
-              </CardContent>
-            </Card>
+                    </CardContent>
+                  </AccordionContent>
+                </Card>
+              </AccordionItem>
 
-            {/* Prescriptions */}
-            <Card className="glass-card">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Pill className="h-5 w-5 text-dental-primary" />
-                  <span>Prescriptions</span>
-                  <Badge variant="outline">{prescriptions.length}</Badge>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {prescriptions.length > 0 ? (
-                  <div className="space-y-3">
-                    {prescriptions.map((prescription) => (
-                      <div key={prescription.id} className="p-3 border rounded-lg">
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1">
-                            <h4 className="font-medium">{prescription.medication_name}</h4>
-                            <p className="text-sm text-muted-foreground">
-                              {prescription.dosage} - {prescription.frequency}
-                            </p>
-                            {prescription.duration_days && (
-                              <p className="text-sm">Duration: {prescription.duration_days} days</p>
-                            )}
-                            {prescription.instructions && (
-                              <p className="text-sm mt-2 bg-muted p-2 rounded">
-                                {prescription.instructions}
-                              </p>
-                            )}
-                            <p className="text-xs text-muted-foreground mt-2">
-                              Prescribed: {format(new Date(prescription.prescribed_date), 'PPP')}
-                            </p>
-                          </div>
-                          <Badge className={getStatusColor(prescription.status)}>
-                            {prescription.status}
-                          </Badge>
-                        </div>
+              <AccordionItem value="treatments">
+                <Card className="glass-card">
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <ClipboardList className="h-5 w-5 text-dental-primary" />
+                        <span>Treatment Plans</span>
+                        <Badge variant="outline">{treatmentPlans.length}</Badge>
                       </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-muted-foreground text-center py-4">
-                    No prescriptions found
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Notes */}
-            <Card className="glass-card">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <FileText className="h-5 w-5 text-dental-primary" />
-                  <span>Notes</span>
-                  <Badge variant="outline">{notes.length}</Badge>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {notes.length > 0 ? (
-                  <div className="space-y-3">
-                    {notes.map((note) => (
-                      <div key={note.id} className="p-3 border rounded-lg">
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1">
-                            <div className="flex items-center space-x-2">
-                              <h4 className="font-medium">{note.title}</h4>
-                              {note.is_private && (
-                                <Badge variant="secondary" className="text-xs">Private</Badge>
-                              )}
+                      <AccordionTrigger className="py-0" />
+                    </CardTitle>
+                  </CardHeader>
+                  <AccordionContent>
+                    <CardContent>
+                      {treatmentPlans.length > 0 ? (
+                        <div className="space-y-3">
+                          {treatmentPlans
+                            .slice()
+                            .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+                            .map((plan) => (
+                            <div key={plan.id} className="p-3 border rounded-lg group">
+                              <div className="flex justify-between items-start">
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2">
+                                    <h4 className="font-medium">{plan.title}</h4>
+                                    <Badge className={getStatusColor(plan.status)}>
+                                      {plan.status}
+                                    </Badge>
+                                  </div>
+                                  {plan.description && (
+                                    <p className="text-sm text-muted-foreground mt-1">{plan.description}</p>
+                                  )}
+                                  {plan.diagnosis && (
+                                    <p className="text-sm mt-2 bg-muted p-2 rounded">
+                                      <span className="font-medium">Diagnosis:</span> {plan.diagnosis}
+                                    </p>
+                                  )}
+                                  <div className="flex space-x-4 mt-2 text-sm">
+                                    {plan.estimated_cost && (
+                                      <span>Cost: ${plan.estimated_cost}</span>
+                                    )}
+                                    {plan.estimated_duration_weeks && (
+                                      <span>Duration: {plan.estimated_duration_weeks} weeks</span>
+                                    )}
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-1 opacity-70 group-hover:opacity-100">
+                                  <Button size="icon" variant="ghost" onClick={() => openEditTreatment(plan)}>
+                                    <Edit className="h-4 w-4" />
+                                  </Button>
+                                  <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                      <Button size="icon" variant="ghost">
+                                        <Trash2 className="h-4 w-4" />
+                                      </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                      <AlertDialogHeader>
+                                        <AlertDialogTitle>Delete treatment plan?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                          This action cannot be undone.
+                                        </AlertDialogDescription>
+                                      </AlertDialogHeader>
+                                      <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                        <AlertDialogAction onClick={() => handleDeleteTreatment(plan.id)}>Delete</AlertDialogAction>
+                                      </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                  </AlertDialog>
+                                </div>
+                              </div>
                             </div>
-                            <p className="text-sm text-muted-foreground mt-1">{note.content}</p>
-                            <p className="text-xs text-muted-foreground mt-2">
-                              {format(new Date(note.created_at), 'PPP p')}
-                            </p>
-                          </div>
-                          <Badge variant="outline">
-                            {note.note_type}
-                          </Badge>
+                          ))}
                         </div>
+                      ) : (
+                        <p className="text-muted-foreground text-center py-4">
+                          No treatment plans found
+                        </p>
+                      )}
+                      <div className="pt-3 flex justify-end">
+                        <Button size="sm" variant="ghost">View All</Button>
                       </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-muted-foreground text-center py-4">
-                    No notes found
-                  </p>
-                )}
-              </CardContent>
-            </Card>
+                    </CardContent>
+                  </AccordionContent>
+                </Card>
+              </AccordionItem>
+
+              <AccordionItem value="notes">
+                <Card className="glass-card">
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <FileText className="h-5 w-5 text-dental-primary" />
+                        <span>Notes</span>
+                        <Badge variant="outline">{notes.length}</Badge>
+                      </div>
+                      <AccordionTrigger className="py-0" />
+                    </CardTitle>
+                  </CardHeader>
+                  <AccordionContent>
+                    <CardContent>
+                      {notes.length > 0 ? (
+                        <div className="space-y-3">
+                          {notes
+                            .slice()
+                            .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+                            .map((note) => (
+                            <div key={note.id} className="p-3 border rounded-lg group">
+                              <div className="flex justify-between items-start">
+                                <div className="flex-1">
+                                  <div className="flex items-center space-x-2">
+                                    <h4 className="font-medium">{note.title}</h4>
+                                    {note.is_private && (
+                                      <Badge variant="secondary" className="text-xs">Private</Badge>
+                                    )}
+                                  </div>
+                                  <p className="text-sm text-muted-foreground mt-1">{note.content}</p>
+                                  <p className="text-xs text-muted-foreground mt-2">
+                                    {format(new Date(note.created_at), 'PPP p')}
+                                  </p>
+                                </div>
+                                <div className="flex items-center gap-1 opacity-70 group-hover:opacity-100">
+                                  <Button size="icon" variant="ghost" onClick={() => openEditNote(note)}>
+                                    <Edit className="h-4 w-4" />
+                                  </Button>
+                                  <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                      <Button size="icon" variant="ghost">
+                                        <Trash2 className="h-4 w-4" />
+                                      </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                      <AlertDialogHeader>
+                                        <AlertDialogTitle>Delete note?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                          This action cannot be undone.
+                                        </AlertDialogDescription>
+                                      </AlertDialogHeader>
+                                      <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                        <AlertDialogAction onClick={() => handleDeleteNote(note.id)}>Delete</AlertDialogAction>
+                                      </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                  </AlertDialog>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-muted-foreground text-center py-4">
+                          No notes found
+                        </p>
+                      )}
+                      <div className="pt-3 flex justify-end">
+                        <Button size="sm" variant="ghost">View All</Button>
+                      </div>
+                    </CardContent>
+                  </AccordionContent>
+                </Card>
+              </AccordionItem>
+
+              <AccordionItem value="files">
+                <Card className="glass-card">
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <FileText className="h-5 w-5 text-dental-primary" />
+                        <span>Images / Files</span>
+                      </div>
+                      <AccordionTrigger className="py-0" />
+                    </CardTitle>
+                  </CardHeader>
+                  <AccordionContent>
+                    <CardContent>
+                      <div className="py-2">
+                        <PhotoUpload onComplete={() => {}} onCancel={() => {}} />
+                      </div>
+                    </CardContent>
+                  </AccordionContent>
+                </Card>
+              </AccordionItem>
+            </Accordion>
+
+            {/* Floating Action Button (FAB) */}
+            <div className="fixed bottom-6 right-6 z-50">
+              <div className="flex flex-col items-end gap-2">
+                <Button size="icon" variant="default" className="rounded-full shadow-lg" onClick={() => setShowNoteDialog(true)}>+N</Button>
+                <Button size="icon" variant="default" className="rounded-full shadow-lg" onClick={() => setShowPrescriptionDialog(true)}>+Rx</Button>
+                <Button size="icon" variant="default" className="rounded-full shadow-lg" onClick={() => setShowTreatmentDialog(true)}>+TP</Button>
+                <Sheet>
+                  <SheetTrigger asChild>
+                    <Button size="icon" variant="default" className="rounded-full shadow-lg">+Img</Button>
+                  </SheetTrigger>
+                  <SheetContent side="bottom" className="sm:max-w-lg">
+                    <SheetHeader>
+                      <SheetTitle>Upload Image</SheetTitle>
+                    </SheetHeader>
+                    <div className="py-2">
+                      <PhotoUpload onComplete={() => {}} onCancel={() => {}} />
+                    </div>
+                  </SheetContent>
+                </Sheet>
+              </div>
+            </div>
           </>
         ) : (
           <Card className="glass-card h-96">
