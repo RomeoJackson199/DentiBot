@@ -3,9 +3,9 @@ module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'jsdom',
   setupFilesAfterEnv: ['<rootDir>/src/setupTests.ts'],
-  moduleNameMapping: {
-    '^@/(.*)$': '<rootDir>/src/$1',
+  moduleNameMapper: {
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
+    '^@/(.*)$': '<rootDir>/src/$1',
   },
   testMatch: [
     '<rootDir>/src/**/__tests__/**/*.{js,jsx,ts,tsx}',
@@ -27,6 +27,11 @@ module.exports = {
   },
   transform: {
     '^.+\\.(ts|tsx)$': 'ts-jest',
+  },
+  globals: {
+    'ts-jest': {
+      tsconfig: '<rootDir>/tsconfig.test.json',
+    },
   },
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
   testPathIgnorePatterns: ['/node_modules/', '/dist/'],
