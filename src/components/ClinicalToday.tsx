@@ -9,7 +9,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { AppointmentCompletionModal } from "@/components/mobile/AppointmentCompletionModal";
-import { AppointmentBookingWithAuth } from "@/components/AppointmentBookingWithAuth";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Calendar, CheckCircle2, Clock, Filter, ListChecks, Plus, RefreshCw, RotateCcw, User as UserIcon, XCircle } from "lucide-react";
 
 interface ClinicalTodayProps {
@@ -42,9 +42,62 @@ export function ClinicalToday({ user, dentistId, onOpenPatientsTab }: ClinicalTo
 	const [rescheduleDate, setRescheduleDate] = useState<string>("");
 	const [dentistName, setDentistName] = useState<string>("Dentist");
 
+	// Date selector (default today)
+	const [selectedDate, setSelectedDate] = useState<string>(() => new Date().toISOString().slice(0,10));
+	const selectedDateObj = useMemo(() => {
+		try {
+			const [y, m, d] = selectedDate.split('-').map(Number);
+			return new Date(y, (m || 1) - 1, d || 1);
+		} catch { return new Date(); }
+	}, [selectedDate]);
+	const startOfDay = useMemo(() => new Date(selectedDateObj.getFullYear(), selectedDateObj.getMonth(), selectedDateObj.getDate()), [selectedDateObj]);
+	const endOfDay = useMemo(() => new Date(selectedDateObj.getFullYear(), selectedDateObj.getMonth(), selectedDateObj.getDate() + 1), [selectedDateObj]);
+
+	// Quick booking state (for dentists)
+	const [quickPatients, setQuickPatients] = useState<Array<{ id: string; first_name: string; last_name: string; email?: string }>>([]);
+	const [quickPatientId, setQuickPatientId] = useState<string>("");
+	const [quickDate, setQuickDate] = useState<string>(() => new Date().toISOString().slice(0,10));
+	const [quickTime, setQuickTime] = useState<string>(() => new Date().toTimeString().slice(0,5));
+	const [quickReason, setQuickReason] = useState<string>("");
+	const [quickUrgency, setQuickUrgency] = useState<'low' | 'medium' | 'high'>('medium');
+
+	const openQuickBooking = (prefill?: { reason?: string; setNow?: boolean }) => {
+		setQuickReason(prefill?.reason || "");
+		setQuickDate(selectedDate);
+		if (prefill?.setNow) {
+			const now = new Date();
+			const hh = String(now.getHours()).padStart(2, '0');
+			const mm = String(now.getMinutes()).padStart(2, '0');
+			setQuickTime(`${hh}:${mm}`);
+		}
+		setShowBooking(true);
+	};
+
+	const loadQuickPatients = useCallback(async () => {
+		try {
+			const { data, error } = await supabase
+				.from('appointments')
+				.select(`patient_id, profiles:patient_id ( id, first_name, last_name, email )`)
+				.eq('dentist_id', dentistId);
+			if (error) throw error;
+			const unique: Record<string, any> = {};
+			(data || []).forEach((row: any) => {
+				const p = row.profiles;
+				if (p && !unique[p.id]) unique[p.id] = p;
+			});
+			setQuickPatients(Object.values(unique));
+		} catch (e) {
+			console.error('Failed to load patients for booking', e);
+		}
+	}, [dentistId]);
+
+	useEffect(() => {
+		if (showBooking) {
+			loadQuickPatients();
+		}
+	}, [showBooking, loadQuickPatients]);
+
 	const today = useMemo(() => new Date(), []);
-	const startOfDay = useMemo(() => new Date(today.getFullYear(), today.getMonth(), today.getDate()), [today]);
-	const endOfDay = useMemo(() => new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1), [today]);
 
 	const loadDentistName = useCallback(async () => {
 		try {
@@ -164,13 +217,35 @@ export function ClinicalToday({ user, dentistId, onOpenPatientsTab }: ClinicalTo
 	const formatTime = (iso: string) => new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 	const formatDateLong = (d: Date) => d.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
 
+	const handleQuickBook = async () => {
+		try {
+			if (!quickPatientId || !quickDate || !quickTime) return;
+			const whenIso = new Date(`${quickDate}T${quickTime}`).toISOString();
+			await supabase.rpc('create_simple_appointment', {
+				p_patient_id: quickPatientId,
+				p_dentist_id: dentistId,
+				p_appointment_date: whenIso,
+				p_reason: quickReason || 'Consultation',
+				p_urgency: quickUrgency
+			});
+			setShowBooking(false);
+			setQuickPatientId("");
+			fetchAppointments();
+		} catch (e) {
+			console.error('Failed to book appointment', e);
+		}
+	};
+
 	return (
 		<div className="relative">
 			{/* Sticky Header */}
 			<div className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b">
 				<div className="px-4 pt-4 pb-3">
 					<h1 className="text-xl font-bold">Clinical</h1>
-					<p className="text-sm text-muted-foreground">{formatDateLong(today)}</p>
+					<p className="text-sm text-muted-foreground">{formatDateLong(selectedDateObj)}</p>
+					<div className="mt-2">
+						<Input type="date" value={selectedDate} onChange={e => setSelectedDate(e.target.value)} className="w-auto inline-block" />
+					</div>
 					<div className="mt-3 grid grid-cols-4 gap-2">
 						<Button variant={selectedStatus === 'confirmed' ? 'default' : 'outline'} size="sm" onClick={() => setSelectedStatus('confirmed')} className="flex-col h-12">
 							<span className="text-xs">Confirmed</span>
@@ -195,7 +270,7 @@ export function ClinicalToday({ user, dentistId, onOpenPatientsTab }: ClinicalTo
 								<RotateCcw className="h-4 w-4 mr-1" /> Complete Last Appointment
 							</Button>
 						)}
-						<Button size="sm" onClick={() => setShowBooking(true)} className="shrink-0">
+						<Button size="sm" onClick={() => openQuickBooking()} className="shrink-0">
 							<Plus className="h-4 w-4 mr-1" /> Book New Appointment
 						</Button>
 						<Button size="sm" variant="outline" onClick={async () => { setShowFollowUps(true); try {
@@ -222,8 +297,8 @@ export function ClinicalToday({ user, dentistId, onOpenPatientsTab }: ClinicalTo
 					<Card>
 						<CardContent className="p-8 text-center">
 							<Calendar className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-							<p className="font-medium">No appointments today</p>
-							<Button onClick={() => setShowBooking(true)} variant="outline" className="mt-3">Book Appointment</Button>
+							<p className="font-medium">No appointments this day</p>
+							<Button onClick={() => openQuickBooking()} variant="outline" className="mt-3">Book Appointment</Button>
 						</CardContent>
 					</Card>
 				) : (
@@ -303,13 +378,49 @@ export function ClinicalToday({ user, dentistId, onOpenPatientsTab }: ClinicalTo
 				</DialogContent>
 			</Dialog>
 
-			{/* Booking */}
-			<Dialog open={showBooking} onOpenChange={setShowBooking}>
-				<DialogContent className="max-w-2xl w-full">
+			{/* Booking - Quick form for dentists */}
+			<Dialog open={showBooking} onOpenChange={(o) => setShowBooking(o)}>
+				<DialogContent className="max-w-md w-full">
 					<DialogHeader>
-						<DialogTitle>Book New Appointment</DialogTitle>
+						<DialogTitle>Book Appointment</DialogTitle>
 					</DialogHeader>
-					<AppointmentBookingWithAuth user={user} onComplete={() => setShowBooking(false)} onCancel={() => setShowBooking(false)} />
+					<div className="space-y-3">
+						<div>
+							<label className="text-sm text-muted-foreground">Patient *</label>
+							<select className="w-full border rounded p-2 mt-1" value={quickPatientId} onChange={e => setQuickPatientId(e.target.value)}>
+								<option value="">Select patient...</option>
+								{quickPatients.map(p => (
+									<option key={p.id} value={p.id}>{p.first_name} {p.last_name}{p.email ? ` (${p.email})` : ''}</option>
+								))}
+							</select>
+						</div>
+						<div className="grid grid-cols-2 gap-2">
+							<div>
+								<label className="text-sm text-muted-foreground">Date *</label>
+								<Input type="date" value={quickDate} onChange={e => setQuickDate(e.target.value)} />
+							</div>
+							<div>
+								<label className="text-sm text-muted-foreground">Time *</label>
+								<Input type="time" value={quickTime} onChange={e => setQuickTime(e.target.value)} />
+							</div>
+						</div>
+						<div>
+							<label className="text-sm text-muted-foreground">Reason</label>
+							<Input placeholder="e.g., Follow-up visit" value={quickReason} onChange={e => setQuickReason(e.target.value)} />
+						</div>
+						<div>
+							<label className="text-sm text-muted-foreground">Urgency</label>
+							<select className="w-full border rounded p-2" value={quickUrgency} onChange={e => setQuickUrgency(e.target.value as any)}>
+								<option value="low">Low</option>
+								<option value="medium">Medium</option>
+								<option value="high">High</option>
+							</select>
+						</div>
+						<div className="flex gap-2 pt-2">
+							<Button className="flex-1" onClick={handleQuickBook} disabled={!quickPatientId || !quickDate || !quickTime}>Save</Button>
+							<Button className="flex-1" variant="outline" onClick={() => setShowBooking(false)}>Cancel</Button>
+						</div>
+					</div>
 				</DialogContent>
 			</Dialog>
 
@@ -333,10 +444,19 @@ export function ClinicalToday({ user, dentistId, onOpenPatientsTab }: ClinicalTo
 				/>
 			)}
 
-			{/* Floating FAB on mobile */}
-			<Button onClick={() => setShowBooking(true)} className="fixed bottom-24 right-4 rounded-full h-12 w-12 p-0 shadow-lg">
-				<Plus className="h-5 w-5" />
-			</Button>
+			{/* Floating FAB on mobile with quick actions */}
+			<DropdownMenu>
+				<DropdownMenuTrigger asChild>
+					<Button className="fixed bottom-24 right-4 rounded-full h-12 w-12 p-0 shadow-lg">
+						<Plus className="h-5 w-5" />
+					</Button>
+				</DropdownMenuTrigger>
+				<DropdownMenuContent align="end">
+					<DropdownMenuItem onClick={() => openQuickBooking()}>Book new appointment</DropdownMenuItem>
+					<DropdownMenuItem onClick={() => openQuickBooking({ reason: 'Follow-up visit' })}>Add follow-up</DropdownMenuItem>
+					<DropdownMenuItem onClick={() => openQuickBooking({ setNow: true, reason: 'Walk-in' })}>Add walk-in appointment</DropdownMenuItem>
+				</DropdownMenuContent>
+			</DropdownMenu>
 		</div>
 	);
 }
