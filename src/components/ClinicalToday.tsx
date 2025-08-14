@@ -473,6 +473,9 @@ function SwipeableAppointmentCard({ appointment, onOpenDetails, onComplete, onRe
 	const startX = useRef<number | null>(null);
 	const threshold = 30;
 
+	// Local time formatter to avoid undefined reference
+	const formatTime = (iso: string) => new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
 	const onTouchStart = (e: React.TouchEvent) => {
 		startX.current = e.touches[0].clientX;
 	};
