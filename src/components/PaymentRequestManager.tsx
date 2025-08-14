@@ -104,15 +104,16 @@ export const PaymentRequestManager: React.FC<PaymentRequestManagerProps> = ({ de
   }
 
   return (
-    <div className="space-y-8">
-      <div className="flex justify-between items-center">
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
-          <h2 className="text-3xl font-bold text-dental-primary mb-2">Payment Requests</h2>
-          <p className="text-dental-text/70">Manage and track patient payment requests</p>
+          <h2 className="text-2xl sm:text-3xl font-bold text-dental-primary mb-2">Payment Requests</h2>
+          <p className="text-sm sm:text-base text-dental-text/70">Manage and track patient payment requests</p>
         </div>
         <Button 
           onClick={() => setShowForm(true)}
-          className="bg-gradient-to-r from-dental-accent to-dental-accent/80 hover:from-dental-accent/90 hover:to-dental-accent/70 text-white font-semibold px-6 py-3 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+          size="lg"
+          className="h-12 px-6 rounded-xl bg-gradient-to-r from-dental-accent to-dental-accent/80 hover:from-dental-accent/90 hover:to-dental-accent/70 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
         >
           <Plus className="h-5 w-5 mr-2" />
           New Payment Request
@@ -134,13 +135,14 @@ export const PaymentRequestManager: React.FC<PaymentRequestManagerProps> = ({ de
       <div className="grid gap-6">
         {paymentRequests.length === 0 ? (
           <Card className="bg-gradient-to-br from-dental-primary/5 to-dental-accent/5 border-dental-primary/20">
-            <CardContent className="p-12 text-center">
-              <DollarSign className="h-16 w-16 mx-auto text-dental-primary/30 mb-6" />
-              <h3 className="text-xl font-semibold text-dental-primary mb-2">No payment requests yet</h3>
-              <p className="text-dental-text/60 mb-6">Create your first payment request to get started</p>
+            <CardContent className="p-8 sm:p-12 text-center">
+              <DollarSign className="h-12 sm:h-16 w-12 sm:w-16 mx-auto text-dental-primary/30 mb-6" />
+              <h3 className="text-lg sm:text-xl font-semibold text-dental-primary mb-2">No payment requests yet</h3>
+              <p className="text-sm sm:text-base text-dental-text/60 mb-6">Create your first payment request to get started</p>
               <Button 
                 onClick={() => setShowForm(true)}
-                className="bg-gradient-to-r from-dental-accent to-dental-accent/80 hover:from-dental-accent/90 hover:to-dental-accent/70 text-white font-semibold px-6 py-3"
+                size="lg"
+                className="h-12 px-6 rounded-xl bg-gradient-to-r from-dental-accent to-dental-accent/80 hover:from-dental-accent/90 hover:to-dental-accent/70 text-white font-semibold"
               >
                 Create Payment Request
               </Button>

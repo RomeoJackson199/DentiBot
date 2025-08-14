@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { AppointmentCompletionModal } from "@/components/mobile/AppointmentCompletionModal";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Calendar, CheckCircle2, Clock, Filter, ListChecks, Plus, RefreshCw, RotateCcw, User as UserIcon, XCircle } from "lucide-react";
+import { Calendar, CheckCircle2, Clock, Filter, ListChecks, Plus, RefreshCw, RotateCcw, User as UserIcon, XCircle, ChevronLeft } from "lucide-react";
 
 interface ClinicalTodayProps {
 	user: User;
@@ -241,64 +241,131 @@ export function ClinicalToday({ user, dentistId, onOpenPatientsTab }: ClinicalTo
 			{/* Sticky Header */}
 			<div className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b">
 				<div className="px-4 pt-4 pb-3">
-					<h1 className="text-xl font-bold">Clinical</h1>
-					<p className="text-sm text-muted-foreground">{formatDateLong(selectedDateObj)}</p>
-					<div className="mt-2">
-						<Input type="date" value={selectedDate} onChange={e => setSelectedDate(e.target.value)} className="w-auto inline-block" />
+					<h1 className="text-2xl font-bold">Clinical</h1>
+					<p className="text-sm text-muted-foreground mt-1">{formatDateLong(selectedDateObj)}</p>
+					<div className="mt-3">
+						<Input 
+							type="date" 
+							value={selectedDate} 
+							onChange={e => setSelectedDate(e.target.value)} 
+							className="w-full sm:w-auto h-12 text-base px-4"
+						/>
 					</div>
-					<div className="mt-3 grid grid-cols-4 gap-2">
-						<Button variant={selectedStatus === 'confirmed' ? 'default' : 'outline'} size="sm" onClick={() => setSelectedStatus('confirmed')} className="flex-col h-12">
-							<span className="text-xs">Confirmed</span>
-							<Badge variant="secondary">{counters.confirmed}</Badge>
+					
+					{/* Status Filter Buttons - Improved grid layout */}
+					<div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
+						<Button 
+							variant={selectedStatus === 'confirmed' ? 'default' : 'outline'} 
+							size="lg" 
+							onClick={() => setSelectedStatus('confirmed')} 
+							className="flex flex-col h-16 p-3 rounded-xl touch-target"
+						>
+							<span className="text-xs font-medium">Confirmed</span>
+							<Badge variant="secondary" className="mt-1">{counters.confirmed}</Badge>
 						</Button>
-						<Button variant={selectedStatus === 'pending' ? 'default' : 'outline'} size="sm" onClick={() => setSelectedStatus('pending')} className="flex-col h-12">
-							<span className="text-xs">Pending</span>
-							<Badge variant="secondary">{counters.pending}</Badge>
+						<Button 
+							variant={selectedStatus === 'pending' ? 'default' : 'outline'} 
+							size="lg" 
+							onClick={() => setSelectedStatus('pending')} 
+							className="flex flex-col h-16 p-3 rounded-xl touch-target"
+						>
+							<span className="text-xs font-medium">Pending</span>
+							<Badge variant="secondary" className="mt-1">{counters.pending}</Badge>
 						</Button>
-						<Button variant={selectedStatus === 'cancelled' ? 'default' : 'outline'} size="sm" onClick={() => setSelectedStatus('cancelled')} className="flex-col h-12">
-							<span className="text-xs">Cancelled</span>
-							<Badge variant="secondary">{counters.cancelled}</Badge>
+						<Button 
+							variant={selectedStatus === 'cancelled' ? 'default' : 'outline'} 
+							size="lg" 
+							onClick={() => setSelectedStatus('cancelled')} 
+							className="flex flex-col h-16 p-3 rounded-xl touch-target"
+						>
+							<span className="text-xs font-medium">Cancelled</span>
+							<Badge variant="secondary" className="mt-1">{counters.cancelled}</Badge>
 						</Button>
-						<Button variant={selectedStatus === 'completed' ? 'default' : 'outline'} size="sm" onClick={() => setSelectedStatus('completed')} className="flex-col h-12">
-							<span className="text-xs">Completed</span>
-							<Badge variant="secondary">{counters.completed}</Badge>
+						<Button 
+							variant={selectedStatus === 'completed' ? 'default' : 'outline'} 
+							size="lg" 
+							onClick={() => setSelectedStatus('completed')} 
+							className="flex flex-col h-16 p-3 rounded-xl touch-target"
+						>
+							<span className="text-xs font-medium">Completed</span>
+							<Badge variant="secondary" className="mt-1">{counters.completed}</Badge>
 						</Button>
 					</div>
-					<div className="mt-2 flex gap-2 overflow-x-auto pb-2">
+					
+					{/* Action Buttons - Improved responsive layout */}
+					<div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
 						{lastEndedAppointment && (
-							<Button size="sm" variant="secondary" onClick={() => openCompletion(lastEndedAppointment)} className="shrink-0">
-								<RotateCcw className="h-4 w-4 mr-1" /> Complete Last Appointment
+							<Button 
+								size="lg" 
+								variant="secondary" 
+								onClick={() => openCompletion(lastEndedAppointment)} 
+								className="h-12 px-4 rounded-xl justify-start touch-target"
+							>
+								<RotateCcw className="h-5 w-5 mr-2" /> 
+								<span className="text-sm">Complete Last</span>
 							</Button>
 						)}
-						<Button size="sm" onClick={() => openQuickBooking()} className="shrink-0">
-							<Plus className="h-4 w-4 mr-1" /> Book New Appointment
+						<Button 
+							size="lg" 
+							onClick={() => openQuickBooking()} 
+							className="h-12 px-4 rounded-xl justify-start touch-target bg-primary hover:bg-primary/90"
+						>
+							<Plus className="h-5 w-5 mr-2" /> 
+							<span className="text-sm">Book Appointment</span>
 						</Button>
-						<Button size="sm" variant="outline" onClick={async () => { setShowFollowUps(true); try {
-								const { data } = await supabase.from('appointment_follow_ups').select('*, appointments(*)')
-									.gte('scheduled_date', startOfDay.toISOString())
-									.lt('scheduled_date', endOfDay.toISOString())
-									.eq('status', 'pending');
-								setFollowUps(data || []);
-							} catch {} }} className="shrink-0">
-							<ListChecks className="h-4 w-4 mr-1" /> Follow-Ups Due Today
+						<Button 
+							size="lg" 
+							variant="outline" 
+							onClick={async () => { 
+								setShowFollowUps(true); 
+								try {
+									const { data } = await supabase.from('appointment_follow_ups').select('*, appointments(*)')
+										.gte('scheduled_date', startOfDay.toISOString())
+										.lt('scheduled_date', endOfDay.toISOString())
+										.eq('status', 'pending');
+									setFollowUps(data || []);
+								} catch {} 
+							}} 
+							className="h-12 px-4 rounded-xl justify-start touch-target"
+						>
+							<ListChecks className="h-5 w-5 mr-2" /> 
+							<span className="text-sm">Follow-Ups</span>
 						</Button>
-						<Button size="sm" variant={selectedStatus === 'pending' ? 'secondary' : 'outline'} onClick={() => setSelectedStatus('pending')} className="shrink-0">
-							<Clock className="h-4 w-4 mr-1" /> Pending Confirmations
+						<Button 
+							size="lg" 
+							variant={selectedStatus === 'pending' ? 'secondary' : 'outline'} 
+							onClick={() => setSelectedStatus('pending')} 
+							className="h-12 px-4 rounded-xl justify-start touch-target"
+						>
+							<Clock className="h-5 w-5 mr-2" /> 
+							<span className="text-sm">Pending</span>
 						</Button>
 					</div>
 				</div>
 			</div>
 
 			{/* Main List */}
-			<div className="px-4 py-3 space-y-3">
+			<div className="px-4 py-4 space-y-4">
 				{loading ? (
-					<Card><CardContent className="p-6 text-center text-muted-foreground">Loading today\'s appointments...</CardContent></Card>
+					<Card className="p-8">
+						<CardContent className="text-center text-muted-foreground">
+							<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+							Loading today's appointments...
+						</CardContent>
+					</Card>
 				) : filteredAppointments.length === 0 ? (
-					<Card>
-						<CardContent className="p-8 text-center">
-							<Calendar className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-							<p className="font-medium">No appointments this day</p>
-							<Button onClick={() => openQuickBooking()} variant="outline" className="mt-3">Book Appointment</Button>
+					<Card className="p-8">
+						<CardContent className="text-center">
+							<Calendar className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+							<p className="font-medium text-lg mb-4">No appointments this day</p>
+							<Button 
+								onClick={() => openQuickBooking()} 
+								variant="outline" 
+								size="lg"
+								className="h-12 px-6 rounded-xl"
+							>
+								Book Appointment
+							</Button>
 						</CardContent>
 					</Card>
 				) : (
@@ -318,28 +385,47 @@ export function ClinicalToday({ user, dentistId, onOpenPatientsTab }: ClinicalTo
 
 			{/* Detail Sheet */}
 			<Sheet open={!!selectedAppointment} onOpenChange={(o) => { if (!o) setSelectedAppointment(null); }}>
-				<SheetContent side="bottom" className="max-h-[85vh] overflow-y-auto">
-					<SheetHeader>
-						<SheetTitle>Appointment Details</SheetTitle>
+				<SheetContent side="bottom" className="max-h-[85vh] overflow-y-auto rounded-t-3xl">
+					<SheetHeader className="pb-4">
+						<SheetTitle className="text-xl">Appointment Details</SheetTitle>
 					</SheetHeader>
 					{selectedAppointment && (
-						<div className="mt-3 space-y-3">
-							<div className="flex items-center justify-between">
+						<div className="mt-4 space-y-4">
+							<div className="flex items-center justify-between p-4 bg-muted/50 rounded-xl">
 								<div className="text-sm">
-									<div className="font-medium">{selectedAppointment.patient ? `${selectedAppointment.patient.first_name} ${selectedAppointment.patient.last_name}` : 'Patient'}</div>
-									<div className="text-muted-foreground">{formatTime(selectedAppointment.appointment_date)} • {selectedAppointment.reason || 'Visit'}</div>
+									<div className="font-semibold text-base">{selectedAppointment.patient ? `${selectedAppointment.patient.first_name} ${selectedAppointment.patient.last_name}` : 'Patient'}</div>
+									<div className="text-muted-foreground mt-1">{formatTime(selectedAppointment.appointment_date)} • {selectedAppointment.reason || 'Visit'}</div>
 								</div>
-								<Badge variant="outline" className="capitalize">{selectedAppointment.status}</Badge>
+								<Badge variant="outline" className="capitalize px-3 py-1">{selectedAppointment.status}</Badge>
 							</div>
 							<Card>
-								<CardContent className="p-4 text-sm">
-									<p className="mb-1"><span className="text-muted-foreground">Dentist:</span> {dentistName}</p>
-									<p><span className="text-muted-foreground">Allergies:</span> None on file</p>
+								<CardContent className="p-5 text-sm space-y-2">
+									<p className="flex justify-between">
+										<span className="text-muted-foreground">Dentist:</span> 
+										<span className="font-medium">{dentistName}</span>
+									</p>
+									<p className="flex justify-between">
+										<span className="text-muted-foreground">Allergies:</span> 
+										<span className="font-medium">None on file</span>
+									</p>
 								</CardContent>
 							</Card>
-							<div className="flex gap-2">
-								<Button className="flex-1" variant="outline" onClick={() => selectedAppointment?.patient && openPatientProfile(selectedAppointment.patient.id)}>Open Patient Profile</Button>
-								<Button className="flex-1" onClick={() => openCompletion(selectedAppointment)}>Complete Appointment</Button>
+							<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+								<Button 
+									size="lg"
+									variant="outline" 
+									onClick={() => selectedAppointment?.patient && openPatientProfile(selectedAppointment.patient.id)}
+									className="h-12 rounded-xl"
+								>
+									Open Patient Profile
+								</Button>
+								<Button 
+									size="lg"
+									onClick={() => openCompletion(selectedAppointment)}
+									className="h-12 rounded-xl"
+								>
+									Complete Appointment
+								</Button>
 							</div>
 						</div>
 					)}
@@ -470,6 +556,7 @@ function SwipeableAppointmentCard({ appointment, onOpenDetails, onComplete, onRe
 	dentistName: string;
 }) {
 	const [offset, setOffset] = useState(0);
+	const [showActions, setShowActions] = useState(false);
 	const startX = useRef<number | null>(null);
 	const threshold = 30;
 
@@ -482,39 +569,118 @@ function SwipeableAppointmentCard({ appointment, onOpenDetails, onComplete, onRe
 	const onTouchMove = (e: React.TouchEvent) => {
 		if (startX.current == null) return;
 		const dx = e.touches[0].clientX - startX.current;
-		if (dx < 0) setOffset(Math.max(dx, -120));
+		if (dx < 0) setOffset(Math.max(dx, -150));
 	};
 	const onTouchEnd = () => {
-		if (offset < -threshold) setOffset(-120); else setOffset(0);
+		if (offset < -threshold) {
+			setOffset(-150);
+			setShowActions(true);
+		} else {
+			setOffset(0);
+			setShowActions(false);
+		}
 		startX.current = null;
 	};
 
 	const statusPill = () => {
 		switch (appointment.status) {
-			case 'confirmed': return <Badge className="capitalize bg-blue-100 text-blue-800 border-0">confirmed</Badge>;
+			case 'confirmed': return <Badge className="capitalize bg-blue-100 text-blue-800 border-0 px-3 py-1">confirmed</Badge>;
 			case 'pending':
-			case 'scheduled': return <Badge className="capitalize bg-yellow-100 text-yellow-800 border-0">pending</Badge>;
-			case 'cancelled': return <Badge className="capitalize bg-red-100 text-red-800 border-0">cancelled</Badge>;
-			case 'completed': return <Badge className="capitalize bg-green-100 text-green-800 border-0">completed</Badge>;
-			default: return <Badge variant="outline" className="capitalize">{appointment.status}</Badge>;
+			case 'scheduled': return <Badge className="capitalize bg-yellow-100 text-yellow-800 border-0 px-3 py-1">pending</Badge>;
+			case 'cancelled': return <Badge className="capitalize bg-red-100 text-red-800 border-0 px-3 py-1">cancelled</Badge>;
+			case 'completed': return <Badge className="capitalize bg-green-100 text-green-800 border-0 px-3 py-1">completed</Badge>;
+			default: return <Badge variant="outline" className="capitalize px-3 py-1">{appointment.status}</Badge>;
 		}
 	};
 
 	return (
-		<div className="relative overflow-hidden" onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
-			<div className="absolute right-0 top-0 bottom-0 flex items-center gap-2 pr-3">
-				<Button size="sm" onClick={onComplete}>Complete</Button>
-				<Button size="sm" variant="secondary" onClick={onReschedule}>Reschedule</Button>
-				<Button size="sm" variant="destructive" onClick={onCancel}>Cancel</Button>
+		<div className="relative overflow-hidden rounded-xl" onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
+			{/* Action buttons - improved spacing and visibility */}
+			<div className="absolute right-0 top-0 bottom-0 flex items-center gap-2 pr-3 bg-gradient-to-l from-background to-transparent">
+				<Button 
+					size="sm" 
+					onClick={onComplete}
+					className="h-10 px-3 rounded-lg shadow-md"
+				>
+					Complete
+				</Button>
+				<Button 
+					size="sm" 
+					variant="secondary" 
+					onClick={onReschedule}
+					className="h-10 px-3 rounded-lg shadow-md"
+				>
+					Reschedule
+				</Button>
+				<Button 
+					size="sm" 
+					variant="destructive" 
+					onClick={onCancel}
+					className="h-10 px-3 rounded-lg shadow-md"
+				>
+					Cancel
+				</Button>
 			</div>
-			<Card className="transition-transform" style={{ transform: `translateX(${offset}px)` }}>
-				<CardContent className="p-4" onClick={onOpenDetails}>
-					<div className="flex items-start justify-between">
-						<div className="text-sm">
-							<div className="font-semibold">{formatTime(appointment.appointment_date)} — {appointment.patient ? `${appointment.patient.first_name} ${appointment.patient.last_name}` : 'Patient'}</div>
-							<div className="text-muted-foreground">{appointment.reason || 'Visit'} • {dentistName}</div>
+			<Card 
+				className="transition-transform cursor-pointer hover:shadow-lg" 
+				style={{ transform: `translateX(${offset}px)` }}
+			>
+				<CardContent className="p-5" onClick={onOpenDetails}>
+					<div className="flex items-start justify-between gap-3">
+						<div className="flex-1 space-y-1">
+							<div className="font-semibold text-base">
+								{formatTime(appointment.appointment_date)} — {appointment.patient ? `${appointment.patient.first_name} ${appointment.patient.last_name}` : 'Patient'}
+							</div>
+							<div className="text-sm text-muted-foreground">
+								{appointment.reason || 'Visit'} • {dentistName}
+							</div>
 						</div>
-						{statusPill()}
+						<div className="flex-shrink-0">
+							{statusPill()}
+						</div>
+					</div>
+					{/* Add a visual indicator for swipe actions on mobile */}
+					<div className="mt-3 flex items-center justify-end lg:hidden">
+						<span className="text-xs text-muted-foreground flex items-center">
+							<ChevronLeft className="h-3 w-3 mr-1" />
+							Swipe for actions
+						</span>
+					</div>
+					{/* Desktop action buttons */}
+					<div className="hidden lg:flex gap-2 mt-4">
+						<Button 
+							size="sm" 
+							variant="outline"
+							onClick={(e) => {
+								e.stopPropagation();
+								onComplete();
+							}}
+							className="flex-1"
+						>
+							Complete
+						</Button>
+						<Button 
+							size="sm" 
+							variant="outline"
+							onClick={(e) => {
+								e.stopPropagation();
+								onReschedule();
+							}}
+							className="flex-1"
+						>
+							Reschedule
+						</Button>
+						<Button 
+							size="sm" 
+							variant="outline"
+							onClick={(e) => {
+								e.stopPropagation();
+								onCancel();
+							}}
+							className="flex-1 text-destructive hover:bg-destructive/10"
+						>
+							Cancel
+						</Button>
 					</div>
 				</CardContent>
 			</Card>

@@ -687,48 +687,74 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* Patient List */}
       <Card className="glass-card lg:col-span-1">
-        <CardHeader>
+        <CardHeader className="space-y-4">
           <CardTitle className="flex items-center space-x-2">
             <Users className="h-6 w-6 text-dental-primary" />
             <span>My Patients</span>
-            <Badge variant="outline">{patients.length} total</Badge>
+            <Badge variant="outline" className="ml-auto">{patients.length} total</Badge>
           </CardTitle>
-          <div className="space-y-2">
+          <div className="space-y-4">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
               <Input
                 placeholder="Search by name, ID, or phone"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                className="pl-10 h-12 text-base"
               />
             </div>
-            <div className="flex items-center gap-2 text-xs flex-wrap">
-              <label className="flex items-center gap-1 cursor-pointer">
-                <input type="checkbox" checked={filterUnpaid} onChange={(e) => setFilterUnpaid(e.target.checked)} />
-                Has unpaid balance
-              </label>
-              <label className="flex items-center gap-1 cursor-pointer">
-                <input type="checkbox" checked={filterUpcoming} onChange={(e) => setFilterUpcoming(e.target.checked)} />
-                Upcoming appointment
-              </label>
-              <label className="flex items-center gap-1 cursor-pointer">
-                <input type="checkbox" checked={filterActivePlan} onChange={(e) => setFilterActivePlan(e.target.checked)} />
-                Active treatment plan
-              </label>
-              <label className="flex items-center gap-1 cursor-pointer">
-                <input type="checkbox" checked={filterFrequentCancels} onChange={(e) => setFilterFrequentCancels(e.target.checked)} />
-                Frequent cancellations
-              </label>
-              <label className="flex items-center gap-1 cursor-pointer">
-                <input type="checkbox" checked={filterFollowUpsDue} onChange={(e) => setFilterFollowUpsDue(e.target.checked)} />
-                Follow-ups due today
-              </label>
+            {/* Improved filter buttons for mobile and desktop */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <Button
+                variant={filterUnpaid ? "default" : "outline"}
+                size="sm"
+                onClick={() => setFilterUnpaid(!filterUnpaid)}
+                className="h-10 justify-start px-3 rounded-lg"
+              >
+                <CreditCard className="h-4 w-4 mr-2" />
+                <span className="text-xs">Has unpaid balance</span>
+              </Button>
+              <Button
+                variant={filterUpcoming ? "default" : "outline"}
+                size="sm"
+                onClick={() => setFilterUpcoming(!filterUpcoming)}
+                className="h-10 justify-start px-3 rounded-lg"
+              >
+                <Calendar className="h-4 w-4 mr-2" />
+                <span className="text-xs">Upcoming appointment</span>
+              </Button>
+              <Button
+                variant={filterActivePlan ? "default" : "outline"}
+                size="sm"
+                onClick={() => setFilterActivePlan(!filterActivePlan)}
+                className="h-10 justify-start px-3 rounded-lg"
+              >
+                <ClipboardList className="h-4 w-4 mr-2" />
+                <span className="text-xs">Active treatment plan</span>
+              </Button>
+              <Button
+                variant={filterFrequentCancels ? "default" : "outline"}
+                size="sm"
+                onClick={() => setFilterFrequentCancels(!filterFrequentCancels)}
+                className="h-10 justify-start px-3 rounded-lg"
+              >
+                <AlertTriangle className="h-4 w-4 mr-2" />
+                <span className="text-xs">Frequent cancellations</span>
+              </Button>
+              <Button
+                variant={filterFollowUpsDue ? "default" : "outline"}
+                size="sm"
+                onClick={() => setFilterFollowUpsDue(!filterFollowUpsDue)}
+                className="h-10 justify-start px-3 rounded-lg sm:col-span-2"
+              >
+                <ClipboardList className="h-4 w-4 mr-2" />
+                <span className="text-xs">Follow-ups due today</span>
+              </Button>
             </div>
           </div>
         </CardHeader>
         <CardContent className="p-0">
-          <div className="max-h-96 overflow-y-auto">
+          <div className="max-h-[500px] overflow-y-auto">
             {filteredPatients.map((patient) => (
               <div
                 key={patient.id}
@@ -738,38 +764,44 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
                 onClick={() => setSelectedPatient(patient)}
               >
                 <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-dental-primary/10 rounded-full flex items-center justify-center">
-                    <User className="h-5 w-5 text-dental-primary" />
+                  <div className="w-12 h-12 bg-dental-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
+                    <User className="h-6 w-6 text-dental-primary" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <p className="font-medium truncate">
                         {patient.first_name} {patient.last_name}
                       </p>
                       {/* Medical alerts */}
                       {patient.medical_history && patient.medical_history.toLowerCase().includes('allerg') && (
-                        <Badge variant="destructive" className="text-[10px]">Allergies</Badge>
+                        <Badge variant="destructive" className="text-[10px] px-2 py-0.5">Allergies</Badge>
                       )}
                       {/* Mutuality badge placeholder */}
-                      <Badge variant="secondary" className="text-[10px]">No mutuality</Badge>
+                      <Badge variant="secondary" className="text-[10px] px-2 py-0.5">No mutuality</Badge>
                     </div>
-                    <div className="flex items-center gap-3 text-xs text-muted-foreground truncate">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground truncate mt-1">
                       <span>{patient.phone || 'No phone'}</span>
-                      <span>Last visit: {patientFlags[patient.id]?.lastVisitDate ? format(new Date(patientFlags[patient.id]!.lastVisitDate as string), 'PPP') : '—'}</span>
+                      {patientFlags[patient.id]?.lastVisitDate && (
+                        <span>• Last: {format(new Date(patientFlags[patient.id]!.lastVisitDate as string), 'PP')}</span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 flex-wrap mt-2">
                       {patientFlags[patient.id]?.hasUpcomingAppointment && (
-                        <Badge variant="outline" className="text-[10px]">Upcoming</Badge>
+                        <Badge variant="outline" className="text-[10px] px-2 py-0.5">Upcoming</Badge>
                       )}
                       {patientFlags[patient.id]?.hasActiveTreatmentPlan && (
-                        <Badge variant="outline" className="text-[10px]">Active Plan</Badge>
+                        <Badge variant="outline" className="text-[10px] px-2 py-0.5">Active Plan</Badge>
                       )}
                       {patientFlags[patient.id]?.hasUnpaidBalance && (
-                        <Badge variant="destructive" className="text-[10px]">Unpaid {patientFlags[patient.id]?.outstandingCents ? `€${(patientFlags[patient.id]!.outstandingCents!/100).toFixed(2)}` : ''}</Badge>
+                        <Badge variant="destructive" className="text-[10px] px-2 py-0.5">
+                          Unpaid {patientFlags[patient.id]?.outstandingCents ? `€${(patientFlags[patient.id]!.outstandingCents!/100).toFixed(2)}` : ''}
+                        </Badge>
                       )}
                       {(patientFlags[patient.id]?.cancellationsCount || 0) >= 2 && (
-                        <Badge variant="outline" className="text-[10px]">Frequent cancels</Badge>
+                        <Badge variant="outline" className="text-[10px] px-2 py-0.5">Frequent cancels</Badge>
                       )}
                       {(patientFlags[patient.id]?.followUpsDueToday || 0) > 0 && (
-                        <Badge variant="secondary" className="text-[10px]">Follow-ups due</Badge>
+                        <Badge variant="secondary" className="text-[10px] px-2 py-0.5">Follow-ups due</Badge>
                       )}
                     </div>
                   </div>
@@ -1108,51 +1140,72 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
                     <p className="text-sm bg-muted p-3 rounded-md">{selectedPatient.medical_history}</p>
                   </div>
                 )}
-                {/* Quick actions for booking and payment */}
-                <div className="mt-4 flex flex-wrap gap-2">
-                  <SimpleAppointmentBooking dentistId={dentistId} patientId={selectedPatient.id} patientName={`${selectedPatient.first_name} ${selectedPatient.last_name}`} onSuccess={() => fetchPatientData(selectedPatient.id)} />
-                  <Button size="sm" variant="outline" onClick={() => setShowPaymentDialog(true)}>
-                    <CreditCard className="h-4 w-4 mr-1" /> Create Payment Request
-                  </Button>
+                {/* Quick actions for booking and payment - Improved layout */}
+                <div className="mt-4 pt-4 border-t">
+                  <h4 className="font-medium text-sm mb-3">Quick Actions</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <SimpleAppointmentBooking 
+                      dentistId={dentistId} 
+                      patientId={selectedPatient.id} 
+                      patientName={`${selectedPatient.first_name} ${selectedPatient.last_name}`} 
+                      onSuccess={() => fetchPatientData(selectedPatient.id)} 
+                    />
+                    <Button 
+                      size="lg" 
+                      variant="outline" 
+                      onClick={() => setShowPaymentDialog(true)}
+                      className="h-12 rounded-xl"
+                    >
+                      <CreditCard className="h-5 w-5 mr-2" /> 
+                      Create Payment Request
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Recent Appointments */}
+            {/* Recent Appointments - Improved button layout */}
             <Card className="glass-card">
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <Calendar className="h-5 w-5 text-dental-primary" />
                   <span>Recent Appointments</span>
-                  <Badge variant="outline">{appointments.length}</Badge>
+                  <Badge variant="outline" className="ml-auto">{appointments.length}</Badge>
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 {appointments.length > 0 ? (
                   <div className="space-y-3">
                     {appointments.slice(0, 3).map((appointment) => (
-                      <div key={appointment.id} className="p-3 border rounded-lg">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <p className="font-medium">
+                      <div key={appointment.id} className="p-4 border rounded-xl hover:shadow-md transition-all">
+                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
+                          <div className="flex-1">
+                            <p className="font-medium text-base">
                               {format(new Date(appointment.appointment_date), 'PPP p')}
                             </p>
-                            <p className="text-sm text-muted-foreground">{appointment.reason}</p>
+                            <p className="text-sm text-muted-foreground mt-1">{appointment.reason}</p>
                             {appointment.consultation_notes && (
-                              <p className="text-sm mt-2 bg-muted p-2 rounded">
+                              <p className="text-sm mt-2 bg-muted p-3 rounded-lg">
                                 {appointment.consultation_notes}
                               </p>
                             )}
                           </div>
-                          <div className="flex space-x-2 items-center">
-                            <Badge className={getStatusColor(appointment.status)}>
+                          <div className="flex flex-wrap gap-2 items-center">
+                            <Badge className={`${getStatusColor(appointment.status)} px-3 py-1`}>
                               {appointment.status}
                             </Badge>
-                            <Badge variant="outline">
+                            <Badge variant="outline" className="px-3 py-1">
                               {appointment.urgency}
                             </Badge>
                             {appointment.status !== 'completed' && (
-                              <Button size="sm" onClick={() => { setCompletionAppointment(appointment); setShowCompletion(true); }}>
+                              <Button 
+                                size="sm" 
+                                onClick={() => { 
+                                  setCompletionAppointment(appointment); 
+                                  setShowCompletion(true); 
+                                }}
+                                className="h-9 px-4 rounded-lg"
+                              >
                                 Complete
                               </Button>
                             )}
@@ -1162,9 +1215,12 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-muted-foreground text-center py-4">
-                    No appointments found
-                  </p>
+                  <div className="text-center py-8">
+                    <Calendar className="h-12 w-12 mx-auto mb-3 text-muted-foreground" />
+                    <p className="text-muted-foreground">
+                      No appointments found
+                    </p>
+                  </div>
                 )}
               </CardContent>
             </Card>
