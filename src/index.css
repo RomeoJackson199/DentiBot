@@ -482,15 +482,54 @@
 
   /* Touch-Friendly Interactive Elements */
   .touch-target {
-    @apply min-h-touch min-w-touch;
+    @apply min-h-[44px] min-w-[44px];
   }
 
   .touch-button {
-    @apply min-h-touch min-w-touch flex items-center justify-center px-4 py-3 rounded-lg transition-all duration-200;
+    @apply min-h-[44px] min-w-[44px] flex items-center justify-center px-4 py-3 rounded-lg transition-all duration-200;
   }
 
   .touch-button:active {
     @apply scale-95;
+  }
+
+  /* Enhanced touch feedback */
+  .touch-feedback {
+    @apply transition-all duration-150 active:scale-95 active:bg-primary/10;
+  }
+
+  .touch-feedback:active {
+    transform: scale(0.98);
+  }
+
+  /* Mobile-optimized button sizes */
+  .mobile-button-sm {
+    @apply h-10 px-4 text-sm;
+  }
+
+  .mobile-button-md {
+    @apply h-12 px-6 text-base;
+  }
+
+  .mobile-button-lg {
+    @apply h-14 px-8 text-lg;
+  }
+
+  /* Safe area utilities */
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .safe-left {
+    padding-left: env(safe-area-inset-left);
+  }
+
+  .safe-right {
+    padding-right: env(safe-area-inset-right);
   }
 
   /* Mobile-Optimized Cards */

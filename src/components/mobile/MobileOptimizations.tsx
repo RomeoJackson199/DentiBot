@@ -22,9 +22,20 @@ export function MobileOptimizations() {
       style.textContent = `
         /* Mobile-optimized touch targets */
         button, a, [role="button"] {
-          min-height: 44px;
-          min-width: 44px;
+          min-height: 48px;
+          min-width: 48px;
           touch-action: manipulation;
+        }
+        
+        /* Enhanced button spacing */
+        .button-group {
+          gap: 12px;
+        }
+        
+        /* Mobile-friendly form elements */
+        input, textarea, select {
+          min-height: 48px;
+          padding: 12px 16px;
         }
         
         /* Smooth scrolling */
@@ -52,9 +63,20 @@ export function MobileOptimizations() {
         
         /* Mobile card spacing */
         .mobile-card {
-          margin: 0.75rem;
+          margin: 1rem;
           border-radius: 16px;
           box-shadow: 0 4px 20px -4px rgba(0,0,0,0.1);
+        }
+        
+        /* Enhanced spacing for mobile */
+        .mobile-spacing {
+          gap: 16px;
+          padding: 16px;
+        }
+        
+        .mobile-spacing-lg {
+          gap: 24px;
+          padding: 24px;
         }
         
         /* Mobile navigation */
