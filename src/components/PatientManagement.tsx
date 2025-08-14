@@ -42,6 +42,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger
 } from "@/components/ui/alert-dialog";
+import { AppointmentCompletionModal } from "@/components/mobile/AppointmentCompletionModal";
 
 interface Patient {
   id: string;
@@ -114,6 +115,10 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
   const [treatmentPlans, setTreatmentPlans] = useState<TreatmentPlan[]>([]);
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
   const [notes, setNotes] = useState<PatientNote[]>([]);
+  const [latestOutcome, setLatestOutcome] = useState<any[]>([]);
+  const [treatmentsByAppointment, setTreatmentsByAppointment] = useState<Record<string, any[]>>({});
+  const [showCompletion, setShowCompletion] = useState(false);
+  const [lastAppointment, setLastAppointment] = useState<Appointment | null>(null);
   
   // New filters
   const [filterUnpaid, setFilterUnpaid] = useState(false);
@@ -170,6 +175,7 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
   });
   
   const { toast } = useToast();
+  const sb: any = supabase;
 
   useEffect(() => {
     fetchPatients();
@@ -178,6 +184,7 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
   useEffect(() => {
     if (selectedPatient) {
       fetchPatientData(selectedPatient.id);
+      fetchPatientOutcomes(selectedPatient.id);
     }
   }, [selectedPatient, dentistId]);
 
@@ -238,6 +245,7 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
 
       if (appointmentsError) throw appointmentsError;
       setAppointments(appointmentsData || []);
+      setLastAppointment((appointmentsData || []).find(a => a.status !== 'cancelled') || null);
 
       // Fetch treatment plans
       const { data: treatmentData, error: treatmentError } = await supabase
@@ -309,6 +317,32 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
         description: error instanceof Error ? error.message : "Failed to fetch patient data",
         variant: "destructive",
       });
+    }
+  };
+
+  const fetchPatientOutcomes = async (patientId: string) => {
+    const { data } = await sb
+      .from('appointment_outcomes')
+      .select('*, appointments!inner(appointment_date, id)')
+      .eq('appointments.patient_id', patientId)
+      .order('created_at', { ascending: false })
+      .limit(5);
+    setLatestOutcome(data || []);
+
+    const appointmentIds = (data || []).map((o: any) => o.appointments.id);
+    if (appointmentIds.length > 0) {
+      const { data: treatments } = await sb
+        .from('appointment_treatments')
+        .select('*')
+        .in('appointment_id', appointmentIds);
+      const grouped: Record<string, any[]> = {};
+      (treatments || []).forEach((t: any) => {
+        if (!grouped[t.appointment_id]) grouped[t.appointment_id] = [];
+        grouped[t.appointment_id].push(t);
+      });
+      setTreatmentsByAppointment(grouped);
+    } else {
+      setTreatmentsByAppointment({});
     }
   };
 
@@ -1317,7 +1351,79 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
                   </AccordionContent>
                 </Card>
               </AccordionItem>
+
+              <AccordionItem value="outcomes">
+                <Card className="glass-card">
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <ClipboardList className="h-5 w-5 text-dental-primary" />
+                        <span>Appointment Outcomes</span>
+                        <Badge variant="outline">{latestOutcome.length}</Badge>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {lastAppointment && Math.abs(new Date(lastAppointment.appointment_date).getTime() - Date.now()) < 24*60*60*1000 && (
+                          <Button size="sm" onClick={() => setShowCompletion(true)}>Complete Last Appointment</Button>
+                        )}
+                        <AccordionTrigger className="py-0" />
+                      </div>
+                    </CardTitle>
+                  </CardHeader>
+                  <AccordionContent>
+                    <CardContent>
+                      {latestOutcome.length > 0 ? (
+                        <div className="space-y-3">
+                          {latestOutcome.map((o: any) => (
+                            <div key={o.id} className="p-3 border rounded-lg">
+                              <div className="flex justify-between items-start">
+                                <div>
+                                  <div className="flex items-center gap-2">
+                                    <Badge className="capitalize">{o.outcome}</Badge>
+                                    <span className="text-xs text-muted-foreground">{new Date(o.appointments.appointment_date).toLocaleString()}</span>
+                                  </div>
+                                  {o.notes && (
+                                    <p className="text-sm mt-2 bg-muted p-2 rounded">{o.notes}</p>
+                                  )}
+                                  {treatmentsByAppointment[o.appointments.id] && (
+                                    <div className="mt-2 text-xs">
+                                      <div className="font-medium mb-1">Performed treatments</div>
+                                      <div className="space-y-1">
+                                        {treatmentsByAppointment[o.appointments.id].map((t) => (
+                                          <div key={t.id} className="flex justify-between">
+                                            <span>{t.code} x{t.quantity}</span>
+                                            <span>Patient €{(t.patient_share * t.quantity).toFixed(2)}</span>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-muted-foreground text-center py-4">No outcomes recorded</p>
+                      )}
+                    </CardContent>
+                  </AccordionContent>
+                </Card>
+              </AccordionItem>
             </Accordion>
+
+            {lastAppointment && (
+              <AppointmentCompletionModal
+                open={showCompletion}
+                onOpenChange={setShowCompletion}
+                appointment={{...lastAppointment, dentist_id: dentistId, patient_id: selectedPatient.id}}
+                dentistId={dentistId}
+                onCompleted={() => {
+                  setShowCompletion(false);
+                  fetchPatientData(selectedPatient.id);
+                  fetchPatientOutcomes(selectedPatient.id);
+                }}
+              />
+            )}
 
             {/* Floating Action Button (FAB) */}
             <div className="fixed bottom-6 right-6 z-50">

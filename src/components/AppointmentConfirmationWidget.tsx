@@ -49,6 +49,7 @@ interface AppointmentConfirmationWidgetProps {
   onEdit?: () => void;
   onDelete?: () => void;
   onViewDetails?: () => void;
+  onComplete?: () => void;
   isDentistView?: boolean;
   showActions?: boolean;
   className?: string;
@@ -61,6 +62,7 @@ export function AppointmentConfirmationWidget({
   onEdit,
   onDelete,
   onViewDetails,
+  onComplete,
   isDentistView = false,
   showActions = true,
   className = ""
@@ -359,6 +361,17 @@ export function AppointmentConfirmationWidget({
               >
                 <XCircle className="h-4 w-4" />
                 <span>{isLoading ? "Cancelling..." : "Cancel"}</span>
+              </Button>
+            )}
+
+            {isDentistView && appointment.status !== 'completed' && (
+              <Button
+                size="sm"
+                onClick={onComplete}
+                className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700"
+              >
+                <CheckCircle className="h-4 w-4" />
+                <span>Complete</span>
               </Button>
             )}
 

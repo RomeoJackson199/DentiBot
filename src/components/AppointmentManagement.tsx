@@ -33,6 +33,7 @@ import {
 import { format } from "date-fns";
 import { generateSymptomSummary } from "@/lib/symptoms";
 import { AIConversationDialog } from "@/components/AIConversationDialog";
+import { AppointmentCompletionModal } from "@/components/mobile/AppointmentCompletionModal";
 
 interface Appointment {
   id: string;
@@ -69,6 +70,7 @@ export function AppointmentManagement({ dentistId }: AppointmentManagementProps)
   const [showNewAppointment, setShowNewAppointment] = useState(false);
   const [editingNotes, setEditingNotes] = useState<string | null>(null);
   const [consultationNotes, setConsultationNotes] = useState("");
+  const [showCompletion, setShowCompletion] = useState(false);
   const { toast } = useToast();
 
   const fetchAppointments = useCallback(async () => {
@@ -407,11 +409,33 @@ export function AppointmentManagement({ dentistId }: AppointmentManagementProps)
               onViewDetails={() => {
                 setSelectedAppointment(appointment);
               }}
+              onComplete={() => {
+                setSelectedAppointment(appointment);
+                setShowCompletion(true);
+              }}
               className="mb-4"
             />
           ))
         )}
       </div>
+      {selectedAppointment && (
+        <AppointmentCompletionModal
+          open={showCompletion}
+          onOpenChange={setShowCompletion}
+          appointment={{
+            id: selectedAppointment.id,
+            patient_id: selectedAppointment.patient_id,
+            dentist_id: dentistId,
+            appointment_date: selectedAppointment.appointment_date,
+            status: selectedAppointment.status
+          }}
+          dentistId={dentistId}
+          onCompleted={() => {
+            setShowCompletion(false);
+            fetchAppointments();
+          }}
+        />
+      )}
     </div>
   );
 }
