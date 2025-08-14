@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,11 +12,27 @@ import {
   DollarSign,
   AlertTriangle,
   CheckCircle,
-  Star
+  Star,
+  Mail,
+  Share2,
+  Download,
+  Filter,
+  UserX
 } from "lucide-react";
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as DateRangeCalendar } from "@/components/ui/calendar";
+import type { DateRange } from "react-day-picker";
+import { format, subMonths, startOfWeek, endOfWeek, startOfMonth, endOfMonth, getHours, getDay, eachDayOfInterval } from "date-fns";
+import { ResponsiveContainer, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Bar, LineChart, Line, PieChart, Pie, Legend, Cell } from "recharts";
+import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from "@/components/ui/carousel";
 
 interface DentistAnalyticsProps {
   dentistId: string;
+  onOpenPatientsTab?: () => void;
+  onOpenClinicalTab?: () => void;
+  onOpenPaymentsTab?: () => void;
 }
 
 interface AnalyticsData {
@@ -34,353 +50,666 @@ interface AnalyticsData {
   patientRetention: number;
 }
 
-export const DentistAnalytics = ({ dentistId }: DentistAnalyticsProps) => {
-  const [analytics, setAnalytics] = useState<AnalyticsData>({
-    dailyRevenue: 0,
-    weeklyRevenue: 0,
-    monthlyRevenue: 0,
-    appointmentsToday: 0,
-    appointmentsWeek: 0,
-    patientsTotal: 0,
-    averageRating: 0,
-    noShowRate: 0,
-    utilizationRate: 0,
-    emergencyAppointments: 0,
-    revenueGrowth: 0,
-    patientRetention: 0
-  });
+export const DentistAnalytics = ({ dentistId, onOpenPatientsTab, onOpenClinicalTab, onOpenPaymentsTab }: DentistAnalyticsProps) => {
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchAnalytics();
-  }, [dentistId]);
+  // Filters
+  const [range, setRange] = useState<"today" | "week" | "month" | "last_month" | "custom">("month");
+  const [customRange, setCustomRange] = useState<DateRange | undefined>();
+  const [selectedTreatment, setSelectedTreatment] = useState<string>("all");
 
-  const fetchAnalytics = async () => {
-    try {
-      setLoading(true);
-      
-      // Simulate API calls - in real app, these would be actual database queries
-      const today = new Date();
-      const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
-      const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+  // Data sets
+  const [appointments, setAppointments] = useState<any[]>([]);
+  const [payments, setPayments] = useState<any[]>([]);
+  const [treatmentPlans, setTreatmentPlans] = useState<any[]>([]);
 
-      // Get appointments data
-      const { data: appointments } = await supabase
-        .from('appointments')
-        .select('*')
-        .eq('dentist_id', dentistId);
+  // Insights
+  const [insights, setInsights] = useState<string[]>([]);
+  const [highNoShowPatients, setHighNoShowPatients] = useState<Array<{ id: string; name: string; count: number }>>([]);
+  const [followUpsCount, setFollowUpsCount] = useState<number>(0);
+  const [revenueOpportunities, setRevenueOpportunities] = useState<Array<{ id: string; name: string; reason: string }>>([]);
 
-      // Get ratings data
-      const { data: ratings } = await supabase
-        .from('dentist_ratings')
-        .select('rating')
-        .eq('dentist_id', dentistId);
+  // Helpers
+  const formatCurrencyEuro = (cents: number) => `€${(cents / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-      // Calculate metrics
-      const todayAppointments = appointments?.filter(apt => 
-        new Date(apt.appointment_date).toDateString() === today.toDateString()
-      ).length || 0;
+  const rangeLabel = (r: typeof range) => r === 'today' ? 'Today' : r === 'week' ? 'This Week' : r === 'month' ? 'This Month' : r === 'last_month' ? 'Last Month' : 'Custom';
 
-      const weekAppointments = appointments?.filter(apt => 
-        new Date(apt.appointment_date) >= weekAgo
-      ).length || 0;
-
-      const emergencyCount = appointments?.filter(apt => 
-        apt.urgency === 'emergency' || apt.urgency === 'high'
-      ).length || 0;
-
-      const avgRating = ratings?.length ? 
-        ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length : 0;
-
-      // Calculate real metrics based on actual data
-      const uniquePatients = new Set(appointments?.map(apt => apt.patient_id)).size;
-      const completedAppointments = appointments?.filter(apt => apt.status === 'completed').length || 0;
-      const noShowAppointments = appointments?.filter(apt => apt.status === 'cancelled').length || 0;
-      const totalAppointments = appointments?.length || 0;
-      const noShowRate = totalAppointments > 0 ? Math.round((noShowAppointments / totalAppointments) * 100) : 0;
-      
-      // Calculate estimated revenue (€80 per completed appointment)
-      const avgAppointmentRevenue = 80;
-      const todayRevenue = todayAppointments * avgAppointmentRevenue;
-      const weekRevenue = weekAppointments * avgAppointmentRevenue;
-      const monthRevenue = completedAppointments * avgAppointmentRevenue;
-      
-      setAnalytics({
-        dailyRevenue: todayRevenue,
-        weeklyRevenue: weekRevenue,
-        monthlyRevenue: monthRevenue,
-        appointmentsToday: todayAppointments,
-        appointmentsWeek: weekAppointments,
-        patientsTotal: uniquePatients,
-        averageRating: avgRating,
-        noShowRate: noShowRate,
-        utilizationRate: Math.round((completedAppointments / Math.max(totalAppointments, 1)) * 100),
-        emergencyAppointments: emergencyCount,
-        revenueGrowth: Math.max(0, Math.round(((weekRevenue - monthRevenue/4) / Math.max(monthRevenue/4, 1)) * 100)),
-        patientRetention: Math.round((uniquePatients / Math.max(totalAppointments, 1)) * 100)
-      });
-
-    } catch (error) {
-      console.error('Error fetching analytics:', error);
-    } finally {
-      setLoading(false);
+  const getRangeDates = (r: typeof range, custom?: DateRange) => {
+    const now = new Date();
+    if (r === 'today') {
+      const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+      const end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+      return { start, end };
     }
+    if (r === 'week') {
+      const start = startOfWeek(now, { weekStartsOn: 1 });
+      const end = endOfWeek(now, { weekStartsOn: 1 });
+      return { start, end };
+    }
+    if (r === 'last_month') {
+      const start = startOfMonth(subMonths(now, 1));
+      const end = endOfMonth(subMonths(now, 1));
+      return { start, end };
+    }
+    if (r === 'custom' && custom?.from) {
+      const start = new Date(custom.from.setHours(0, 0, 0, 0));
+      const endDate = custom.to || custom.from;
+      const end = new Date(new Date(endDate).setHours(23, 59, 59, 999));
+      return { start, end };
+    }
+    const start = startOfMonth(now);
+    const end = endOfMonth(now);
+    return { start, end };
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(amount);
+  const buildCSV = (rows: Array<Record<string, any>>) => {
+    if (!rows.length) return '';
+    const headers = Object.keys(rows[0]);
+    const escape = (val: any) => {
+      if (val == null) return '';
+      const s = String(val).replace(/"/g, '""');
+      return /[",
+]/.test(s) ? `"${s}"` : s;
+    };
+    const lines = [headers.join(',')].concat(rows.map(r => headers.map(h => escape(r[h])).join(',')));
+    return lines.join('\n');
   };
 
-  const getPerformanceColor = (value: number, benchmark: number, inverse = false) => {
-    const isGood = inverse ? value < benchmark : value > benchmark;
-    return isGood ? 'text-green-600' : 'text-red-600';
+  const downloadCSV = (name: string, rows: Array<Record<string, any>>) => {
+    const csv = buildCSV(rows);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${name}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
-  const getTrendIcon = (value: number, benchmark: number, inverse = false) => {
-    const isGood = inverse ? value < benchmark : value > benchmark;
-    return isGood ? TrendingUp : TrendingDown;
+  const { start, end } = useMemo(() => getRangeDates(range, customRange), [range, customRange?.from, customRange?.to]);
+
+  useEffect(() => {
+    const fetchAll = async () => {
+      setLoading(true);
+      try {
+        // Appointments in range for this dentist
+        const { data: appts } = await supabase
+          .from('appointments')
+          .select('id, appointment_date, status, patient_id, reason, dentist_id')
+          .eq('dentist_id', dentistId)
+          .gte('appointment_date', start.toISOString())
+          .lte('appointment_date', end.toISOString());
+
+        // Payment requests in range for this dentist
+        const { data: pay } = await supabase
+          .from('payment_requests')
+          .select('id, amount, status, paid_at, created_at, patient_id, dentist_id')
+          .eq('dentist_id', dentistId)
+          .gte('created_at', start.toISOString())
+          .lte('created_at', end.toISOString());
+
+        // Treatment plans for follow-ups/opportunities (not strictly time-bound)
+        const { data: plans } = await supabase
+          .from('treatment_plans')
+          .select('id, patient_id, status, estimated_cost, title, start_date, end_date')
+          .eq('dentist_id', dentistId);
+
+        setAppointments(appts || []);
+        setPayments(pay || []);
+        setTreatmentPlans(plans || []);
+
+        // Build insights (respect treatment filter)
+        const apptsBase = (appts || []);
+        const apptsFiltered = selectedTreatment === 'all' ? apptsBase : apptsBase.filter(a => (a.reason || 'Other').trim() === selectedTreatment);
+        const completed = apptsFiltered.filter(a => a.status === 'completed');
+        const byHour: Record<number, number> = {};
+        const byDow: Record<number, number> = {};
+        for (const a of completed) {
+          const d = new Date(a.appointment_date);
+          const hour = getHours(d);
+          byHour[hour] = (byHour[hour] || 0) + 1;
+          const dow = getDay(d);
+          byDow[dow] = (byDow[dow] || 0) + 1;
+        }
+        const topHour = Object.entries(byHour).sort((a, b) => Number(b[1]) - Number(a[1]))[0]?.[0];
+        const peakStart = topHour ? parseInt(topHour, 10) : 10;
+        const peakEnd = peakStart + 2;
+        const topDow = Object.entries(byDow).sort((a,b) => Number(b[1]) - Number(a[1]))[0]?.[0];
+        const dowLabel = topDow != null ? ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][Number(topDow)] : 'Weekdays';
+
+        const cancelled = apptsFiltered.filter(a => a.status === 'cancelled');
+        const noShowByPatient: Record<string, number> = {};
+        for (const a of cancelled) noShowByPatient[a.patient_id] = (noShowByPatient[a.patient_id] || 0) + 1;
+        const highNoShowEntries = Object.entries(noShowByPatient).filter(([, c]) => Number(c) >= 2);
+
+        // Enrich patient names for high no-show list
+        const ids = highNoShowEntries.map(([id]) => id);
+        let enriched: Array<{ id: string; name: string; count: number }> = [];
+        if (ids.length) {
+          const { data: profs } = await supabase.from('profiles').select('id, first_name, last_name').in('id', ids);
+          const nameMap = new Map((profs || []).map(p => [p.id, `${p.first_name} ${p.last_name}`.trim()]));
+          enriched = highNoShowEntries.map(([id, count]) => ({ id, name: nameMap.get(id) || id, count: count as number }));
+        }
+
+        const followUps = (plans || []).filter(p => (p.status || '').toLowerCase() !== 'completed').length;
+        const unpaid = (pay || []).filter(p => p.status !== 'paid').length;
+
+        const newInsights: string[] = [];
+        newInsights.push(`Most appointments happen between ${peakStart}:00–${peakEnd}:00 on ${dowLabel}.`);
+        if (enriched.length > 0) newInsights.push(`${enriched.length} high no-show patients flagged.`);
+        if (followUps > 0) newInsights.push(`${followUps} patients are due for follow-ups.`);
+        if (unpaid > 0) newInsights.push(`${unpaid} unpaid invoices — follow up to capture revenue.`);
+        setInsights(newInsights);
+        setHighNoShowPatients(enriched.slice(0, 5));
+        setFollowUpsCount(followUps);
+        setRevenueOpportunities((plans || []).filter(p => (p.status || '').toLowerCase() !== 'completed').slice(0, 5).map(p => ({ id: p.id, name: p.patient_id, reason: p.title || 'Treatment plan' })));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAll();
+  }, [dentistId, start.getTime(), end.getTime(), selectedTreatment]);
+
+  // Derived metrics
+  const revenueCents = useMemo(() => payments.filter(p => p.status === 'paid').reduce((sum, p) => sum + (p.amount || 0), 0), [payments]);
+  const completedAppointments = useMemo(() => appointments.filter(a => a.status === 'completed'), [appointments]);
+  const cancelledAppointments = useMemo(() => appointments.filter(a => a.status === 'cancelled'), [appointments]);
+
+  // Retention calculation: patients in current period with a prior visit within 6 months before start
+  const [retentionRate, setRetentionRate] = useState<number>(0);
+  useEffect(() => {
+    const calcRetention = async () => {
+      const currentPatients = Array.from(new Set(completedAppointments.map(a => a.patient_id)));
+      if (!currentPatients.length) { setRetentionRate(0); return; }
+      const sixMonthsAgo = subMonths(start, 6);
+      // Chunk IN query if many patients
+      const chunkSize = 50;
+      let priorCount = 0;
+      for (let i = 0; i < currentPatients.length; i += chunkSize) {
+        const chunk = currentPatients.slice(i, i + chunkSize);
+        const { data: prior } = await supabase
+          .from('appointments')
+          .select('id, patient_id, appointment_date')
+          .eq('dentist_id', dentistId)
+          .in('patient_id', chunk)
+          .gte('appointment_date', sixMonthsAgo.toISOString())
+          .lt('appointment_date', start.toISOString());
+        const priorIds = new Set((prior || []).map(p => p.patient_id));
+        priorCount += chunk.filter(pid => priorIds.has(pid)).length;
+      }
+      setRetentionRate(Math.round((priorCount / currentPatients.length) * 100));
+    };
+    calcRetention();
+  }, [dentistId, completedAppointments.length, start.getTime()]);
+
+  // Outstanding payments
+  const outstanding = useMemo(() => {
+    const pending = payments.filter(p => p.status !== 'paid');
+    const totalCents = pending.reduce((sum, p) => sum + (p.amount || 0), 0);
+    const numPatients = new Set(pending.map(p => p.patient_id)).size;
+    return { totalCents, numPatients };
+  }, [payments]);
+
+  // Treatment list derived from appointments reasons
+  const availableTreatments = useMemo(() => {
+    const reasons = Array.from(new Set(appointments.map(a => (a.reason || 'Other').trim())));
+    return reasons.filter(Boolean);
+  }, [appointments]);
+
+  const filteredAppointments = useMemo(() => {
+    if (selectedTreatment === 'all') return appointments;
+    return appointments.filter(a => (a.reason || 'Other').trim() === selectedTreatment);
+  }, [appointments, selectedTreatment]);
+
+  // Trends
+  const dayKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+
+  const revenueTrend = useMemo(() => {
+    const map: Record<string, number> = {};
+    for (const p of payments) {
+      if (p.status !== 'paid') continue;
+      const d = new Date(p.paid_at || p.created_at);
+      if (d < start || d > end) continue;
+      const key = dayKey(d);
+      map[key] = (map[key] || 0) + (p.amount || 0);
+    }
+    const days = eachDayOfInterval({ start, end });
+    return days.map(d => ({ date: format(d, 'MMM d'), value: Math.round((map[dayKey(d)] || 0) / 100) }));
+  }, [payments, start.getTime(), end.getTime()]);
+
+  const appointmentsTrend = useMemo(() => {
+    const map: Record<string, number> = {};
+    for (const a of completedAppointments) {
+      const d = new Date(a.appointment_date);
+      const key = dayKey(d);
+      map[key] = (map[key] || 0) + 1;
+    }
+    const days = eachDayOfInterval({ start, end });
+    return days.map(d => ({ date: format(d, 'MMM d'), value: map[dayKey(d)] || 0 }));
+  }, [completedAppointments, start.getTime(), end.getTime()]);
+
+  const treatmentPopularity = useMemo(() => {
+    const map: Record<string, number> = {};
+    for (const a of completedAppointments) {
+      const key = (a.reason || 'Other').trim();
+      map[key] = (map[key] || 0) + 1;
+    }
+    const entries = Object.entries(map).sort((a,b) => b[1]-a[1]);
+    return entries.map(([name, count]) => ({ name, value: count }));
+  }, [completedAppointments]);
+
+  const retentionVsNew = useMemo(() => {
+    const total = completedAppointments.length;
+    const repeat = Math.round((retentionRate / 100) * (new Set(completedAppointments.map(a => a.patient_id)).size));
+    const firstTime = Math.max(0, total - repeat);
+    return [
+      { name: 'Repeat', value: repeat },
+      { name: 'New', value: firstTime }
+    ];
+  }, [completedAppointments.length, retentionRate]);
+
+  const noShowHeatmap = useMemo(() => {
+    // Build day(0-6) x hour(8..18)
+    const grid: { day: number; hour: number; value: number }[] = [];
+    const counts: Record<string, number> = {};
+    for (const a of cancelledAppointments) {
+      const d = new Date(a.appointment_date);
+      const key = `${getDay(d)}-${getHours(d)}`;
+      counts[key] = (counts[key] || 0) + 1;
+    }
+    for (let day = 0; day < 7; day++) {
+      for (let hour = 8; hour <= 18; hour++) {
+        const key = `${day}-${hour}`;
+        grid.push({ day, hour, value: counts[key] || 0 });
+      }
+    }
+    const max = grid.reduce((m, g) => Math.max(m, g.value), 0) || 1;
+    return { grid, max };
+  }, [cancelledAppointments.length]);
+
+  // Deltas vs previous period
+  const [deltaRevenuePct, setDeltaRevenuePct] = useState<number>(0);
+  const [deltaApptsPct, setDeltaApptsPct] = useState<number>(0);
+  const [deltaRetentionPct, setDeltaRetentionPct] = useState<number>(0);
+  const [deltaOutstandingPct, setDeltaOutstandingPct] = useState<number>(0);
+  useEffect(() => {
+    const fetchPrevious = async () => {
+      const lengthMs = end.getTime() - start.getTime() + 1;
+      const prevEnd = new Date(start.getTime() - 1);
+      const prevStart = new Date(prevEnd.getTime() - lengthMs + 1);
+
+      const [{ data: prevPay }, { data: prevAppts }] = await Promise.all([
+        supabase.from('payment_requests')
+          .select('amount, status, paid_at, created_at')
+          .eq('dentist_id', dentistId)
+          .gte('created_at', prevStart.toISOString())
+          .lte('created_at', prevEnd.toISOString()),
+        supabase.from('appointments')
+          .select('id, appointment_date, status, patient_id')
+          .eq('dentist_id', dentistId)
+          .gte('appointment_date', prevStart.toISOString())
+          .lte('appointment_date', prevEnd.toISOString())
+      ]);
+
+      const prevRevenue = (prevPay || []).filter(p => p.status === 'paid').reduce((s, p) => s + (p.amount || 0), 0);
+      const prevApptsCompleted = (prevAppts || []).filter(a => a.status === 'completed').length;
+      const prevOutstanding = (prevPay || []).filter(p => p.status !== 'paid').reduce((s, p) => s + (p.amount || 0), 0);
+
+      const currentRevenue = revenueCents;
+      const currentAppts = completedAppointments.length;
+      const currentOutstanding = outstanding.totalCents;
+
+      setDeltaRevenuePct(prevRevenue ? ((currentRevenue - prevRevenue) / prevRevenue) * 100 : 0);
+      setDeltaApptsPct(prevApptsCompleted ? ((currentAppts - prevApptsCompleted) / prevApptsCompleted) * 100 : 0);
+      setDeltaOutstandingPct(prevOutstanding ? ((currentOutstanding - prevOutstanding) / prevOutstanding) * 100 : 0);
+
+      // Previous retention
+      const prevPatients = Array.from(new Set((prevAppts || []).filter(a => a.status === 'completed').map(a => a.patient_id)));
+      let prevRepeat = 0;
+      if (prevPatients.length) {
+        const sixMonthsBeforePrev = subMonths(prevStart, 6);
+        const { data: priorPrev } = await supabase
+          .from('appointments')
+          .select('patient_id, appointment_date')
+          .eq('dentist_id', dentistId)
+          .in('patient_id', prevPatients)
+          .gte('appointment_date', sixMonthsBeforePrev.toISOString())
+          .lt('appointment_date', prevStart.toISOString());
+        const priorPrevIds = new Set((priorPrev || []).map(p => p.patient_id));
+        prevRepeat = prevPatients.filter(pid => priorPrevIds.has(pid)).length;
+      }
+      const currentPatients = new Set(completedAppointments.map(a => a.patient_id)).size;
+      const prevRetention = prevPatients.length ? (prevRepeat / prevPatients.length) * 100 : 0;
+      const currentRetention = currentPatients ? retentionRate : 0;
+      setDeltaRetentionPct(prevRetention ? (currentRetention - prevRetention) : 0);
+    };
+    fetchPrevious();
+  }, [dentistId, start.getTime(), end.getTime(), revenueCents, completedAppointments.length, outstanding.totalCents, retentionRate]);
+
+  // Export & share
+  const onExportPDF = () => window.print();
+  const onExportCSV = () => {
+    downloadCSV('appointments', filteredAppointments.map(a => ({
+      id: a.id,
+      date: a.appointment_date,
+      status: a.status,
+      patient_id: a.patient_id,
+      reason: a.reason || ''
+    })));
+    downloadCSV('payments', payments.map(p => ({
+      id: p.id,
+      created_at: p.created_at,
+      paid_at: p.paid_at || '',
+      status: p.status,
+      amount_eur: (p.amount || 0) / 100,
+      patient_id: p.patient_id
+    })));
+  };
+  const onEmailReport = () => {
+    const subject = encodeURIComponent('Business Dashboard Report');
+    const body = encodeURIComponent([
+      `Range: ${rangeLabel(range)}`,
+      `Total Revenue: ${formatCurrencyEuro(revenueCents)}`,
+      `Appointments Completed: ${completedAppointments.length}`,
+      `Patient Retention: ${retentionRate}%`,
+      `Outstanding: ${formatCurrencyEuro(outstanding.totalCents)} (${outstanding.numPatients} patients)`,
+    ].join('\n'));
+    window.location.href = `mailto:?subject=${subject}&body=${body}`;
   };
 
   if (loading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {[...Array(8)].map((_, i) => (
-          <Card key={i} className="glass-card animate-pulse">
-            <CardContent className="p-6">
-              <div className="h-4 bg-white/20 rounded mb-2"></div>
-              <div className="h-8 bg-white/20 rounded"></div>
-            </CardContent>
-          </Card>
-        ))}
+      <div className="space-y-4 px-4">
+        <div className="h-10 bg-muted rounded animate-pulse" />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="h-28 bg-muted rounded animate-pulse" />
+          ))}
+        </div>
+        <div className="h-64 bg-muted rounded animate-pulse" />
       </div>
     );
   }
 
+  // Colors for charts
+  const pieColors = ['#2563eb', '#16a34a', '#f59e0b', '#ef4444', '#9333ea', '#0ea5e9', '#22c55e'];
+
   return (
-    <div className="space-y-6">
-      {/* Key Performance Indicators */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {/* Daily Revenue */}
-        <Card className="glass-card hover:shadow-elegant transition-all duration-300">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-dental-muted-foreground">Today's Revenue</p>
-                <p className="text-2xl font-bold text-dental-primary">
-                  {formatCurrency(analytics.dailyRevenue)}
-                </p>
-              </div>
-              <div className="p-3 rounded-2xl bg-green-100">
-                <DollarSign className="h-6 w-6 text-green-600" />
-              </div>
-            </div>
-            <div className="flex items-center mt-4">
-              <TrendingUp className="h-4 w-4 text-green-600 mr-1" />
-              <span className="text-sm text-green-600">+{analytics.revenueGrowth}% from last week</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Appointments Today */}
-        <Card className="glass-card hover:shadow-elegant transition-all duration-300">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-dental-muted-foreground">Appointments Today</p>
-                <p className="text-2xl font-bold text-dental-secondary">
-                  {analytics.appointmentsToday}
-                </p>
-              </div>
-              <div className="p-3 rounded-2xl bg-blue-100">
-                <Calendar className="h-6 w-6 text-blue-600" />
-              </div>
-            </div>
-            <div className="flex items-center mt-4">
-              <Clock className="h-4 w-4 text-dental-muted-foreground mr-1" />
-              <span className="text-sm text-dental-muted-foreground">
-                {analytics.appointmentsWeek} this week
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Patient Rating */}
-        <Card className="glass-card hover:shadow-elegant transition-all duration-300">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-dental-muted-foreground">Average Rating</p>
-                <p className="text-2xl font-bold text-yellow-600">
-                  {analytics.averageRating.toFixed(1)}
-                </p>
-              </div>
-              <div className="p-3 rounded-2xl bg-yellow-100">
-                <Star className="h-6 w-6 text-yellow-600" />
-              </div>
-            </div>
-            <div className="flex items-center mt-4">
-              <div className="flex">
-                {[...Array(5)].map((_, i) => (
-                  <Star 
-                    key={i} 
-                    className={`h-3 w-3 ${i < Math.floor(analytics.averageRating) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`}
-                  />
+    <div className="p-4 sm:p-6">
+      {/* Sticky header & filters */}
+      <div className="sticky top-16 z-40 bg-background/95 backdrop-blur border-b mb-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 px-1 py-3">
+          <div>
+            <h2 className="text-xl sm:text-2xl font-bold">Business Dashboard</h2>
+            <p className="text-xs text-muted-foreground">Instant overview of clinic performance</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Select value={range} onValueChange={(v) => setRange(v as typeof range)}>
+              <SelectTrigger className="w-36">
+                <SelectValue placeholder="Date Range" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="today">Today</SelectItem>
+                <SelectItem value="week">This Week</SelectItem>
+                <SelectItem value="month">This Month</SelectItem>
+                <SelectItem value="last_month">Last Month</SelectItem>
+                <SelectItem value="custom">Custom</SelectItem>
+              </SelectContent>
+            </Select>
+            {range === 'custom' && (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="whitespace-nowrap">
+                    <Calendar className="w-4 h-4 mr-2" />
+                    {customRange?.from && customRange?.to ? `${format(customRange.from, 'MMM d')} - ${format(customRange.to, 'MMM d')}` : 'Pick dates'}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="p-2" align="end">
+                  <DateRangeCalendar mode="range" selected={customRange} onSelect={setCustomRange} numberOfMonths={2} />
+                </PopoverContent>
+              </Popover>
+            )}
+            <Select value={selectedTreatment} onValueChange={(v) => setSelectedTreatment(v)}>
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="All Treatments" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Treatments</SelectItem>
+                {availableTreatments.map((t) => (
+                  <SelectItem key={t} value={t}>{t}</SelectItem>
                 ))}
-              </div>
-              <span className="text-sm text-dental-muted-foreground ml-2">
-                ({analytics.patientsTotal} reviews)
-              </span>
-            </div>
+              </SelectContent>
+            </Select>
+            <Button variant="outline" onClick={onExportPDF}><Download className="w-4 h-4 mr-2" />PDF</Button>
+            <Button variant="outline" onClick={onExportCSV}><Download className="w-4 h-4 mr-2" />CSV</Button>
+            <Button variant="default" onClick={onEmailReport}><Share2 className="w-4 h-4 mr-2" />Email</Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Metric cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 mb-4">
+        <Card onClick={() => onOpenPaymentsTab?.()} className="cursor-pointer">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Revenue — {rangeLabel(range)}</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-xl sm:text-2xl font-bold">{formatCurrencyEuro(revenueCents)}</div>
+            <p className={`text-xs ${deltaRevenuePct >= 0 ? 'text-green-600' : 'text-red-600'}`}>{deltaRevenuePct >= 0 ? '+' : ''}{deltaRevenuePct.toFixed(1)}% vs last</p>
           </CardContent>
         </Card>
 
-        {/* Utilization Rate */}
-        <Card className="glass-card hover:shadow-elegant transition-all duration-300">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-dental-muted-foreground">Schedule Utilization</p>
-                <p className="text-2xl font-bold text-dental-accent">
-                  {analytics.utilizationRate}%
-                </p>
-              </div>
-              <div className="p-3 rounded-2xl bg-purple-100">
-                <BarChart3 className="h-6 w-6 text-purple-600" />
-              </div>
-            </div>
-            <div className="flex items-center mt-4">
-              <CheckCircle className="h-4 w-4 text-green-600 mr-1" />
-              <span className="text-sm text-green-600">Optimal range (75-90%)</span>
-            </div>
+        <Card onClick={() => onOpenClinicalTab?.()} className="cursor-pointer">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Appointments Completed</CardTitle>
+            <Calendar className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-xl sm:text-2xl font-bold">{completedAppointments.length}</div>
+            <p className={`text-xs ${deltaApptsPct >= 0 ? 'text-green-600' : 'text-red-600'}`}>{deltaApptsPct >= 0 ? '+' : ''}{deltaApptsPct.toFixed(1)}% vs last</p>
+          </CardContent>
+        </Card>
+
+        <Card onClick={() => onOpenPatientsTab?.()} className="cursor-pointer">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Patient Retention Rate</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-xl sm:text-2xl font-bold">{retentionRate}%</div>
+            <p className={`text-xs ${deltaRetentionPct >= 0 ? 'text-green-600' : 'text-red-600'}`}>{deltaRetentionPct >= 0 ? '+' : ''}{deltaRetentionPct.toFixed(1)}% vs last</p>
+          </CardContent>
+        </Card>
+
+        <Card onClick={() => onOpenPatientsTab?.()} className="cursor-pointer">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Outstanding Payments</CardTitle>
+            <AlertTriangle className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-xl sm:text-2xl font-bold">{formatCurrencyEuro(outstanding.totalCents)} <span className="text-sm text-muted-foreground">• {outstanding.numPatients} patients</span></div>
+            <p className={`text-xs ${deltaOutstandingPct >= 0 ? 'text-red-600' : 'text-green-600'}`}>{deltaOutstandingPct >= 0 ? '+' : ''}{deltaOutstandingPct.toFixed(1)}% vs last</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Performance Insights */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Revenue Overview */}
-        <Card className="glass-card">
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <DollarSign className="h-5 w-5 mr-2 text-green-600" />
-              Revenue Overview
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-dental-muted-foreground">Daily</span>
-                <span className="font-semibold">{formatCurrency(analytics.dailyRevenue)}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-dental-muted-foreground">Weekly</span>
-                <span className="font-semibold">{formatCurrency(analytics.weeklyRevenue)}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-dental-muted-foreground">Monthly</span>
-                <span className="font-semibold text-lg">{formatCurrency(analytics.monthlyRevenue)}</span>
-              </div>
-            </div>
-            
-            <div className="pt-4 border-t border-white/10">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Revenue Growth</span>
-                <Badge className="bg-green-100 text-green-800">
-                  +{analytics.revenueGrowth}% this month
-                </Badge>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Practice Metrics */}
-        <Card className="glass-card">
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <BarChart3 className="h-5 w-5 mr-2 text-dental-primary" />
-              Practice Metrics
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-dental-muted-foreground">No-Show Rate</span>
-                <div className="flex items-center">
-                  <span className={`font-semibold ${getPerformanceColor(analytics.noShowRate, 10, true)}`}>
-                    {analytics.noShowRate}%
-                  </span>
-                  <Badge variant="outline" className="ml-2 text-xs">
-                    Target: &lt;10%
-                  </Badge>
-                </div>
-              </div>
-              
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-dental-muted-foreground">Patient Retention</span>
-                <div className="flex items-center">
-                  <span className={`font-semibold ${getPerformanceColor(analytics.patientRetention, 85)}`}>
-                    {analytics.patientRetention}%
-                  </span>
-                  <Badge variant="outline" className="ml-2 text-xs">
-                    Target: &gt;85%
-                  </Badge>
-                </div>
-              </div>
-              
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-dental-muted-foreground">Emergency Cases</span>
-                <div className="flex items-center">
-                  <AlertTriangle className="h-4 w-4 text-orange-500 mr-1" />
-                  <span className="font-semibold text-orange-600">
-                    {analytics.emergencyAppointments}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Quick Actions */}
-      <Card className="glass-card">
-        <CardHeader>
-          <CardTitle>Quick Insights & Actions</CardTitle>
+      {/* Charts - swipeable on mobile */}
+      <Card className="mb-6">
+        <CardHeader className="flex items-center justify-between">
+          <CardTitle>Trends & Distributions</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-4 rounded-xl bg-blue-50 border border-blue-200">
-              <div className="flex items-center mb-2">
-                <TrendingUp className="h-5 w-5 text-blue-600 mr-2" />
-                <span className="font-semibold text-blue-800">Peak Hours</span>
+          <Carousel opts={{ align: 'start' }}>
+            <CarouselContent>
+              <CarouselItem>
+                <div className="p-2">
+                  <div className="text-sm font-medium mb-2">Revenue Trend</div>
+                  <div className="h-48">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={revenueTrend}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                        <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+                        <YAxis tick={{ fontSize: 12 }} />
+                        <Tooltip formatter={(v) => [`€${Number(v).toLocaleString()}`, 'Revenue']} />
+                        <Bar dataKey="value" fill="#2563eb" onClick={() => onOpenPaymentsTab?.()} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </CarouselItem>
+
+              <CarouselItem>
+                <div className="p-2">
+                  <div className="text-sm font-medium mb-2">Appointments Completed</div>
+                  <div className="h-48">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={appointmentsTrend}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                        <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+                        <YAxis tick={{ fontSize: 12 }} />
+                        <Tooltip />
+                        <Line type="monotone" dataKey="value" stroke="#16a34a" strokeWidth={2} dot={false} onClick={() => onOpenClinicalTab?.()} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </CarouselItem>
+
+              <CarouselItem>
+                <div className="p-2">
+                  <div className="text-sm font-medium mb-2">Treatment Popularity</div>
+                  <div className="h-48">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie data={treatmentPopularity} dataKey="value" nameKey="name" outerRadius={80} onClick={() => onOpenPatientsTab?.()}>
+                          {treatmentPopularity.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={pieColors[index % pieColors.length]} />
+                          ))}
+                        </Pie>
+                        <Legend />
+                        <Tooltip />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </CarouselItem>
+
+              <CarouselItem>
+                <div className="p-2">
+                  <div className="text-sm font-medium mb-2">Retention vs New Patients</div>
+                  <div className="h-48">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={retentionVsNew}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                        <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                        <YAxis tick={{ fontSize: 12 }} />
+                        <Tooltip />
+                        <Bar dataKey="value" fill="#9333ea" onClick={() => onOpenPatientsTab?.()} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </CarouselItem>
+
+              <CarouselItem>
+                <div className="p-2">
+                  <div className="text-sm font-medium mb-2">No-Show Heatmap</div>
+                  <div className="h-48">
+                    <div className="grid grid-cols-11 gap-1 text-[10px]">
+                      <div></div>
+                      {Array.from({ length: 11 }).map((_, i) => <div key={i} className="text-center">{8 + i}:00</div>)}
+                      {Array.from({ length: 7 }).map((_, day) => (
+                        <div key={day} className="contents">
+                          <div className="text-right pr-1">{['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][day]}</div>
+                          {Array.from({ length: 11 }).map((_, i) => {
+                            const hour = 8 + i;
+                            const cell = noShowHeatmap.grid.find(g => g.day === day && g.hour === hour);
+                            const intensity = cell ? (cell.value / noShowHeatmap.max) : 0;
+                            const bg = intensity === 0 ? 'bg-muted' : intensity < 0.34 ? 'bg-orange-100' : intensity < 0.67 ? 'bg-orange-300' : 'bg-orange-500';
+                            return <div key={i} className={`h-6 rounded ${bg}`} onClick={() => onOpenClinicalTab?.()} />
+                          })}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </CarouselItem>
+            </CarouselContent>
+            <CarouselPrevious className="-left-6" />
+            <CarouselNext className="-right-6" />
+          </Carousel>
+        </CardContent>
+      </Card>
+
+      {/* Actionable insights */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle>Actionable Insights</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ul className="space-y-3">
+            {insights.map((text, idx) => (
+              <li key={idx} className="flex items-start justify-between gap-3">
+                <span className="text-sm">{text}</span>
+                <div className="flex items-center gap-2">
+                  {text.includes('no-show') && (
+                    <Button size="sm" variant="outline" onClick={() => onOpenPatientsTab?.()}><Mail className="w-4 h-4 mr-1" />Contact</Button>
+                  )}
+                  {text.includes('unpaid') && (
+                    <Button size="sm" variant="outline" onClick={() => onOpenPaymentsTab?.()}><DollarSign className="w-4 h-4 mr-1" />View</Button>
+                  )}
+                  {text.includes('follow-up') && (
+                    <Button size="sm" variant="outline" onClick={() => onOpenPatientsTab?.()}><UserX className="w-4 h-4 mr-1" />See</Button>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+
+          {/* High No-Show Patients */}
+          {highNoShowPatients.length > 0 && (
+            <div className="mt-4">
+              <div className="text-sm font-medium mb-2">High No-Show Patients</div>
+              <div className="space-y-2">
+                {highNoShowPatients.map(p => (
+                  <div key={p.id} className="flex items-center justify-between text-sm p-2 rounded border">
+                    <span>{p.name} — {p.count} no-shows</span>
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="outline" onClick={() => onOpenPatientsTab?.()}><Mail className="w-4 h-4 mr-1" />Contact</Button>
+                      <Button size="sm" variant="destructive" onClick={() => onOpenClinicalTab?.()}>Block</Button>
+                    </div>
+                  </div>
+                ))}
               </div>
-              <p className="text-sm text-blue-700">
-                Most bookings happen between 2-4 PM. Consider adjusting staff schedule.
-              </p>
             </div>
-            
-            <div className="p-4 rounded-xl bg-green-50 border border-green-200">
-              <div className="flex items-center mb-2">
-                <Users className="h-5 w-5 text-green-600 mr-2" />
-                <span className="font-semibold text-green-800">New Patients</span>
-              </div>
-              <p className="text-sm text-green-700">
-                12 new patients this week. Send welcome emails to improve retention.
-              </p>
-            </div>
-            
-            <div className="p-4 rounded-xl bg-orange-50 border border-orange-200">
-              <div className="flex items-center mb-2">
-                <AlertTriangle className="h-5 w-5 text-orange-600 mr-2" />
-                <span className="font-semibold text-orange-800">Follow-up Needed</span>
-              </div>
-              <p className="text-sm text-orange-700">
-                8 patients need follow-up calls after recent treatments.
-              </p>
-            </div>
+          )}
+
+          {/* Follow-ups Needed */}
+          <div className="mt-4 flex items-center justify-between">
+            <div className="text-sm">Follow-Ups Needed</div>
+            <Button size="sm" variant="outline" onClick={() => onOpenPatientsTab?.()}>
+              See all ({followUpsCount})
+            </Button>
           </div>
+
+          {/* Revenue Opportunities */}
+          {revenueOpportunities.length > 0 && (
+            <div className="mt-4">
+              <div className="text-sm font-medium mb-2">Revenue Opportunities</div>
+              <div className="space-y-2">
+                {revenueOpportunities.map(r => (
+                  <div key={r.id} className="flex items-center justify-between text-sm p-2 rounded border">
+                    <span>{r.name}: {r.reason}</span>
+                    <Button size="sm" variant="outline" onClick={() => onOpenPaymentsTab?.()}>Invoice</Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

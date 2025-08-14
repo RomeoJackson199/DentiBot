@@ -163,7 +163,12 @@ export function DentistDashboard({ user }: DentistDashboardProps) {
             )}
             
             {activeTab === 'analytics' && (
-              <DentistAnalytics dentistId={dentistId} />
+              <DentistAnalytics
+                dentistId={dentistId}
+                onOpenPatientsTab={() => setActiveTab('patients')}
+                onOpenClinicalTab={() => setActiveTab('clinical')}
+                onOpenPaymentsTab={() => setActiveTab('payments')}
+              />
             )}
 
             {activeTab === 'manage' && (
