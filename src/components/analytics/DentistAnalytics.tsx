@@ -108,8 +108,7 @@ export const DentistAnalytics = ({ dentistId, onOpenPatientsTab, onOpenClinicalT
     const escape = (val: any) => {
       if (val == null) return '';
       const s = String(val).replace(/"/g, '""');
-      return /[",
-]/.test(s) ? `"${s}"` : s;
+      return /[",\r\n]/.test(s) ? `"${s}"` : s;
     };
     const lines = [headers.join(',')].concat(rows.map(r => headers.map(h => escape(r[h])).join(',')));
     return lines.join('\n');
