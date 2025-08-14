@@ -31,7 +31,7 @@ export function MobileDentistTabs({ activeTab, setActiveTab, dentistId, children
   const tabGroups = [
     {
       id: 'clinical',
-      title: 'Clinical',
+      title: 'Clinical – Complete Flow',
       icon: Stethoscope,
       tabs: [
         { id: 'urgency' as TabType, label: 'Triage', icon: AlertTriangle, badge: '!' },

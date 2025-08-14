@@ -43,6 +43,7 @@ import {
   AlertDialogTrigger
 } from "@/components/ui/alert-dialog";
 import { AppointmentCompletionModal } from "@/components/mobile/AppointmentCompletionModal";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 interface Patient {
   id: string;
@@ -119,6 +120,7 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
   const [treatmentsByAppointment, setTreatmentsByAppointment] = useState<Record<string, any[]>>({});
   const [showCompletion, setShowCompletion] = useState(false);
   const [lastAppointment, setLastAppointment] = useState<Appointment | null>(null);
+  const [completionAppointment, setCompletionAppointment] = useState<Appointment | null>(null);
   
   // New filters
   const [filterUnpaid, setFilterUnpaid] = useState(false);
@@ -742,15 +744,9 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
                       </div>
                     </div>
                   </div>
-                  <div className="flex space-x-2">
-                    {/* Slide-up sheets for add actions */}
+                  <div className="flex items-center gap-2">
+                    {/* Slide-up sheets for add actions (opened by + menu) */}
                     <Sheet open={showTreatmentDialog} onOpenChange={setShowTreatmentDialog}>
-                      <SheetTrigger asChild>
-                        <Button size="sm">
-                          <ClipboardList className="h-4 w-4 mr-2" />
-                          Add Treatment Plan
-                        </Button>
-                      </SheetTrigger>
                       <SheetContent side="bottom" className="sm:max-w-lg">
                         <SheetHeader>
                           <SheetTitle>{editingTreatmentId ? 'Edit Treatment Plan' : 'Add Treatment Plan'}</SheetTitle>
@@ -834,12 +830,6 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
                     </Sheet>
 
                     <Sheet open={showPrescriptionDialog} onOpenChange={setShowPrescriptionDialog}>
-                      <SheetTrigger asChild>
-                        <Button size="sm" variant="outline">
-                          <Pill className="h-4 w-4 mr-2" />
-                          Add Prescription
-                        </Button>
-                      </SheetTrigger>
                       <SheetContent side="bottom" className="sm:max-w-lg">
                         <SheetHeader>
                           <SheetTitle>{editingPrescriptionId ? 'Edit Prescription' : 'Add Prescription'}</SheetTitle>
@@ -909,12 +899,6 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
                     </Sheet>
 
                     <Sheet open={showNoteDialog} onOpenChange={setShowNoteDialog}>
-                      <SheetTrigger asChild>
-                        <Button size="sm" variant="outline">
-                          <FileText className="h-4 w-4 mr-2" />
-                          Add Note
-                        </Button>
-                      </SheetTrigger>
                       <SheetContent side="bottom" className="sm:max-w-lg">
                         <SheetHeader>
                           <SheetTitle>{editingNoteId ? 'Edit Note' : 'Add Note'}</SheetTitle>
@@ -982,6 +966,25 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
                         </div>
                       </SheetContent>
                     </Sheet>
+
+                    {/* Unified + menu */}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button size="sm" variant="outline" className="gap-2">
+                          <Plus className="h-4 w-4" />
+                          Add
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Quick Add</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => setShowNoteDialog(true)}>Add Note</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setShowPrescriptionDialog(true)}>Add Prescription</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setShowTreatmentDialog(true)}>Add Treatment Plan</DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => setAccordionValue('files')}>Upload Image / File</DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </CardTitle>
               </CardHeader>
@@ -1057,13 +1060,18 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
                               </p>
                             )}
                           </div>
-                          <div className="flex space-x-2">
+                          <div className="flex space-x-2 items-center">
                             <Badge className={getStatusColor(appointment.status)}>
                               {appointment.status}
                             </Badge>
                             <Badge variant="outline">
                               {appointment.urgency}
                             </Badge>
+                            {appointment.status !== 'completed' && (
+                              <Button size="sm" onClick={() => { setCompletionAppointment(appointment); setShowCompletion(true); }}>
+                                Complete
+                              </Button>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -1411,41 +1419,31 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
               </AccordionItem>
             </Accordion>
 
-            {lastAppointment && (
+            {(completionAppointment || lastAppointment) && (
               <AppointmentCompletionModal
                 open={showCompletion}
-                onOpenChange={setShowCompletion}
-                appointment={{...lastAppointment, dentist_id: dentistId, patient_id: selectedPatient.id}}
+                onOpenChange={(open) => {
+                  setShowCompletion(open);
+                  if (!open) setCompletionAppointment(null);
+                }}
+                appointment={{
+                  id: (completionAppointment ?? lastAppointment)!.id,
+                  patient_id: selectedPatient.id,
+                  dentist_id: dentistId,
+                  appointment_date: (completionAppointment ?? lastAppointment)!.appointment_date,
+                  status: (completionAppointment ?? lastAppointment)!.status
+                }}
                 dentistId={dentistId}
                 onCompleted={() => {
                   setShowCompletion(false);
+                  setCompletionAppointment(null);
                   fetchPatientData(selectedPatient.id);
                   fetchPatientOutcomes(selectedPatient.id);
                 }}
               />
             )}
 
-            {/* Floating Action Button (FAB) */}
-            <div className="fixed bottom-6 right-6 z-50">
-              <div className="flex flex-col items-end gap-2">
-                <Button size="icon" variant="default" className="rounded-full shadow-lg" onClick={() => setShowNoteDialog(true)}>+N</Button>
-                <Button size="icon" variant="default" className="rounded-full shadow-lg" onClick={() => setShowPrescriptionDialog(true)}>+Rx</Button>
-                <Button size="icon" variant="default" className="rounded-full shadow-lg" onClick={() => setShowTreatmentDialog(true)}>+TP</Button>
-                <Sheet>
-                  <SheetTrigger asChild>
-                    <Button size="icon" variant="default" className="rounded-full shadow-lg">+Img</Button>
-                  </SheetTrigger>
-                  <SheetContent side="bottom" className="sm:max-w-lg">
-                    <SheetHeader>
-                      <SheetTitle>Upload Image</SheetTitle>
-                    </SheetHeader>
-                    <div className="py-2">
-                      <PhotoUpload onComplete={() => {}} onCancel={() => {}} />
-                    </div>
-                  </SheetContent>
-                </Sheet>
-              </div>
-            </div>
+            {/* Removed floating FAB; consolidated into + menu above */}
           </>
         ) : (
           <Card className="glass-card h-96">
