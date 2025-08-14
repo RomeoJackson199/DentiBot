@@ -106,7 +106,7 @@ export const UnifiedDashboard = memo(({ user }: UnifiedDashboardProps) => {
   return (
     <>
       {userRole === 'dentist' ? (
-        <DentistDashboard />
+        <DentistDashboard user={user} />
       ) : (
         <PatientDashboard user={user} />
       )}

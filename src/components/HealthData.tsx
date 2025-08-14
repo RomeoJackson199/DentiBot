@@ -694,7 +694,6 @@ if (treatmentPlansResult.status === 'fulfilled') {
           <>
             <TabsContent value="add-prescription">
                <PrescriptionManager
-                 patientId={patientProfile.id}
                  dentistId={dentistId}
                />
              </TabsContent>
