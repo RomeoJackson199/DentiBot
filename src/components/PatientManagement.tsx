@@ -26,6 +26,7 @@ import {
   MapPin
 } from "lucide-react";
 import { format } from "date-fns";
+import { AppointmentCompletionModal } from "@/components/AppointmentCompletionModal";
 
 interface Patient {
   id: string;
@@ -103,6 +104,9 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
   const [showTreatmentDialog, setShowTreatmentDialog] = useState(false);
   const [showPrescriptionDialog, setShowPrescriptionDialog] = useState(false);
   const [showNoteDialog, setShowNoteDialog] = useState(false);
+  const [outcomes, setOutcomes] = useState<any[]>([]);
+  const [completeOpen, setCompleteOpen] = useState(false);
+  const [lastAppointment, setLastAppointment] = useState<Appointment | null>(null);
   
   // Form states
   const [treatmentForm, setTreatmentForm] = useState({
@@ -198,6 +202,11 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
 
       if (appointmentsError) throw appointmentsError;
       setAppointments(appointmentsData || []);
+      // Determine last appointment within 24h
+      const last = (appointmentsData || [])
+        .filter(a => new Date(a.appointment_date) <= new Date())
+        .sort((a,b) => new Date(b.appointment_date).getTime() - new Date(a.appointment_date).getTime())[0] || null;
+      setLastAppointment(last);
 
       // Fetch treatment plans
       const { data: treatmentData, error: treatmentError } = await supabase
@@ -231,6 +240,19 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
 
       if (notesError) throw notesError;
       setNotes(notesData || []);
+
+      // Fetch recent appointment outcomes
+      if (appointmentsData && appointmentsData.length > 0) {
+        const apptIds = appointmentsData.slice(0, 10).map(a => a.id);
+        const { data: outcomesData } = await supabase
+          .from('appointment_outcomes')
+          .select('*')
+          .in('appointment_id', apptIds)
+          .order('created_at', { ascending: false });
+        setOutcomes(outcomesData || []);
+      } else {
+        setOutcomes([]);
+      }
 
     } catch (error: unknown) {
       toast({
@@ -786,6 +808,45 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
               </CardContent>
             </Card>
 
+            {/* Appointment Outcomes */}
+            <Card className="glass-card">
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <FileText className="h-5 w-5 text-dental-primary" />
+                    <span>Appointment Outcomes</span>
+                    <Badge variant="outline">{outcomes.length}</Badge>
+                  </div>
+                  {lastAppointment && Math.abs(Date.now() - new Date(lastAppointment.appointment_date).getTime()) < 24*60*60*1000 && (
+                    <Button size="sm" onClick={() => setCompleteOpen(true)}>
+                      Complete Last Appointment
+                    </Button>
+                  )}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {outcomes.length > 0 ? (
+                  <div className="space-y-2">
+                    {outcomes.slice(0,5).map((o) => (
+                      <div key={o.id} className="p-3 border rounded-md">
+                        <div className="flex items-center justify-between">
+                          <div className="text-sm">
+                            <div className="font-medium capitalize">{o.outcome}</div>
+                            {o.pain_score !== null && <div>Pain: {o.pain_score}</div>}
+                            {o.anesthesia_used && <div>Anesthesia: {o.anesthesia_dose || 'yes'}</div>}
+                            {o.notes && <div className="mt-1 text-muted-foreground">{o.notes}</div>}
+                          </div>
+                          <div className="text-xs text-muted-foreground">{format(new Date(o.created_at), 'PPP p')}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground text-center py-4">No outcomes yet</p>
+                )}
+              </CardContent>
+            </Card>
+
             {/* Treatment Plans */}
             <Card className="glass-card">
               <CardHeader>
@@ -943,6 +1004,17 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
           </Card>
         )}
       </div>
+      {selectedPatient && lastAppointment && (
+        <AppointmentCompletionModal
+          open={completeOpen}
+          onOpenChange={setCompleteOpen}
+          appointmentId={lastAppointment.id}
+          patientId={selectedPatient.id}
+          dentistId={dentistId}
+          serviceDateISO={lastAppointment.appointment_date}
+          onCompleted={() => fetchPatientData(selectedPatient.id)}
+        />
+      )}
     </div>
   );
 }

@@ -33,6 +33,7 @@ import {
 import { format } from "date-fns";
 import { generateSymptomSummary } from "@/lib/symptoms";
 import { AIConversationDialog } from "@/components/AIConversationDialog";
+import { AppointmentCompletionModal } from "@/components/AppointmentCompletionModal";
 
 interface Appointment {
   id: string;
@@ -70,6 +71,8 @@ export function AppointmentManagement({ dentistId }: AppointmentManagementProps)
   const [editingNotes, setEditingNotes] = useState<string | null>(null);
   const [consultationNotes, setConsultationNotes] = useState("");
   const { toast } = useToast();
+  const [completeOpen, setCompleteOpen] = useState(false);
+  const [completeFor, setCompleteFor] = useState<Appointment | null>(null);
 
   const fetchAppointments = useCallback(async () => {
     try {
@@ -355,63 +358,83 @@ export function AppointmentManagement({ dentistId }: AppointmentManagementProps)
           </Card>
         ) : (
           filteredAppointments.map((appointment) => (
-            <AppointmentConfirmationWidget
-              key={appointment.id}
-              appointment={{
-                id: appointment.id,
-                patient_name: appointment.patient_name || 'Unknown Patient',
-                appointment_date: appointment.appointment_date,
-                duration_minutes: appointment.duration_minutes,
-                status: appointment.status,
-                urgency: appointment.urgency,
-                reason: appointment.reason,
-                 consultation_notes: appointment.consultation_notes
-              }}
-              isDentistView={true}
-              onConfirm={async () => {
-                try {
-                  const { error } = await supabase
-                    .from('appointments')
-                    .update({ status: 'confirmed' })
-                    .eq('id', appointment.id);
-                  if (error) throw error;
-                  fetchAppointments();
-                } catch (error: unknown) {
-                  throw new Error(error instanceof Error ? error.message : "Unknown error");
-                }
-              }}
-              onCancel={async () => {
-                try {
-                  const { error } = await supabase
-                    .from('appointments')
-                    .update({ status: 'cancelled' })
-                    .eq('id', appointment.id);
-                  if (error) throw error;
-                  fetchAppointments();
-                } catch (error: unknown) {
-                  throw new Error(error instanceof Error ? error.message : "Unknown error");
-                }
-              }}
-              onDelete={async () => {
-                try {
-                  const { error } = await supabase
-                    .from('appointments')
-                    .delete()
-                    .eq('id', appointment.id);
-                  if (error) throw error;
-                  fetchAppointments();
-                } catch (error: unknown) {
-                  throw new Error(error instanceof Error ? error.message : "Unknown error");
-                }
-              }}
-              onViewDetails={() => {
-                setSelectedAppointment(appointment);
-              }}
-              className="mb-4"
-            />
+            <div key={appointment.id}>
+              <AppointmentConfirmationWidget
+                key={appointment.id}
+                appointment={{
+                  id: appointment.id,
+                  patient_name: appointment.patient_name || 'Unknown Patient',
+                  appointment_date: appointment.appointment_date,
+                  duration_minutes: appointment.duration_minutes,
+                  status: appointment.status,
+                  urgency: appointment.urgency,
+                  reason: appointment.reason,
+                   consultation_notes: appointment.consultation_notes
+                }}
+                isDentistView={true}
+                onConfirm={async () => {
+                  try {
+                    const { error } = await supabase
+                      .from('appointments')
+                      .update({ status: 'confirmed' })
+                      .eq('id', appointment.id);
+                    if (error) throw error;
+                    fetchAppointments();
+                  } catch (error: unknown) {
+                    throw new Error(error instanceof Error ? error.message : "Unknown error");
+                  }
+                }}
+                onCancel={async () => {
+                  try {
+                    const { error } = await supabase
+                      .from('appointments')
+                      .update({ status: 'cancelled' })
+                      .eq('id', appointment.id);
+                    if (error) throw error;
+                    fetchAppointments();
+                  } catch (error: unknown) {
+                    throw new Error(error instanceof Error ? error.message : "Unknown error");
+                  }
+                }}
+                onDelete={async () => {
+                  try {
+                    const { error } = await supabase
+                      .from('appointments')
+                      .delete()
+                      .eq('id', appointment.id);
+                    if (error) throw error;
+                    fetchAppointments();
+                  } catch (error: unknown) {
+                    throw new Error(error instanceof Error ? error.message : "Unknown error");
+                  }
+                }}
+                onViewDetails={() => {
+                  setSelectedAppointment(appointment);
+                }}
+                className="mb-2"
+              />
+              <div className="flex justify-end px-2">
+                <Button size="sm" onClick={() => { setCompleteFor(appointment); setCompleteOpen(true); }} disabled={appointment.status === 'completed'}>
+                  Complete
+                </Button>
+              </div>
+            </div>
           ))
         )}
       </div>
+      {completeFor && (
+        <AppointmentCompletionModal
+          open={completeOpen}
+          onOpenChange={setCompleteOpen}
+          appointmentId={completeFor.id}
+          patientId={completeFor.patient_id}
+          dentistId={dentistId}
+          serviceDateISO={completeFor.appointment_date}
+          onCompleted={() => {
+            fetchAppointments();
+          }}
+        />
+      )}
     </div>
   );
 }
