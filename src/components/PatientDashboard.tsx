@@ -43,7 +43,9 @@ import {
   ClipboardList
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
+import { MobilePatientTabs } from "@/components/MobilePatientTabs";
+import { MobileOptimizations } from "@/components/mobile/MobileOptimizations";
 import { 
   Prescription, 
   TreatmentPlan, 
@@ -404,19 +406,9 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
       </div>
 
       {/* Main Content Tabs */}
+      <MobileOptimizations />
+      <MobilePatientTabs activeTab={activeTab} setActiveTab={setActiveTab}>
       <Tabs value={activeTab} onValueChange={(value: Tab) => setActiveTab(value)} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-10">
-          <TabsTrigger value="chat">Chat</TabsTrigger>
-          <TabsTrigger value="appointments">Appointments</TabsTrigger>
-          <TabsTrigger value="prescriptions">Prescriptions</TabsTrigger>
-          <TabsTrigger value="treatment">Treatment</TabsTrigger>
-          <TabsTrigger value="records">Records</TabsTrigger>
-          <TabsTrigger value="notes">Notes</TabsTrigger>
-          <TabsTrigger value="payments">Payments</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
-          <TabsTrigger value="emergency">Emergency</TabsTrigger>
-          <TabsTrigger value="test">Test</TabsTrigger>
-        </TabsList>
 
         <TabsContent value="chat" className="space-y-4">
           <InteractiveDentalChat 
@@ -612,6 +604,7 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
           </div>
         </TabsContent>
       </Tabs>
+      </MobilePatientTabs>
     </div>
   );
 };
