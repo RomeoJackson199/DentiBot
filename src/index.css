@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import patient dashboard mobile-first styles */
+@import './styles/patient-dashboard.css';
+
 /* Enhanced Design System - Modern dental theme with glassmorphism and micro-interactions */
 
 @layer base {
