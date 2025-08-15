@@ -31,14 +31,21 @@ interface PatientDashboardRefactoredProps {
 interface UserProfile {
   id: string;
   user_id: string;
-  full_name: string | null;
-  avatar_url: string | null;
+  first_name: string;
+  last_name: string;
+  full_name?: string | null;
+  avatar_url?: string | null;
   phone: string | null;
   date_of_birth: string | null;
   address: string | null;
   medical_history: any;
-  insurance_info: any;
+  insurance_info?: any;
   emergency_contact: any;
+  email: string;
+  role: string;
+  created_at: string;
+  updated_at: string;
+  preferred_language?: string;
 }
 
 export const PatientDashboardRefactored: React.FC<PatientDashboardRefactoredProps> = ({ user }) => {
@@ -71,7 +78,10 @@ export const PatientDashboardRefactored: React.FC<PatientDashboardRefactoredProp
           throw new Error('No profile found for this user');
         }
         
-        setProfile(data);
+        setProfile({
+          ...data,
+          full_name: `${data.first_name} ${data.last_name}`.trim()
+        });
       } catch (error: any) {
         console.error('Error fetching profile:', error);
         toast({
@@ -127,7 +137,7 @@ export const PatientDashboardRefactored: React.FC<PatientDashboardRefactoredProp
                   <p className="text-sm font-medium truncate">{profile?.full_name || 'Patient'}</p>
                   <p className="text-xs text-muted-foreground truncate">{user.email}</p>
                 </div>
-                <NotificationButton />
+                <NotificationButton userId={user.id} />
               </div>
             </div>
 
@@ -199,7 +209,7 @@ export const PatientDashboardRefactored: React.FC<PatientDashboardRefactoredProp
 
             {/* Notification Button */}
             <div className="p-4 border-t flex justify-center">
-              <NotificationButton />
+              <NotificationButton userId={user.id} />
             </div>
           </aside>
 

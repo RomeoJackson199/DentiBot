@@ -27,7 +27,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { useNotifications } from '@/hooks/useNotifications';
 
 interface NotificationButtonProps {
-  userId: string;
+  userId?: string;
   className?: string;
 }
 
@@ -71,7 +71,16 @@ export const NotificationButton: React.FC<NotificationButtonProps> = ({ userId, 
     markAsRead,
     markAllAsRead,
     updatePreferences
-  } = useNotifications(userId);
+  } = useNotifications(userId || '');
+
+  if (!userId) {
+    return (
+      <Button variant="outline" size="sm" className={`relative ${className}`}>
+        <Bell className="h-4 w-4 mr-2" />
+        Notifications
+      </Button>
+    );
+  }
 
   // Handle notification click
   const handleNotificationClick = async (notification: Notification) => {

@@ -105,11 +105,6 @@ export function MobileDentistTabs({ activeTab, setActiveTab, dentistId, children
                     >
                       <tab.icon className="h-6 w-6" />
                       <span className="text-xs font-medium text-center leading-tight">{tab.label}</span>
-                      {tab.badge && (
-                        <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 p-0 text-xs">
-                          {tab.badge}
-                        </Badge>
-                      )}
                     </Button>
                   ))}
                 </div>
@@ -128,7 +123,7 @@ export function MobileDentistTabs({ activeTab, setActiveTab, dentistId, children
           <div className="grid grid-cols-4 gap-2 p-3">
             {tabGroups.map((group) => {
               const isCurrentGroup = group.tabs.some(tab => tab.id === activeTab);
-              const hasUrgentBadge = group.tabs.some(tab => (tab as any).badge);
+              const hasUrgentBadge = false; // Remove badge logic for now
               
               return (
                 <Button
@@ -193,11 +188,6 @@ export function MobileDentistTabs({ activeTab, setActiveTab, dentistId, children
                       >
                         <tab.icon className="h-5 w-5 mr-3" />
                         <span className="font-medium text-sm">{tab.label}</span>
-                        {(tab as any).badge && (
-                          <Badge variant="destructive" className="ml-auto">
-                            {(tab as any).badge}
-                          </Badge>
-                        )}
                       </Button>
                     ))}
                   </CardContent>
