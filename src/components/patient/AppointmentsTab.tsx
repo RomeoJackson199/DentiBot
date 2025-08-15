@@ -36,6 +36,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, isToday, isPast, isFuture } from "date-fns";
+import { useToast } from "@/hooks/use-toast";
 
 export interface AppointmentsTabProps {
   user: User;
@@ -44,15 +45,16 @@ export interface AppointmentsTabProps {
 interface Appointment {
   id: string;
   appointment_date: string;
-  appointment_time: string;
+  duration_minutes?: number;
   status: string;
-  treatment_type?: string;
+  urgency?: string;
+  reason?: string;
+  notes?: string;
   dentist?: {
     first_name: string;
     last_name: string;
     specialization?: string;
   };
-  notes?: string;
 }
 
 const CalendarView = ({ 
@@ -247,7 +249,7 @@ const AppointmentCard = ({
               </div>
               <div>
                 <p className="font-semibold text-sm md:text-base">
-                  {appointment.treatment_type || 'General Checkup'}
+                  {appointment.reason || 'General Checkup'}
                 </p>
                 <p className="text-xs md:text-sm text-muted-foreground">
                   {format(new Date(appointment.appointment_date), 'EEEE, MMMM d, yyyy')}
@@ -262,7 +264,10 @@ const AppointmentCard = ({
           <div className="space-y-2 mb-4">
             <div className="flex items-center space-x-2 text-sm">
               <Clock className="h-3 w-3 text-muted-foreground" />
-              <span>{appointment.appointment_time}</span>
+              <span>{format(new Date(appointment.appointment_date), 'p')}</span>
+              {appointment.duration_minutes && (
+                <span className="text-muted-foreground">({appointment.duration_minutes} min)</span>
+              )}
             </div>
             {appointment.dentist && (
               <div className="flex items-center space-x-2 text-sm">
@@ -318,6 +323,7 @@ const AppointmentCard = ({
 };
 
 export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({ user }) => {
+  const { toast } = useToast();
   const [tab, setTab] = useState<'calendar' | 'upcoming' | 'past'>('calendar');
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -337,43 +343,69 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({ user }) => {
   const fetchAppointments = async () => {
     try {
       setLoading(true);
-      const { data: profile } = await supabase
+      console.log('Fetching appointments for user:', user.id);
+      
+      const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('id')
         .eq('user_id', user.id)
         .single();
 
-      if (profile) {
-        const { data: appointmentsData } = await supabase
-          .from('appointments')
-          .select(`
-            *,
-            dentist:dentist_id(first_name, last_name, specialization)
-          `)
-          .eq('patient_id', profile.id)
-          .order('appointment_date', { ascending: false });
-
-        if (appointmentsData) {
-          setAppointments(appointmentsData as any);
-          
-          // Calculate stats
-          const now = new Date();
-          const upcoming = appointmentsData.filter(apt => 
-            new Date(apt.appointment_date) > now && apt.status === 'confirmed'
-          ).length;
-          const completed = appointmentsData.filter(apt => apt.status === 'completed').length;
-          const cancelled = appointmentsData.filter(apt => apt.status === 'cancelled').length;
-          
-          setStats({
-            total: appointmentsData.length,
-            upcoming,
-            completed,
-            cancelled
-          });
-        }
+      if (profileError) {
+        console.error('Error fetching profile:', profileError);
+        throw new Error(`Failed to fetch user profile: ${profileError.message}`);
       }
+
+      if (!profile) {
+        console.warn('No profile found for user:', user.id);
+        throw new Error('User profile not found. Please complete your profile setup.');
+      }
+
+      console.log('Profile found:', profile.id);
+
+      const { data: appointmentsData, error: appointmentsError } = await supabase
+        .from('appointments')
+        .select(`
+          *,
+          dentist:dentist_id(first_name, last_name, specialization)
+        `)
+        .eq('patient_id', profile.id)
+        .order('appointment_date', { ascending: false });
+
+      if (appointmentsError) {
+        console.error('Error fetching appointments:', appointmentsError);
+        throw new Error(`Failed to fetch appointments: ${appointmentsError.message}`);
+      }
+
+      console.log('Appointments fetched:', appointmentsData?.length || 0);
+
+      const appointments = appointmentsData || [];
+      setAppointments(appointments as any);
+      
+      // Calculate stats
+      const now = new Date();
+      const upcoming = appointments.filter(apt => 
+        new Date(apt.appointment_date) > now && apt.status === 'confirmed'
+      ).length;
+      const completed = appointments.filter(apt => apt.status === 'completed').length;
+      const cancelled = appointments.filter(apt => apt.status === 'cancelled').length;
+      
+      setStats({
+        total: appointments.length,
+        upcoming,
+        completed,
+        cancelled
+      });
     } catch (error) {
       console.error('Error fetching appointments:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      console.error('Appointment fetch failed:', errorMessage);
+      
+      toast({
+        title: "Error Loading Appointments",
+        description: errorMessage,
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }

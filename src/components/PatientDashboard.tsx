@@ -74,6 +74,7 @@ import {
 import { Appointment, UserProfile } from "@/types/common";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
+import { format } from "date-fns";
 import { PatientAppShell, PatientSection } from "@/components/patient/PatientAppShell";
 import { HomeTab } from "@/components/patient/HomeTab";
 import { CareTab, CareItem } from "@/components/patient/CareTab";
@@ -282,24 +283,38 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
 
   const fetchRecentAppointments = async (profileId: string) => {
     try {
-      const { data: appointmentsData } = await supabase
+      console.log('Fetching recent appointments for profile:', profileId);
+      
+      const { data: appointmentsData, error } = await supabase
         .from('appointments')
         .select(`
           *,
-          dentists:dentist_id(first_name, last_name, specialization)
+          dentist:dentist_id(first_name, last_name, specialization)
         `)
         .eq('patient_id', profileId)
         .order('appointment_date', { ascending: false })
         .limit(5);
 
+      if (error) {
+        console.error('Error fetching recent appointments:', error);
+        throw error;
+      }
+
+      console.log('Recent appointments fetched:', appointmentsData?.length || 0);
+
       setRecentAppointments((appointmentsData || []).map(apt => ({
         ...apt,
-        duration: apt.duration_minutes || 60,
-        urgency_level: apt.urgency === 'emergency' ? 'urgent' : apt.urgency || 'normal',
+        duration_minutes: apt.duration_minutes || 60,
+        urgency: apt.urgency || 'normal',
         status: apt.status === 'pending' ? 'scheduled' : apt.status
       })));
     } catch (error) {
       console.error('Error fetching recent appointments:', error);
+      toast({
+        title: "Error Loading Recent Appointments",
+        description: "Failed to load your recent appointments. Please try refreshing the page.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -761,9 +776,9 @@ const DashboardOverview = ({ userProfile, patientStats, recentAppointments, getW
                     )} />
                   </div>
                   <div>
-                    <p className="font-medium">{appointment.treatment_type || 'General Checkup'}</p>
+                    <p className="font-medium">{appointment.reason || 'General Checkup'}</p>
                     <p className="text-sm text-muted-foreground">
-                      {formatDate(appointment.appointment_date)} at {appointment.appointment_time}
+                      {formatDate(appointment.appointment_date)} at {format(new Date(appointment.appointment_date), 'p')}
                     </p>
                   </div>
                 </div>

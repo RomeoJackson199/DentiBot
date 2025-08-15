@@ -56,11 +56,12 @@ export interface Appointment {
   patient_id: string;
   dentist_id: string;
   appointment_date: string;
-  duration: number;
+  duration_minutes?: number;
   status: 'scheduled' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled' | 'no_show' | 'pending';
   reason?: string;
   notes?: string;
-  urgency_level: 'low' | 'normal' | 'high' | 'urgent' | 'medium' | 'emergency';
+  urgency?: 'low' | 'normal' | 'high' | 'urgent' | 'medium' | 'emergency';
+  photo_url?: string;
   created_at: string;
   updated_at: string;
 }
