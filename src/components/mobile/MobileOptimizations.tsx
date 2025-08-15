@@ -84,12 +84,6 @@ export function MobileOptimizations() {
           border-radius: 20px;
         }
         
-        /* Swipe gestures */
-        .swipeable {
-          touch-action: pan-y;
-          user-select: none;
-        }
-        
         /* Prevent double-tap zoom */
         input, select, textarea, button {
           touch-action: manipulation;
