@@ -82,6 +82,7 @@ import { PaymentsTab } from "@/components/patient/PaymentsTab";
 import { SettingsPage } from "@/components/patient/SettingsPage";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { AppointmentBooking } from "@/components/AppointmentBooking";
+import { Card } from "@/components/ui/card";
 
 interface PatientDashboardProps {
   user: User;
@@ -485,11 +486,12 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
   }));
 
   const badges = {
-    payments: totalDueCents > 0,
-    appointments: patientStats.upcomingAppointments > 0,
-    care: patientStats.activePrescriptions > 0 || patientStats.activeTreatmentPlans > 0,
-    settings: !userProfile?.first_name || !userProfile?.last_name,
     home: false,
+    assistant: false,
+    care: patientStats.activePrescriptions > 0 || patientStats.activeTreatmentPlans > 0,
+    appointments: patientStats.upcomingAppointments > 0,
+    payments: totalDueCents > 0,
+    settings: !userProfile?.first_name || !userProfile?.last_name,
   } as Record<PatientSection, boolean>;
 
   return (
@@ -513,8 +515,23 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
           activeTreatmentPlans={patientStats.activeTreatmentPlans}
           totalDueCents={totalDueCents}
           onNavigateTo={(s) => setActiveSection(s)}
-          onOpenAssistant={() => setShowAssistant(true)}
+          onOpenAssistant={() => setActiveSection('assistant')}
         />
+      )}
+
+      {activeSection === 'assistant' && (
+        <div className="px-4 md:px-6 py-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">AI Dental Assistant</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[70vh]">
+                <InteractiveDentalChat user={user} triggerBooking={triggerBooking} />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       )}
 
       {activeSection === 'care' && (
@@ -540,17 +557,21 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
 
       <Dialog open={showAssistant} onOpenChange={setShowAssistant}>
         <DialogContent className="p-0 max-w-3xl w-full">
-          <InteractiveDentalChat user={user} triggerBooking={triggerBooking} />
+          <div className="h-[80vh]">
+            <InteractiveDentalChat user={user} triggerBooking={triggerBooking} />
+          </div>
         </DialogContent>
       </Dialog>
 
       <Dialog open={showBooking} onOpenChange={setShowBooking}>
         <DialogContent className="p-0 max-w-4xl w-full">
-          <AppointmentBooking
-            user={user}
-            onCancel={() => setShowBooking(false)}
-            onComplete={() => setShowBooking(false)}
-          />
+          <div className="h-[85vh] overflow-auto">
+            <AppointmentBooking
+              user={user}
+              onCancel={() => setShowBooking(false)}
+              onComplete={() => setShowBooking(false)}
+            />
+          </div>
         </DialogContent>
       </Dialog>
     </PatientAppShell>

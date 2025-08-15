@@ -284,7 +284,9 @@ const Index = () => {
       {/* AI Chat Modal */}
       <Dialog open={showAIChat} onOpenChange={setShowAIChat}>
         <DialogContent className="p-0 max-w-3xl w-full">
-          <InteractiveDentalChat user={user} />
+          <div className="h-[80vh]">
+            <InteractiveDentalChat user={user} />
+          </div>
         </DialogContent>
       </Dialog>
     </div>;

@@ -9,10 +9,11 @@ import {
   CreditCard,
   Settings as SettingsIcon,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Bot
 } from "lucide-react";
 
-export type PatientSection = 'home' | 'care' | 'appointments' | 'payments' | 'settings';
+export type PatientSection = 'home' | 'assistant' | 'care' | 'appointments' | 'payments' | 'settings';
 
 interface PatientAppShellProps {
   activeSection: PatientSection;
@@ -23,6 +24,7 @@ interface PatientAppShellProps {
 
 const NAV_ITEMS: Array<{ id: PatientSection; label: string; icon: React.ComponentType<any> }> = [
   { id: 'home', label: 'Home', icon: HomeIcon },
+  { id: 'assistant', label: 'Assistant', icon: Bot },
   { id: 'care', label: 'Care', icon: Stethoscope },
   { id: 'appointments', label: 'Appointments', icon: Calendar },
   { id: 'payments', label: 'Payments', icon: CreditCard },
@@ -100,7 +102,7 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
       <div className="md:hidden">
         <div className="pb-20">{children}</div>
         <div className="fixed bottom-0 left-0 right-0 bg-background/98 backdrop-blur border-t border-border z-50">
-          <div className="grid grid-cols-5 gap-1 p-2">
+          <div className="grid grid-cols-6 gap-1 p-2">
             {NAV_ITEMS.map(item => {
               const Icon = item.icon;
               const active = isActive(item.id);
