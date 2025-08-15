@@ -50,24 +50,13 @@ interface CarePageProps {
 interface TreatmentPlan {
   id: string;
   title: string;
-  description?: string;
+  description: string;
   status: 'draft' | 'active' | 'completed';
-  progress?: number;
-  next_step?: string;
-  next_step_date?: string;
+  progress: number;
+  next_step: string;
+  next_step_date: string;
   created_at: string;
   updated_at: string;
-  // Database fields
-  patient_id?: string;
-  dentist_id?: string;
-  diagnosis?: string;
-  notes?: string;
-  priority?: string;
-  start_date?: string;
-  end_date?: string;
-  estimated_cost?: number;
-  estimated_duration_weeks?: number;
-  treatment_steps?: any;
 }
 
 interface Prescription {
@@ -75,55 +64,35 @@ interface Prescription {
   medication_name: string;
   dosage: string;
   frequency: string;
-  start_date?: string;
-  end_date?: string;
+  start_date: string;
+  end_date: string;
   status: 'active' | 'expired' | 'cancelled';
-  instructions?: string;
-  prescribed_by?: string;
+  instructions: string;
+  prescribed_by: string;
   visit_id?: string;
-  // Database fields
-  patient_id?: string;
-  dentist_id?: string;
-  prescribed_date?: string;
-  duration_days?: number;
-  created_at?: string;
-  updated_at?: string;
-  treatment_plan_id?: string;
-  medical_record_id?: string;
 }
 
 interface CompletedVisit {
   id: string;
   appointment_date: string;
-  appointment_time?: string;
-  service_type?: string;
-  reason?: string;
-  dentist_name?: string;
-  procedures?: string[];
-  notes?: string;
-  prescriptions?: Prescription[];
-  records?: MedicalRecord[];
-  treatment_plan_updates?: any[];
+  appointment_time: string;
+  service_type: string;
+  dentist_name: string;
+  procedures: string[];
+  notes: string;
+  prescriptions: Prescription[];
+  records: MedicalRecord[];
+  treatment_plan_updates: any[];
 }
 
 interface MedicalRecord {
   id: string;
   title: string;
-  type?: 'xray' | 'report' | 'image' | 'document';
-  file_url?: string;
-  file_size?: number;
+  type: 'xray' | 'report' | 'image' | 'document';
+  file_url: string;
+  file_size: number;
   created_at: string;
   visit_id?: string;
-  // Database fields
-  patient_id?: string;
-  dentist_id?: string;
-  record_date?: string;
-  record_type?: string;
-  description?: string;
-  findings?: string;
-  recommendations?: string;
-  attachments?: any;
-  updated_at?: string;
 }
 
 type FilterType = 'all' | 'plans' | 'prescriptions' | 'visits' | 'records';
@@ -140,6 +109,7 @@ export const CarePage: React.FC<CarePageProps> = ({ user, onTabChange }) => {
   const [pastPrescriptions, setPastPrescriptions] = useState<Prescription[]>([]);
   const [completedVisits, setCompletedVisits] = useState<CompletedVisit[]>([]);
   const [medicalRecords, setMedicalRecords] = useState<MedicalRecord[]>([]);
+  const [profileId, setProfileId] = useState<string | null>(null);
   
   // UI states
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['plans', 'prescriptions', 'visits', 'records']));
@@ -177,6 +147,7 @@ export const CarePage: React.FC<CarePageProps> = ({ user, onTabChange }) => {
       }
 
       const profileId = userProfile.id;
+      setProfileId(profileId);
 
       // Fetch all care data in parallel
       const [plansRes, prescriptionsRes, visitsRes, recordsRes] = await Promise.all([
@@ -200,8 +171,10 @@ export const CarePage: React.FC<CarePageProps> = ({ user, onTabChange }) => {
           .select(`
             *,
             dentist:dentists(
-              profiles:profile_id(first_name, last_name)
-            )
+              full_name,
+              specialization
+            ),
+            medical_records(*)
           `)
           .eq('patient_id', profileId)
           .eq('status', 'completed')
@@ -216,28 +189,17 @@ export const CarePage: React.FC<CarePageProps> = ({ user, onTabChange }) => {
       ]);
 
       if (!plansRes.error && plansRes.data) {
-        const formattedPlans = plansRes.data.map(plan => ({
+        const mappedPlans = (plansRes.data as any[]).map((plan) => ({
           ...plan,
-          status: (plan.status as 'draft' | 'active' | 'completed') || 'active',
-          progress: 0,
-          next_step: 'Next consultation',
-          next_step_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+          title: plan.title ?? plan.plan_name ?? 'Treatment Plan',
+          description: plan.description ?? '',
         }));
-        setTreatmentPlans(formattedPlans);
+        setTreatmentPlans(mappedPlans as unknown as TreatmentPlan[]);
       }
 
       if (!prescriptionsRes.error && prescriptionsRes.data) {
-        const formattedPrescriptions = prescriptionsRes.data.map(p => ({
-          ...p,
-          status: (p.status as 'active' | 'expired' | 'cancelled') || 'active',
-          start_date: p.prescribed_date || p.created_at,
-          end_date: p.duration_days ? 
-            new Date(new Date(p.prescribed_date || p.created_at).getTime() + p.duration_days * 24 * 60 * 60 * 1000).toISOString() : 
-            undefined,
-          prescribed_by: 'Dr. Dentist'
-        }));
-        const active = formattedPrescriptions.filter(p => p.status === 'active');
-        const past = formattedPrescriptions.filter(p => p.status !== 'active');
+        const active = prescriptionsRes.data.filter(p => p.status === 'active');
+        const past = prescriptionsRes.data.filter(p => p.status !== 'active');
         setActivePrescriptions(active);
         setPastPrescriptions(past);
       }
@@ -246,27 +208,20 @@ export const CarePage: React.FC<CarePageProps> = ({ user, onTabChange }) => {
         const formattedVisits = visitsRes.data.map(visit => ({
           id: visit.id,
           appointment_date: visit.appointment_date,
-          appointment_time: new Date(visit.appointment_date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
-          service_type: visit.reason || 'Consultation',
-          reason: visit.reason,
-          dentist_name: visit.dentist?.profiles ? `${visit.dentist.profiles.first_name} ${visit.dentist.profiles.last_name}` : 'Unknown',
-          procedures: [], // Default empty array
-          notes: visit.notes || '',
-          prescriptions: [], // Default empty array  
-          records: [],
+          appointment_time: visit.appointment_time,
+          service_type: visit.service_type,
+          dentist_name: visit.dentist?.full_name || 'Unknown',
+          procedures: visit.procedures || [],
+          notes: visit.notes?.[0]?.content || '',
+          prescriptions: visit.prescriptions || [],
+          records: visit.medical_records || [],
           treatment_plan_updates: []
         }));
         setCompletedVisits(formattedVisits);
       }
 
       if (!recordsRes.error && recordsRes.data) {
-        const formattedRecords = recordsRes.data.map(record => ({
-          ...record,
-          type: (record.record_type as any) || 'document',
-          file_url: '/placeholder-document.pdf',
-          file_size: 0
-        }));
-        setMedicalRecords(formattedRecords);
+        setMedicalRecords(recordsRes.data);
       }
 
     } catch (error) {
@@ -295,7 +250,25 @@ export const CarePage: React.FC<CarePageProps> = ({ user, onTabChange }) => {
 
   const handleRequestRenewal = async (prescriptionId: string) => {
     try {
-      // Since prescription_renewals table doesn't exist, just show a toast
+      if (!profileId) {
+        toast({
+          title: "Error",
+          description: "Could not verify your patient profile. Please refresh.",
+          variant: "destructive",
+        });
+        return;
+      }
+      // Create a renewal request
+      const { error } = await supabase
+        .from('prescription_renewals')
+        .insert({
+          prescription_id: prescriptionId,
+          patient_id: profileId,
+          status: 'pending'
+        });
+
+      if (error) throw error;
+
       toast({
         title: "Renewal Requested",
         description: "Your prescription renewal request has been sent. The clinic typically responds within 1 business day.",
@@ -331,10 +304,14 @@ export const CarePage: React.FC<CarePageProps> = ({ user, onTabChange }) => {
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       results = {
-        plans: treatmentPlans.filter(p => 
-          p.title.toLowerCase().includes(term) || 
-          p.description?.toLowerCase().includes(term)
-        ),
+        plans: treatmentPlans.filter(p => {
+          const title = (p as any).title ?? (p as any).plan_name ?? '';
+          const description = (p as any).description ?? '';
+          return (
+            (typeof title === 'string' && title.toLowerCase().includes(term)) ||
+            (typeof description === 'string' && description.toLowerCase().includes(term))
+          );
+        }),
         activePrescriptions: activePrescriptions.filter(p => 
           p.medication_name.toLowerCase().includes(term)
         ),
@@ -342,9 +319,9 @@ export const CarePage: React.FC<CarePageProps> = ({ user, onTabChange }) => {
           p.medication_name.toLowerCase().includes(term)
         ),
         visits: completedVisits.filter(v => 
-          (v.service_type || '').toLowerCase().includes(term) ||
+          v.service_type.toLowerCase().includes(term) ||
           (v.notes || '').toLowerCase().includes(term) ||
-          (v.dentist_name || '').toLowerCase().includes(term)
+          v.dentist_name.toLowerCase().includes(term)
         ),
         records: medicalRecords.filter(r => 
           r.title.toLowerCase().includes(term)
@@ -525,10 +502,10 @@ export const CarePage: React.FC<CarePageProps> = ({ user, onTabChange }) => {
                             <p className="text-sm text-muted-foreground">
                               {prescription.dosage} • {prescription.frequency}
                             </p>
-                         <p className="text-xs text-muted-foreground">
-                           Prescribed: {format(new Date(prescription.start_date || prescription.prescribed_date || prescription.created_at), 'MMM d, yyyy')}
-                           {prescription.end_date && ` • Expires: ${format(new Date(prescription.end_date), 'MMM d, yyyy')}`}
-                         </p>
+                            <p className="text-xs text-muted-foreground">
+                              Prescribed: {format(new Date(prescription.start_date), 'MMM d, yyyy')}
+                              {prescription.end_date && ` • Expires: ${format(new Date(prescription.end_date), 'MMM d, yyyy')}`}
+                            </p>
                           </div>
                           <Badge variant="secondary" className="bg-green-100 text-green-800">
                             Active
@@ -728,9 +705,9 @@ export const CarePage: React.FC<CarePageProps> = ({ user, onTabChange }) => {
                             <td className="p-3 text-sm text-muted-foreground">
                               {format(new Date(record.created_at), 'MMM d, yyyy')}
                             </td>
-                             <td className="p-3 text-sm text-muted-foreground">
-                               {record.file_size ? (record.file_size / 1024).toFixed(1) : '0'} KB
-                             </td>
+                            <td className="p-3 text-sm text-muted-foreground">
+                              {(record.file_size / 1024).toFixed(1)} KB
+                            </td>
                             <td className="p-3">
                               <div className="flex gap-2">
                                 <Button 
@@ -768,9 +745,9 @@ export const CarePage: React.FC<CarePageProps> = ({ user, onTabChange }) => {
                               <span className="text-xs text-muted-foreground">
                                 {format(new Date(record.created_at), 'MMM d, yyyy')}
                               </span>
-                               <span className="text-xs text-muted-foreground">
-                                 {record.file_size ? (record.file_size / 1024).toFixed(1) : '0'} KB
-                               </span>
+                              <span className="text-xs text-muted-foreground">
+                                {(record.file_size / 1024).toFixed(1)} KB
+                              </span>
                             </div>
                           </div>
                         </div>

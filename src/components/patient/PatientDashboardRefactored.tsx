@@ -10,7 +10,9 @@ import {
   Heart, 
   Calendar, 
   CreditCard,
-  Bell
+  Bell,
+  Bot,
+  Settings as SettingsIcon
 } from "lucide-react";
 
 // Import new page components
@@ -18,6 +20,8 @@ import { HomePage } from "./pages/HomePage";
 import { CarePage } from "./pages/CarePage";
 import { AppointmentsPage } from "./pages/AppointmentsPage";
 import { PaymentsPage } from "./pages/PaymentsPage";
+import { AIBookingPage } from "./pages/AIBookingPage";
+import { SettingsPage } from "./pages/SettingsPage";
 
 // Import components
 import { NotificationButton } from "@/components/NotificationButton";
@@ -31,21 +35,14 @@ interface PatientDashboardRefactoredProps {
 interface UserProfile {
   id: string;
   user_id: string;
-  first_name: string;
-  last_name: string;
-  full_name?: string | null;
-  avatar_url?: string | null;
+  full_name: string | null;
+  avatar_url: string | null;
   phone: string | null;
   date_of_birth: string | null;
   address: string | null;
   medical_history: any;
-  insurance_info?: any;
+  insurance_info: any;
   emergency_contact: any;
-  email: string;
-  role: string;
-  created_at: string;
-  updated_at: string;
-  preferred_language?: string;
 }
 
 export const PatientDashboardRefactored: React.FC<PatientDashboardRefactoredProps> = ({ user }) => {
@@ -78,10 +75,7 @@ export const PatientDashboardRefactored: React.FC<PatientDashboardRefactoredProp
           throw new Error('No profile found for this user');
         }
         
-        setProfile({
-          ...data,
-          full_name: `${data.first_name} ${data.last_name}`.trim()
-        });
+        setProfile(data);
       } catch (error: any) {
         console.error('Error fetching profile:', error);
         toast({
@@ -101,7 +95,9 @@ export const PatientDashboardRefactored: React.FC<PatientDashboardRefactoredProp
     { id: 'home', label: 'Home', icon: Home },
     { id: 'care', label: 'Care', icon: Heart },
     { id: 'appointments', label: 'Appointments', icon: Calendar },
+    { id: 'ai-booking', label: 'AI Booking', icon: Bot },
     { id: 'payments', label: 'Payments', icon: CreditCard },
+    { id: 'settings', label: 'Settings', icon: SettingsIcon },
   ];
 
   // Add a function to handle tab changes from child components
@@ -137,7 +133,7 @@ export const PatientDashboardRefactored: React.FC<PatientDashboardRefactoredProp
                   <p className="text-sm font-medium truncate">{profile?.full_name || 'Patient'}</p>
                   <p className="text-xs text-muted-foreground truncate">{user.email}</p>
                 </div>
-                <NotificationButton userId={user.id} />
+                <NotificationButton />
               </div>
             </div>
 
@@ -168,7 +164,9 @@ export const PatientDashboardRefactored: React.FC<PatientDashboardRefactoredProp
               {activeTab === 'home' && <HomePage user={user} profile={profile} onTabChange={handleTabChange} />}
               {activeTab === 'care' && <CarePage user={user} onTabChange={handleTabChange} />}
               {activeTab === 'appointments' && <AppointmentsPage user={user} onTabChange={handleTabChange} />}
+              {activeTab === 'ai-booking' && <AIBookingPage user={user} onTabChange={handleTabChange} />}
               {activeTab === 'payments' && <PaymentsPage user={user} onTabChange={handleTabChange} />}
+              {activeTab === 'settings' && <SettingsPage user={user} />}
             </div>
           </main>
         </div>
@@ -209,7 +207,7 @@ export const PatientDashboardRefactored: React.FC<PatientDashboardRefactoredProp
 
             {/* Notification Button */}
             <div className="p-4 border-t flex justify-center">
-              <NotificationButton userId={user.id} />
+              <NotificationButton />
             </div>
           </aside>
 
@@ -219,7 +217,9 @@ export const PatientDashboardRefactored: React.FC<PatientDashboardRefactoredProp
               {activeTab === 'home' && <HomePage user={user} profile={profile} onTabChange={handleTabChange} />}
               {activeTab === 'care' && <CarePage user={user} onTabChange={handleTabChange} />}
               {activeTab === 'appointments' && <AppointmentsPage user={user} onTabChange={handleTabChange} />}
+              {activeTab === 'ai-booking' && <AIBookingPage user={user} onTabChange={handleTabChange} />}
               {activeTab === 'payments' && <PaymentsPage user={user} onTabChange={handleTabChange} />}
+              {activeTab === 'settings' && <SettingsPage user={user} />}
             </div>
           </main>
         </div>
@@ -234,7 +234,9 @@ export const PatientDashboardRefactored: React.FC<PatientDashboardRefactoredProp
               {activeTab === 'home' && <HomePage user={user} profile={profile} onTabChange={handleTabChange} />}
               {activeTab === 'care' && <CarePage user={user} onTabChange={handleTabChange} />}
               {activeTab === 'appointments' && <AppointmentsPage user={user} onTabChange={handleTabChange} />}
+              {activeTab === 'ai-booking' && <AIBookingPage user={user} onTabChange={handleTabChange} />}
               {activeTab === 'payments' && <PaymentsPage user={user} onTabChange={handleTabChange} />}
+              {activeTab === 'settings' && <SettingsPage user={user} />}
             </div>
           </main>
 

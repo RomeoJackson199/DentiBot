@@ -30,22 +30,10 @@ interface AppointmentBookingWidgetProps {
 
 interface Dentist {
   id: string;
-  full_name?: string;
-  first_name?: string;
-  last_name?: string;
-  specialization?: string;
-  available_days?: string[];
-  available_hours?: { start: string; end: string };
-  average_rating?: number;
-  communication_score?: number;
-  created_at?: string;
-  expertise_score?: number;
-  is_active?: boolean;
-  license_number?: string;
-  profile_id?: string;
-  total_ratings?: number;
-  updated_at?: string;
-  wait_time_score?: number;
+  full_name: string;
+  specialization: string;
+  available_days: string[];
+  available_hours: { start: string; end: string };
 }
 
 interface TimeSlot {
@@ -80,6 +68,7 @@ export const AppointmentBookingWidget: React.FC<AppointmentBookingWidgetProps> =
   const [notes, setNotes] = useState("");
   const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
   const [step, setStep] = useState(1);
+  const [patientProfileId, setPatientProfileId] = useState<string | null>(null);
   
   const { toast } = useToast();
 
@@ -93,27 +82,33 @@ export const AppointmentBookingWidget: React.FC<AppointmentBookingWidgetProps> =
     }
   }, [selectedDate, selectedDentist]);
 
+  useEffect(() => {
+    const loadProfileId = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('user_id', user.id)
+          .single();
+        if (error) throw error;
+        setPatientProfileId(data?.id || null);
+      } catch (error) {
+        console.error('Error loading patient profile:', error);
+      }
+    };
+    loadProfileId();
+  }, [user.id]);
+
   const fetchDentists = async () => {
     try {
       setLoadingDentists(true);
       const { data, error } = await supabase
         .from('dentists')
-        .select(`
-          *,
-          profiles:profile_id(first_name, last_name)
-        `)
+        .select('*')
         .eq('is_active', true);
 
       if (error) throw error;
-      
-      const formattedDentists = (data || []).map(dentist => ({
-        ...dentist,
-        full_name: dentist.profiles ? `${dentist.profiles.first_name} ${dentist.profiles.last_name}` : 'Unknown',
-        available_days: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'],
-        available_hours: { start: '09:00', end: '17:00' }
-      }));
-      
-      setDentists(formattedDentists);
+      setDentists(data || []);
     } catch (error) {
       console.error('Error fetching dentists:', error);
       toast({
@@ -142,27 +137,26 @@ export const AppointmentBookingWidget: React.FC<AppointmentBookingWidgetProps> =
       });
     }
 
-      // In production, check against existing appointments
-      try {
-        const { data: existingAppointments } = await supabase
-          .from('appointments')
-          .select('appointment_date')
-          .eq('dentist_id', selectedDentist)
-          .eq('appointment_date', format(selectedDate, 'yyyy-MM-dd'))
-          .neq('status', 'cancelled');
+    // In production, check against existing appointments
+    try {
+      const { data: existingAppointments } = await supabase
+        .from('appointments')
+        .select('appointment_time')
+        .eq('dentist_id', selectedDentist)
+        .eq('appointment_date', format(selectedDate, 'yyyy-MM-dd'))
+        .neq('status', 'cancelled');
 
-        if (existingAppointments) {
-          existingAppointments.forEach(apt => {
-            const appointmentTime = new Date(apt.appointment_date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-            const slotIndex = slots.findIndex(s => s.time === appointmentTime);
-            if (slotIndex !== -1) {
-              slots[slotIndex].available = false;
-            }
-          });
-        }
-      } catch (error) {
-        console.error('Error checking availability:', error);
+      if (existingAppointments) {
+        existingAppointments.forEach(apt => {
+          const slotIndex = slots.findIndex(s => s.time === apt.appointment_time);
+          if (slotIndex !== -1) {
+            slots[slotIndex].available = false;
+          }
+        });
       }
+    } catch (error) {
+      console.error('Error checking availability:', error);
+    }
 
     setAvailableSlots(slots);
   };
@@ -177,17 +171,25 @@ export const AppointmentBookingWidget: React.FC<AppointmentBookingWidgetProps> =
       return;
     }
 
+    if (!patientProfileId) {
+      toast({
+        title: "Error",
+        description: "Could not verify your patient profile. Please refresh.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       setLoading(true);
 
-      const appointmentDateTime = new Date(`${format(selectedDate, 'yyyy-MM-dd')}T${selectedTime}`);
-      
       const appointmentData = {
-        patient_id: user.id,
+        patient_id: patientProfileId,
         dentist_id: selectedDentist,
-        appointment_date: appointmentDateTime.toISOString(),
-        reason: selectedService,
-        status: 'confirmed' as const,
+        appointment_date: format(selectedDate, 'yyyy-MM-dd'),
+        appointment_time: selectedTime,
+        service_type: selectedService,
+        status: 'confirmed',
         notes: notes || null
       };
 
@@ -296,8 +298,8 @@ export const AppointmentBookingWidget: React.FC<AppointmentBookingWidgetProps> =
                         <RadioGroupItem value={dentist.id} id={dentist.id} />
                         <Label htmlFor={dentist.id} className="cursor-pointer flex-1">
                           <div>
-                            <span>Dr. {dentist.full_name || `${dentist.first_name || ''} ${dentist.last_name || ''}`.trim() || 'Unknown'}</span>
-                            <p className="text-sm text-muted-foreground">{dentist.specialization || 'General Dentistry'}</p>
+                            <p className="font-medium">Dr. {dentist.full_name}</p>
+                            <p className="text-sm text-muted-foreground">{dentist.specialization}</p>
                           </div>
                         </Label>
                       </div>
@@ -363,7 +365,7 @@ export const AppointmentBookingWidget: React.FC<AppointmentBookingWidgetProps> =
               </div>
               <div className="flex items-center gap-2">
                 <UserIcon className="h-4 w-4 text-muted-foreground" />
-                <span>Dr. {dentists.find(d => d.id === selectedDentist)?.full_name || dentists.find(d => d.id === selectedDentist)?.first_name || 'Unknown'}</span>
+                <span>Dr. {dentists.find(d => d.id === selectedDentist)?.full_name}</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle className="h-4 w-4 text-muted-foreground" />
