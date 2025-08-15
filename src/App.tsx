@@ -31,6 +31,7 @@ const Support = lazy(() => import("./pages/Support"));
 const FeatureDetail = lazy(() => import("./pages/FeatureDetail"));
 const UnifiedDashboard = lazy(() => import("./components/UnifiedDashboard").then(module => ({ default: module.UnifiedDashboard })));
 const LanguageTest = lazy(() => import("./components/LanguageTest").then(module => ({ default: module.LanguageTest })));
+const TestEnhancedPatientDashboard = lazy(() => import("./pages/TestEnhancedPatientDashboard"));
 
 // Dashboard component that handles authentication with lazy loading
 const Dashboard = () => {
@@ -130,6 +131,7 @@ const App = () => (
                 <Route path="/features/:id" element={<LazyLoadingWrapper><FeatureDetail /></LazyLoadingWrapper>} />
                 <Route path="/language-test" element={<LazyLoadingWrapper><LanguageTest /></LazyLoadingWrapper>} />
                 <Route path="/chat" element={<LazyLoadingWrapper><Chat /></LazyLoadingWrapper>} />
+                <Route path="/test-patient-dashboard" element={<LazyLoadingWrapper><TestEnhancedPatientDashboard /></LazyLoadingWrapper>} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<LazyLoadingWrapper><NotFound /></LazyLoadingWrapper>} />
               </Routes>
