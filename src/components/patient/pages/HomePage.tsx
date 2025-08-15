@@ -32,6 +32,7 @@ import {
 interface HomePageProps {
   user: User;
   profile: any;
+  onTabChange?: (tabId: string) => void;
 }
 
 interface Appointment {
@@ -76,7 +77,7 @@ interface PaymentSummary {
   }>;
 }
 
-export const HomePage: React.FC<HomePageProps> = ({ user, profile }) => {
+export const HomePage: React.FC<HomePageProps> = ({ user, profile, onTabChange }) => {
   const [loading, setLoading] = useState(true);
   const [nextAppointment, setNextAppointment] = useState<Appointment | null>(null);
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
@@ -96,7 +97,26 @@ export const HomePage: React.FC<HomePageProps> = ({ user, profile }) => {
     try {
       setLoading(true);
       
-      // Fetch all data in parallel
+      // First, get the user's profile ID
+      const { data: userProfile, error: profileError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (profileError || !userProfile) {
+        console.error('Error fetching user profile:', profileError);
+        toast({
+          title: "Error",
+          description: "Could not load user profile. Please refresh the page.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const profileId = userProfile.id;
+      
+      // Fetch all data in parallel using the profile ID
       const [appointmentsRes, prescriptionsRes, treatmentPlansRes, paymentsRes] = await Promise.all([
         // Next appointment
         supabase
@@ -108,7 +128,7 @@ export const HomePage: React.FC<HomePageProps> = ({ user, profile }) => {
               specialization
             )
           `)
-          .eq('patient_id', user.id)
+          .eq('patient_id', profileId)
           .eq('status', 'confirmed')
           .gte('appointment_date', new Date().toISOString().split('T')[0])
           .order('appointment_date', { ascending: true })
@@ -120,7 +140,7 @@ export const HomePage: React.FC<HomePageProps> = ({ user, profile }) => {
         supabase
           .from('prescriptions')
           .select('*')
-          .eq('patient_id', user.id)
+          .eq('patient_id', profileId)
           .eq('status', 'active')
           .order('end_date', { ascending: true }),
         
@@ -128,7 +148,7 @@ export const HomePage: React.FC<HomePageProps> = ({ user, profile }) => {
         supabase
           .from('treatment_plans')
           .select('*')
-          .eq('patient_id', user.id)
+          .eq('patient_id', profileId)
           .eq('status', 'active')
           .order('created_at', { ascending: false }),
         
@@ -136,16 +156,25 @@ export const HomePage: React.FC<HomePageProps> = ({ user, profile }) => {
         supabase
           .from('payment_requests')
           .select('*')
-          .eq('patient_id', user.id)
+          .eq('patient_id', profileId)
           .eq('status', 'pending')
           .order('created_at', { ascending: false })
       ]);
 
-      if (!appointmentsRes.error && appointmentsRes.data) {
+      // Handle appointments
+      if (appointmentsRes.error) {
+        // It's OK if there are no appointments (PGRST116 is "no rows found")
+        if (appointmentsRes.error.code !== 'PGRST116') {
+          console.error('Error fetching appointments:', appointmentsRes.error);
+        }
+      } else if (appointmentsRes.data) {
         setNextAppointment(appointmentsRes.data);
       }
 
-      if (!prescriptionsRes.error && prescriptionsRes.data) {
+      // Handle prescriptions
+      if (prescriptionsRes.error) {
+        console.error('Error fetching prescriptions:', prescriptionsRes.error);
+      } else if (prescriptionsRes.data) {
         setPrescriptions(prescriptionsRes.data);
         
         // Check for expiring prescriptions
@@ -155,15 +184,21 @@ export const HomePage: React.FC<HomePageProps> = ({ user, profile }) => {
         });
         
         if (expiringPrescriptions.length > 0) {
-          setAlerts(prev => [...prev, `Prescription expires in ${expiringPrescriptions.length} days`]);
+          setAlerts(prev => [...prev, `${expiringPrescriptions.length} prescription(s) expiring soon`]);
         }
       }
 
-      if (!treatmentPlansRes.error && treatmentPlansRes.data) {
+      // Handle treatment plans
+      if (treatmentPlansRes.error) {
+        console.error('Error fetching treatment plans:', treatmentPlansRes.error);
+      } else if (treatmentPlansRes.data) {
         setTreatmentPlans(treatmentPlansRes.data);
       }
 
-      if (!paymentsRes.error && paymentsRes.data) {
+      // Handle payments
+      if (paymentsRes.error) {
+        console.error('Error fetching payment requests:', paymentsRes.error);
+      } else if (paymentsRes.data) {
         const totalDue = paymentsRes.data.reduce((sum, payment) => sum + payment.amount, 0);
         setPaymentSummary({
           total_due: totalDue,
@@ -180,7 +215,7 @@ export const HomePage: React.FC<HomePageProps> = ({ user, profile }) => {
       console.error('Error fetching dashboard data:', error);
       toast({
         title: "Error",
-        description: "Failed to load dashboard data",
+        description: "Some dashboard data could not be loaded. Please refresh the page.",
         variant: "destructive",
       });
     } finally {
@@ -190,17 +225,23 @@ export const HomePage: React.FC<HomePageProps> = ({ user, profile }) => {
 
   const handleBookAppointment = () => {
     // Navigate to appointments page
-    window.location.href = '/dashboard?tab=appointments';
+    if (onTabChange) {
+      onTabChange('appointments');
+    }
   };
 
   const handleViewPrescriptions = () => {
     // Navigate to care page
-    window.location.href = '/dashboard?tab=care';
+    if (onTabChange) {
+      onTabChange('care');
+    }
   };
 
   const handlePayBalance = () => {
     // Navigate to payments page
-    window.location.href = '/dashboard?tab=payments';
+    if (onTabChange) {
+      onTabChange('payments');
+    }
   };
 
   const handleAIAssistant = () => {

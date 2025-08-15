@@ -44,6 +44,7 @@ import {
 
 interface CarePageProps {
   user: User;
+  onTabChange?: (tabId: string) => void;
 }
 
 interface TreatmentPlan {
@@ -96,7 +97,7 @@ interface MedicalRecord {
 
 type FilterType = 'all' | 'plans' | 'prescriptions' | 'visits' | 'records';
 
-export const CarePage: React.FC<CarePageProps> = ({ user }) => {
+export const CarePage: React.FC<CarePageProps> = ({ user, onTabChange }) => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState<FilterType>("all");
@@ -127,33 +128,53 @@ export const CarePage: React.FC<CarePageProps> = ({ user }) => {
     try {
       setLoading(true);
       
-      // Fetch all data in parallel
+      // First, get the user's profile ID
+      const { data: userProfile, error: profileError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (profileError || !userProfile) {
+        console.error('Error fetching user profile:', profileError);
+        toast({
+          title: "Error",
+          description: "Could not load user profile. Please refresh the page.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const profileId = userProfile.id;
+
+      // Fetch all care data in parallel
       const [plansRes, prescriptionsRes, visitsRes, recordsRes] = await Promise.all([
         // Treatment plans
         supabase
           .from('treatment_plans')
           .select('*')
-          .eq('patient_id', user.id)
+          .eq('patient_id', profileId)
           .order('created_at', { ascending: false }),
         
         // Prescriptions
         supabase
           .from('prescriptions')
           .select('*')
-          .eq('patient_id', user.id)
+          .eq('patient_id', profileId)
           .order('created_at', { ascending: false }),
         
-        // Completed visits (appointments with notes)
+        // Completed visits
         supabase
           .from('appointments')
           .select(`
             *,
-            dentist:dentists(full_name),
-            notes:appointment_notes(*),
-            prescriptions(*),
+            dentist:dentists(
+              full_name,
+              specialization
+            ),
             medical_records(*)
           `)
-          .eq('patient_id', user.id)
+          .eq('patient_id', profileId)
           .eq('status', 'completed')
           .order('appointment_date', { ascending: false }),
         
@@ -161,7 +182,7 @@ export const CarePage: React.FC<CarePageProps> = ({ user }) => {
         supabase
           .from('medical_records')
           .select('*')
-          .eq('patient_id', user.id)
+          .eq('patient_id', profileId)
           .order('created_at', { ascending: false })
       ]);
 

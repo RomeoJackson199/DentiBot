@@ -62,13 +62,21 @@ export const PatientDashboardRefactored: React.FC<PatientDashboardRefactoredProp
           .eq('user_id', user.id)
           .single();
 
-        if (error) throw error;
+        if (error) {
+          console.error('Profile fetch error:', error);
+          throw error;
+        }
+        
+        if (!data) {
+          throw new Error('No profile found for this user');
+        }
+        
         setProfile(data);
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error fetching profile:', error);
         toast({
-          title: "Error",
-          description: "Failed to load profile",
+          title: "Profile Error",
+          description: error.message || "Failed to load your profile. Please try refreshing the page.",
           variant: "destructive",
         });
       } finally {
@@ -85,6 +93,11 @@ export const PatientDashboardRefactored: React.FC<PatientDashboardRefactoredProp
     { id: 'appointments', label: 'Appointments', icon: Calendar },
     { id: 'payments', label: 'Payments', icon: CreditCard },
   ];
+
+  // Add a function to handle tab changes from child components
+  const handleTabChange = (tabId: string) => {
+    setActiveTab(tabId);
+  };
 
   if (loading) {
     return (
@@ -142,10 +155,10 @@ export const PatientDashboardRefactored: React.FC<PatientDashboardRefactoredProp
           {/* Main Content */}
           <main className="flex-1 overflow-y-auto">
             <div className="container max-w-7xl mx-auto p-6">
-              {activeTab === 'home' && <HomePage user={user} profile={profile} />}
-              {activeTab === 'care' && <CarePage user={user} />}
-              {activeTab === 'appointments' && <AppointmentsPage user={user} />}
-              {activeTab === 'payments' && <PaymentsPage user={user} />}
+              {activeTab === 'home' && <HomePage user={user} profile={profile} onTabChange={handleTabChange} />}
+              {activeTab === 'care' && <CarePage user={user} onTabChange={handleTabChange} />}
+              {activeTab === 'appointments' && <AppointmentsPage user={user} onTabChange={handleTabChange} />}
+              {activeTab === 'payments' && <PaymentsPage user={user} onTabChange={handleTabChange} />}
             </div>
           </main>
         </div>
@@ -193,10 +206,10 @@ export const PatientDashboardRefactored: React.FC<PatientDashboardRefactoredProp
           {/* Main Content */}
           <main className="flex-1 overflow-y-auto">
             <div className="container max-w-4xl mx-auto p-6">
-              {activeTab === 'home' && <HomePage user={user} profile={profile} />}
-              {activeTab === 'care' && <CarePage user={user} />}
-              {activeTab === 'appointments' && <AppointmentsPage user={user} />}
-              {activeTab === 'payments' && <PaymentsPage user={user} />}
+              {activeTab === 'home' && <HomePage user={user} profile={profile} onTabChange={handleTabChange} />}
+              {activeTab === 'care' && <CarePage user={user} onTabChange={handleTabChange} />}
+              {activeTab === 'appointments' && <AppointmentsPage user={user} onTabChange={handleTabChange} />}
+              {activeTab === 'payments' && <PaymentsPage user={user} onTabChange={handleTabChange} />}
             </div>
           </main>
         </div>
@@ -208,10 +221,10 @@ export const PatientDashboardRefactored: React.FC<PatientDashboardRefactoredProp
           {/* Main Content */}
           <main className="flex-1 overflow-y-auto pb-16">
             <div className="p-4">
-              {activeTab === 'home' && <HomePage user={user} profile={profile} />}
-              {activeTab === 'care' && <CarePage user={user} />}
-              {activeTab === 'appointments' && <AppointmentsPage user={user} />}
-              {activeTab === 'payments' && <PaymentsPage user={user} />}
+              {activeTab === 'home' && <HomePage user={user} profile={profile} onTabChange={handleTabChange} />}
+              {activeTab === 'care' && <CarePage user={user} onTabChange={handleTabChange} />}
+              {activeTab === 'appointments' && <AppointmentsPage user={user} onTabChange={handleTabChange} />}
+              {activeTab === 'payments' && <PaymentsPage user={user} onTabChange={handleTabChange} />}
             </div>
           </main>
 
