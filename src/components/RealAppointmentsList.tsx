@@ -12,10 +12,23 @@ import {
   CheckCircle,
   XCircle,
   Loader2,
-  Plus,
-  RefreshCw
+  RefreshCw,
+  Phone
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger
+} from '@/components/ui/alert-dialog';
+import { Input } from '@/components/ui/input';
 
 interface Appointment {
   id: string;
@@ -36,15 +49,20 @@ interface Appointment {
 
 interface RealAppointmentsListProps {
   user: User;
-  onBookNew?: () => void;
   filter?: 'upcoming' | 'past' | 'incomplete';
 }
 
-export const RealAppointmentsList = ({ user, onBookNew, filter }: RealAppointmentsListProps) => {
+export const RealAppointmentsList = ({ user, filter }: RealAppointmentsListProps) => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+
+  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [rescheduleOpen, setRescheduleOpen] = useState(false);
+  const [rescheduleDate, setRescheduleDate] = useState<string>('');
+  const [processing, setProcessing] = useState(false);
 
   const fetchAppointments = useCallback(async () => {
     try {
@@ -234,6 +252,14 @@ export const RealAppointmentsList = ({ user, onBookNew, filter }: RealAppointmen
   };
 
   const now = new Date();
+
+  const canModifyAppointment = (apt: Appointment) => {
+    const date = new Date(apt.appointment_date);
+    const upcoming = date >= now;
+    const locked = apt.status?.toLowerCase() === 'cancelled' || apt.status?.toLowerCase() === 'completed';
+    return upcoming && !locked;
+  };
+
   const filteredAppointments = appointments.filter((apt) => {
     if (!filter) return true;
     const date = new Date(apt.appointment_date);
@@ -248,6 +274,75 @@ export const RealAppointmentsList = ({ user, onBookNew, filter }: RealAppointmen
     }
     return true;
   });
+
+  const nextUpcoming = appointments
+    .filter((apt) => new Date(apt.appointment_date) >= now && (apt.status === 'confirmed' || apt.status === 'scheduled' || apt.status === 'pending'))
+    .sort((a, b) => new Date(a.appointment_date).getTime() - new Date(b.appointment_date).getTime())[0] || null;
+
+  const openDetails = (apt: Appointment) => {
+    setSelectedAppointment(apt);
+    setDetailsOpen(true);
+  };
+
+  const openReschedule = (apt: Appointment) => {
+    setSelectedAppointment(apt);
+    // Initialize datetime-local value (approximate)
+    const dt = new Date(apt.appointment_date);
+    const local = new Date(dt.getTime() - dt.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+    setRescheduleDate(local);
+    setRescheduleOpen(true);
+  };
+
+  const cancelAppointment = async (appointmentId: string) => {
+    try {
+      setProcessing(true);
+      // Release any held slot
+      await supabase.rpc('release_appointment_slot', { p_appointment_id: appointmentId });
+      // Cancel appointment via RPC
+      const { data, error } = await supabase.rpc('cancel_appointment', {
+        appointment_id: appointmentId,
+        user_id: user.id
+      });
+      if (error) throw error;
+      if (data) {
+        toast({ title: 'Appointment cancelled' });
+        setDetailsOpen(false);
+        await fetchAppointments();
+      } else {
+        toast({ title: 'Failed to cancel appointment', variant: 'destructive' });
+      }
+    } catch (err) {
+      console.error(err);
+      toast({ title: 'Failed to cancel appointment', variant: 'destructive' });
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const applyReschedule = async () => {
+    if (!selectedAppointment || !rescheduleDate) return;
+    try {
+      setProcessing(true);
+      // Release previous slot if any
+      await supabase.rpc('release_appointment_slot', { p_appointment_id: selectedAppointment.id });
+      const newDate = new Date(rescheduleDate);
+      const iso = newDate.toISOString();
+      const { error } = await supabase
+        .from('appointments')
+        .update({ appointment_date: iso, status: selectedAppointment.status === 'cancelled' ? 'pending' : selectedAppointment.status })
+        .eq('id', selectedAppointment.id);
+      if (error) throw error;
+      toast({ title: 'Appointment rescheduled' });
+      setRescheduleOpen(false);
+      setDetailsOpen(false);
+      await fetchAppointments();
+    } catch (err) {
+      console.error(err);
+      toast({ title: 'Failed to reschedule', variant: 'destructive' });
+    } finally {
+      setProcessing(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -301,7 +396,7 @@ export const RealAppointmentsList = ({ user, onBookNew, filter }: RealAppointmen
   
   return (
     <div className="space-y-6">
-      {/* Header with booking button */}
+      {/* Header with refresh */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">My Appointments</h2>
@@ -319,81 +414,106 @@ export const RealAppointmentsList = ({ user, onBookNew, filter }: RealAppointmen
             <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
-          <Button 
-            onClick={async () => {
-              try {
-                // Create a test appointment
-                const { data: dentists } = await supabase
-                  .from('dentists')
-                  .select('id')
-                  .limit(1);
-
-                if (dentists && dentists.length > 0) {
-                  const { data: profile } = await supabase
-                    .from('profiles')
-                    .select('id')
-                    .eq('user_id', user.id)
-                    .single();
-
-                  if (profile) {
-                    const { data: appointment, error } = await supabase
-                      .from('appointments')
-                      .insert({
-                        patient_id: profile.id,
-                        dentist_id: dentists[0].id,
-                        appointment_date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // Tomorrow
-                        status: 'pending',
-                        urgency: 'medium',
-                        reason: 'Test appointment'
-                      })
-                      .select()
-                      .single();
-
-                    if (error) {
-                      console.error('Error creating test appointment:', error);
-                    } else {
-                      console.log('Created test appointment:', appointment);
-                      fetchAppointments();
-                    }
-                  }
-                }
-              } catch (error) {
-                console.error('Error creating test appointment:', error);
-              }
-            }}
-            variant="outline"
-            size="sm"
-          >
-            Create Test Appointment
-          </Button>
-          {onBookNew && (
-            <Button onClick={onBookNew} className="bg-gradient-primary hover:bg-gradient-primary/90">
-              <Plus className="h-4 w-4 mr-2" />
-              Book New Appointment
-            </Button>
-          )}
         </div>
       </div>
+
+      {/* Next upcoming appointment highlight */}
+      {filter === 'upcoming' && nextUpcoming && (
+        <Card className="glass-card border-0 shadow-md">
+          <CardHeader>
+            <CardTitle className="text-lg">Your next appointment</CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="flex items-start justify-between">
+              <div className="flex items-start space-x-4 flex-1">
+                <div className="flex items-center space-x-2">
+                  {getStatusIcon(nextUpcoming.status)}
+                  <div className={`w-2 h-2 rounded-full ${getUrgencyColor(nextUpcoming.urgency)}`}></div>
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <h3 className="font-semibold text-lg">{nextUpcoming.reason || 'Dental Appointment'}</h3>
+                    <Badge className={getStatusColor(nextUpcoming.status)}>
+                      {nextUpcoming.status}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center space-x-4 text-sm text-dental-muted-foreground mb-2">
+                    <div className="flex items-center space-x-1">
+                      <Calendar className="h-4 w-4" />
+                      <span>{formatDate(nextUpcoming.appointment_date)}</span>
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      <Clock className="h-4 w-4" />
+                      <span>{formatTime(nextUpcoming.appointment_date)}</span>
+                    </div>
+                    {nextUpcoming.dentist?.profile && (
+                      <div className="flex items-center space-x-1">
+                        <UserIcon className="h-4 w-4" />
+                        <span>
+                          Dr. {nextUpcoming.dentist.profile.first_name || 'Unknown'} {nextUpcoming.dentist.profile.last_name || 'Dentist'}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  {nextUpcoming.notes && (
+                    <p className="text-sm text-dental-muted-foreground bg-white/50 p-3 rounded-lg">
+                      {nextUpcoming.notes}
+                    </p>
+                  )}
+                </div>
+              </div>
+              <div className="flex flex-col items-end space-y-2">
+                {canModifyAppointment(nextUpcoming) && (
+                  <>
+                    <Button size="sm" variant="outline" onClick={() => openReschedule(nextUpcoming)}>
+                      Reschedule
+                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button size="sm" variant="destructive">Cancel</Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Cancel appointment?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This cannot be undone. Are you sure you want to cancel this appointment?
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel disabled={processing}>No</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => cancelAppointment(nextUpcoming.id)} disabled={processing}>
+                            Yes, cancel
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </>
+                )}
+                {nextUpcoming.dentist?.profile?.phone && (
+                  <Button variant="ghost" size="sm" className="text-xs" onClick={(e) => { e.stopPropagation(); window.location.href = `tel:${nextUpcoming.dentist.profile.phone}`; }}>
+                    <Phone className="h-4 w-4 mr-1" /> Call Doctor
+                  </Button>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {filteredAppointments.length === 0 ? (
         <Card className="glass-card border-0">
           <CardContent className="p-8 text-center">
             <Calendar className="h-12 w-12 text-dental-muted-foreground mx-auto mb-4" />
             <h3 className="text-lg font-semibold mb-2">No Appointments Found</h3>
-            <p className="text-dental-muted-foreground mb-4">
+            <p className="text-dental-muted-foreground mb-0">
               You don't have any appointments scheduled yet.
             </p>
-            {onBookNew && (
-              <Button onClick={onBookNew} variant="outline">
-                Book Your First Appointment
-              </Button>
-            )}
           </CardContent>
         </Card>
       ) : (
         <div className="space-y-4">
           {filteredAppointments.map((apt) => (
-            <Card key={apt.id} className="glass-card border-0 hover:shadow-lg transition-shadow">
+            <Card key={apt.id} className="glass-card border-0 hover:shadow-lg transition-shadow cursor-pointer" onClick={() => openDetails(apt)}>
               <CardContent className="p-6">
                 <div className="flex items-start justify-between">
                   <div className="flex items-start space-x-4 flex-1">
@@ -442,7 +562,7 @@ export const RealAppointmentsList = ({ user, onBookNew, filter }: RealAppointmen
                       {apt.urgency} priority
                     </Badge>
                     {apt.dentist?.profile?.phone && (
-                      <Button variant="ghost" size="sm" className="text-xs">
+                      <Button variant="ghost" size="sm" className="text-xs" onClick={(e) => { e.stopPropagation(); window.location.href = `tel:${apt.dentist.profile.phone}`; }}>
                         Call Doctor
                       </Button>
                     )}
@@ -453,6 +573,105 @@ export const RealAppointmentsList = ({ user, onBookNew, filter }: RealAppointmen
           ))}
         </div>
       )}
+
+      {/* Details dialog */}
+      <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
+        <DialogContent className="max-w-lg">
+          {selectedAppointment && (
+            <>
+              <DialogHeader>
+                <DialogTitle>Appointment Details</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-medium text-sm text-muted-foreground mb-1">Reason for Visit</h4>
+                  <p className="text-sm">{selectedAppointment.reason || 'General consultation'}</p>
+                </div>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4" />
+                      <span>{formatDate(selectedAppointment.appointment_date)}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-4 w-4" />
+                      <span>{formatTime(selectedAppointment.appointment_date)}</span>
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <UserIcon className="h-4 w-4" />
+                      <span>
+                        Dr. {selectedAppointment.dentist?.profile?.first_name || 'Unknown'} {selectedAppointment.dentist?.profile?.last_name || 'Dentist'}
+                      </span>
+                    </div>
+                    {selectedAppointment.dentist?.profile?.phone && (
+                      <div className="flex items-center gap-2">
+                        <Phone className="h-4 w-4" />
+                        <span>{selectedAppointment.dentist.profile.phone}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <Badge className={getStatusColor(selectedAppointment.status)}>{selectedAppointment.status}</Badge>
+                  <Badge variant="outline" className="capitalize">{selectedAppointment.urgency} priority</Badge>
+                </div>
+                {selectedAppointment.notes && (
+                  <div>
+                    <h4 className="font-medium text-sm text-muted-foreground mb-1">Notes</h4>
+                    <p className="text-sm">{selectedAppointment.notes}</p>
+                  </div>
+                )}
+              </div>
+              <DialogFooter className="mt-4">
+                {canModifyAppointment(selectedAppointment) && (
+                  <div className="flex items-center gap-2">
+                    <Button variant="outline" onClick={() => openReschedule(selectedAppointment)} disabled={processing}>Reschedule</Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="destructive" disabled={processing}>Cancel Appointment</Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Cancel appointment?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This action cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel disabled={processing}>No</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => cancelAppointment(selectedAppointment.id)} disabled={processing}>
+                            Yes, cancel
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                )}
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Reschedule dialog */}
+      <Dialog open={rescheduleOpen} onOpenChange={setRescheduleOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Reschedule Appointment</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Input type="datetime-local" value={rescheduleDate} onChange={(e) => setRescheduleDate(e.target.value)} />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRescheduleOpen(false)} disabled={processing}>Cancel</Button>
+            <Button onClick={applyReschedule} disabled={processing || !rescheduleDate}>
+              {processing ? 'Saving...' : 'Save'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

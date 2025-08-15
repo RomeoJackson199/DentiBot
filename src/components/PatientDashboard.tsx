@@ -544,7 +544,7 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
       )}
 
       {activeSection === 'appointments' && (
-        <AppointmentsTab user={user} onBookNew={() => setShowBooking(true)} />
+        <AppointmentsTab user={user} />
       )}
 
       {activeSection === 'payments' && userProfile?.id && (
