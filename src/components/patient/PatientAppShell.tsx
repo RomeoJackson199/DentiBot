@@ -47,41 +47,10 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
     return false;
   });
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [touchStart, setTouchStart] = useState<number | null>(null);
-  const [touchEnd, setTouchEnd] = useState<number | null>(null);
-
   // Save sidebar state
   useEffect(() => {
     localStorage.setItem('sidebar-collapsed', sidebarCollapsed.toString());
   }, [sidebarCollapsed]);
-
-  // Handle swipe gestures for mobile
-  const minSwipeDistance = 50;
-
-  const onTouchStart = (e: React.TouchEvent) => {
-    setTouchEnd(null);
-    setTouchStart(e.targetTouches[0].clientX);
-  };
-
-  const onTouchMove = (e: React.TouchEvent) => {
-    setTouchEnd(e.targetTouches[0].clientX);
-  };
-
-  const onTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
-    const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > minSwipeDistance;
-    const isRightSwipe = distance < -minSwipeDistance;
-    
-    if (isLeftSwipe || isRightSwipe) {
-      const currentIndex = NAV_ITEMS.findIndex(item => item.id === activeSection);
-      if (isLeftSwipe && currentIndex < NAV_ITEMS.length - 1) {
-        onChangeSection(NAV_ITEMS[currentIndex + 1].id);
-      } else if (isRightSwipe && currentIndex > 0) {
-        onChangeSection(NAV_ITEMS[currentIndex - 1].id);
-      }
-    }
-  };
 
   const isActive = (id: PatientSection) => activeSection === id;
 
@@ -296,13 +265,8 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
           )}
         </AnimatePresence>
 
-        {/* Main Content with swipe support */}
-        <div 
-          className="pb-20"
-          onTouchStart={onTouchStart}
-          onTouchMove={onTouchMove}
-          onTouchEnd={onTouchEnd}
-        >
+        {/* Main Content */}
+        <div className="pb-20">
           <motion.div
             key={activeSection}
             initial={{ opacity: 0, x: 100 }}
