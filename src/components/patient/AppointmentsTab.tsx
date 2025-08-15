@@ -44,7 +44,6 @@ export interface AppointmentsTabProps {
 interface Appointment {
   id: string;
   appointment_date: string;
-  appointment_time: string;
   status: string;
   treatment_type?: string;
   dentist?: {
@@ -262,7 +261,7 @@ const AppointmentCard = ({
           <div className="space-y-2 mb-4">
             <div className="flex items-center space-x-2 text-sm">
               <Clock className="h-3 w-3 text-muted-foreground" />
-              <span>{appointment.appointment_time}</span>
+              <span>{format(new Date(appointment.appointment_date), 'HH:mm')}</span>
             </div>
             {appointment.dentist && (
               <div className="flex items-center space-x-2 text-sm">
@@ -348,13 +347,25 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({ user }) => {
           .from('appointments')
           .select(`
             *,
-            dentist:dentist_id(first_name, last_name, specialization)
+            dentist:dentist_id(
+              specialization,
+              profile:profile_id(first_name, last_name)
+            )
           `)
           .eq('patient_id', profile.id)
           .order('appointment_date', { ascending: false });
 
         if (appointmentsData) {
-          setAppointments(appointmentsData as any);
+          // Transform the data to match the expected structure
+          const transformedData = appointmentsData.map(apt => ({
+            ...apt,
+            dentist: apt.dentist ? {
+              first_name: apt.dentist.profile?.first_name,
+              last_name: apt.dentist.profile?.last_name,
+              specialization: apt.dentist.specialization
+            } : undefined
+          }));
+          setAppointments(transformedData as any);
           
           // Calculate stats
           const now = new Date();
