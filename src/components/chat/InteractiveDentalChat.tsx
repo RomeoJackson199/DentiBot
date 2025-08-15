@@ -22,7 +22,9 @@ import {
   QuickSettingsWidget,
   ImageUploadWidget,
   QuickActionsWidget,
-  UrgencySliderWidget
+  UrgencySliderWidget,
+  SymptomIntakeWidget,
+  SymptomSummaryWidget
 } from "./InteractiveChatWidgets";
 import { generateSymptomSummary } from "@/lib/symptoms";
 
@@ -46,6 +48,15 @@ export const InteractiveDentalChat = ({
   const [activeWidget, setActiveWidget] = useState<string | null>(null);
   const [widgetData, setWidgetData] = useState<any>({});
   const [userProfile, setUserProfile] = useState<any>(null);
+  const [symptomIntake, setSymptomIntake] = useState<{
+    primarySymptoms: string[];
+    severity: number;
+    duration: string;
+    notes?: string;
+    hasFever?: boolean;
+    hasSwelling?: boolean;
+    hasBleeding?: boolean;
+  } | null>(null);
   
   // Booking flow state
   const [bookingFlow, setBookingFlow] = useState({
@@ -302,9 +313,61 @@ export const InteractiveDentalChat = ({
       case 'emergency':
         startEmergencyBooking();
         break;
+      case 'symptoms':
+        startSymptomCheck();
+        break;
       case 'help':
         showHelp();
         break;
+    }
+  };
+
+  const startSymptomCheck = () => {
+    setSymptomIntake(null);
+    setActiveWidget('symptom-intake');
+    addBotMessage("Let's go through your symptoms. This will help me recommend the right care.");
+  };
+
+  const handleSymptomComplete = (data: {
+    primarySymptoms: string[];
+    severity: number;
+    duration: string;
+    notes?: string;
+    hasFever?: boolean;
+    hasSwelling?: boolean;
+    hasBleeding?: boolean;
+  }) => {
+    setSymptomIntake(data);
+    setActiveWidget(null);
+    const urgent = data.severity >= 7 || data.hasSwelling || data.hasBleeding || data.hasFever;
+    const recommendation = urgent
+      ? 'Your symptoms suggest urgent care. I recommend booking the earliest available appointment.'
+      : 'These symptoms may be non-urgent, but a check-up is recommended.';
+    setWidgetData({
+      symptomSummary: {
+        primarySymptoms: data.primarySymptoms,
+        severity: data.severity,
+        duration: data.duration,
+        notes: data.notes,
+        urgent,
+        recommendation
+      }
+    });
+    addBotMessage('Here is a summary of your symptoms:');
+    setActiveWidget('symptom-summary');
+    if (urgent) {
+      addBotMessage('Based on your responses, I can start booking right away.');
+    }
+  };
+
+  const proceedToBookingFromSymptoms = () => {
+    startBookingFlow();
+    if (symptomIntake) {
+      setBookingFlow(prev => ({
+        ...prev,
+        reason: symptomIntake.primarySymptoms[0] || 'Consultation',
+        urgency: symptomIntake.severity >= 9 ? 5 : symptomIntake.severity >= 7 ? 4 : symptomIntake.severity >= 5 ? 3 : 2
+      }));
     }
   };
 
@@ -867,6 +930,31 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
       
       case 'quick-actions':
         return <QuickActionsWidget onAction={handleQuickAction} />;
+
+      case 'symptom-intake':
+        return (
+          <SymptomIntakeWidget
+            onComplete={handleSymptomComplete}
+            onCancel={() => {
+              setActiveWidget(null);
+              addBotMessage('Symptom check cancelled.');
+              setTimeout(() => setActiveWidget('quick-actions'), 800);
+            }}
+          />
+        );
+
+      case 'symptom-summary':
+        return (
+          <SymptomSummaryWidget
+            summary={widgetData.symptomSummary}
+            onBook={() => {
+              proceedToBookingFromSymptoms();
+            }}
+            onEdit={() => {
+              setActiveWidget('symptom-intake');
+            }}
+          />
+        );
 
       default:
         return null;
