@@ -74,6 +74,13 @@ import {
 import { Appointment, UserProfile } from "@/types/common";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
+import { PatientAppShell, PatientSection } from "@/components/patient/PatientAppShell";
+import { HomeTab } from "@/components/patient/HomeTab";
+import { CareTab, CareItem } from "@/components/patient/CareTab";
+import { AppointmentsTab } from "@/components/patient/AppointmentsTab";
+import { PaymentsTab } from "@/components/patient/PaymentsTab";
+import { SettingsPage } from "@/components/patient/SettingsPage";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 interface PatientDashboardProps {
   user: User;
@@ -153,6 +160,15 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
   const [medicalRecords, setMedicalRecords] = useState<MedicalRecord[]>([]);
   const [patientNotes, setPatientNotes] = useState<PatientNote[]>([]);
   const [isMobile, setIsMobile] = useState(false);
+  const [activeSection, setActiveSection] = useState<PatientSection>(() => {
+    try {
+      return (localStorage.getItem('pd_section') as PatientSection) || 'home';
+    } catch {
+      return 'home';
+    }
+  });
+  const [showAssistant, setShowAssistant] = useState(false);
+  const [totalDueCents, setTotalDueCents] = useState(0);
 
   // Check if mobile
   useEffect(() => {
@@ -174,6 +190,12 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
       // Handle localStorage errors silently
     }
   }, [activeTab, user.id]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('pd_section', activeSection);
+    } catch {}
+  }, [activeSection]);
 
   const fetchUserProfile = async () => {
     try {
@@ -330,6 +352,20 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
     }
   };
 
+  const fetchTotalDue = useCallback(async (profileId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('payment_requests')
+        .select('amount,status')
+        .eq('patient_id', profileId);
+      if (error) throw error;
+      const total = (data || []).filter(r => r.status === 'pending').reduce((sum, r: any) => sum + (r.amount || 0), 0);
+      setTotalDueCents(total);
+    } catch (e) {
+      console.error('Failed to load payment totals', e);
+    }
+  }, []);
+
   // Use useCallback to memoize functions to prevent infinite re-renders
   const fetchUserProfileCallback = useCallback(fetchUserProfile, [user.id]);
   const fetchPatientStatsCallback = useCallback(fetchPatientStats, []);
@@ -345,8 +381,9 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
       fetchPatientStatsCallback(userProfile.id);
       fetchRecentAppointmentsCallback(userProfile.id);
       fetchPatientDataCallback(userProfile.id);
+      fetchTotalDue(userProfile.id);
     }
-  }, [userProfile?.id, fetchPatientStatsCallback, fetchRecentAppointmentsCallback, fetchPatientDataCallback]);
+  }, [userProfile?.id, fetchPatientStatsCallback, fetchRecentAppointmentsCallback, fetchPatientDataCallback, fetchTotalDue]);
 
   const getWelcomeMessage = () => {
     const hour = new Date().getHours();
@@ -405,255 +442,106 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
     );
   }
 
-  // Mobile view
-  if (isMobile) {
-    return (
-      <MobilePatientTabs activeTab={activeTab as any} setActiveTab={setActiveTab as any}>
-        <Tabs value={activeTab} className="w-full">
-          {/* Mobile content tabs */}
-          <TabsContent value="overview" className="space-y-4 mt-0">
-            <DashboardOverview 
-              userProfile={userProfile}
-              patientStats={patientStats}
-              recentAppointments={recentAppointments}
-              getWelcomeMessage={getWelcomeMessage}
-              formatDate={formatDate}
-              getStatusColor={getStatusColor}
-              setActiveTab={setActiveTab}
-            />
-          </TabsContent>
+  const nextAppointment = (() => {
+    const now = new Date();
+    return [...recentAppointments]
+      .filter(a => new Date(a.appointment_date) > now && ['confirmed','scheduled','pending'].includes(a.status))
+      .sort((a,b) => new Date(a.appointment_date).getTime() - new Date(b.appointment_date).getTime())[0] || null;
+  })();
 
-          <TabsContent value="chat" className="space-y-4 mt-0">
-            <InteractiveDentalChat 
-              user={user} 
-              triggerBooking={triggerBooking}
-            />
-          </TabsContent>
+  const carePlans: CareItem[] = treatmentPlans.map(tp => ({
+    id: tp.id,
+    type: 'plan',
+    title: tp.title || 'Treatment Plan',
+    subtitle: tp.description || undefined,
+    date: tp.start_date,
+    status: tp.status,
+  }));
+  const carePrescriptions: CareItem[] = prescriptions.map(p => ({
+    id: p.id,
+    type: 'prescription',
+    title: p.medication_name,
+    subtitle: `${p.dosage} • ${p.frequency}`,
+    date: p.prescribed_date,
+    status: p.status,
+  }));
+  const careVisits: CareItem[] = recentAppointments.map(a => ({
+    id: a.id,
+    type: 'visit',
+    title: a.reason || 'Visit',
+    subtitle: a.status,
+    date: a.appointment_date,
+    status: a.status,
+  }));
+  const careRecords: CareItem[] = medicalRecords.map(r => ({
+    id: r.id,
+    type: 'record',
+    title: r.title,
+    subtitle: r.record_type,
+    date: r.record_date,
+    status: undefined,
+  }));
 
-          <TabsContent value="appointments" className="space-y-4 mt-0">
-            <RealAppointmentsList user={user} />
-          </TabsContent>
+  const badges = {
+    payments: totalDueCents > 0,
+    appointments: patientStats.upcomingAppointments > 0,
+    care: patientStats.activePrescriptions > 0 || patientStats.activeTreatmentPlans > 0,
+    settings: !userProfile?.first_name || !userProfile?.last_name,
+    home: false,
+  } as Record<PatientSection, boolean>;
 
-          <TabsContent value="prescriptions" className="space-y-4 mt-0">
-            <PrescriptionsView 
-              prescriptions={prescriptions}
-              formatDate={formatDate}
-              getStatusColor={getStatusColor}
-            />
-          </TabsContent>
-
-          <TabsContent value="treatment" className="space-y-4 mt-0">
-            <TreatmentPlansView 
-              treatmentPlans={treatmentPlans}
-              formatDate={formatDate}
-              getStatusColor={getStatusColor}
-            />
-          </TabsContent>
-
-          <TabsContent value="records" className="space-y-4 mt-0">
-            <MedicalRecordsView 
-              medicalRecords={medicalRecords}
-              formatDate={formatDate}
-            />
-          </TabsContent>
-
-          <TabsContent value="notes" className="space-y-4 mt-0">
-            <PatientNotesView 
-              patientNotes={patientNotes}
-              formatDate={formatDate}
-            />
-          </TabsContent>
-
-          <TabsContent value="payments" className="space-y-4 mt-0">
-            {userProfile?.id && (
-              <PatientPaymentHistory patientId={userProfile.id} />
-            )}
-          </TabsContent>
-
-          <TabsContent value="analytics" className="space-y-4 mt-0">
-            <PatientAnalytics userId={user.id} />
-          </TabsContent>
-
-          <TabsContent value="emergency" className="space-y-4 mt-0">
-            <EmergencyTriageForm 
-              onCancel={() => setActiveTab('chat')} 
-              onComplete={handleEmergencyComplete} 
-            />
-          </TabsContent>
-        </Tabs>
-      </MobilePatientTabs>
-    );
-  }
-
-  // Desktop view with sidebar
   return (
-    <div className="flex h-screen bg-background">
-      {/* Sidebar Navigation */}
-      <div className="w-64 bg-card border-r border-border flex flex-col">
-        <div className="p-6 border-b border-border">
-          <div className="flex items-center space-x-3">
-            <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center">
-              <UserIcon className="h-5 w-5 text-primary-foreground" />
-            </div>
-            <div>
-              <p className="font-semibold">{userProfile?.first_name || 'Patient'}</p>
-              <p className="text-xs text-muted-foreground">Patient Dashboard</p>
-            </div>
-          </div>
-        </div>
+    <PatientAppShell
+      activeSection={activeSection}
+      onChangeSection={setActiveSection}
+      badges={badges}
+    >
+      {activeSection === 'home' && (
+        <HomeTab
+          userId={user.id}
+          firstName={userProfile?.first_name}
+          nextAppointment={nextAppointment ? {
+            id: nextAppointment.id,
+            date: new Date(nextAppointment.appointment_date).toLocaleDateString(),
+            time: new Date(nextAppointment.appointment_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            dentistName: undefined,
+            status: nextAppointment.status,
+          } : null}
+          activePrescriptions={patientStats.activePrescriptions}
+          activeTreatmentPlans={patientStats.activeTreatmentPlans}
+          totalDueCents={totalDueCents}
+          onNavigateTo={(s) => setActiveSection(s)}
+          onOpenAssistant={() => setShowAssistant(true)}
+        />
+      )}
 
-        <ScrollArea className="flex-1 px-3 py-4">
-          <div className="space-y-6">
-            {navigationItems.map((group) => (
-              <div key={group.group}>
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3 mb-2">
-                  {group.group}
-                </p>
-                <div className="space-y-1">
-                  {group.items.map((item) => (
-                    <Button
-                      key={item.id}
-                      variant={activeTab === item.id ? "secondary" : "ghost"}
-                      className={cn(
-                        "w-full justify-start relative",
-                        activeTab === item.id && "bg-primary/10 text-primary hover:bg-primary/15"
-                      )}
-                      onClick={() => setActiveTab(item.id as Tab)}
-                    >
-                      <item.icon className="h-4 w-4 mr-3" />
-                      <span>{item.label}</span>
-                      {item.badge && (
-                        <Badge 
-                          variant={item.badge === '!' ? "destructive" : "secondary"} 
-                          className="ml-auto"
-                        >
-                          {item.badge}
-                        </Badge>
-                      )}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </ScrollArea>
+      {activeSection === 'care' && (
+        <CareTab
+          plans={carePlans}
+          prescriptions={carePrescriptions}
+          visits={careVisits}
+          records={careRecords}
+        />
+      )}
 
-        <div className="p-4 border-t border-border space-y-2">
-          <Button variant="ghost" size="sm" className="w-full justify-start">
-            <HelpCircle className="h-4 w-4 mr-2" />
-            Help & Support
-          </Button>
-          <Settings user={user} />
-        </div>
-      </div>
+      {activeSection === 'appointments' && (
+        <AppointmentsTab user={user} onBookNew={() => setActiveSection('appointments')} />
+      )}
 
-      {/* Main Content Area */}
-      <div className="flex-1 overflow-auto">
-        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
-          <div className="flex items-center justify-between px-6 py-4">
-            <div>
-              <h1 className="text-2xl font-bold">
-                {getWelcomeMessage()}, {userProfile?.first_name || 'there'}!
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-              </p>
-            </div>
-            <div className="flex items-center space-x-2">
-              <NotificationButton userId={user.id} />
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Book Appointment
-              </Button>
-            </div>
-          </div>
-        </div>
+      {activeSection === 'payments' && userProfile?.id && (
+        <PaymentsTab patientId={userProfile.id} totalDueCents={totalDueCents} />
+      )}
 
-        <div className="p-6">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeTab}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.2 }}
-            >
-              <Tabs value={activeTab} className="space-y-6">
-                <TabsContent value="overview" className="space-y-6 mt-0">
-                  <DashboardOverview 
-                    userProfile={userProfile}
-                    patientStats={patientStats}
-                    recentAppointments={recentAppointments}
-                    getWelcomeMessage={getWelcomeMessage}
-                    formatDate={formatDate}
-                    getStatusColor={getStatusColor}
-                    setActiveTab={setActiveTab}
-                  />
-                </TabsContent>
+      {activeSection === 'settings' && (
+        <SettingsPage user={user} />
+      )}
 
-                <TabsContent value="chat" className="space-y-6 mt-0">
-                  <InteractiveDentalChat 
-                    user={user} 
-                    triggerBooking={triggerBooking}
-                  />
-                </TabsContent>
-
-                <TabsContent value="appointments" className="space-y-6 mt-0">
-                  <RealAppointmentsList user={user} />
-                </TabsContent>
-
-                <TabsContent value="prescriptions" className="space-y-6 mt-0">
-                  <PrescriptionsView 
-                    prescriptions={prescriptions}
-                    formatDate={formatDate}
-                    getStatusColor={getStatusColor}
-                  />
-                </TabsContent>
-
-                <TabsContent value="treatment" className="space-y-6 mt-0">
-                  <TreatmentPlansView 
-                    treatmentPlans={treatmentPlans}
-                    formatDate={formatDate}
-                    getStatusColor={getStatusColor}
-                  />
-                </TabsContent>
-
-                <TabsContent value="records" className="space-y-6 mt-0">
-                  <MedicalRecordsView 
-                    medicalRecords={medicalRecords}
-                    formatDate={formatDate}
-                  />
-                </TabsContent>
-
-                <TabsContent value="notes" className="space-y-6 mt-0">
-                  <PatientNotesView 
-                    patientNotes={patientNotes}
-                    formatDate={formatDate}
-                  />
-                </TabsContent>
-
-                <TabsContent value="payments" className="space-y-6 mt-0">
-                  {userProfile?.id && (
-                    <PatientPaymentHistory patientId={userProfile.id} />
-                  )}
-                </TabsContent>
-
-                <TabsContent value="analytics" className="space-y-6 mt-0">
-                  <PatientAnalytics userId={user.id} />
-                </TabsContent>
-
-                <TabsContent value="emergency" className="space-y-6 mt-0">
-                  <EmergencyTriageForm 
-                    onCancel={() => setActiveTab('overview')} 
-                    onComplete={handleEmergencyComplete} 
-                  />
-                </TabsContent>
-              </Tabs>
-            </motion.div>
-          </AnimatePresence>
-        </div>
-      </div>
-    </div>
+      <Dialog open={showAssistant} onOpenChange={setShowAssistant}>
+        <DialogContent className="p-0 max-w-3xl w-full">
+          <InteractiveDentalChat user={user} triggerBooking={triggerBooking} />
+        </DialogContent>
+      </Dialog>
+    </PatientAppShell>
   );
 };
 

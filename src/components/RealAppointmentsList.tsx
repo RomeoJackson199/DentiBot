@@ -37,9 +37,10 @@ interface Appointment {
 interface RealAppointmentsListProps {
   user: User;
   onBookNew?: () => void;
+  filter?: 'upcoming' | 'past' | 'incomplete';
 }
 
-export const RealAppointmentsList = ({ user, onBookNew }: RealAppointmentsListProps) => {
+export const RealAppointmentsList = ({ user, onBookNew, filter }: RealAppointmentsListProps) => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -232,6 +233,22 @@ export const RealAppointmentsList = ({ user, onBookNew }: RealAppointmentsListPr
     }
   };
 
+  const now = new Date();
+  const filteredAppointments = appointments.filter((apt) => {
+    if (!filter) return true;
+    const date = new Date(apt.appointment_date);
+    if (filter === 'upcoming') {
+      return date >= now && (apt.status === 'confirmed' || apt.status === 'scheduled' || apt.status === 'pending');
+    }
+    if (filter === 'past') {
+      return date < now && (apt.status === 'completed' || apt.status === 'cancelled');
+    }
+    if (filter === 'incomplete') {
+      return apt.status === 'pending' || apt.status === 'scheduled';
+    }
+    return true;
+  });
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -289,7 +306,7 @@ export const RealAppointmentsList = ({ user, onBookNew }: RealAppointmentsListPr
         <div>
           <h2 className="text-2xl font-bold">My Appointments</h2>
           <p className="text-dental-muted-foreground">
-            {appointments.length} appointment{appointments.length !== 1 ? 's' : ''} found
+            {filteredAppointments.length} appointment{filteredAppointments.length !== 1 ? 's' : ''} found
           </p>
         </div>
         <div className="flex items-center space-x-2">
@@ -358,7 +375,7 @@ export const RealAppointmentsList = ({ user, onBookNew }: RealAppointmentsListPr
         </div>
       </div>
 
-      {appointments.length === 0 ? (
+      {filteredAppointments.length === 0 ? (
         <Card className="glass-card border-0">
           <CardContent className="p-8 text-center">
             <Calendar className="h-12 w-12 text-dental-muted-foreground mx-auto mb-4" />
@@ -375,7 +392,7 @@ export const RealAppointmentsList = ({ user, onBookNew }: RealAppointmentsListPr
         </Card>
       ) : (
         <div className="space-y-4">
-          {appointments.map((apt) => (
+          {filteredAppointments.map((apt) => (
             <Card key={apt.id} className="glass-card border-0 hover:shadow-lg transition-shadow">
               <CardContent className="p-6">
                 <div className="flex items-start justify-between">
