@@ -3,9 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { RealTimeChatSystem } from '@/components/chat/RealTimeChatSystem';
 import { PWAFeatures } from '@/components/mobile/PWAFeatures';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { MessageSquare, Smartphone, Users } from 'lucide-react';
+import { MessageSquare, Smartphone, Users, Bot } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { InteractiveDentalChat } from '@/components/chat/InteractiveDentalChat';
 
 interface ChatParticipant {
   id: string;
@@ -59,10 +60,14 @@ export default function Chat() {
     return (
       <div className="min-h-screen bg-gradient-subtle p-4">
         <Tabs defaultValue="chat" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-4">
+          <TabsList className="grid w-full grid-cols-3 mb-4">
             <TabsTrigger value="chat" className="flex items-center gap-2">
               <MessageSquare className="h-4 w-4" />
               Chat
+            </TabsTrigger>
+            <TabsTrigger value="ai" className="flex items-center gap-2">
+              <Bot className="h-4 w-4" />
+              AI Assistant
             </TabsTrigger>
             <TabsTrigger value="mobile" className="flex items-center gap-2">
               <Smartphone className="h-4 w-4" />
@@ -85,6 +90,22 @@ export default function Chat() {
                   selectedParticipant={selectedParticipant}
                   onParticipantSelect={setSelectedParticipant}
                 />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="ai" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Bot className="h-5 w-5" />
+                  AI Dental Assistant
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[70vh]">
+                  <InteractiveDentalChat user={user} />
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -117,32 +138,52 @@ export default function Chat() {
           </div>
         </div>
 
-        <div className="grid lg:grid-cols-4 gap-6">
-          {/* Main Chat Area */}
-          <div className="lg:col-span-3">
-            <RealTimeChatSystem
-              currentUserId={profile.id}
-              currentUserType={profile.role}
-              selectedParticipant={selectedParticipant}
-              onParticipantSelect={setSelectedParticipant}
-            />
-          </div>
-
-          {/* Mobile Features Sidebar */}
-          <div className="lg:col-span-1">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <Smartphone className="h-5 w-5" />
-                  Mobile Features
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <PWAFeatures />
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+        <Card>
+          <CardContent className="pt-6">
+            <Tabs defaultValue="chat" className="w-full">
+              <TabsList className="mb-4">
+                <TabsTrigger value="chat" className="flex items-center gap-2">
+                  <MessageSquare className="h-4 w-4" />
+                  Messages
+                </TabsTrigger>
+                <TabsTrigger value="ai" className="flex items-center gap-2">
+                  <Bot className="h-4 w-4" />
+                  AI Assistant
+                </TabsTrigger>
+              </TabsList>
+              <TabsContent value="chat" className="space-y-4">
+                <div className="grid lg:grid-cols-4 gap-6">
+                  <div className="lg:col-span-3">
+                    <RealTimeChatSystem
+                      currentUserId={profile.id}
+                      currentUserType={profile.role}
+                      selectedParticipant={selectedParticipant}
+                      onParticipantSelect={setSelectedParticipant}
+                    />
+                  </div>
+                  <div className="lg:col-span-1">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-lg">
+                          <Smartphone className="h-5 w-5" />
+                          Mobile Features
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <PWAFeatures />
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
+              </TabsContent>
+              <TabsContent value="ai">
+                <div className="h-[70vh]">
+                  <InteractiveDentalChat user={user} />
+                </div>
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
