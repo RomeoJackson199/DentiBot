@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -117,12 +117,31 @@ export function ClinicalToday({ user, dentistId, onOpenPatientsTab }: ClinicalTo
 			setLoading(true);
 			const { data, error } = await supabase
 				.from('appointments')
-				.select(`id, patient_id, dentist_id, appointment_date, duration_minutes, status, reason, profiles:patient_id ( id, first_name, last_name, date_of_birth )`)
+				.select(`
+					id, 
+					patient_id, 
+					dentist_id, 
+					appointment_date, 
+					duration_minutes, 
+					status, 
+					reason,
+					profiles!appointments_patient_id_fkey (
+						id,
+						first_name,
+						last_name,
+						date_of_birth
+					)
+				`)
 				.eq('dentist_id', dentistId)
 				.gte('appointment_date', startOfDay.toISOString())
 				.lt('appointment_date', endOfDay.toISOString())
 				.order('appointment_date', { ascending: true });
-			if (error) throw error;
+			
+			if (error) {
+				console.error('Error fetching appointments:', error);
+				throw error;
+			}
+			
 			const mapped = (data || []).map((row: any) => ({
 				id: row.id,
 				patient_id: row.patient_id,
@@ -131,7 +150,13 @@ export function ClinicalToday({ user, dentistId, onOpenPatientsTab }: ClinicalTo
 				duration_minutes: row.duration_minutes ?? null,
 				status: row.status,
 				reason: row.reason,
-				patient: row.profiles ? { id: row.profiles.id, first_name: row.profiles.first_name, last_name: row.profiles.last_name, date_of_birth: row.profiles.date_of_birth } : null
+				patient: row.profiles ? { 
+					id: row.profiles.id, 
+					first_name: row.profiles.first_name, 
+					last_name: row.profiles.last_name, 
+					date_of_birth: row.profiles.date_of_birth,
+					allergies: null // Set to null since it's not in the profiles table
+				} : null
 			})) as AppointmentItem[];
 			setAppointments(mapped);
 		} catch (e) {
@@ -370,14 +395,14 @@ export function ClinicalToday({ user, dentistId, onOpenPatientsTab }: ClinicalTo
 					</Card>
 				) : (
 					filteredAppointments.map(a => (
-						<SwipeableAppointmentCard
+						<AppointmentCard
 							key={a.id}
 							appointment={a}
-							dentistName={dentistName}
 							onOpenDetails={() => setSelectedAppointment(a)}
 							onComplete={() => openCompletion(a)}
-							onCancel={() => handleCancel(a)}
 							onReschedule={() => openReschedule(a)}
+							onCancel={() => handleCancel(a)}
+							dentistName={dentistName}
 						/>
 					))
 				)}
@@ -547,7 +572,7 @@ export function ClinicalToday({ user, dentistId, onOpenPatientsTab }: ClinicalTo
 	);
 }
 
-function SwipeableAppointmentCard({ appointment, onOpenDetails, onComplete, onReschedule, onCancel, dentistName }: {
+function AppointmentCard({ appointment, onOpenDetails, onComplete, onReschedule, onCancel, dentistName }: {
 	appointment: AppointmentItem;
 	onOpenDetails: () => void;
 	onComplete: () => void;
@@ -555,32 +580,8 @@ function SwipeableAppointmentCard({ appointment, onOpenDetails, onComplete, onRe
 	onCancel: () => void;
 	dentistName: string;
 }) {
-	const [offset, setOffset] = useState(0);
-	const [showActions, setShowActions] = useState(false);
-	const startX = useRef<number | null>(null);
-	const threshold = 30;
-
 	// Local time formatter to avoid undefined reference
 	const formatTime = (iso: string) => new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-	const onTouchStart = (e: React.TouchEvent) => {
-		startX.current = e.touches[0].clientX;
-	};
-	const onTouchMove = (e: React.TouchEvent) => {
-		if (startX.current == null) return;
-		const dx = e.touches[0].clientX - startX.current;
-		if (dx < 0) setOffset(Math.max(dx, -150));
-	};
-	const onTouchEnd = () => {
-		if (offset < -threshold) {
-			setOffset(-150);
-			setShowActions(true);
-		} else {
-			setOffset(0);
-			setShowActions(false);
-		}
-		startX.current = null;
-	};
 
 	const statusPill = () => {
 		switch (appointment.status) {
@@ -594,96 +595,58 @@ function SwipeableAppointmentCard({ appointment, onOpenDetails, onComplete, onRe
 	};
 
 	return (
-		<div className="relative overflow-hidden rounded-xl" onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
-			{/* Action buttons - improved spacing and visibility */}
-			<div className="absolute right-0 top-0 bottom-0 flex items-center gap-2 pr-3 bg-gradient-to-l from-background to-transparent">
-				<Button 
-					size="sm" 
-					onClick={onComplete}
-					className="h-10 px-3 rounded-lg shadow-md"
-				>
-					Complete
-				</Button>
-				<Button 
-					size="sm" 
-					variant="secondary" 
-					onClick={onReschedule}
-					className="h-10 px-3 rounded-lg shadow-md"
-				>
-					Reschedule
-				</Button>
-				<Button 
-					size="sm" 
-					variant="destructive" 
-					onClick={onCancel}
-					className="h-10 px-3 rounded-lg shadow-md"
-				>
-					Cancel
-				</Button>
-			</div>
-			<Card 
-				className="transition-transform cursor-pointer hover:shadow-lg" 
-				style={{ transform: `translateX(${offset}px)` }}
-			>
-				<CardContent className="p-5" onClick={onOpenDetails}>
-					<div className="flex items-start justify-between gap-3">
-						<div className="flex-1 space-y-1">
-							<div className="font-semibold text-base">
-								{formatTime(appointment.appointment_date)} — {appointment.patient ? `${appointment.patient.first_name} ${appointment.patient.last_name}` : 'Patient'}
-							</div>
-							<div className="text-sm text-muted-foreground">
-								{appointment.reason || 'Visit'} • {dentistName}
-							</div>
+		<Card className="cursor-pointer hover:shadow-lg transition-shadow">
+			<CardContent className="p-5" onClick={onOpenDetails}>
+				<div className="flex items-start justify-between gap-3">
+					<div className="flex-1 space-y-1">
+						<div className="font-semibold text-base">
+							{formatTime(appointment.appointment_date)} — {appointment.patient ? `${appointment.patient.first_name} ${appointment.patient.last_name}` : 'Patient'}
 						</div>
-						<div className="flex-shrink-0">
-							{statusPill()}
+						<div className="text-sm text-muted-foreground">
+							{appointment.reason || 'Visit'} • {dentistName}
 						</div>
 					</div>
-					{/* Add a visual indicator for swipe actions on mobile */}
-					<div className="mt-3 flex items-center justify-end lg:hidden">
-						<span className="text-xs text-muted-foreground flex items-center">
-							<ChevronLeft className="h-3 w-3 mr-1" />
-							Swipe for actions
-						</span>
+					<div className="flex-shrink-0">
+						{statusPill()}
 					</div>
-					{/* Desktop action buttons */}
-					<div className="hidden lg:flex gap-2 mt-4">
-						<Button 
-							size="sm" 
-							variant="outline"
-							onClick={(e) => {
-								e.stopPropagation();
-								onComplete();
-							}}
-							className="flex-1"
-						>
-							Complete
-						</Button>
-						<Button 
-							size="sm" 
-							variant="outline"
-							onClick={(e) => {
-								e.stopPropagation();
-								onReschedule();
-							}}
-							className="flex-1"
-						>
-							Reschedule
-						</Button>
-						<Button 
-							size="sm" 
-							variant="outline"
-							onClick={(e) => {
-								e.stopPropagation();
-								onCancel();
-							}}
-							className="flex-1 text-destructive hover:bg-destructive/10"
-						>
-							Cancel
-						</Button>
-					</div>
-				</CardContent>
-			</Card>
-		</div>
+				</div>
+				{/* Action buttons always visible */}
+				<div className="flex gap-2 mt-4">
+					<Button 
+						size="sm" 
+						variant="outline"
+						onClick={(e) => {
+							e.stopPropagation();
+							onComplete();
+						}}
+						className="flex-1"
+					>
+						Complete
+					</Button>
+					<Button 
+						size="sm" 
+						variant="outline"
+						onClick={(e) => {
+							e.stopPropagation();
+							onReschedule();
+						}}
+						className="flex-1"
+					>
+						Reschedule
+					</Button>
+					<Button 
+						size="sm" 
+						variant="outline"
+						onClick={(e) => {
+							e.stopPropagation();
+							onCancel();
+						}}
+						className="flex-1 text-destructive hover:bg-destructive/10"
+					>
+						Cancel
+					</Button>
+				</div>
+			</CardContent>
+		</Card>
 	);
 }
