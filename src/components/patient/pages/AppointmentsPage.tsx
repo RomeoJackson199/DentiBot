@@ -34,6 +34,7 @@ import {
 
 interface AppointmentsPageProps {
   user: User;
+  onTabChange?: (tabId: string) => void;
 }
 
 interface Appointment {
@@ -66,7 +67,7 @@ interface IncompleteVisit {
   dentist_name: string;
 }
 
-export const AppointmentsPage: React.FC<AppointmentsPageProps> = ({ user }) => {
+export const AppointmentsPage: React.FC<AppointmentsPageProps> = ({ user, onTabChange }) => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("upcoming");
   const [upcomingAppointments, setUpcomingAppointments] = useState<Appointment[]>([]);
@@ -88,10 +89,26 @@ export const AppointmentsPage: React.FC<AppointmentsPageProps> = ({ user }) => {
     try {
       setLoading(true);
       
-      const today = new Date().toISOString().split('T')[0];
-      
-      // Fetch all appointments
-      const { data: appointments, error } = await supabase
+      // First, get the user's profile ID
+      const { data: userProfile, error: profileError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (profileError || !userProfile) {
+        console.error('Error fetching user profile:', profileError);
+        toast({
+          title: "Error",
+          description: "Could not load user profile. Please refresh the page.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const profileId = userProfile.id;
+
+      const { data, error } = await supabase
         .from('appointments')
         .select(`
           *,
@@ -103,30 +120,30 @@ export const AppointmentsPage: React.FC<AppointmentsPageProps> = ({ user }) => {
             email
           )
         `)
-        .eq('patient_id', user.id)
+        .eq('patient_id', profileId)
         .order('appointment_date', { ascending: false })
         .order('appointment_time', { ascending: false });
 
       if (error) throw error;
 
-      if (appointments) {
+      if (data) {
         // Separate upcoming and past appointments
-        const upcoming = appointments.filter(apt => 
+        const upcoming = data.filter(apt => 
           apt.status !== 'cancelled' && 
           apt.status !== 'completed' &&
-          (apt.appointment_date > today || 
-           (apt.appointment_date === today && !isPast(new Date(`${apt.appointment_date}T${apt.appointment_time}`))))
+          (apt.appointment_date > new Date().toISOString().split('T')[0] || 
+           (apt.appointment_date === new Date().toISOString().split('T')[0] && !isPast(new Date(`${apt.appointment_date}T${apt.appointment_time}`))))
         );
         
-        const past = appointments.filter(apt => 
+        const past = data.filter(apt => 
           apt.status === 'completed' ||
           (apt.status !== 'cancelled' && 
-           (apt.appointment_date < today || 
-            (apt.appointment_date === today && isPast(new Date(`${apt.appointment_date}T${apt.appointment_time}`)))))
+           (apt.appointment_date < new Date().toISOString().split('T')[0] || 
+            (apt.appointment_date === new Date().toISOString().split('T')[0] && isPast(new Date(`${apt.appointment_date}T${apt.appointment_time}`)))))
         );
 
         // Check for incomplete visits (appointments marked as completed but missing notes)
-        const incomplete = appointments.filter(apt => 
+        const incomplete = data.filter(apt => 
           apt.status === 'completed' && !apt.notes
         ).map(apt => ({
           id: apt.id,
@@ -356,7 +373,9 @@ END:VCALENDAR`;
                 variant="outline"
                 onClick={() => {
                   // Navigate to Care page to view visit details
-                  window.location.href = '/dashboard?tab=care';
+                  if (onTabChange) {
+                    onTabChange('care');
+                  }
                 }}
               >
                 <Eye className="h-4 w-4 mr-1" />

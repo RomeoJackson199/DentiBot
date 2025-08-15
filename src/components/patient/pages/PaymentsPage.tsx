@@ -48,6 +48,7 @@ import {
 
 interface PaymentsPageProps {
   user: User;
+  onTabChange?: (tabId: string) => void;
 }
 
 interface PaymentRequest {
@@ -75,7 +76,7 @@ interface PaymentAnalytics {
   paymentTrends: 'increasing' | 'decreasing' | 'stable';
 }
 
-export const PaymentsPage: React.FC<PaymentsPageProps> = ({ user }) => {
+export const PaymentsPage: React.FC<PaymentsPageProps> = ({ user, onTabChange }) => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("history");
   const [payments, setPayments] = useState<PaymentRequest[]>([]);
@@ -96,24 +97,43 @@ export const PaymentsPage: React.FC<PaymentsPageProps> = ({ user }) => {
     try {
       setLoading(true);
       
-      // Fetch payment requests
-      const { data: paymentData, error } = await supabase
+      // First, get the user's profile ID
+      const { data: userProfile, error: profileError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (profileError || !userProfile) {
+        console.error('Error fetching user profile:', profileError);
+        toast({
+          title: "Error",
+          description: "Could not load user profile. Please refresh the page.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const profileId = userProfile.id;
+
+      const { data, error } = await supabase
         .from('payment_requests')
         .select(`
           *,
-          appointment:appointments(
-            service_type,
-            appointment_date
+          dentist:dentists(
+            full_name,
+            email,
+            phone
           )
         `)
-        .eq('patient_id', user.id)
+        .eq('patient_id', profileId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
 
-      if (paymentData) {
-        const pending = paymentData.filter(p => p.status === 'pending');
-        const allPayments = paymentData;
+      if (data) {
+        const pending = data.filter(p => p.status === 'pending');
+        const allPayments = data;
         
         setPendingPayments(pending);
         setPayments(allPayments);
