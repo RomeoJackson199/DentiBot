@@ -17,6 +17,9 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
 import { 
   MessageSquare, 
   Calendar, 
@@ -40,7 +43,23 @@ import {
   Plus,
   Eye,
   FileImage,
-  ClipboardList
+  ClipboardList,
+  CreditCard,
+  Settings as SettingsIcon,
+  Home,
+  ChevronRight,
+  ArrowRight,
+  Sparkles,
+  Phone,
+  Video,
+  MessageCircle,
+  CalendarDays,
+  FileCheck,
+  AlertCircle,
+  Zap,
+  Users,
+  BookOpen,
+  HelpCircle
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
@@ -53,6 +72,8 @@ import {
   PatientNote 
 } from "@/types/dental";
 import { Appointment, UserProfile } from "@/types/common";
+import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface PatientDashboardProps {
   user: User;
@@ -68,15 +89,49 @@ interface PatientStats {
   activePrescriptions: number;
 }
 
+// Navigation items with better organization
+const navigationItems = [
+  {
+    group: "Overview",
+    items: [
+      { id: 'overview', label: 'Dashboard', icon: Home, badge: null },
+      { id: 'chat', label: 'AI Assistant', icon: MessageSquare, badge: 'AI' }
+    ]
+  },
+  {
+    group: "Appointments",
+    items: [
+      { id: 'appointments', label: 'My Appointments', icon: Calendar, badge: null },
+      { id: 'emergency', label: 'Emergency Care', icon: AlertTriangle, badge: '!' }
+    ]
+  },
+  {
+    group: "Health Records",
+    items: [
+      { id: 'prescriptions', label: 'Prescriptions', icon: Pill, badge: null },
+      { id: 'treatment', label: 'Treatment Plans', icon: ClipboardList, badge: null },
+      { id: 'records', label: 'Medical Records', icon: FileText, badge: null },
+      { id: 'notes', label: 'Clinical Notes', icon: FileCheck, badge: null }
+    ]
+  },
+  {
+    group: "Financial",
+    items: [
+      { id: 'payments', label: 'Payment History', icon: CreditCard, badge: null },
+      { id: 'analytics', label: 'Health Analytics', icon: BarChart3, badge: null }
+    ]
+  }
+];
+
 export const PatientDashboard = ({ user }: PatientDashboardProps) => {
   const { t } = useLanguage();
   const { toast } = useToast();
-  type Tab = 'chat' | 'appointments' | 'prescriptions' | 'treatment' | 'records' | 'notes' | 'payments' | 'analytics' | 'emergency' | 'test';
+  type Tab = 'overview' | 'chat' | 'appointments' | 'prescriptions' | 'treatment' | 'records' | 'notes' | 'payments' | 'analytics' | 'emergency' | 'test';
   const [activeTab, setActiveTab] = useState<Tab>(() => {
     try {
-      return (localStorage.getItem('pd_tab') as Tab) || 'chat';
+      return (localStorage.getItem('pd_tab') as Tab) || 'overview';
     } catch {
-      return 'chat';
+      return 'overview';
     }
   });
   const [triggerBooking, setTriggerBooking] = useState<'low' | 'medium' | 'high' | 'emergency' | false>(false);
@@ -97,6 +152,15 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
   const [treatmentPlans, setTreatmentPlans] = useState<TreatmentPlan[]>([]);
   const [medicalRecords, setMedicalRecords] = useState<MedicalRecord[]>([]);
   const [patientNotes, setPatientNotes] = useState<PatientNote[]>([]);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Check if mobile
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const handleEmergencyComplete = (urgency: 'low' | 'medium' | 'high' | 'emergency') => {
     setActiveTab('chat');
@@ -106,7 +170,6 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
   useEffect(() => {
     try {
       localStorage.setItem('pd_tab', activeTab);
-      // Removed session_token storage for security - user IDs are sensitive
     } catch {
       // Handle localStorage errors silently
     }
@@ -302,20 +365,21 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'confirmed': return 'bg-green-100 text-green-800';
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'cancelled': return 'bg-red-100 text-red-800';
-      case 'completed': return 'bg-blue-100 text-blue-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'confirmed': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400';
+      case 'pending': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400';
+      case 'cancelled': return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400';
+      case 'completed': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400';
+      case 'active': return 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400';
+      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400';
     }
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="flex items-center space-x-2">
-          <Loader2 className="h-4 w-4 animate-spin" />
-          <span>Loading your dashboard...</span>
+      <div className="flex items-center justify-center h-screen">
+        <div className="flex flex-col items-center space-y-4">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-muted-foreground">Loading your dashboard...</p>
         </div>
       </div>
     );
@@ -323,288 +387,702 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Error Loading Dashboard</h3>
-          <p className="text-gray-600 mb-4">{error}</p>
-          <Button onClick={fetchUserProfile}>
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Try Again
-          </Button>
-        </div>
+      <div className="flex items-center justify-center h-screen">
+        <Card className="max-w-md w-full">
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <AlertTriangle className="h-12 w-12 text-destructive mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2">Error Loading Dashboard</h3>
+              <p className="text-muted-foreground mb-4">{error}</p>
+              <Button onClick={fetchUserProfile}>
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Try Again
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">
-            {getWelcomeMessage()}, {userProfile?.first_name || 'Patient'}!
-          </h1>
-          <p className="text-gray-600">Welcome to your dental health dashboard</p>
-        </div>
-        <div className="flex items-center space-x-2">
-<NotificationButton userId={user.id} />
-<Button size="sm">
-  <Plus className="h-4 w-4 mr-2" />
-  Book Appointment
-</Button>
-<Settings user={user} />
-        </div>
-      </div>
+  // Mobile view
+  if (isMobile) {
+    return (
+      <MobilePatientTabs activeTab={activeTab as any} setActiveTab={setActiveTab as any}>
+        <Tabs value={activeTab} className="w-full">
+          {/* Mobile content tabs */}
+          <TabsContent value="overview" className="space-y-4 mt-0">
+            <DashboardOverview 
+              userProfile={userProfile}
+              patientStats={patientStats}
+              recentAppointments={recentAppointments}
+              getWelcomeMessage={getWelcomeMessage}
+              formatDate={formatDate}
+              getStatusColor={getStatusColor}
+              setActiveTab={setActiveTab}
+            />
+          </TabsContent>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <Calendar className="h-4 w-4 text-blue-600" />
-              <div>
-                <p className="text-sm text-gray-600">Upcoming</p>
-                <p className="text-xl font-bold">{patientStats.upcomingAppointments}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <CheckCircle className="h-4 w-4 text-green-600" />
-              <div>
-                <p className="text-sm text-gray-600">Completed</p>
-                <p className="text-xl font-bold">{patientStats.completedAppointments}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <Pill className="h-4 w-4 text-purple-600" />
-              <div>
-                <p className="text-sm text-gray-600">Active Rx</p>
-                <p className="text-xl font-bold">{patientStats.activePrescriptions}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <ClipboardList className="h-4 w-4 text-orange-600" />
-              <div>
-                <p className="text-sm text-gray-600">Treatment Plans</p>
-                <p className="text-xl font-bold">{patientStats.activeTreatmentPlans}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+          <TabsContent value="chat" className="space-y-4 mt-0">
+            <InteractiveDentalChat 
+              user={user} 
+              triggerBooking={triggerBooking}
+            />
+          </TabsContent>
 
-      {/* Main Content Tabs */}
-      <MobileOptimizations />
-      <MobilePatientTabs activeTab={activeTab} setActiveTab={setActiveTab}>
-      <Tabs value={activeTab} onValueChange={(value: Tab) => setActiveTab(value)} className="space-y-4">
+          <TabsContent value="appointments" className="space-y-4 mt-0">
+            <RealAppointmentsList user={user} />
+          </TabsContent>
 
-        <TabsContent value="chat" className="space-y-4">
-          <InteractiveDentalChat 
-            user={user} 
-            triggerBooking={triggerBooking}
-          />
-        </TabsContent>
+          <TabsContent value="prescriptions" className="space-y-4 mt-0">
+            <PrescriptionsView 
+              prescriptions={prescriptions}
+              formatDate={formatDate}
+              getStatusColor={getStatusColor}
+            />
+          </TabsContent>
 
-        <TabsContent value="appointments" className="space-y-4">
-          <RealAppointmentsList user={user} />
-        </TabsContent>
+          <TabsContent value="treatment" className="space-y-4 mt-0">
+            <TreatmentPlansView 
+              treatmentPlans={treatmentPlans}
+              formatDate={formatDate}
+              getStatusColor={getStatusColor}
+            />
+          </TabsContent>
 
-        <TabsContent value="prescriptions" className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h3 className="text-lg font-semibold">Your Prescriptions</h3>
-          </div>
-          <div className="space-y-2">
-            {prescriptions.map((prescription) => (
-              <Card key={prescription.id}>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
-                      <Pill className="h-5 w-5 text-purple-600" />
-                      <div>
-                        <p className="font-medium">{prescription.medication_name}</p>
-                        <p className="text-sm text-gray-600">
-                          {prescription.dosage} - {prescription.frequency}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          Prescribed: {formatDate(prescription.prescribed_date)}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Badge className={prescription.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}>
-                        {prescription.status}
-                      </Badge>
-                      <Button variant="ghost" size="sm">
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-            {prescriptions.length === 0 && (
-              <div className="text-center py-8">
-                <Pill className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No prescriptions</h3>
-                <p className="text-gray-600">You don't have any prescriptions yet.</p>
-              </div>
+          <TabsContent value="records" className="space-y-4 mt-0">
+            <MedicalRecordsView 
+              medicalRecords={medicalRecords}
+              formatDate={formatDate}
+            />
+          </TabsContent>
+
+          <TabsContent value="notes" className="space-y-4 mt-0">
+            <PatientNotesView 
+              patientNotes={patientNotes}
+              formatDate={formatDate}
+            />
+          </TabsContent>
+
+          <TabsContent value="payments" className="space-y-4 mt-0">
+            {userProfile?.id && (
+              <PatientPaymentHistory patientId={userProfile.id} />
             )}
-          </div>
-        </TabsContent>
+          </TabsContent>
 
-        <TabsContent value="treatment" className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h3 className="text-lg font-semibold">Your Treatment Plans</h3>
-          </div>
-          <div className="space-y-2">
-            {treatmentPlans.map((plan) => (
-              <Card key={plan.id}>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
-                      <ClipboardList className="h-5 w-5 text-orange-600" />
-                      <div>
-                        <p className="font-medium">{plan.title}</p>
-                        <p className="text-sm text-gray-600">{plan.description}</p>
-                        <p className="text-xs text-gray-500">
-                          Started: {formatDate(plan.start_date)}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Badge className={plan.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}>
-                        {plan.status}
-                      </Badge>
-                      <Button variant="ghost" size="sm">
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-            {treatmentPlans.length === 0 && (
-              <div className="text-center py-8">
-                <ClipboardList className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No treatment plans</h3>
-                <p className="text-gray-600">You don't have any treatment plans yet.</p>
-              </div>
-            )}
-          </div>
-        </TabsContent>
+          <TabsContent value="analytics" className="space-y-4 mt-0">
+            <PatientAnalytics userId={user.id} />
+          </TabsContent>
 
-        <TabsContent value="records" className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h3 className="text-lg font-semibold">Your Medical Records</h3>
-          </div>
-          <div className="space-y-2">
-            {medicalRecords.map((record) => (
-              <Card key={record.id}>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
-                      <FileText className="h-5 w-5 text-blue-600" />
-                      <div>
-                        <p className="font-medium">{record.title}</p>
-                        <p className="text-sm text-gray-600">{record.record_type}</p>
-                        <p className="text-xs text-gray-500">
-                          Date: {formatDate(record.record_date)}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Button variant="ghost" size="sm">
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-            {medicalRecords.length === 0 && (
-              <div className="text-center py-8">
-                <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No medical records</h3>
-                <p className="text-gray-600">You don't have any medical records yet.</p>
-              </div>
-            )}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="notes" className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h3 className="text-lg font-semibold">Your Notes</h3>
-          </div>
-          <div className="space-y-2">
-            {patientNotes.map((note) => (
-              <Card key={note.id}>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
-                      <FileText className="h-5 w-5 text-green-600" />
-                      <div>
-                        <p className="font-medium">{note.title}</p>
-                        <p className="text-sm text-gray-600">{note.note_type}</p>
-                        <p className="text-xs text-gray-500">
-                          Created: {formatDate(note.created_at)}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Button variant="ghost" size="sm">
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-            {patientNotes.length === 0 && (
-              <div className="text-center py-8">
-                <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No notes</h3>
-                <p className="text-gray-600">You don't have any notes yet.</p>
-              </div>
-            )}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="payments" className="space-y-4">
-          {userProfile?.id && (
-            <PatientPaymentHistory patientId={userProfile.id} />
-          )}
-        </TabsContent>
-
-        <TabsContent value="analytics" className="space-y-4">
-          <PatientAnalytics userId={user.id} />
-        </TabsContent>
-
-        <TabsContent value="emergency" className="space-y-4">
-          <EmergencyTriageForm onCancel={() => setActiveTab('chat')} onComplete={handleEmergencyComplete} />
-        </TabsContent>
-
-        <TabsContent value="test" className="space-y-4">
-          <div className="space-y-6">
-            <NotificationTest user={user} />
-            <DatabaseTest />
-            <SimpleAppointmentTest user={user} />
-            <AppointmentDebug user={user} />
-          </div>
-        </TabsContent>
-      </Tabs>
+          <TabsContent value="emergency" className="space-y-4 mt-0">
+            <EmergencyTriageForm 
+              onCancel={() => setActiveTab('chat')} 
+              onComplete={handleEmergencyComplete} 
+            />
+          </TabsContent>
+        </Tabs>
       </MobilePatientTabs>
+    );
+  }
+
+  // Desktop view with sidebar
+  return (
+    <div className="flex h-screen bg-background">
+      {/* Sidebar Navigation */}
+      <div className="w-64 bg-card border-r border-border flex flex-col">
+        <div className="p-6 border-b border-border">
+          <div className="flex items-center space-x-3">
+            <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center">
+              <UserIcon className="h-5 w-5 text-primary-foreground" />
+            </div>
+            <div>
+              <p className="font-semibold">{userProfile?.first_name || 'Patient'}</p>
+              <p className="text-xs text-muted-foreground">Patient Dashboard</p>
+            </div>
+          </div>
+        </div>
+
+        <ScrollArea className="flex-1 px-3 py-4">
+          <div className="space-y-6">
+            {navigationItems.map((group) => (
+              <div key={group.group}>
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3 mb-2">
+                  {group.group}
+                </p>
+                <div className="space-y-1">
+                  {group.items.map((item) => (
+                    <Button
+                      key={item.id}
+                      variant={activeTab === item.id ? "secondary" : "ghost"}
+                      className={cn(
+                        "w-full justify-start relative",
+                        activeTab === item.id && "bg-primary/10 text-primary hover:bg-primary/15"
+                      )}
+                      onClick={() => setActiveTab(item.id as Tab)}
+                    >
+                      <item.icon className="h-4 w-4 mr-3" />
+                      <span>{item.label}</span>
+                      {item.badge && (
+                        <Badge 
+                          variant={item.badge === '!' ? "destructive" : "secondary"} 
+                          className="ml-auto"
+                        >
+                          {item.badge}
+                        </Badge>
+                      )}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </ScrollArea>
+
+        <div className="p-4 border-t border-border space-y-2">
+          <Button variant="ghost" size="sm" className="w-full justify-start">
+            <HelpCircle className="h-4 w-4 mr-2" />
+            Help & Support
+          </Button>
+          <Settings user={user} />
+        </div>
+      </div>
+
+      {/* Main Content Area */}
+      <div className="flex-1 overflow-auto">
+        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
+          <div className="flex items-center justify-between px-6 py-4">
+            <div>
+              <h1 className="text-2xl font-bold">
+                {getWelcomeMessage()}, {userProfile?.first_name || 'there'}!
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+              </p>
+            </div>
+            <div className="flex items-center space-x-2">
+              <NotificationButton userId={user.id} />
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Book Appointment
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        <div className="p-6">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.2 }}
+            >
+              <Tabs value={activeTab} className="space-y-6">
+                <TabsContent value="overview" className="space-y-6 mt-0">
+                  <DashboardOverview 
+                    userProfile={userProfile}
+                    patientStats={patientStats}
+                    recentAppointments={recentAppointments}
+                    getWelcomeMessage={getWelcomeMessage}
+                    formatDate={formatDate}
+                    getStatusColor={getStatusColor}
+                    setActiveTab={setActiveTab}
+                  />
+                </TabsContent>
+
+                <TabsContent value="chat" className="space-y-6 mt-0">
+                  <InteractiveDentalChat 
+                    user={user} 
+                    triggerBooking={triggerBooking}
+                  />
+                </TabsContent>
+
+                <TabsContent value="appointments" className="space-y-6 mt-0">
+                  <RealAppointmentsList user={user} />
+                </TabsContent>
+
+                <TabsContent value="prescriptions" className="space-y-6 mt-0">
+                  <PrescriptionsView 
+                    prescriptions={prescriptions}
+                    formatDate={formatDate}
+                    getStatusColor={getStatusColor}
+                  />
+                </TabsContent>
+
+                <TabsContent value="treatment" className="space-y-6 mt-0">
+                  <TreatmentPlansView 
+                    treatmentPlans={treatmentPlans}
+                    formatDate={formatDate}
+                    getStatusColor={getStatusColor}
+                  />
+                </TabsContent>
+
+                <TabsContent value="records" className="space-y-6 mt-0">
+                  <MedicalRecordsView 
+                    medicalRecords={medicalRecords}
+                    formatDate={formatDate}
+                  />
+                </TabsContent>
+
+                <TabsContent value="notes" className="space-y-6 mt-0">
+                  <PatientNotesView 
+                    patientNotes={patientNotes}
+                    formatDate={formatDate}
+                  />
+                </TabsContent>
+
+                <TabsContent value="payments" className="space-y-6 mt-0">
+                  {userProfile?.id && (
+                    <PatientPaymentHistory patientId={userProfile.id} />
+                  )}
+                </TabsContent>
+
+                <TabsContent value="analytics" className="space-y-6 mt-0">
+                  <PatientAnalytics userId={user.id} />
+                </TabsContent>
+
+                <TabsContent value="emergency" className="space-y-6 mt-0">
+                  <EmergencyTriageForm 
+                    onCancel={() => setActiveTab('overview')} 
+                    onComplete={handleEmergencyComplete} 
+                  />
+                </TabsContent>
+              </Tabs>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+      </div>
     </div>
   );
 };
+
+// Helper components for the new structure
+const DashboardOverview = ({ userProfile, patientStats, recentAppointments, getWelcomeMessage, formatDate, getStatusColor, setActiveTab }: {
+  userProfile: UserProfile | null;
+  patientStats: PatientStats;
+  recentAppointments: Appointment[];
+  getWelcomeMessage: () => string;
+  formatDate: (dateString: string) => string;
+  getStatusColor: (status: string) => string;
+  setActiveTab: (tab: any) => void;
+}) => (
+  <div className="space-y-6">
+    {/* Quick Actions */}
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <Card className="group hover:shadow-lg transition-all duration-300 cursor-pointer border-primary/20 hover:border-primary/40"
+            onClick={() => setActiveTab('appointments')}>
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="p-3 bg-primary/10 rounded-lg group-hover:bg-primary/20 transition-colors">
+              <Calendar className="h-6 w-6 text-primary" />
+            </div>
+            <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+          </div>
+          <h3 className="font-semibold mb-1">Book Appointment</h3>
+          <p className="text-sm text-muted-foreground">Schedule your next visit</p>
+        </CardContent>
+      </Card>
+
+      <Card className="group hover:shadow-lg transition-all duration-300 cursor-pointer border-emerald-500/20 hover:border-emerald-500/40"
+            onClick={() => setActiveTab('chat')}>
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="p-3 bg-emerald-500/10 rounded-lg group-hover:bg-emerald-500/20 transition-colors">
+              <MessageSquare className="h-6 w-6 text-emerald-500" />
+            </div>
+            <Badge variant="secondary" className="bg-emerald-100 text-emerald-700">AI</Badge>
+          </div>
+          <h3 className="font-semibold mb-1">AI Assistant</h3>
+          <p className="text-sm text-muted-foreground">Get instant help</p>
+        </CardContent>
+      </Card>
+
+      <Card className="group hover:shadow-lg transition-all duration-300 cursor-pointer border-orange-500/20 hover:border-orange-500/40"
+            onClick={() => setActiveTab('prescriptions')}>
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="p-3 bg-orange-500/10 rounded-lg group-hover:bg-orange-500/20 transition-colors">
+              <Pill className="h-6 w-6 text-orange-500" />
+            </div>
+            {patientStats.activePrescriptions > 0 && (
+              <Badge className="bg-orange-100 text-orange-700">{patientStats.activePrescriptions}</Badge>
+            )}
+          </div>
+          <h3 className="font-semibold mb-1">Prescriptions</h3>
+          <p className="text-sm text-muted-foreground">View active medications</p>
+        </CardContent>
+      </Card>
+
+      <Card className="group hover:shadow-lg transition-all duration-300 cursor-pointer border-red-500/20 hover:border-red-500/40"
+            onClick={() => setActiveTab('emergency')}>
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="p-3 bg-red-500/10 rounded-lg group-hover:bg-red-500/20 transition-colors">
+              <AlertTriangle className="h-6 w-6 text-red-500" />
+            </div>
+            <Badge variant="destructive">24/7</Badge>
+          </div>
+          <h3 className="font-semibold mb-1">Emergency</h3>
+          <p className="text-sm text-muted-foreground">Urgent dental care</p>
+        </CardContent>
+      </Card>
+    </div>
+
+    {/* Stats Overview */}
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Upcoming Appointments</p>
+              <p className="text-3xl font-bold mt-2">{patientStats.upcomingAppointments}</p>
+              {patientStats.lastVisit && (
+                <p className="text-xs text-muted-foreground mt-2">
+                  Last visit: {formatDate(patientStats.lastVisit)}
+                </p>
+              )}
+            </div>
+            <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-full">
+              <CalendarDays className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Completed Visits</p>
+              <p className="text-3xl font-bold mt-2">{patientStats.completedAppointments}</p>
+              <div className="flex items-center mt-2">
+                <TrendingUp className="h-3 w-3 text-green-600 mr-1" />
+                <span className="text-xs text-green-600">Regular checkups</span>
+              </div>
+            </div>
+            <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-full">
+              <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Active Prescriptions</p>
+              <p className="text-3xl font-bold mt-2">{patientStats.activePrescriptions}</p>
+              <p className="text-xs text-muted-foreground mt-2">
+                Total: {patientStats.totalPrescriptions} prescribed
+              </p>
+            </div>
+            <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-full">
+              <Pill className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Treatment Plans</p>
+              <p className="text-3xl font-bold mt-2">{patientStats.activeTreatmentPlans}</p>
+              <p className="text-xs text-muted-foreground mt-2">
+                {patientStats.totalNotes} clinical notes
+              </p>
+            </div>
+            <div className="p-3 bg-orange-100 dark:bg-orange-900/30 rounded-full">
+              <ClipboardList className="h-6 w-6 text-orange-600 dark:text-orange-400" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+
+    {/* Recent Activity & Health Summary */}
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Recent Appointments */}
+      <Card className="lg:col-span-2">
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <span>Recent Appointments</span>
+            <Button variant="ghost" size="sm" onClick={() => setActiveTab('appointments')}>
+              View All
+              <ChevronRight className="h-4 w-4 ml-1" />
+            </Button>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {recentAppointments.slice(0, 3).map((appointment) => (
+              <div key={appointment.id} className="flex items-center justify-between p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
+                <div className="flex items-center space-x-4">
+                  <div className={cn("h-10 w-10 rounded-full flex items-center justify-center",
+                    appointment.status === 'completed' ? 'bg-blue-100 dark:bg-blue-900/30' :
+                    appointment.status === 'confirmed' ? 'bg-green-100 dark:bg-green-900/30' :
+                    'bg-yellow-100 dark:bg-yellow-900/30'
+                  )}>
+                    <Calendar className={cn("h-5 w-5",
+                      appointment.status === 'completed' ? 'text-blue-600 dark:text-blue-400' :
+                      appointment.status === 'confirmed' ? 'text-green-600 dark:text-green-400' :
+                      'text-yellow-600 dark:text-yellow-400'
+                    )} />
+                  </div>
+                  <div>
+                    <p className="font-medium">{appointment.treatment_type || 'General Checkup'}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {formatDate(appointment.appointment_date)} at {appointment.appointment_time}
+                    </p>
+                  </div>
+                </div>
+                <Badge className={getStatusColor(appointment.status)}>
+                  {appointment.status}
+                </Badge>
+              </div>
+            ))}
+            {recentAppointments.length === 0 && (
+              <div className="text-center py-8">
+                <Calendar className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
+                <p className="text-muted-foreground">No appointments yet</p>
+                <Button className="mt-4" onClick={() => setActiveTab('appointments')}>
+                  Book Your First Appointment
+                </Button>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Health Summary */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <Heart className="h-5 w-5 text-red-500" />
+            <span>Health Summary</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Overall Health</span>
+              <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">Good</Badge>
+            </div>
+            <Separator />
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Last Checkup</span>
+                <span className="font-medium">
+                  {patientStats.lastVisit ? formatDate(patientStats.lastVisit) : 'Not yet'}
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Next Due</span>
+                <span className="font-medium text-orange-600">In 2 months</span>
+              </div>
+            </div>
+            <Separator />
+            <div className="pt-2">
+              <p className="text-sm font-medium mb-2">Recommendations</p>
+              <div className="space-y-2">
+                <div className="flex items-start space-x-2">
+                  <CheckCircle className="h-4 w-4 text-green-600 mt-0.5" />
+                  <p className="text-sm text-muted-foreground">Regular brushing twice daily</p>
+                </div>
+                <div className="flex items-start space-x-2">
+                  <AlertCircle className="h-4 w-4 text-yellow-600 mt-0.5" />
+                  <p className="text-sm text-muted-foreground">Schedule cleaning soon</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  </div>
+);
+
+const PrescriptionsView = ({ prescriptions, formatDate, getStatusColor }: {
+  prescriptions: Prescription[];
+  formatDate: (dateString: string) => string;
+  getStatusColor: (status: string) => string;
+}) => (
+  <div className="space-y-4">
+    <div className="flex justify-between items-center">
+      <h3 className="text-lg font-semibold">Your Prescriptions</h3>
+    </div>
+    <div className="space-y-2">
+      {prescriptions.map((prescription) => (
+        <Card key={prescription.id}>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <Pill className="h-5 w-5 text-purple-600" />
+                <div>
+                  <p className="font-medium">{prescription.medication_name}</p>
+                  <p className="text-sm text-gray-600">
+                    {prescription.dosage} - {prescription.frequency}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    Prescribed: {formatDate(prescription.prescribed_date)}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Badge className={getStatusColor(prescription.status)}>
+                  {prescription.status}
+                </Badge>
+                <Button variant="ghost" size="sm">
+                  <Eye className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+      {prescriptions.length === 0 && (
+        <div className="text-center py-8">
+          <Pill className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No prescriptions</h3>
+          <p className="text-gray-600">You don't have any prescriptions yet.</p>
+        </div>
+      )}
+    </div>
+  </div>
+);
+
+const TreatmentPlansView = ({ treatmentPlans, formatDate, getStatusColor }: {
+  treatmentPlans: TreatmentPlan[];
+  formatDate: (dateString: string) => string;
+  getStatusColor: (status: string) => string;
+}) => (
+  <div className="space-y-4">
+    <div className="flex justify-between items-center">
+      <h3 className="text-lg font-semibold">Your Treatment Plans</h3>
+    </div>
+    <div className="space-y-2">
+      {treatmentPlans.map((plan) => (
+        <Card key={plan.id}>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <ClipboardList className="h-5 w-5 text-orange-600" />
+                <div>
+                  <p className="font-medium">{plan.title}</p>
+                  <p className="text-sm text-gray-600">{plan.description}</p>
+                  <p className="text-xs text-gray-500">
+                    Started: {formatDate(plan.start_date)}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Badge className={getStatusColor(plan.status)}>
+                  {plan.status}
+                </Badge>
+                <Button variant="ghost" size="sm">
+                  <Eye className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+      {treatmentPlans.length === 0 && (
+        <div className="text-center py-8">
+          <ClipboardList className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No treatment plans</h3>
+          <p className="text-gray-600">You don't have any treatment plans yet.</p>
+        </div>
+      )}
+    </div>
+  </div>
+);
+
+const MedicalRecordsView = ({ medicalRecords, formatDate }: {
+  medicalRecords: MedicalRecord[];
+  formatDate: (dateString: string) => string;
+}) => (
+  <div className="space-y-4">
+    <div className="flex justify-between items-center">
+      <h3 className="text-lg font-semibold">Your Medical Records</h3>
+    </div>
+    <div className="space-y-2">
+      {medicalRecords.map((record) => (
+        <Card key={record.id}>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <FileText className="h-5 w-5 text-blue-600" />
+                <div>
+                  <p className="font-medium">{record.title}</p>
+                  <p className="text-sm text-gray-600">{record.record_type}</p>
+                  <p className="text-xs text-gray-500">
+                    Date: {formatDate(record.record_date)}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Button variant="ghost" size="sm">
+                  <Eye className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+      {medicalRecords.length === 0 && (
+        <div className="text-center py-8">
+          <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No medical records</h3>
+          <p className="text-gray-600">You don't have any medical records yet.</p>
+        </div>
+      )}
+    </div>
+  </div>
+);
+
+const PatientNotesView = ({ patientNotes, formatDate }: {
+  patientNotes: PatientNote[];
+  formatDate: (dateString: string) => string;
+}) => (
+  <div className="space-y-4">
+    <div className="flex justify-between items-center">
+      <h3 className="text-lg font-semibold">Your Notes</h3>
+    </div>
+    <div className="space-y-2">
+      {patientNotes.map((note) => (
+        <Card key={note.id}>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <FileText className="h-5 w-5 text-green-600" />
+                <div>
+                  <p className="font-medium">{note.title}</p>
+                  <p className="text-sm text-gray-600">{note.note_type}</p>
+                  <p className="text-xs text-gray-500">
+                    Created: {formatDate(note.created_at)}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Button variant="ghost" size="sm">
+                  <Eye className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+      {patientNotes.length === 0 && (
+        <div className="text-center py-8">
+          <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No notes</h3>
+          <p className="text-gray-600">You don't have any notes yet.</p>
+        </div>
+      )}
+    </div>
+  </div>
+);
