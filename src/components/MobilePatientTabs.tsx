@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 
 export type PatientTabType =
+  | 'overview'
   | 'chat'
   | 'appointments'
   | 'prescriptions'
@@ -38,11 +39,12 @@ export function MobilePatientTabs({ activeTab, setActiveTab, children }: MobileP
 
   const tabGroups = [
     {
-      id: 'care',
-      title: 'Care',
+      id: 'home',
+      title: 'Home',
       icon: Stethoscope,
       tabs: [
-        { id: 'chat' as PatientTabType, label: 'Chat', icon: MessageCircle },
+        { id: 'overview' as PatientTabType, label: 'Dashboard', icon: Stethoscope },
+        { id: 'chat' as PatientTabType, label: 'AI Chat', icon: MessageCircle },
         { id: 'appointments' as PatientTabType, label: 'Appointments', icon: Calendar },
         { id: 'emergency' as PatientTabType, label: 'Emergency', icon: AlertTriangle, badge: '!' }
       ]
