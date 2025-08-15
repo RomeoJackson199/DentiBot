@@ -19,9 +19,10 @@ import { useLanguage } from "@/hooks/useLanguage";
 interface ModernHeroSectionProps {
   onBookAppointment: () => void;
   onStartTriage: () => void;
+  onOpenAIChat?: () => void;
 }
 
-export function ModernHeroSection({ onBookAppointment, onStartTriage }: ModernHeroSectionProps) {
+export function ModernHeroSection({ onBookAppointment, onStartTriage, onOpenAIChat }: ModernHeroSectionProps) {
   const { t } = useLanguage();
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
 
@@ -130,6 +131,19 @@ export function ModernHeroSection({ onBookAppointment, onStartTriage }: ModernHe
               <Shield className="h-5 w-5 mr-2 group-hover:scale-110 transition-transform" />
               Emergency Triage
             </Button>
+
+            {onOpenAIChat && (
+              <Button
+                variant="outline"
+                size="xl"
+                onClick={onOpenAIChat}
+                aria-label="Talk to AI assistant"
+                className="group min-w-[200px] border-dental-primary/30 hover:bg-dental-primary/5"
+              >
+                <Brain className="h-5 w-5 mr-2 group-hover:scale-110 transition-transform" />
+                Talk to AI
+              </Button>
+            )}
           </div>
 
           {/* Stats Section */}

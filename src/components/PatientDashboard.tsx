@@ -81,6 +81,7 @@ import { AppointmentsTab } from "@/components/patient/AppointmentsTab";
 import { PaymentsTab } from "@/components/patient/PaymentsTab";
 import { SettingsPage } from "@/components/patient/SettingsPage";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { AppointmentBooking } from "@/components/AppointmentBooking";
 
 interface PatientDashboardProps {
   user: User;
@@ -168,6 +169,7 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
     }
   });
   const [showAssistant, setShowAssistant] = useState(false);
+  const [showBooking, setShowBooking] = useState(false);
   const [totalDueCents, setTotalDueCents] = useState(0);
 
   // Check if mobile
@@ -525,7 +527,7 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
       )}
 
       {activeSection === 'appointments' && (
-        <AppointmentsTab user={user} onBookNew={() => setActiveSection('appointments')} />
+        <AppointmentsTab user={user} onBookNew={() => setShowBooking(true)} />
       )}
 
       {activeSection === 'payments' && userProfile?.id && (
@@ -539,6 +541,16 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
       <Dialog open={showAssistant} onOpenChange={setShowAssistant}>
         <DialogContent className="p-0 max-w-3xl w-full">
           <InteractiveDentalChat user={user} triggerBooking={triggerBooking} />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showBooking} onOpenChange={setShowBooking}>
+        <DialogContent className="p-0 max-w-4xl w-full">
+          <AppointmentBooking
+            user={user}
+            onCancel={() => setShowBooking(false)}
+            onComplete={() => setShowBooking(false)}
+          />
         </DialogContent>
       </Dialog>
     </PatientAppShell>

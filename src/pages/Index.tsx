@@ -19,6 +19,8 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { createDossierAfterSignup } from "@/lib/medicalRecords";
 import { SimpleDatabaseSaveTest } from "@/components/SimpleDatabaseSaveTest";
 import { Card } from "@/components/ui/card";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { InteractiveDentalChat } from "@/components/chat/InteractiveDentalChat";
 const Index = () => {
   const {
     t,
@@ -31,6 +33,7 @@ const Index = () => {
   const [showLanguageSelection, setShowLanguageSelection] = useState(false);
   const [showAppointmentBooking, setShowAppointmentBooking] = useState(false);
   const [showEmergencyTriage, setShowEmergencyTriage] = useState(false);
+  const [showAIChat, setShowAIChat] = useState(false);
   const isMountedRef = useRef(true);
   const {
     toast
@@ -244,6 +247,7 @@ const Index = () => {
       <ModernHeroSection
         onBookAppointment={() => setShowAppointmentBooking(true)}
         onStartTriage={() => setShowEmergencyTriage(true)}
+        onOpenAIChat={() => setShowAIChat(true)}
       />
       <ModernFeatureCards />
       <StatsSection />
@@ -276,6 +280,13 @@ const Index = () => {
 
       {/* Onboarding Popup */}
       <OnboardingPopup isOpen={showOnboarding} onClose={handleOnboardingClose} />
+
+      {/* AI Chat Modal */}
+      <Dialog open={showAIChat} onOpenChange={setShowAIChat}>
+        <DialogContent className="p-0 max-w-3xl w-full">
+          <InteractiveDentalChat user={user} />
+        </DialogContent>
+      </Dialog>
     </div>;
 };
 export default Index;
