@@ -40,19 +40,16 @@ interface AppointmentsPageProps {
 interface Appointment {
   id: string;
   appointment_date: string;
-  appointment_time?: string;
+  appointment_time: string;
   status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
-  service_type?: string;
-  reason?: string;
+  service_type: string;
   dentist_id: string;
   notes?: string;
   is_video?: boolean;
   dentist?: {
     id: string;
-    full_name?: string;
-    first_name?: string;
-    last_name?: string;
-    specialization?: string;
+    full_name: string;
+    specialization: string;
     phone?: string;
     email?: string;
   };
@@ -65,10 +62,9 @@ interface Appointment {
 interface IncompleteVisit {
   id: string;
   appointment_date: string;
-  appointment_time?: string;
-  service_type?: string;
-  reason?: string;
-  dentist_name?: string;
+  appointment_time: string;
+  service_type: string;
+  dentist_name: string;
 }
 
 export const AppointmentsPage: React.FC<AppointmentsPageProps> = ({ user, onTabChange }) => {
@@ -118,50 +114,42 @@ export const AppointmentsPage: React.FC<AppointmentsPageProps> = ({ user, onTabC
           *,
           dentist:dentists(
             id,
-            profiles:profile_id(first_name, last_name)
+            full_name,
+            specialization,
+            phone,
+            email
           )
         `)
         .eq('patient_id', profileId)
-        .order('appointment_date', { ascending: false });
+        .order('appointment_date', { ascending: false })
+        .order('appointment_time', { ascending: false });
 
       if (error) throw error;
 
       if (data) {
-        // Map data to add full_name and appointment_time
-        const mappedData = data.map(apt => ({
-          ...apt,
-          appointment_time: new Date(apt.appointment_date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
-          service_type: apt.reason || 'Consultation',
-          dentist: apt.dentist ? {
-            ...apt.dentist,
-            full_name: apt.dentist.profiles ? `${apt.dentist.profiles.first_name} ${apt.dentist.profiles.last_name}` : 'Unknown'
-          } : undefined
-        }));
-
         // Separate upcoming and past appointments
-        const upcoming = mappedData.filter(apt => 
+        const upcoming = data.filter(apt => 
           apt.status !== 'cancelled' && 
           apt.status !== 'completed' &&
           (apt.appointment_date > new Date().toISOString().split('T')[0] || 
-           (apt.appointment_date === new Date().toISOString().split('T')[0] && !isPast(new Date(apt.appointment_date))))
+           (apt.appointment_date === new Date().toISOString().split('T')[0] && !isPast(new Date(`${apt.appointment_date}T${apt.appointment_time}`))))
         );
         
-        const past = mappedData.filter(apt => 
+        const past = data.filter(apt => 
           apt.status === 'completed' ||
           (apt.status !== 'cancelled' && 
            (apt.appointment_date < new Date().toISOString().split('T')[0] || 
-            (apt.appointment_date === new Date().toISOString().split('T')[0] && isPast(new Date(apt.appointment_date)))))
+            (apt.appointment_date === new Date().toISOString().split('T')[0] && isPast(new Date(`${apt.appointment_date}T${apt.appointment_time}`)))))
         );
 
         // Check for incomplete visits (appointments marked as completed but missing notes)
-        const incomplete = mappedData.filter(apt => 
+        const incomplete = data.filter(apt => 
           apt.status === 'completed' && !apt.notes
         ).map(apt => ({
           id: apt.id,
           appointment_date: apt.appointment_date,
           appointment_time: apt.appointment_time,
           service_type: apt.service_type,
-          reason: apt.reason,
           dentist_name: apt.dentist?.full_name || 'Unknown'
         }));
 
@@ -217,16 +205,14 @@ export const AppointmentsPage: React.FC<AppointmentsPageProps> = ({ user, onTabC
   };
 
   const handleAddToCalendar = (appointment: Appointment) => {
-    const appointmentDateTime = appointment.appointment_time ? 
-      new Date(`${appointment.appointment_date}T${appointment.appointment_time}`) : 
-      new Date(appointment.appointment_date);
-    const endDate = new Date(appointmentDateTime.getTime() + 60 * 60 * 1000); // 1 hour duration
+    const startDate = new Date(`${appointment.appointment_date}T${appointment.appointment_time}`);
+    const endDate = new Date(startDate.getTime() + 60 * 60 * 1000); // 1 hour duration
     
     const event = {
-      title: `Dental Appointment - ${appointment.service_type || appointment.reason || 'Consultation'}`,
-      start: appointmentDateTime.toISOString(),
+      title: `Dental Appointment - ${appointment.service_type}`,
+      start: startDate.toISOString(),
       end: endDate.toISOString(),
-      description: `Appointment with Dr. ${appointment.dentist?.full_name || appointment.dentist?.first_name || 'Unknown'}\nService: ${appointment.service_type || appointment.reason || 'Consultation'}`,
+      description: `Appointment with Dr. ${appointment.dentist?.full_name}\nService: ${appointment.service_type}`,
       location: appointment.location?.address || 'Dental Clinic'
     };
 
@@ -235,7 +221,7 @@ export const AppointmentsPage: React.FC<AppointmentsPageProps> = ({ user, onTabC
       const icsContent = `BEGIN:VCALENDAR
 VERSION:2.0
 BEGIN:VEVENT
-DTSTART:${appointmentDateTime.toISOString().replace(/[-:]/g, '').replace('.000', '')}
+DTSTART:${startDate.toISOString().replace(/[-:]/g, '').replace('.000', '')}
 DTEND:${endDate.toISOString().replace(/[-:]/g, '').replace('.000', '')}
 SUMMARY:${event.title}
 DESCRIPTION:${event.description}
@@ -259,7 +245,7 @@ END:VCALENDAR`;
       });
     } else {
       // For mobile, use native calendar intent
-      const googleCalendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(event.title)}&dates=${appointmentDateTime.toISOString().replace(/[-:]/g, '').replace('.000', 'Z')}/${endDate.toISOString().replace(/[-:]/g, '').replace('.000', 'Z')}&details=${encodeURIComponent(event.description)}&location=${encodeURIComponent(event.location)}`;
+      const googleCalendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(event.title)}&dates=${startDate.toISOString().replace(/[-:]/g, '').replace('.000', 'Z')}/${endDate.toISOString().replace(/[-:]/g, '').replace('.000', 'Z')}&details=${encodeURIComponent(event.description)}&location=${encodeURIComponent(event.location)}`;
       window.open(googleCalendarUrl, '_blank');
     }
   };
@@ -272,10 +258,8 @@ END:VCALENDAR`;
   };
 
   const AppointmentCard = ({ appointment, isPast = false }: { appointment: Appointment; isPast?: boolean }) => {
-    const appointmentDateTime = appointment.appointment_time ? 
-      new Date(`${appointment.appointment_date}T${appointment.appointment_time}`) : 
-      new Date(appointment.appointment_date);
-    const isUpcoming = isFuture(appointmentDateTime) || isToday(appointmentDateTime);
+    const appointmentDate = new Date(`${appointment.appointment_date}T${appointment.appointment_time}`);
+    const isUpcoming = isFuture(appointmentDate) || isToday(appointmentDate);
     
     return (
       <Card className={cn(
@@ -288,9 +272,9 @@ END:VCALENDAR`;
               <p className="font-semibold">
                 {format(new Date(appointment.appointment_date), 'EEEE, MMMM d, yyyy')}
               </p>
-               <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                 <Clock className="h-3 w-3" />
-                 <span>{appointment.appointment_time || new Date(appointment.appointment_date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Clock className="h-3 w-3" />
+                <span>{appointment.appointment_time}</span>
                 {appointment.is_video && (
                   <>
                     <span>•</span>
@@ -311,18 +295,18 @@ END:VCALENDAR`;
           </div>
 
           <div className="space-y-2">
-             <div className="flex items-center gap-2 text-sm">
-               <UserIcon className="h-4 w-4 text-muted-foreground" />
-               <span>Dr. {appointment.dentist?.full_name || appointment.dentist?.first_name || 'Unknown'}</span>
+            <div className="flex items-center gap-2 text-sm">
+              <UserIcon className="h-4 w-4 text-muted-foreground" />
+              <span>Dr. {appointment.dentist?.full_name}</span>
               {appointment.dentist?.specialization && (
                 <span className="text-muted-foreground">• {appointment.dentist.specialization}</span>
               )}
             </div>
             
-             <div className="flex items-center gap-2 text-sm">
-               <CalendarCheck className="h-4 w-4 text-muted-foreground" />
-               <span>{appointment.service_type || appointment.reason || 'Consultation'}</span>
-             </div>
+            <div className="flex items-center gap-2 text-sm">
+              <CalendarCheck className="h-4 w-4 text-muted-foreground" />
+              <span>{appointment.service_type}</span>
+            </div>
 
             {appointment.location && (
               <div className="flex items-center gap-2 text-sm">

@@ -316,11 +316,16 @@ export function ClinicalToday({ user, dentistId, onOpenPatientsTab }: ClinicalTo
 						<Button 
 							size="lg" 
 							variant="outline" 
-							onClick={() => {
-								setShowFollowUps(true);
-								// For now, just show empty follow-ups as the table doesn't exist yet
-								setFollowUps([]);
-							}}
+							onClick={async () => { 
+								setShowFollowUps(true); 
+								try {
+									const { data } = await supabase.from('appointment_follow_ups').select('*, appointments(*)')
+										.gte('scheduled_date', startOfDay.toISOString())
+										.lt('scheduled_date', endOfDay.toISOString())
+										.eq('status', 'pending');
+									setFollowUps(data || []);
+								} catch {} 
+							}} 
 							className="h-12 px-4 rounded-xl justify-start touch-target"
 						>
 							<ListChecks className="h-5 w-5 mr-2" /> 
