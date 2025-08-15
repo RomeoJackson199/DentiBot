@@ -286,7 +286,10 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
         .from('appointments')
         .select(`
           *,
-          dentists:dentist_id(first_name, last_name, specialization)
+          dentist:dentist_id(
+            specialization,
+            profile:profile_id(first_name, last_name)
+          )
         `)
         .eq('patient_id', profileId)
         .order('appointment_date', { ascending: false })
@@ -296,7 +299,13 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
         ...apt,
         duration: apt.duration_minutes || 60,
         urgency_level: apt.urgency === 'emergency' ? 'urgent' : apt.urgency || 'normal',
-        status: apt.status === 'pending' ? 'scheduled' : apt.status
+        status: apt.status === 'pending' ? 'scheduled' : apt.status,
+        // Transform the dentist data to match expected structure
+        dentists: apt.dentist ? {
+          first_name: apt.dentist.profile?.first_name,
+          last_name: apt.dentist.profile?.last_name,
+          specialization: apt.dentist.specialization
+        } : undefined
       })));
     } catch (error) {
       console.error('Error fetching recent appointments:', error);
@@ -763,7 +772,7 @@ const DashboardOverview = ({ userProfile, patientStats, recentAppointments, getW
                   <div>
                     <p className="font-medium">{appointment.treatment_type || 'General Checkup'}</p>
                     <p className="text-sm text-muted-foreground">
-                      {formatDate(appointment.appointment_date)} at {appointment.appointment_time}
+                      {formatDate(appointment.appointment_date)} at {new Date(appointment.appointment_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </p>
                   </div>
                 </div>
