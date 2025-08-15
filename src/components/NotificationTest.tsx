@@ -43,17 +43,11 @@ export const NotificationTest: React.FC<NotificationTestProps> = ({ user }) => {
   const testAppointmentReminder = async () => {
     setIsLoading(true);
     try {
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
-      if (profileError || !profile) throw profileError || new Error('Profile not found');
       // Create a test appointment first
       const { data: appointment, error } = await supabase
         .from('appointments')
         .insert({
-          patient_id: profile.id,
+          patient_id: user.id,
           dentist_id: 'test-dentist-id',
           appointment_date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // Tomorrow
           duration: 60,
@@ -79,17 +73,11 @@ export const NotificationTest: React.FC<NotificationTestProps> = ({ user }) => {
   const testPrescriptionNotification = async () => {
     setIsLoading(true);
     try {
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
-      if (profileError || !profile) throw profileError || new Error('Profile not found');
       // Create a test prescription first
       const { data: prescription, error } = await supabase
         .from('prescriptions')
         .insert({
-          patient_id: profile.id,
+          patient_id: user.id,
           dentist_id: 'test-dentist-id',
           medication_name: 'Test Medication',
           dosage: '10mg',
@@ -117,17 +105,11 @@ export const NotificationTest: React.FC<NotificationTestProps> = ({ user }) => {
   const testTreatmentPlanNotification = async () => {
     setIsLoading(true);
     try {
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
-      if (profileError || !profile) throw profileError || new Error('Profile not found');
       // Create a test treatment plan first
       const { data: treatmentPlan, error } = await supabase
         .from('treatment_plans')
         .insert({
-          patient_id: profile.id,
+          patient_id: user.id,
           dentist_id: 'test-dentist-id',
           plan_name: 'Test Treatment Plan',
           title: 'Test Treatment Plan',
