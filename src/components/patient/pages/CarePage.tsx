@@ -109,6 +109,7 @@ export const CarePage: React.FC<CarePageProps> = ({ user, onTabChange }) => {
   const [pastPrescriptions, setPastPrescriptions] = useState<Prescription[]>([]);
   const [completedVisits, setCompletedVisits] = useState<CompletedVisit[]>([]);
   const [medicalRecords, setMedicalRecords] = useState<MedicalRecord[]>([]);
+  const [profileId, setProfileId] = useState<string | null>(null);
   
   // UI states
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['plans', 'prescriptions', 'visits', 'records']));
@@ -146,6 +147,7 @@ export const CarePage: React.FC<CarePageProps> = ({ user, onTabChange }) => {
       }
 
       const profileId = userProfile.id;
+      setProfileId(profileId);
 
       // Fetch all care data in parallel
       const [plansRes, prescriptionsRes, visitsRes, recordsRes] = await Promise.all([
@@ -187,7 +189,12 @@ export const CarePage: React.FC<CarePageProps> = ({ user, onTabChange }) => {
       ]);
 
       if (!plansRes.error && plansRes.data) {
-        setTreatmentPlans(plansRes.data);
+        const mappedPlans = (plansRes.data as any[]).map((plan) => ({
+          ...plan,
+          title: plan.title ?? plan.plan_name ?? 'Treatment Plan',
+          description: plan.description ?? '',
+        }));
+        setTreatmentPlans(mappedPlans as unknown as TreatmentPlan[]);
       }
 
       if (!prescriptionsRes.error && prescriptionsRes.data) {
@@ -243,12 +250,20 @@ export const CarePage: React.FC<CarePageProps> = ({ user, onTabChange }) => {
 
   const handleRequestRenewal = async (prescriptionId: string) => {
     try {
+      if (!profileId) {
+        toast({
+          title: "Error",
+          description: "Could not verify your patient profile. Please refresh.",
+          variant: "destructive",
+        });
+        return;
+      }
       // Create a renewal request
       const { error } = await supabase
         .from('prescription_renewals')
         .insert({
           prescription_id: prescriptionId,
-          patient_id: user.id,
+          patient_id: profileId,
           status: 'pending'
         });
 
@@ -289,10 +304,14 @@ export const CarePage: React.FC<CarePageProps> = ({ user, onTabChange }) => {
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       results = {
-        plans: treatmentPlans.filter(p => 
-          p.title.toLowerCase().includes(term) || 
-          p.description?.toLowerCase().includes(term)
-        ),
+        plans: treatmentPlans.filter(p => {
+          const title = (p as any).title ?? (p as any).plan_name ?? '';
+          const description = (p as any).description ?? '';
+          return (
+            (typeof title === 'string' && title.toLowerCase().includes(term)) ||
+            (typeof description === 'string' && description.toLowerCase().includes(term))
+          );
+        }),
         activePrescriptions: activePrescriptions.filter(p => 
           p.medication_name.toLowerCase().includes(term)
         ),
@@ -301,7 +320,7 @@ export const CarePage: React.FC<CarePageProps> = ({ user, onTabChange }) => {
         ),
         visits: completedVisits.filter(v => 
           v.service_type.toLowerCase().includes(term) ||
-          v.notes.toLowerCase().includes(term) ||
+          (v.notes || '').toLowerCase().includes(term) ||
           v.dentist_name.toLowerCase().includes(term)
         ),
         records: medicalRecords.filter(r => 

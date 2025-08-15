@@ -10,7 +10,8 @@ import {
   Heart, 
   Calendar, 
   CreditCard,
-  Bell
+  Bell,
+  Bot
 } from "lucide-react";
 
 // Import new page components
@@ -18,6 +19,7 @@ import { HomePage } from "./pages/HomePage";
 import { CarePage } from "./pages/CarePage";
 import { AppointmentsPage } from "./pages/AppointmentsPage";
 import { PaymentsPage } from "./pages/PaymentsPage";
+import { AIBookingPage } from "./pages/AIBookingPage";
 
 // Import components
 import { NotificationButton } from "@/components/NotificationButton";
@@ -91,6 +93,7 @@ export const PatientDashboardRefactored: React.FC<PatientDashboardRefactoredProp
     { id: 'home', label: 'Home', icon: Home },
     { id: 'care', label: 'Care', icon: Heart },
     { id: 'appointments', label: 'Appointments', icon: Calendar },
+    { id: 'ai-booking', label: 'AI Booking', icon: Bot },
     { id: 'payments', label: 'Payments', icon: CreditCard },
   ];
 
@@ -158,6 +161,7 @@ export const PatientDashboardRefactored: React.FC<PatientDashboardRefactoredProp
               {activeTab === 'home' && <HomePage user={user} profile={profile} onTabChange={handleTabChange} />}
               {activeTab === 'care' && <CarePage user={user} onTabChange={handleTabChange} />}
               {activeTab === 'appointments' && <AppointmentsPage user={user} onTabChange={handleTabChange} />}
+              {activeTab === 'ai-booking' && <AIBookingPage user={user} onTabChange={handleTabChange} />}
               {activeTab === 'payments' && <PaymentsPage user={user} onTabChange={handleTabChange} />}
             </div>
           </main>
@@ -209,6 +213,7 @@ export const PatientDashboardRefactored: React.FC<PatientDashboardRefactoredProp
               {activeTab === 'home' && <HomePage user={user} profile={profile} onTabChange={handleTabChange} />}
               {activeTab === 'care' && <CarePage user={user} onTabChange={handleTabChange} />}
               {activeTab === 'appointments' && <AppointmentsPage user={user} onTabChange={handleTabChange} />}
+              {activeTab === 'ai-booking' && <AIBookingPage user={user} onTabChange={handleTabChange} />}
               {activeTab === 'payments' && <PaymentsPage user={user} onTabChange={handleTabChange} />}
             </div>
           </main>
@@ -224,6 +229,7 @@ export const PatientDashboardRefactored: React.FC<PatientDashboardRefactoredProp
               {activeTab === 'home' && <HomePage user={user} profile={profile} onTabChange={handleTabChange} />}
               {activeTab === 'care' && <CarePage user={user} onTabChange={handleTabChange} />}
               {activeTab === 'appointments' && <AppointmentsPage user={user} onTabChange={handleTabChange} />}
+              {activeTab === 'ai-booking' && <AIBookingPage user={user} onTabChange={handleTabChange} />}
               {activeTab === 'payments' && <PaymentsPage user={user} onTabChange={handleTabChange} />}
             </div>
           </main>

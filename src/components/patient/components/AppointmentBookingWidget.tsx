@@ -68,6 +68,7 @@ export const AppointmentBookingWidget: React.FC<AppointmentBookingWidgetProps> =
   const [notes, setNotes] = useState("");
   const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
   const [step, setStep] = useState(1);
+  const [patientProfileId, setPatientProfileId] = useState<string | null>(null);
   
   const { toast } = useToast();
 
@@ -80,6 +81,23 @@ export const AppointmentBookingWidget: React.FC<AppointmentBookingWidgetProps> =
       fetchAvailableSlots();
     }
   }, [selectedDate, selectedDentist]);
+
+  useEffect(() => {
+    const loadProfileId = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('user_id', user.id)
+          .single();
+        if (error) throw error;
+        setPatientProfileId(data?.id || null);
+      } catch (error) {
+        console.error('Error loading patient profile:', error);
+      }
+    };
+    loadProfileId();
+  }, [user.id]);
 
   const fetchDentists = async () => {
     try {
@@ -153,11 +171,20 @@ export const AppointmentBookingWidget: React.FC<AppointmentBookingWidgetProps> =
       return;
     }
 
+    if (!patientProfileId) {
+      toast({
+        title: "Error",
+        description: "Could not verify your patient profile. Please refresh.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       setLoading(true);
 
       const appointmentData = {
-        patient_id: user.id,
+        patient_id: patientProfileId,
         dentist_id: selectedDentist,
         appointment_date: format(selectedDate, 'yyyy-MM-dd'),
         appointment_time: selectedTime,
