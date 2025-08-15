@@ -8,8 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Send, Bot, User as UserIcon } from "lucide-react";
 import { ChatMessage } from "@/types/chat";
 import {
-  PrivacyConsentWidget,
-  QuickActionsWidget,
+  PrivacyConsentWidget
 } from "./InteractiveChatWidgets";
 
 interface NewInteractiveDentalChatProps {
@@ -21,7 +20,7 @@ export const NewInteractiveDentalChat = ({ user }: NewInteractiveDentalChatProps
   const [inputMessage, setInputMessage] = useState("");
   const [sessionId] = useState(() => crypto.randomUUID());
   const [showConsent, setShowConsent] = useState(!user);
-  const [activeWidget, setActiveWidget] = useState<string | null>(null);
+  const [activeWidget] = useState<string | null>(null);
   
   const { t } = useLanguage();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -37,7 +36,6 @@ export const NewInteractiveDentalChat = ({ user }: NewInteractiveDentalChatProps
         created_at: new Date().toISOString(),
       };
       setMessages([welcomeMessage]);
-      setTimeout(() => setActiveWidget('quick-actions'), 1000);
     }
   }, [user, sessionId]);
 
@@ -66,32 +64,6 @@ export const NewInteractiveDentalChat = ({ user }: NewInteractiveDentalChatProps
     }
   };
 
-  const handleQuickAction = (action: string) => {
-    setActiveWidget(null);
-    
-    if (!user) {
-      addBotMessage("Please log in to access this feature. You can find the login button at the top right.");
-      return;
-    }
-
-    switch (action) {
-      case 'appointments':
-        addBotMessage("I'll show your appointments here when the backend is connected.");
-        break;
-      case 'earliest':
-        addBotMessage("I'll help you find the earliest available slot when the booking system is connected.");
-        break;
-      case 'emergency':
-        addBotMessage("For emergencies, please call the clinic directly or visit the emergency room.");
-        break;
-      case 'help':
-        addBotMessage(`Here's what I can help with:\n\n🗓️ Book appointments\n📱 Manage your bookings\n❓ Answer questions\n⚙️ Update settings\n\nJust type what you need!`);
-        break;
-    }
-    
-    setTimeout(() => setActiveWidget('quick-actions'), 2000);
-  };
-
   const handleSendMessage = () => {
     if (!inputMessage.trim()) return;
 
@@ -106,12 +78,6 @@ export const NewInteractiveDentalChat = ({ user }: NewInteractiveDentalChatProps
 
     setMessages(prev => [...prev, userMessage]);
     setInputMessage("");
-    setActiveWidget(null);
-
-    setTimeout(() => {
-      addBotMessage("I'm here to help! Here are some quick actions:");
-      setTimeout(() => setActiveWidget('quick-actions'), 1000);
-    }, 500);
   };
 
   if (showConsent && !user) {
@@ -158,10 +124,6 @@ export const NewInteractiveDentalChat = ({ user }: NewInteractiveDentalChatProps
               </div>
             </div>
           ))}
-          
-          {activeWidget === 'quick-actions' && (
-            <QuickActionsWidget onAction={handleQuickAction} />
-          )}
           
           <div ref={messagesEndRef} />
         </div>

@@ -51,6 +51,47 @@ serve(async (req) => {
       throw new Error('Invalid message format');
     }
 
+    // Helper functions to determine when to show widgets
+    const buildConversationContext = (msg: string, history: any[] = []): string => {
+      const historyText = (history || []).map((m) => (m.message || m.content || '')).join(' ');
+      return `${historyText} ${msg}`.toLowerCase();
+    };
+
+    const hasPatientInfo = (context: string): boolean => {
+      // English
+      if (/\b(for me|myself|for my (child|daughter|son|wife|husband|partner|mom|mother|dad|father))\b/i.test(context)) return true;
+      if (/\b(my (child|daughter|son|wife|husband|partner))\b/i.test(context)) return true;
+      // French
+      if (/(pour moi|ma fille|mon fils|ma femme|mon mari|mon enfant|ma mère|mon père)/i.test(context)) return true;
+      // Dutch
+      if (/(voor mij|mijn dochter|mijn zoon|mijn vrouw|mijn man|mijn kind|mijn moeder|mijn vader)/i.test(context)) return true;
+      return false;
+    };
+
+    const hasSymptomInfo = (context: string): boolean => {
+      const patterns = [
+        // English
+        /tooth( |-)?(ache|pain|hurts|sensitive|sensitivity)/i,
+        /gum(s)? (pain|bleeding|swelling|swollen)/i,
+        /cavity|decay|broken tooth|chipped tooth|lost filling|wisdom tooth/i,
+        /orthodontic|braces|align(ment)?|invisalign/i,
+        /cleaning|check[- ]?up|whitening|cosmetic/i,
+        // French
+        /mal aux dents|douleur dentaire|dents sensibles|sensibilit\u00e9/i,
+        /gencives? (douleur|saignent|gonfl(\u00e9|ee)s?)/i,
+        /carie|dent cass\u00e9e|plombage perdu|dent de sagesse/i,
+        /orthodontie|appareils?|alignement|invisalign/i,
+        /nettoyage|contr\u00f4le|blanchiment|esth\u00e9tique/i,
+        // Dutch
+        /kiespijn|tandpijn|gevoelige tanden|gevoeligheid/i,
+        /tanden?vlees (pijn|bloeden|gezwollen)/i,
+        /gaatje|tandbederf|gebroken tand|afgebroken tand|vulling kwijt|verstandskies/i,
+        /orthodontie|beugel|uitlijning|invisalign/i,
+        /reiniging|controle|bleken|cosmetisch/i,
+      ];
+      return patterns.some((p) => p.test(context));
+    };
+
     // Check if OpenAI API key is available
     const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
     if (!openAIApiKey) {
@@ -59,27 +100,32 @@ serve(async (req) => {
       // Provide fallback responses based on message content
       const lowerMessage = message.toLowerCase();
       let fallbackResponse = "I'm here to help you with your dental care. How can I assist you today?";
-      let suggestions = [];
-      const recommendedDentist = [];
+      let suggestions: string[] = [];
+      const recommendedDentist: string[] = [];
       
+      const context = buildConversationContext(message, conversation_history);
+      const patientInfoPresent = hasPatientInfo(context);
+      const symptomsPresent = hasSymptomInfo(context);
+
       if (lowerMessage.includes('douleur') || lowerMessage.includes('pain') || lowerMessage.includes('mal aux dents')) {
-        fallbackResponse = "I understand you're experiencing dental pain. Let me help you find the right dentist for your needs. Can you tell me more about the pain - is it sharp, throbbing, or constant?";
-        suggestions = ['recommend-dentist'];
+        fallbackResponse = "I understand you're experiencing dental pain. Let me help you find the right dentist for your needs. Can you tell me who the appointment is for and describe the pain (sharp, throbbing, or constant)?";
       } else if (lowerMessage.includes('appointment') || lowerMessage.includes('rendez-vous') || lowerMessage.includes('booking')) {
-        fallbackResponse = "I can help you book an appointment. To find the best dentist for you, could you tell me what type of dental care you're looking for?";
-        suggestions = ['recommend-dentist'];
+        fallbackResponse = "I can help you book an appointment. First, who is the appointment for? Then tell me about your symptoms so I can recommend the right dentist.";
       } else if (lowerMessage.includes('dentist') || lowerMessage.includes('dentiste')) {
-        fallbackResponse = "I can recommend a dentist based on your specific needs. What type of dental care are you looking for?";
-        suggestions = ['recommend-dentist'];
+        fallbackResponse = "I can recommend a dentist based on your specific needs. Who is this for, and what symptoms are you experiencing?";
       } else if (lowerMessage.includes('cleaning') || lowerMessage.includes('nettoyage') || lowerMessage.includes('routine')) {
-        fallbackResponse = "For routine cleaning, I can help you find a dentist who specializes in general dental care. Do you have any specific concerns or preferences?";
-        suggestions = ['recommend-dentist'];
+        fallbackResponse = "For routine cleaning, I can help you find the right dentist. Is this for you or someone else? Any specific concerns?";
       } else if (lowerMessage.includes('child') || lowerMessage.includes('enfant') || lowerMessage.includes('kid')) {
-        fallbackResponse = "For pediatric care, I can recommend dentists who specialize in children's dentistry. How old is your child and what type of care do they need?";
-        suggestions = ['recommend-dentist'];
+        fallbackResponse = "For pediatric care, I can recommend specialists. How old is your child and what symptoms are they experiencing?";
       } else if (lowerMessage.includes('braces') || lowerMessage.includes('orthodontie') || lowerMessage.includes('align')) {
-        fallbackResponse = "For orthodontic treatment, I can help you find a specialist. What specific concerns do you have about your teeth alignment?";
+        fallbackResponse = "For orthodontic treatment, I can help you find a specialist. Is this for you or someone else, and what are the concerns?";
+      }
+      
+      // Only suggest dentist widget when BOTH patient info and symptoms are present
+      if (patientInfoPresent && symptomsPresent) {
         suggestions = ['recommend-dentist'];
+      } else if (!symptomsPresent) {
+        suggestions = ['symptom-intake'];
       }
       
       return new Response(JSON.stringify({ 
@@ -532,12 +578,12 @@ Always maintain professional medical standards and suggest only appropriate trea
     const consultationReason = extractConsultationReason(message, conversation_history);
 
     // Enhanced keyword-based suggestions and recommendations
-    const suggestions = [];
+    const suggestions: string[] = [];
     const lowerResponse = botResponse.toLowerCase();
     const lowerMessage = message.toLowerCase();
     
     // Extract dentist recommendations from AI response
-    const recommendedDentists = [];
+    const recommendedDentists: string[] = [];
     const availableDentists = [
       'Virginie Pauwels',
       'Emeline Hubin', 
@@ -566,10 +612,17 @@ Always maintain professional medical standards and suggest only appropriate trea
     if ((lowerResponse.includes('dentist') || lowerResponse.includes('dentiste')) && recommendedDentists.length === 0) {
       recommendedDentists.push('Firdaws Benhsain');
     }
+
+    // Only show dentist widget when BOTH patient info and symptoms are present
+    const context = buildConversationContext(message, conversation_history);
+    const patientInfoPresent = hasPatientInfo(context);
+    const symptomsPresent = hasSymptomInfo(context);
     
-    // Add recommend-dentist suggestion if we have recommendations
-    if (recommendedDentists.length > 0 && !suggestions.includes('skip-patient-selection')) {
+    if (recommendedDentists.length > 0 && patientInfoPresent && symptomsPresent) {
       suggestions.push('recommend-dentist');
+    } else if (!symptomsPresent) {
+      // Ask for symptoms via widget to collect necessary info
+      suggestions.push('symptom-intake');
     }
     
     // Remove duplicates and limit to maximum 2 recommendations
