@@ -560,7 +560,10 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
       )}
 
       {activeSection === 'appointments' && (
-        <AppointmentsTab user={user} />
+        <AppointmentsTab 
+          user={user} 
+          onOpenAssistant={() => setActiveSection('assistant')}
+        />
       )}
 
       {activeSection === 'payments' && userProfile?.id && (
