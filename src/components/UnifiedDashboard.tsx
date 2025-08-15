@@ -3,7 +3,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { useToast } from "@/hooks/use-toast";
 import { PatientDashboard } from "./PatientDashboard";
-import { PatientDashboardRefactored } from "./patient/PatientDashboardRefactored";
 import { DentistDashboard } from "../pages/DentistDashboard";
 import { AiOptOutPrompt } from "./AiOptOutPrompt";
 import { Card, CardContent } from "@/components/ui/card";
@@ -104,19 +103,12 @@ export const UnifiedDashboard = memo(({ user }: UnifiedDashboardProps) => {
     );
   }
 
-  // Check if we should use the refactored dashboard (can be controlled by a feature flag)
-  const useRefactoredDashboard = true; // Set to true to use the new refactored dashboard
-
   return (
     <>
       {userRole === 'dentist' ? (
         <DentistDashboard user={user} />
       ) : (
-        useRefactoredDashboard ? (
-          <PatientDashboardRefactored user={user} />
-        ) : (
-          <PatientDashboard user={user} />
-        )
+        <PatientDashboard user={user} />
       )}
       <AiOptOutPrompt user={user} />
     </>
