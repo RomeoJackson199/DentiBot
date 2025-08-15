@@ -21,7 +21,6 @@ import {
   PersonalInfoFormWidget,
   QuickSettingsWidget,
   ImageUploadWidget,
-  QuickActionsWidget,
   UrgencySliderWidget,
   SymptomIntakeWidget,
   SymptomSummaryWidget
@@ -93,7 +92,7 @@ export const InteractiveDentalChat = ({
       if (triggerBooking === 'high' || triggerBooking === 'emergency') {
         startEmergencyBookingWithUrgency(triggerBooking);
       } else {
-        handleQuickAction('book_appointment');
+        startBookingFlow();
       }
       onBookingTriggered?.();
     }
@@ -135,9 +134,6 @@ export const InteractiveDentalChat = ({
         created_at: new Date().toISOString(),
       };
       setMessages([welcomeMessage]);
-      
-      // Show quick actions widget after welcome message
-      setTimeout(() => setActiveWidget('quick-actions'), 1000);
     }
   };
 
@@ -234,9 +230,14 @@ export const InteractiveDentalChat = ({
       return;
     }
 
-
     if (suggestions.includes('recommend-dentist')) {
       loadDentistsForBooking(false, recommendedDentists);
+      return;
+    }
+
+    if (suggestions.includes('symptom-intake')) {
+      setActiveWidget('symptom-intake');
+      addBotMessage('Please share a few details about your symptoms:');
       return;
     }
 
@@ -297,29 +298,6 @@ export const InteractiveDentalChat = ({
     setHasConsented(true);
     setShowConsentWidget(false);
     addBotMessage("Welcome to First Smile AI! 🎉 Please log in to book appointments and access all features.");
-  };
-
-  const handleQuickAction = (action: string) => {
-    setActiveWidget(null);
-    
-    switch (action) {
-      case 'appointments':
-        showAppointments();
-        break;
-      case 'book_appointment':
-      case 'earliest':
-        startBookingFlow();
-        break;
-      case 'emergency':
-        startEmergencyBooking();
-        break;
-      case 'symptoms':
-        startSymptomCheck();
-        break;
-      case 'help':
-        showHelp();
-        break;
-    }
   };
 
   const startSymptomCheck = () => {
@@ -459,7 +437,6 @@ export const InteractiveDentalChat = ({
   } catch (error) {
     console.error("Error fetching appointments:", error);
     addBotMessage("I'm sorry, I couldn't retrieve your appointments right now. Please try again later.");
-    setTimeout(() => setActiveWidget('quick-actions'), 1000);
   }
 };
 
@@ -539,7 +516,7 @@ export const InteractiveDentalChat = ({
 🚨 **Emergency**
 - "Emergency booking" for urgent care
 
-Just type what you need or use the quick action buttons! 😊
+Just type what you need! 😊
     `;
     
     addBotMessage(helpMessage);
@@ -573,7 +550,6 @@ Just type what you need or use the quick action buttons! 😊
     } catch (error) {
       console.error("Error fetching dentists:", error);
       addBotMessage("I couldn't load the dentist list. Please try again.");
-      setTimeout(() => setActiveWidget('quick-actions'), 1000);
     }
   };
 
@@ -634,7 +610,6 @@ Just type what you need or use the quick action buttons! 😊
     console.error("Error fetching slots:", error);
     addBotMessage("I couldn't load the available times. Please try a different date.");
     setTimeout(() => setActiveWidget('calendar'), 1000);
-    setTimeout(() => setActiveWidget('quick-actions'), 1500);
   }
 };
 
@@ -749,7 +724,6 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
   } catch (error) {
     console.error("Error booking appointment:", error);
     addBotMessage("I'm sorry, I couldn't complete your booking. Please try again or contact the clinic directly.");
-    setTimeout(() => setActiveWidget('quick-actions'), 1000);
   }
 };
 
@@ -802,11 +776,6 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
     await saveMessage(botResponse);
 
     handleSuggestions(suggestions, recommendedDentists);
-
-    // Show quick actions if no specific suggestions or if it's a fallback response
-    if (fallback || !suggestions || suggestions.length === 0) {
-      setTimeout(() => setActiveWidget('quick-actions'), 1000);
-    }
 
     setIsLoading(false);
   };
@@ -928,9 +897,6 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
           />
         );
       
-      case 'quick-actions':
-        return <QuickActionsWidget onAction={handleQuickAction} />;
-
       case 'symptom-intake':
         return (
           <SymptomIntakeWidget
@@ -938,7 +904,6 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
             onCancel={() => {
               setActiveWidget(null);
               addBotMessage('Symptom check cancelled.');
-              setTimeout(() => setActiveWidget('quick-actions'), 800);
             }}
           />
         );
@@ -1038,27 +1003,24 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
         </div>
       </ScrollArea>
 
-      {hasConsented && (
-        <div className="border-t p-4">
-          <div className="flex space-x-2 max-w-4xl mx-auto">
-            <Input
-              placeholder={t.typeMessage || "Type your message..."}
-              value={inputMessage}
-              onChange={(e) => setInputMessage(e.target.value)}
-              onKeyPress={handleKeyPress}
-              className="flex-1"
-              disabled={isLoading}
-            />
-            <Button 
-              onClick={handleSendMessage} 
-              disabled={!inputMessage.trim() || isLoading}
-              size="icon"
-            >
-              <Send className="h-4 w-4" />
-            </Button>
-          </div>
+      <div className="border-t p-4">
+        <div className="flex space-x-2 max-w-4xl mx-auto">
+          <Input
+            placeholder="Type your message..."
+            value={inputMessage}
+            onChange={(e) => setInputMessage(e.target.value)}
+            onKeyPress={handleKeyPress}
+            className="flex-1"
+          />
+          <Button 
+            onClick={handleSendMessage} 
+            disabled={!inputMessage.trim()}
+            size="icon"
+          >
+            <Send className="h-4 w-4" />
+          </Button>
         </div>
-      )}
+      </div>
     </div>
   );
 };

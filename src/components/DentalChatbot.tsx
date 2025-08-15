@@ -847,34 +847,6 @@ Type your request...`;
             )}
           </Button>
         </div>
-        
-        {/* Quick Actions */}
-        <div className="flex gap-2 mt-3">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setInputMessage("I need an appointment")}
-            className="text-xs rounded-full"
-          >
-            📅 Book Appointment
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setInputMessage("I have tooth pain")}
-            className="text-xs rounded-full"
-          >
-            🦷 Tooth Pain
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setInputMessage("I need a cleaning")}
-            className="text-xs rounded-full"
-          >
-            🧼 Dental Cleaning
-          </Button>
-        </div>
       </div>
     </div>
   );
