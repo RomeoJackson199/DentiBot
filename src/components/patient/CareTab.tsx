@@ -270,13 +270,13 @@ export const CareTab: React.FC<CareTabProps> = ({ plans, prescriptions, visits, 
   const renderCardActions = (item: CareItem) => {
     if (item.type === 'visit') {
       return (
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center gap-2 flex-wrap">
           {item.status && (
             <Badge variant="outline" className={`capitalize ${getStatusClasses(item.status, isUrgent(item))}`}>{item.status}</Badge>
           )}
-          <Button size="sm" variant="outline" onClick={() => onReschedule ? onReschedule(item.id) : setViewerItem(item)}>Reschedule</Button>
-          <Button size="sm" variant="outline" onClick={() => handleCancelAppointment(item)}>Cancel</Button>
-          <Button size="sm" onClick={() => handleOpen(item)}>Open Record</Button>
+          <Button size="default" variant="outline" className="h-9" onClick={() => onReschedule ? onReschedule(item.id) : setViewerItem(item)}>Reschedule</Button>
+          <Button size="default" variant="outline" className="h-9" onClick={() => handleCancelAppointment(item)}>Cancel</Button>
+          <Button size="default" className="h-9" onClick={() => handleOpen(item)}>View Details</Button>
         </div>
       );
     }
@@ -284,25 +284,25 @@ export const CareTab: React.FC<CareTabProps> = ({ plans, prescriptions, visits, 
       const d = item.data || {};
       const canRefill = typeof d.refills_allowed === 'number' && d.refills_allowed > 0;
       return (
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center gap-2 flex-wrap">
           {isUrgent(item) && <Badge className="bg-red-100 text-red-800">Urgent</Badge>}
           {item.status && (
             <Badge variant="outline" className={`capitalize ${getStatusClasses(item.status, isUrgent(item))}`}>{item.status}</Badge>
           )}
           {canRefill && (
-            <Button size="sm" variant="outline" onClick={() => handleRequestRefill(item)}>Request Refill</Button>
+            <Button size="default" variant="outline" className="h-9" onClick={() => handleRequestRefill(item)}>Request Refill</Button>
           )}
-          <Button size="sm" onClick={() => handleOpen(item)}>Open Record</Button>
+          <Button size="default" className="h-9" onClick={() => handleOpen(item)}>View Details</Button>
         </div>
       );
     }
     return (
-      <div className="flex items-center space-x-2">
+      <div className="flex items-center gap-2 flex-wrap">
         {isUrgent(item) && <Badge className="bg-red-100 text-red-800">Urgent</Badge>}
         {item.status && (
           <Badge variant="outline" className={`capitalize ${getStatusClasses(item.status, isUrgent(item))}`}>{item.status}</Badge>
         )}
-        <Button size="sm" onClick={() => handleOpen(item)}>Open Record</Button>
+        <Button size="default" className="h-9" onClick={() => handleOpen(item)}>View Details</Button>
       </div>
     );
   };
@@ -496,7 +496,7 @@ export const CareTab: React.FC<CareTabProps> = ({ plans, prescriptions, visits, 
                           {item.status && (
                             <Badge variant="outline" className={`capitalize ${getStatusClasses(item.status)}`}>{item.status}</Badge>
                           )}
-                          <Button size="sm" onClick={() => handleOpen(item)}>Open Record</Button>
+                          <Button size="default" className="h-9" onClick={() => handleOpen(item)}>View Details</Button>
                         </div>
                       </CardContent>
                     </Card>

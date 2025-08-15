@@ -73,23 +73,25 @@ const QuickActionCard = ({
     whileTap={{ scale: 0.98 }}
   >
     <Card 
-      className="cursor-pointer hover:shadow-lg transition-all duration-300 border-2 border-transparent hover:border-primary/20 relative overflow-hidden group"
+      className="cursor-pointer hover:shadow-xl transition-all duration-300 border-2 border-transparent hover:border-primary/30 relative overflow-hidden group h-full"
       onClick={onClick}
     >
       <div className="absolute inset-0 bg-gradient-to-br from-transparent to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-      <CardContent className="p-4 md:p-6 relative">
-        <div className="flex items-start justify-between mb-3">
-          <div className={cn("p-2.5 rounded-xl", color)}>
-            <Icon className="h-5 w-5 md:h-6 md:w-6" />
+      <CardContent className="p-5 md:p-6 relative h-full flex flex-col">
+        <div className="flex items-start justify-between mb-4">
+          <div className={cn("p-3 rounded-xl transition-transform group-hover:scale-110", color)}>
+            <Icon className="h-6 w-6 md:h-7 md:w-7" />
           </div>
           {badge && (
-            <Badge variant="secondary" className="animate-pulse">
+            <Badge variant="secondary" className="animate-pulse font-semibold">
               {badge}
             </Badge>
           )}
         </div>
-        <h3 className="font-semibold text-sm md:text-base mb-1">{title}</h3>
-        <p className="text-xs md:text-sm text-muted-foreground">{subtitle}</p>
+        <div className="flex-1 flex flex-col">
+          <h3 className="font-semibold text-base md:text-lg mb-2">{title}</h3>
+          <p className="text-sm md:text-base text-muted-foreground">{subtitle}</p>
+        </div>
       </CardContent>
     </Card>
   </motion.div>
@@ -107,7 +109,6 @@ export const HomeTab: React.FC<HomeTabProps> = ({
   onOpenAssistant,
 }) => {
   const [greeting, setGreeting] = useState("");
-  const [healthScore] = useState(85); // Mock health score
   const unpaid = totalDueCents > 0;
 
   useEffect(() => {
@@ -121,10 +122,10 @@ export const HomeTab: React.FC<HomeTabProps> = ({
     {
       icon: Calendar,
       title: "Book Appointment",
-      subtitle: "Schedule a visit",
-      onClick: () => onNavigateTo('appointments'),
+      subtitle: "Schedule with AI assistant",
+      onClick: onOpenAssistant || (() => {}),
       color: "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400",
-      badge: nextAppointment ? undefined : "New"
+      badge: "AI"
     },
     {
       icon: MessageSquare,
@@ -208,42 +209,6 @@ export const HomeTab: React.FC<HomeTabProps> = ({
       </div>
 
       <div className="px-4 md:px-6 py-4 md:py-6 space-y-4 md:space-y-6">
-        {/* Health Score Card - Mobile Optimized */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
-            <CardContent className="p-4 md:p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-2">
-                  <Heart className="h-5 w-5 text-primary" />
-                  <h3 className="font-semibold text-sm md:text-base">Health Score</h3>
-                </div>
-                <Badge className="bg-primary/20 text-primary border-0">
-                  {healthScore}%
-                </Badge>
-              </div>
-              <Progress value={healthScore} className="h-2 md:h-3 mb-3" />
-              <div className="grid grid-cols-3 gap-2 md:gap-4 text-center">
-                <div className="bg-background/60 rounded-lg p-2 md:p-3">
-                  <Activity className="h-4 w-4 md:h-5 md:w-5 mx-auto mb-1 text-green-600" />
-                  <p className="text-[10px] md:text-xs text-muted-foreground">Active</p>
-                </div>
-                <div className="bg-background/60 rounded-lg p-2 md:p-3">
-                  <Shield className="h-4 w-4 md:h-5 md:w-5 mx-auto mb-1 text-blue-600" />
-                  <p className="text-[10px] md:text-xs text-muted-foreground">Protected</p>
-                </div>
-                <div className="bg-background/60 rounded-lg p-2 md:p-3">
-                  <TrendingUp className="h-4 w-4 md:h-5 md:w-5 mx-auto mb-1 text-purple-600" />
-                  <p className="text-[10px] md:text-xs text-muted-foreground">Improving</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
         {/* Quick Actions Grid - Responsive */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
           {quickActions.map((action, index) => (
@@ -295,22 +260,22 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                       </div>
                     </div>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-3">
                     <Button 
                       variant="outline" 
-                      size="sm" 
-                      onClick={() => onNavigateTo('appointments')}
-                      className="flex-1"
+                      size="default" 
+                      onClick={onOpenAssistant || (() => onNavigateTo('appointments'))}
+                      className="flex-1 h-11"
                     >
-                      <RefreshCw className="h-3 w-3 md:h-4 md:w-4 mr-1" />
+                      <RefreshCw className="h-4 w-4 md:h-5 md:w-5 mr-2" />
                       Reschedule
                     </Button>
                     <Button 
                       variant="outline" 
-                      size="sm"
-                      className="flex-1"
+                      size="default"
+                      className="flex-1 h-11"
                     >
-                      <Navigation2 className="h-3 w-3 md:h-4 md:w-4 mr-1" />
+                      <Navigation2 className="h-4 w-4 md:h-5 md:w-5 mr-2" />
                       Directions
                     </Button>
                   </div>
@@ -322,12 +287,12 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                     No upcoming appointments
                   </p>
                   <Button 
-                    size="sm" 
-                    onClick={() => onNavigateTo('appointments')}
-                    className="w-full md:w-auto"
+                    size="default" 
+                    onClick={onOpenAssistant || (() => {})}
+                    className="w-full md:w-auto px-6 h-11"
                   >
-                    <Sparkles className="h-4 w-4 mr-2" />
-                    Book Now
+                    <MessageSquare className="h-5 w-5 mr-2" />
+                    Book with AI Assistant
                   </Button>
                 </div>
               )}

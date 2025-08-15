@@ -32,13 +32,15 @@ import {
   Video,
   Building,
   Star,
-  TrendingUp
+  TrendingUp,
+  MessageSquare
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, isToday, isPast, isFuture } from "date-fns";
 
 export interface AppointmentsTabProps {
   user: User;
+  onOpenAssistant?: () => void;
 }
 
 interface Appointment {
@@ -289,23 +291,23 @@ const AppointmentCard = ({
           )}
 
           {appointment.status === 'confirmed' && (
-            <div className="flex gap-2">
+            <div className="flex gap-3 mt-4">
               <Button
                 variant="outline"
-                size="sm"
+                size="default"
                 onClick={onReschedule}
-                className="flex-1"
+                className="flex-1 h-10"
               >
-                <RefreshCw className="h-3 w-3 mr-1" />
+                <RefreshCw className="h-4 w-4 mr-2" />
                 Reschedule
               </Button>
               <Button
                 variant="outline"
-                size="sm"
+                size="default"
                 onClick={onCancel}
-                className="flex-1 text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                className="flex-1 h-10 text-destructive hover:bg-destructive hover:text-destructive-foreground"
               >
-                <XCircle className="h-3 w-3 mr-1" />
+                <XCircle className="h-4 w-4 mr-2" />
                 Cancel
               </Button>
             </div>
@@ -316,7 +318,7 @@ const AppointmentCard = ({
   );
 };
 
-export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({ user }) => {
+export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({ user, onOpenAssistant }) => {
   const [tab, setTab] = useState<'calendar' | 'upcoming' | 'past'>('calendar');
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -532,11 +534,12 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({ user }) => {
                               </p>
                               <Button
                                 variant="outline"
-                                size="sm"
-                                className="mt-3"
-                                onClick={() => setShowBooking(true)}
+                                size="default"
+                                className="mt-4 w-full h-11"
+                                onClick={onOpenAssistant || (() => setShowBooking(true))}
                               >
-                                Book Appointment
+                                <MessageSquare className="h-5 w-5 mr-2" />
+                                Book with AI Assistant
                               </Button>
                             </motion.div>
                           )}
@@ -556,7 +559,7 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({ user }) => {
                       <AppointmentCard
                         key={apt.id}
                         appointment={apt}
-                        onReschedule={() => setShowBooking(true)}
+                        onReschedule={onOpenAssistant || (() => setShowBooking(true))}
                         onCancel={() => {}}
                       />
                     ))
@@ -568,8 +571,13 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({ user }) => {
                         <p className="text-sm text-muted-foreground mb-4">
                           Schedule your next dental visit
                         </p>
-                        <Button onClick={() => setShowBooking(true)}>
-                          Book Appointment
+                        <Button 
+                          size="lg"
+                          className="w-full sm:w-auto px-8 h-12"
+                          onClick={onOpenAssistant || (() => setShowBooking(true))}
+                        >
+                          <MessageSquare className="h-5 w-5 mr-2" />
+                          Book with AI Assistant
                         </Button>
                       </CardContent>
                     </Card>
