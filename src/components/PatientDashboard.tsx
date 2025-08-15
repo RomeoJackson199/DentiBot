@@ -459,6 +459,7 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
     subtitle: tp.description || undefined,
     date: tp.start_date,
     status: tp.status,
+    data: tp,
   }));
   const carePrescriptions: CareItem[] = prescriptions.map(p => ({
     id: p.id,
@@ -467,6 +468,7 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
     subtitle: `${p.dosage} • ${p.frequency}`,
     date: p.prescribed_date,
     status: p.status,
+    data: p,
   }));
   const careVisits: CareItem[] = recentAppointments.map(a => ({
     id: a.id,
@@ -475,6 +477,7 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
     subtitle: a.status,
     date: a.appointment_date,
     status: a.status,
+    data: a,
   }));
   const careRecords: CareItem[] = medicalRecords.map(r => ({
     id: r.id,
@@ -483,6 +486,7 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
     subtitle: r.record_type,
     date: r.record_date,
     status: undefined,
+    data: r,
   }));
 
   const badges = {
@@ -540,6 +544,9 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
           prescriptions={carePrescriptions}
           visits={careVisits}
           records={careRecords}
+          user={user}
+          patientId={userProfile?.id || null}
+          onReschedule={() => setShowBooking(true)}
         />
       )}
 
