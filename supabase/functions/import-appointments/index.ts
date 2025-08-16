@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-import * as Papa from "https://esm.sh/papaparse@5.4.1";
+import Papa from "https://esm.sh/papaparse@5.4.1";
 import * as XLSX from "https://esm.sh/xlsx@0.18.5";
 import ICAL from "https://esm.sh/ical.js@1.5.0";
 
@@ -37,7 +37,9 @@ function toIsoUtc(dateLike: string | Date): string | null {
 }
 
 function parseCsv(content: string): { rows: any[]; delimiter: string } {
-	const parsed = Papa.parse(content, { header: true, skipEmptyLines: true, dynamicTyping: false });
+	const papaAny: any = (Papa as any);
+	const papa = papaAny?.parse ? papaAny : papaAny?.default ?? papaAny;
+	const parsed = papa.parse(content, { header: true, skipEmptyLines: true, dynamicTyping: false });
 	return { rows: parsed.data as any[], delimiter: (parsed as any).meta?.delimiter || ',' };
 }
 
