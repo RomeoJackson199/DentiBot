@@ -17,3 +17,6 @@ verify_jwt = true
 
 [functions.update-payment-status]
 verify_jwt = true
+
+[functions.import-appointments]
+verify_jwt = true

@@ -31,6 +31,7 @@ const Support = lazy(() => import("./pages/Support"));
 const FeatureDetail = lazy(() => import("./pages/FeatureDetail"));
 const UnifiedDashboard = lazy(() => import("./components/UnifiedDashboard").then(module => ({ default: module.UnifiedDashboard })));
 const LanguageTest = lazy(() => import("./components/LanguageTest").then(module => ({ default: module.LanguageTest })));
+const Importer = lazy(() => import("./pages/Importer"));
 
 // Dashboard component that handles authentication with lazy loading
 const Dashboard = () => {
@@ -127,11 +128,12 @@ const App = () => (
                 <Route path="/schedule" element={<LazyLoadingWrapper><Schedule /></LazyLoadingWrapper>} />
                 <Route path="/analytics" element={<LazyLoadingWrapper><Analytics /></LazyLoadingWrapper>} />
                 <Route path="/support" element={<LazyLoadingWrapper><Support /></LazyLoadingWrapper>} />
-                <Route path="/features/:id" element={<LazyLoadingWrapper><FeatureDetail /></LazyLoadingWrapper>} />
-                <Route path="/language-test" element={<LazyLoadingWrapper><LanguageTest /></LazyLoadingWrapper>} />
-                <Route path="/chat" element={<LazyLoadingWrapper><Chat /></LazyLoadingWrapper>} />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<LazyLoadingWrapper><NotFound /></LazyLoadingWrapper>} />
+                <Route path="/importer" element={<LazyLoadingWrapper><Importer /></LazyLoadingWrapper>} />
+                 <Route path="/features/:id" element={<LazyLoadingWrapper><FeatureDetail /></LazyLoadingWrapper>} />
+                 <Route path="/language-test" element={<LazyLoadingWrapper><LanguageTest /></LazyLoadingWrapper>} />
+                 <Route path="/chat" element={<LazyLoadingWrapper><Chat /></LazyLoadingWrapper>} />
+                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                 <Route path="*" element={<LazyLoadingWrapper><NotFound /></LazyLoadingWrapper>} />
               </Routes>
             </BrowserRouter>
           </TooltipProvider>
