@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { ClinicalToday } from "@/components/ClinicalToday";
+import { MessagesPane } from "@/components/messages/MessagesPane";
 
 interface DentistDashboardProps {
   user: User;
@@ -156,6 +157,12 @@ export function DentistDashboard({ user }: DentistDashboardProps) {
 
             {activeTab === 'patients' && (
               <PatientManagement dentistId={dentistId} />
+            )}
+
+            {activeTab === 'messages' && (
+              <div className="px-4 md:px-6 py-4 w-full">
+                <MessagesPane />
+              </div>
             )}
 
             {activeTab === 'payments' && (
