@@ -351,38 +351,38 @@ export const CareTab: React.FC<CareTabProps> = ({
                                 '#22c55e'
               }}>
           <CardContent className="p-4">
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex items-start gap-4 flex-1">
-                <div className={cn("p-2.5 rounded-lg", iconBg)}>
+            <div className="flex flex-col sm:flex-row items-start justify-between gap-3">
+              <div className="flex items-start gap-3 flex-1 min-w-0">
+                <div className={cn("p-2.5 rounded-lg flex-shrink-0", iconBg)}>
                   <Icon className={cn("h-5 w-5", iconColor)} />
                 </div>
-                <div className="flex-1 space-y-2">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h3 className="font-semibold text-base">{item.title}</h3>
+                <div className="flex-1 min-w-0 space-y-2">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-semibold text-base break-words">{item.title}</h3>
                       {item.subtitle && (
-                        <p className="text-sm text-muted-foreground mt-0.5">{item.subtitle}</p>
+                        <p className="text-sm text-muted-foreground mt-0.5 break-words">{item.subtitle}</p>
                       )}
                     </div>
-                    <Badge className={cn(getStatusColor(item.status), "text-xs ml-2")}>
+                    <Badge className={cn(getStatusColor(item.status), "text-xs flex-shrink-0 self-start")}>
                       {item.status || 'Active'}
                     </Badge>
                   </div>
                   
                   {item.description && (
-                    <p className="text-sm text-muted-foreground line-clamp-2">
+                    <p className="text-sm text-muted-foreground line-clamp-2 break-words">
                       {item.description}
                     </p>
                   )}
                   
-                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1">
-                      <Calendar className="h-3 w-3" />
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1 whitespace-nowrap">
+                      <Calendar className="h-3 w-3 flex-shrink-0" />
                       {formatDate(item.date)}
                     </span>
                     {item.dentist && (
-                      <span className="flex items-center gap-1">
-                        <UserIcon className="h-3 w-3" />
+                      <span className="flex items-center gap-1 whitespace-nowrap">
+                        <UserIcon className="h-3 w-3 flex-shrink-0" />
                         Dr. {item.dentist}
                       </span>
                     )}
@@ -390,12 +390,14 @@ export const CareTab: React.FC<CareTabProps> = ({
                 </div>
               </div>
               
-              <div className="flex items-center gap-1">
+              {/* Action buttons with improved spacing and responsive design */}
+              <div className="flex flex-col sm:flex-row items-center gap-1">
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8"
+                  className="h-8 w-8 hover:bg-muted"
                   onClick={() => setViewerItem(item)}
+                  title="View details"
                 >
                   <Eye className="h-4 w-4" />
                 </Button>
@@ -403,8 +405,9 @@ export const CareTab: React.FC<CareTabProps> = ({
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8"
+                    className="h-8 w-8 hover:bg-muted"
                     onClick={() => handleDownload(item)}
+                    title="Download"
                   >
                     <Download className="h-4 w-4" />
                   </Button>
@@ -412,8 +415,9 @@ export const CareTab: React.FC<CareTabProps> = ({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8"
+                  className="h-8 w-8 hover:bg-muted"
                   onClick={() => handleShare(item)}
+                  title="Share"
                 >
                   <Share2 className="h-4 w-4" />
                 </Button>
@@ -437,37 +441,40 @@ export const CareTab: React.FC<CareTabProps> = ({
           <p className="text-muted-foreground mt-1">View and manage your dental history</p>
         </div>
         
-        <div className="flex flex-col md:flex-row gap-3 items-start md:items-center">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search by treatment, medication, or date..."
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              className="pl-9"
-            />
-          </div>
-          
-          {/* View Mode Toggle */}
-          <div className="flex items-center gap-2 bg-muted/50 rounded-lg p-1">
-            <Button
-              variant={viewMode === 'cards' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setViewMode('cards')}
-              className="gap-2"
-            >
-              <List className="h-4 w-4" />
-              Cards
-            </Button>
-            <Button
-              variant={viewMode === 'timeline' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setViewMode('timeline')}
-              className="gap-2"
-            >
-              <CalendarClock className="h-4 w-4" />
-              Timeline
-            </Button>
+        {/* Improved responsive layout for search and view mode */}
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+            <div className="relative flex-1 max-w-full sm:max-w-md">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by treatment, medication, or date..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                className="pl-9 w-full"
+              />
+            </div>
+            
+            {/* View Mode Toggle - Now properly responsive */}
+            <div className="flex items-center gap-2 bg-muted/50 rounded-lg p-1 w-full sm:w-auto justify-center">
+              <Button
+                variant={viewMode === 'cards' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('cards')}
+                className="gap-1.5 flex-1 sm:flex-initial"
+              >
+                <List className="h-4 w-4" />
+                <span className="hidden xs:inline">Cards</span>
+              </Button>
+              <Button
+                variant={viewMode === 'timeline' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('timeline')}
+                className="gap-1.5 flex-1 sm:flex-initial"
+              >
+                <CalendarClock className="h-4 w-4" />
+                <span className="hidden xs:inline">Timeline</span>
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -478,7 +485,7 @@ export const CareTab: React.FC<CareTabProps> = ({
           setActiveSection(v as SectionType);
           setSubFilter('all'); // Reset sub-filter when changing sections
         }}>
-          <TabsList className="grid grid-cols-2 md:grid-cols-4 w-full">
+          <TabsList className="grid grid-cols-2 sm:grid-cols-4 w-full gap-1 h-auto p-1">
             {SECTIONS.map((section) => {
               const Icon = section.icon;
               const count = activeSection === section.id ? sectionItems.length : 
@@ -487,12 +494,15 @@ export const CareTab: React.FC<CareTabProps> = ({
                            section.id === 'medications' ? prescriptions.length :
                            records.length;
               return (
-                <TabsTrigger key={section.id} value={section.id} className="flex items-center gap-2">
-                  <Icon className="h-4 w-4" />
-                  <span className="hidden sm:inline">{section.label}</span>
-                  <span className="sm:hidden">{section.label}</span>
+                <TabsTrigger 
+                  key={section.id} 
+                  value={section.id} 
+                  className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 py-2 px-2 sm:px-3 h-auto"
+                >
+                  <Icon className="h-4 w-4 flex-shrink-0" />
+                  <span className="text-xs sm:text-sm">{section.label}</span>
                   {count > 0 && (
-                    <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs">
+                    <Badge variant="secondary" className="ml-0 sm:ml-1 h-4 sm:h-5 px-1 sm:px-1.5 text-[10px] sm:text-xs">
                       {count}
                     </Badge>
                   )}
@@ -501,28 +511,30 @@ export const CareTab: React.FC<CareTabProps> = ({
             })}
           </TabsList>
 
-          {/* Sub-filters for current section */}
-          <div className="flex items-center gap-2 mt-4 flex-wrap">
-            <Button
-              variant={subFilter === 'all' ? "default" : "outline"}
-              size="sm"
-              onClick={() => setSubFilter('all')}
-              className="h-8"
-            >
-              All
-            </Button>
-            <Separator orientation="vertical" className="h-6" />
-            {SECTIONS.find(s => s.id === activeSection)?.subFilters.map((filter) => (
+          {/* Sub-filters for current section - Improved responsive layout */}
+          <div className="mt-4 overflow-x-auto">
+            <div className="flex items-center gap-2 min-w-fit pb-2">
               <Button
-                key={filter}
-                variant={subFilter === filter ? "default" : "outline"}
+                variant={subFilter === 'all' ? "default" : "outline"}
                 size="sm"
-                onClick={() => setSubFilter(filter)}
-                className="h-8"
+                onClick={() => setSubFilter('all')}
+                className="h-8 whitespace-nowrap"
               >
-                {filter}
+                All
               </Button>
-            ))}
+              <Separator orientation="vertical" className="h-6 mx-1" />
+              {SECTIONS.find(s => s.id === activeSection)?.subFilters.map((filter) => (
+                <Button
+                  key={filter}
+                  variant={subFilter === filter ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setSubFilter(filter)}
+                  className="h-8 whitespace-nowrap"
+                >
+                  {filter}
+                </Button>
+              ))}
+            </div>
           </div>
 
           {/* Content for each section */}
@@ -633,12 +645,14 @@ export const CareTab: React.FC<CareTabProps> = ({
                             </div>
                           </div>
                           
-                          <div className="flex items-center gap-1">
+                          {/* Action button with better spacing */}
+                          <div className="flex-shrink-0">
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-8 w-8"
+                              className="h-8 w-8 hover:bg-muted"
                               onClick={() => setViewerItem(item)}
+                              title="View details"
                             >
                               <Eye className="h-4 w-4" />
                             </Button>
@@ -797,16 +811,23 @@ export const CareTab: React.FC<CareTabProps> = ({
                   </>
                 )}
                 
-                {/* Actions */}
+                {/* Actions - Improved responsive layout */}
                 <Separator />
-                <div className="flex gap-2 pt-2">
+                <div className="flex flex-col sm:flex-row gap-2 pt-2">
                   {(viewerItem.type === 'record' || viewerItem.sectionType === 'documents') && (
-                    <Button onClick={() => handleDownload(viewerItem)} className="gap-2">
+                    <Button 
+                      onClick={() => handleDownload(viewerItem)} 
+                      className="gap-2 w-full sm:w-auto"
+                    >
                       <Download className="h-4 w-4" />
                       Download
                     </Button>
                   )}
-                  <Button variant="outline" onClick={() => handleShare(viewerItem)} className="gap-2">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => handleShare(viewerItem)} 
+                    className="gap-2 w-full sm:w-auto"
+                  >
                     <Share2 className="h-4 w-4" />
                     Share
                   </Button>
@@ -817,7 +838,7 @@ export const CareTab: React.FC<CareTabProps> = ({
                         onReschedule(viewerItem.id);
                         setViewerItem(null);
                       }}
-                      className="gap-2"
+                      className="gap-2 w-full sm:w-auto"
                     >
                       <Calendar className="h-4 w-4" />
                       Reschedule
