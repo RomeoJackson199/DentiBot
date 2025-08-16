@@ -83,6 +83,8 @@ import { SettingsPage } from "@/components/patient/SettingsPage";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { AppointmentBooking } from "@/components/AppointmentBooking";
 import { Card } from "@/components/ui/card";
+import { MessagesPane } from "@/components/messages/MessagesPane";
+import { useMessagesBadge } from "@/hooks/useMessages";
 
 interface PatientDashboardProps {
   user: User;
@@ -104,7 +106,8 @@ const navigationItems = [
     group: "Overview",
     items: [
       { id: 'overview', label: 'Dashboard', icon: Home, badge: null },
-      { id: 'chat', label: 'AI Assistant', icon: MessageSquare, badge: 'AI' }
+      { id: 'chat', label: 'AI Assistant', icon: MessageSquare, badge: 'AI' },
+      { id: 'messages', label: 'Messages', icon: MessageCircle, badge: null }
     ]
   },
   {
@@ -135,7 +138,7 @@ const navigationItems = [
 export const PatientDashboard = ({ user }: PatientDashboardProps) => {
   const { t } = useLanguage();
   const { toast } = useToast();
-  type Tab = 'overview' | 'chat' | 'appointments' | 'prescriptions' | 'treatment' | 'records' | 'notes' | 'payments' | 'analytics' | 'emergency' | 'test';
+  type Tab = 'overview' | 'chat' | 'messages' | 'appointments' | 'prescriptions' | 'treatment' | 'records' | 'notes' | 'payments' | 'analytics' | 'emergency' | 'test';
   const [activeTab, setActiveTab] = useState<Tab>(() => {
     try {
       return (localStorage.getItem('pd_tab') as Tab) || 'overview';
@@ -172,6 +175,7 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
   const [showAssistant, setShowAssistant] = useState(false);
   const [showBooking, setShowBooking] = useState(false);
   const [totalDueCents, setTotalDueCents] = useState(0);
+  const messagesUnread = useMessagesBadge();
 
   // Check if mobile
   useEffect(() => {
@@ -505,6 +509,7 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
     appointments: patientStats.upcomingAppointments > 0,
     payments: totalDueCents > 0,
     settings: !userProfile?.first_name || !userProfile?.last_name,
+    messages: messagesUnread > 0,
   } as Record<PatientSection, boolean>;
 
   return (
@@ -544,6 +549,12 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
               </div>
             </CardContent>
           </Card>
+        </div>
+      )}
+
+      {activeSection === 'messages' && (
+        <div className="px-4 md:px-6 py-4">
+          <MessagesPane />
         </div>
       )}
 

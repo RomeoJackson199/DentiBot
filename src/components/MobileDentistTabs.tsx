@@ -10,10 +10,11 @@ import {
   BarChart3, 
   Settings, 
   Database,
-  Stethoscope
+  Stethoscope,
+  MessageSquare
 } from "lucide-react";
 
-type TabType = 'clinical' | 'patients' | 'payments' | 'analytics' | 'availability' | 'manage' | 'debug';
+type TabType = 'clinical' | 'patients' | 'messages' | 'payments' | 'analytics' | 'availability' | 'manage' | 'debug';
 
 interface MobileDentistTabsProps {
   activeTab: TabType;
@@ -32,6 +33,7 @@ export function MobileDentistTabs({ activeTab, setActiveTab, dentistId, children
       icon: Stethoscope,
       tabs: [
         { id: 'clinical' as TabType, label: 'Clinical', icon: Stethoscope },
+        { id: 'messages' as TabType, label: 'Messages', icon: MessageSquare },
       ]
     },
     {
@@ -105,9 +107,9 @@ export function MobileDentistTabs({ activeTab, setActiveTab, dentistId, children
                     >
                       <tab.icon className="h-6 w-6" />
                       <span className="text-xs font-medium text-center leading-tight">{tab.label}</span>
-                      {tab.badge && (
+                      {(tab as any).badge && (
                         <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 p-0 text-xs">
-                          {tab.badge}
+                          {(tab as any).badge}
                         </Badge>
                       )}
                     </Button>
