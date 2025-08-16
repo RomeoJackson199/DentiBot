@@ -47,6 +47,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { PatientPaymentHistory } from "@/components/PatientPaymentHistory";
 import { PaymentRequestForm } from "@/components/PaymentRequestForm";
 import { SimpleAppointmentBooking } from "@/components/SimpleAppointmentBooking";
+import { UnifiedAppointments } from "@/components/UnifiedAppointments";
 
 interface Patient {
   id: string;
@@ -1164,66 +1165,12 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
               </CardContent>
             </Card>
 
-            {/* Recent Appointments - Improved button layout */}
-            <Card className="glass-card">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Calendar className="h-5 w-5 text-dental-primary" />
-                  <span>Recent Appointments</span>
-                  <Badge variant="outline" className="ml-auto">{appointments.length}</Badge>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {appointments.length > 0 ? (
-                  <div className="space-y-3">
-                    {appointments.slice(0, 3).map((appointment) => (
-                      <div key={appointment.id} className="p-4 border rounded-xl hover:shadow-md transition-all">
-                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
-                          <div className="flex-1">
-                            <p className="font-medium text-base">
-                              {format(new Date(appointment.appointment_date), 'PPP p')}
-                            </p>
-                            <p className="text-sm text-muted-foreground mt-1">{appointment.reason}</p>
-                            {appointment.consultation_notes && (
-                              <p className="text-sm mt-2 bg-muted p-3 rounded-lg">
-                                {appointment.consultation_notes}
-                              </p>
-                            )}
-                          </div>
-                          <div className="flex flex-wrap gap-2 items-center">
-                            <Badge className={`${getStatusColor(appointment.status)} px-3 py-1`}>
-                              {appointment.status}
-                            </Badge>
-                            <Badge variant="outline" className="px-3 py-1">
-                              {appointment.urgency}
-                            </Badge>
-                            {appointment.status !== 'completed' && (
-                              <Button 
-                                size="sm" 
-                                onClick={() => { 
-                                  setCompletionAppointment(appointment); 
-                                  setShowCompletion(true); 
-                                }}
-                                className="h-9 px-4 rounded-lg"
-                              >
-                                Complete
-                              </Button>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <Calendar className="h-12 w-12 mx-auto mb-3 text-muted-foreground" />
-                    <p className="text-muted-foreground">
-                      No appointments found
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+            {/* Appointments Section - Using Unified Component */}
+            <UnifiedAppointments 
+              dentistId={dentistId}
+              patientId={selectedPatient.id}
+              viewMode="patient"
+            />
 
             {/* Collapsible Sections */}
             <Accordion type="single" collapsible value={accordionValue} onValueChange={(val) => {
