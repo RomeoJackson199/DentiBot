@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Home as HomeIcon,
-  Stethoscope,
+  FolderOpen,
   Calendar,
   CreditCard,
   Settings as SettingsIcon,
@@ -37,11 +37,11 @@ interface PatientAppShellProps {
 }
 
 // Simplified navigation items - only bottom bar, no duplication
-const NAV_ITEMS: Array<{ id: PatientSection; label: string; icon: React.ComponentType<any>; color: string }> = [
+const NAV_ITEMS: Array<{ id: PatientSection; label: string; shortLabel?: string; icon: React.ComponentType<any>; color: string }> = [
   { id: 'home', label: 'Home', icon: HomeIcon, color: 'text-blue-600 bg-blue-100 dark:bg-blue-900/30' },
   { id: 'assistant', label: 'Assistant', icon: Bot, color: 'text-emerald-600 bg-emerald-100 dark:bg-emerald-900/30' },
-  { id: 'care', label: 'Care', icon: Stethoscope, color: 'text-purple-600 bg-purple-100 dark:bg-purple-900/30' },
-  { id: 'appointments', label: 'Appointments', icon: Calendar, color: 'text-orange-600 bg-orange-100 dark:bg-orange-900/30' },
+  { id: 'care', label: 'Treatment Records', shortLabel: 'Records', icon: FolderOpen, color: 'text-purple-600 bg-purple-100 dark:bg-purple-900/30' },
+  { id: 'appointments', label: 'Appointments', shortLabel: 'Appts', icon: Calendar, color: 'text-orange-600 bg-orange-100 dark:bg-orange-900/30' },
   { id: 'payments', label: 'Payments', icon: CreditCard, color: 'text-green-600 bg-green-100 dark:bg-green-900/30' },
   { id: 'settings', label: 'Settings', icon: SettingsIcon, color: 'text-gray-600 bg-gray-100 dark:bg-gray-900/30' },
 ];
@@ -189,7 +189,7 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
                     <span className="absolute -top-1 -right-1 h-2 w-2 bg-red-500 rounded-full animate-pulse" />
                   )}
                 </div>
-                <span className="text-xs mt-1">{item.label}</span>
+                <span className="text-xs mt-1">{item.shortLabel || item.label}</span>
               </button>
             );
           })}
