@@ -182,11 +182,12 @@ export function MessagesInbox({ onOpenConversation }: MessagesInboxProps) {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Create conversation
+      // Create conversation with created_by to satisfy RLS policies
       const { data: conversation, error: convError } = await supabase
         .from('conversations')
         .insert({
-          title: null
+          title: null,
+          created_by: user.id
         })
         .select()
         .single();
