@@ -621,7 +621,7 @@ export const CareTab: React.FC<CareTabProps> = ({
                         <div className="flex items-start justify-between gap-4">
                           <div>
                             <p className="text-xs text-muted-foreground mb-1">
-                              {dateTime.date} • {dateTime.time}
+                              {typeof dateTime === 'object' ? `${dateTime.date} • ${dateTime.time}` : dateTime}
                             </p>
                             <h3 className="font-semibold text-base">{item.title}</h3>
                             {item.subtitle && (
@@ -674,10 +674,10 @@ export const CareTab: React.FC<CareTabProps> = ({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3">
               {viewerItem && (() => {
-                const isVisit = viewerItem.type === 'visit' || viewerItem.sectionType === 'visits';
-                const isTreatment = viewerItem.type === 'plan' || viewerItem.sectionType === 'treatments';
-                const isMedication = viewerItem.type === 'prescription' || viewerItem.sectionType === 'medications';
-                const isDocument = viewerItem.type === 'record' || viewerItem.sectionType === 'documents';
+                const isVisit = viewerItem.type === 'visit';
+                const isTreatment = viewerItem.type === 'plan';
+                const isMedication = viewerItem.type === 'prescription';
+                const isDocument = viewerItem.type === 'record';
                 
                 const Icon = isVisit ? Calendar :
                            isTreatment ? Activity :
@@ -814,7 +814,7 @@ export const CareTab: React.FC<CareTabProps> = ({
                 {/* Actions - Improved responsive layout */}
                 <Separator />
                 <div className="flex flex-col sm:flex-row gap-2 pt-2">
-                  {(viewerItem.type === 'record' || viewerItem.sectionType === 'documents') && (
+                  {viewerItem.type === 'record' && (
                     <Button 
                       onClick={() => handleDownload(viewerItem)} 
                       className="gap-2 w-full sm:w-auto"

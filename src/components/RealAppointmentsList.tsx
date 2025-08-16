@@ -329,7 +329,10 @@ export const RealAppointmentsList = ({ user, filter }: RealAppointmentsListProps
       const iso = newDate.toISOString();
       const { error } = await supabase
         .from('appointments')
-        .update({ appointment_date: iso, status: selectedAppointment.status === 'cancelled' ? 'pending' : selectedAppointment.status })
+        .update({ 
+          appointment_date: iso, 
+          status: (selectedAppointment.status === 'cancelled' ? 'pending' : selectedAppointment.status) as 'pending' | 'confirmed' | 'completed' | 'cancelled'
+        })
         .eq('id', selectedAppointment.id);
       if (error) throw error;
       toast({ title: 'Appointment rescheduled' });

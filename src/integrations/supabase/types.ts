@@ -7,13 +7,37 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "13.0.4"
   }
   public: {
     Tables: {
+      analytics_events: {
+        Row: {
+          created_at: string
+          event_data: Json | null
+          event_name: string
+          id: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_data?: Json | null
+          event_name: string
+          id?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_data?: Json | null
+          event_name?: string
+          id?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       appointment_slots: {
         Row: {
           appointment_id: string | null
@@ -333,6 +357,62 @@ export type Database = {
             referencedColumns: ["user_id"]
           },
         ]
+      }
+      conversation_participants: {
+        Row: {
+          archived: boolean | null
+          conversation_id: string
+          id: string
+          joined_at: string
+          last_read_at: string | null
+          user_id: string
+        }
+        Insert: {
+          archived?: boolean | null
+          conversation_id: string
+          id?: string
+          joined_at?: string
+          last_read_at?: string | null
+          user_id: string
+        }
+        Update: {
+          archived?: boolean | null
+          conversation_id?: string
+          id?: string
+          joined_at?: string
+          last_read_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversation_participants_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conversations: {
+        Row: {
+          created_at: string
+          id: string
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       dashboard_preferences: {
         Row: {
@@ -794,6 +874,114 @@ export type Database = {
         }
         Relationships: []
       }
+      message_attachments: {
+        Row: {
+          created_at: string
+          file_name: string | null
+          file_size: number | null
+          id: string
+          message_id: string
+          mime_type: string | null
+          storage_path: string
+        }
+        Insert: {
+          created_at?: string
+          file_name?: string | null
+          file_size?: number | null
+          id?: string
+          message_id: string
+          mime_type?: string | null
+          storage_path: string
+        }
+        Update: {
+          created_at?: string
+          file_name?: string | null
+          file_size?: number | null
+          id?: string
+          message_id?: string
+          mime_type?: string | null
+          storage_path?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_attachments_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      message_receipts: {
+        Row: {
+          created_at: string
+          id: string
+          message_id: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message_id: string
+          status: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message_id?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_receipts_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          content: string | null
+          conversation_id: string
+          created_at: string
+          id: string
+          metadata: Json | null
+          sender_id: string | null
+          type: string
+        }
+        Insert: {
+          content?: string | null
+          conversation_id: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          sender_id?: string | null
+          type?: string
+        }
+        Update: {
+          content?: string | null
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          sender_id?: string | null
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notes: {
         Row: {
           content: string | null
@@ -1120,6 +1308,7 @@ export type Database = {
       profiles: {
         Row: {
           address: string | null
+          avatar_url: string | null
           created_at: string
           date_of_birth: string | null
           email: string
@@ -1136,6 +1325,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          avatar_url?: string | null
           created_at?: string
           date_of_birth?: string | null
           email: string
@@ -1152,6 +1342,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          avatar_url?: string | null
           created_at?: string
           date_of_birth?: string | null
           email?: string
@@ -1320,220 +1511,6 @@ export type Database = {
           },
         ]
       }
-      conversations: {
-        Row: {
-          id: string
-          created_at: string
-          updated_at: string
-          created_by: string | null
-          title: string | null
-          is_e2ee: boolean
-          encryption_scheme: string | null
-          e2ee_material: Json | null
-        }
-        Insert: {
-          id?: string
-          created_at?: string
-          updated_at?: string
-          created_by?: string | null
-          title?: string | null
-          is_e2ee?: boolean
-          encryption_scheme?: string | null
-          e2ee_material?: Json | null
-        }
-        Update: {
-          id?: string
-          created_at?: string
-          updated_at?: string
-          created_by?: string | null
-          title?: string | null
-          is_e2ee?: boolean
-          encryption_scheme?: string | null
-          e2ee_material?: Json | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: 'conversations_created_by_fkey'
-            columns: ['created_by']
-            isOneToOne: false
-            referencedRelation: 'users'
-            referencedColumns: ['id']
-          }
-        ]
-      }
-      conversation_participants: {
-        Row: {
-          id: string
-          conversation_id: string
-          user_id: string
-          role: string | null
-          archived: boolean
-          last_read_at: string | null
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          conversation_id: string
-          user_id: string
-          role?: string | null
-          archived?: boolean
-          last_read_at?: string | null
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          conversation_id?: string
-          user_id?: string
-          role?: string | null
-          archived?: boolean
-          last_read_at?: string | null
-          created_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: 'conversation_participants_conversation_id_fkey'
-            columns: ['conversation_id']
-            isOneToOne: false
-            referencedRelation: 'conversations'
-            referencedColumns: ['id']
-          },
-          {
-            foreignKeyName: 'conversation_participants_user_id_fkey'
-            columns: ['user_id']
-            isOneToOne: false
-            referencedRelation: 'users'
-            referencedColumns: ['id']
-          }
-        ]
-      }
-      messages: {
-        Row: {
-          id: string
-          conversation_id: string
-          sender_id: string | null
-          type: 'text' | 'attachment' | 'quick_reply' | 'system' | 'voice_note'
-          content: string | null
-          encrypted_payload: Json | null
-          encryption_scheme: string | null
-          metadata: Json | null
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          conversation_id: string
-          sender_id?: string | null
-          type?: 'text' | 'attachment' | 'quick_reply' | 'system' | 'voice_note'
-          content?: string | null
-          encrypted_payload?: Json | null
-          encryption_scheme?: string | null
-          metadata?: Json | null
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          conversation_id?: string
-          sender_id?: string | null
-          type?: 'text' | 'attachment' | 'quick_reply' | 'system' | 'voice_note'
-          content?: string | null
-          encrypted_payload?: Json | null
-          encryption_scheme?: string | null
-          metadata?: Json | null
-          created_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: 'messages_conversation_id_fkey'
-            columns: ['conversation_id']
-            isOneToOne: false
-            referencedRelation: 'conversations'
-            referencedColumns: ['id']
-          },
-          {
-            foreignKeyName: 'messages_sender_id_fkey'
-            columns: ['sender_id']
-            isOneToOne: false
-            referencedRelation: 'users'
-            referencedColumns: ['id']
-          }
-        ]
-      }
-      message_receipts: {
-        Row: {
-          id: string
-          message_id: string
-          user_id: string
-          status: 'delivered' | 'seen'
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          message_id: string
-          user_id: string
-          status: 'delivered' | 'seen'
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          message_id?: string
-          user_id?: string
-          status?: 'delivered' | 'seen'
-          created_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: 'message_receipts_message_id_fkey'
-            columns: ['message_id']
-            isOneToOne: false
-            referencedRelation: 'messages'
-            referencedColumns: ['id']
-          },
-          {
-            foreignKeyName: 'message_receipts_user_id_fkey'
-            columns: ['user_id']
-            isOneToOne: false
-            referencedRelation: 'users'
-            referencedColumns: ['id']
-          }
-        ]
-      }
-      message_attachments: {
-        Row: {
-          id: string
-          message_id: string
-          storage_path: string
-          file_name: string | null
-          mime_type: string | null
-          size_bytes: number | null
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          message_id: string
-          storage_path: string
-          file_name?: string | null
-          mime_type?: string | null
-          size_bytes?: number | null
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          message_id?: string
-          storage_path?: string
-          file_name?: string | null
-          mime_type?: string | null
-          size_bytes?: number | null
-          created_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: 'message_attachments_message_id_fkey'
-            columns: ['message_id']
-            isOneToOne: false
-            referencedRelation: 'messages'
-            referencedColumns: ['id']
-          }
-        ]
-      }
     }
     Views: {
       [_ in never]: never
@@ -1541,10 +1518,10 @@ export type Database = {
     Functions: {
       book_appointment_slot: {
         Args: {
+          p_appointment_id: string
           p_dentist_id: string
           p_slot_date: string
           p_slot_time: string
-          p_appointment_id: string
         }
         Returns: boolean
       }
@@ -1554,37 +1531,37 @@ export type Database = {
       }
       create_prescription_notification: {
         Args: {
-          p_patient_id: string
           p_dentist_id: string
-          p_prescription_id: string
           p_medication_name: string
+          p_patient_id: string
+          p_prescription_id: string
         }
         Returns: string
       }
       create_simple_appointment: {
         Args: {
-          p_patient_id: string
-          p_dentist_id: string
           p_appointment_date: string
+          p_dentist_id: string
+          p_patient_id: string
           p_reason?: string
           p_urgency?: Database["public"]["Enums"]["urgency_level"]
         }
         Returns: string
       }
       generate_daily_slots: {
-        Args: { p_dentist_id: string; p_date: string }
+        Args: { p_date: string; p_dentist_id: string }
         Returns: undefined
       }
       get_dashboard_overview: {
         Args: { p_dentist_id: string }
         Returns: {
-          today_appointments_count: number
-          urgent_cases_count: number
-          patients_waiting_count: number
           patients_in_treatment_count: number
-          revenue_today: number
+          patients_waiting_count: number
           pending_tasks_count: number
+          revenue_today: number
+          today_appointments_count: number
           unread_messages_count: number
+          urgent_cases_count: number
         }[]
       }
       get_patient_context_for_ai: {
@@ -1594,26 +1571,26 @@ export type Database = {
       get_patient_stats_for_dentist: {
         Args: { p_dentist_id: string; p_patient_id: string }
         Returns: {
-          total_appointments: number
-          upcoming_appointments: number
+          active_treatment_plans: number
           completed_appointments: number
           last_appointment_date: string
+          total_appointments: number
           total_notes: number
-          active_treatment_plans: number
+          upcoming_appointments: number
         }[]
       }
       get_upcoming_appointments_with_urgency: {
         Args: { p_dentist_id: string }
         Returns: {
-          appointment_id: string
-          patient_id: string
-          patient_name: string
           appointment_date: string
-          urgency: Database["public"]["Enums"]["urgency_level"]
-          reason: string
-          pain_level: number
+          appointment_id: string
           has_bleeding: boolean
           has_swelling: boolean
+          pain_level: number
+          patient_id: string
+          patient_name: string
+          reason: string
+          urgency: Database["public"]["Enums"]["urgency_level"]
         }[]
       }
       is_dentist_for_patient: {
@@ -1626,11 +1603,11 @@ export type Database = {
       }
       send_sms_notification: {
         Args: {
-          p_patient_id: string
           p_dentist_id: string
-          p_phone_number: string
-          p_message_type: string
           p_message_content: string
+          p_message_type: string
+          p_patient_id: string
+          p_phone_number: string
         }
         Returns: string
       }

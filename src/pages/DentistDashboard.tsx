@@ -23,7 +23,7 @@ interface DentistDashboardProps {
 }
 
 export function DentistDashboard({ user }: DentistDashboardProps) {
-  const [activeTab, setActiveTab] = useState<'clinical' | 'patients' | 'payments' | 'analytics' | 'availability' | 'manage' | 'debug'>('clinical');
+  const [activeTab, setActiveTab] = useState<'clinical' | 'patients' | 'messages' | 'payments' | 'analytics' | 'availability' | 'manage' | 'debug'>('clinical');
   const [dentistId, setDentistId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [showChangelog, setShowChangelog] = useState(false);

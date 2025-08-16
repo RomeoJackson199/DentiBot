@@ -82,7 +82,7 @@ import { PaymentsTab } from "@/components/patient/PaymentsTab";
 import { SettingsPage } from "@/components/patient/SettingsPage";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { AppointmentBooking } from "@/components/AppointmentBooking";
-import { Card } from "@/components/ui/card";
+
 import { MessagesPane } from "@/components/messages/MessagesPane";
 import { useMessagesBadge } from "@/hooks/useMessages";
 
@@ -784,7 +784,7 @@ const DashboardOverview = ({ userProfile, patientStats, recentAppointments, getW
                     )} />
                   </div>
                   <div>
-                    <p className="font-medium">{appointment.treatment_type || 'General Checkup'}</p>
+                    <p className="font-medium">{appointment.reason || 'General Checkup'}</p>
                     <p className="text-sm text-muted-foreground">
                       {formatDate(appointment.appointment_date)} at {new Date(appointment.appointment_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </p>
