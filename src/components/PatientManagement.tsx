@@ -48,6 +48,7 @@ import { PatientPaymentHistory } from "@/components/PatientPaymentHistory";
 import { PaymentRequestForm } from "@/components/PaymentRequestForm";
 import { SimpleAppointmentBooking } from "@/components/SimpleAppointmentBooking";
 import { UnifiedAppointments } from "@/components/UnifiedAppointments";
+import { useNavigate } from "react-router-dom";
 
 interface Patient {
   id: string;
@@ -188,6 +189,7 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
   
   const { toast } = useToast();
   const sb: any = supabase;
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchPatients();
@@ -694,6 +696,11 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
             <span>My Patients</span>
             <Badge variant="outline" className="ml-auto">{patients.length} total</Badge>
           </CardTitle>
+          <div className="flex justify-end">
+            <Button size="sm" variant="outline" onClick={() => navigate('/importer')}>
+              Import (CSV / Excel / iCal)
+            </Button>
+          </div>
           <div className="space-y-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
