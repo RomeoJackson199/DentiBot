@@ -10,7 +10,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { AppointmentCompletionModal } from "@/components/mobile/AppointmentCompletionModal";
+import { CompletionSheet } from "@/components/CompletionSheet";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { 
   Calendar, 
@@ -640,9 +640,9 @@ export function UnifiedAppointments({
         </DialogContent>
       </Dialog>
 
-      {/* Appointment Completion Modal */}
+      {/* Completion Sheet */}
       {selectedAppointment && (
-        <AppointmentCompletionModal
+        <CompletionSheet
           open={showCompletion}
           onOpenChange={setShowCompletion}
           appointment={selectedAppointment}

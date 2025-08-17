@@ -33,7 +33,7 @@ import {
 import { format } from "date-fns";
 import { generateSymptomSummary } from "@/lib/symptoms";
 import { AIConversationDialog } from "@/components/AIConversationDialog";
-import { AppointmentCompletionModal } from "@/components/mobile/AppointmentCompletionModal";
+import { CompletionSheet } from "@/components/CompletionSheet";
 
 interface Appointment {
   id: string;
@@ -419,7 +419,7 @@ export function AppointmentManagement({ dentistId }: AppointmentManagementProps)
         )}
       </div>
       {selectedAppointment && (
-        <AppointmentCompletionModal
+        <CompletionSheet
           open={showCompletion}
           onOpenChange={setShowCompletion}
           appointment={{

@@ -42,7 +42,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger
 } from "@/components/ui/alert-dialog";
-import { AppointmentCompletionModal } from "@/components/mobile/AppointmentCompletionModal";
+import { CompletionSheet } from "@/components/CompletionSheet";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { PatientPaymentHistory } from "@/components/PatientPaymentHistory";
 import { PaymentRequestForm } from "@/components/PaymentRequestForm";
@@ -1541,7 +1541,7 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
             </Accordion>
 
             {(completionAppointment || lastAppointment) && (
-              <AppointmentCompletionModal
+              <CompletionSheet
                 open={showCompletion}
                 onOpenChange={(open) => {
                   setShowCompletion(open);
