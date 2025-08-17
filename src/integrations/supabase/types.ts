@@ -831,37 +831,40 @@ export type Database = {
       }
       inventory_adjustments: {
         Row: {
-          adjustment_type: string
+          appointment_id: string | null
+          adjustment_type: "increase" | "decrease" | "usage" | "correction" | "auto"
+          change: number
           created_at: string
-          created_by: string | null
+          created_by: string
+          dentist_id: string
           id: string
           item_id: string
-          quantity_change: number
+          notes: string | null
           reason: string | null
-          reference_id: string | null
-          reference_type: string | null
         }
         Insert: {
-          adjustment_type: string
+          appointment_id?: string | null
+          adjustment_type: "increase" | "decrease" | "usage" | "correction" | "auto"
+          change: number
           created_at?: string
-          created_by?: string | null
+          created_by: string
+          dentist_id: string
           id?: string
           item_id: string
-          quantity_change: number
+          notes?: string | null
           reason?: string | null
-          reference_id?: string | null
-          reference_type?: string | null
         }
         Update: {
-          adjustment_type?: string
+          appointment_id?: string | null
+          adjustment_type?: "increase" | "decrease" | "usage" | "correction" | "auto"
+          change?: number
           created_at?: string
-          created_by?: string | null
+          created_by?: string
+          dentist_id?: string
           id?: string
           item_id?: string
-          quantity_change?: number
+          notes?: string | null
           reason?: string | null
-          reference_id?: string | null
-          reference_type?: string | null
         }
         Relationships: [
           {
@@ -875,7 +878,7 @@ export type Database = {
       }
       inventory_items: {
         Row: {
-          category: string
+          category: "implants" | "anesthesia" | "consumables" | "instruments" | "other"
           cost_per_unit: number | null
           created_at: string
           dentist_id: string
@@ -891,7 +894,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          category: string
+          category: "implants" | "anesthesia" | "consumables" | "instruments" | "other"
           cost_per_unit?: number | null
           created_at?: string
           dentist_id: string
@@ -907,7 +910,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          category?: string
+          category?: "implants" | "anesthesia" | "consumables" | "instruments" | "other"
           cost_per_unit?: number | null
           created_at?: string
           dentist_id?: string
@@ -1662,30 +1665,27 @@ export type Database = {
       treatment_supply_mappings: {
         Row: {
           created_at: string
+          dentist_id: string
           id: string
-          is_optional: boolean | null
           item_id: string
-          notes: string | null
-          quantity_per_treatment: number
-          treatment_type: string
+          quantity: number
+          treatment_type_id: string
         }
         Insert: {
           created_at?: string
+          dentist_id: string
           id?: string
-          is_optional?: boolean | null
           item_id: string
-          notes?: string | null
-          quantity_per_treatment?: number
-          treatment_type: string
+          quantity?: number
+          treatment_type_id: string
         }
         Update: {
           created_at?: string
+          dentist_id?: string
           id?: string
-          is_optional?: boolean | null
           item_id?: string
-          notes?: string | null
-          quantity_per_treatment?: number
-          treatment_type?: string
+          quantity?: number
+          treatment_type_id?: string
         }
         Relationships: [
           {
@@ -1746,6 +1746,300 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      tariffs: {
+        Row: {
+          id: string
+          code: string
+          description: string
+          base_tariff: number
+          vat_rate: number | null
+          mutuality_share_pct: number | null
+          patient_share_pct: number | null
+          valid_from: string
+          valid_to: string | null
+          is_active: boolean | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          code: string
+          description: string
+          base_tariff: number
+          vat_rate?: number | null
+          mutuality_share_pct?: number | null
+          patient_share_pct?: number | null
+          valid_from?: string
+          valid_to?: string | null
+          is_active?: boolean | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          code?: string
+          description?: string
+          base_tariff?: number
+          vat_rate?: number | null
+          mutuality_share_pct?: number | null
+          patient_share_pct?: number | null
+          valid_from?: string
+          valid_to?: string | null
+          is_active?: boolean | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      patient_insurance_profiles: {
+        Row: {
+          id: string
+          patient_id: string
+          provider_id: string | null
+          membership_number: string | null
+          plan_name: string | null
+          is_omnio: boolean | null
+          is_vip: boolean | null
+          valid_from: string
+          valid_to: string | null
+          is_active: boolean | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          patient_id: string
+          provider_id?: string | null
+          membership_number?: string | null
+          plan_name?: string | null
+          is_omnio?: boolean | null
+          is_vip?: boolean | null
+          valid_from: string
+          valid_to?: string | null
+          is_active?: boolean | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          patient_id?: string
+          provider_id?: string | null
+          membership_number?: string | null
+          plan_name?: string | null
+          is_omnio?: boolean | null
+          is_vip?: boolean | null
+          valid_from?: string
+          valid_to?: string | null
+          is_active?: boolean | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      appointment_outcomes: {
+        Row: {
+          id: string
+          appointment_id: string
+          outcome: "successful" | "partial" | "cancelled" | "complication"
+          notes: string | null
+          pain_score: number | null
+          anesthesia_used: boolean | null
+          anesthesia_dose: string | null
+          created_by: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          appointment_id: string
+          outcome: "successful" | "partial" | "cancelled" | "complication"
+          notes?: string | null
+          pain_score?: number | null
+          anesthesia_used?: boolean | null
+          anesthesia_dose?: string | null
+          created_by: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          appointment_id?: string
+          outcome?: "successful" | "partial" | "cancelled" | "complication"
+          notes?: string | null
+          pain_score?: number | null
+          anesthesia_used?: boolean | null
+          anesthesia_dose?: string | null
+          created_by?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
+      appointment_treatments: {
+        Row: {
+          id: string
+          appointment_id: string
+          code: string
+          description: string
+          quantity: number
+          tooth_ref: string | null
+          tariff: number
+          mutuality_share: number
+          patient_share: number
+          vat_amount: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          appointment_id: string
+          code: string
+          description: string
+          quantity?: number
+          tooth_ref?: string | null
+          tariff: number
+          mutuality_share?: number
+          patient_share?: number
+          vat_amount?: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          appointment_id?: string
+          code?: string
+          description?: string
+          quantity?: number
+          tooth_ref?: string | null
+          tariff?: number
+          mutuality_share?: number
+          patient_share?: number
+          vat_amount?: number
+          created_at?: string
+        }
+        Relationships: []
+      }
+      invoices: {
+        Row: {
+          id: string
+          appointment_id: string | null
+          patient_id: string
+          dentist_id: string
+          total_amount_cents: number
+          patient_amount_cents: number
+          mutuality_amount_cents: number
+          vat_amount_cents: number
+          currency: string
+          status: "draft" | "issued" | "paid" | "void"
+          claim_status: "to_be_submitted" | "submitted" | "approved" | "rejected" | "n/a" | null
+          payment_request_id: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          appointment_id?: string | null
+          patient_id: string
+          dentist_id: string
+          total_amount_cents: number
+          patient_amount_cents: number
+          mutuality_amount_cents: number
+          vat_amount_cents?: number
+          currency?: string
+          status?: "draft" | "issued" | "paid" | "void"
+          claim_status?: "to_be_submitted" | "submitted" | "approved" | "rejected" | "n/a" | null
+          payment_request_id?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          appointment_id?: string | null
+          patient_id?: string
+          dentist_id?: string
+          total_amount_cents?: number
+          patient_amount_cents?: number
+          mutuality_amount_cents?: number
+          vat_amount_cents?: number
+          currency?: string
+          status?: "draft" | "issued" | "paid" | "void"
+          claim_status?: "to_be_submitted" | "submitted" | "approved" | "rejected" | "n/a" | null
+          payment_request_id?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      invoice_items: {
+        Row: {
+          id: string
+          invoice_id: string
+          code: string
+          description: string
+          quantity: number
+          tariff_cents: number
+          mutuality_cents: number
+          patient_cents: number
+          vat_cents: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          invoice_id: string
+          code: string
+          description: string
+          quantity?: number
+          tariff_cents: number
+          mutuality_cents?: number
+          patient_cents?: number
+          vat_cents?: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          invoice_id?: string
+          code?: string
+          description?: string
+          quantity?: number
+          tariff_cents?: number
+          mutuality_cents?: number
+          patient_cents?: number
+          vat_cents?: number
+          created_at?: string
+        }
+        Relationships: []
+      }
+      appointment_follow_ups: {
+        Row: {
+          id: string
+          appointment_id: string
+          follow_up_type: "phone_call" | "email" | "sms" | "in_person"
+          status: "pending" | "completed" | "cancelled"
+          scheduled_date: string | null
+          completed_date: string | null
+          notes: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          appointment_id: string
+          follow_up_type: "phone_call" | "email" | "sms" | "in_person"
+          status?: "pending" | "completed" | "cancelled"
+          scheduled_date?: string | null
+          completed_date?: string | null
+          notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          appointment_id?: string
+          follow_up_type?: "phone_call" | "email" | "sms" | "in_person"
+          status?: "pending" | "completed" | "cancelled"
+          scheduled_date?: string | null
+          completed_date?: string | null
+          notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
     }
     Views: {
