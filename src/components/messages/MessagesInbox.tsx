@@ -178,31 +178,22 @@ export function MessagesInbox({ onOpenConversation }: MessagesInboxProps) {
 
   const createConversation = async (otherUserId: string) => {
     setCreating(true);
-    console.log('🚀 Starting conversation creation...');
-    
     try {
-      // First check auth state
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
-      console.log('🔐 Auth check result:', { user: user?.id, error: authError });
-      
-      if (authError || !user) {
-        console.error('❌ Auth error:', authError);
-        throw new Error('User not authenticated');
+      // Ensure we have a fresh auth session
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !session?.user) {
+        throw new Error('Please sign in to create conversations');
       }
 
-      console.log('✅ User authenticated:', user.id);
-      console.log('🎯 Creating conversation with target user:', otherUserId);
+      const currentUserId = session.user.id;
+      console.log('Creating conversation between:', currentUserId, 'and', otherUserId);
 
-      // Create conversation with explicit created_by for RLS
-      const insertData = {
-        title: null,
-        created_by: user.id
-      };
-      console.log('📝 Insert data:', insertData);
-      
+      // Use the session user ID for RLS compliance
       const { data: conversation, error: convError } = await supabase
         .from('conversations')
-        .insert([insertData])
+        .insert({
+          created_by: currentUserId
+        })
         .select()
         .single();
 
@@ -217,7 +208,7 @@ export function MessagesInbox({ onOpenConversation }: MessagesInboxProps) {
       const { error: participantsError } = await supabase
         .from('conversation_participants')
         .insert([
-          { conversation_id: conversation.id, user_id: user.id },
+          { conversation_id: conversation.id, user_id: currentUserId },
           { conversation_id: conversation.id, user_id: otherUserId }
         ]);
 
@@ -234,7 +225,7 @@ export function MessagesInbox({ onOpenConversation }: MessagesInboxProps) {
         .from('messages')
         .insert({
           conversation_id: conversation.id,
-          sender_id: user.id,
+          sender_id: currentUserId,
           content: `Hi ${otherUser?.name || 'there'}! 👋`,
           type: 'text'
         });
