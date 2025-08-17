@@ -15,7 +15,7 @@ import {
   Package
 } from "lucide-react";
 
-type TabType = 'clinical' | 'patients' | 'messages' | 'payments' | 'analytics' | 'availability' | 'manage' | 'debug' | 'inventory';
+type TabType = 'clinical' | 'patients' | 'messages' | 'payments' | 'analytics' | 'availability' | 'manage' | 'debug' | 'inventory' | 'recalls';
 
 interface MobileDentistTabsProps {
   activeTab: TabType;
@@ -61,6 +61,7 @@ export function MobileDentistTabs({ activeTab, setActiveTab, dentistId, children
       icon: Package,
       tabs: [
         { id: 'inventory' as TabType, label: 'Inventory', icon: Package, badge: inventoryBadgeCount > 0 ? String(inventoryBadgeCount) : undefined },
+        { id: 'recalls' as TabType, label: 'Recalls', icon: Calendar },
       ]
     },
     {

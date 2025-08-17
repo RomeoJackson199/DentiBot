@@ -37,6 +37,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, isToday, isPast, isFuture } from "date-fns";
+import { RecallBanner } from "@/components/patient/RecallBanner";
+import { getPatientActiveRecall, RecallRecord } from "@/lib/recalls";
 
 export interface AppointmentsTabProps {
   user: User;
@@ -330,9 +332,21 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({ user, onOpenAs
     completed: 0,
     cancelled: 0
   });
+  const [activeRecall, setActiveRecall] = useState<RecallRecord | null>(null);
 
   useEffect(() => {
     fetchAppointments();
+    (async () => {
+      const { data: session } = await supabase.auth.getUser();
+      const uid = session.user?.id;
+      if (uid) {
+        const { data: profile } = await supabase.from('profiles').select('id').eq('user_id', uid).single();
+        if (profile?.id) {
+          const rec = await getPatientActiveRecall(profile.id);
+          setActiveRecall(rec);
+        }
+      }
+    })();
   }, [user.id]);
 
   const fetchAppointments = async () => {
@@ -629,6 +643,13 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({ user, onOpenAs
           />
         </DialogContent>
       </Dialog>
+
+      {/* Recall Banner */}
+      {activeRecall && (
+        <div className="mt-6">
+          <RecallBanner recall={activeRecall} />
+        </div>
+      )}
     </div>
   );
 };

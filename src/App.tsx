@@ -26,6 +26,7 @@ const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess").then(module =
 const PaymentCancelled = lazy(() => import("./pages/PaymentCancelled").then(module => ({ default: module.PaymentCancelled })));
 const Chat = lazy(() => import("./pages/Chat"));
 const Schedule = lazy(() => import("./pages/Schedule"));
+const RecallDeepLink = lazy(() => import("./pages/RecallDeepLink"));
 const Analytics = lazy(() => import("./pages/Analytics"));
 const Support = lazy(() => import("./pages/Support"));
 const FeatureDetail = lazy(() => import("./pages/FeatureDetail"));
@@ -125,7 +126,8 @@ const App = () => (
                 <Route path="/privacy" element={<LazyLoadingWrapper><PrivacyPolicy /></LazyLoadingWrapper>} />
                 <Route path="/payment-success" element={<LazyLoadingWrapper><PaymentSuccess /></LazyLoadingWrapper>} />
                 <Route path="/payment-cancelled" element={<LazyLoadingWrapper><PaymentCancelled /></LazyLoadingWrapper>} />
-                <Route path="/schedule" element={<LazyLoadingWrapper><Schedule /></LazyLoadingWrapper>} />
+                                 <Route path="/schedule" element={<LazyLoadingWrapper><Schedule /></LazyLoadingWrapper>} />
+                 <Route path="/recalls/:id" element={<LazyLoadingWrapper><RecallDeepLink /></LazyLoadingWrapper>} />
                 <Route path="/analytics" element={<LazyLoadingWrapper><Analytics /></LazyLoadingWrapper>} />
                 <Route path="/support" element={<LazyLoadingWrapper><Support /></LazyLoadingWrapper>} />
                 <Route path="/importer" element={<LazyLoadingWrapper><Importer /></LazyLoadingWrapper>} />

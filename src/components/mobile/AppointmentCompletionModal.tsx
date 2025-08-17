@@ -171,10 +171,11 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 		}
 	};
 
-	// F. Follow-Up
+	// F. Follow-Up & Predictive Scheduling
 	const [followUpNeeded, setFollowUpNeeded] = useState(false);
 	const [followUpDate, setFollowUpDate] = useState<string | undefined>(undefined);
 	const [followUpReason, setFollowUpReason] = useState("");
+	const [predictiveChoice, setPredictiveChoice] = useState<string>("");
 
 	// G. Files (we will store references in medical_records with appointment_id)
 	const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
@@ -495,6 +496,47 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 				await emitAnalyticsEvent('PRESCRIPTION_CREATED', dentistId, { appointmentId: appointment.id, medication_name: rxMedName });
 			}
 
+			// Predictive Scheduling: create recall if dentist selects a due visit
+			try {
+				if (predictiveChoice) {
+					const { mapDentistPortalSelectionToKey, createRecall } = await import('@/lib/recalls');
+					const mapped = mapDentistPortalSelectionToKey(predictiveChoice);
+					if (mapped) {
+						const { data: apptRow } = await sb.from('appointments').select('patient_id, dentist_id, appointment_date').eq('id', appointment.id).single();
+						// Handle implant special-case (2 weeks then 3 months)
+						if (predictiveChoice === 'Implant review (2 weeks, then 3 months)') {
+							await createRecall({
+								appointmentId: appointment.id,
+								patientId: apptRow.patient_id,
+								dentistId: apptRow.dentist_id,
+								treatmentKey: 'implant_review_2w' as any,
+								treatmentLabel: 'implant review',
+								baseDateISO: apptRow.appointment_date
+							});
+							await createRecall({
+								appointmentId: appointment.id,
+								patientId: apptRow.patient_id,
+								dentistId: apptRow.dentist_id,
+								treatmentKey: 'implant_review_3m' as any,
+								treatmentLabel: 'implant review',
+								baseDateISO: apptRow.appointment_date
+							});
+						} else {
+							await createRecall({
+								appointmentId: appointment.id,
+								patientId: apptRow.patient_id,
+								dentistId: apptRow.dentist_id,
+								treatmentKey: mapped.key,
+								treatmentLabel: mapped.label,
+								baseDateISO: apptRow.appointment_date
+							});
+						}
+					}
+				}
+			} catch (e) {
+				console.warn('Recall creation failed', e);
+			}
+
 			// Inventory deduction
 			await deductInventoryForAppointment();
 
@@ -679,34 +721,55 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 						</CardContent>
 					</Card>
 
-					{/* F. Follow-Up */}
-					<Card>
-						<CardContent className="space-y-3 p-4">
-							<h3 className="font-semibold">F. Follow-Up</h3>
-							<Select value={followUpNeeded ? 'yes' : 'no'} onValueChange={v => setFollowUpNeeded(v === 'yes')}>
-								<SelectTrigger><SelectValue placeholder="Follow-up needed" /></SelectTrigger>
-								<SelectContent>
-									<SelectItem value="no">No</SelectItem>
-									<SelectItem value="yes">Yes</SelectItem>
-								</SelectContent>
-							</Select>
-							{followUpNeeded && (
-								<div className="grid grid-cols-3 gap-2 items-end">
-									<Input type="date" value={followUpDate || ''} onChange={e => setFollowUpDate(e.target.value)} />
-									<Button variant="outline" onClick={() => setFollowUpDate(new Date(Date.now() + 7*24*60*60*1000).toISOString().slice(0,10))}>1w</Button>
-									<Button variant="outline" onClick={() => setFollowUpDate(new Date(Date.now() + 14*24*60*60*1000).toISOString().slice(0,10))}>2w</Button>
-									<Button variant="outline" onClick={() => setFollowUpDate(new Date(Date.now() + 42*24*60*60*1000).toISOString().slice(0,10))}>6w</Button>
-									<Input placeholder="Reason" value={followUpReason} onChange={e => setFollowUpReason(e.target.value)} />
-								</div>
-							)}
-							{followUpNeeded && followUpDate && (
-								<Button onClick={async () => {
-									await sb.from('appointment_follow_ups').insert({ appointment_id: appointment.id, follow_up_type: 'in_person', status: 'pending', scheduled_date: new Date(followUpDate).toISOString(), notes: followUpReason });
-									toast({ title: 'Follow-up created' });
-								}}>Create Follow-Up</Button>
-							)}
-						</CardContent>
-					</Card>
+									{/* F. Follow-Up & Predictive Scheduling */}
+				<Card>
+					<CardContent className="space-y-3 p-4">
+						<h3 className="font-semibold">F. Follow-Up & Predictive Scheduling</h3>
+						<div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+							<div className="space-y-2">
+								<Label>Follow-up</Label>
+								<Select value={followUpNeeded ? 'yes' : 'no'} onValueChange={v => setFollowUpNeeded(v === 'yes')}>
+									<SelectTrigger><SelectValue placeholder="Follow-up needed" /></SelectTrigger>
+									<SelectContent>
+										<SelectItem value="no">No</SelectItem>
+										<SelectItem value="yes">Yes</SelectItem>
+									</SelectContent>
+								</Select>
+								{followUpNeeded && (
+									<div className="grid grid-cols-3 gap-2 items-end">
+										<Input type="date" value={followUpDate || ''} onChange={e => setFollowUpDate(e.target.value)} />
+										<Button variant="outline" onClick={() => setFollowUpDate(new Date(Date.now() + 7*24*60*60*1000).toISOString().slice(0,10))}>1w</Button>
+										<Button variant="outline" onClick={() => setFollowUpDate(new Date(Date.now() + 14*24*60*60*1000).toISOString().slice(0,10))}>2w</Button>
+										<Button variant="outline" onClick={() => setFollowUpDate(new Date(Date.now() + 42*24*60*60*1000).toISOString().slice(0,10))}>6w</Button>
+										<Input placeholder="Reason" value={followUpReason} onChange={e => setFollowUpReason(e.target.value)} />
+									</div>
+								)}
+								{followUpNeeded && followUpDate && (
+									<Button onClick={async () => {
+										await sb.from('appointment_follow_ups').insert({ appointment_id: appointment.id, follow_up_type: 'in_person', status: 'pending', scheduled_date: new Date(followUpDate).toISOString(), notes: followUpReason });
+										toast({ title: 'Follow-up created' });
+									}}>Create Follow-Up</Button>
+								)}
+							</div>
+							<div className="space-y-2">
+								<Label>Predictive next visit</Label>
+								<Select value={predictiveChoice} onValueChange={setPredictiveChoice}>
+									<SelectTrigger><SelectValue placeholder="Select due visit type" /></SelectTrigger>
+									<SelectContent>
+										<SelectItem value="Cleaning (6 months)">Cleaning (6 months)</SelectItem>
+										<SelectItem value="Filling follow-up (2 weeks)">Filling follow-up (2 weeks)</SelectItem>
+										<SelectItem value="Root canal check (2–4 weeks)">Root canal check (2–4 weeks)</SelectItem>
+										<SelectItem value="Implant review (2 weeks, then 3 months)">Implant review (2 weeks, then 3 months)</SelectItem>
+										<SelectItem value="Ortho adjustment (3–6 weeks)">Ortho adjustment (3–6 weeks)</SelectItem>
+										<SelectItem value="Extraction follow-up (7–10 days)">Extraction follow-up (7–10 days)</SelectItem>
+										<SelectItem value="General exam (12 months)">General exam (12 months)</SelectItem>
+									</SelectContent>
+								</Select>
+								<p className="text-xs text-muted-foreground">Auto-generates 3 valid slots and notifies the patient.</p>
+							</div>
+						</div>
+					</CardContent>
+				</Card>
 
 					{/* G. Files / X-rays */}
 					<Card>
