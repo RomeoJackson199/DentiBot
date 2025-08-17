@@ -16,6 +16,7 @@ import { emitAnalyticsEvent } from "@/lib/analyticsEvents";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { withSchemaReloadRetry } from "@/integrations/supabase/retry";
+import { SKU_DISPLAY_NAME, PROCEDURE_DEFS, type ProcedureDef } from "@/lib/constants";
 
 interface AppointmentCompletionModalProps {
 	open: boolean;
@@ -31,59 +32,6 @@ interface AppointmentCompletionModalProps {
 	onCompleted: () => void;
 }
 
-// Add procedure definitions with default prices and supplies
-interface ProcedureDef {
-	key: string;
-	name: string;
-	defaultPrice: number;
-	defaultDurationMin: number;
-	defaultSupplies: Array<{ sku: string; qty: number }>;
-}
-
-const SKU_DISPLAY_NAME: Record<string, string> = {
-	gloves: 'Gloves',
-	mask: 'Mask',
-	prophy_paste: 'Prophy Paste',
-	disposable_cup: 'Disposable cup',
-	anesthesia_cartridge: 'Anesthesia Cartridge',
-	composite: 'Composite Syringe',
-	bonding_agent: 'Bonding Agent',
-	gauze: 'Gauze Pad',
-	scalpel: 'Scalpel',
-	sutures: 'Sutures',
-	files: 'Files',
-	sealer: 'Sealer',
-	bur: 'Bur',
-	impression_material: 'Impression Material',
-	implant_kit: 'Implant Kit',
-	drill: 'Drill',
-	xray_film: 'X-ray film',
-	scaler_tip: 'Scaler tip',
-	fluoride_gel: 'Fluoride gel',
-	tray: 'Tray',
-	pliers: 'Pliers',
-	elastic: 'Elastic',
-	forceps: 'Forceps',
-};
-
-const PROCEDURE_DEFS: ProcedureDef[] = [
-	{ key: 'cleaning', name: 'Cleaning', defaultPrice: 50, defaultDurationMin: 30, defaultSupplies: [ { sku: 'prophy_paste', qty: 1 }, { sku: 'disposable_cup', qty: 1 }, { sku: 'gloves', qty: 1 }, { sku: 'mask', qty: 1 } ] },
-	{ key: 'extraction_simple', name: 'Extraction (simple)', defaultPrice: 75, defaultDurationMin: 30, defaultSupplies: [ { sku: 'forceps', qty: 1 }, { sku: 'anesthesia_cartridge', qty: 1 }, { sku: 'gloves', qty: 1 }, { sku: 'gauze', qty: 2 } ] },
-	{ key: 'extraction_surgical', name: 'Extraction (surgical)', defaultPrice: 150, defaultDurationMin: 60, defaultSupplies: [ { sku: 'scalpel', qty: 1 }, { sku: 'anesthesia_cartridge', qty: 2 }, { sku: 'sutures', qty: 1 }, { sku: 'gloves', qty: 1 }, { sku: 'gauze', qty: 4 } ] },
-	{ key: 'filling_1', name: 'Filling (1 surface)', defaultPrice: 80, defaultDurationMin: 30, defaultSupplies: [ { sku: 'composite', qty: 1 }, { sku: 'bonding_agent', qty: 1 }, { sku: 'anesthesia_cartridge', qty: 1 }, { sku: 'gloves', qty: 1 }, { sku: 'mask', qty: 1 } ] },
-	{ key: 'filling_2', name: 'Filling (2 surfaces)', defaultPrice: 120, defaultDurationMin: 40, defaultSupplies: [ { sku: 'composite', qty: 1 }, { sku: 'bonding_agent', qty: 1 }, { sku: 'anesthesia_cartridge', qty: 1 }, { sku: 'gloves', qty: 1 }, { sku: 'mask', qty: 1 } ] },
-	{ key: 'filling_3_plus', name: 'Filling (3+ surfaces)', defaultPrice: 150, defaultDurationMin: 50, defaultSupplies: [ { sku: 'composite', qty: 2 }, { sku: 'bonding_agent', qty: 1 }, { sku: 'anesthesia_cartridge', qty: 1 }, { sku: 'gloves', qty: 1 }, { sku: 'mask', qty: 1 } ] },
-	{ key: 'root_canal_anterior', name: 'Root canal (anterior)', defaultPrice: 200, defaultDurationMin: 60, defaultSupplies: [ { sku: 'files', qty: 1 }, { sku: 'sealer', qty: 1 }, { sku: 'anesthesia_cartridge', qty: 1 }, { sku: 'gloves', qty: 1 }, { sku: 'mask', qty: 1 } ] },
-	{ key: 'root_canal_molar', name: 'Root canal (molar)', defaultPrice: 350, defaultDurationMin: 90, defaultSupplies: [ { sku: 'files', qty: 2 }, { sku: 'sealer', qty: 1 }, { sku: 'anesthesia_cartridge', qty: 2 }, { sku: 'gloves', qty: 1 }, { sku: 'mask', qty: 1 } ] },
-	{ key: 'crown_prep', name: 'Crown preparation', defaultPrice: 400, defaultDurationMin: 90, defaultSupplies: [ { sku: 'bur', qty: 1 }, { sku: 'impression_material', qty: 1 }, { sku: 'gloves', qty: 1 }, { sku: 'mask', qty: 1 } ] },
-	{ key: 'implant_placement', name: 'Implant placement', defaultPrice: 1000, defaultDurationMin: 120, defaultSupplies: [ { sku: 'implant_kit', qty: 1 }, { sku: 'drill', qty: 1 }, { sku: 'gloves', qty: 1 }, { sku: 'sutures', qty: 1 }, { sku: 'mask', qty: 1 }, { sku: 'gauze', qty: 4 } ] },
-	{ key: 'bitewing_xray', name: 'Bitewing X-ray (2)', defaultPrice: 25, defaultDurationMin: 10, defaultSupplies: [ { sku: 'xray_film', qty: 2 }, { sku: 'gloves', qty: 1 } ] },
-	{ key: 'panoramic_xray', name: 'Panoramic X-ray', defaultPrice: 60, defaultDurationMin: 15, defaultSupplies: [ { sku: 'xray_film', qty: 1 }, { sku: 'gloves', qty: 1 } ] },
-	{ key: 'scaling_quadrant', name: 'Scaling per quadrant', defaultPrice: 90, defaultDurationMin: 45, defaultSupplies: [ { sku: 'scaler_tip', qty: 1 }, { sku: 'gloves', qty: 1 }, { sku: 'mask', qty: 1 } ] },
-	{ key: 'fluoride', name: 'Fluoride application', defaultPrice: 40, defaultDurationMin: 15, defaultSupplies: [ { sku: 'fluoride_gel', qty: 1 }, { sku: 'tray', qty: 1 }, { sku: 'gloves', qty: 1 } ] },
-	{ key: 'night_guard_impression', name: 'Night guard impression', defaultPrice: 150, defaultDurationMin: 30, defaultSupplies: [ { sku: 'impression_material', qty: 1 }, { sku: 'tray', qty: 1 }, { sku: 'gloves', qty: 1 } ] },
-	{ key: 'ortho_adjustment', name: 'Ortho adjustment', defaultPrice: 100, defaultDurationMin: 30, defaultSupplies: [ { sku: 'pliers', qty: 1 }, { sku: 'elastic', qty: 1 }, { sku: 'gloves', qty: 1 } ] },
-];
 
 interface TreatmentItemForm {
 	code: string;
@@ -536,10 +484,6 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 						vat_amount: t.vat_amount
 					}))
 				);
-				// Emit per code
-				for (const t of treatments) {
-					await emitAnalyticsEvent('TREATMENTS_PERFORMED', dentistId, { appointmentId: appointment.id, code: t.code, quantity: t.quantity });
-				}
 			}
 
 			// Treatment plan (optional)

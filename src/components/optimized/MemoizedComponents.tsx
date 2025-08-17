@@ -1,43 +1,29 @@
-import React, { memo } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React from 'react';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { STATUS_COLORS, URGENCY_COLORS } from '@/lib/constants';
 
-// Memoized Card component to prevent unnecessary re-renders
-export const MemoizedCard = memo(Card);
-export const MemoizedCardContent = memo(CardContent);
-export const MemoizedCardHeader = memo(CardHeader);
-export const MemoizedCardTitle = memo(CardTitle);
+// Memoized status badge component
+export const StatusBadge = React.memo<{ status: string }>(({ status }) => {
+  const colorClass = STATUS_COLORS[status as keyof typeof STATUS_COLORS] || STATUS_COLORS.draft;
+  
+  return (
+    <Badge className={colorClass}>
+      {status}
+    </Badge>
+  );
+});
 
-// Memoized UI components
-export const MemoizedBadge = memo(Badge);
-export const MemoizedButton = memo(Button);
+StatusBadge.displayName = 'StatusBadge';
 
-// Memoized list item component
-interface ListItemProps {
-  title: string;
-  description?: string;
-  status?: string;
-  onClick?: () => void;
-}
+// Memoized urgency badge component
+export const UrgencyBadge = React.memo<{ urgency: string }>(({ urgency }) => {
+  const colorClass = URGENCY_COLORS[urgency as keyof typeof URGENCY_COLORS] || URGENCY_COLORS.low;
+  
+  return (
+    <Badge className={colorClass}>
+      {urgency}
+    </Badge>
+  );
+});
 
-export const MemoizedListItem = memo(({ title, description, status, onClick }: ListItemProps) => (
-  <div className="flex items-center justify-between p-4 border-b border-dental-muted/20 hover:bg-dental-muted/5 transition-colors">
-    <div className="flex-1">
-      <h4 className="font-medium text-dental-foreground">{title}</h4>
-      {description && (
-        <p className="text-sm text-dental-muted-foreground mt-1">{description}</p>
-      )}
-    </div>
-    <div className="flex items-center space-x-2">
-      {status && <MemoizedBadge variant="outline">{status}</MemoizedBadge>}
-      {onClick && (
-        <MemoizedButton variant="ghost" size="sm" onClick={onClick}>
-          View
-        </MemoizedButton>
-      )}
-    </div>
-  </div>
-));
-
-MemoizedListItem.displayName = 'MemoizedListItem';
+UrgencyBadge.displayName = 'UrgencyBadge';

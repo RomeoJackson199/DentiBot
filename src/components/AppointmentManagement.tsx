@@ -34,6 +34,8 @@ import { format } from "date-fns";
 import { generateSymptomSummary } from "@/lib/symptoms";
 import { AIConversationDialog } from "@/components/AIConversationDialog";
 import { CompletionSheet } from "@/components/CompletionSheet";
+import { AppointmentList } from "@/components/optimized/AppointmentList";
+import { AppointmentStats } from "@/components/optimized/AppointmentStats";
 
 interface Appointment {
   id: string;
@@ -220,34 +222,6 @@ export function AppointmentManagement({ dentistId }: AppointmentManagementProps)
     }
   };
 
-  const today = new Date();
-  const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-  const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
-
-  const todayAppointments = appointments
-    .filter(apt => {
-      const date = new Date(apt.appointment_date);
-      return date >= startOfDay && date < endOfDay;
-    })
-    .sort((a, b) =>
-      new Date(a.appointment_date).getTime() - new Date(b.appointment_date).getTime()
-    );
-
-  const filteredAppointments = searchTerm
-    ? appointments
-        .filter(appointment =>
-          appointment.patient_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          appointment.reason?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          format(new Date(appointment.appointment_date), 'PPP p')
-            .toLowerCase()
-            .includes(searchTerm.toLowerCase())
-        )
-        .sort(
-          (a, b) =>
-            new Date(a.appointment_date).getTime() -
-            new Date(b.appointment_date).getTime()
-        )
-    : todayAppointments;
 
   if (loading) {
     return (
@@ -309,38 +283,7 @@ export function AppointmentManagement({ dentistId }: AppointmentManagementProps)
           </div>
 
           {/* Statistics */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <Card>
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-dental-primary">{appointments.length}</div>
-                <div className="text-sm text-muted-foreground">Total Appointments</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-green-600">
-                  {appointments.filter(a => a.status === 'completed').length}
-                </div>
-                <div className="text-sm text-muted-foreground">Completed</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-blue-600">
-                  {appointments.filter(a => new Date(a.appointment_date) > new Date() && a.status !== 'cancelled').length}
-                </div>
-                <div className="text-sm text-muted-foreground">Upcoming</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-red-600">
-                  {appointments.filter(a => a.urgency === 'high').length}
-                </div>
-                <div className="text-sm text-muted-foreground">High Priority</div>
-              </CardContent>
-            </Card>
-          </div>
+          <AppointmentStats appointments={appointments} />
         </CardContent>
       </Card>
 
@@ -349,74 +292,54 @@ export function AppointmentManagement({ dentistId }: AppointmentManagementProps)
         <h3 className="text-lg font-semibold">
           {searchTerm ? "Search Results" : "Today's Appointments"}
         </h3>
-        {filteredAppointments.length === 0 ? (
-          <Card>
-            <CardContent className="p-8 text-center text-muted-foreground">
-              {searchTerm ? "No appointments found matching your search." : "No appointments for today."}
-            </CardContent>
-          </Card>
-        ) : (
-          filteredAppointments.map((appointment) => (
-            <AppointmentConfirmationWidget
-              key={appointment.id}
-              appointment={{
-                id: appointment.id,
-                patient_name: appointment.patient_name || 'Unknown Patient',
-                appointment_date: appointment.appointment_date,
-                duration_minutes: appointment.duration_minutes,
-                status: appointment.status,
-                urgency: appointment.urgency,
-                reason: appointment.reason,
-                 consultation_notes: appointment.consultation_notes
-              }}
-              isDentistView={true}
-              onConfirm={async () => {
-                try {
-                  const { error } = await supabase
-                    .from('appointments')
-                    .update({ status: 'confirmed' })
-                    .eq('id', appointment.id);
-                  if (error) throw error;
-                  fetchAppointments();
-                } catch (error: unknown) {
-                  throw new Error(error instanceof Error ? error.message : "Unknown error");
-                }
-              }}
-              onCancel={async () => {
-                try {
-                  const { error } = await supabase
-                    .from('appointments')
-                    .update({ status: 'cancelled' })
-                    .eq('id', appointment.id);
-                  if (error) throw error;
-                  fetchAppointments();
-                } catch (error: unknown) {
-                  throw new Error(error instanceof Error ? error.message : "Unknown error");
-                }
-              }}
-              onDelete={async () => {
-                try {
-                  const { error } = await supabase
-                    .from('appointments')
-                    .delete()
-                    .eq('id', appointment.id);
-                  if (error) throw error;
-                  fetchAppointments();
-                } catch (error: unknown) {
-                  throw new Error(error instanceof Error ? error.message : "Unknown error");
-                }
-              }}
-              onViewDetails={() => {
-                setSelectedAppointment(appointment);
-              }}
-              onComplete={() => {
-                setSelectedAppointment(appointment);
-                setShowCompletion(true);
-              }}
-              className="mb-4"
-            />
-          ))
-        )}
+        <AppointmentList
+          appointments={appointments}
+          searchTerm={searchTerm}
+          isDentistView={true}
+          onConfirm={async (appointmentId) => {
+            try {
+              const { error } = await supabase
+                .from('appointments')
+                .update({ status: 'confirmed' })
+                .eq('id', appointmentId);
+              if (error) throw error;
+              fetchAppointments();
+            } catch (error: unknown) {
+              throw new Error(error instanceof Error ? error.message : "Unknown error");
+            }
+          }}
+          onCancel={async (appointmentId) => {
+            try {
+              const { error } = await supabase
+                .from('appointments')
+                .update({ status: 'cancelled' })
+                .eq('id', appointmentId);
+              if (error) throw error;
+              fetchAppointments();
+            } catch (error: unknown) {
+              throw new Error(error instanceof Error ? error.message : "Unknown error");
+            }
+          }}
+          onDelete={async (appointmentId) => {
+            try {
+              const { error } = await supabase
+                .from('appointments')
+                .delete()
+                .eq('id', appointmentId);
+              if (error) throw error;
+              fetchAppointments();
+            } catch (error: unknown) {
+              throw new Error(error instanceof Error ? error.message : "Unknown error");
+            }
+          }}
+          onViewDetails={(appointment) => {
+            setSelectedAppointment(appointment);
+          }}
+          onComplete={(appointment) => {
+            setSelectedAppointment(appointment);
+            setShowCompletion(true);
+          }}
+        />
       </div>
       {selectedAppointment && (
         <CompletionSheet
