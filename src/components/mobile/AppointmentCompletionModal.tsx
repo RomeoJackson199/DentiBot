@@ -207,7 +207,7 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 			const { data: existing } = await sb.from('invoices').select('id').eq('appointment_id', appointment.id).order('created_at', { ascending: false }).limit(1).maybeSingle();
 			let invoiceId = existing?.id;
 			if (!invoiceId) {
-				const { data: invoice, error: invErr } = await withSchemaReloadRetry(() => sb.from('invoices').insert({
+				const invoice = await withSchemaReloadRetry(() => sb.from('invoices').insert({
 					appointment_id: appointment.id,
 					patient_id: appt.patient_id,
 					dentist_id: appt.dentist_id,
@@ -217,8 +217,10 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 					vat_amount_cents: vatCents,
 					status: 'issued',
 					claim_status: 'to_be_submitted'
-				}).select('*').single(), sb);
-				if (invErr) throw invErr;
+				}).select('*').single().then(res => {
+					if (res.error) throw res.error;
+					return res.data;
+				}), sb) as { id: string };
 				invoiceId = invoice.id;
 				await sb.from('invoice_items').insert(
 					treatments.map(t => ({
@@ -646,7 +648,7 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 					const notFound = code === 'PGRST202' || code === '404';
 					if (missingFunction || notFound) {
 						// Fallback: create invoice and items non-atomically; inventory deduction handled later
-						const { data: invoice, error: invErr } = await withSchemaReloadRetry(() => sb.from('invoices').insert({
+						const invoice = await withSchemaReloadRetry(() => sb.from('invoices').insert({
 							appointment_id: appointment.id,
 							patient_id: current.patient_id,
 							dentist_id: current.dentist_id,
@@ -656,8 +658,10 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 							vat_amount_cents: Math.round(totals.vat * 100),
 							status: 'draft',
 							claim_status: 'to_be_submitted'
-						}).select('*').single(), sb);
-						if (invErr) throw invErr;
+						}).select('*').single().then(res => {
+							if (res.error) throw res.error;
+							return res.data;
+						}), sb) as { id: string };
 						invoiceId = invoice.id;
 						await sb.from('invoice_items').insert(items.map(it => ({
 							invoice_id: invoice.id,

@@ -661,6 +661,7 @@ export type Database = {
       dentists: {
         Row: {
           average_rating: number | null
+          clinic_address: string | null
           communication_score: number | null
           created_at: string
           expertise_score: number | null
@@ -675,6 +676,7 @@ export type Database = {
         }
         Insert: {
           average_rating?: number | null
+          clinic_address?: string | null
           communication_score?: number | null
           created_at?: string
           expertise_score?: number | null
@@ -689,6 +691,7 @@ export type Database = {
         }
         Update: {
           average_rating?: number | null
+          clinic_address?: string | null
           communication_score?: number | null
           created_at?: string
           expertise_score?: number | null
@@ -1026,6 +1029,98 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      invoice_items: {
+        Row: {
+          code: string
+          created_at: string
+          description: string
+          id: string
+          invoice_id: string
+          mutuality_cents: number
+          patient_cents: number
+          quantity: number
+          tariff_cents: number
+          vat_cents: number
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          description: string
+          id?: string
+          invoice_id: string
+          mutuality_cents?: number
+          patient_cents?: number
+          quantity?: number
+          tariff_cents?: number
+          vat_cents?: number
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          description?: string
+          id?: string
+          invoice_id?: string
+          mutuality_cents?: number
+          patient_cents?: number
+          quantity?: number
+          tariff_cents?: number
+          vat_cents?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_items_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoices: {
+        Row: {
+          appointment_id: string | null
+          claim_status: string
+          created_at: string
+          dentist_id: string
+          id: string
+          mutuality_amount_cents: number
+          patient_amount_cents: number
+          patient_id: string
+          status: string
+          total_amount_cents: number
+          updated_at: string
+          vat_amount_cents: number
+        }
+        Insert: {
+          appointment_id?: string | null
+          claim_status?: string
+          created_at?: string
+          dentist_id: string
+          id?: string
+          mutuality_amount_cents?: number
+          patient_amount_cents?: number
+          patient_id: string
+          status?: string
+          total_amount_cents?: number
+          updated_at?: string
+          vat_amount_cents?: number
+        }
+        Update: {
+          appointment_id?: string | null
+          claim_status?: string
+          created_at?: string
+          dentist_id?: string
+          id?: string
+          mutuality_amount_cents?: number
+          patient_amount_cents?: number
+          patient_id?: string
+          status?: string
+          total_amount_cents?: number
+          updated_at?: string
+          vat_amount_cents?: number
+        }
+        Relationships: []
       }
       medical_records: {
         Row: {
@@ -1554,6 +1649,51 @@ export type Database = {
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      recalls: {
+        Row: {
+          appointment_id: string | null
+          booked_appointment_id: string | null
+          created_at: string
+          dentist_id: string
+          due_date: string
+          id: string
+          patient_id: string
+          status: string
+          suggested_slots: Json | null
+          treatment_key: string
+          treatment_label: string
+          updated_at: string
+        }
+        Insert: {
+          appointment_id?: string | null
+          booked_appointment_id?: string | null
+          created_at?: string
+          dentist_id: string
+          due_date: string
+          id?: string
+          patient_id: string
+          status?: string
+          suggested_slots?: Json | null
+          treatment_key: string
+          treatment_label: string
+          updated_at?: string
+        }
+        Update: {
+          appointment_id?: string | null
+          booked_appointment_id?: string | null
+          created_at?: string
+          dentist_id?: string
+          due_date?: string
+          id?: string
+          patient_id?: string
+          status?: string
+          suggested_slots?: Json | null
+          treatment_key?: string
+          treatment_label?: string
+          updated_at?: string
         }
         Relationships: []
       }
