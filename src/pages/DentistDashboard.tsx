@@ -17,17 +17,19 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { ClinicalToday } from "@/components/ClinicalToday";
 import { MessagesPane } from "@/components/messages/MessagesPane";
+import { InventoryManager } from "@/components/inventory/InventoryManager";
 
 interface DentistDashboardProps {
   user: User;
 }
 
 export function DentistDashboard({ user }: DentistDashboardProps) {
-  const [activeTab, setActiveTab] = useState<'clinical' | 'patients' | 'messages' | 'payments' | 'analytics' | 'availability' | 'manage' | 'debug'>('clinical');
+  const [activeTab, setActiveTab] = useState<'clinical' | 'patients' | 'messages' | 'payments' | 'analytics' | 'availability' | 'manage' | 'debug' | 'inventory'>('clinical');
   const [dentistId, setDentistId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [showChangelog, setShowChangelog] = useState(false);
   const { toast } = useToast();
+  const [inventoryLowCount, setInventoryLowCount] = useState<number>(0);
 
   useEffect(() => {
     fetchDentistProfile();
@@ -39,6 +41,12 @@ export function DentistDashboard({ user }: DentistDashboardProps) {
       setShowChangelog(true);
     }
   }, [dentistId, loading]);
+
+  useEffect(() => {
+    if (window?.location?.hash === '#inventory') {
+      setActiveTab('inventory');
+    }
+  }, []);
 
   const fetchDentistProfile = async () => {
     try {
@@ -62,6 +70,13 @@ export function DentistDashboard({ user }: DentistDashboardProps) {
       }
 
       setDentistId(dentist.id);
+      // Fetch low stock count for badge
+      const { data: items } = await (supabase as any)
+        .from('inventory_items')
+        .select('quantity, min_threshold')
+        .eq('dentist_id', dentist.id);
+      const low = (items || []).filter((i: any) => i.quantity < i.min_threshold).length;
+      setInventoryLowCount(low);
     } catch (error: unknown) {
       toast({
         title: "Error",
@@ -144,11 +159,16 @@ export function DentistDashboard({ user }: DentistDashboardProps) {
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         dentistId={dentistId || ''}
+        inventoryBadgeCount={inventoryLowCount}
       >
         {dentistId && (
           <>
             {activeTab === 'clinical' && (
               <ClinicalToday dentistId={dentistId} user={user} onOpenPatientsTab={() => setActiveTab('patients')} />
+            )}
+            
+            {activeTab === 'inventory' && (
+              <InventoryManager dentistId={dentistId} userId={user.id} />
             )}
             
             {activeTab === 'availability' && (
