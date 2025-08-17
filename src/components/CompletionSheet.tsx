@@ -16,6 +16,7 @@ import { Switch } from "@/components/ui/switch";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { emitAnalyticsEvent } from "@/lib/analyticsEvents";
 import { mapDentistPortalSelectionToKey, createRecall } from "@/lib/recalls";
+import { withSchemaReloadRetry } from "@/integrations/supabase/retry";
 
 interface CompletionSheetProps {
 	open: boolean;
@@ -361,7 +362,7 @@ export function CompletionSheet({ open, onOpenChange, appointment, dentistId, on
 						const notFound = code === 'PGRST202' || code === '404';
 						if (missingFunction || notFound) {
 							// Fallback: create invoice and items non-atomically; inventory deduction handled later
-							const { data: invoice, error: invErr } = await sb.from('invoices').insert({
+							const { data: invoice, error: invErr } = await withSchemaReloadRetry(() => sb.from('invoices').insert({
 								appointment_id: appointment.id,
 								patient_id: appointment.patient_id,
 								dentist_id: appointment.dentist_id,
@@ -371,7 +372,7 @@ export function CompletionSheet({ open, onOpenChange, appointment, dentistId, on
 								vat_amount_cents: 0,
 								status: 'draft',
 								claim_status: 'to_be_submitted'
-							}).select('*').single();
+							}).select('*').single(), sb);
 							if (invErr) throw invErr;
 							invoiceId = invoice.id;
 							await sb.from('invoice_items').insert(procedures.map(p => ({
@@ -393,7 +394,7 @@ export function CompletionSheet({ open, onOpenChange, appointment, dentistId, on
 						atomicSuccess = true;
 					}
 				} else {
-					const { data: invoice, error: invErr } = await sb.from('invoices').insert({
+					const { data: invoice, error: invErr } = await withSchemaReloadRetry(() => sb.from('invoices').insert({
 						appointment_id: appointment.id,
 						patient_id: appointment.patient_id,
 						dentist_id: appointment.dentist_id,
@@ -403,7 +404,7 @@ export function CompletionSheet({ open, onOpenChange, appointment, dentistId, on
 						vat_amount_cents: 0,
 						status: 'draft',
 						claim_status: 'to_be_submitted'
-					}).select('*').single();
+					}).select('*').single(), sb);
 					if (invErr) throw invErr;
 					invoiceId = invoice.id;
 					await sb.from('invoice_items').insert(procedures.map(p => ({
