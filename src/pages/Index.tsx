@@ -7,20 +7,15 @@ import { OnboardingPopup } from "@/components/OnboardingPopup";
 import { LanguageSelection } from "@/components/LanguageSelection";
 import { Header } from "@/components/homepage/Header";
 import { ModernHeroSection } from "@/components/homepage/ModernHeroSection";
-import { ModernFeatureCards } from "@/components/homepage/ModernFeatureCards";
-import { StatsSection } from "@/components/homepage/StatsSection";
 import { Footer } from "@/components/homepage/Footer";
 import { AppointmentBookingWithAuth } from "@/components/AppointmentBookingWithAuth";
 import { EmergencyTriageForm } from "@/components/EmergencyTriageForm";
-import { FloatingEmergencyButton } from "@/components/FloatingEmergencyButton";
 import { useToast } from "@/hooks/use-toast";
 import { Stethoscope } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
 import { createDossierAfterSignup } from "@/lib/medicalRecords";
 import { SimpleDatabaseSaveTest } from "@/components/SimpleDatabaseSaveTest";
 import { Card } from "@/components/ui/card";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { InteractiveDentalChat } from "@/components/chat/InteractiveDentalChat";
 const Index = () => {
   const {
     t,
@@ -33,7 +28,7 @@ const Index = () => {
   const [showLanguageSelection, setShowLanguageSelection] = useState(false);
   const [showAppointmentBooking, setShowAppointmentBooking] = useState(false);
   const [showEmergencyTriage, setShowEmergencyTriage] = useState(false);
-  const [showAIChat, setShowAIChat] = useState(false);
+
   const isMountedRef = useRef(true);
   const {
     toast
@@ -243,35 +238,18 @@ const Index = () => {
 
   // Show the new professional homepage for non-authenticated users
   return <div className="min-h-screen mesh-bg">
-      <Header user={user} />
+      <Header user={user} minimal />
       <ModernHeroSection
+        minimal
         onBookAppointment={() => setShowAppointmentBooking(true)}
         onStartTriage={() => setShowEmergencyTriage(true)}
-        onOpenAIChat={() => setShowAIChat(true)}
       />
-      <ModernFeatureCards />
-      <StatsSection />
 
-      {/* Footer CTA Section */}
-      <section className="py-20 border-t border-white/10">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="max-w-2xl mx-auto space-y-8">
-            <h2 className="text-3xl sm:text-4xl font-bold gradient-text">
-              Ready to Transform Your Practice?
-            </h2>
-            <p className="text-xl text-dental-muted-foreground">
-              Join thousands of dental professionals who have revolutionized patient care with AI.
-            </p>
-            <div className="space-y-4">
-              <ProgressiveAuthForm />
-              
-            </div>
-          </div>
+      <section className="py-16">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center max-w-md">
+          <ProgressiveAuthForm />
         </div>
       </section>
-
-      {/* Floating Emergency Button */}
-      <FloatingEmergencyButton onEmergencyClick={() => setShowEmergencyTriage(true)} />
 
       <Footer />
 
@@ -280,15 +258,6 @@ const Index = () => {
 
       {/* Onboarding Popup */}
       <OnboardingPopup isOpen={showOnboarding} onClose={handleOnboardingClose} />
-
-      {/* AI Chat Modal */}
-      <Dialog open={showAIChat} onOpenChange={setShowAIChat}>
-        <DialogContent className="p-0 max-w-3xl w-full">
-          <div className="h-[80vh]">
-            <InteractiveDentalChat user={user} />
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>;
 };
 export default Index;
