@@ -11,19 +11,21 @@ import {
   Settings, 
   Database,
   Stethoscope,
-  MessageSquare
+  MessageSquare,
+  Package
 } from "lucide-react";
 
-type TabType = 'clinical' | 'patients' | 'messages' | 'payments' | 'analytics' | 'availability' | 'manage' | 'debug';
+type TabType = 'clinical' | 'patients' | 'messages' | 'payments' | 'analytics' | 'availability' | 'manage' | 'debug' | 'inventory';
 
 interface MobileDentistTabsProps {
   activeTab: TabType;
   setActiveTab: (tab: TabType) => void;
   dentistId: string;
   children: React.ReactNode;
+  inventoryBadgeCount?: number;
 }
 
-export function MobileDentistTabs({ activeTab, setActiveTab, dentistId, children }: MobileDentistTabsProps) {
+export function MobileDentistTabs({ activeTab, setActiveTab, dentistId, children, inventoryBadgeCount = 0 }: MobileDentistTabsProps) {
   const { isMobile, cardClass } = useMobileOptimizations();
 
   const tabGroups = [
@@ -51,6 +53,14 @@ export function MobileDentistTabs({ activeTab, setActiveTab, dentistId, children
       tabs: [
         { id: 'payments' as TabType, label: 'Payments', icon: CreditCard },
         { id: 'analytics' as TabType, label: 'Analytics', icon: BarChart3 },
+      ]
+    },
+    {
+      id: 'inventory',
+      title: 'Inventory',
+      icon: Package,
+      tabs: [
+        { id: 'inventory' as TabType, label: 'Inventory', icon: Package, badge: inventoryBadgeCount > 0 ? String(inventoryBadgeCount) : undefined },
       ]
     },
     {
@@ -127,7 +137,7 @@ export function MobileDentistTabs({ activeTab, setActiveTab, dentistId, children
 
         {/* Bottom Navigation - Improved height and spacing */}
         <div className="fixed bottom-0 left-0 right-0 bg-background/98 backdrop-blur-lg border-t border-border/50 safe-area-inset-bottom z-50">
-          <div className="grid grid-cols-4 gap-2 p-3">
+          <div className="grid grid-cols-5 gap-2 p-3">
             {tabGroups.map((group) => {
               const isCurrentGroup = group.tabs.some(tab => tab.id === activeTab);
               const hasUrgentBadge = group.tabs.some(tab => (tab as any).badge);
@@ -172,7 +182,7 @@ export function MobileDentistTabs({ activeTab, setActiveTab, dentistId, children
         {/* Grouped Tab Navigation for Desktop - Improved layout */}
         <div className="flex justify-center mb-10">
           <div className="glass-card rounded-3xl p-6 animate-fade-in max-w-7xl w-full">
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
               {tabGroups.map((group) => (
                 <Card key={group.id} className="border-0 bg-background/60 backdrop-blur-sm hover:bg-background/70 transition-all duration-200">
                   <CardHeader className="pb-4">

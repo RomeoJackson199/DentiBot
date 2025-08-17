@@ -179,6 +179,13 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 	// G. Files (we will store references in medical_records with appointment_id)
 	const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
 
+	// H. Inventory Deduction
+	const [treatmentTypes, setTreatmentTypes] = useState<Array<{ id: string; name: string }>>([]);
+	const [selectedTreatmentTypeId, setSelectedTreatmentTypeId] = useState<string | null>(null);
+	const [manualSupplies, setManualSupplies] = useState<Array<{ item_id: string; name: string; quantity: number }>>([]);
+	const [inventoryItems, setInventoryItems] = useState<Array<{ id: string; name: string }>>([]);
+	const [currentProfileId, setCurrentProfileId] = useState<string | null>(null);
+
 	useEffect(() => {
 		if (!open) return;
 		// Load tariffs subset for quick search
@@ -191,6 +198,17 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 			if (!error && data) setAvailableTariffs(data as any);
 		})();
 	}, [open]);
+
+	useEffect(() => {
+		(async () => {
+			const { data: types } = await sb.from('treatment_types').select('id, name').eq('is_active', true).order('name');
+			setTreatmentTypes((types || []) as any);
+			const { data: inv } = await sb.from('inventory_items').select('id, name').eq('dentist_id', dentistId).order('name');
+			setInventoryItems((inv || []) as any);
+			const { data: prof } = await sb.from('profiles').select('id').eq('user_id', (await sb.auth.getUser()).data.user?.id).single();
+			if (prof) setCurrentProfileId(prof.id);
+		})();
+	}, [dentistId]);
 
 	// Insurance profile
 	const [insuranceProfile, setInsuranceProfile] = useState<any | null>(null);
@@ -249,10 +267,87 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 		setTreatments(prev => prev.filter((_, i) => i !== index));
 	};
 
+	const addManualSupply = (itemId: string, quantity: number) => {
+		const item = inventoryItems.find(i => i.id === itemId);
+		if (!item) return;
+		setManualSupplies(prev => [...prev, { item_id: itemId, name: item.name, quantity: Math.max(1, quantity) }]);
+	};
+
+	const removeManualSupply = (idx: number) => {
+		setManualSupplies(prev => prev.filter((_, i) => i !== idx));
+	};
+
+	const deductInventoryForAppointment = async () => {
+		if (!currentProfileId) return;
+		// 1) Build deduction list from mapping
+		let deductions: Array<{ item_id: string; quantity: number }> = [];
+		if (selectedTreatmentTypeId) {
+			const { data: mapped } = await sb
+				.from('treatment_supply_mappings')
+				.select('item_id, quantity')
+				.eq('dentist_id', dentistId)
+				.eq('treatment_type_id', selectedTreatmentTypeId);
+			(mapped || []).forEach((m: any) => {
+				deductions.push({ item_id: m.item_id, quantity: m.quantity });
+			});
+		}
+		// 2) Add manual supplies
+		deductions = deductions.concat(manualSupplies.map(s => ({ item_id: s.item_id, quantity: s.quantity })));
+		if (anesthesiaUsed) {
+			// If anesthesia used and there is an item named 'Anesthesia' in inventory, deduct 1 or parse dose units; keep simple as 1
+			const anesthesia = inventoryItems.find(i => i.name.toLowerCase().includes('anesthesia'));
+			if (anesthesia) deductions.push({ item_id: anesthesia.id, quantity: 1 });
+		}
+		// 3) Apply deductions
+		for (const d of deductions) {
+			try {
+				// Log adjustment
+				await sb.from('inventory_adjustments').insert({
+					item_id: d.item_id,
+					dentist_id: dentistId,
+					appointment_id: appointment.id,
+					change: -Math.abs(d.quantity),
+					adjustment_type: 'usage',
+					reason: `Appointment ${appointment.id}`,
+					created_by: currentProfileId
+				});
+				// Update item quantity
+				const { data: item } = await sb.from('inventory_items').select('quantity, min_threshold, name').eq('id', d.item_id).single();
+				const newQty = Math.max(0, (item?.quantity || 0) - Math.abs(d.quantity));
+				await sb.from('inventory_items').update({ quantity: newQty }).eq('id', d.item_id);
+				// Low stock notify
+				if (item && newQty < item.min_threshold) {
+					const { data: dent } = await sb.from('dentists').select('profile_id').eq('id', dentistId).single();
+					if (dent) {
+						const { data: prof } = await sb.from('profiles').select('user_id').eq('id', dent.profile_id).single();
+						if (prof?.user_id) {
+							await sb.from('notifications').insert({
+								user_id: prof.user_id,
+								dentist_id: dentistId,
+								type: 'inventory',
+								title: 'Low Stock Alert',
+								message: `${item.name} is below threshold (${newQty} remaining)`,
+								priority: 'high',
+								action_label: 'Open Inventory',
+								action_url: '/dashboard#inventory'
+							});
+						}
+					}
+				}
+			} catch {}
+		}
+	};
+
 	const saveAll = async (startStripe: boolean) => {
 		if (locking) return;
 		setLoading(true);
 		try {
+			// Require treatment type selection
+			if (!selectedTreatmentTypeId) {
+				toast({ title: 'Select treatment type', description: 'Please choose a treatment type (or Other) before completing the appointment.', variant: 'destructive' });
+				setLoading(false);
+				return;
+			}
 			// Prevent double-completion
 			setLocking(true);
 			const { data: current, error: fetchErr } = await sb.from('appointments').select('status, patient_id, dentist_id').eq('id', appointment.id).single();
@@ -399,6 +494,9 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 			if (rxMedName.trim()) {
 				await emitAnalyticsEvent('PRESCRIPTION_CREATED', dentistId, { appointmentId: appointment.id, medication_name: rxMedName });
 			}
+
+			// Inventory deduction
+			await deductInventoryForAppointment();
 
 			toast({ title: 'Saved', description: 'Appointment completion saved.' });
 			onCompleted();
@@ -628,6 +726,46 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 								{uploadedFiles.map((u, i) => (
 									<a key={i} href={u} target="_blank" rel="noreferrer" className="text-xs underline break-all">{u}</a>
 								))}
+							</div>
+						</CardContent>
+					</Card>
+
+					{/* H. Treatment Type & Supplies Used */}
+					<Card>
+						<CardContent className="space-y-3 p-4">
+							<h3 className="font-semibold">H. Treatment Type & Supplies</h3>
+							<Select value={selectedTreatmentTypeId || ''} onValueChange={(v: any) => setSelectedTreatmentTypeId(v)}>
+								<SelectTrigger className="w-full"><SelectValue placeholder="Select treatment type" /></SelectTrigger>
+								<SelectContent>
+									{treatmentTypes.map(tt => (<SelectItem key={tt.id} value={tt.id}>{tt.name}</SelectItem>))}
+								</SelectContent>
+							</Select>
+							<div className="space-y-2">
+								<div className="text-sm font-medium">Manual supplies used</div>
+								<div className="grid grid-cols-1 md:grid-cols-3 gap-2 items-center">
+									<Select onValueChange={(v: any) => addManualSupply(v, 1)}>
+										<SelectTrigger><SelectValue placeholder="Add item" /></SelectTrigger>
+										<SelectContent>
+											{inventoryItems.map(i => (<SelectItem key={i.id} value={i.id}>{i.name}</SelectItem>))}
+										</SelectContent>
+									</Select>
+								</div>
+								{manualSupplies.length > 0 && (
+									<div className="space-y-1">
+										{manualSupplies.map((s, idx) => (
+											<div key={`${s.item_id}-${idx}`} className="flex items-center justify-between text-sm">
+												<div className="flex items-center gap-2">
+													<span>{s.name}</span>
+													<Input type="number" className="w-24" value={s.quantity} onChange={e => {
+														const q = Math.max(1, parseInt(e.target.value || '1'));
+														setManualSupplies(prev => prev.map((x, i) => i === idx ? { ...x, quantity: q } : x));
+													}} />
+												</div>
+												<Button variant="ghost" size="sm" onClick={() => removeManualSupply(idx)}>Remove</Button>
+											</div>
+										))}
+									</div>
+								)}
 							</div>
 						</CardContent>
 					</Card>
