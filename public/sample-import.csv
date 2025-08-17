@@ -1,3 +1,4 @@
-Patient Name,Start,Dentist
-John Doe,2025-08-20 09:30,Dr. Marie Durand
-Jane Smith,2025-08-20 10:30,Dr. Pierre Martin
+first_name,last_name,email,phone,date_of_birth,address,emergency_contact,medical_history,preferred_language
+John,Doe,john.doe@email.com,555-0123,1985-06-15,"123 Main St, City, State 12345",Jane Doe - 555-0124,No known allergies,en
+Jane,Smith,jane.smith@email.com,555-0234,1990-03-22,"456 Oak Ave, City, State 12345",Bob Smith - 555-0235,Allergic to penicillin,en
+Michael,Johnson,michael.j@email.com,555-0345,1982-11-08,"789 Pine Rd, City, State 12345",Sarah Johnson - 555-0346,"Diabetes, High blood pressure",en

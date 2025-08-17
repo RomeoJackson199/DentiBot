@@ -829,6 +829,204 @@ export type Database = {
         }
         Relationships: []
       }
+      inventory_adjustments: {
+        Row: {
+          adjustment_type: string
+          created_at: string
+          created_by: string | null
+          id: string
+          item_id: string
+          quantity_change: number
+          reason: string | null
+          reference_id: string | null
+          reference_type: string | null
+        }
+        Insert: {
+          adjustment_type: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          item_id: string
+          quantity_change: number
+          reason?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+        }
+        Update: {
+          adjustment_type?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          item_id?: string
+          quantity_change?: number
+          reason?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_adjustments_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inventory_items: {
+        Row: {
+          category: string
+          cost_per_unit: number | null
+          created_at: string
+          dentist_id: string
+          expiry_date: string | null
+          id: string
+          min_threshold: number
+          name: string
+          notes: string | null
+          quantity: number
+          sku: string | null
+          supplier: string | null
+          unit: string | null
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          cost_per_unit?: number | null
+          created_at?: string
+          dentist_id: string
+          expiry_date?: string | null
+          id?: string
+          min_threshold?: number
+          name: string
+          notes?: string | null
+          quantity?: number
+          sku?: string | null
+          supplier?: string | null
+          unit?: string | null
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          cost_per_unit?: number | null
+          created_at?: string
+          dentist_id?: string
+          expiry_date?: string | null
+          id?: string
+          min_threshold?: number
+          name?: string
+          notes?: string | null
+          quantity?: number
+          sku?: string | null
+          supplier?: string | null
+          unit?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_items_dentist_id_fkey"
+            columns: ["dentist_id"]
+            isOneToOne: false
+            referencedRelation: "dentists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inventory_order_items: {
+        Row: {
+          created_at: string
+          id: string
+          item_id: string
+          order_id: string
+          quantity_ordered: number
+          quantity_received: number | null
+          unit_cost: number | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          item_id: string
+          order_id: string
+          quantity_ordered: number
+          quantity_received?: number | null
+          unit_cost?: number | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          item_id?: string
+          order_id?: string
+          quantity_ordered?: number
+          quantity_received?: number | null
+          unit_cost?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_order_items_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inventory_orders: {
+        Row: {
+          created_at: string
+          dentist_id: string
+          expected_delivery: string | null
+          id: string
+          notes: string | null
+          order_date: string | null
+          order_number: string | null
+          status: string
+          supplier: string | null
+          total_cost: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          dentist_id: string
+          expected_delivery?: string | null
+          id?: string
+          notes?: string | null
+          order_date?: string | null
+          order_number?: string | null
+          status?: string
+          supplier?: string | null
+          total_cost?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          dentist_id?: string
+          expected_delivery?: string | null
+          id?: string
+          notes?: string | null
+          order_date?: string | null
+          order_number?: string | null
+          status?: string
+          supplier?: string | null
+          total_cost?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_orders_dentist_id_fkey"
+            columns: ["dentist_id"]
+            isOneToOne: false
+            referencedRelation: "dentists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       medical_records: {
         Row: {
           attachments: Json | null
@@ -1460,6 +1658,44 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      treatment_supply_mappings: {
+        Row: {
+          created_at: string
+          id: string
+          is_optional: boolean | null
+          item_id: string
+          notes: string | null
+          quantity_per_treatment: number
+          treatment_type: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_optional?: boolean | null
+          item_id: string
+          notes?: string | null
+          quantity_per_treatment?: number
+          treatment_type: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_optional?: boolean | null
+          item_id?: string
+          notes?: string | null
+          quantity_per_treatment?: number
+          treatment_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "treatment_supply_mappings_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       urgency_assessments: {
         Row: {

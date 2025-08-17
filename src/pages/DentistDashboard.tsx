@@ -11,13 +11,13 @@ import { ChangelogPopup } from "@/components/ChangelogPopup";
 import { DebugDatabaseConnection } from "@/components/DebugDatabaseConnection";
 import { MobileDentistTabs } from "@/components/MobileDentistTabs";
 import { MobileOptimizations } from "@/components/mobile/MobileOptimizations";
+import { InventoryManager } from "@/components/inventory/InventoryManager";
 import { LogOut, Settings as SettingsIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { ClinicalToday } from "@/components/ClinicalToday";
 import { MessagesPane } from "@/components/messages/MessagesPane";
-import { InventoryManager } from "@/components/inventory/InventoryManager";
 
 interface DentistDashboardProps {
   user: User;
@@ -168,7 +168,9 @@ export function DentistDashboard({ user }: DentistDashboardProps) {
             )}
             
             {activeTab === 'inventory' && (
-              <InventoryManager dentistId={dentistId} userId={user.id} />
+              <div className="px-4 md:px-6 py-4 w-full">
+                <InventoryManager dentistId={dentistId} userId={user.id} />
+              </div>
             )}
             
             {activeTab === 'availability' && (
