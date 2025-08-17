@@ -179,20 +179,22 @@ export function MessagesInbox({ onOpenConversation }: MessagesInboxProps) {
   const createConversation = async (otherUserId: string) => {
     setCreating(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) {
+        console.error('Auth error:', authError);
         throw new Error('User not authenticated');
       }
 
-      console.log('Creating conversation with user:', otherUserId);
+      console.log('🔐 Current user ID:', user.id);
+      console.log('🎯 Creating conversation with user:', otherUserId);
 
-      // Create conversation with created_by to satisfy RLS policies
+      // Create conversation with explicit created_by for RLS
       const { data: conversation, error: convError } = await supabase
         .from('conversations')
-        .insert({
+        .insert([{
           title: null,
           created_by: user.id
-        })
+        }])
         .select()
         .single();
 
