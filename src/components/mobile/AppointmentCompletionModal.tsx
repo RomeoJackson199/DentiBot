@@ -28,6 +28,60 @@ interface AppointmentCompletionModalProps {
 	onCompleted: () => void;
 }
 
+// Add procedure definitions with default prices and supplies
+interface ProcedureDef {
+	key: string;
+	name: string;
+	defaultPrice: number;
+	defaultDurationMin: number;
+	defaultSupplies: Array<{ sku: string; qty: number }>;
+}
+
+const SKU_DISPLAY_NAME: Record<string, string> = {
+	gloves: 'Gloves',
+	mask: 'Mask',
+	prophy_paste: 'Prophy Paste',
+	disposable_cup: 'Disposable cup',
+	anesthesia_cartridge: 'Anesthesia Cartridge',
+	composite: 'Composite Syringe',
+	bonding_agent: 'Bonding Agent',
+	gauze: 'Gauze Pad',
+	scalpel: 'Scalpel',
+	sutures: 'Sutures',
+	files: 'Files',
+	sealer: 'Sealer',
+	bur: 'Bur',
+	impression_material: 'Impression Material',
+	implant_kit: 'Implant Kit',
+	drill: 'Drill',
+	xray_film: 'X-ray film',
+	scaler_tip: 'Scaler tip',
+	fluoride_gel: 'Fluoride gel',
+	tray: 'Tray',
+	pliers: 'Pliers',
+	elastic: 'Elastic',
+	forceps: 'Forceps',
+};
+
+const PROCEDURE_DEFS: ProcedureDef[] = [
+	{ key: 'cleaning', name: 'Cleaning', defaultPrice: 50, defaultDurationMin: 30, defaultSupplies: [ { sku: 'prophy_paste', qty: 1 }, { sku: 'disposable_cup', qty: 1 }, { sku: 'gloves', qty: 1 }, { sku: 'mask', qty: 1 } ] },
+	{ key: 'extraction_simple', name: 'Extraction (simple)', defaultPrice: 75, defaultDurationMin: 30, defaultSupplies: [ { sku: 'forceps', qty: 1 }, { sku: 'anesthesia_cartridge', qty: 1 }, { sku: 'gloves', qty: 1 }, { sku: 'gauze', qty: 2 } ] },
+	{ key: 'extraction_surgical', name: 'Extraction (surgical)', defaultPrice: 150, defaultDurationMin: 60, defaultSupplies: [ { sku: 'scalpel', qty: 1 }, { sku: 'anesthesia_cartridge', qty: 2 }, { sku: 'sutures', qty: 1 }, { sku: 'gloves', qty: 1 }, { sku: 'gauze', qty: 4 } ] },
+	{ key: 'filling_1', name: 'Filling (1 surface)', defaultPrice: 80, defaultDurationMin: 30, defaultSupplies: [ { sku: 'composite', qty: 1 }, { sku: 'bonding_agent', qty: 1 }, { sku: 'anesthesia_cartridge', qty: 1 }, { sku: 'gloves', qty: 1 }, { sku: 'mask', qty: 1 } ] },
+	{ key: 'filling_2', name: 'Filling (2 surfaces)', defaultPrice: 120, defaultDurationMin: 40, defaultSupplies: [ { sku: 'composite', qty: 1 }, { sku: 'bonding_agent', qty: 1 }, { sku: 'anesthesia_cartridge', qty: 1 }, { sku: 'gloves', qty: 1 }, { sku: 'mask', qty: 1 } ] },
+	{ key: 'filling_3_plus', name: 'Filling (3+ surfaces)', defaultPrice: 150, defaultDurationMin: 50, defaultSupplies: [ { sku: 'composite', qty: 2 }, { sku: 'bonding_agent', qty: 1 }, { sku: 'anesthesia_cartridge', qty: 1 }, { sku: 'gloves', qty: 1 }, { sku: 'mask', qty: 1 } ] },
+	{ key: 'root_canal_anterior', name: 'Root canal (anterior)', defaultPrice: 200, defaultDurationMin: 60, defaultSupplies: [ { sku: 'files', qty: 1 }, { sku: 'sealer', qty: 1 }, { sku: 'anesthesia_cartridge', qty: 1 }, { sku: 'gloves', qty: 1 }, { sku: 'mask', qty: 1 } ] },
+	{ key: 'root_canal_molar', name: 'Root canal (molar)', defaultPrice: 350, defaultDurationMin: 90, defaultSupplies: [ { sku: 'files', qty: 2 }, { sku: 'sealer', qty: 1 }, { sku: 'anesthesia_cartridge', qty: 2 }, { sku: 'gloves', qty: 1 }, { sku: 'mask', qty: 1 } ] },
+	{ key: 'crown_prep', name: 'Crown preparation', defaultPrice: 400, defaultDurationMin: 90, defaultSupplies: [ { sku: 'bur', qty: 1 }, { sku: 'impression_material', qty: 1 }, { sku: 'gloves', qty: 1 }, { sku: 'mask', qty: 1 } ] },
+	{ key: 'implant_placement', name: 'Implant placement', defaultPrice: 1000, defaultDurationMin: 120, defaultSupplies: [ { sku: 'implant_kit', qty: 1 }, { sku: 'drill', qty: 1 }, { sku: 'gloves', qty: 1 }, { sku: 'sutures', qty: 1 }, { sku: 'mask', qty: 1 }, { sku: 'gauze', qty: 4 } ] },
+	{ key: 'bitewing_xray', name: 'Bitewing X-ray (2)', defaultPrice: 25, defaultDurationMin: 10, defaultSupplies: [ { sku: 'xray_film', qty: 2 }, { sku: 'gloves', qty: 1 } ] },
+	{ key: 'panoramic_xray', name: 'Panoramic X-ray', defaultPrice: 60, defaultDurationMin: 15, defaultSupplies: [ { sku: 'xray_film', qty: 1 }, { sku: 'gloves', qty: 1 } ] },
+	{ key: 'scaling_quadrant', name: 'Scaling per quadrant', defaultPrice: 90, defaultDurationMin: 45, defaultSupplies: [ { sku: 'scaler_tip', qty: 1 }, { sku: 'gloves', qty: 1 }, { sku: 'mask', qty: 1 } ] },
+	{ key: 'fluoride', name: 'Fluoride application', defaultPrice: 40, defaultDurationMin: 15, defaultSupplies: [ { sku: 'fluoride_gel', qty: 1 }, { sku: 'tray', qty: 1 }, { sku: 'gloves', qty: 1 } ] },
+	{ key: 'night_guard_impression', name: 'Night guard impression', defaultPrice: 150, defaultDurationMin: 30, defaultSupplies: [ { sku: 'impression_material', qty: 1 }, { sku: 'tray', qty: 1 }, { sku: 'gloves', qty: 1 } ] },
+	{ key: 'ortho_adjustment', name: 'Ortho adjustment', defaultPrice: 100, defaultDurationMin: 30, defaultSupplies: [ { sku: 'pliers', qty: 1 }, { sku: 'elastic', qty: 1 }, { sku: 'gloves', qty: 1 } ] },
+];
+
 interface TreatmentItemForm {
 	code: string;
 	description: string;
@@ -49,6 +103,10 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 	const [treatmentQuery, setTreatmentQuery] = useState("");
 	const [availableTariffs, setAvailableTariffs] = useState<Array<{ code: string; description: string; base_tariff: number; vat_rate: number; mutuality_share_pct: number; patient_share_pct: number }>>([]);
 	const [treatments, setTreatments] = useState<TreatmentItemForm[]>([]);
+
+	// NEW: Select Procedures list and final price override
+	const [selectedProcedures, setSelectedProcedures] = useState<Array<{ id: string; key: string; name: string; price: number; duration: number }>>([]);
+	const [finalTotalOverride, setFinalTotalOverride] = useState<number | undefined>(undefined);
 
 	// B. Outcome & Notes
 	const [outcome, setOutcome] = useState<'successful' | 'partial' | 'cancelled' | 'complication'>('successful');
@@ -88,7 +146,7 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 	const sendPaymentLink = async () => {
 		try {
 			const { data: appt } = await sb.from('appointments').select('patient_id, dentist_id').eq('id', appointment.id).single();
-			const patientCents = Math.round((totals.patient + totals.vat) * 100);
+			const patientCents = Math.round((finalTotalOverride !== undefined ? finalTotalOverride : (totals.patient + totals.vat)) * 100);
 			const { data: pr, error } = await supabase.functions.invoke('create-payment-request', {
 				body: {
 					patient_id: appt.patient_id,
@@ -125,8 +183,8 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 	const markAsPaid = async () => {
 		try {
 			const { data: appt } = await sb.from('appointments').select('patient_id, dentist_id').eq('id', appointment.id).single();
-			const totalCents = Math.round((totals.tariff + totals.vat) * 100);
-			const patientCents = Math.round((totals.patient + totals.vat) * 100);
+			const totalCents = Math.round((finalTotalOverride !== undefined ? finalTotalOverride : (totals.tariff + totals.vat)) * 100);
+			const patientCents = Math.round((finalTotalOverride !== undefined ? finalTotalOverride : (totals.patient + totals.vat)) * 100);
 			const mutualityCents = Math.round(totals.mutuality * 100);
 			const vatCents = Math.round(totals.vat * 100);
 			// Upsert-like: try get existing invoice
@@ -162,7 +220,7 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 			await sb.from('invoices').update({ status: 'paid' }).eq('id', invoiceId as string);
 			await sb.from('appointments').update({ status: 'completed', treatment_completed_at: new Date().toISOString() }).eq('id', appointment.id);
 			await emitAnalyticsEvent('INVOICE_CREATED', dentistId, { appointmentId: appointment.id, amount_cents: patientCents, status: 'paid' });
-			await emitAnalyticsEvent('APPOINTMENT_COMPLETED', dentistId, { appointmentId: appointment.id, totals: { ...totals, total_due_cents: Math.round((totals.patient + totals.vat) * 100) }, outcome });
+			await emitAnalyticsEvent('APPOINTMENT_COMPLETED', dentistId, { appointmentId: appointment.id, totals: { ...totals, total_due_cents: patientCents }, outcome });
 			toast({ title: 'Marked as paid' });
 			onCompleted();
 			onOpenChange(false);
@@ -183,8 +241,8 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 	// H. Inventory Deduction
 	const [treatmentTypes, setTreatmentTypes] = useState<Array<{ id: string; name: string }>>([]);
 	const [selectedTreatmentTypeId, setSelectedTreatmentTypeId] = useState<string | null>(null);
-	const [manualSupplies, setManualSupplies] = useState<Array<{ item_id: string; name: string; quantity: number }>>([]);
-	const [inventoryItems, setInventoryItems] = useState<Array<{ id: string; name: string }>>([]);
+	const [manualSupplies, setManualSupplies] = useState<Array<{ item_id: string; name: string; quantity: number; isAuto?: boolean }>>([]);
+	const [inventoryItems, setInventoryItems] = useState<Array<{ id: string; name: string; quantity?: number; min_threshold?: number }>>([]);
 	const [currentProfileId, setCurrentProfileId] = useState<string | null>(null);
 
 	useEffect(() => {
@@ -204,7 +262,7 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 		(async () => {
 			const { data: types } = await sb.from('treatment_types').select('id, name').eq('is_active', true).order('name');
 			setTreatmentTypes((types || []) as any);
-			const { data: inv } = await sb.from('inventory_items').select('id, name').eq('dentist_id', dentistId).order('name');
+			const { data: inv } = await sb.from('inventory_items').select('id, name, quantity, min_threshold').eq('dentist_id', dentistId).order('name');
 			setInventoryItems((inv || []) as any);
 			const { data: prof } = await sb.from('profiles').select('id').eq('user_id', (await sb.auth.getUser()).data.user?.id).single();
 			if (prof) setCurrentProfileId(prof.id);
@@ -259,7 +317,7 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 			mutuality_share: shares.mutualityShare,
 			patient_share: shares.patientShare,
 			vat_amount: vatAmount
-		}]));
+		}]))
 		// Emit treatment-performed analytics when adding a line
 		emitAnalyticsEvent('TREATMENTS_PERFORMED', dentistId, { appointmentId: appointment.id, code: tariff.code, description: tariff.description, quantity: 1 });
 	};
@@ -267,6 +325,84 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 	const removeTreatment = (index: number) => {
 		setTreatments(prev => prev.filter((_, i) => i !== index));
 	};
+
+	// NEW: Procedures add/remove and auto-supplies handling
+	const addProcedureByKey = (key: string) => {
+		const def = PROCEDURE_DEFS.find(d => d.key === key);
+		if (!def) return;
+		const id = `${key}-${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
+		setSelectedProcedures(prev => ([...prev, { id, key: def.key, name: def.name, price: def.defaultPrice, duration: def.defaultDurationMin }]));
+		setTreatments(prev => ([...prev, {
+			code: `PROC-${def.key.toUpperCase()}`,
+			description: def.name,
+			quantity: 1,
+			tooth_ref: '',
+			tariff: def.defaultPrice,
+			mutuality_share: 0,
+			patient_share: def.defaultPrice,
+			vat_amount: 0
+		} as any]));
+	};
+
+	const removeProcedureById = (selId: string) => {
+		const removed = selectedProcedures.find(p => p.id === selId);
+		setSelectedProcedures(prev => prev.filter(p => p.id !== selId));
+		if (removed) {
+			setTreatments(prev => {
+				const idx = prev.findIndex(t => (t as any).code?.startsWith('PROC-') && t.description === removed.name);
+				if (idx >= 0) {
+					const clone = [...prev];
+					clone.splice(idx, 1);
+					return clone;
+				}
+				return prev;
+			});
+		}
+	};
+
+	const updateProcedurePrice = (selId: string, newPrice: number) => {
+		const proc = selectedProcedures.find(p => p.id === selId);
+		if (!proc) return;
+		setSelectedProcedures(prev => prev.map(p => p.id === selId ? { ...p, price: newPrice } : p));
+		setTreatments(prev => {
+			const idx = prev.findIndex(t => (t as any).code?.startsWith('PROC-') && t.description === proc.name);
+			if (idx >= 0) {
+				const clone = [...prev];
+				clone[idx] = { ...clone[idx], tariff: newPrice, patient_share: newPrice } as any;
+				return clone;
+			}
+			return prev;
+		});
+	};
+
+	const rebuildAutoSuppliesFromProcedures = () => {
+		setManualSupplies(prev => {
+			const manualOnly = prev.filter(s => !s.isAuto);
+			const aggregated: Record<string, number> = {};
+			selectedProcedures.forEach(proc => {
+				const def = PROCEDURE_DEFS.find(d => d.key === proc.key);
+				if (def) {
+					def.defaultSupplies.forEach(s => {
+						aggregated[s.sku] = (aggregated[s.sku] || 0) + s.qty;
+					});
+				}
+			});
+			const autoSupplies: Array<{ item_id: string; name: string; quantity: number; isAuto: boolean }> = [];
+			Object.entries(aggregated).forEach(([sku, qty]) => {
+				const displayName = SKU_DISPLAY_NAME[sku] || sku.replace(/_/g, ' ');
+				const invItem = inventoryItems.find(i => i.name.toLowerCase() === displayName.toLowerCase());
+				if (invItem) {
+					autoSupplies.push({ item_id: invItem.id, name: invItem.name, quantity: qty, isAuto: true });
+				}
+			});
+			return manualOnly.concat(autoSupplies);
+		});
+	};
+
+	useEffect(() => {
+		rebuildAutoSuppliesFromProcedures();
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [selectedProcedures, inventoryItems]);
 
 	const addManualSupply = (itemId: string, quantity: number) => {
 		const item = inventoryItems.find(i => i.id === itemId);
@@ -292,7 +428,7 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 				deductions.push({ item_id: m.item_id, quantity: m.quantity });
 			});
 		}
-		// 2) Add manual supplies
+		// 2) Add manual + auto supplies
 		deductions = deductions.concat(manualSupplies.map(s => ({ item_id: s.item_id, quantity: s.quantity })));
 		if (anesthesiaUsed) {
 			// If anesthesia used and there is an item named 'Anesthesia' in inventory, deduct 1 or parse dose units; keep simple as 1
@@ -343,12 +479,6 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 		if (locking) return;
 		setLoading(true);
 		try {
-			// Require treatment type selection
-			if (!selectedTreatmentTypeId) {
-				toast({ title: 'Select treatment type', description: 'Please choose a treatment type (or Other) before completing the appointment.', variant: 'destructive' });
-				setLoading(false);
-				return;
-			}
 			// Prevent double-completion
 			setLocking(true);
 			const { data: current, error: fetchErr } = await sb.from('appointments').select('status, patient_id, dentist_id').eq('id', appointment.id).single();
@@ -443,8 +573,8 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 
 			// Create invoice draft and items from performed treatments
 			if (treatments.length > 0) {
-				const totalCents = Math.round((totals.tariff + totals.vat) * 100);
-				const patientCents = Math.round((totals.patient + totals.vat) * 100);
+				const totalCents = Math.round(((finalTotalOverride !== undefined ? finalTotalOverride : (totals.tariff + totals.vat))) * 100);
+				const patientCents = Math.round(((finalTotalOverride !== undefined ? finalTotalOverride : (totals.patient + totals.vat))) * 100);
 				const mutualityCents = Math.round(totals.mutuality * 100);
 				const vatCents = Math.round(totals.vat * 100);
 				const { data: invoice, error: invErr } = await sb.from('invoices').insert({
@@ -491,7 +621,7 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 
 			// Mark appointment as completed
 			await sb.from('appointments').update({ status: 'completed', treatment_completed_at: new Date().toISOString() }).eq('id', appointment.id);
-			await emitAnalyticsEvent('APPOINTMENT_COMPLETED', dentistId, { appointmentId: appointment.id, totals: { ...totals, total_due_cents: Math.round((totals.patient + totals.vat) * 100) }, outcome });
+			await emitAnalyticsEvent('APPOINTMENT_COMPLETED', dentistId, { appointmentId: appointment.id, totals: { ...totals, total_due_cents: Math.round((finalTotalOverride !== undefined ? finalTotalOverride : (totals.patient + totals.vat)) * 100) }, outcome });
 			if (rxMedName.trim()) {
 				await emitAnalyticsEvent('PRESCRIPTION_CREATED', dentistId, { appointmentId: appointment.id, medication_name: rxMedName });
 			}
@@ -555,11 +685,42 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 		<Drawer open={open} onOpenChange={onOpenChange}>
 			<DrawerContent className="max-h-[90vh] overflow-y-auto p-3">
 				<div className="space-y-4">
-					{/* A. Performed Treatments */}
+					{/* A. Select Procedures */}
+					<Card>
+						<CardContent className="space-y-3 p-4">
+							<h3 className="font-semibold">A. Select Procedures</h3>
+							<Select onValueChange={(v: any) => { addProcedureByKey(v); }}>
+								<SelectTrigger className="w-full"><SelectValue placeholder="Add procedure" /></SelectTrigger>
+								<SelectContent>
+									{PROCEDURE_DEFS.map(p => (
+										<SelectItem key={p.key} value={p.key}>{p.name} — €{p.defaultPrice}</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+							{selectedProcedures.length > 0 && (
+								<div className="space-y-2">
+									{selectedProcedures.map(p => (
+										<div key={p.id} className="flex items-center justify-between border rounded p-2 text-sm">
+											<div>
+												<div className="font-medium">{p.name}</div>
+												<div className="text-muted-foreground text-xs">Default duration ~ {p.duration} min</div>
+											</div>
+											<div className="flex items-center gap-2">
+												<Input type="number" className="w-28" value={p.price} onChange={e => updateProcedurePrice(p.id, Math.max(0, parseFloat(e.target.value || '0')))} />
+												<Button variant="ghost" size="sm" onClick={() => removeProcedureById(p.id)}>Remove</Button>
+											</div>
+										</div>
+									))}
+								</div>
+							)}
+						</CardContent>
+					</Card>
+
+					{/* B. Performed Treatments */}
 					<Card>
 						<CardContent className="space-y-3 p-4">
 							<div className="flex items-center justify-between">
-								<h3 className="font-semibold">A. Performed Treatments</h3>
+								<h3 className="font-semibold">B. Performed Treatments</h3>
 								<Badge variant="secondary">Search NIHDI</Badge>
 							</div>
 							{insuranceWarning && (
@@ -600,8 +761,16 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 										<div className="grid grid-cols-4 gap-2 mt-2">
 											<Input type="number" value={t.quantity} onChange={e => setTreatments(prev => prev.map((x,i) => i===idx ? {...x, quantity: Math.max(1, parseInt(e.target.value || '1'))} : x))} />
 											<Input placeholder="Tooth/quadrant" value={t.tooth_ref || ''} onChange={e => setTreatments(prev => prev.map((x,i) => i===idx ? {...x, tooth_ref: e.target.value} : x))} />
-											<Input disabled value={`€${t.tariff.toFixed(2)}`} />
-											<Input disabled value={`Patient €${t.patient_share.toFixed(2)}`} />
+											<Input value={`€${t.tariff.toFixed(2)}`} onChange={e => {
+												const raw = e.target.value.replace('€','');
+												const val = Math.max(0, parseFloat(raw || '0'));
+												setTreatments(prev => prev.map((x,i) => i===idx ? {...x, tariff: val, patient_share: val } : x));
+											}} />
+											<Input value={`Patient €${t.patient_share.toFixed(2)}`} onChange={e => {
+												const raw = e.target.value.replace('Patient €','');
+												const val = Math.max(0, parseFloat(raw || '0'));
+												setTreatments(prev => prev.map((x,i) => i===idx ? {...x, patient_share: val } : x));
+											}} />
 										</div>
 									</div>
 								))}
@@ -620,7 +789,7 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 					{/* B. Outcome & Notes */}
 					<Card>
 						<CardContent className="space-y-3 p-4">
-							<h3 className="font-semibold">B. Outcome & Notes</h3>
+							<h3 className="font-semibold">C. Outcome & Notes</h3>
 							<Select value={outcome} onValueChange={(v: any) => setOutcome(v)}>
 								<SelectTrigger className="w-full"><SelectValue placeholder="Outcome" /></SelectTrigger>
 								<SelectContent>
@@ -648,7 +817,7 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 					{/* C. Add to Treatment Plan */}
 					<Card>
 						<CardContent className="space-y-3 p-4">
-							<h3 className="font-semibold">C. Add to Treatment Plan</h3>
+							<h3 className="font-semibold">D. Add to Treatment Plan</h3>
 							<Select value={createPlan ? 'new' : 'none'} onValueChange={v => setCreatePlan(v === 'new')}>
 								<SelectTrigger><SelectValue placeholder="Plan action" /></SelectTrigger>
 								<SelectContent>
@@ -677,7 +846,7 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 					{/* D. Prescriptions */}
 					<Card>
 						<CardContent className="space-y-3 p-4">
-							<h3 className="font-semibold">D. Prescriptions</h3>
+							<h3 className="font-semibold">E. Prescriptions</h3>
 							<Input placeholder="Medicine" value={rxMedName} onChange={e => setRxMedName(e.target.value)} />
 							<div className="grid grid-cols-2 gap-2">
 								<Input placeholder="Dose" value={rxDosage} onChange={e => setRxDosage(e.target.value)} />
@@ -691,11 +860,15 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 					{/* E. Payment & Invoice */}
 					<Card>
 						<CardContent className="space-y-3 p-4">
-							<h3 className="font-semibold">E. Payment & Invoice</h3>
+							<h3 className="font-semibold">F. Payment & Invoice</h3>
 							<div className="text-sm space-y-1">
-								<div>Total due now (patient): €{totals.patient.toFixed(2)}</div>
+								<div>Total due now (patient): €{(finalTotalOverride !== undefined ? finalTotalOverride : totals.patient).toFixed(2)}</div>
 								<div>Mutuality share: €{totals.mutuality.toFixed(2)}</div>
 								<div>VAT: €{totals.vat.toFixed(2)}</div>
+							</div>
+							<div className="grid grid-cols-1 md:grid-cols-2 gap-2 items-center">
+								<Input type="number" placeholder="Final total override (EUR)" value={finalTotalOverride ?? ''} onChange={e => setFinalTotalOverride(e.target.value ? parseFloat(e.target.value) : undefined)} />
+								<div className="text-xs text-muted-foreground">Optional: set a final total to override calculated patient due.</div>
 							</div>
 							<div className="text-xs border rounded p-2">
 								<div className="font-medium mb-1">Invoice preview</div>
@@ -721,10 +894,10 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 						</CardContent>
 					</Card>
 
-									{/* F. Follow-Up & Predictive Scheduling */}
+										{/* F. Follow-Up & Predictive Scheduling */}
 				<Card>
 					<CardContent className="space-y-3 p-4">
-						<h3 className="font-semibold">F. Follow-Up & Predictive Scheduling</h3>
+						<h3 className="font-semibold">G. Follow-Up & Predictive Scheduling</h3>
 						<div className="grid grid-cols-1 md:grid-cols-2 gap-3">
 							<div className="space-y-2">
 								<Label>Follow-up</Label>
@@ -774,7 +947,7 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 					{/* G. Files / X-rays */}
 					<Card>
 						<CardContent className="space-y-3 p-4">
-							<h3 className="font-semibold">G. Files / X-rays</h3>
+							<h3 className="font-semibold">H. Files / X-rays</h3>
 							<QuickPhotoUpload onPhotoUploaded={(url) => setUploadedFiles(prev => [...prev, url])} onCancel={() => {}} />
 							<Input placeholder="Paste secure file URL" onKeyDown={e => {
 								if (e.key === 'Enter') {
@@ -796,7 +969,7 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 					{/* H. Treatment Type & Supplies Used */}
 					<Card>
 						<CardContent className="space-y-3 p-4">
-							<h3 className="font-semibold">H. Treatment Type & Supplies</h3>
+							<h3 className="font-semibold">I. Treatment Type & Supplies</h3>
 							<Select value={selectedTreatmentTypeId || ''} onValueChange={(v: any) => setSelectedTreatmentTypeId(v)}>
 								<SelectTrigger className="w-full"><SelectValue placeholder="Select treatment type" /></SelectTrigger>
 								<SelectContent>
@@ -804,7 +977,7 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 								</SelectContent>
 							</Select>
 							<div className="space-y-2">
-								<div className="text-sm font-medium">Manual supplies used</div>
+								<div className="text-sm font-medium">Supplies used</div>
 								<div className="grid grid-cols-1 md:grid-cols-3 gap-2 items-center">
 									<Select onValueChange={(v: any) => addManualSupply(v, 1)}>
 										<SelectTrigger><SelectValue placeholder="Add item" /></SelectTrigger>
@@ -819,6 +992,7 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 											<div key={`${s.item_id}-${idx}`} className="flex items-center justify-between text-sm">
 												<div className="flex items-center gap-2">
 													<span>{s.name}</span>
+													<span className="text-xs text-muted-foreground">stock: {inventoryItems.find(i => i.id === s.item_id)?.quantity ?? '-'}</span>
 													<Input type="number" className="w-24" value={s.quantity} onChange={e => {
 														const q = Math.max(1, parseInt(e.target.value || '1'));
 														setManualSupplies(prev => prev.map((x, i) => i === idx ? { ...x, quantity: q } : x));
