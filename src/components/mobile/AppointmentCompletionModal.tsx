@@ -587,39 +587,101 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 				});
 			}
 
-			// Create invoice draft and items from performed treatments
+			// Build invoice items and inventory deductions
+			let invoiceId: string | null = null;
+			let atomicSuccess = false;
 			if (treatments.length > 0) {
 				const totalCents = Math.round(((finalTotalOverride !== undefined ? finalTotalOverride : (totals.tariff + totals.vat))) * 100);
 				const patientCents = Math.round(((finalTotalOverride !== undefined ? finalTotalOverride : (totals.patient + totals.vat))) * 100);
-				const mutualityCents = Math.round(totals.mutuality * 100);
-				const vatCents = Math.round(totals.vat * 100);
-				const { data: invoice, error: invErr } = await withSchemaReloadRetry(() => sb.from('invoices').insert({
-					appointment_id: appointment.id,
-					patient_id: current.patient_id,
-					dentist_id: current.dentist_id,
-					total_amount_cents: totalCents,
-					patient_amount_cents: patientCents,
-					mutuality_amount_cents: mutualityCents,
-					vat_amount_cents: vatCents,
-					status: 'draft',
-					claim_status: 'to_be_submitted'
-				}).select('*').single(), sb);
-				if (invErr) throw invErr;
-				await sb.from('invoice_items').insert(
-					treatments.map(t => ({
-						invoice_id: invoice.id,
-						code: t.code,
-						description: t.description,
-						quantity: t.quantity,
-						tariff_cents: Math.round(t.tariff * 100),
-						mutuality_cents: Math.round(t.mutuality_share * 100),
-						patient_cents: Math.round(t.patient_share * 100),
-						vat_cents: Math.round(t.vat_amount * 100)
-					}))
-				);
+				const items = treatments.map(t => ({
+					code: t.code,
+					description: t.description,
+					quantity: t.quantity,
+					tariff_cents: Math.round(t.tariff * 100),
+					mutuality_cents: Math.round(t.mutuality_share * 100),
+					patient_cents: Math.round(t.patient_share * 100),
+					vat_cents: Math.round(t.vat_amount * 100)
+				}));
+
+				let deductions: Array<{ item_id: string; quantity: number }> = [];
+				if (selectedTreatmentTypeId) {
+					const { data: mapped } = await sb
+						.from('treatment_supply_mappings')
+						.select('item_id, quantity')
+						.eq('dentist_id', dentistId)
+						.eq('treatment_type_id', selectedTreatmentTypeId);
+					(mapped || []).forEach((m: any) => {
+						deductions.push({ item_id: m.item_id, quantity: m.quantity });
+					});
+				}
+				// manual + auto supplies
+				deductions = deductions.concat(manualSupplies.map(s => ({ item_id: s.item_id, quantity: s.quantity })));
+				if (anesthesiaUsed) {
+					const anesthesia = inventoryItems.find(i => i.name.toLowerCase().includes('anesthesia'));
+					if (anesthesia) deductions.push({ item_id: anesthesia.id, quantity: 1 });
+				}
+
+				// Ensure we have created_by profile id
+				let createdBy = currentProfileId;
+				if (!createdBy) {
+					const userRes = await sb.auth.getUser();
+					const { data: prof } = await sb.from('profiles').select('id').eq('user_id', userRes.data.user?.id).single();
+					createdBy = prof?.id || null;
+				}
+
+				// Try atomic completion (invoice + items + inventory + appointment status)
+				const { data: rpcRes, error: rpcErr } = await sb.rpc('complete_visit_atomic', {
+					p_appointment_id: appointment.id,
+					p_dentist_id: current.dentist_id,
+					p_patient_id: current.patient_id,
+					p_total_cents: patientCents,
+					p_items: items as any,
+					p_deductions: deductions as any,
+					p_created_by: createdBy
+				});
+				if (rpcErr) {
+					const message = (rpcErr as any)?.message || '';
+					const code = (rpcErr as any)?.code;
+					const missingFunction = typeof message === 'string' && message.toLowerCase().includes('schema cache');
+					const notFound = code === 'PGRST202' || code === '404';
+					if (missingFunction || notFound) {
+						// Fallback: create invoice and items non-atomically; inventory deduction handled later
+						const { data: invoice, error: invErr } = await withSchemaReloadRetry(() => sb.from('invoices').insert({
+							appointment_id: appointment.id,
+							patient_id: current.patient_id,
+							dentist_id: current.dentist_id,
+							total_amount_cents: totalCents,
+							patient_amount_cents: patientCents,
+							mutuality_amount_cents: Math.round(totals.mutuality * 100),
+							vat_amount_cents: Math.round(totals.vat * 100),
+							status: 'draft',
+							claim_status: 'to_be_submitted'
+						}).select('*').single(), sb);
+						if (invErr) throw invErr;
+						invoiceId = invoice.id;
+						await sb.from('invoice_items').insert(items.map(it => ({
+							invoice_id: invoice.id,
+							code: it.code,
+							description: it.description,
+							quantity: it.quantity,
+							tariff_cents: it.tariff_cents,
+							mutuality_cents: it.mutuality_cents,
+							patient_cents: it.patient_cents,
+							vat_cents: it.vat_cents
+						})));
+						atomicSuccess = false;
+					} else {
+						throw rpcErr;
+					}
+				} else {
+					invoiceId = rpcRes as any;
+					atomicSuccess = true;
+				}
+
 				await emitAnalyticsEvent('INVOICE_CREATED', dentistId, { appointmentId: appointment.id, amount_cents: patientCents, status: 'unpaid' });
+
 				// Optional: create payment request if starting payment
-				if (startStripe || startPayment) {
+				if ((startStripe || startPayment) && invoiceId) {
 					const { data: payment, error: payErr } = await supabase.functions.invoke('create-payment-request', {
 						body: {
 							patient_id: current.patient_id,
@@ -630,13 +692,14 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 						}
 					});
 					if (!payErr && payment?.payment_url) {
+						if (payment?.payment_request_id) {
+							await sb.from('invoices').update({ payment_request_id: payment.payment_request_id }).eq('id', invoiceId);
+						}
 						window.open(payment.payment_url, '_blank');
 					}
 				}
 			}
 
-			// Mark appointment as completed
-			await sb.from('appointments').update({ status: 'completed', treatment_completed_at: new Date().toISOString() }).eq('id', appointment.id);
 			await emitAnalyticsEvent('APPOINTMENT_COMPLETED', dentistId, { appointmentId: appointment.id, totals: { ...totals, total_due_cents: Math.round((finalTotalOverride !== undefined ? finalTotalOverride : (totals.patient + totals.vat)) * 100) }, outcome });
 			if (rxMedName.trim()) {
 				await emitAnalyticsEvent('PRESCRIPTION_CREATED', dentistId, { appointmentId: appointment.id, medication_name: rxMedName });
@@ -683,8 +746,11 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 				console.warn('Recall creation failed', e);
 			}
 
-			// Inventory deduction
-			await deductInventoryForAppointment();
+			// If atomic failed and we created invoice non-atomically, apply inventory deductions now
+			// to keep stock in sync
+			if (!atomicSuccess) {
+				await deductInventoryForAppointment();
+			}
 
 			toast({ title: 'Saved', description: 'Appointment completion saved.' });
 			onCompleted();
