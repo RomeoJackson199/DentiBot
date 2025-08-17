@@ -73,9 +73,7 @@ const Dashboard = () => {
   }
 
   return (
-    <LazyLoadingWrapper>
-      <UnifiedDashboard user={user} />
-    </LazyLoadingWrapper>
+    <UnifiedDashboard user={user} />
   );
 };
 
@@ -118,24 +116,24 @@ const App = () => (
               <BrowserRouter>
                 <SeoManager />
               <Routes>
-                <Route path="/" element={<LazyLoadingWrapper><Index /></LazyLoadingWrapper>} />
+                <Route path="/" element={<Index />} />
                 <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/emergency-triage" element={<LazyLoadingWrapper><EmergencyTriage /></LazyLoadingWrapper>} />
-                <Route path="/dentists" element={<LazyLoadingWrapper><DentistProfiles /></LazyLoadingWrapper>} />
-                <Route path="/terms" element={<LazyLoadingWrapper><Terms /></LazyLoadingWrapper>} />
-                <Route path="/privacy" element={<LazyLoadingWrapper><PrivacyPolicy /></LazyLoadingWrapper>} />
-                <Route path="/payment-success" element={<LazyLoadingWrapper><PaymentSuccess /></LazyLoadingWrapper>} />
-                <Route path="/payment-cancelled" element={<LazyLoadingWrapper><PaymentCancelled /></LazyLoadingWrapper>} />
-                                 <Route path="/schedule" element={<LazyLoadingWrapper><Schedule /></LazyLoadingWrapper>} />
-                 <Route path="/recalls/:id" element={<LazyLoadingWrapper><RecallDeepLink /></LazyLoadingWrapper>} />
-                <Route path="/analytics" element={<LazyLoadingWrapper><Analytics /></LazyLoadingWrapper>} />
-                <Route path="/support" element={<LazyLoadingWrapper><Support /></LazyLoadingWrapper>} />
-                <Route path="/importer" element={<LazyLoadingWrapper><Importer /></LazyLoadingWrapper>} />
-                 <Route path="/features/:id" element={<LazyLoadingWrapper><FeatureDetail /></LazyLoadingWrapper>} />
-                 <Route path="/language-test" element={<LazyLoadingWrapper><LanguageTest /></LazyLoadingWrapper>} />
-                 <Route path="/chat" element={<LazyLoadingWrapper><Chat /></LazyLoadingWrapper>} />
-                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                 <Route path="*" element={<LazyLoadingWrapper><NotFound /></LazyLoadingWrapper>} />
+                <Route path="/emergency-triage" element={<EmergencyTriage />} />
+                <Route path="/dentists" element={<DentistProfiles />} />
+                <Route path="/terms" element={<Terms />} />
+                <Route path="/privacy" element={<PrivacyPolicy />} />
+                <Route path="/payment-success" element={<PaymentSuccess />} />
+                <Route path="/payment-cancelled" element={<PaymentCancelled />} />
+                <Route path="/schedule" element={<Schedule />} />
+                <Route path="/recalls/:id" element={<RecallDeepLink />} />
+                <Route path="/analytics" element={<Analytics />} />
+                <Route path="/support" element={<Support />} />
+                <Route path="/importer" element={<Importer />} />
+                <Route path="/features/:id" element={<FeatureDetail />} />
+                <Route path="/language-test" element={<LanguageTest />} />
+                <Route path="/chat" element={<Chat />} />
+                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>
           </TooltipProvider>

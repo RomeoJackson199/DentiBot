@@ -112,8 +112,11 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
       }
     };
 
-    initializeChat();
-  }, [sessionId, user, messages.length, t, userProfile]); // Add all missing dependencies
+    // Only run on mount or when sessionId changes
+    if (messages.length === 0) {
+      initializeChat();
+    }
+  }, [sessionId]); // Fixed dependencies
   
   // Effect to update welcome message when language changes
   useEffect(() => {
@@ -126,7 +129,7 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
       
       setMessages(prev => [updatedWelcomeMessage, ...prev.slice(1)]);
     }
-  }, [t, messages, userProfile]); // Add missing dependencies
+  }, [t.detailedWelcomeMessageWithName, userProfile?.first_name]); // Fixed dependencies
 
   const loadUserProfile = async () => {
     if (!user) return;

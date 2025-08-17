@@ -1,11 +1,11 @@
 import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
-import { performanceMonitor } from './utils/performance'
+import { performanceTracker } from './utils/performance'
 
 // Initialize performance monitoring
 if (process.env.NODE_ENV === 'development') {
-  performanceMonitor.trackWebVitals();
+  performanceTracker.monitorMemory();
 }
 
 // Register service worker with better error handling
@@ -33,8 +33,5 @@ if ('serviceWorker' in navigator) {
       });
   });
 }
-
-// Preload critical resources
-performanceMonitor.preloadResource('/fonts/inter.woff2', 'font');
 
 createRoot(document.getElementById("root")!).render(<App />);

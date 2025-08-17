@@ -1,27 +1,26 @@
-import React, { Suspense } from 'react';
-import { Loader2 } from 'lucide-react';
+import React, { Suspense, lazy } from 'react';
+import { ModernLoadingSpinner } from '@/components/enhanced/ModernLoadingSpinner';
 
 interface LazyLoadingWrapperProps {
-  children: React.ReactNode;
+  importFunc: () => Promise<{ default: React.ComponentType<any> }>;
   fallback?: React.ReactNode;
 }
 
-const DefaultFallback = () => (
-  <div className="min-h-[200px] flex items-center justify-center">
-    <div className="flex items-center space-x-2">
-      <Loader2 className="h-6 w-6 animate-spin text-dental-primary" />
-      <span className="text-dental-muted-foreground">Loading...</span>
-    </div>
-  </div>
-);
-
-export const LazyLoadingWrapper: React.FC<LazyLoadingWrapperProps> = ({ 
-  children, 
-  fallback = <DefaultFallback /> 
-}) => {
+export const LazyLoadingWrapper = ({ 
+  importFunc, 
+  fallback = <ModernLoadingSpinner message="Loading component..." />
+}: LazyLoadingWrapperProps) => {
+  const LazyComponent = lazy(importFunc);
+  
   return (
     <Suspense fallback={fallback}>
-      {children}
+      <LazyComponent />
     </Suspense>
   );
 };
+
+// Pre-configured lazy components for common use cases
+export const LazyPatientDashboard = lazy(() => import('@/components/PatientDashboard').then(module => ({ default: module.PatientDashboard })));
+export const LazyDentistDashboard = lazy(() => import('@/pages/DentistDashboard').then(module => ({ default: module.DentistDashboard })));
+export const LazyDentalChatbot = lazy(() => import('@/components/DentalChatbot').then(module => ({ default: module.DentalChatbot })));
+export const LazyAppointmentBooking = lazy(() => import('@/components/AppointmentBooking').then(module => ({ default: module.AppointmentBooking })));

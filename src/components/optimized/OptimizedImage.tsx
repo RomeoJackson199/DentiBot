@@ -1,77 +1,80 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { cn } from '@/lib/utils';
 
-interface OptimizedImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
+interface OptimizedImageProps {
   src: string;
   alt: string;
   className?: string;
-  fallback?: string;
-  lazy?: boolean;
-  quality?: number;
+  width?: number;
+  height?: number;
+  loading?: 'lazy' | 'eager';
+  placeholder?: string;
+  onLoad?: () => void;
+  onError?: () => void;
 }
 
-export const OptimizedImage: React.FC<OptimizedImageProps> = ({
+export const OptimizedImage = React.memo(({
   src,
   alt,
   className,
-  fallback = '/placeholder.svg',
-  lazy = true,
-  quality = 85,
-  ...props
-}) => {
-  const [imageSrc, setImageSrc] = useState<string>(lazy ? fallback : src);
-  const [isLoading, setIsLoading] = useState(true);
-  const [hasError, setHasError] = useState(false);
-  const imgRef = useRef<HTMLImageElement>(null);
+  width,
+  height,
+  loading = 'lazy',
+  placeholder = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSIjZjBmMGYwIi8+CjxwYXRoIGQ9Ik0xMiA4Yy0yLjIwOSAwLTQgMS43OTEtNCA0czEuNzkxIDQgNCA0IDQtMS43OTEgNC00LTEuNzkxLTQtNC00eiIgZmlsbD0iI2NjY2NjYyIvPgo8L3N2Zz4K',
+  onLoad,
+  onError
+}: OptimizedImageProps) => {
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
-  useEffect(() => {
-    if (!lazy) return;
+  const handleLoad = useCallback(() => {
+    setImageLoaded(true);
+    onLoad?.();
+  }, [onLoad]);
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const [entry] = entries;
-        if (entry.isIntersecting) {
-          setImageSrc(src);
-          observer.unobserve(entry.target);
-        }
-      },
-      { threshold: 0.1 }
+  const handleError = useCallback(() => {
+    setImageError(true);
+    onError?.();
+  }, [onError]);
+
+  if (imageError) {
+    return (
+      <div className={cn(
+        "flex items-center justify-center bg-muted text-muted-foreground",
+        className
+      )}>
+        <span className="text-sm">Failed to load image</span>
+      </div>
     );
-
-    if (imgRef.current) {
-      observer.observe(imgRef.current);
-    }
-
-    return () => observer.disconnect();
-  }, [src, lazy]);
-
-  const handleLoad = () => {
-    setIsLoading(false);
-    setHasError(false);
-  };
-
-  const handleError = () => {
-    setIsLoading(false);
-    setHasError(true);
-    setImageSrc(fallback);
-  };
+  }
 
   return (
-    <img
-      ref={imgRef}
-      src={imageSrc}
-      alt={alt}
-      className={cn(
-        'transition-opacity duration-300',
-        isLoading && 'opacity-50',
-        hasError && 'opacity-75',
-        className
+    <div className={cn("relative overflow-hidden", className)}>
+      {!imageLoaded && (
+        <img
+          src={placeholder}
+          alt="Loading..."
+          className={cn(
+            "absolute inset-0 w-full h-full object-cover transition-opacity duration-300",
+            imageLoaded ? "opacity-0" : "opacity-100"
+          )}
+        />
       )}
-      onLoad={handleLoad}
-      onError={handleError}
-      loading={lazy ? 'lazy' : 'eager'}
-      decoding="async"
-      {...props}
-    />
+      <img
+        src={src}
+        alt={alt}
+        width={width}
+        height={height}
+        loading={loading}
+        onLoad={handleLoad}
+        onError={handleError}
+        className={cn(
+          "w-full h-full object-cover transition-opacity duration-300",
+          imageLoaded ? "opacity-100" : "opacity-0"
+        )}
+      />
+    </div>
   );
-};
+});
+
+OptimizedImage.displayName = 'OptimizedImage';

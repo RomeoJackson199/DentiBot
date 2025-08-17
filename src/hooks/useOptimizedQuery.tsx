@@ -1,104 +1,198 @@
-import { useQuery, UseQueryOptions } from '@tanstack/react-query';
-import { useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
-interface UseOptimizedQueryProps<T> {
-  queryKey: string[];
-  queryFn: () => Promise<T>;
-  staleTime?: number;
-  gcTime?: number;
+interface QueryOptions {
   enabled?: boolean;
-  refetchOnWindowFocus?: boolean;
+  refetchInterval?: number;
+  staleTime?: number;
+  cacheTime?: number;
 }
 
-export function useOptimizedQuery<T>({
-  queryKey,
-  queryFn,
-  staleTime = 5 * 60 * 1000, // 5 minutes
-  gcTime = 10 * 60 * 1000, // 10 minutes (was cacheTime)
-  enabled = true,
-  refetchOnWindowFocus = false,
-}: UseOptimizedQueryProps<T>) {
-  const memoizedQueryFn = useCallback(queryFn, []);
+interface QueryResult<T> {
+  data: T | null;
+  error: Error | null;
+  isLoading: boolean;
+  isError: boolean;
+  refetch: () => Promise<void>;
+  isStale: boolean;
+}
+
+// Simple cache implementation
+const queryCache = new Map<string, {
+  data: any;
+  timestamp: number;
+  staleTime: number;
+  cacheTime: number;
+}>();
+
+// Cleanup expired cache entries
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, entry] of queryCache.entries()) {
+    if (now - entry.timestamp > entry.cacheTime) {
+      queryCache.delete(key);
+    }
+  }
+}, 5 * 60 * 1000); // Clean every 5 minutes
+
+export function useOptimizedQuery<T>(
+  queryKey: string,
+  queryFn: () => Promise<T>,
+  options: QueryOptions = {}
+): QueryResult<T> {
+  const {
+    enabled = true,
+    refetchInterval,
+    staleTime = 5 * 60 * 1000, // 5 minutes
+    cacheTime = 10 * 60 * 1000 // 10 minutes
+  } = options;
+
+  const [data, setData] = useState<T | null>(null);
+  const [error, setError] = useState<Error | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isStale, setIsStale] = useState(false);
   
-  const memoizedOptions = useMemo((): UseQueryOptions<T> => ({
-    queryKey,
-    queryFn: memoizedQueryFn,
-    staleTime,
-    gcTime,
-    enabled,
-    refetchOnWindowFocus,
-    retry: (failureCount, error) => {
-      // Don't retry if it's an auth error
-      if (error && typeof error === 'object' && 'code' in error) {
-        const supabaseError = error as { code?: string };
-        if (supabaseError.code === 'PGRST301' || supabaseError.code === 'PGRST116') {
-          return false;
-        }
-      }
-      return failureCount < 3;
-    },
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-  }), [queryKey, memoizedQueryFn, staleTime, gcTime, enabled, refetchOnWindowFocus]);
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  return useQuery(memoizedOptions);
+  const executeQuery = useCallback(async (useCache = true) => {
+    if (!enabled) return;
+
+    // Check cache first
+    if (useCache) {
+      const cached = queryCache.get(queryKey);
+      if (cached && Date.now() - cached.timestamp < cached.staleTime) {
+        setData(cached.data);
+        setIsStale(false);
+        return;
+      }
+      if (cached && Date.now() - cached.timestamp < cached.cacheTime) {
+        setData(cached.data);
+        setIsStale(true);
+      }
+    }
+
+    // Cancel previous request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    abortControllerRef.current = new AbortController();
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const result = await queryFn();
+      
+      // Check if request was aborted
+      if (abortControllerRef.current?.signal.aborted) {
+        return;
+      }
+
+      setData(result);
+      setError(null);
+      setIsStale(false);
+
+      // Update cache
+      queryCache.set(queryKey, {
+        data: result,
+        timestamp: Date.now(),
+        staleTime,
+        cacheTime
+      });
+    } catch (err) {
+      if (abortControllerRef.current?.signal.aborted) {
+        return;
+      }
+      
+      const error = err instanceof Error ? err : new Error('Query failed');
+      setError(error);
+      console.error(`Query failed for key: ${queryKey}`, error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [queryKey, queryFn, enabled, staleTime, cacheTime]);
+
+  const refetch = useCallback(async () => {
+    await executeQuery(false);
+  }, [executeQuery]);
+
+  useEffect(() => {
+    executeQuery();
+  }, [executeQuery]);
+
+  useEffect(() => {
+    if (refetchInterval && enabled) {
+      intervalRef.current = setInterval(() => {
+        executeQuery();
+      }, refetchInterval);
+
+      return () => {
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current);
+        }
+      };
+    }
+  }, [refetchInterval, enabled, executeQuery]);
+
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, []);
+
+  return {
+    data,
+    error,
+    isLoading,
+    isError: !!error,
+    refetch,
+    isStale
+  };
 }
 
-// Pre-configured hooks for common queries
-export function useUserProfile(userId: string) {
-  return useOptimizedQuery({
-    queryKey: ['profile', userId],
-    queryFn: async () => {
+// Specialized hooks for common queries
+export function useOptimizedUserProfile(userId: string) {
+  return useOptimizedQuery(
+    `user-profile-${userId}`,
+    async () => {
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('user_id', userId)
-        .maybeSingle();
+        .single();
       
       if (error) throw error;
       return data;
     },
-    enabled: !!userId,
-  });
+    { staleTime: 10 * 60 * 1000 } // User profiles change less frequently
+  );
 }
 
-export function useAppointments(patientId: string) {
-  return useOptimizedQuery({
-    queryKey: ['appointments', patientId],
-    queryFn: async () => {
+export function useOptimizedAppointments(patientId: string) {
+  return useOptimizedQuery(
+    `appointments-${patientId}`,
+    async () => {
       const { data, error } = await supabase
         .from('appointments')
-        .select('*')
+        .select(`
+          *,
+          dentist:dentist_id(
+            specialization,
+            profile:profile_id(first_name, last_name)
+          )
+        `)
         .eq('patient_id', patientId)
         .order('appointment_date', { ascending: false });
       
       if (error) throw error;
-      return data;
+      return data || [];
     },
-    enabled: !!patientId,
-    staleTime: 2 * 60 * 1000, // 2 minutes for appointments
-  });
-}
-
-export function useDentists() {
-  return useOptimizedQuery({
-    queryKey: ['dentists'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('dentists')
-        .select(`
-          *,
-          profiles (
-            first_name,
-            last_name,
-            email
-          )
-        `)
-        .eq('is_active', true);
-      
-      if (error) throw error;
-      return data;
-    },
-    staleTime: 15 * 60 * 1000, // 15 minutes for dentist list
-  });
+    { staleTime: 2 * 60 * 1000 } // Appointments change more frequently
+  );
 }
