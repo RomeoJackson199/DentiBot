@@ -466,6 +466,9 @@ export function CompletionSheet({ open, onOpenChange, appointment, dentistId, on
 					const amountCents = Math.round(finalTotal * 100);
 					const { data: payment, error: payErr } = await supabase.functions.invoke('create-payment-request', { body: { patient_id: appointment.patient_id, dentist_id: appointment.dentist_id, amount: amountCents, description: `Appointment ${appointment.id} patient share`, patient_email: (await sb.from('profiles').select('email').eq('id', appointment.patient_id).single()).data?.email } });
 					if (!payErr && payment?.payment_url) {
+						if (payment?.payment_request_id) {
+							await sb.from('invoices').update({ payment_request_id: payment.payment_request_id }).eq('id', invoiceId);
+						}
 						window.open(payment.payment_url, '_blank');
 					}
 				} catch (e: any) {

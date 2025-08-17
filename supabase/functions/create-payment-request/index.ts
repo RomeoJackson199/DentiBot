@@ -165,24 +165,30 @@ serve(async (req) => {
       },
     });
 
-    // Save payment request to database for tracking
-    await supabaseClient.from("payment_requests").insert({
-      patient_id,
-      dentist_id,
-      amount,
-      description,
-      stripe_session_id: session.id,
-      patient_email,
-      status: "pending",
-    });
+    // Save payment request to database for tracking and return its id
+    const { data: inserted, error: insertError } = await supabaseClient
+      .from("payment_requests")
+      .insert({
+        patient_id,
+        dentist_id,
+        amount,
+        description,
+        stripe_session_id: session.id,
+        patient_email,
+        status: "pending",
+      })
+      .select('id')
+      .single();
 
-    // In a real implementation, you might want to send an email to the patient
-    // with the payment link. For now, we'll return the URL.
+    if (insertError) {
+      throw insertError;
+    }
 
     return new Response(
       JSON.stringify({ 
         payment_url: session.url,
         session_id: session.id,
+        payment_request_id: inserted?.id,
         message: "Payment request created successfully"
       }),
       {
