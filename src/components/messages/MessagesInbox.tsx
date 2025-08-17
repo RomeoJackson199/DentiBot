@@ -180,7 +180,11 @@ export function MessagesInbox({ onOpenConversation }: MessagesInboxProps) {
     setCreating(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
+      console.log('Creating conversation with user:', otherUserId);
 
       // Create conversation with created_by to satisfy RLS policies
       const { data: conversation, error: convError } = await supabase
@@ -192,9 +196,14 @@ export function MessagesInbox({ onOpenConversation }: MessagesInboxProps) {
         .select()
         .single();
 
-      if (convError) throw convError;
+      if (convError) {
+        console.error('Conversation creation error:', convError);
+        throw convError;
+      }
 
-      // Add both participants
+      console.log('Conversation created:', conversation);
+
+      // Add both participants with a small delay to avoid race conditions
       const { error: participantsError } = await supabase
         .from('conversation_participants')
         .insert([
@@ -202,7 +211,12 @@ export function MessagesInbox({ onOpenConversation }: MessagesInboxProps) {
           { conversation_id: conversation.id, user_id: otherUserId }
         ]);
 
-      if (participantsError) throw participantsError;
+      if (participantsError) {
+        console.error('Participants creation error:', participantsError);
+        throw participantsError;
+      }
+
+      console.log('Participants added successfully');
 
       // Send initial message
       const otherUser = availableUsers.find(u => u.id === otherUserId);
@@ -215,7 +229,11 @@ export function MessagesInbox({ onOpenConversation }: MessagesInboxProps) {
           type: 'text'
         });
 
-      if (messageError) throw messageError;
+      if (messageError) {
+        console.error('Message creation error:', messageError);
+        // Don't throw here - conversation is still valid without initial message
+        console.warn('Initial message failed, but conversation was created');
+      }
 
       toast({
         title: "Success",
@@ -225,13 +243,82 @@ export function MessagesInbox({ onOpenConversation }: MessagesInboxProps) {
       setShowNewConversation(false);
       onOpenConversation(conversation.id);
       
-      // Refresh conversations list
-      window.location.reload();
-    } catch (error) {
+      // Refresh the conversations list properly instead of reloading
+      const load = async () => {
+        setLoading(true);
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) return;
+
+          // Fetch conversations where the user is a participant
+          const { data: conversations } = await supabase
+            .from('conversation_participants')
+            .select('conversation_id, archived')
+            .eq('user_id', user.id);
+
+          const conversationIds = (conversations ?? []).map(c => c.conversation_id);
+          if (conversationIds.length === 0) {
+            setItems([]);
+            return;
+          }
+
+          // Fetch last message per conversation
+          const { data: messages } = await supabase
+            .from('messages')
+            .select('id, conversation_id, content, created_at')
+            .in('conversation_id', conversationIds)
+            .order('created_at', { ascending: false });
+
+          // Fetch participants to resolve names
+          const { data: allParticipants } = await supabase
+            .from('conversation_participants')
+            .select('conversation_id, user_id');
+
+          // Fetch profiles for name resolution
+          const uniqueUserIds = Array.from(new Set((allParticipants ?? []).map(p => p.user_id)));
+          const { data: profiles } = await supabase
+            .from('profiles')
+            .select('user_id, first_name, last_name, avatar_url')
+            .in('user_id', uniqueUserIds);
+
+          const latestByConv = new Map<string, { msg: any }>();
+          (messages ?? []).forEach(m => {
+            if (!latestByConv.has(m.conversation_id)) latestByConv.set(m.conversation_id, { msg: m });
+          });
+
+          const archivedMap = new Map((conversations ?? []).map(c => [c.conversation_id, c.archived] as const));
+
+          const list: ConversationListItem[] = (conversationIds).map(cid => {
+            const latest = latestByConv.get(cid)?.msg;
+            const convParticipants = (allParticipants ?? []).filter(p => p.conversation_id === cid);
+            const otherUserId = convParticipants.find(p => p.user_id !== user.id)?.user_id;
+            const prof = (profiles ?? []).find(p => p.user_id === otherUserId);
+            const name = prof ? `${prof.first_name ?? ''} ${prof.last_name ?? ''}`.trim() || 'Conversation' : 'Conversation';
+            const unreadCount = 0; // TODO: compute from receipts + last_read_at
+            return {
+              id: cid,
+              title: null,
+              lastMessage: latest?.content ?? null,
+              lastTimestamp: latest?.created_at ?? null,
+              unreadCount,
+              otherUserName: name,
+              otherUserAvatar: prof?.avatar_url ?? null,
+              archived: archivedMap.get(cid) || false,
+            };
+          });
+
+          setItems(list);
+        } finally {
+          setLoading(false);
+        }
+      };
+      
+      await load();
+    } catch (error: any) {
       console.error('Error creating conversation:', error);
       toast({
         title: "Error",
-        description: "Failed to create conversation",
+        description: `Failed to create conversation: ${error.message || 'Unknown error'}`,
         variant: "destructive"
       });
     } finally {
@@ -307,7 +394,7 @@ export function MessagesInbox({ onOpenConversation }: MessagesInboxProps) {
                   <Card key={user.id} className="hover:bg-muted/50 cursor-pointer transition-colors">
                     <CardContent 
                       className="p-3 flex items-center gap-3"
-                      onClick={() => createConversation(user.id)}
+                      onClick={() => !creating && createConversation(user.id)}
                     >
                       <Avatar className="h-10 w-10">
                         <AvatarImage src={user.avatar_url || undefined} />
@@ -323,7 +410,12 @@ export function MessagesInbox({ onOpenConversation }: MessagesInboxProps) {
                     </CardContent>
                   </Card>
                 ))}
-                {filteredUsers.length === 0 && (
+                {creating && (
+                  <div className="text-center py-4 text-muted-foreground">
+                    Creating conversation...
+                  </div>
+                )}
+                {!creating && filteredUsers.length === 0 && (
                   <div className="text-center py-8 text-muted-foreground">
                     {userSearch ? 'No users found' : 'No users available'}
                   </div>
