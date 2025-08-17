@@ -329,6 +329,7 @@ export function CompletionSheet({ open, onOpenChange, appointment, dentistId, on
 
 			// 4) Invoice
 			let invoiceId: string | null = null;
+			let atomicSuccess = false;
 			if (withInvoice) {
 				const totalCents = Math.round(finalTotal * 100);
 				if (autoDeduct) {
@@ -353,8 +354,44 @@ export function CompletionSheet({ open, onOpenChange, appointment, dentistId, on
 						p_deductions: deductions as any,
 						p_created_by: prof?.id
 					});
-					if (rpcErr) throw rpcErr;
-					invoiceId = rpcRes as any;
+					if (rpcErr) {
+						const message = (rpcErr as any)?.message || '';
+						const code = (rpcErr as any)?.code;
+						const missingFunction = typeof message === 'string' && message.toLowerCase().includes('schema cache');
+						const notFound = code === 'PGRST202' || code === '404';
+						if (missingFunction || notFound) {
+							// Fallback: create invoice and items non-atomically; inventory deduction handled later
+							const { data: invoice, error: invErr } = await sb.from('invoices').insert({
+								appointment_id: appointment.id,
+								patient_id: appointment.patient_id,
+								dentist_id: appointment.dentist_id,
+								total_amount_cents: totalCents,
+								patient_amount_cents: totalCents,
+								mutuality_amount_cents: 0,
+								vat_amount_cents: 0,
+								status: 'draft',
+								claim_status: 'to_be_submitted'
+							}).select('*').single();
+							if (invErr) throw invErr;
+							invoiceId = invoice.id;
+							await sb.from('invoice_items').insert(procedures.map(p => ({
+								invoice_id: invoice.id,
+								code: `PROC-${p.key.toUpperCase()}`,
+								description: p.name,
+								quantity: p.qty,
+								tariff_cents: Math.round(p.unitPrice * 100),
+								mutuality_cents: 0,
+								patient_cents: Math.round(p.unitPrice * 100),
+								vat_cents: 0
+							})));
+							atomicSuccess = false;
+						} else {
+							throw rpcErr;
+						}
+					} else {
+						invoiceId = rpcRes as any;
+						atomicSuccess = true;
+					}
 				} else {
 					const { data: invoice, error: invErr } = await sb.from('invoices').insert({
 						appointment_id: appointment.id,
@@ -381,9 +418,9 @@ export function CompletionSheet({ open, onOpenChange, appointment, dentistId, on
 					})));
 				}
 			}
-
+			
 			// 5) Inventory deduction (+ warnings)
-			if (autoDeduct && supplies.length > 0 && !withInvoice) {
+			if (autoDeduct && supplies.length > 0 && (!withInvoice || !atomicSuccess)) {
 				// warn low-stock non-blocking
 				const lowStock = supplies.filter(s => {
 					const it = inventoryItems.find(i => i.id === s.item_id);
