@@ -35,6 +35,10 @@ import {
   Award
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { RecallBanner } from "@/components/patient/RecallBanner";
+import { useMemo } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { getPatientActiveRecall, RecallRecord } from "@/lib/recalls";
 
 export interface HomeTabProps {
   userId: string;
@@ -67,6 +71,18 @@ export const HomeTab: React.FC<HomeTabProps> = ({
 }) => {
   const [greeting, setGreeting] = useState("");
   const unpaid = totalDueCents > 0;
+  const [activeRecall, setActiveRecall] = useState<RecallRecord | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      // Load patient profile id and active recall
+      const { data: profile } = await supabase.from('profiles').select('id').eq('user_id', userId).single();
+      if (profile?.id) {
+        const rec = await getPatientActiveRecall(profile.id);
+        setActiveRecall(rec);
+      }
+    })();
+  }, [userId]);
 
   useEffect(() => {
     const hour = new Date().getHours();
@@ -105,6 +121,12 @@ export const HomeTab: React.FC<HomeTabProps> = ({
         </div>
         <NotificationButton userId={userId} />
       </motion.div>
+
+      {activeRecall && (
+        <div>
+          <RecallBanner recall={activeRecall} />
+        </div>
+      )}
 
       {/* Primary Cards Section - In specified order */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
