@@ -7,10 +7,12 @@ import { Stethoscope, Menu, X, Calendar, Activity, BarChart3, Settings, Phone } 
 
 interface HeaderProps {
   user: User | null;
+  minimal?: boolean;
 }
 
 export const Header = ({
-  user
+  user,
+  minimal = false
 }: HeaderProps) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigation = [{
@@ -55,21 +57,25 @@ export const Header = ({
           </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center space-x-8">
-            {navigation.map(item => (
-              <a key={item.name} href={item.href} className="flex items-center space-x-2 text-dental-muted-foreground hover:text-dental-primary transition-colors duration-300 font-medium">
-                <item.icon className="w-4 h-4" />
-                <span>{item.name}</span>
-              </a>
-            ))}
-          </nav>
+          {!minimal && (
+            <nav className="hidden lg:flex items-center space-x-8">
+              {navigation.map(item => (
+                <a key={item.name} href={item.href} className="flex items-center space-x-2 text-dental-muted-foreground hover:text-dental-primary transition-colors duration-300 font-medium">
+                  <item.icon className="w-4 h-4" />
+                  <span>{item.name}</span>
+                </a>
+              ))}
+            </nav>
+          )}
 
           {/* Auth Section */}
           <div className="flex items-center space-x-4">
             {/* Language Selector */}
-            <div className="hidden sm:block">
-              <LanguageSelector />
-            </div>
+            {!minimal && (
+              <div className="hidden sm:block">
+                <LanguageSelector />
+              </div>
+            )}
             
             {!user ? (
               <>
@@ -92,14 +98,16 @@ export const Header = ({
             )}
 
             {/* Mobile Menu Button */}
-            <Button variant="ghost" size="sm" className="lg:hidden" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
-              {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </Button>
+            {!minimal && (
+              <Button variant="ghost" size="sm" className="lg:hidden" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
+                {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              </Button>
+            )}
           </div>
         </div>
 
         {/* Mobile Navigation */}
-        {isMobileMenuOpen && (
+        {isMobileMenuOpen && !minimal && (
           <div className="lg:hidden py-4 border-t border-white/10">
             <nav className="space-y-4">
               {navigation.map(item => (
