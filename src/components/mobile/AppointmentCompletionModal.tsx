@@ -15,6 +15,7 @@ import { QuickPhotoUpload } from "@/components/QuickPhotoUpload";
 import { emitAnalyticsEvent } from "@/lib/analyticsEvents";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
+import { Switch } from "@/components/ui/switch";
 
 interface AppointmentCompletionModalProps {
 	open: boolean;
@@ -113,6 +114,7 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 	const currentStepIndex = steps.findIndex(s => s.id === step);
 	const goNext = () => setStep(steps[Math.min(steps.length - 1, currentStepIndex + 1)].id);
 	const goPrev = () => setStep(steps[Math.max(0, currentStepIndex - 1)].id);
+    const [simpleMode, setSimpleMode] = useState(true);
 
 	// A. Performed Treatments
 	const [treatmentQuery, setTreatmentQuery] = useState("");
@@ -711,9 +713,22 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 						</div>
 					</div>
 
+					<Card>
+						<CardContent className="p-3 flex items-center justify-between gap-3">
+							<div className="text-sm">
+								<div className="font-medium">Simple mode</div>
+								<div className="text-xs text-muted-foreground">Streamlined fields only. Toggle for full details.</div>
+							</div>
+							<Switch checked={simpleMode} onCheckedChange={setSimpleMode as any} />
+						</CardContent>
+					</Card>
+
 					<Tabs value={step} onValueChange={(v) => setStep(v as any)}>
 						<TabsList className="w-full grid grid-cols-3 sm:grid-cols-7">
-							{steps.map(s => (
+							{(simpleMode
+								? steps.filter(s => ['treatments','notes','payment','review'].includes(s.id))
+								: steps
+							).map(s => (
 								<TabsTrigger key={s.id} value={s.id} className="text-xs px-2 py-1">{s.label}</TabsTrigger>
 							))}
 						</TabsList>
@@ -737,7 +752,9 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 												<div key={p.id} className="flex items-center justify-between border rounded p-2 text-sm">
 													<div>
 														<div className="font-medium">{p.name}</div>
-														<div className="text-muted-foreground text-xs">Default duration ~ {p.duration} min</div>
+														{!simpleMode && (
+															<div className="text-muted-foreground text-xs">Default duration ~ {p.duration} min</div>
+														)}
 													</div>
 													<div className="flex items-center gap-2">
 														<Input type="number" className="w-28" value={p.price} onChange={e => updateProcedurePrice(p.id, Math.max(0, parseFloat(e.target.value || '0')))} />
@@ -755,9 +772,9 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 								<CardContent className="space-y-3 p-4">
 									<div className="flex items-center justify-between">
 										<h3 className="font-semibold">B. Performed Treatments</h3>
-										<Badge variant="secondary">Search NIHDI</Badge>
+										{!simpleMode && <Badge variant="secondary">Search NIHDI</Badge>}
 									</div>
-									{insuranceWarning && (
+									{!simpleMode && insuranceWarning && (
 										<div className="text-xs text-amber-600 bg-amber-50 border border-amber-200 p-2 rounded">
 											{insuranceWarning}
 											<Button variant="link" className="px-1" onClick={async () => {
@@ -792,19 +809,23 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 													<div className="font-medium">{t.code} - {t.description}</div>
 													<Button variant="ghost" size="sm" onClick={() => removeTreatment(idx)}>Remove</Button>
 												</div>
-												<div className="grid grid-cols-4 gap-2 mt-2">
+												<div className="grid grid-cols-3 gap-2 mt-2">
 													<Input type="number" value={t.quantity} onChange={e => setTreatments(prev => prev.map((x,i) => i===idx ? {...x, quantity: Math.max(1, parseInt(e.target.value || '1'))} : x))} />
-													<Input placeholder="Tooth/quadrant" value={t.tooth_ref || ''} onChange={e => setTreatments(prev => prev.map((x,i) => i===idx ? {...x, tooth_ref: e.target.value} : x))} />
+													{!simpleMode && (
+														<Input placeholder="Tooth/quadrant" value={t.tooth_ref || ''} onChange={e => setTreatments(prev => prev.map((x,i) => i===idx ? {...x, tooth_ref: e.target.value} : x))} />
+													)}
 													<Input value={`€${t.tariff.toFixed(2)}`} onChange={e => {
 														const raw = e.target.value.replace('€','');
 														const val = Math.max(0, parseFloat(raw || '0'));
 														setTreatments(prev => prev.map((x,i) => i===idx ? {...x, tariff: val, patient_share: val } : x));
 													}} />
-													<Input value={`Patient €${t.patient_share.toFixed(2)}`} onChange={e => {
-														const raw = e.target.value.replace('Patient €','');
-														const val = Math.max(0, parseFloat(raw || '0'));
-														setTreatments(prev => prev.map((x,i) => i===idx ? {...x, patient_share: val } : x));
-													}} />
+													{!simpleMode && (
+														<Input value={`Patient €${t.patient_share.toFixed(2)}`} onChange={e => {
+															const raw = e.target.value.replace('Patient €','');
+															const val = Math.max(0, parseFloat(raw || '0'));
+															setTreatments(prev => prev.map((x,i) => i===idx ? {...x, patient_share: val } : x));
+														}} />
+													)}
 												</div>
 											</div>
 										))}
@@ -812,8 +833,8 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 									<div className="flex justify-between items-center text-sm">
 										<div className="flex gap-4">
 											<div>Tariff: €{totals.tariff.toFixed(2)}</div>
-											<div>Mutuality: €{totals.mutuality.toFixed(2)}</div>
-											<div>Patient: €{totals.patient.toFixed(2)}</div>
+											{!simpleMode && <div>Mutuality: €{totals.mutuality.toFixed(2)}</div>}
+											<div>Patient: €{(finalTotalOverride !== undefined ? finalTotalOverride : totals.patient).toFixed(2)}</div>
 										</div>
 										<div className="text-xs text-muted-foreground">Service date: {new Date(appointment.appointment_date).toLocaleDateString()}</div>
 									</div>
@@ -838,62 +859,67 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 									<Textarea placeholder="Clinical notes" value={notes} onChange={e => setNotes(e.target.value)} />
 									<div className="grid grid-cols-3 gap-2">
 										<Input type="number" min={0} max={10} placeholder="Pain 0-10" value={painScore ?? ''} onChange={e => setPainScore(e.target.value ? parseInt(e.target.value) : undefined)} />
-										<Select value={anesthesiaUsed ? 'yes' : 'no'} onValueChange={v => setAnesthesiaUsed(v === 'yes')}>
-											<SelectTrigger><SelectValue placeholder="Anesthesia" /></SelectTrigger>
-											<SelectContent>
-												<SelectItem value="no">No anesthesia</SelectItem>
-												<SelectItem value="yes">Anesthesia used</SelectItem>
-											</SelectContent>
-										</Select>
-										<Input placeholder="Dose" disabled={!anesthesiaUsed} value={anesthesiaDose} onChange={e => setAnesthesiaDose(e.target.value)} />
+										{!simpleMode && (
+											<Select value={anesthesiaUsed ? 'yes' : 'no'} onValueChange={v => setAnesthesiaUsed(v === 'yes')}>
+												<SelectTrigger><SelectValue placeholder="Anesthesia" /></SelectTrigger>
+												<SelectContent>
+													<SelectItem value="no">No anesthesia</SelectItem>
+													<SelectItem value="yes">Anesthesia used</SelectItem>
+												</SelectContent>
+											</Select>
+										)}
+										{!simpleMode && (
+											<Input placeholder="Dose" disabled={!anesthesiaUsed} value={anesthesiaDose} onChange={e => setAnesthesiaDose(e.target.value)} />
+										)}
 									</div>
 								</CardContent>
 							</Card>
 						</TabsContent>
 
 						<TabsContent value="plan" className="space-y-4">
-							{/* Add to Treatment Plan */}
-							<Card>
-								<CardContent className="space-y-3 p-4">
-									<h3 className="font-semibold">D. Add to Treatment Plan</h3>
-									<Select value={createPlan ? 'new' : 'none'} onValueChange={v => setCreatePlan(v === 'new')}>
-										<SelectTrigger><SelectValue placeholder="Plan action" /></SelectTrigger>
-										<SelectContent>
-											<SelectItem value="none">No new plan items</SelectItem>
-											<SelectItem value="new">Create new plan item</SelectItem>
-										</SelectContent>
-									</Select>
-									{createPlan && (
-										<div className="grid grid-cols-2 gap-2">
-											<Input placeholder="Title" value={planTitle} onChange={e => setPlanTitle(e.target.value)} />
-											<Input placeholder="Stage" value={planStage} onChange={e => setPlanStage(e.target.value)} />
-											<Input type="number" placeholder="Est. cost" value={planEstimatedCost ?? ''} onChange={e => setPlanEstimatedCost(e.target.value ? parseFloat(e.target.value) : undefined)} />
-											<Input placeholder="Est. duration" value={planEstimatedDuration} onChange={e => setPlanEstimatedDuration(e.target.value)} />
-											<Select value={planDiscussed ? 'yes' : 'no'} onValueChange={v => setPlanDiscussed(v === 'yes')}>
-												<SelectTrigger><SelectValue placeholder="Discussed" /></SelectTrigger>
+							{simpleMode ? null : (
+								<>
+									<Card>
+										<CardContent className="space-y-3 p-4">
+											<h3 className="font-semibold">D. Add to Treatment Plan</h3>
+											<Select value={createPlan ? 'new' : 'none'} onValueChange={v => setCreatePlan(v === 'new')}>
+												<SelectTrigger><SelectValue placeholder="Plan action" /></SelectTrigger>
 												<SelectContent>
-													<SelectItem value="no">Not discussed</SelectItem>
-													<SelectItem value="yes">Discussed with patient</SelectItem>
+													<SelectItem value="none">No new plan items</SelectItem>
+													<SelectItem value="new">Create new plan item</SelectItem>
 												</SelectContent>
 											</Select>
-										</div>
-									)}
-								</CardContent>
-							</Card>
-
-							{/* Prescriptions */}
-							<Card>
-								<CardContent className="space-y-3 p-4">
-									<h3 className="font-semibold">E. Prescriptions</h3>
-									<Input placeholder="Medicine" value={rxMedName} onChange={e => setRxMedName(e.target.value)} />
-									<div className="grid grid-cols-2 gap-2">
-										<Input placeholder="Dose" value={rxDosage} onChange={e => setRxDosage(e.target.value)} />
-										<Input placeholder="Route" value={rxRoute} onChange={e => setRxRoute(e.target.value)} />
-										<Input placeholder="Frequency" value={rxFrequency} onChange={e => setRxFrequency(e.target.value)} />
-										<Input placeholder="Duration (days)" type="number" value={rxDuration} onChange={e => setRxDuration(e.target.value)} />
-									</div>
-								</CardContent>
-							</Card>
+											{createPlan && (
+												<div className="grid grid-cols-2 gap-2">
+													<Input placeholder="Title" value={planTitle} onChange={e => setPlanTitle(e.target.value)} />
+													<Input placeholder="Stage" value={planStage} onChange={e => setPlanStage(e.target.value)} />
+													<Input type="number" placeholder="Est. cost" value={planEstimatedCost ?? ''} onChange={e => setPlanEstimatedCost(e.target.value ? parseFloat(e.target.value) : undefined)} />
+													<Input placeholder="Est. duration" value={planEstimatedDuration} onChange={e => setPlanEstimatedDuration(e.target.value)} />
+													<Select value={planDiscussed ? 'yes' : 'no'} onValueChange={v => setPlanDiscussed(v === 'yes')}>
+														<SelectTrigger><SelectValue placeholder="Discussed" /></SelectTrigger>
+														<SelectContent>
+															<SelectItem value="no">Not discussed</SelectItem>
+															<SelectItem value="yes">Discussed with patient</SelectItem>
+														</SelectContent>
+													</Select>
+												</div>
+											)}
+										</CardContent>
+									</Card>
+									<Card>
+										<CardContent className="space-y-3 p-4">
+											<h3 className="font-semibold">E. Prescriptions</h3>
+											<Input placeholder="Medicine" value={rxMedName} onChange={e => setRxMedName(e.target.value)} />
+											<div className="grid grid-cols-2 gap-2">
+												<Input placeholder="Dose" value={rxDosage} onChange={e => setRxDosage(e.target.value)} />
+												<Input placeholder="Route" value={rxRoute} onChange={e => setRxRoute(e.target.value)} />
+												<Input placeholder="Frequency" value={rxFrequency} onChange={e => setRxFrequency(e.target.value)} />
+												<Input placeholder="Duration (days)" type="number" value={rxDuration} onChange={e => setRxDuration(e.target.value)} />
+											</div>
+										</CardContent>
+									</Card>
+								</>
+							)}
 						</TabsContent>
 
 						<TabsContent value="payment" className="space-y-4">
@@ -903,8 +929,8 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 									<h3 className="font-semibold">F. Payment & Invoice</h3>
 									<div className="text-sm space-y-1">
 										<div>Total due now (patient): €{(finalTotalOverride !== undefined ? finalTotalOverride : totals.patient).toFixed(2)}</div>
-										<div>Mutuality share: €{totals.mutuality.toFixed(2)}</div>
-										<div>VAT: €{totals.vat.toFixed(2)}</div>
+										{!simpleMode && <div>Mutuality share: €{totals.mutuality.toFixed(2)}</div>}
+										{!simpleMode && <div>VAT: €{totals.vat.toFixed(2)}</div>}
 									</div>
 									<div className="grid grid-cols-1 md:grid-cols-2 gap-2 items-center">
 										<Input type="number" placeholder="Final total override (EUR)" value={finalTotalOverride ?? ''} onChange={e => setFinalTotalOverride(e.target.value ? parseFloat(e.target.value) : undefined)} />
@@ -919,7 +945,7 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 												{treatments.map((t, i) => (
 													<div key={i} className="flex justify-between text-xs">
 														<span>{t.code} x{t.quantity}</span>
-														<span>Tariff €{(t.tariff * t.quantity).toFixed(2)} | Mutuality €{(t.mutuality_share * t.quantity).toFixed(2)} | Patient €{(t.patient_share * t.quantity).toFixed(2)}</span>
+														<span>Tariff €{(t.tariff * t.quantity).toFixed(2)}{!simpleMode ? ` | Mutuality €${(t.mutuality_share * t.quantity).toFixed(2)}` : ''} | Patient €{(t.patient_share * t.quantity).toFixed(2)}</span>
 													</div>
 												))}
 											</div>
@@ -934,120 +960,122 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 						</TabsContent>
 
 						<TabsContent value="followup" className="space-y-4">
-							{/* Follow-Up & Predictive Scheduling */}
-							<Card>
-								<CardContent className="space-y-3 p-4">
-									<h3 className="font-semibold">G. Follow-Up & Predictive Scheduling</h3>
-									<div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-										<div className="space-y-2">
-											<Label>Follow-up</Label>
-											<Select value={followUpNeeded ? 'yes' : 'no'} onValueChange={v => setFollowUpNeeded(v === 'yes')}>
-												<SelectTrigger><SelectValue placeholder="Follow-up needed" /></SelectTrigger>
-												<SelectContent>
-													<SelectItem value="no">No</SelectItem>
-													<SelectItem value="yes">Yes</SelectItem>
-												</SelectContent>
-											</Select>
-											{followUpNeeded && (
-												<div className="grid grid-cols-3 gap-2 items-end">
-													<Input type="date" value={followUpDate || ''} onChange={e => setFollowUpDate(e.target.value)} />
-													<Button variant="outline" onClick={() => setFollowUpDate(new Date(Date.now() + 7*24*60*60*1000).toISOString().slice(0,10))}>1w</Button>
-													<Button variant="outline" onClick={() => setFollowUpDate(new Date(Date.now() + 14*24*60*60*1000).toISOString().slice(0,10))}>2w</Button>
-													<Button variant="outline" onClick={() => setFollowUpDate(new Date(Date.now() + 42*24*60*60*1000).toISOString().slice(0,10))}>6w</Button>
-													<Input placeholder="Reason" value={followUpReason} onChange={e => setFollowUpReason(e.target.value)} />
-												</div>
-											)}
-											{followUpNeeded && followUpDate && (
-												<Button onClick={async () => {
-													await sb.from('appointment_follow_ups').insert({ appointment_id: appointment.id, follow_up_type: 'in_person', status: 'pending', scheduled_date: new Date(followUpDate).toISOString(), notes: followUpReason });
-													toast({ title: 'Follow-up created' });
-												}}>Create Follow-Up</Button>
-											)}
+							{simpleMode ? null : (
+								<Card>
+									<CardContent className="space-y-3 p-4">
+										<h3 className="font-semibold">G. Follow-Up & Predictive Scheduling</h3>
+										<div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+											<div className="space-y-2">
+												<Label>Follow-up</Label>
+												<Select value={followUpNeeded ? 'yes' : 'no'} onValueChange={v => setFollowUpNeeded(v === 'yes')}>
+													<SelectTrigger><SelectValue placeholder="Follow-up needed" /></SelectTrigger>
+													<SelectContent>
+														<SelectItem value="no">No</SelectItem>
+														<SelectItem value="yes">Yes</SelectItem>
+													</SelectContent>
+												</Select>
+												{followUpNeeded && (
+													<div className="grid grid-cols-3 gap-2 items-end">
+														<Input type="date" value={followUpDate || ''} onChange={e => setFollowUpDate(e.target.value)} />
+														<Button variant="outline" onClick={() => setFollowUpDate(new Date(Date.now() + 7*24*60*60*1000).toISOString().slice(0,10))}>1w</Button>
+														<Button variant="outline" onClick={() => setFollowUpDate(new Date(Date.now() + 14*24*60*60*1000).toISOString().slice(0,10))}>2w</Button>
+														<Button variant="outline" onClick={() => setFollowUpDate(new Date(Date.now() + 42*24*60*60*1000).toISOString().slice(0,10))}>6w</Button>
+														<Input placeholder="Reason" value={followUpReason} onChange={e => setFollowUpReason(e.target.value)} />
+													</div>
+												)}
+												{followUpNeeded && followUpDate && (
+													<Button onClick={async () => {
+														await sb.from('appointment_follow_ups').insert({ appointment_id: appointment.id, follow_up_type: 'in_person', status: 'pending', scheduled_date: new Date(followUpDate).toISOString(), notes: followUpReason });
+														toast({ title: 'Follow-up created' });
+													}}>Create Follow-Up</Button>
+												)}
+											</div>
+											<div className="space-y-2">
+												<Label>Predictive next visit</Label>
+												<Select value={predictiveChoice} onValueChange={setPredictiveChoice}>
+													<SelectTrigger><SelectValue placeholder="Select due visit type" /></SelectTrigger>
+													<SelectContent>
+														<SelectItem value="Cleaning (6 months)">Cleaning (6 months)</SelectItem>
+														<SelectItem value="Filling follow-up (2 weeks)">Filling follow-up (2 weeks)</SelectItem>
+														<SelectItem value="Root canal check (2–4 weeks)">Root canal check (2–4 weeks)</SelectItem>
+														<SelectItem value="Implant review (2 weeks, then 3 months)">Implant review (2 weeks, then 3 months)</SelectItem>
+														<SelectItem value="Ortho adjustment (3–6 weeks)">Ortho adjustment (3–6 weeks)</SelectItem>
+														<SelectItem value="Extraction follow-up (7–10 days)">Extraction follow-up (7–10 days)</SelectItem>
+														<SelectItem value="General exam (12 months)">General exam (12 months)</SelectItem>
+													</SelectContent>
+												</Select>
+												<p className="text-xs text-muted-foreground">Auto-generates 3 valid slots and notifies the patient.</p>
+											</div>
 										</div>
-										<div className="space-y-2">
-											<Label>Predictive next visit</Label>
-											<Select value={predictiveChoice} onValueChange={setPredictiveChoice}>
-												<SelectTrigger><SelectValue placeholder="Select due visit type" /></SelectTrigger>
-												<SelectContent>
-													<SelectItem value="Cleaning (6 months)">Cleaning (6 months)</SelectItem>
-													<SelectItem value="Filling follow-up (2 weeks)">Filling follow-up (2 weeks)</SelectItem>
-													<SelectItem value="Root canal check (2–4 weeks)">Root canal check (2–4 weeks)</SelectItem>
-													<SelectItem value="Implant review (2 weeks, then 3 months)">Implant review (2 weeks, then 3 months)</SelectItem>
-													<SelectItem value="Ortho adjustment (3–6 weeks)">Ortho adjustment (3–6 weeks)</SelectItem>
-													<SelectItem value="Extraction follow-up (7–10 days)">Extraction follow-up (7–10 days)</SelectItem>
-													<SelectItem value="General exam (12 months)">General exam (12 months)</SelectItem>
-												</SelectContent>
-											</Select>
-											<p className="text-xs text-muted-foreground">Auto-generates 3 valid slots and notifies the patient.</p>
-										</div>
-									</div>
-								</CardContent>
-							</Card>
+									</CardContent>
+								</Card>
+							)}
 						</TabsContent>
 
 						<TabsContent value="files" className="space-y-4">
-							{/* Files / X-rays */}
-							<Card>
-								<CardContent className="space-y-3 p-4">
-									<h3 className="font-semibold">H. Files / X-rays</h3>
-									<QuickPhotoUpload onPhotoUploaded={(url) => setUploadedFiles(prev => [...prev, url])} onCancel={() => {}} />
-									<Input placeholder="Paste secure file URL" onKeyDown={e => {
-										if (e.key === 'Enter') {
-											const target = e.target as HTMLInputElement;
-											if (target.value) {
-												setUploadedFiles(prev => [...prev, target.value]);
-												target.value = '';
-											}
-										}
-									}} />
-									<div className="grid grid-cols-3 gap-2">
-										{uploadedFiles.map((u, i) => (
-											<a key={i} href={u} target="_blank" rel="noreferrer" className="text-xs underline break-all">{u}</a>
-										))}
-									</div>
-								</CardContent>
-							</Card>
-
-							{/* Treatment Type & Supplies */}
-							<Card>
-								<CardContent className="space-y-3 p-4">
-									<h3 className="font-semibold">I. Treatment Type & Supplies</h3>
-									<Select value={selectedTreatmentTypeId || ''} onValueChange={(v: any) => setSelectedTreatmentTypeId(v)}>
-										<SelectTrigger className="w-full"><SelectValue placeholder="Select treatment type" /></SelectTrigger>
-										<SelectContent>
-											{treatmentTypes.map(tt => (<SelectItem key={tt.id} value={tt.id}>{tt.name}</SelectItem>))}
-										</SelectContent>
-									</Select>
-									<div className="space-y-2">
-										<div className="text-sm font-medium">Supplies used</div>
-										<div className="grid grid-cols-1 md:grid-cols-3 gap-2 items-center">
-											<Select onValueChange={(v: any) => addManualSupply(v, 1)}>
-												<SelectTrigger><SelectValue placeholder="Add item" /></SelectTrigger>
-												<SelectContent>
-													{inventoryItems.map(i => (<SelectItem key={i.id} value={i.id}>{i.name}</SelectItem>))}
-												</SelectContent>
-											</Select>
-										</div>
-										{manualSupplies.length > 0 && (
-											<div className="space-y-1">
-												{manualSupplies.map((s, idx) => (
-													<div key={`${s.item_id}-${idx}`} className="flex items-center justify-between text-sm">
-														<div className="flex items-center gap-2">
-															<span>{s.name}</span>
-															<span className="text-xs text-muted-foreground">stock: {inventoryItems.find(i => i.id === s.item_id)?.quantity ?? '-'}</span>
-															<Input type="number" className="w-24" value={s.quantity} onChange={e => {
-																const q = Math.max(1, parseInt(e.target.value || '1'));
-																setManualSupplies(prev => prev.map((x, i) => i === idx ? { ...x, quantity: q } : x));
-															}} />
-														</div>
-														<Button variant="ghost" size="sm" onClick={() => removeManualSupply(idx)}>Remove</Button>
-													</div>
+							{simpleMode ? null : (
+								<>
+									<Card>
+										<CardContent className="space-y-3 p-4">
+											<h3 className="font-semibold">H. Files / X-rays</h3>
+											<QuickPhotoUpload onPhotoUploaded={(url) => setUploadedFiles(prev => [...prev, url])} onCancel={() => {}} />
+											<Input placeholder="Paste secure file URL" onKeyDown={e => {
+												if (e.key === 'Enter') {
+													const target = e.target as HTMLInputElement;
+													if (target.value) {
+														setUploadedFiles(prev => [...prev, target.value]);
+														target.value = '';
+													}
+												}
+											}} />
+											<div className="grid grid-cols-3 gap-2">
+												{uploadedFiles.map((u, i) => (
+													<a key={i} href={u} target="_blank" rel="noreferrer" className="text-xs underline break-all">{u}</a>
 												))}
 											</div>
-										)}
-									</div>
-								</CardContent>
-							</Card>
+										</CardContent>
+									</Card>
+									<Card>
+										<CardContent className="space-y-3 p-4">
+											<h3 className="font-semibold">I. Treatment Type & Supplies</h3>
+											<Select value={selectedTreatmentTypeId || ''} onValueChange={(v: any) => setSelectedTreatmentTypeId(v)}>
+												<SelectTrigger className="w-full"><SelectValue placeholder="Select treatment type" /></SelectTrigger>
+												<SelectContent>
+													{treatmentTypes.map(tt => (<SelectItem key={tt.id} value={tt.id}>{tt.name}</SelectItem>))}
+												</SelectContent>
+											</Select>
+											<div className="space-y-2">
+												<div className="text-sm font-medium">Supplies used</div>
+												<div className="grid grid-cols-1 md:grid-cols-3 gap-2 items-center">
+													<Select onValueChange={(v: any) => addManualSupply(v, 1)}>
+														<SelectTrigger><SelectValue placeholder="Add item" /></SelectTrigger>
+														<SelectContent>
+															{inventoryItems.map(i => (<SelectItem key={i.id} value={i.id}>{i.name}</SelectItem>))}
+														</SelectContent>
+													</Select>
+												</div>
+												{manualSupplies.length > 0 && (
+													<div className="space-y-1">
+														{manualSupplies.map((s, idx) => (
+															<div key={`${s.item_id}-${idx}`} className="flex items-center justify-between text-sm">
+																<div className="flex items-center gap-2">
+																	<span>{s.name}</span>
+																	<span className="text-xs text-muted-foreground">stock: {inventoryItems.find(i => i.id === s.item_id)?.quantity ?? '-'}</span>
+																	<Input type="number" className="w-24" value={s.quantity} onChange={e => {
+																		const q = Math.max(1, parseInt(e.target.value || '1'));
+																		setManualSupplies(prev => prev.map((x, i) => i === idx ? { ...x, quantity: q } : x));
+																	}} />
+																</div>
+																<Button variant="ghost" size="sm" onClick={() => removeManualSupply(idx)}>Remove</Button>
+															</div>
+														))}
+													</div>
+												)}
+											</div>
+										</CardContent>
+									</Card>
+								</>
+							)}
 						</TabsContent>
 
 						<TabsContent value="review" className="space-y-4">
@@ -1065,16 +1093,20 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 										</div>
 										<div>
 											<div className="font-medium">Payment</div>
-											<div className="text-muted-foreground text-xs">Patient due: €{(finalTotalOverride !== undefined ? finalTotalOverride : (totals.patient + totals.vat)).toFixed(2)}</div>
+											<div className="text-muted-foreground text-xs">Patient due: €{(finalTotalOverride !== undefined ? finalTotalOverride : totals.patient).toFixed(2)}</div>
 										</div>
+										{!simpleMode && (
 										<div>
 											<div className="font-medium">Follow-up</div>
 											<div className="text-muted-foreground text-xs">{followUpNeeded ? (followUpDate || 'Scheduled') : 'None'}</div>
 										</div>
+										)}
+										{!simpleMode && (
 										<div>
 											<div className="font-medium">Files</div>
 											<div className="text-muted-foreground text-xs">{uploadedFiles.length} attached</div>
 										</div>
+										)}
 									</div>
 									<p className="text-xs text-muted-foreground">When you click Complete, this appointment will be marked as completed and an invoice will be created from the treatments. You can also charge the patient immediately.</p>
 								</CardContent>
