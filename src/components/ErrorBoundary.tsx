@@ -26,6 +26,17 @@ export class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error('ErrorBoundary caught an error:', error, errorInfo);
+    console.error('Error stack:', error.stack);
+    console.error('Component stack:', errorInfo.componentStack);
+    
+    // Also log to a more visible place for debugging
+    console.group('🚨 ERROR BOUNDARY TRIGGERED');
+    console.error('Error message:', error.message);
+    console.error('Error name:', error.name);
+    console.error('Full error:', error);
+    console.error('Component stack:', errorInfo.componentStack);
+    console.groupEnd();
+    
     this.setState({ error, errorInfo });
   }
 
@@ -48,7 +59,12 @@ export class ErrorBoundary extends Component<Props, State> {
               </div>
               <CardTitle className="text-xl">Something went wrong</CardTitle>
               <CardDescription>
-                We encountered an unexpected error. Please try refreshing the page.
+                We encountered an unexpected error. Check the browser console for details.
+                {this.state.error && (
+                  <div className="mt-2 text-sm font-mono text-destructive">
+                    {this.state.error.message}
+                  </div>
+                )}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
