@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,7 @@ import { QuickPhotoUpload } from "@/components/QuickPhotoUpload";
 import { emitAnalyticsEvent } from "@/lib/analyticsEvents";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
+import { withSchemaReloadRetry } from "@/integrations/supabase/retry";
 
 interface AppointmentCompletionModalProps {
 	open: boolean;
@@ -206,7 +207,7 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 			const { data: existing } = await sb.from('invoices').select('id').eq('appointment_id', appointment.id).order('created_at', { ascending: false }).limit(1).maybeSingle();
 			let invoiceId = existing?.id;
 			if (!invoiceId) {
-				const { data: invoice, error: invErr } = await sb.from('invoices').insert({
+				const { data: invoice, error: invErr } = await withSchemaReloadRetry(() => sb.from('invoices').insert({
 					appointment_id: appointment.id,
 					patient_id: appt.patient_id,
 					dentist_id: appt.dentist_id,
@@ -216,7 +217,7 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 					vat_amount_cents: vatCents,
 					status: 'issued',
 					claim_status: 'to_be_submitted'
-				}).select('*').single();
+				}).select('*').single(), sb);
 				if (invErr) throw invErr;
 				invoiceId = invoice.id;
 				await sb.from('invoice_items').insert(
@@ -592,7 +593,7 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 				const patientCents = Math.round(((finalTotalOverride !== undefined ? finalTotalOverride : (totals.patient + totals.vat))) * 100);
 				const mutualityCents = Math.round(totals.mutuality * 100);
 				const vatCents = Math.round(totals.vat * 100);
-				const { data: invoice, error: invErr } = await sb.from('invoices').insert({
+				const { data: invoice, error: invErr } = await withSchemaReloadRetry(() => sb.from('invoices').insert({
 					appointment_id: appointment.id,
 					patient_id: current.patient_id,
 					dentist_id: current.dentist_id,
@@ -602,7 +603,7 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 					vat_amount_cents: vatCents,
 					status: 'draft',
 					claim_status: 'to_be_submitted'
-				}).select('*').single();
+				}).select('*').single(), sb);
 				if (invErr) throw invErr;
 				await sb.from('invoice_items').insert(
 					treatments.map(t => ({
