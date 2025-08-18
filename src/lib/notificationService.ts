@@ -67,7 +67,7 @@ static async markAllAsRead(): Promise<number> {
   return data?.length || 0;
 }
 
-  // Create a new notification with email/SMS sending
+  // Create a new notification with email sending only
   static async createNotification(
     userId: string,
     title: string,
@@ -77,8 +77,7 @@ static async markAllAsRead(): Promise<number> {
     actionUrl?: string,
     metadata?: Record<string, unknown>,
     expiresAt?: string,
-    sendEmail = true,
-    sendSMS = false
+    sendEmail = true
   ): Promise<string> {
 const { data, error } = await supabase
   .from('notifications')
@@ -102,20 +101,19 @@ if (error) {
   throw new Error('Failed to create notification');
 }
 
-// Send email/SMS notifications if enabled
-await this.sendMultiChannelNotification(userId, title, message, type, sendEmail, sendSMS, metadata);
+// Send email notification if enabled
+await this.sendEmailNotification(userId, title, message, type, sendEmail, metadata);
 
 return data.id;
   }
 
-  // Send notification via multiple channels (email, SMS)
-  static async sendMultiChannelNotification(
+  // Send email notification only
+  static async sendEmailNotification(
     userId: string,
     title: string,
     message: string,
     type: Notification['type'],
     sendEmail = true,
-    sendSMS = false,
     metadata?: Record<string, unknown>
   ): Promise<void> {
     try {
@@ -125,7 +123,7 @@ return data.id;
       // Get user profile for contact info
       const { data: profile } = await supabase
         .from('profiles')
-        .select('email, phone, first_name, last_name')
+        .select('email, first_name, last_name')
         .eq('user_id', userId)
         .single();
 
@@ -137,7 +135,8 @@ return data.id;
       // Send email if enabled and user has email
       if (sendEmail && preferences?.email_enabled && profile.email) {
         try {
-          await supabase.functions.invoke('send-email-notification', {
+          console.log('Sending email notification to:', profile.email);
+          const result = await supabase.functions.invoke('send-email-notification', {
             body: {
               to: profile.email,
               subject: title,
@@ -147,29 +146,19 @@ return data.id;
               dentistId: metadata?.dentistId || null
             }
           });
+          console.log('Email notification result:', result);
         } catch (emailError) {
           console.error('Failed to send email notification:', emailError);
         }
-      }
-
-      // Send SMS if enabled and user has phone
-      if (sendSMS && preferences?.sms_enabled && profile.phone) {
-        try {
-          await supabase.functions.invoke('send-sms', {
-            body: {
-              to: profile.phone,
-              message: `${title}: ${message}`,
-              messageType: this.mapNotificationTypeToSMS(type),
-              patientId: metadata?.patientId || null,
-              dentistId: metadata?.dentistId || null
-            }
-          });
-        } catch (smsError) {
-          console.error('Failed to send SMS notification:', smsError);
-        }
+      } else {
+        console.log('Email not sent - conditions not met:', {
+          sendEmail,
+          email_enabled: preferences?.email_enabled,
+          has_email: !!profile.email
+        });
       }
     } catch (error) {
-      console.error('Error sending multi-channel notification:', error);
+      console.error('Error sending email notification:', error);
     }
   }
 
@@ -183,15 +172,6 @@ return data.id;
     }
   }
 
-  // Map notification type to SMS message type
-  private static mapNotificationTypeToSMS(type: Notification['type']): string {
-    switch (type) {
-      case 'appointment': return 'appointment_confirmation';
-      case 'prescription': return 'reminder';
-      case 'system': return 'emergency';
-      default: return 'reminder';
-    }
-  }
 
   // Create appointment reminder notification
   static async createAppointmentReminder(
@@ -286,7 +266,7 @@ return data.id;
           id: `default-${userId}`,
           user_id: userId,
           email_enabled: true,
-          sms_enabled: false,
+          sms_enabled: false, // Disabled for now
           push_enabled: true,
           in_app_enabled: true,
           appointment_reminders: true,
