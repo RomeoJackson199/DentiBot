@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/hooks/use-toast';
 import { Mail, CheckCircle, AlertCircle } from 'lucide-react';
 import { NotificationService } from '@/lib/notificationService';
 import { supabase } from '@/integrations/supabase/client';
