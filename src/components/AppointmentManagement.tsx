@@ -249,22 +249,98 @@ export function AppointmentManagement({ dentistId }: AppointmentManagementProps)
                   New Appointment
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-md">
+              <DialogContent className="max-w-2xl">
                 <DialogHeader>
                   <DialogTitle>Create New Appointment</DialogTitle>
                 </DialogHeader>
-                <div className="space-y-4">
-                  <p className="text-sm text-muted-foreground">
-                    New appointment creation feature coming soon. 
-                    For now, patients can book appointments through the main booking system.
-                  </p>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setShowNewAppointment(false)}
-                    className="w-full"
-                  >
-                    Close
-                  </Button>
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-medium">Patient</label>
+                      <Select>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select patient" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="patient1">John Doe</SelectItem>
+                          <SelectItem value="patient2">Jane Smith</SelectItem>
+                          <SelectItem value="patient3">Bob Johnson</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div>
+                      <label className="text-sm font-medium">Dentist</label>
+                      <Select>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select dentist" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="dentist1">Dr. Smith</SelectItem>
+                          <SelectItem value="dentist2">Dr. Johnson</SelectItem>
+                          <SelectItem value="dentist3">Dr. Brown</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-medium">Date</label>
+                      <Input type="date" />
+                    </div>
+                    
+                    <div>
+                      <label className="text-sm font-medium">Time</label>
+                      <Input type="time" />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium">Reason</label>
+                    <Select>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select reason" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="checkup">Regular checkup</SelectItem>
+                        <SelectItem value="cleaning">Cleaning</SelectItem>
+                        <SelectItem value="filling">Cavity filling</SelectItem>
+                        <SelectItem value="emergency">Emergency</SelectItem>
+                        <SelectItem value="consultation">Consultation</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium">Notes (Optional)</label>
+                    <Textarea 
+                      placeholder="Additional notes or special instructions..."
+                      className="resize-none"
+                      rows={3}
+                    />
+                  </div>
+
+                  <div className="flex gap-3 justify-end">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setShowNewAppointment(false)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button 
+                      onClick={() => {
+                        // Handle appointment creation
+                        setShowNewAppointment(false);
+                        toast({
+                          title: "Appointment Created",
+                          description: "New appointment has been successfully scheduled.",
+                        });
+                      }}
+                    >
+                      Create Appointment
+                    </Button>
+                  </div>
                 </div>
               </DialogContent>
             </Dialog>

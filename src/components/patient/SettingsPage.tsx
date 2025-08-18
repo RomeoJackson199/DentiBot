@@ -10,6 +10,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { saveProfileData, loadProfileData, ProfileData } from "@/lib/profileUtils";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { useToast } from "@/hooks/use-toast";
 
 export interface SettingsPageProps {
   user: User;
@@ -246,6 +248,8 @@ const Preferences: React.FC<{ theme?: string; setTheme: (t: string) => void; }> 
 };
 
 const Security: React.FC = () => {
+  const { toast } = useToast();
+  
   return (
     <Card>
       <CardHeader>
@@ -262,7 +266,22 @@ const Security: React.FC = () => {
           </div>
           <div>
             <Label>Two-Factor Authentication</Label>
-            <div className="mt-2 text-sm text-muted-foreground">Enable with authenticator app (coming soon)</div>
+            <div className="mt-2 flex items-center gap-4">
+              <Switch 
+                checked={false}
+                onCheckedChange={(checked) => {
+                  if (checked) {
+                    toast({
+                      title: "2FA Setup",
+                      description: "Two-factor authentication setup will be available soon. Your account is currently protected by secure password authentication.",
+                    });
+                  }
+                }}
+              />
+              <div className="text-sm text-muted-foreground">
+                Enhance your account security with 2FA
+              </div>
+            </div>
           </div>
         </div>
       </CardContent>
@@ -271,14 +290,91 @@ const Security: React.FC = () => {
 };
 
 const LinkedAccounts: React.FC = () => {
+  const { toast } = useToast();
+  
   return (
     <Card>
       <CardHeader>
         <CardTitle>Linked Accounts</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-2 text-sm text-muted-foreground">
-        <div>No connected devices yet.</div>
-        <div>Third-party logins management coming soon.</div>
+      <CardContent className="space-y-4">
+        <div className="space-y-3">
+          <div className="flex items-center justify-between p-3 border rounded-lg">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-blue-500 rounded flex items-center justify-center text-white text-sm">
+                G
+              </div>
+              <div>
+                <div className="font-medium">Google Account</div>
+                <div className="text-sm text-muted-foreground">Not connected</div>
+              </div>
+            </div>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => toast({
+                title: "Google Integration",
+                description: "Google account linking will be available in a future update.",
+              })}
+            >
+              Connect
+            </Button>
+          </div>
+          
+          <div className="flex items-center justify-between p-3 border rounded-lg">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center text-white text-sm">
+                F
+              </div>
+              <div>
+                <div className="font-medium">Facebook Account</div>
+                <div className="text-sm text-muted-foreground">Not connected</div>
+              </div>
+            </div>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => toast({
+                title: "Facebook Integration",
+                description: "Facebook account linking will be available in a future update.",
+              })}
+            >
+              Connect
+            </Button>
+          </div>
+          
+          <div className="flex items-center justify-between p-3 border rounded-lg">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-green-500 rounded flex items-center justify-center text-white text-sm">
+                A
+              </div>
+              <div>
+                <div className="font-medium">Apple ID</div>
+                <div className="text-sm text-muted-foreground">Not connected</div>
+              </div>
+            </div>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => toast({
+                title: "Apple Integration",
+                description: "Apple ID linking will be available in a future update.",
+              })}
+            >
+              Connect
+            </Button>
+          </div>
+        </div>
+        
+        <div className="text-sm text-muted-foreground border-t pt-4">
+          <div className="font-medium mb-2">Connected Devices</div>
+          <div className="space-y-2">
+            <div className="flex justify-between">
+              <span>Current Device (Web Browser)</span>
+              <Badge variant="secondary">Active</Badge>
+            </div>
+          </div>
+        </div>
       </CardContent>
     </Card>
   );

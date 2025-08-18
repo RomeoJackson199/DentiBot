@@ -18,6 +18,7 @@ import { emitAnalyticsEvent } from "@/lib/analyticsEvents";
 import { mapDentistPortalSelectionToKey, createRecall } from "@/lib/recalls";
 import { withSchemaReloadRetry } from "@/integrations/supabase/retry";
 import { SKU_DISPLAY_NAME, PROCEDURE_DEFS } from "@/lib/constants";
+import { PatientPreferencesDialog } from "./PatientPreferencesDialog";
 
 interface CompletionSheetProps {
 	open: boolean;
@@ -637,7 +638,11 @@ export function CompletionSheet({ open, onOpenChange, appointment, dentistId, on
 						</SelectContent>
 					</Select>
 					<div className="flex items-center gap-2 text-sm"><Switch checked={offerSlots} onCheckedChange={setOfferSlots} /> <span>Offer 3 time slots to the patient</span></div>
-					<a className="text-xs underline text-muted-foreground" href="#" onClick={(e) => { e.preventDefault(); toast({ title: 'Patient preferences', description: 'Edit coming soon.' }); }}>Edit patient preferences (days, hours)</a>
+					<PatientPreferencesDialog>
+						<a className="text-xs underline text-muted-foreground cursor-pointer hover:text-primary">
+							Edit patient preferences (days, hours)
+						</a>
+					</PatientPreferencesDialog>
 				</div>
 			</div>
 		</div>
