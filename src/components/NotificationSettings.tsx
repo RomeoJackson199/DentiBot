@@ -80,8 +80,7 @@ export const NotificationSettings: React.FC = () => {
           undefined,
           undefined,
           undefined,
-          true, // sendEmail
-          false // sendSMS
+          true // sendEmail
         );
         toast({
           title: "Test Email Sent",
@@ -107,15 +106,14 @@ export const NotificationSettings: React.FC = () => {
       if (user) {
         await NotificationService.createNotification(
           user.id,
-          'Test SMS Notification',
-          'This is a test SMS to verify your phone number and SMS settings.',
+          'Test SMS Notification (Disabled)',
+          'SMS testing is currently disabled.',
           'system',
           'info',
           undefined,
           undefined,
           undefined,
-          false, // sendEmail
-          true // sendSMS
+          false // sendEmail only for now
         );
         toast({
           title: "Test SMS Sent",

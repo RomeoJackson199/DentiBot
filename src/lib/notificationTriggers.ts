@@ -90,8 +90,7 @@ export class NotificationTriggers {
           appointment_date: appt.appointment_date
         },
         undefined,
-        true, // send email
-        true  // send SMS
+        true // send email only
       );
 
       console.log('Appointment confirmation notification sent for:', appointmentId);
@@ -146,8 +145,7 @@ export class NotificationTriggers {
           appointment_date: appt.appointment_date
         },
         undefined,
-        true, // send email
-        true  // send SMS
+        true // send email only
       );
 
       console.log('Appointment cancellation notification sent for:', appointmentId);
@@ -194,8 +192,7 @@ export class NotificationTriggers {
           days_until_expiry: daysUntilExpiry
         },
         undefined,
-        true, // send email
-        false // no SMS for prescription expiry (less urgent)
+        true // send email only
       );
 
       console.log('Prescription expiry notification sent for:', prescriptionId);
@@ -236,8 +233,7 @@ export class NotificationTriggers {
           assessment_completed: true
         },
         undefined,
-        true, // send email
-        urgencyLevel === 'high' || urgencyLevel === 'emergency' // SMS for high/emergency only
+        true // send email only
       );
 
       console.log('Emergency triage notification sent for patient:', patientUserId);
