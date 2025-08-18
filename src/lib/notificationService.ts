@@ -273,14 +273,38 @@ return data.id;
 
   // Get notification preferences
   static async getNotificationPreferences(userId: string): Promise<NotificationPreferences | null> {
-    const { data, error } = await supabase
-      .from('notification_preferences' as any)
-      .select('*')
-      .eq('user_id', userId)
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from('notification_preferences')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
 
-    if (error) {
-      // Return default preferences if none exist
+      if (error || !data) {
+        // Return default preferences if none exist
+        return {
+          id: `default-${userId}`,
+          user_id: userId,
+          email_enabled: true,
+          sms_enabled: false,
+          push_enabled: true,
+          in_app_enabled: true,
+          appointment_reminders: true,
+          prescription_updates: true,
+          treatment_plan_updates: true,
+          emergency_alerts: true,
+          system_notifications: true,
+          quiet_hours_start: '22:00',
+          quiet_hours_end: '07:00',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+      }
+
+      return data as any;
+    } catch (error) {
+      console.error('Error fetching notification preferences:', error);
+      // Return default preferences on error
       return {
         id: `default-${userId}`,
         user_id: userId,
@@ -299,8 +323,6 @@ return data.id;
         updated_at: new Date().toISOString(),
       };
     }
-
-    return data as NotificationPreferences;
   }
 
 // Update notification preferences
@@ -308,22 +330,46 @@ static async updateNotificationPreferences(
     userId: string,
     preferences: Partial<NotificationPreferences>
   ): Promise<NotificationPreferences> {
-    const { data, error } = await supabase
-      .from('notification_preferences' as any)
-      .upsert({
-        user_id: userId,
-        ...preferences,
-        updated_at: new Date().toISOString()
-      })
-      .select()
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from('notification_preferences')
+        .upsert({
+          user_id: userId,
+          ...preferences,
+          updated_at: new Date().toISOString()
+        })
+        .select()
+        .single();
 
-    if (error) {
+      if (error) {
+        console.error('Error updating notification preferences:', error);
+        throw new Error('Failed to update notification preferences');
+      }
+
+      return data as any;
+    } catch (error) {
       console.error('Error updating notification preferences:', error);
-      throw new Error('Failed to update notification preferences');
+      // Return merged default preferences on error
+      const defaultPrefs: NotificationPreferences = {
+        id: `default-${userId}`,
+        user_id: userId,
+        email_enabled: true,
+        sms_enabled: false,
+        push_enabled: true,
+        in_app_enabled: true,
+        appointment_reminders: true,
+        prescription_updates: true,
+        treatment_plan_updates: true,
+        emergency_alerts: true,
+        system_notifications: true,
+        quiet_hours_start: '22:00',
+        quiet_hours_end: '07:00',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+      
+      return { ...defaultPrefs, ...preferences, updated_at: new Date().toISOString() } as NotificationPreferences;
     }
-
-    return data as NotificationPreferences;
   }
 
   // Get notification templates

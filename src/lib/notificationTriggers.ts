@@ -79,8 +79,8 @@ export class NotificationTriggers {
 
       await NotificationService.createNotification(
         patientProfile.user_id,
-        'Appointment Confirmed',
-        `Your appointment with Dr. ${dentistName} has been confirmed for ${new Date(appt.appointment_date).toLocaleDateString()}.`,
+        'Appointment Confirmed ✅',
+        `Your appointment with Dr. ${dentistName} has been confirmed for ${new Date(appt.appointment_date).toLocaleDateString()} at ${new Date(appt.appointment_date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}. Please arrive 10 minutes early.`,
         'appointment',
         'success',
         `/appointments/${appointmentId}`,
@@ -88,7 +88,10 @@ export class NotificationTriggers {
           appointment_id: appointmentId,
           dentist_name: dentistName,
           appointment_date: appt.appointment_date
-        }
+        },
+        undefined,
+        true, // send email
+        true  // send SMS
       );
 
       console.log('Appointment confirmation notification sent for:', appointmentId);
@@ -132,8 +135,8 @@ export class NotificationTriggers {
 
       await NotificationService.createNotification(
         patientProfile.user_id,
-        'Appointment Cancelled',
-        `Your appointment with Dr. ${dentistName} scheduled for ${new Date(appt.appointment_date).toLocaleDateString()} has been cancelled. Please contact us to reschedule.`,
+        'Appointment Cancelled ❌',
+        `Your appointment with Dr. ${dentistName} scheduled for ${new Date(appt.appointment_date).toLocaleDateString()} has been cancelled. Please contact us to reschedule at your earliest convenience.`,
         'appointment',
         'warning',
         `/appointments/${appointmentId}`,
@@ -141,7 +144,10 @@ export class NotificationTriggers {
           appointment_id: appointmentId,
           dentist_name: dentistName,
           appointment_date: appt.appointment_date
-        }
+        },
+        undefined,
+        true, // send email
+        true  // send SMS
       );
 
       console.log('Appointment cancellation notification sent for:', appointmentId);
@@ -176,8 +182,8 @@ export class NotificationTriggers {
 
       await NotificationService.createNotification(
         patientProfile.user_id,
-        'Prescription Expiring Soon',
-        `Your prescription for ${rx.medication_name} will expire in ${daysUntilExpiry} days. Please contact your dentist for a renewal.`,
+        'Prescription Expiring Soon ⚠️',
+        `Your prescription for ${rx.medication_name} will expire in ${daysUntilExpiry} days. Please contact your dentist for a renewal to avoid interruption in your treatment.`,
         'prescription',
         'warning',
         `/prescriptions/${prescriptionId}`,
@@ -186,7 +192,10 @@ export class NotificationTriggers {
           medication_name: rx.medication_name,
           expiry_date: expiryDate.toISOString(),
           days_until_expiry: daysUntilExpiry
-        }
+        },
+        undefined,
+        true, // send email
+        false // no SMS for prescription expiry (less urgent)
       );
 
       console.log('Prescription expiry notification sent for:', prescriptionId);
@@ -217,7 +226,7 @@ export class NotificationTriggers {
 
       await NotificationService.createNotification(
         patientUserId,
-        'Emergency Assessment Complete',
+        'Emergency Assessment Complete 🚨',
         urgencyMessages[urgencyLevel],
         'emergency',
         urgencyCategories[urgencyLevel],
@@ -225,7 +234,10 @@ export class NotificationTriggers {
         {
           urgency_level: urgencyLevel,
           assessment_completed: true
-        }
+        },
+        undefined,
+        true, // send email
+        urgencyLevel === 'high' || urgencyLevel === 'emergency' // SMS for high/emergency only
       );
 
       console.log('Emergency triage notification sent for patient:', patientUserId);
