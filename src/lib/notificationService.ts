@@ -67,7 +67,7 @@ static async markAllAsRead(): Promise<number> {
   return data?.length || 0;
 }
 
-  // Create a new notification
+  // Create a new notification with email/SMS sending
   static async createNotification(
     userId: string,
     title: string,
@@ -76,7 +76,9 @@ static async markAllAsRead(): Promise<number> {
     category: Notification['category'] = 'info',
     actionUrl?: string,
     metadata?: Record<string, unknown>,
-    expiresAt?: string
+    expiresAt?: string,
+    sendEmail = true,
+    sendSMS = false
   ): Promise<string> {
 const { data, error } = await supabase
   .from('notifications')
@@ -100,7 +102,95 @@ if (error) {
   throw new Error('Failed to create notification');
 }
 
+// Send email/SMS notifications if enabled
+await this.sendMultiChannelNotification(userId, title, message, type, sendEmail, sendSMS, metadata);
+
 return data.id;
+  }
+
+  // Send notification via multiple channels (email, SMS)
+  static async sendMultiChannelNotification(
+    userId: string,
+    title: string,
+    message: string,
+    type: Notification['type'],
+    sendEmail = true,
+    sendSMS = false,
+    metadata?: Record<string, unknown>
+  ): Promise<void> {
+    try {
+      // Get user preferences
+      const preferences = await this.getNotificationPreferences(userId);
+      
+      // Get user profile for contact info
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('email, phone, first_name, last_name')
+        .eq('user_id', userId)
+        .single();
+
+      if (!profile) {
+        console.error('Profile not found for user:', userId);
+        return;
+      }
+
+      // Send email if enabled and user has email
+      if (sendEmail && preferences?.email_enabled && profile.email) {
+        try {
+          await supabase.functions.invoke('send-email-notification', {
+            body: {
+              to: profile.email,
+              subject: title,
+              message: message,
+              messageType: this.mapNotificationTypeToEmail(type),
+              patientId: metadata?.patientId || null,
+              dentistId: metadata?.dentistId || null
+            }
+          });
+        } catch (emailError) {
+          console.error('Failed to send email notification:', emailError);
+        }
+      }
+
+      // Send SMS if enabled and user has phone
+      if (sendSMS && preferences?.sms_enabled && profile.phone) {
+        try {
+          await supabase.functions.invoke('send-sms', {
+            body: {
+              to: profile.phone,
+              message: `${title}: ${message}`,
+              messageType: this.mapNotificationTypeToSMS(type),
+              patientId: metadata?.patientId || null,
+              dentistId: metadata?.dentistId || null
+            }
+          });
+        } catch (smsError) {
+          console.error('Failed to send SMS notification:', smsError);
+        }
+      }
+    } catch (error) {
+      console.error('Error sending multi-channel notification:', error);
+    }
+  }
+
+  // Map notification type to email message type
+  private static mapNotificationTypeToEmail(type: Notification['type']): string {
+    switch (type) {
+      case 'appointment': return 'appointment_confirmation';
+      case 'prescription': return 'prescription';
+      case 'system': return 'system';
+      default: return 'system';
+    }
+  }
+
+  // Map notification type to SMS message type
+  private static mapNotificationTypeToSMS(type: Notification['type']): string {
+    switch (type) {
+      case 'appointment': return 'appointment_confirmation';
+      case 'prescription': return 'reminder';
+      case 'system': return 'emergency';
+      default: return 'reminder';
+    }
   }
 
   // Create appointment reminder notification
@@ -183,34 +273,57 @@ return data.id;
 
   // Get notification preferences
   static async getNotificationPreferences(userId: string): Promise<NotificationPreferences | null> {
-    console.warn('Notification preferences not implemented, returning null');
-    return null;
+    const { data, error } = await supabase
+      .from('notification_preferences')
+      .select('*')
+      .eq('user_id', userId)
+      .single();
+
+    if (error) {
+      // Return default preferences if none exist
+      return {
+        id: `default-${userId}`,
+        user_id: userId,
+        email_enabled: true,
+        sms_enabled: false,
+        push_enabled: true,
+        in_app_enabled: true,
+        appointment_reminders: true,
+        prescription_updates: true,
+        treatment_plan_updates: true,
+        emergency_alerts: true,
+        system_notifications: true,
+        quiet_hours_start: '22:00',
+        quiet_hours_end: '07:00',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+    }
+
+    return data as NotificationPreferences;
   }
 
-  // Update notification preferences
+// Update notification preferences
 static async updateNotificationPreferences(
     userId: string,
     preferences: Partial<NotificationPreferences>
   ): Promise<NotificationPreferences> {
-    // Stubbed local preferences
-    const defaultPrefs: NotificationPreferences = {
-      id: `local-${userId}`,
-      user_id: userId,
-      email_enabled: true,
-      sms_enabled: false,
-      push_enabled: false,
-      in_app_enabled: true,
-      appointment_reminders: true,
-      prescription_updates: true,
-      treatment_plan_updates: true,
-      emergency_alerts: true,
-      system_notifications: true,
-      quiet_hours_start: '22:00',
-      quiet_hours_end: '07:00',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
-    return { ...defaultPrefs, ...preferences, updated_at: new Date().toISOString() } as NotificationPreferences;
+    const { data, error } = await supabase
+      .from('notification_preferences')
+      .upsert({
+        user_id: userId,
+        ...preferences,
+        updated_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error updating notification preferences:', error);
+      throw new Error('Failed to update notification preferences');
+    }
+
+    return data as NotificationPreferences;
   }
 
   // Get notification templates
