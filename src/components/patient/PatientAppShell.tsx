@@ -75,7 +75,7 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       {/* Mobile Header - cleaner with menu dropdown */}
-      <div className="md:hidden fixed top-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-sm border-b">
+      <div className="md:hidden fixed top-0 left-0 right-0 z-header bg-background/95 backdrop-blur-sm border-b">
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center space-x-2">
             <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
@@ -113,7 +113,7 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
       </div>
 
       {/* Desktop Header - minimal top bar */}
-      <div className="hidden md:block fixed top-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-sm border-b">
+      <div className="hidden md:block fixed top-0 left-0 right-0 z-header bg-background/95 backdrop-blur-sm border-b">
         <div className="flex items-center justify-between px-6 py-3">
           <div className="flex items-center space-x-3">
             <div className="h-9 w-9 rounded-lg bg-primary flex items-center justify-center">
@@ -151,7 +151,7 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
       </div>
 
       {/* Main Content Area with proper spacing */}
-      <div className="pt-14 md:pt-16 pb-20 md:pb-24">
+      <div className="mobile-header-offset mobile-bottom-nav-offset min-h-screen">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeSection}
@@ -167,7 +167,7 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
       </div>
 
       {/* Bottom Navigation Bar - Mobile */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-sm border-t">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-header bg-background/95 backdrop-blur-sm border-t safe-bottom">
         <nav className="flex items-center justify-around py-2">
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon;
@@ -179,7 +179,7 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
                 key={item.id}
                 onClick={() => onChangeSection(item.id)}
                 className={cn(
-                  "flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-all relative",
+                  "flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-all relative touch-target",
                   active 
                     ? "text-primary" 
                     : "text-muted-foreground hover:text-foreground"
@@ -199,7 +199,7 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
       </div>
 
       {/* Bottom Navigation Bar - Desktop */}
-      <div className="hidden md:block fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-sm border-t">
+      <div className="hidden md:block fixed bottom-0 left-0 right-0 z-header bg-background/95 backdrop-blur-sm border-t">
         <nav className="flex items-center justify-center space-x-8 py-4">
           <TooltipProvider>
             {NAV_ITEMS.map((item) => {
@@ -213,7 +213,7 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
                     <button
                       onClick={() => onChangeSection(item.id)}
                       className={cn(
-                        "flex flex-col items-center justify-center p-3 rounded-xl transition-all relative group",
+                        "flex flex-col items-center justify-center p-3 rounded-xl transition-all relative group touch-target",
                         active 
                           ? "text-primary bg-primary/10" 
                           : "text-muted-foreground hover:text-foreground hover:bg-muted"

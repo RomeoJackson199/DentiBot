@@ -460,15 +460,17 @@ export function CompletionSheet({ open, onOpenChange, appointment, dentistId, on
 	};
 
 	const HeaderBar = (
-		<div className="sticky top-0 z-20 bg-background/95 backdrop-blur border-b">
+		<div className="sticky top-0 z-sticky bg-background/95 backdrop-blur border-b">
 			<div className="max-w-[1200px] mx-auto px-3 py-2 flex items-center justify-between gap-3">
 				<Button variant="ghost" size="sm" onClick={() => onOpenChange(false)} aria-label="Close"><X className="h-4 w-4" /></Button>
 				<div className="flex items-center gap-3 min-w-0">
 					<div className="truncate font-semibold">Complete Visit — {patientName || 'Patient'}</div>
 				</div>
-				<Button onClick={() => handleSave(true)} disabled={!canSave}>
-					Save & Invoice
-				</Button>
+				<div className="btn-group">
+					<Button onClick={() => handleSave(true)} disabled={!canSave}>
+						Save & Invoice
+					</Button>
+				</div>
 			</div>
 			<div className="max-w-[1200px] mx-auto px-3 pb-2 text-xs text-muted-foreground flex items-center gap-2">
 				<Calendar className="h-3 w-3" /> {new Date(appointment.appointment_date).toLocaleString()} • Dr. {dentistName || '—'} • In room
@@ -649,36 +651,38 @@ export function CompletionSheet({ open, onOpenChange, appointment, dentistId, on
 	);
 
 	const Footer = (
-		<div className="sticky bottom-0 z-20 bg-background/95 backdrop-blur border-t">
-			<div className="max-w-[1200px] mx-auto px-3 py-2 grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
+		<div className="sticky bottom-0 z-sticky bg-background/95 backdrop-blur border-t">
+			<div className="max-w-[1200px] mx-auto px-3 py-3 space-y-3">
 				{/* Billing summary */}
-				<div className="text-sm space-y-1">
-					<div>Subtotal: €{subtotal.toFixed(2)}</div>
-					<div className="flex items-center gap-2">
-						<Select value={adjustmentType} onValueChange={(v: any) => setAdjustmentType(v)}>
-							<SelectTrigger className="w-48"><SelectValue placeholder="Adjustments" /></SelectTrigger>
-							<SelectContent>
-								<SelectItem value="none">No adjustments</SelectItem>
-								<SelectItem value="discount_percent">Discount %</SelectItem>
-								<SelectItem value="discount_amount">Discount €</SelectItem>
-								<SelectItem value="surcharge_amount">Surcharge €</SelectItem>
-							</SelectContent>
-						</Select>
-						<Input type="number" inputMode="decimal" className="w-28" value={adjustmentValue} onChange={e => setAdjustmentValue(parseFloat(e.target.value || '0'))} />
+				<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+					<div className="text-sm space-y-1">
+						<div>Subtotal: €{subtotal.toFixed(2)}</div>
+						<div className="flex items-center gap-2">
+							<Select value={adjustmentType} onValueChange={(v: any) => setAdjustmentType(v)}>
+								<SelectTrigger className="w-full sm:w-48"><SelectValue placeholder="Adjustments" /></SelectTrigger>
+								<SelectContent>
+									<SelectItem value="none">No adjustments</SelectItem>
+									<SelectItem value="discount_percent">Discount %</SelectItem>
+									<SelectItem value="discount_amount">Discount €</SelectItem>
+									<SelectItem value="surcharge_amount">Surcharge €</SelectItem>
+								</SelectContent>
+							</Select>
+							<Input type="number" inputMode="decimal" className="w-28" value={adjustmentValue} onChange={e => setAdjustmentValue(parseFloat(e.target.value || '0'))} />
+						</div>
 					</div>
-				</div>
-				<div className="text-right space-y-1">
-					<div className="text-xs text-muted-foreground">Editing totals is audited. Patient sees the final amount only.</div>
-					<div className="flex items-center justify-end gap-2">
-						<div className="text-sm">Final Total</div>
-						<Input type="number" inputMode="decimal" className="w-32" value={finalTotalOverride ?? finalTotal} onChange={e => setFinalTotalOverride(parseFloat(e.target.value || '0'))} />
+					<div className="text-right space-y-1">
+						<div className="text-xs text-muted-foreground">Editing totals is audited. Patient sees the final amount only.</div>
+						<div className="flex items-center justify-end gap-2">
+							<div className="text-sm">Final Total</div>
+							<Input type="number" inputMode="decimal" className="w-32" value={finalTotalOverride ?? finalTotal} onChange={e => setFinalTotalOverride(parseFloat(e.target.value || '0'))} />
+						</div>
+						<div className="flex items-center justify-end gap-2 text-sm"><Switch checked={createInvoiceAndLink} onCheckedChange={setCreateInvoiceAndLink} /> <span>Create invoice & Pay link</span></div>
 					</div>
-					<div className="flex items-center justify-end gap-2 text-sm"><Switch checked={createInvoiceAndLink} onCheckedChange={setCreateInvoiceAndLink} /> <span>Create invoice & Pay link</span></div>
-				</div>
-				<div className="flex items-center justify-end gap-2">
-					<Button variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
-					<Button variant="outline" onClick={() => handleSave(false)} disabled={!canSave}>Save as Draft</Button>
-					<Button onClick={() => handleSave(true)} disabled={!canSave}>Save & Invoice</Button>
+					<div className="btn-group">
+						<Button variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
+						<Button variant="outline" onClick={() => handleSave(false)} disabled={!canSave}>Save as Draft</Button>
+						<Button onClick={() => handleSave(true)} disabled={!canSave}>Save & Invoice</Button>
+					</div>
 				</div>
 			</div>
 		</div>

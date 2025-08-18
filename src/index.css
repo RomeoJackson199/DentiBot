@@ -197,6 +197,14 @@
 }
 
 @layer components {
+  /* Enhanced z-index hierarchy */
+  .z-dropdown { @apply z-[100]; }
+  .z-modal { @apply z-[90]; }
+  .z-overlay { @apply z-[80]; }
+  .z-header { @apply z-[70]; }
+  .z-sticky { @apply z-[60]; }
+  .z-floating { @apply z-[50]; }
+  
   /* Enhanced Glass Morphism Effects */
   .glass-card {
     @apply bg-white/10 backdrop-blur-xl border border-white/20 shadow-glass;
@@ -483,13 +491,91 @@
     @apply px-8 mx-auto max-w-screen-lg;
   }
 
+  /* Mobile-First Layout Utilities */
+  .mobile-safe-area {
+    @apply pb-safe-area-inset-bottom;
+  }
+  
+  .mobile-header-offset {
+    @apply pt-16 md:pt-20;
+  }
+  
+  .mobile-bottom-nav-offset {
+    @apply pb-20 md:pb-24;
+  }
+  
+  /* Button Layout Improvements */
+  .btn-group {
+    @apply flex gap-2 flex-wrap items-center;
+  }
+  
+  .btn-group > * {
+    @apply min-w-0; /* Prevent button overflow */
+  }
+  
+  .btn-stack {
+    @apply flex flex-col gap-2;
+  }
+  
+  .btn-stack-sm {
+    @apply flex flex-col gap-1;
+  }
+
+  /* Mobile-First Layout Utilities */
+  .mobile-safe-area {
+    @apply pb-safe-area-inset-bottom;
+  }
+  
+  .mobile-header-offset {
+    @apply pt-16 md:pt-20;
+  }
+  
+  .mobile-bottom-nav-offset {
+    @apply pb-20 md:pb-24;
+  }
+  
+  /* Safe area for mobile devices */
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  
+  /* Button Layout Improvements */
+  .btn-group {
+    @apply flex gap-2 flex-wrap items-center;
+  }
+  
+  .btn-group > * {
+    @apply min-w-0 flex-shrink-0; /* Prevent button overflow and shrinking */
+  }
+  
+  .btn-stack {
+    @apply flex flex-col gap-2;
+  }
+  
+  .btn-stack-sm {
+    @apply flex flex-col gap-1;
+  }
+  
+  /* Form Layout Improvements */
+  .form-group {
+    @apply space-y-2;
+  }
+  
+  .form-row {
+    @apply grid gap-4 grid-cols-1 md:grid-cols-2;
+  }
+  
+  .form-row-thirds {
+    @apply grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3;
+  }
+
   /* Touch-Friendly Interactive Elements */
   .touch-target {
-    @apply min-h-touch min-w-touch;
+    @apply min-h-[44px] min-w-[44px];
   }
 
   .touch-button {
-    @apply min-h-touch min-w-touch flex items-center justify-center px-4 py-3 rounded-lg transition-all duration-200;
+    @apply min-h-[44px] min-w-[44px] flex items-center justify-center px-4 py-3 rounded-lg transition-all duration-200;
   }
 
   .touch-button:active {
