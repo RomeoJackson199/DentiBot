@@ -274,7 +274,7 @@ return data.id;
   // Get notification preferences
   static async getNotificationPreferences(userId: string): Promise<NotificationPreferences | null> {
     const { data, error } = await supabase
-      .from('notification_preferences')
+      .from('notification_preferences' as any)
       .select('*')
       .eq('user_id', userId)
       .single();
@@ -309,7 +309,7 @@ static async updateNotificationPreferences(
     preferences: Partial<NotificationPreferences>
   ): Promise<NotificationPreferences> {
     const { data, error } = await supabase
-      .from('notification_preferences')
+      .from('notification_preferences' as any)
       .upsert({
         user_id: userId,
         ...preferences,

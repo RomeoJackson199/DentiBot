@@ -717,6 +717,63 @@ export type Database = {
           },
         ]
       }
+      email_notifications: {
+        Row: {
+          created_at: string
+          dentist_id: string
+          email_address: string
+          id: string
+          message_content: string
+          message_type: string
+          patient_id: string
+          resend_id: string | null
+          sent_at: string | null
+          status: string
+          subject: string
+        }
+        Insert: {
+          created_at?: string
+          dentist_id: string
+          email_address: string
+          id?: string
+          message_content: string
+          message_type: string
+          patient_id: string
+          resend_id?: string | null
+          sent_at?: string | null
+          status?: string
+          subject: string
+        }
+        Update: {
+          created_at?: string
+          dentist_id?: string
+          email_address?: string
+          id?: string
+          message_content?: string
+          message_type?: string
+          patient_id?: string
+          resend_id?: string | null
+          sent_at?: string | null
+          status?: string
+          subject?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_notifications_dentist_id_fkey"
+            columns: ["dentist_id"]
+            isOneToOne: false
+            referencedRelation: "dentists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_notifications_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       insurance_pre_approvals: {
         Row: {
           coverage_percentage: number | null
@@ -1316,6 +1373,60 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      notification_preferences: {
+        Row: {
+          appointment_reminders: boolean
+          created_at: string
+          email_enabled: boolean
+          emergency_alerts: boolean
+          id: string
+          in_app_enabled: boolean
+          prescription_updates: boolean
+          push_enabled: boolean
+          quiet_hours_end: string
+          quiet_hours_start: string
+          sms_enabled: boolean
+          system_notifications: boolean
+          treatment_plan_updates: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          appointment_reminders?: boolean
+          created_at?: string
+          email_enabled?: boolean
+          emergency_alerts?: boolean
+          id?: string
+          in_app_enabled?: boolean
+          prescription_updates?: boolean
+          push_enabled?: boolean
+          quiet_hours_end?: string
+          quiet_hours_start?: string
+          sms_enabled?: boolean
+          system_notifications?: boolean
+          treatment_plan_updates?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          appointment_reminders?: boolean
+          created_at?: string
+          email_enabled?: boolean
+          emergency_alerts?: boolean
+          id?: string
+          in_app_enabled?: boolean
+          prescription_updates?: boolean
+          push_enabled?: boolean
+          quiet_hours_end?: string
+          quiet_hours_start?: string
+          sms_enabled?: boolean
+          system_notifications?: boolean
+          treatment_plan_updates?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       notifications: {
         Row: {
