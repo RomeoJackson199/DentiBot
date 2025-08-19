@@ -106,7 +106,7 @@ export const Settings = ({ user }: SettingsProps) => {
         if (dentistRow) {
           setHasDentistRecord(true);
           setDentistClinicAddress(dentistRow.clinic_address || '');
-          setDentistSpecialty(dentistRow.specialty || dentistRow.specialization || '');
+          setDentistSpecialty(dentistRow.specialty || '');
         } else {
           setHasDentistRecord(false);
           setDentistClinicAddress('');
