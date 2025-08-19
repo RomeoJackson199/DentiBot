@@ -46,7 +46,7 @@ const ProfileCompletionDialog = () => {
     const { data, error } = await supabase
       .from("profiles")
       .select(
-        `id, role, first_name, last_name, phone, date_of_birth, address, emergency_contact,
+        `id, role, first_name, last_name, phone, date_of_birth, address, emergency_contact, profile_completion_status, import_session_id,
          dentists!dentists_profile_id_fkey(clinic_address, specialty)`
       )
       .eq("user_id", userId)
@@ -56,24 +56,39 @@ const ProfileCompletionDialog = () => {
 
     setProfileId(data.id);
 
+    // Only show completion dialog if profile is marked as incomplete or if critical fields are missing
+    const isImportedProfile = data.import_session_id !== null;
+    const isIncomplete = data.profile_completion_status === 'incomplete';
+    
     const fields: MissingField[] = [];
-    const base: MissingField[] = [
+    const criticalFields: MissingField[] = [
       { key: "first_name", question: "What's your first name?", type: "text", table: "profiles" },
       { key: "last_name", question: "And your last name?", type: "text", table: "profiles" },
+    ];
+
+    const optionalFields: MissingField[] = [
       { key: "phone", question: "What's your phone number?", type: "text", table: "profiles" },
       { key: "date_of_birth", question: "What is your date of birth?", type: "date", table: "profiles" },
       { key: "address", question: "Your address?", type: "text", table: "profiles" },
     ];
 
-    base.forEach((f) => {
+    // Check critical fields (always required)
+    criticalFields.forEach((f) => {
       if (!data[f.key as keyof typeof data]) fields.push(f);
     });
 
+    // For imported profiles or incomplete status, ask for optional fields too
+    if (isImportedProfile || isIncomplete) {
+      optionalFields.forEach((f) => {
+        if (!data[f.key as keyof typeof data]) fields.push(f);
+      });
+    }
+
     if (data.role === "patient") {
-      if (!data.emergency_contact) {
+      if (!data.emergency_contact && (isImportedProfile || isIncomplete)) {
         fields.push({
           key: "emergency_contact",
-          question: "Emergency contact?",
+          question: "Emergency contact information?",
           type: "text",
           table: "profiles",
         });
@@ -131,30 +146,46 @@ const ProfileCompletionDialog = () => {
     if (!field) return;
 
     let updateQuery: any;
+    let updateData: any = { [field.key]: value };
 
     if (field.table === "profiles") {
+      // If this is the last field, mark profile as complete
+      if (currentIndex === missingFields.length - 1) {
+        updateData.profile_completion_status = 'complete';
+      }
+      
       updateQuery = supabase
         .from("profiles")
-        .update({ [field.key]: value })
+        .update(updateData)
         .eq("id", profileId);
     } else {
       updateQuery = supabase
         .from("dentists")
-        .update({ [field.key]: value })
+        .update(updateData)
         .eq("profile_id", profileId);
     }
 
     const { error } = await updateQuery;
     if (error) return;
 
-setValue("");
+    setValue("");
     const next = currentIndex + 1;
     if (next < missingFields.length) {
       setCurrentIndex(next);
     } else {
+      // Mark profile as complete if not already done
+      if (field.table !== "profiles") {
+        await supabase
+          .from("profiles")
+          .update({ profile_completion_status: 'complete' })
+          .eq("id", profileId);
+      }
+      
       setCompleted(true);
       setTimeout(() => {
         setOpen(false);
+        setCurrentIndex(0);
+        setMissingFields([]);
       }, 1500);
     }
   };
@@ -187,8 +218,17 @@ setValue("");
         {completed && (
           <div className="py-8 text-center">
             <DialogHeader>
-              <DialogTitle>Profile complete! Thank you.</DialogTitle>
+              <DialogTitle>
+                {missingFields.length > 3 
+                  ? "Welcome! Profile setup complete." 
+                  : "Profile updated successfully!"}
+              </DialogTitle>
             </DialogHeader>
+            <p className="text-sm text-muted-foreground mt-2">
+              {missingFields.length > 3 
+                ? "Thank you for completing your profile. You now have full access to the platform."
+                : "Your profile information has been updated."}
+            </p>
           </div>
         )}
       </DialogContent>

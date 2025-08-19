@@ -19,13 +19,14 @@ import { useToast } from "@/hooks/use-toast";
 import { ClinicalToday } from "@/components/ClinicalToday";
 // Messaging functionality removed
 import { RecallsQueue } from "@/components/RecallsQueue";
+import DataImportManager from "@/components/DataImportManager";
 
 interface DentistDashboardProps {
   user: User;
 }
 
 export function DentistDashboard({ user }: DentistDashboardProps) {
-  const [activeTab, setActiveTab] = useState<'clinical' | 'patients' | 'payments' | 'analytics' | 'availability' | 'manage' | 'debug' | 'inventory' | 'recalls'>('clinical');
+  const [activeTab, setActiveTab] = useState<'clinical' | 'patients' | 'payments' | 'analytics' | 'availability' | 'manage' | 'debug' | 'inventory' | 'recalls' | 'import'>('clinical');
   const [dentistId, setDentistId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [showChangelog, setShowChangelog] = useState(false);
@@ -207,6 +208,12 @@ export function DentistDashboard({ user }: DentistDashboardProps) {
               </div>
             )}
 
+
+            {activeTab === 'import' && (
+              <div className="px-4 md:px-6 py-4 w-full">
+                <DataImportManager />
+              </div>
+            )}
 
             {activeTab === 'debug' && (
               <DebugDatabaseConnection />

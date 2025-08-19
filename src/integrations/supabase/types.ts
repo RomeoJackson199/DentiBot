@@ -822,6 +822,54 @@ export type Database = {
         }
         Relationships: []
       }
+      import_sessions: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          created_by_user_id: string | null
+          dentist_id: string
+          error_details: Json
+          failed_records: number
+          field_mapping: Json
+          filename: string
+          id: string
+          import_type: string
+          status: string
+          successful_records: number
+          total_records: number
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          created_by_user_id?: string | null
+          dentist_id: string
+          error_details?: Json
+          failed_records?: number
+          field_mapping?: Json
+          filename: string
+          id?: string
+          import_type?: string
+          status?: string
+          successful_records?: number
+          total_records?: number
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          created_by_user_id?: string | null
+          dentist_id?: string
+          error_details?: Json
+          failed_records?: number
+          field_mapping?: Json
+          filename?: string
+          id?: string
+          import_type?: string
+          status?: string
+          successful_records?: number
+          total_records?: number
+        }
+        Relationships: []
+      }
       import_templates: {
         Row: {
           created_at: string
@@ -1704,10 +1752,12 @@ export type Database = {
           emergency_contact: string | null
           first_name: string
           id: string
+          import_session_id: string | null
           last_name: string
           medical_history: string | null
           phone: string | null
           preferred_language: string | null
+          profile_completion_status: string | null
           role: Database["public"]["Enums"]["user_role"]
           updated_at: string
           user_id: string
@@ -1721,10 +1771,12 @@ export type Database = {
           emergency_contact?: string | null
           first_name: string
           id?: string
+          import_session_id?: string | null
           last_name: string
           medical_history?: string | null
           phone?: string | null
           preferred_language?: string | null
+          profile_completion_status?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
           user_id: string
@@ -1738,15 +1790,25 @@ export type Database = {
           emergency_contact?: string | null
           first_name?: string
           id?: string
+          import_session_id?: string | null
           last_name?: string
           medical_history?: string | null
           phone?: string | null
           preferred_language?: string | null
+          profile_completion_status?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_import_session_id_fkey"
+            columns: ["import_session_id"]
+            isOneToOne: false
+            referencedRelation: "import_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       recalls: {
         Row: {
@@ -2110,6 +2172,14 @@ export type Database = {
         Args: { patient_profile_id: string }
         Returns: boolean
       }
+      process_csv_data_import: {
+        Args: {
+          p_csv_content: string
+          p_dentist_id: string
+          p_filename: string
+        }
+        Returns: Json
+      }
       release_appointment_slot: {
         Args: { p_appointment_id: string }
         Returns: boolean
@@ -2126,6 +2196,15 @@ export type Database = {
       }
       update_import_job_progress: {
         Args: { p_job_id: string }
+        Returns: undefined
+      }
+      update_import_session_progress: {
+        Args: {
+          p_failed?: number
+          p_session_id: string
+          p_status?: string
+          p_successful?: number
+        }
         Returns: undefined
       }
     }
