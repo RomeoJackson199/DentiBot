@@ -39,6 +39,7 @@ import { cn } from "@/lib/utils";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, isToday, isPast, isFuture } from "date-fns";
 import { RecallBanner } from "@/components/patient/RecallBanner";
 import { getPatientActiveRecall, RecallRecord } from "@/lib/recalls";
+import { AppointmentDetailsDialog } from "@/components/AppointmentDetailsDialog";
 
 export interface AppointmentsTabProps {
   user: User;
@@ -192,11 +193,13 @@ const CalendarView = ({
 const AppointmentCard = ({ 
   appointment, 
   onReschedule,
-  onCancel 
+  onCancel,
+  onClick
 }: { 
   appointment: Appointment;
   onReschedule: () => void;
   onCancel: () => void;
+  onClick?: () => void;
 }) => {
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -226,7 +229,8 @@ const AppointmentCard = ({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
       whileHover={{ scale: 1.01 }}
-      className="group"
+      className="group cursor-pointer"
+      onClick={onClick}
     >
       <Card className="overflow-hidden hover:shadow-lg transition-all">
         <div className={cn(
@@ -333,6 +337,8 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({ user, onOpenAs
     cancelled: 0
   });
   const [activeRecall, setActiveRecall] = useState<RecallRecord | null>(null);
+  const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | null>(null);
+  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
 
   useEffect(() => {
     fetchAppointments();
@@ -528,12 +534,16 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({ user, onOpenAs
                           {selectedDateAppointments.length > 0 ? (
                             <div className="space-y-3">
                               {selectedDateAppointments.map(apt => (
-                                <AppointmentCard
-                                  key={apt.id}
-                                  appointment={apt}
-                                  onReschedule={() => setShowBooking(true)}
-                                  onCancel={() => {}}
-                                />
+                                 <AppointmentCard
+                                   key={apt.id}
+                                   appointment={apt}
+                                   onReschedule={() => setShowBooking(true)}
+                                   onCancel={() => {}}
+                                   onClick={() => {
+                                     setSelectedAppointmentId(apt.id);
+                                     setDetailsDialogOpen(true);
+                                   }}
+                                 />
                               ))}
                             </div>
                           ) : (
@@ -570,12 +580,16 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({ user, onOpenAs
                 <AnimatePresence>
                   {upcomingAppointments.length > 0 ? (
                     upcomingAppointments.map(apt => (
-                      <AppointmentCard
-                        key={apt.id}
-                        appointment={apt}
-                        onReschedule={onOpenAssistant || (() => setShowBooking(true))}
-                        onCancel={() => {}}
-                      />
+                       <AppointmentCard
+                         key={apt.id}
+                         appointment={apt}
+                         onReschedule={onOpenAssistant || (() => setShowBooking(true))}
+                         onCancel={() => {}}
+                         onClick={() => {
+                           setSelectedAppointmentId(apt.id);
+                           setDetailsDialogOpen(true);
+                         }}
+                       />
                     ))
                   ) : (
                     <Card>
@@ -605,12 +619,16 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({ user, onOpenAs
                 <AnimatePresence>
                   {pastAppointments.length > 0 ? (
                     pastAppointments.map(apt => (
-                      <AppointmentCard
-                        key={apt.id}
-                        appointment={apt}
-                        onReschedule={() => {}}
-                        onCancel={() => {}}
-                      />
+                       <AppointmentCard
+                         key={apt.id}
+                         appointment={apt}
+                         onReschedule={() => {}}
+                         onCancel={() => {}}
+                         onClick={() => {
+                           setSelectedAppointmentId(apt.id);
+                           setDetailsDialogOpen(true);
+                         }}
+                       />
                     ))
                   ) : (
                     <Card>
@@ -643,6 +661,15 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({ user, onOpenAs
           />
         </DialogContent>
       </Dialog>
+
+      {/* Appointment Details Dialog */}
+      {selectedAppointmentId && (
+        <AppointmentDetailsDialog
+          appointmentId={selectedAppointmentId}
+          open={detailsDialogOpen}
+          onOpenChange={setDetailsDialogOpen}
+        />
+      )}
 
       {/* Recall Banner */}
       {activeRecall && (
