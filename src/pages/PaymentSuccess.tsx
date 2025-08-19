@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { CheckCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
-export const PaymentSuccess: React.FC = () => {
+const PaymentSuccess: React.FC = () => {
   const [searchParams] = useSearchParams();
   const sessionId = searchParams.get('session_id');
 
@@ -64,3 +64,5 @@ export const PaymentSuccess: React.FC = () => {
     </div>
   );
 };
+
+export default PaymentSuccess;

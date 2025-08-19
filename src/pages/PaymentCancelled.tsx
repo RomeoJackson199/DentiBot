@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { XCircle } from 'lucide-react';
 
-export const PaymentCancelled: React.FC = () => {
+const PaymentCancelled: React.FC = () => {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <Card className="w-full max-w-md text-center">
@@ -31,3 +31,5 @@ export const PaymentCancelled: React.FC = () => {
     </div>
   );
 };
+
+export default PaymentCancelled;

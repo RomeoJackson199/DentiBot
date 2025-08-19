@@ -98,3 +98,5 @@ export const UnifiedDashboard = memo(({ user }: UnifiedDashboardProps) => {
 });
 
 UnifiedDashboard.displayName = 'UnifiedDashboard';
+
+export default UnifiedDashboard;

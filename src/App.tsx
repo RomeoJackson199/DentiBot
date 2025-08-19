@@ -22,15 +22,15 @@ const Terms = lazy(() => import("./pages/Terms"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const EmergencyTriage = lazy(() => import("./pages/EmergencyTriage"));
-const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess").then(module => ({ default: module.PaymentSuccess })));
-const PaymentCancelled = lazy(() => import("./pages/PaymentCancelled").then(module => ({ default: module.PaymentCancelled })));
+const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
+const PaymentCancelled = lazy(() => import("./pages/PaymentCancelled"));
 const Chat = lazy(() => import("./pages/Chat"));
 const Schedule = lazy(() => import("./pages/Schedule"));
 const RecallDeepLink = lazy(() => import("./pages/RecallDeepLink"));
 const Analytics = lazy(() => import("./pages/Analytics"));
 const Support = lazy(() => import("./pages/Support"));
 const FeatureDetail = lazy(() => import("./pages/FeatureDetail"));
-const UnifiedDashboard = lazy(() => import("./components/UnifiedDashboard").then(module => ({ default: module.UnifiedDashboard })));
+const UnifiedDashboard = lazy(() => import("./components/UnifiedDashboard"));
 const LanguageTest = lazy(() => import("./components/LanguageTest").then(module => ({ default: module.LanguageTest })));
 const Importer = lazy(() => import("./pages/Importer"));
 
