@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
+import { BrowserRouter } from 'react-router-dom';
 import userEvent from '@testing-library/user-event';
 import { UnifiedDashboard } from '../UnifiedDashboard';
 import { useToast } from '@/hooks/use-toast';
@@ -38,7 +39,11 @@ describe('UnifiedDashboard', () => {
 
   it('renders dashboard with user role detection', async () => {
     const mockUser: any = { id: 'test-user' };
-    render(<UnifiedDashboard user={mockUser} />);
+    render(
+      <BrowserRouter>
+        <UnifiedDashboard user={mockUser} />
+      </BrowserRouter>
+    );
 
     await waitFor(() => {
       expect(screen.getByText(/dashboard/i)).toBeInTheDocument();
@@ -63,7 +68,11 @@ describe('UnifiedDashboard', () => {
     });
 
     const mockUser: any = { id: 'test-user' };
-    render(<UnifiedDashboard user={mockUser} />);
+    render(
+      <BrowserRouter>
+        <UnifiedDashboard user={mockUser} />
+      </BrowserRouter>
+    );
     
     await waitFor(() => {
       expect(screen.getByText(/patient dashboard/i)).toBeInTheDocument();
@@ -88,7 +97,11 @@ describe('UnifiedDashboard', () => {
     });
 
     const mockUser: any = { id: 'test-user' };
-    render(<UnifiedDashboard user={mockUser} />);
+    render(
+      <BrowserRouter>
+        <UnifiedDashboard user={mockUser} />
+      </BrowserRouter>
+    );
     
     await waitFor(() => {
       expect(screen.getByText(/dentist dashboard/i)).toBeInTheDocument();
@@ -97,7 +110,11 @@ describe('UnifiedDashboard', () => {
 
   it('shows loading state while fetching user role', () => {
     const mockUser: any = { id: 'test-user' };
-    render(<UnifiedDashboard user={mockUser} />);
+    render(
+      <BrowserRouter>
+        <UnifiedDashboard user={mockUser} />
+      </BrowserRouter>
+    );
     
     expect(screen.getByText(/loading/i)).toBeInTheDocument();
   });
@@ -116,7 +133,11 @@ describe('UnifiedDashboard', () => {
     });
 
     const mockUser: any = { id: 'test-user' };
-    render(<UnifiedDashboard user={mockUser} />);
+    render(
+      <BrowserRouter>
+        <UnifiedDashboard user={mockUser} />
+      </BrowserRouter>
+    );
     
     await waitFor(() => {
       expect(screen.getByText(/error/i)).toBeInTheDocument();
@@ -125,7 +146,11 @@ describe('UnifiedDashboard', () => {
 
   it('shows navigation menu for authenticated users', async () => {
     const mockUser: any = { id: 'test-user' };
-    render(<UnifiedDashboard user={mockUser} />);
+    render(
+      <BrowserRouter>
+        <UnifiedDashboard user={mockUser} />
+      </BrowserRouter>
+    );
     
     await waitFor(() => {
       expect(screen.getByRole('navigation')).toBeInTheDocument();
@@ -134,7 +159,11 @@ describe('UnifiedDashboard', () => {
 
   it('displays user profile information', async () => {
     const mockUser: any = { id: 'test-user' };
-    render(<UnifiedDashboard user={mockUser} />);
+    render(
+      <BrowserRouter>
+        <UnifiedDashboard user={mockUser} />
+      </BrowserRouter>
+    );
     
     await waitFor(() => {
       expect(screen.getByText(/test@example.com/i)).toBeInTheDocument();
@@ -154,7 +183,11 @@ describe('UnifiedDashboard', () => {
   it('handles navigation between dashboard sections', async () => {
     const user = userEvent.setup();
     const mockUser: any = { id: 'test-user' };
-    render(<UnifiedDashboard user={mockUser} />);
+    render(
+      <BrowserRouter>
+        <UnifiedDashboard user={mockUser} />
+      </BrowserRouter>
+    );
     
     await waitFor(async () => {
       const appointmentsTab = screen.getByText(/appointments/i);
@@ -166,7 +199,11 @@ describe('UnifiedDashboard', () => {
 
   it('shows recent appointments section', async () => {
     const mockUser: any = { id: 'test-user' };
-    render(<UnifiedDashboard user={mockUser} />);
+    render(
+      <BrowserRouter>
+        <UnifiedDashboard user={mockUser} />
+      </BrowserRouter>
+    );
     
     await waitFor(() => {
       expect(screen.getByText(/recent appointments/i)).toBeInTheDocument();
@@ -175,7 +212,11 @@ describe('UnifiedDashboard', () => {
 
   it('shows upcoming appointments section', async () => {
     const mockUser: any = { id: 'test-user' };
-    render(<UnifiedDashboard user={mockUser} />);
+    render(
+      <BrowserRouter>
+        <UnifiedDashboard user={mockUser} />
+      </BrowserRouter>
+    );
     
     await waitFor(() => {
       expect(screen.getByText(/upcoming appointments/i)).toBeInTheDocument();
@@ -184,7 +225,11 @@ describe('UnifiedDashboard', () => {
 
   it('displays appointment statistics', async () => {
     const mockUser: any = { id: 'test-user' };
-    render(<UnifiedDashboard user={mockUser} />);
+    render(
+      <BrowserRouter>
+        <UnifiedDashboard user={mockUser} />
+      </BrowserRouter>
+    );
     
     await waitFor(() => {
       expect(screen.getByText(/total appointments/i)).toBeInTheDocument();
@@ -205,7 +250,11 @@ describe('UnifiedDashboard', () => {
   it('handles logout functionality', async () => {
     const user = userEvent.setup();
     const mockUser: any = { id: 'test-user' };
-    render(<UnifiedDashboard user={mockUser} />);
+    render(
+      <BrowserRouter>
+        <UnifiedDashboard user={mockUser} />
+      </BrowserRouter>
+    );
     
     await waitFor(async () => {
       const logoutButton = screen.getByText(/logout/i);
@@ -219,7 +268,11 @@ describe('UnifiedDashboard', () => {
   it('shows settings menu', async () => {
     const user = userEvent.setup();
     const mockUser: any = { id: 'test-user' };
-    render(<UnifiedDashboard user={mockUser} />);
+    render(
+      <BrowserRouter>
+        <UnifiedDashboard user={mockUser} />
+      </BrowserRouter>
+    );
     
     await waitFor(async () => {
       const settingsButton = screen.getByText(/settings/i);
@@ -256,7 +309,11 @@ describe('UnifiedDashboard', () => {
   it('handles theme switching', async () => {
     const user = userEvent.setup();
     const mockUser: any = { id: 'test-user' };
-    render(<UnifiedDashboard user={mockUser} />);
+    render(
+      <BrowserRouter>
+        <UnifiedDashboard user={mockUser} />
+      </BrowserRouter>
+    );
     
     await waitFor(async () => {
       const themeToggle = screen.getByLabelText(/toggle theme/i);
