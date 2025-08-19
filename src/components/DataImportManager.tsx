@@ -73,6 +73,54 @@ export default function DataImportManager() {
     }
   }, [importType, toast]);
 
+  const testFunction = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({
+          title: "Not authenticated",
+          description: "Please log in first",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      console.log('Testing function connection...');
+      
+      const { data, error } = await supabase.functions.invoke('process-csv-import', {
+        body: {
+          csvData: 'test,data\nvalue1,value2',
+          fieldMapping: { test: 'first_name' },
+          importType: 'patients' as const,
+          dentistId: 'test-id',
+          filename: 'test.csv'
+        }
+      });
+
+      console.log('Test response:', { data, error });
+
+      if (error) {
+        toast({
+          title: "Function Error",
+          description: `Error: ${error.message}`,
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Function Test",
+          description: "Function is reachable (may have failed due to test data)",
+        });
+      }
+    } catch (error) {
+      console.error('Test error:', error);
+      toast({
+        title: "Connection Test Failed",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  };
+
   const handleImport = async () => {
     if (!selectedFile) {
       toast({
@@ -130,32 +178,33 @@ export default function DataImportManager() {
       const csvData = await selectedFile.text();
 
       console.log('Starting import with dentist ID:', dentist.id);
+      console.log('CSV data length:', csvData.length);
+      console.log('Field mapping:', fieldMapping);
 
-      const response = await supabase.functions.invoke('process-csv-import', {
+      const { data, error } = await supabase.functions.invoke('process-csv-import', {
         body: {
           csvData,
           fieldMapping,
           importType,
           dentistId: dentist.id,
           filename: selectedFile.name
-        },
-        headers: {
-          'x-user-id': session.user.id
         }
       });
 
-      if (response.error) {
-        console.error('Function invocation error:', response.error);
-        throw response.error;
+      console.log('Function response received:', { data, error });
+
+      if (error) {
+        console.error('Function invocation error:', error);
+        throw new Error(`Function error: ${error.message || 'Unknown error'}`);
       }
 
-      if (!response.data) {
+      if (!data) {
         console.error('No data received from function');
-        throw new Error('No response data received');
+        throw new Error('No response data received from function');
       }
 
-      console.log('Import response:', response.data);
-      const result = response.data;
+      console.log('Import response:', data);
+      const result = data;
       setImportSession(result);
 
       toast({
@@ -202,14 +251,25 @@ export default function DataImportManager() {
           <h1 className="text-3xl font-bold">Data Import</h1>
           <p className="text-muted-foreground">Import patient data from CSV files</p>
         </div>
-        <Button 
-          variant="outline" 
-          onClick={() => window.open('/sample-patients.csv', '_blank')}
-          className="flex items-center gap-2"
-        >
-          <Download className="w-4 h-4" />
-          Sample CSV
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            onClick={() => window.open('/sample-patients.csv', '_blank')}
+            className="flex items-center gap-2"
+          >
+            <Download className="w-4 h-4" />
+            Sample CSV
+          </Button>
+          
+          <Button 
+            variant="outline" 
+            onClick={testFunction}
+            className="flex items-center gap-2"
+          >
+            <AlertCircle className="w-4 h-4" />
+            Test Function
+          </Button>
+        </div>
       </div>
 
       <Tabs defaultValue="import" className="space-y-6">

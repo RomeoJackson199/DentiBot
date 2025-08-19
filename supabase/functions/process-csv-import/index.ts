@@ -19,9 +19,18 @@ interface ImportRequest {
 }
 
 serve(async (req) => {
+  console.log(`${req.method} request received`);
+  
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
+  }
+
+  if (req.method !== 'POST') {
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+      status: 405,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
   }
 
   try {
@@ -41,6 +50,14 @@ serve(async (req) => {
     });
 
     // Create import session
+    console.log('Creating import session with:', {
+      dentist_id: dentistId,
+      filename,
+      import_type: importType,
+      field_mapping: fieldMapping,
+      status: 'processing'
+    });
+
     const { data: importSession, error: sessionError } = await supabase
       .from('import_sessions')
       .insert({
@@ -56,11 +73,17 @@ serve(async (req) => {
 
     if (sessionError) {
       console.error('Failed to create import session:', sessionError);
-      return new Response(JSON.stringify({ error: 'Failed to create import session' }), {
+      return new Response(JSON.stringify({ 
+        error: 'Failed to create import session',
+        details: sessionError.message,
+        code: sessionError.code
+      }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
+
+    console.log('Import session created:', importSession);
 
     // Parse CSV data
     const rows = parseCSV(csvData);
@@ -171,10 +194,16 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Import processing error:', error);
-    return new Response(JSON.stringify({ 
+    
+    // Return a more detailed error response
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    const errorResponse = {
       error: 'Import processing failed',
-      details: error.message 
-    }), {
+      details: errorMessage,
+      stack: error instanceof Error ? error.stack : undefined
+    };
+    
+    return new Response(JSON.stringify(errorResponse), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
