@@ -715,6 +715,155 @@ export type Database = {
           },
         ]
       }
+      import_job_items: {
+        Row: {
+          created_at: string
+          created_record_id: string | null
+          created_record_type: string | null
+          error_message: string | null
+          id: string
+          job_id: string
+          processed_data: Json | null
+          raw_data: Json
+          row_number: number
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          created_record_id?: string | null
+          created_record_type?: string | null
+          error_message?: string | null
+          id?: string
+          job_id: string
+          processed_data?: Json | null
+          raw_data: Json
+          row_number: number
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          created_record_id?: string | null
+          created_record_type?: string | null
+          error_message?: string | null
+          id?: string
+          job_id?: string
+          processed_data?: Json | null
+          raw_data?: Json
+          row_number?: number
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "import_job_items_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "import_jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      import_jobs: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          dentist_id: string
+          error_details: Json | null
+          failed_rows: number | null
+          file_size: number | null
+          filename: string
+          id: string
+          import_type: string
+          mapping_config: Json | null
+          processed_rows: number | null
+          started_at: string | null
+          status: string
+          successful_rows: number | null
+          timezone: string | null
+          total_rows: number | null
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          dentist_id: string
+          error_details?: Json | null
+          failed_rows?: number | null
+          file_size?: number | null
+          filename: string
+          id?: string
+          import_type?: string
+          mapping_config?: Json | null
+          processed_rows?: number | null
+          started_at?: string | null
+          status?: string
+          successful_rows?: number | null
+          timezone?: string | null
+          total_rows?: number | null
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          dentist_id?: string
+          error_details?: Json | null
+          failed_rows?: number | null
+          file_size?: number | null
+          filename?: string
+          id?: string
+          import_type?: string
+          mapping_config?: Json | null
+          processed_rows?: number | null
+          started_at?: string | null
+          status?: string
+          successful_rows?: number | null
+          timezone?: string | null
+          total_rows?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      import_templates: {
+        Row: {
+          created_at: string
+          dentist_id: string
+          description: string | null
+          id: string
+          import_type: string
+          is_default: boolean | null
+          mapping_config: Json
+          name: string
+          updated_at: string
+          usage_count: number | null
+          validation_rules: Json | null
+        }
+        Insert: {
+          created_at?: string
+          dentist_id: string
+          description?: string | null
+          id?: string
+          import_type: string
+          is_default?: boolean | null
+          mapping_config?: Json
+          name: string
+          updated_at?: string
+          usage_count?: number | null
+          validation_rules?: Json | null
+        }
+        Update: {
+          created_at?: string
+          dentist_id?: string
+          description?: string | null
+          id?: string
+          import_type?: string
+          is_default?: boolean | null
+          mapping_config?: Json
+          name?: string
+          updated_at?: string
+          usage_count?: number | null
+          validation_rules?: Json | null
+        }
+        Relationships: []
+      }
       insurance_pre_approvals: {
         Row: {
           coverage_percentage: number | null
@@ -1974,6 +2123,10 @@ export type Database = {
           p_phone_number: string
         }
         Returns: string
+      }
+      update_import_job_progress: {
+        Args: { p_job_id: string }
+        Returns: undefined
       }
     }
     Enums: {

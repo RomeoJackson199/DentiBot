@@ -1,494 +1,475 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-import Papa from "https://esm.sh/papaparse@5.4.1";
-import * as XLSX from "https://esm.sh/xlsx@0.18.5";
-import ICAL from "https://esm.sh/ical.js@1.5.0";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3'
 
 const corsHeaders = {
-	"Access-Control-Allow-Origin": "*",
-	"Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
-
-// Utilities
-function sha256(input: string): string {
-	const data = new TextEncoder().encode(input);
-	// Deno has crypto.subtle but synchronous not available; return base64 of hex-ish as placeholder
-	// For hashing the uploaded file, we expect client provides hash; else skip
-	return btoa(String.fromCharCode(...data));
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-function normalizeStatus(raw?: string): 'pending' | 'confirmed' | 'completed' | 'cancelled' {
-	if (!raw) return 'pending';
-	const v = raw.toLowerCase();
-	if (v.includes('confirm') || v.includes('book')) return 'confirmed';
-	if (v.includes('done') || v.includes('complete')) return 'completed';
-	if (v.includes('cancel')) return 'cancelled';
-	return 'pending';
+const supabase = createClient(
+  Deno.env.get('SUPABASE_URL') ?? '',
+  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+)
+
+interface ImportJobConfig {
+  dentist_id: string;
+  import_type: 'appointments' | 'patients' | 'treatments' | 'financial';
+  filename: string;
+  file_size: number;
+  timezone: string;
+  mapping_config: Record<string, string>;
 }
 
-function toIsoUtc(dateLike: string | Date): string | null {
-	try {
-		const d = typeof dateLike === 'string' ? new Date(dateLike) : dateLike;
-		if (isNaN(d.getTime())) return null;
-		return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString();
-	} catch {
-		return null;
-	}
+interface ProcessedRow {
+  row_number: number;
+  raw_data: any;
+  processed_data?: any;
+  status: 'success' | 'failed' | 'skipped';
+  error_message?: string;
+  created_record_id?: string;
+  created_record_type?: string;
 }
 
-function parseCsv(content: string): { rows: any[]; delimiter: string } {
-	const papaAny: any = (Papa as any);
-	const papa = papaAny?.parse ? papaAny : papaAny?.default ?? papaAny;
-	const parsed = papa.parse(content, { header: true, skipEmptyLines: true, dynamicTyping: false });
-	return { rows: parsed.data as any[], delimiter: (parsed as any).meta?.delimiter || ',' };
+Deno.serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders })
+  }
+
+  try {
+    // Get auth user
+    const authHeader = req.headers.get('Authorization')!
+    const token = authHeader.replace('Bearer ', '')
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
+    
+    if (authError || !user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+    // Get dentist profile
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('id, role')
+      .eq('user_id', user.id)
+      .single()
+
+    if (profile?.role !== 'dentist') {
+      return new Response(JSON.stringify({ error: 'Only dentists can import data' }), {
+        status: 403,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+    const { data: dentist } = await supabase
+      .from('dentists')
+      .select('id')
+      .eq('profile_id', profile.id)
+      .single()
+
+    if (!dentist) {
+      return new Response(JSON.stringify({ error: 'Dentist profile not found' }), {
+        status: 404,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+    const url = new URL(req.url)
+    const action = url.searchParams.get('action') || 'process'
+    const import_type = url.searchParams.get('type') || 'appointments'
+    const filename = url.searchParams.get('filename') || 'upload.csv'
+    const timezone = url.searchParams.get('tz') || 'UTC'
+
+    // Read file data
+    const fileData = await req.arrayBuffer()
+    const fileSize = fileData.byteLength
+
+    if (action === 'dry-run') {
+      return await handleDryRun(dentist.id, fileData, filename, timezone, import_type as any)
+    } else if (action === 'commit') {
+      return await handleCommit(dentist.id, fileData, filename, timezone, import_type as any)
+    }
+
+    return new Response(JSON.stringify({ error: 'Invalid action' }), {
+      status: 400,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    })
+
+  } catch (error) {
+    console.error('Import error:', error)
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    })
+  }
+})
+
+async function handleDryRun(dentist_id: string, fileData: ArrayBuffer, filename: string, timezone: string, import_type: string) {
+  const rows = await parseFile(fileData, filename)
+  
+  if (rows.length === 0) {
+    return new Response(JSON.stringify({ error: 'No data found in file' }), {
+      status: 400,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    })
+  }
+
+  const processedRows: ProcessedRow[] = []
+  let successCount = 0
+  let errorCount = 0
+  let warningCount = 0
+
+  for (let i = 0; i < Math.min(rows.length, 100); i++) { // Preview first 100 rows
+    const row = rows[i]
+    const processedRow = await processRow(row, i + 1, import_type, dentist_id, true)
+    processedRows.push(processedRow)
+    
+    if (processedRow.status === 'success') successCount++
+    else if (processedRow.status === 'failed') errorCount++
+    else warningCount++
+  }
+
+  const preview = processedRows.slice(0, 20).map(row => ({
+    row: row.row_number,
+    data: row.processed_data || row.raw_data,
+    status: row.status,
+    messages: row.error_message ? [row.error_message] : []
+  }))
+
+  return new Response(JSON.stringify({
+    counts: {
+      total: rows.length,
+      to_create: successCount,
+      to_match: 0,
+      warnings: warningCount,
+      errors: errorCount
+    },
+    preview
+  }), {
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+  })
 }
 
-function parseXlsx(bytes: Uint8Array): any[] {
-	const workbook = XLSX.read(bytes, { type: 'array' });
-	const sheetName = workbook.SheetNames[0];
-	const sheet = workbook.Sheets[sheetName];
-	return XLSX.utils.sheet_to_json(sheet, { raw: false });
+async function handleCommit(dentist_id: string, fileData: ArrayBuffer, filename: string, timezone: string, import_type: string) {
+  const rows = await parseFile(fileData, filename)
+  
+  // Create import job
+  const { data: job, error: jobError } = await supabase
+    .from('import_jobs')
+    .insert({
+      dentist_id,
+      filename,
+      file_size: fileData.byteLength,
+      total_rows: rows.length,
+      import_type,
+      timezone,
+      status: 'processing'
+    })
+    .select()
+    .single()
+
+  if (jobError || !job) {
+    throw new Error('Failed to create import job')
+  }
+
+  // Process rows in background
+  processImportJob(job.id, rows, import_type, dentist_id)
+
+  return new Response(JSON.stringify({
+    job_id: job.id,
+    message: 'Import started',
+    total_rows: rows.length
+  }), {
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+  })
 }
 
-function expandIcs(icsText: string): any[] {
-	const jcal = ICAL.parse(icsText);
-	const comp = new ICAL.Component(jcal);
-	const vevents = comp.getAllSubcomponents('vevent');
-	const results: any[] = [];
-	for (const vevent of vevents) {
-		const event = new ICAL.Event(vevent);
-		if (event.isRecurring()) {
-			const iter = event.iterator();
-			let next;
-			let count = 0;
-			while ((next = iter.next())) {
-				// Cap expansion to 2 years to avoid runaway
-				if (++count > 2000) break;
-				const start = next.toJSDate();
-				const end = event.endDate.toJSDate();
-				const durationMs = event.endDate.toUnixTime() - event.startDate.toUnixTime();
-				const endJs = new Date(start.getTime() + durationMs * 1000);
-				results.push({
-					start: toIsoUtc(start)!,
-					end: toIsoUtc(endJs)!,
-					summary: event.summary,
-					description: event.description,
-					attendees: (vevent.getAllProperties('attendee') || []).map((a: any) => String(a.getFirstValue?.() ?? a.getValues?.() ?? '')),
-					organizer: String(vevent.getFirstPropertyValue('organizer') ?? ''),
-				});
-			}
-		} else {
-			results.push({
-				start: toIsoUtc(event.startDate.toJSDate())!,
-				end: toIsoUtc(event.endDate.toJSDate())!,
-				summary: event.summary,
-				description: event.description,
-				attendees: (vevent.getAllProperties('attendee') || []).map((a: any) => String(a.getFirstValue?.() ?? a.getValues?.() ?? '')),
-				organizer: String(vevent.getFirstPropertyValue('organizer') ?? ''),
-			});
-		}
-	}
-	return results;
+async function processImportJob(job_id: string, rows: any[], import_type: string, dentist_id: string) {
+  try {
+    await supabase
+      .from('import_jobs')
+      .update({ started_at: new Date().toISOString() })
+      .eq('id', job_id)
+
+    let successCount = 0
+
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i]
+      const processedRow = await processRow(row, i + 1, import_type, dentist_id, false)
+      
+      // Save job item
+      await supabase
+        .from('import_job_items')
+        .insert({
+          job_id,
+          row_number: processedRow.row_number,
+          raw_data: processedRow.raw_data,
+          processed_data: processedRow.processed_data,
+          status: processedRow.status,
+          error_message: processedRow.error_message,
+          created_record_id: processedRow.created_record_id,
+          created_record_type: processedRow.created_record_type
+        })
+
+      if (processedRow.status === 'success') successCount++
+
+      // Update progress every 10 rows
+      if (i % 10 === 0) {
+        await supabase.rpc('update_import_job_progress', { p_job_id: job_id })
+      }
+    }
+
+    // Final update
+    await supabase
+      .from('import_jobs')
+      .update({ 
+        status: 'completed',
+        completed_at: new Date().toISOString()
+      })
+      .eq('id', job_id)
+    
+    await supabase.rpc('update_import_job_progress', { p_job_id: job_id })
+
+  } catch (error) {
+    console.error('Job processing error:', error)
+    await supabase
+      .from('import_jobs')
+      .update({ 
+        status: 'failed',
+        error_details: [{ error: error.message }]
+      })
+      .eq('id', job_id)
+  }
 }
 
-function guessNameParts(full: string | undefined): { first?: string; last?: string } {
-	if (!full) return {};
-	const parts = full.trim().split(/\s+/);
-	if (parts.length === 1) return { first: parts[0] };
-	return { first: parts.slice(0, -1).join(' '), last: parts[parts.length - 1] };
+async function parseFile(fileData: ArrayBuffer, filename: string): Promise<any[]> {
+  const text = new TextDecoder().decode(fileData)
+  
+  if (filename.endsWith('.csv')) {
+    return parseCsv(text)
+  }
+  
+  throw new Error('Unsupported file format')
 }
 
-serve(async (req) => {
-	if (req.method === "OPTIONS") {
-		return new Response(null, { headers: corsHeaders });
-	}
+function parseCsv(text: string): any[] {
+  const lines = text.split('\n').filter(line => line.trim())
+  if (lines.length < 2) return []
+  
+  const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''))
+  const rows = []
+  
+  for (let i = 1; i < lines.length; i++) {
+    const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''))
+    const row: any = {}
+    headers.forEach((header, index) => {
+      row[header] = values[index] || ''
+    })
+    rows.push(row)
+  }
+  
+  return rows
+}
 
-	try {
-		const authHeader = req.headers.get("authorization");
-		if (!authHeader) throw new Error("Authorization header required");
+async function processRow(row: any, rowNumber: number, import_type: string, dentist_id: string, dryRun: boolean): Promise<ProcessedRow> {
+  try {
+    if (import_type === 'appointments') {
+      return await processAppointmentRow(row, rowNumber, dentist_id, dryRun)
+    } else if (import_type === 'patients') {
+      return await processPatientRow(row, rowNumber, dentist_id, dryRun)
+    }
+    
+    throw new Error('Unsupported import type')
+    
+  } catch (error) {
+    return {
+      row_number: rowNumber,
+      raw_data: row,
+      status: 'failed',
+      error_message: error.message
+    }
+  }
+}
 
-		const supabase = createClient(
-			Deno.env.get("SUPABASE_URL") ?? "",
-			Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-			{ global: { headers: { Authorization: authHeader } } }
-		);
+async function processAppointmentRow(row: any, rowNumber: number, dentist_id: string, dryRun: boolean): Promise<ProcessedRow> {
+  // Map common field names
+  const patientName = row['Patient Name'] || row['patient_name'] || row['name'] || ''
+  const patientEmail = row['Patient Email'] || row['email'] || row['patient_email'] || ''
+  const appointmentDate = row['Date'] || row['appointment_date'] || row['date'] || ''
+  const appointmentTime = row['Time'] || row['appointment_time'] || row['time'] || ''
+  const reason = row['Reason'] || row['reason'] || row['service'] || 'Consultation'
+  const status = row['Status'] || row['status'] || 'confirmed'
 
-		const { data: { user } } = await supabase.auth.getUser();
-		if (!user) throw new Error("Invalid or expired token");
+  if (!patientName || !appointmentDate) {
+    throw new Error('Missing required fields: Patient Name and Date')
+  }
 
-		// Helper to ensure a profile (and dentist row if role=dentist) exists
-		async function ensureProfile(params: { email?: string; first?: string; last?: string; role: 'patient'|'dentist'; phone?: string; dobIso?: string }) {
-			const email = params.email || `${params.role}+${Date.now()}@example.com`;
-			// Try find by email
-			const existing = await supabase.from('profiles').select('id').eq('email', email).limit(1).maybeSingle();
-			if (existing.data) {
-				if (params.role === 'dentist') {
-					const dent = await supabase.from('dentists').select('id').eq('profile_id', existing.data.id as string).limit(1).maybeSingle();
-					return { profileId: existing.data.id as string, dentistId: dent.data?.id as (string|undefined) };
-				}
-				return { profileId: existing.data.id as string };
-			}
-			// Create auth user via admin
-			const admin = supabase.auth.admin;
-			const created = await admin.createUser({ email, email_confirm: true });
-			if (created.error) throw created.error;
-			const userId = created.data.user?.id;
-			if (!userId) throw new Error('Failed to create user');
-			// Create profile row
-			const { data: prof } = await supabase.from('profiles').insert({
-				user_id: userId,
-				email: email,
-				first_name: params.first || 'Unknown',
-				last_name: params.last || (params.role === 'dentist' ? 'Dentist' : 'Patient'),
-				role: params.role,
-				phone: params.phone || null,
-				date_of_birth: params.dobIso || null
-			}).select('id').single();
-			let dentistId: string | undefined = undefined;
-			if (params.role === 'dentist' && prof) {
-				const { data: dent } = await supabase.from('dentists').insert({ profile_id: prof.id, specialization: 'General' }).select('id').single();
-				dentistId = dent?.id;
-			}
-			return { profileId: prof?.id as string, dentistId };
-		}
+  // Parse date and time
+  const dateTime = new Date(`${appointmentDate} ${appointmentTime || '09:00'}`)
+  if (isNaN(dateTime.getTime())) {
+    throw new Error('Invalid date format')
+  }
 
-		const url = new URL(req.url);
-		const action = url.searchParams.get('action') || 'dry-run';
+  const processedData = {
+    patient_name: patientName,
+    patient_email: patientEmail,
+    appointment_date: dateTime.toISOString(),
+    reason,
+    status: normalizeStatus(status),
+    duration_minutes: 60,
+    urgency: 'medium'
+  }
 
-		if (req.method !== 'POST') {
-			return new Response(JSON.stringify({ error: 'POST required' }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 405 });
-		}
+  if (dryRun) {
+    return {
+      row_number: rowNumber,
+      raw_data: row,
+      processed_data: processedData,
+      status: 'success'
+    }
+  }
 
-		const contentType = req.headers.get('content-type') || '';
-		let rows: any[] = [];
-		let sourceType: 'csv'|'xlsx'|'ics' = 'csv';
-		let sourceHash = '';
-		let filename = url.searchParams.get('filename') || `import-${Date.now()}`;
-		let clinicTz = url.searchParams.get('tz') || undefined;
-		const defaultDurations: Record<string, number> = {
-			Cleaning: 45,
-			Consult: 30,
-			Consultation: 30,
-		};
+  // Find or create patient
+  let patient_id = null
+  
+  if (patientEmail) {
+    const { data: existingPatient } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('email', patientEmail)
+      .eq('role', 'patient')
+      .single()
+    
+    patient_id = existingPatient?.id
+  }
 
-		const body = new Uint8Array(await req.arrayBuffer());
-		if (contentType.includes('text/csv') || filename.endsWith('.csv')) {
-			sourceType = 'csv';
-			const text = new TextDecoder('utf-8').decode(body);
-			rows = parseCsv(text).rows;
-			sourceHash = sha256(text);
-		} else if (contentType.includes('spreadsheet') || filename.endsWith('.xlsx')) {
-			sourceType = 'xlsx';
-			rows = parseXlsx(body);
-			sourceHash = sha256(String(body.length));
-		} else if (contentType.includes('text/calendar') || filename.endsWith('.ics')) {
-			sourceType = 'ics';
-			const text = new TextDecoder('utf-8').decode(body);
-			rows = expandIcs(text);
-			sourceHash = sha256(text);
-		} else {
-			return new Response(JSON.stringify({ error: 'Unsupported file type' }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 });
-		}
+  if (!patient_id) {
+    // Create patient profile
+    const { data: newPatient, error: patientError } = await supabase
+      .from('profiles')
+      .insert({
+        first_name: patientName.split(' ')[0] || patientName,
+        last_name: patientName.split(' ').slice(1).join(' ') || '',
+        email: patientEmail || `${patientName.toLowerCase().replace(/\s+/g, '.')}@imported.local`,
+        role: 'patient'
+      })
+      .select('id')
+      .single()
 
-		// Fetch current profile to use as owner/created_by
-		const { data: profile } = await supabase
-			.from('profiles')
-			.select('id')
-			.eq('user_id', user.id)
-			.single();
+    if (patientError || !newPatient) {
+      throw new Error('Failed to create patient')
+    }
+    patient_id = newPatient.id
+  }
 
-		if (!profile) throw new Error('Profile not found');
+  // Create appointment
+  const { data: appointment, error: appointmentError } = await supabase
+    .from('appointments')
+    .insert({
+      patient_id,
+      dentist_id,
+      appointment_date: dateTime.toISOString(),
+      reason,
+      status: normalizeStatus(status),
+      duration_minutes: 60,
+      urgency: 'medium',
+      patient_name: patientName
+    })
+    .select('id')
+    .single()
 
-		// Field mapping - allow client to pass a mapping json; else try heuristics
-		const mapping = (await req.json().catch(() => ({}))).mapping || {};
+  if (appointmentError || !appointment) {
+    throw new Error('Failed to create appointment')
+  }
 
-		// Pre-map by fuzzy names
-		function get(row: any, ...keys: string[]): string | undefined {
-			for (const k of keys) {
-				const found = Object.keys(row).find(h => h.toLowerCase().replace(/\s|_/g, '') === k.toLowerCase().replace(/\s|_/g, ''));
-				if (found) return String(row[found] ?? '');
-			}
-			return undefined;
-		}
+  return {
+    row_number: rowNumber,
+    raw_data: row,
+    processed_data: processedData,
+    status: 'success',
+    created_record_id: appointment.id,
+    created_record_type: 'appointment'
+  }
+}
 
-		// Transform into normalized candidate records
-		type Candidate = {
-			patient_name?: string;
-			patient_first_name?: string;
-			patient_last_name?: string;
-			patient_email?: string;
-			patient_phone?: string;
-			patient_dob?: string;
-			dentist_name?: string;
-			dentist_email?: string;
-			start?: string;
-			end?: string;
-			description?: string;
-			summary?: string;
-			status?: string;
-			type?: string;
-		};
+async function processPatientRow(row: any, rowNumber: number, dentist_id: string, dryRun: boolean): Promise<ProcessedRow> {
+  const firstName = row['First Name'] || row['first_name'] || ''
+  const lastName = row['Last Name'] || row['last_name'] || ''
+  const email = row['Email'] || row['email'] || ''
+  const phone = row['Phone'] || row['phone'] || ''
+  const dateOfBirth = row['Date of Birth'] || row['dob'] || row['birth_date'] || ''
 
-		const candidates: Candidate[] = rows.map((row: any) => {
-			if (sourceType === 'ics') {
-				return {
-					patient_name: undefined,
-					dentist_name: get(row, 'organizer') || get(row, 'attendees'),
-					start: row.start,
-					end: row.end,
-					summary: row.summary,
-					description: row.description,
-					status: 'pending',
-				};
-			}
-			return {
-				patient_name: get(row, 'patient', 'patientname', 'name', 'patient_name'),
-				patient_first_name: get(row, 'first_name', 'firstname', 'givenname'),
-				patient_last_name: get(row, 'last_name', 'lastname', 'surname', 'familyname'),
-				patient_email: get(row, 'email', 'patient_email'),
-				patient_phone: get(row, 'phone', 'mobile', 'telephone'),
-				patient_dob: get(row, 'dob', 'dateofbirth', 'birthdate', 'birthday'),
-				dentist_name: get(row, 'dentist', 'provider', 'doctor'),
-				dentist_email: get(row, 'dentist_email', 'provider_email', 'doctor_email'),
-				start: get(row, 'start', 'start_time', 'start_at', 'appointment_date'),
-				end: get(row, 'end', 'end_time', 'end_at'),
-				summary: get(row, 'summary', 'title', 'reason', 'type'),
-				description: get(row, 'description', 'notes'),
-				status: get(row, 'status'),
-				type: get(row, 'type', 'appointment_type', 'reason'),
-			};
-		});
+  if (!firstName || !email) {
+    throw new Error('Missing required fields: First Name and Email')
+  }
 
-		// Matching rules & preview
-		const preview: any[] = [];
-		let toCreate = 0, toMatch = 0, warn = 0, err = 0;
+  const processedData = {
+    first_name: firstName,
+    last_name: lastName,
+    email,
+    phone,
+    date_of_birth: dateOfBirth
+  }
 
-		for (let i = 0; i < candidates.length; i++) {
-			const c = candidates[i];
-			const messages: string[] = [];
+  if (dryRun) {
+    return {
+      row_number: rowNumber,
+      raw_data: row,
+      processed_data: processedData,
+      status: 'success'
+    }
+  }
 
-			const fullName = c.patient_name || [c.patient_first_name, c.patient_last_name].filter(Boolean).join(' ');
-			const { first: pf, last: pl } = guessNameParts(fullName);
-			const dob = c.patient_dob ? new Date(c.patient_dob) : undefined;
-			const dobIso = dob && !isNaN(dob.getTime()) ? dob.toISOString().slice(0, 10) : undefined;
+  // Check if patient already exists
+  const { data: existingPatient } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('email', email)
+    .single()
 
-			// Patient match: (first+last+dob) OR (email OR phone)
-			let matchedPatientId: string | null = null;
-			if (pf && pl && dobIso) {
-				const { data: pat } = await supabase.from('profiles').select('id').eq('first_name', pf).eq('last_name', pl).eq('date_of_birth', dobIso).limit(1).maybeSingle();
-				if (pat) { matchedPatientId = pat.id; toMatch++; }
-			}
-			if (!matchedPatientId && (c.patient_email || c.patient_phone)) {
-				let q = supabase.from('profiles').select('id');
-				if (c.patient_email) q = q.eq('email', c.patient_email);
-				if (c.patient_phone) q = q.eq('phone', c.patient_phone);
-				const { data: patByContact } = await q.limit(2);
-				if (patByContact && patByContact.length === 1) { matchedPatientId = patByContact[0].id; toMatch++; }
-				else if (patByContact && patByContact.length > 1) { messages.push('Needs review: multiple patient matches'); warn++; }
-			}
-			if (!matchedPatientId && !(pf || c.patient_email || c.patient_phone || dobIso)) {
-				messages.push('Missing patient identity (name/email/phone/dob)');
-				err++;
-			}
+  if (existingPatient) {
+    return {
+      row_number: rowNumber,
+      raw_data: row,
+      processed_data: processedData,
+      status: 'skipped',
+      error_message: 'Patient already exists'
+    }
+  }
 
-			// Dentist match: email > exact name; else stub
-			let matchedDentistId: string | null = null;
-			if (c.dentist_email) {
-				const { data: dentistByEmail } = await supabase
-					.from('profiles')
-					.select('id')
-					.eq('email', c.dentist_email)
-					.limit(1)
-					.maybeSingle();
-				if (dentistByEmail) {
-					const { data: dentistRow } = await supabase.from('dentists').select('id').eq('profile_id', dentistByEmail.id).maybeSingle();
-					matchedDentistId = dentistRow?.id ?? null;
-				}
-			} else if (c.dentist_name) {
-				const { first: df, last: dl } = guessNameParts(c.dentist_name);
-				if (df && dl) {
-					const { data: dentist } = await supabase
-						.from('profiles')
-						.select('id')
-						.eq('first_name', df)
-						.eq('last_name', dl)
-						.limit(1)
-						.maybeSingle();
-					if (dentist) {
-						const { data: dRow } = await supabase.from('dentists').select('id').eq('profile_id', dentist.id).maybeSingle();
-						matchedDentistId = dRow?.id ?? null;
-					}
-				}
-			}
+  // Create patient
+  const { data: newPatient, error: patientError } = await supabase
+    .from('profiles')
+    .insert({
+      first_name: firstName,
+      last_name: lastName,
+      email,
+      phone,
+      date_of_birth: dateOfBirth || null,
+      role: 'patient'
+    })
+    .select('id')
+    .single()
 
-			// Time normalization
-			const startIso = toIsoUtc(c.start || '');
-			let endIso = toIsoUtc(c.end || '');
-			if (!startIso) {
-				messages.push(`Can't parse date '${c.start ?? ''}' – fix format to YYYY-MM-DD or ISO`);
-				err++;
-			}
-			if (!endIso && startIso) {
-				const typeKey = (c.type || c.summary || '').trim();
-				const mins = defaultDurations[typeKey] || 30;
-				endIso = new Date(new Date(startIso).getTime() + mins * 60000).toISOString();
-			}
+  if (patientError || !newPatient) {
+    throw new Error('Failed to create patient')
+  }
 
-			const status = normalizeStatus(c.status);
-			preview.push({
-				row: i + 1,
-				patient: { name: fullName, dob: dobIso, email: c.patient_email, phone: c.patient_phone, match: matchedPatientId || undefined },
-				dentist: { name: c.dentist_name, email: c.dentist_email, match: matchedDentistId || undefined },
-				start: startIso,
-				end: endIso,
-				status,
-				messages,
-			});
-		}
+  return {
+    row_number: rowNumber,
+    raw_data: row,
+    processed_data: processedData,
+    status: 'success',
+    created_record_id: newPatient.id,
+    created_record_type: 'patient'
+  }
+}
 
-		if (action === 'dry-run') {
-			// Build CSV report for full preview
-			const header = 'row,patient_name,patient_email,dentist_name,dentist_email,start,end,status,messages\n';
-			const lines = preview.map((r) => {
-				const fields = [
-					String(r.row),
-					JSON.stringify(r.patient?.name || ''),
-					JSON.stringify(r.patient?.email || ''),
-					JSON.stringify(r.dentist?.name || ''),
-					JSON.stringify(r.dentist?.email || ''),
-					JSON.stringify(r.start || ''),
-					JSON.stringify(r.end || ''),
-					JSON.stringify(r.status || ''),
-					JSON.stringify((r.messages || []).join('; '))
-				];
-				return fields.join(',');
-			}).join('\n');
-			const reportCsv = header + lines;
-			const b64 = btoa(unescape(encodeURIComponent(reportCsv)));
-			return new Response(JSON.stringify({
-				counts: { total: candidates.length, to_create: toCreate, to_match: toMatch, warnings: warn, errors: err },
-				preview: preview.slice(0, 10),
-				report_csv_b64: b64
-			}), { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 });
-		}
-
-		// Commit flow
-		const { data: job } = await supabase.from('import_jobs').insert({
-			created_by: profile.id,
-			source_type: sourceType,
-			source_file_hash: sourceHash,
-			status: 'importing',
-			clinic_timezone: clinicTz,
-			total_rows: candidates.length
-		}).select('*').single();
-
-		if (!job) throw new Error('Failed to create import job');
-
-		const chunkSize = 200;
-		for (let i = 0; i < candidates.length; i += chunkSize) {
-			const chunk = candidates.slice(i, i + chunkSize);
-			for (let j = 0; j < chunk.length; j++) {
-				const idx = i + j;
-				const c = candidates[idx];
-				const messages: string[] = [];
-
-				const fullName = c.patient_name || [c.patient_first_name, c.patient_last_name].filter(Boolean).join(' ');
-				const { first: pf, last: pl } = guessNameParts(fullName);
-				const dobIso = c.patient_dob ? new Date(c.patient_dob).toISOString().slice(0, 10) : undefined;
-
-				let patientId: string | null = null;
-				// Try strong match first
-				if (pf && pl && dobIso) {
-					const { data: found } = await supabase.from('profiles').select('id').eq('first_name', pf).eq('last_name', pl).eq('date_of_birth', dobIso as any).limit(1).maybeSingle();
-					if (found) patientId = found.id;
-				}
-				if (!patientId && (c.patient_email || c.patient_phone)) {
-					let q = supabase.from('profiles').select('id');
-					if (c.patient_email) q = q.eq('email', c.patient_email);
-					if (c.patient_phone) q = q.eq('phone', c.patient_phone);
-					const { data: foundByContact } = await q.limit(1).maybeSingle();
-					if (foundByContact) patientId = foundByContact.id;
-				}
-				if (!patientId && (pf || c.patient_email || c.patient_phone || dobIso)) {
-					const ensured = await ensureProfile({ email: c.patient_email, first: pf, last: pl, role: 'patient', phone: c.patient_phone, dobIso });
-					patientId = ensured.profileId;
-				}
-
-				let dentistId: string | null = null;
-				if (c.dentist_email) {
-					const { data: dentistProfile } = await supabase.from('profiles').select('id').eq('email', c.dentist_email).maybeSingle();
-					if (dentistProfile) {
-						const { data: d } = await supabase.from('dentists').select('id').eq('profile_id', dentistProfile.id).maybeSingle();
-						dentistId = d?.id ?? null;
-					}
-				}
-				if (!dentistId && (c.dentist_name || c.dentist_email)) {
-					const { first: df, last: dl } = guessNameParts(c.dentist_name || 'Dentist');
-					const ensured = await ensureProfile({ email: c.dentist_email, first: df, last: dl, role: 'dentist' });
-					dentistId = ensured.dentistId || null;
-				}
-
-				const startIso = toIsoUtc(c.start || '');
-				let endIso = toIsoUtc(c.end || '');
-				if (!endIso && startIso) {
-					const typeKey = (c.type || c.summary || '').trim();
-					const mins = defaultDurations[typeKey] || 30;
-					endIso = new Date(new Date(startIso).getTime() + mins * 60000).toISOString();
-				}
-
-				// Safety: reminders per past/future
-				const nowIso = new Date().toISOString();
-				const remindersEnabled = startIso && startIso > nowIso;
-
-				let appointmentId: string | null = null;
-				if (patientId && dentistId && startIso) {
-					// De-dupe: same dentist + patient + start time
-					const { data: existing } = await supabase
-						.from('appointments')
-						.select('id')
-						.eq('patient_id', patientId)
-						.eq('dentist_id', dentistId)
-						.eq('appointment_date', startIso)
-						.limit(1)
-						.maybeSingle();
-					if (existing) {
-						appointmentId = existing.id;
-					} else {
-						const { data: inserted } = await supabase.from('appointments').insert({
-							patient_id: patientId,
-							dentist_id: dentistId,
-							appointment_date: startIso,
-							duration_minutes: Math.max(15, Math.round(((new Date(endIso ?? startIso).getTime() - new Date(startIso).getTime()) / 60000) || 30)),
-							status: normalizeStatus(c.status),
-							reason: c.summary || c.type || 'Consultation',
-							notes: c.description || null,
-							reminders_enabled: remindersEnabled,
-							clinic_timezone: clinicTz || null,
-							import_batch_id: job.id
-						}).select('id').single();
-						appointmentId = inserted?.id ?? null;
-					}
-				}
-
-				await supabase.from('import_job_items').insert({
-					job_id: job.id,
-					row_number: idx + 1,
-					status: 'ok',
-					message: messages.join('; '),
-					patient_id: patientId,
-					dentist_id: dentistId,
-					appointment_id: appointmentId,
-					raw: c as any,
-					normalized: { start: startIso, end: endIso, status: normalizeStatus(c.status) } as any
-				});
-			}
-		}
-
-		await supabase.from('import_jobs').update({ status: 'completed', completed_at: new Date().toISOString() }).eq('id', job.id);
-
-		return new Response(JSON.stringify({ job_id: job.id, imported: candidates.length }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 });
-	} catch (e) {
-		console.error('Importer error', e);
-		return new Response(JSON.stringify({ error: (e as Error).message }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 });
-	}
-});
+function normalizeStatus(status: string): string {
+  const normalized = status.toLowerCase().trim()
+  if (['confirmed', 'scheduled'].includes(normalized)) return 'confirmed'
+  if (['completed', 'done'].includes(normalized)) return 'completed'
+  if (['cancelled', 'canceled'].includes(normalized)) return 'cancelled'
+  if (['pending', 'waiting'].includes(normalized)) return 'pending'
+  return 'confirmed'
+}
