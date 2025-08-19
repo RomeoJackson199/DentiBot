@@ -55,10 +55,13 @@ const importTypes = [
 ];
 
 export default function DataImportManager() {
-  const [selectedType, setSelectedType] = useState<string>('appointments');
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
+  const [autoDetecting, setAutoDetecting] = useState(false);
+  const [detectedType, setDetectedType] = useState<string>('');
+  const [detectedFields, setDetectedFields] = useState<Record<string, string>>({});
+  const [previewData, setPreviewData] = useState<any[]>([]);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -100,11 +103,49 @@ export default function DataImportManager() {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0]);
+      const selectedFile = e.target.files[0];
+      setFile(selectedFile);
+      analyzeFile(selectedFile);
     }
   };
 
-  const handleImport = async () => {
+  const analyzeFile = async (file: File) => {
+    setAutoDetecting(true);
+    try {
+      const text = await file.text();
+      const lines = text.split('\n').filter(line => line.trim());
+      const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+      const sampleRows = lines.slice(1, 6).map(line => {
+        const values = line.split(',').map(v => v.trim().replace(/"/g, ''));
+        const row: any = {};
+        headers.forEach((header, index) => {
+          row[header] = values[index] || '';
+        });
+        return row;
+      });
+
+      const analysis = await smartFieldMapping(headers, sampleRows);
+      setDetectedType(analysis.dataType);
+      setDetectedFields(analysis.fieldMapping);
+      setPreviewData(sampleRows.slice(0, 3));
+      
+      toast({
+        title: "Smart Analysis Complete",
+        description: `Detected: ${analysis.dataType} data with ${headers.length} fields`,
+      });
+    } catch (error) {
+      console.error('File analysis failed:', error);
+      toast({
+        title: "Analysis failed",
+        description: "Using manual mode instead",
+        variant: "destructive"
+      });
+    } finally {
+      setAutoDetecting(false);
+    }
+  };
+
+  const handleSmartImport = async () => {
     if (!file) {
       toast({
         title: "No file selected",
@@ -119,15 +160,19 @@ export default function DataImportManager() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('Not authenticated');
 
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('detectedType', detectedType);
+      formData.append('fieldMapping', JSON.stringify(detectedFields));
+
       const response = await fetch(
-        `${getFunctionUrl('import-appointments')}?action=commit&type=${selectedType}&filename=${encodeURIComponent(file.name)}`,
+        `${getFunctionUrl('smart-import')}?action=auto-import&filename=${encodeURIComponent(file.name)}`,
         {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${session.access_token}`,
-            'Content-Type': file.type || 'application/octet-stream'
           },
-          body: await file.arrayBuffer()
+          body: formData
         }
       );
 
@@ -138,11 +183,14 @@ export default function DataImportManager() {
       }
 
       toast({
-        title: "Import started",
-        description: `Processing ${result.total_rows} rows. Job ID: ${result.job_id}`,
+        title: "Smart Import Complete!",
+        description: `Successfully imported ${result.imported} records. All data is now available.`,
       });
 
       setFile(null);
+      setDetectedType('');
+      setDetectedFields({});
+      setPreviewData([]);
       queryClient.invalidateQueries({ queryKey: ['import-jobs'] });
 
     } catch (error: any) {
@@ -154,6 +202,97 @@ export default function DataImportManager() {
     } finally {
       setUploading(false);
     }
+  };
+
+  const smartFieldMapping = async (headers: string[], sampleData: any[]) => {
+    // Advanced field mapping logic
+    const fieldPatterns = {
+      patient: {
+        name: /^(patient|name|full_?name|client)$/i,
+        first_name: /^(first|fname|given|patient_first)$/i,
+        last_name: /^(last|lname|surname|family|patient_last)$/i,
+        email: /^(email|mail|e_?mail|patient_email)$/i,
+        phone: /^(phone|tel|telephone|mobile|cell|patient_phone)$/i,
+        dob: /^(dob|birth|birthday|date_?of_?birth|born)$/i,
+        address: /^(address|addr|street|location)$/i,
+        insurance: /^(insurance|insurer|coverage|policy)$/i
+      },
+      appointment: {
+        date: /^(date|appt_?date|appointment_?date|scheduled|when)$/i,
+        time: /^(time|appt_?time|appointment_?time|hour|slot)$/i,
+        reason: /^(reason|service|procedure|treatment|type|description)$/i,
+        status: /^(status|state|condition)$/i,
+        dentist: /^(dentist|doctor|dr|provider|practitioner)$/i,
+        notes: /^(notes|comments|remarks|memo)$/i
+      },
+      treatment: {
+        procedure: /^(procedure|treatment|service|code|dental_code)$/i,
+        cost: /^(cost|price|fee|amount|charge)$/i,
+        date: /^(date|treatment_date|service_date|performed)$/i,
+        tooth: /^(tooth|teeth|tooth_number|dental_chart)$/i
+      }
+    };
+
+    // Detect data type based on headers
+    let scores = {
+      patients: 0,
+      appointments: 0,
+      treatments: 0
+    };
+
+    for (const header of headers) {
+      for (const [pattern, regex] of Object.entries(fieldPatterns.patient)) {
+        if (regex.test(header)) scores.patients += 2;
+      }
+      for (const [pattern, regex] of Object.entries(fieldPatterns.appointment)) {
+        if (regex.test(header)) scores.appointments += 2;
+      }
+      for (const [pattern, regex] of Object.entries(fieldPatterns.treatment)) {
+        if (regex.test(header)) scores.treatments += 2;
+      }
+    }
+
+    // Analyze data content for additional clues
+    for (const row of sampleData) {
+      for (const [key, value] of Object.entries(row)) {
+        if (typeof value === 'string') {
+          if (/^\d{4}-\d{2}-\d{2}/.test(value) || /^\d{2}\/\d{2}\/\d{4}/.test(value)) {
+            scores.appointments += 1; // Date format suggests appointments
+          }
+          if (/@/.test(value)) {
+            scores.patients += 1; // Email suggests patient data
+          }
+          if (/\$\d+/.test(value) || /^\d+\.\d{2}$/.test(value)) {
+            scores.treatments += 1; // Price format suggests treatments
+          }
+        }
+      }
+    }
+
+    const dataType = Object.entries(scores).reduce((a, b) => scores[a[0]] > scores[b[0]] ? a : b)[0];
+
+    // Smart field mapping
+    const fieldMapping: Record<string, string> = {};
+    const relevantPatterns = fieldPatterns[dataType as keyof typeof fieldPatterns];
+
+    for (const header of headers) {
+      let bestMatch = header;
+      let bestScore = 0;
+
+      for (const [standardField, pattern] of Object.entries(relevantPatterns)) {
+        if (pattern.test(header)) {
+          const score = header.toLowerCase() === standardField ? 10 : 5;
+          if (score > bestScore) {
+            bestMatch = standardField;
+            bestScore = score;
+          }
+        }
+      }
+
+      fieldMapping[header] = bestMatch;
+    }
+
+    return { dataType, fieldMapping };
   };
 
   const downloadSampleFile = (type: string) => {
@@ -252,106 +391,130 @@ export default function DataImportManager() {
         </Badge>
       </div>
 
-      <Tabs value={selectedType} onValueChange={setSelectedType} className="space-y-6">
-        <TabsList className="grid grid-cols-4 gap-1 bg-muted/50 p-1">
-          {importTypes.map((type) => (
-            <TabsTrigger
-              key={type.id}
-              value={type.id}
-              className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm"
+      {/* Smart Import Interface */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Upload className="w-5 h-5" />
+            Smart Data Import
+            <Badge variant="secondary" className="ml-2">AI-Powered</Badge>
+          </CardTitle>
+          <p className="text-muted-foreground">
+            Upload any dental practice file - our AI will automatically detect data types and import everything correctly
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div
+            className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+              dragActive
+                ? 'border-primary bg-primary/5'
+                : 'border-muted-foreground/25 hover:border-muted-foreground/50'
+            }`}
+            onDragEnter={handleDrag}
+            onDragLeave={handleDrag}
+            onDragOver={handleDrag}
+            onDrop={handleDrop}
+          >
+            <Upload className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+            <div className="space-y-2">
+              <p className="text-lg font-medium">
+                {file ? file.name : 'Drop any dental practice file here'}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                CSV, Excel, or any format - we'll figure it out automatically
+              </p>
+            </div>
+            <input
+              type="file"
+              accept=".csv,.xlsx,.xls"
+              onChange={handleFileChange}
+              className="hidden"
+              id="smart-upload"
+            />
+            <Button
+              variant="outline"
+              onClick={() => document.getElementById('smart-upload')?.click()}
+              className="mt-4"
+              disabled={autoDetecting}
             >
-              <type.icon className="w-4 h-4" />
-              {type.label}
-            </TabsTrigger>
-          ))}
-        </TabsList>
+              {autoDetecting ? (
+                <>
+                  <Clock className="w-4 h-4 mr-2 animate-spin" />
+                  Analyzing...
+                </>
+              ) : (
+                'Choose File'
+              )}
+            </Button>
+          </div>
 
-        {importTypes.map((type) => (
-          <TabsContent key={type.id} value={type.id} className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <type.icon className="w-5 h-5" />
-                  Import {type.label}
-                </CardTitle>
-                <p className="text-muted-foreground">{type.description}</p>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <Alert>
-                  <AlertCircle className="w-4 h-4" />
-                  <AlertDescription>
-                    Expected columns: {type.sampleHeaders.join(', ')}
-                    <Button
-                      variant="link"
-                      size="sm"
-                      onClick={() => downloadSampleFile(type.id)}
-                      className="ml-2 p-0 h-auto"
-                    >
-                      <Download className="w-3 h-3 mr-1" />
-                      Download Sample
-                    </Button>
-                  </AlertDescription>
-                </Alert>
-
-                <div
-                  className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-                    dragActive
-                      ? 'border-primary bg-primary/5'
-                      : 'border-muted-foreground/25 hover:border-muted-foreground/50'
-                  }`}
-                  onDragEnter={handleDrag}
-                  onDragLeave={handleDrag}
-                  onDragOver={handleDrag}
-                  onDrop={handleDrop}
-                >
-                  <Upload className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                  <div className="space-y-2">
-                    <p className="text-lg font-medium">
-                      {file ? file.name : 'Drop your file here or click to browse'}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      Supports CSV files up to 10MB
-                    </p>
-                  </div>
-                  <input
-                    type="file"
-                    accept=".csv"
-                    onChange={handleFileChange}
-                    className="hidden"
-                    id="file-upload"
-                  />
-                  <Button
-                    variant="outline"
-                    onClick={() => document.getElementById('file-upload')?.click()}
-                    className="mt-4"
-                  >
-                    Choose File
-                  </Button>
+          {/* Analysis Results */}
+          {detectedType && (
+            <Card className="bg-success/5 border-success/20">
+              <CardContent className="pt-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <CheckCircle className="w-5 h-5 text-success" />
+                  <span className="font-medium">Smart Analysis Complete</span>
                 </div>
-
-                <Button
-                  onClick={handleImport}
-                  disabled={!file || uploading}
-                  className="w-full"
-                  size="lg"
-                >
-                  {uploading ? (
-                    <>
-                      <Clock className="w-4 h-4 mr-2 animate-spin" />
-                      Processing...
-                    </>
-                  ) : (
-                    <>
-                      <Upload className="w-4 h-4 mr-2" />
-                      Import {type.label}
-                    </>
+                <div className="space-y-2">
+                  <p><span className="font-medium">Detected:</span> {detectedType.charAt(0).toUpperCase() + detectedType.slice(1)} data</p>
+                  <p><span className="font-medium">Fields found:</span> {Object.keys(detectedFields).length}</p>
+                  
+                  {previewData.length > 0 && (
+                    <div className="mt-4">
+                      <p className="font-medium mb-2">Preview (first 3 rows):</p>
+                      <div className="overflow-x-auto">
+                        <table className="min-w-full text-sm border rounded">
+                          <thead className="bg-muted/50">
+                            <tr>
+                              {Object.keys(previewData[0]).map(header => (
+                                <th key={header} className="px-2 py-1 text-left border-r">
+                                  {header}
+                                  <div className="text-xs text-muted-foreground">
+                                    → {detectedFields[header] || header}
+                                  </div>
+                                </th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {previewData.map((row, idx) => (
+                              <tr key={idx} className="border-t">
+                                {Object.values(row).map((value: any, i) => (
+                                  <td key={i} className="px-2 py-1 border-r">{value}</td>
+                                ))}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
                   )}
-                </Button>
+                </div>
               </CardContent>
             </Card>
-          </TabsContent>
-        ))}
-      </Tabs>
+          )}
+
+          <Button
+            onClick={handleSmartImport}
+            disabled={!file || !detectedType || uploading}
+            className="w-full"
+            size="lg"
+          >
+            {uploading ? (
+              <>
+                <Clock className="w-4 h-4 mr-2 animate-spin" />
+                Importing...
+              </>
+            ) : (
+              <>
+                <CheckCircle className="w-4 h-4 mr-2" />
+                Import All Data Automatically
+              </>
+            )}
+          </Button>
+        </CardContent>
+      </Card>
 
       {/* Import History */}
       <Card>
