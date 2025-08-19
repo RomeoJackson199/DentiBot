@@ -791,6 +791,7 @@ export type Database = {
           license_number: string | null
           profile_id: string
           specialization: string | null
+          specialty: string | null
           total_ratings: number | null
           updated_at: string
           wait_time_score: number | null
@@ -806,6 +807,7 @@ export type Database = {
           license_number?: string | null
           profile_id: string
           specialization?: string | null
+          specialty?: string | null
           total_ratings?: number | null
           updated_at?: string
           wait_time_score?: number | null
@@ -821,6 +823,7 @@ export type Database = {
           license_number?: string | null
           profile_id?: string
           specialization?: string | null
+          specialty?: string | null
           total_ratings?: number | null
           updated_at?: string
           wait_time_score?: number | null
@@ -2167,7 +2170,7 @@ export type Database = {
           profile_completion_status: string | null
           role: Database["public"]["Enums"]["user_role"]
           updated_at: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           address?: string | null
@@ -2186,7 +2189,7 @@ export type Database = {
           profile_completion_status?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           address?: string | null
@@ -2205,7 +2208,7 @@ export type Database = {
           profile_completion_status?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -2586,6 +2589,14 @@ export type Database = {
       cancel_appointment: {
         Args: { appointment_id: string; user_id: string }
         Returns: boolean
+      }
+      create_invitation_token: {
+        Args: {
+          p_email: string
+          p_expires_hours?: number
+          p_profile_id: string
+        }
+        Returns: string
       }
       create_prescription_notification: {
         Args: {
