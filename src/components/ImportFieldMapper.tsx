@@ -46,7 +46,7 @@ export function ImportFieldMapper({ csvHeaders, fieldMapping, onChange, importTy
     });
     
     // Add new mapping
-    if (targetField) {
+    if (targetField && targetField !== 'none') {
       newMapping[csvField] = targetField;
     } else {
       delete newMapping[csvField];
@@ -93,15 +93,15 @@ export function ImportFieldMapper({ csvHeaders, fieldMapping, onChange, importTy
                     </div>
                     
                     <div className="flex items-center gap-2">
-                      <Select 
-                        value={mappedTo || ''} 
-                        onValueChange={(value) => handleFieldMapping(header, value)}
-                      >
+                       <Select 
+                         value={mappedTo || 'none'} 
+                         onValueChange={(value) => handleFieldMapping(header, value)}
+                       >
                         <SelectTrigger className="w-48">
                           <SelectValue placeholder="Map to field..." />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">No mapping</SelectItem>
+                          <SelectItem value="none">No mapping</SelectItem>
                           {targetFields.map(field => (
                             <SelectItem 
                               key={field.value} 
