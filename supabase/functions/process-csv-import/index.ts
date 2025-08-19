@@ -254,8 +254,7 @@ function mapRowToProfile(row: CSVRow, fieldMapping: Record<string, string>): any
     throw new Error('Email is required for profile creation');
   }
 
-  // Generate user_id for imported patients (they'll need to register later)
-  profile.user_id = crypto.randomUUID();
+  // Don't set user_id for imported patients - they'll get it when they register
   
   return profile;
 }

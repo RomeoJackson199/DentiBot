@@ -217,11 +217,12 @@ export default function DataImportManager() {
         console.log("Checking for new profiles to send invitations...");
         
         try {
-          // Get all profiles without user_id (newly imported)
-          const { data: newProfiles, error: profilesError } = await supabase
-            .from('profiles')
-            .select('id, email, first_name, last_name')
-            .is('user_id', null);
+        // Get newly imported profiles from this session
+        const { data: newProfiles, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, email, first_name, last_name')
+          .eq('import_session_id', result.sessionId)
+          .is('user_id', null);
 
           if (newProfiles && newProfiles.length > 0) {
             console.log(`Found ${newProfiles.length} profiles without user accounts`);
@@ -262,9 +263,27 @@ export default function DataImportManager() {
               }
             }
 
+            // Notify dentist about new patients
+            const { data: { user } } = await supabase.auth.getUser();
+            await supabase
+              .from('notifications')
+              .insert({
+                user_id: user?.id,
+                dentist_id: dentist.id,
+                type: 'import_complete',
+                title: 'Patient Import Completed',
+                message: `Successfully imported ${result.successCount} new patients. Invitation emails have been sent.`,
+                priority: 'medium',
+                metadata: {
+                  import_session_id: result.sessionId,
+                  imported_count: result.successCount,
+                  invitations_sent: newProfiles.length
+                }
+              });
+
             toast({
-              title: "Invitations sent",
-              description: `Sent ${newProfiles.length} invitation emails to imported patients`,
+              title: "Import and invitations completed",
+              description: `Imported ${result.successCount} patients and sent ${newProfiles.length} invitation emails`,
             });
           }
         } catch (inviteError) {
