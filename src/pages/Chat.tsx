@@ -1,26 +1,15 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { RealTimeChatSystem } from '@/components/chat/RealTimeChatSystem';
 import { PWAFeatures } from '@/components/mobile/PWAFeatures';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { MessageSquare, Smartphone, Users, Bot } from 'lucide-react';
+import { Smartphone, Users, Bot } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { InteractiveDentalChat } from '@/components/chat/InteractiveDentalChat';
 
-interface ChatParticipant {
-  id: string;
-  name: string;
-  avatar?: string;
-  role: 'patient' | 'dentist';
-  status: 'online' | 'offline' | 'busy';
-  last_seen?: string;
-}
-
 export default function Chat() {
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
-  const [selectedParticipant, setSelectedParticipant] = useState<ChatParticipant | undefined>();
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -59,12 +48,8 @@ export default function Chat() {
   if (isMobile) {
     return (
       <div className="min-h-screen bg-gradient-subtle p-4">
-        <Tabs defaultValue="chat" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-4">
-            <TabsTrigger value="chat" className="flex items-center gap-2">
-              <MessageSquare className="h-4 w-4" />
-              Chat
-            </TabsTrigger>
+        <Tabs defaultValue="ai" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 mb-4">
             <TabsTrigger value="ai" className="flex items-center gap-2">
               <Bot className="h-4 w-4" />
               AI Assistant
@@ -74,25 +59,6 @@ export default function Chat() {
               Mobile
             </TabsTrigger>
           </TabsList>
-
-          <TabsContent value="chat" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <MessageSquare className="h-5 w-5" />
-                  Messages
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <RealTimeChatSystem
-                  currentUserId={profile.id}
-                  currentUserType={profile.role}
-                  selectedParticipant={selectedParticipant}
-                  onParticipantSelect={setSelectedParticipant}
-                />
-              </CardContent>
-            </Card>
-          </TabsContent>
 
           <TabsContent value="ai" className="space-y-4">
             <Card>
@@ -140,48 +106,9 @@ export default function Chat() {
 
         <Card>
           <CardContent className="pt-6">
-            <Tabs defaultValue="chat" className="w-full">
-              <TabsList className="mb-4">
-                <TabsTrigger value="chat" className="flex items-center gap-2">
-                  <MessageSquare className="h-4 w-4" />
-                  Messages
-                </TabsTrigger>
-                <TabsTrigger value="ai" className="flex items-center gap-2">
-                  <Bot className="h-4 w-4" />
-                  AI Assistant
-                </TabsTrigger>
-              </TabsList>
-              <TabsContent value="chat" className="space-y-4">
-                <div className="grid lg:grid-cols-4 gap-6">
-                  <div className="lg:col-span-3">
-                    <RealTimeChatSystem
-                      currentUserId={profile.id}
-                      currentUserType={profile.role}
-                      selectedParticipant={selectedParticipant}
-                      onParticipantSelect={setSelectedParticipant}
-                    />
-                  </div>
-                  <div className="lg:col-span-1">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2 text-lg">
-                          <Smartphone className="h-5 w-5" />
-                          Mobile Features
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <PWAFeatures />
-                      </CardContent>
-                    </Card>
-                  </div>
-                </div>
-              </TabsContent>
-              <TabsContent value="ai">
-                <div className="h-[70vh]">
-                  <InteractiveDentalChat user={user} />
-                </div>
-              </TabsContent>
-            </Tabs>
+            <div className="h-[70vh]">
+              <InteractiveDentalChat user={user} />
+            </div>
           </CardContent>
         </Card>
       </div>
