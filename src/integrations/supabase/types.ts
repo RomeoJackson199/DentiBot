@@ -1732,6 +1732,7 @@ export type Database = {
       }
       medical_records: {
         Row: {
+          appointment_id: string | null
           attachments: Json | null
           created_at: string
           dentist_id: string | null
@@ -1746,6 +1747,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          appointment_id?: string | null
           attachments?: Json | null
           created_at?: string
           dentist_id?: string | null
@@ -1760,6 +1762,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          appointment_id?: string | null
           attachments?: Json | null
           created_at?: string
           dentist_id?: string | null
@@ -1773,7 +1776,15 @@ export type Database = {
           title?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "medical_records_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       notes: {
         Row: {
