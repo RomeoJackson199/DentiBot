@@ -418,9 +418,13 @@ export function UnifiedAppointments({
                     {viewMode === 'clinical' && appointment.patient && (
                       <div className="flex items-center gap-2">
                         <User className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm">
+                        <button
+                          type="button"
+                          className="text-sm text-primary hover:underline"
+                          onClick={() => onOpenPatientProfile?.(appointment.patient!.id)}
+                        >
                           {appointment.patient.first_name} {appointment.patient.last_name}
-                        </span>
+                        </button>
                       </div>
                     )}
                     
@@ -471,15 +475,7 @@ export function UnifiedAppointments({
                       </>
                     )}
                     
-                    {viewMode === 'clinical' && appointment.patient && (
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => onOpenPatientProfile?.(appointment.patient!.id)}
-                      >
-                        View Profile
-                      </Button>
-                    )}
+                    
                   </div>
                 </div>
               </CardContent>
