@@ -34,6 +34,7 @@ serve(async (req) => {
   }
 
   try {
+    // Use service role key for system-level operations
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
@@ -136,14 +137,17 @@ serve(async (req) => {
             ...profileData,
             import_session_id: importSession.id,
             profile_completion_status: 'incomplete',
-            role: 'patient'
+            role: 'patient',
+            user_id: null // Explicitly set to null for imported patients
           };
           
           console.log(`Inserting profile for row ${i + 1}:`, insertData);
           
-          const { error: profileError } = await supabase
+          const { data: newProfile, error: profileError } = await supabase
             .from('profiles')
-            .insert(insertData);
+            .insert(insertData)
+            .select('id, email, first_name, last_name')
+            .single();
 
           if (profileError) {
             console.error('Profile creation error:', profileError);
@@ -154,6 +158,26 @@ serve(async (req) => {
             });
             failureCount++;
           } else {
+            console.log(`Profile created successfully:`, newProfile);
+            
+            // Generate invitation token for the new profile
+            try {
+              const { data: tokenData, error: tokenError } = await supabase
+                .rpc('create_invitation_token', {
+                  p_profile_id: newProfile.id,
+                  p_email: newProfile.email,
+                  p_expires_hours: 72
+                });
+
+              if (tokenError) {
+                console.error('Failed to create invitation token:', tokenError);
+              } else {
+                console.log('Invitation token created:', tokenData);
+              }
+            } catch (tokenError) {
+              console.error('Error creating invitation token:', tokenError);
+            }
+            
             successCount++;
           }
         } catch (error) {
@@ -169,16 +193,19 @@ serve(async (req) => {
     }
 
     // Update final session status
+    const finalStatus = failureCount === totalRecords ? 'failed' : 'completed';
     await supabase
       .from('import_sessions')
       .update({
         successful_records: successCount,
         failed_records: failureCount,
-        status: failureCount > 0 ? 'completed' : 'completed',
+        status: finalStatus,
         error_details: errors,
         completed_at: new Date().toISOString()
       })
       .eq('id', importSession.id);
+
+    console.log(`Import completed: ${successCount}/${totalRecords} successful`);
 
     return new Response(JSON.stringify({
       success: true,
@@ -186,6 +213,7 @@ serve(async (req) => {
       totalRecords,
       successCount,
       failureCount,
+      status: finalStatus,
       errors: errors.slice(0, 10) // Return first 10 errors for preview
     }), {
       status: 200,

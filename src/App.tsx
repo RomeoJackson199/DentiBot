@@ -135,7 +135,7 @@ const App = () => (
                 <Route path="/features/:id" element={<FeatureDetail />} />
                 <Route path="/language-test" element={<LanguageTest />} />
                 <Route path="/chat" element={<Chat />} />
-                <Route path="/invite/:token" element={<Invite />} />
+                <Route path="/invite" element={<Invite />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

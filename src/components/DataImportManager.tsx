@@ -188,6 +188,9 @@ export default function DataImportManager() {
           importType,
           dentistId: dentist.id,
           filename: selectedFile.name
+        },
+        headers: {
+          'x-user-id': session.user.id
         }
       });
 
@@ -224,6 +227,11 @@ export default function DataImportManager() {
           .eq('import_session_id', result.sessionId)
           .is('user_id', null);
 
+          if (profilesError) {
+            console.error('Error fetching new profiles:', profilesError);
+            throw new Error('Failed to fetch imported profiles');
+          }
+
           if (newProfiles && newProfiles.length > 0) {
             console.log(`Found ${newProfiles.length} profiles without user accounts`);
 
@@ -235,20 +243,22 @@ export default function DataImportManager() {
               .single();
 
             const dentistName = dentistProfile ? 
-              `${dentistProfile.first_name} ${dentistProfile.last_name}` : 
+              `Dr. ${dentistProfile.first_name} ${dentistProfile.last_name}` : 
               'Your Dentist';
+
+            let successfulInvitations = 0;
 
             // Send invitation emails
             for (const profile of newProfiles) {
               try {
                 console.log("Sending invitation email to:", profile.email);
                 
-                const { error: emailError } = await supabase.functions.invoke('send-invitation-email', {
+                const { data: emailResult, error: emailError } = await supabase.functions.invoke('send-invitation-email', {
                   body: {
                     profileId: profile.id,
                     email: profile.email,
-                    firstName: profile.first_name,
-                    lastName: profile.last_name,
+                    firstName: profile.first_name || '',
+                    lastName: profile.last_name || '',
                     dentistName
                   }
                 });
@@ -257,6 +267,7 @@ export default function DataImportManager() {
                   console.error("Error sending invitation email:", emailError);
                 } else {
                   console.log("Invitation email sent successfully to:", profile.email);
+                  successfulInvitations++;
                 }
               } catch (emailError) {
                 console.error("Error processing invitation for profile:", profile.id, emailError);
@@ -265,25 +276,29 @@ export default function DataImportManager() {
 
             // Notify dentist about new patients
             const { data: { user } } = await supabase.auth.getUser();
-            await supabase
+            const { error: notificationError } = await supabase
               .from('notifications')
               .insert({
                 user_id: user?.id,
                 dentist_id: dentist.id,
                 type: 'import_complete',
                 title: 'Patient Import Completed',
-                message: `Successfully imported ${result.successCount} new patients. Invitation emails have been sent.`,
+                message: `Successfully imported ${result.successCount} new patients. ${successfulInvitations} invitation emails sent.`,
                 priority: 'medium',
                 metadata: {
                   import_session_id: result.sessionId,
                   imported_count: result.successCount,
-                  invitations_sent: newProfiles.length
+                  invitations_sent: successfulInvitations
                 }
               });
 
+            if (notificationError) {
+              console.error('Failed to create notification:', notificationError);
+            }
+
             toast({
               title: "Import and invitations completed",
-              description: `Imported ${result.successCount} patients and sent ${newProfiles.length} invitation emails`,
+              description: `Imported ${result.successCount} patients and sent ${successfulInvitations} invitation emails`,
             });
           }
         } catch (inviteError) {
