@@ -484,7 +484,6 @@ export default function DataImportManager() {
 
       {/* Enhanced Smart Import Interface */}
       <Card className="relative overflow-hidden bg-gradient-to-br from-background via-background to-primary/5 border-primary/20">
-        <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
         <CardHeader className="relative">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
