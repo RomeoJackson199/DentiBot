@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Loader2, Mail, Lock, User, Phone, LogIn } from "lucide-react";
+import { AccountClaimFlow } from "./AccountClaimFlow";
 
 interface AuthFormProps {
   compact?: boolean;
@@ -20,6 +21,8 @@ export const AuthForm = ({ compact = false }: AuthFormProps) => {
   const { t } = useLanguage();
   const [isLoading, setIsLoading] = useState(false);
   const [showLoginDialog, setShowLoginDialog] = useState(false);
+  const [showClaimFlow, setShowClaimFlow] = useState(false);
+  const [existingProfile, setExistingProfile] = useState<any>(null);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -49,6 +52,21 @@ export const AuthForm = ({ compact = false }: AuthFormProps) => {
     setValidationErrors([]);
   };
 
+  // Check if email exists in profiles (imported user)
+  const checkExistingProfile = async (email: string) => {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('email', email)
+      .is('user_id', null)
+      .single();
+    
+    if (data && !error) {
+      return data;
+    }
+    return null;
+  };
+
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -64,6 +82,15 @@ export const AuthForm = ({ compact = false }: AuthFormProps) => {
       if (!validation.isValid) {
         setValidationErrors(validation.errors);
         throw new Error(validation.errors[0]);
+      }
+
+      // Check if this email already exists in profiles (imported user)
+      const existingProfile = await checkExistingProfile(formData.email);
+      if (existingProfile) {
+        setExistingProfile(existingProfile);
+        setShowClaimFlow(true);
+        setIsLoading(false);
+        return;
       }
 
       const redirectUrl = `${window.location.origin}/`;
@@ -198,6 +225,27 @@ export const AuthForm = ({ compact = false }: AuthFormProps) => {
           </DialogContent>
         </Dialog>
       </>
+    );
+  }
+
+  // Show claim flow if existing profile found
+  if (showClaimFlow && existingProfile) {
+    return (
+      <AccountClaimFlow
+        email={formData.email}
+        existingProfile={existingProfile}
+        onBack={() => {
+          setShowClaimFlow(false);
+          setExistingProfile(null);
+        }}
+        onSuccess={() => {
+          setShowClaimFlow(false);
+          setExistingProfile(null);
+          if (compact) {
+            setShowLoginDialog(false);
+          }
+        }}
+      />
     );
   }
 
