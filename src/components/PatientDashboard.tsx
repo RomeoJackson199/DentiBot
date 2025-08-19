@@ -170,6 +170,43 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
       return 'home';
     }
   });
+
+  // Subscribe to real-time updates for medical records
+  useEffect(() => {
+    if (!userProfile?.id) return;
+
+    const channel = supabase
+      .channel('medical-records-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'medical_records',
+          filter: `patient_id=eq.${userProfile.id}`,
+        },
+        (payload) => {
+          console.log('New medical record created:', payload);
+          // Add the new medical record to the list
+          const newRecord = {
+            ...payload.new,
+            visit_date: payload.new.record_date
+          } as MedicalRecord;
+          setMedicalRecords(prev => [newRecord, ...prev]);
+          
+          // Show a toast notification
+          toast({
+            title: "New Medical Record",
+            description: "A new medical record has been added to your file.",
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [userProfile?.id, toast]);
   const [showAssistant, setShowAssistant] = useState(false);
   const [showBooking, setShowBooking] = useState(false);
   const [totalDueCents, setTotalDueCents] = useState(0);
