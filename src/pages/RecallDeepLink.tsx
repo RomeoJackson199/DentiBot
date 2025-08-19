@@ -33,7 +33,9 @@ export default function RecallDeepLink() {
 			try {
 				const newSlots = await regenerateSlots(recall.id);
 				setRecall({ ...(recall as any), suggested_slots: newSlots } as any);
-			} catch {}
+			} catch (regenErr) {
+				console.warn('Failed to regenerate slots', regenErr);
+			}
 		} finally {
 			setBooking(false);
 		}

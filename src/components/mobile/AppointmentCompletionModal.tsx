@@ -437,7 +437,9 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 						}
 					}
 				}
-			} catch {}
+			} catch {
+				// ignore stock notification errors
+			}
 		}
 	};
 
@@ -784,7 +786,9 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 													});
 													setInsuranceWarning(null);
 													toast({ title: 'Mutuality added', description: 'A basic mutuality profile was created. Please update details later.' });
-												} catch {}
+												} catch {
+													// ignore mutuality insert failure
+												}
 											}}>Add Mutuality</Button>
 										</div>
 									)}

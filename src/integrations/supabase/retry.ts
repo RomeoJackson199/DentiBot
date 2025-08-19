@@ -7,7 +7,9 @@ export async function withSchemaReloadRetry<T>(op: () => Promise<T>, sb: any): P
 		if (!looksLikeSchemaCache) throw e;
 		try {
 			await sb.rpc('reload_postgrest_schema');
-		} catch {}
+		} catch (reloadError) {
+			console.warn('Schema reload failed', reloadError);
+		}
 		await new Promise(r => setTimeout(r, 600));
 		return await op();
 	}

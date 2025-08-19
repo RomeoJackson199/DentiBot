@@ -337,18 +337,24 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
           .lt('scheduled_date', end.toISOString())
           .in('appointment_id', (appointmentsData || []).map((a: any) => a.id));
         followUpsDueToday = (fus || []).length;
-      } catch {}
+      } catch {
+        // ignore follow-up query errors
+      }
 
       // Outstanding balance (sum pending payment_requests + unpaid invoices patient_amount_cents)
       let outstandingCents = 0;
       try {
         const { data: prs } = await sb.from('payment_requests').select('amount, status').eq('patient_id', patientId).eq('dentist_id', dentistId);
         outstandingCents += (prs || []).filter((p: any) => p.status !== 'paid' && p.status !== 'cancelled').reduce((s: number, p: any) => s + (p.amount || 0), 0);
-      } catch {}
+      } catch {
+        // ignore payment request aggregation errors
+      }
       try {
         const { data: inv } = await sb.from('invoices').select('patient_amount_cents, status').eq('patient_id', patientId).eq('dentist_id', dentistId);
         outstandingCents += (inv || []).filter((i: any) => i.status !== 'paid' && i.status !== 'cancelled').reduce((s: number, i: any) => s + (i.patient_amount_cents || 0), 0);
-      } catch {}
+      } catch {
+        // ignore invoice aggregation errors
+      }
       const hasUnpaidBalance = outstandingCents > 0;
 
       setPatientFlags(prev => ({
