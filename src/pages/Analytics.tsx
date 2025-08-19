@@ -26,7 +26,8 @@ import {
   UserX,
   FileWarning
 } from "lucide-react";
-import { getAnalytics } from "@/lib/mockApi";
+// import { getAnalytics } from "@/lib/mockApi";
+import { supabase } from "@/integrations/supabase/client";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { format, subDays } from "date-fns";
 import type { DateRange } from "react-day-picker";
@@ -100,10 +101,16 @@ const Analytics = () => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        // Simulated base API call (we only use it to simulate latency)
-        await getAnalytics();
+        // Load minimal real metrics to seed the dashboard
+        const end = new Date();
+        const start = subDays(end, trendDays === 30 ? 30 : 7);
+        const { data: appts } = await supabase
+          .from('appointments')
+          .select('status, appointment_date, patient_id')
+          .gte('appointment_date', start.toISOString())
+          .lte('appointment_date', end.toISOString());
 
-        // Determine days window for KPIs (not the mini-trend toggle)
+        // Determine days window for KPIs
         const windowDays = timeRange === "today" ? 1 : timeRange === "week" ? 7 : timeRange === "month" ? 30 : (() => {
           const start = customRange?.from;
           const end = customRange?.to || customRange?.from;

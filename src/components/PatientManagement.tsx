@@ -147,6 +147,9 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
     followUpsDueToday?: number;
   }>>({});
 
+  // Insurance status per patient (profile id)
+  const [patientInsuranceStatus, setPatientInsuranceStatus] = useState<Record<string, { active: boolean }>>({});
+
   // Editing state for inline edit flows
   const [editingTreatmentId, setEditingTreatmentId] = useState<string | null>(null);
   const [editingPrescriptionId, setEditingPrescriptionId] = useState<string | null>(null);
@@ -248,6 +251,19 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
         .filter(Boolean) as Patient[];
 
       setPatients(uniquePatients);
+      // Load insurance status for these patients if available
+      try {
+        const ids = uniquePatients.map(p => p.id);
+        if (ids.length > 0) {
+          const { data: ins } = await supabase
+            .from('patient_insurance_profiles')
+            .select('patient_id, is_active')
+            .in('patient_id', ids);
+          const statusMap: Record<string, { active: boolean }> = {};
+          (ins || []).forEach((row: any) => { statusMap[row.patient_id] = { active: !!row.is_active }; });
+          setPatientInsuranceStatus(statusMap);
+        }
+      } catch {}
     } catch (error: unknown) {
       toast({
         title: "Error",
@@ -790,8 +806,15 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
                       {patient.medical_history && patient.medical_history.toLowerCase().includes('allerg') && (
                         <Badge variant="destructive" className="text-[10px] px-2 py-0.5">Allergies</Badge>
                       )}
-                      {/* Mutuality badge placeholder */}
-                      <Badge variant="secondary" className="text-[10px] px-2 py-0.5">No mutuality</Badge>
+                      {(() => {
+                        const profileId = p.id;
+                        const hasActive = patientInsuranceStatus[profileId]?.active || false;
+                        return hasActive ? (
+                          <Badge variant="secondary" className="text-[10px] px-2 py-0.5">Mutuality active</Badge>
+                        ) : (
+                          <Badge variant="secondary" className="text-[10px] px-2 py-0.5">No mutuality</Badge>
+                        );
+                      })()}
                     </div>
                     <div className="flex items-center gap-2 text-xs text-muted-foreground truncate mt-1">
                       <span>{patient.phone || 'No phone'}</span>

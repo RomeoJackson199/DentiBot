@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -40,44 +41,51 @@ export function ModernPatientSelector({
   const [patients, setPatients] = useState<Patient[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Mock patients for demo
-  const mockPatients: Patient[] = [
-    { 
-      id: "1", 
-      first_name: "John", 
-      last_name: "Doe", 
-      email: "john@example.com",
-      phone: "+1234567890",
-      total_appointments: 5,
-      upcoming_appointments: 1
-    },
-    { 
-      id: "2", 
-      first_name: "Jane", 
-      last_name: "Smith", 
-      email: "jane@example.com",
-      phone: "+1987654321",
-      total_appointments: 12,
-      upcoming_appointments: 0
-    },
-    { 
-      id: "3", 
-      first_name: "Michael", 
-      last_name: "Johnson", 
-      email: "michael@example.com",
-      total_appointments: 3,
-      upcoming_appointments: 2
-    }
-  ];
-
   useEffect(() => {
-    // Simulate loading
-    const timer = setTimeout(() => {
-      setPatients(mockPatients);
-      setLoading(false);
-    }, 1000);
-
-    return () => clearTimeout(timer);
+    (async () => {
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('id, first_name, last_name, email, phone')
+          .order('last_name', { ascending: true })
+          .limit(100);
+        if (error) throw error;
+        const enriched: Patient[] = (data || []).map((p: any) => ({
+          id: p.id,
+          first_name: p.first_name,
+          last_name: p.last_name,
+          email: p.email,
+          phone: p.phone || undefined,
+        }));
+        // Optionally fetch appointment aggregates for counts
+        const ids = enriched.map(p => p.id);
+        if (ids.length > 0) {
+          const { data: appts } = await supabase
+            .from('appointments')
+            .select('patient_id, status, appointment_date')
+            .in('patient_id', ids);
+          const now = new Date();
+          const byPatient = new Map<string, { total: number; upcoming: number }>();
+          (appts || []).forEach(a => {
+            const entry = byPatient.get(a.patient_id) || { total: 0, upcoming: 0 };
+            entry.total += 1;
+            if (new Date(a.appointment_date) > now && a.status !== 'cancelled') entry.upcoming += 1;
+            byPatient.set(a.patient_id, entry);
+          });
+          setPatients(enriched.map(p => ({
+            ...p,
+            total_appointments: byPatient.get(p.id)?.total || 0,
+            upcoming_appointments: byPatient.get(p.id)?.upcoming || 0,
+          })));
+        } else {
+          setPatients(enriched);
+        }
+      } catch (e) {
+        setPatients([]);
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, []);
 
   const filteredPatients = patients.filter(patient => 

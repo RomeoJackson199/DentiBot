@@ -10,11 +10,11 @@ const corsHeaders = {
 };
 
 // Utilities
-function sha256(input: string): string {
+async function sha256(input: string): Promise<string> {
 	const data = new TextEncoder().encode(input);
-	// Deno has crypto.subtle but synchronous not available; return base64 of hex-ish as placeholder
-	// For hashing the uploaded file, we expect client provides hash; else skip
-	return btoa(String.fromCharCode(...data));
+	const digest = await crypto.subtle.digest('SHA-256', data);
+	const bytes = Array.from(new Uint8Array(digest));
+	return bytes.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
 function normalizeStatus(raw?: string): 'pending' | 'confirmed' | 'completed' | 'cancelled' {
@@ -176,16 +176,16 @@ serve(async (req) => {
 			sourceType = 'csv';
 			const text = new TextDecoder('utf-8').decode(body);
 			rows = parseCsv(text).rows;
-			sourceHash = sha256(text);
+			sourceHash = await sha256(text);
 		} else if (contentType.includes('spreadsheet') || filename.endsWith('.xlsx')) {
 			sourceType = 'xlsx';
 			rows = parseXlsx(body);
-			sourceHash = sha256(String(body.length));
+			sourceHash = await sha256(String(body.length));
 		} else if (contentType.includes('text/calendar') || filename.endsWith('.ics')) {
 			sourceType = 'ics';
 			const text = new TextDecoder('utf-8').decode(body);
 			rows = expandIcs(text);
-			sourceHash = sha256(text);
+			sourceHash = await sha256(text);
 		} else {
 			return new Response(JSON.stringify({ error: 'Unsupported file type' }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 });
 		}
@@ -291,7 +291,7 @@ serve(async (req) => {
 				err++;
 			}
 
-			// Dentist match: email > exact name; else stub
+			// Dentist match: email > exact name; else best-effort fuzzy by last name
 			let matchedDentistId: string | null = null;
 			if (c.dentist_email) {
 				const { data: dentistByEmail } = await supabase
@@ -310,13 +310,27 @@ serve(async (req) => {
 					const { data: dentist } = await supabase
 						.from('profiles')
 						.select('id')
-						.eq('first_name', df)
-						.eq('last_name', dl)
+						.ilike('first_name', df)
+						.ilike('last_name', dl)
 						.limit(1)
 						.maybeSingle();
 					if (dentist) {
 						const { data: dRow } = await supabase.from('dentists').select('id').eq('profile_id', dentist.id).maybeSingle();
 						matchedDentistId = dRow?.id ?? null;
+					}
+				}
+				// fallback: try last name only if still not matched
+				if (!matchedDentistId && dl) {
+					const { data: dentists } = await supabase
+						.from('profiles')
+						.select('id')
+						.ilike('last_name', dl)
+						.limit(2);
+					if ((dentists || []).length === 1) {
+						const { data: dRow } = await supabase.from('dentists').select('id').eq('profile_id', dentists![0].id).maybeSingle();
+						matchedDentistId = dRow?.id ?? null;
+					} else if ((dentists || []).length > 1) {
+						messages.push('Needs review: multiple dentist matches'); warn++;
 					}
 				}
 			}
