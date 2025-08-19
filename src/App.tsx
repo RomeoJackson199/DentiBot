@@ -32,7 +32,6 @@ const Support = lazy(() => import("./pages/Support"));
 const FeatureDetail = lazy(() => import("./pages/FeatureDetail"));
 const UnifiedDashboard = lazy(() => import("./components/UnifiedDashboard"));
 const LanguageTest = lazy(() => import("./components/LanguageTest").then(module => ({ default: module.LanguageTest })));
-const Importer = lazy(() => import("./pages/Importer"));
 const About = lazy(() => import("./pages/About"));
 
 // Dashboard component that handles authentication with lazy loading
@@ -130,7 +129,6 @@ const App = () => (
                 <Route path="/recalls/:id" element={<RecallDeepLink />} />
                 <Route path="/analytics" element={<Analytics />} />
                 <Route path="/support" element={<Support />} />
-                <Route path="/importer" element={<Importer />} />
                 <Route path="/features/:id" element={<FeatureDetail />} />
                 <Route path="/language-test" element={<LanguageTest />} />
                 <Route path="/chat" element={<Chat />} />
