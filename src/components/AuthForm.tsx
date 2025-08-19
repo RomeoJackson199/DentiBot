@@ -2,6 +2,7 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/hooks/useLanguage";
+import { sanitizeFormData, validateDentalFormData, ClientRateLimit } from "@/lib/security";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,13 +29,24 @@ export const AuthForm = ({ compact = false }: AuthFormProps) => {
   });
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [healthConsent, setHealthConsent] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const { toast } = useToast();
 
+  // Rate limiting to prevent brute force attacks
+  const rateLimit = new ClientRateLimit(5, 15 * 60 * 1000); // 5 attempts per 15 minutes
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
+    const rawData = {
       ...formData,
       [e.target.name]: e.target.value,
-    });
+    };
+    
+    // Sanitize the form data to prevent XSS and other attacks
+    const sanitizedData = sanitizeFormData(rawData);
+    setFormData(sanitizedData);
+    
+    // Clear validation errors when user starts typing
+    setValidationErrors([]);
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
@@ -42,6 +54,18 @@ export const AuthForm = ({ compact = false }: AuthFormProps) => {
     setIsLoading(true);
 
     try {
+      // Rate limiting check
+      if (!rateLimit.isAllowed(formData.email)) {
+        throw new Error(`Too many attempts. Please wait ${Math.ceil(rateLimit.getRemainingAttempts(formData.email) / 60)} minutes.`);
+      }
+
+      // Validate form data
+      const validation = validateDentalFormData(formData);
+      if (!validation.isValid) {
+        setValidationErrors(validation.errors);
+        throw new Error(validation.errors[0]);
+      }
+
       const redirectUrl = `${window.location.origin}/`;
 
       const { data, error } = await supabase.auth.signUp({
@@ -62,6 +86,9 @@ export const AuthForm = ({ compact = false }: AuthFormProps) => {
       if (error) throw error;
 
       if (data.user) {
+        // Reset rate limit on successful signup
+        rateLimit.reset(formData.email);
+        
         toast({
           title: t.accountCreatedSuccess,
           description: t.checkEmailConfirm,
@@ -87,12 +114,20 @@ export const AuthForm = ({ compact = false }: AuthFormProps) => {
     setIsLoading(true);
 
     try {
+      // Rate limiting check
+      if (!rateLimit.isAllowed(formData.email)) {
+        throw new Error(`Too many sign-in attempts. Please wait ${Math.ceil(rateLimit.getRemainingAttempts(formData.email) / 60)} minutes.`);
+      }
+
       const { error } = await supabase.auth.signInWithPassword({
         email: formData.email,
         password: formData.password,
       });
 
       if (error) throw error;
+
+      // Reset rate limit on successful login
+      rateLimit.reset(formData.email);
 
       toast({
         title: t.signInSuccess,
@@ -249,11 +284,18 @@ export const AuthForm = ({ compact = false }: AuthFormProps) => {
                       required
                     />
                   </div>
-                </div>
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  {t.signInButton}
-                </Button>
+                 </div>
+                 {validationErrors.length > 0 && (
+                   <div className="text-sm text-red-600 space-y-1">
+                     {validationErrors.map((error, index) => (
+                       <p key={index}>{error}</p>
+                     ))}
+                   </div>
+                 )}
+                 <Button type="submit" className="w-full" disabled={isLoading}>
+                   {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                   {t.signInButton}
+                 </Button>
               </form>
               </div>
             </TabsContent>
@@ -386,14 +428,21 @@ export const AuthForm = ({ compact = false }: AuthFormProps) => {
                     {t.consentHealthData}
                   </label>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  {t.childConsentNote}
-                </p>
-              </div>
-              <Button type="submit" className="w-full" disabled={isLoading || !acceptTerms || !healthConsent}>
-                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {t.createAccountButton}
-              </Button>
+                 <p className="text-xs text-muted-foreground">
+                   {t.childConsentNote}
+                 </p>
+               </div>
+               {validationErrors.length > 0 && (
+                 <div className="text-sm text-red-600 space-y-1">
+                   {validationErrors.map((error, index) => (
+                     <p key={index}>{error}</p>
+                   ))}
+                 </div>
+               )}
+               <Button type="submit" className="w-full" disabled={isLoading || !acceptTerms || !healthConsent}>
+                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                 {t.createAccountButton}
+               </Button>
             </form>
             </div>
           </TabsContent>

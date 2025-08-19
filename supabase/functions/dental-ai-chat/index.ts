@@ -28,10 +28,27 @@ interface PatientContext {
   treatment_plans?: TreatmentPlan[];
 }
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+// Environment-based CORS configuration
+const getCorsHeaders = () => {
+  const environment = Deno.env.get('ENVIRONMENT') || 'development';
+  
+  if (environment === 'production') {
+    return {
+      'Access-Control-Allow-Origin': 'https://gjvxcisbaxhhblhsytar.supabase.co', // Production domain
+      'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Max-Age': '86400',
+    };
+  }
+  
+  return {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  };
 };
+
+const corsHeaders = getCorsHeaders();
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -46,9 +63,19 @@ serve(async (req) => {
       console.log('Received request:', { message, user_profile, mode });
     }
     
-    // Validate input
+    // Enhanced input validation
     if (!message || typeof message !== 'string') {
       throw new Error('Invalid message format');
+    }
+    
+    // Sanitize input to prevent injection attacks
+    const sanitizedMessage = message
+      .trim()
+      .replace(/[<>]/g, '') // Basic XSS protection
+      .substring(0, 2000); // Limit message length
+    
+    if (sanitizedMessage.length === 0) {
+      throw new Error('Message cannot be empty');
     }
 
     // Helper functions to determine when to show widgets
@@ -98,12 +125,13 @@ serve(async (req) => {
       console.warn('OpenAI API key not found, using fallback responses');
       
       // Provide fallback responses based on message content
-      const lowerMessage = message.toLowerCase();
+      const lowerMessage = sanitizedMessage.toLowerCase(); // Use sanitized message
       let fallbackResponse = "I'm here to help you with your dental care. How can I assist you today?";
       let suggestions: string[] = [];
       const recommendedDentist: string[] = [];
       
-      const context = buildConversationContext(message, conversation_history);
+      // Use the sanitized message for the AI request
+      const context = buildConversationContext(sanitizedMessage, conversation_history);
       const patientInfoPresent = hasPatientInfo(context);
       const symptomsPresent = hasSymptomInfo(context);
 
@@ -159,7 +187,7 @@ serve(async (req) => {
       return 'en';
     };
 
-    const detectedLanguage = detectLanguage(message);
+    const detectedLanguage = detectLanguage(sanitizedMessage); // Use sanitized message
           // Language detection logging for development
       if (Deno.env.get('ENVIRONMENT') === 'development') {
         console.log('Detected language:', detectedLanguage);
@@ -473,7 +501,7 @@ Always maintain professional medical standards and suggest only appropriate trea
         role: msg.is_bot || msg.role === 'assistant' ? 'assistant' : 'user',
         content: msg.message || msg.content
       })),
-      { role: 'user', content: message }
+      { role: 'user', content: sanitizedMessage } // Use sanitized message
     ];
 
             // OpenAI request logging for development
@@ -575,12 +603,12 @@ Always maintain professional medical standards and suggest only appropriate trea
       return 'Consultation générale';
     };
 
-    const consultationReason = extractConsultationReason(message, conversation_history);
+    const consultationReason = extractConsultationReason(sanitizedMessage, conversation_history); // Use sanitized message
 
     // Enhanced keyword-based suggestions and recommendations
     const suggestions: string[] = [];
     const lowerResponse = botResponse.toLowerCase();
-    const lowerMessage = message.toLowerCase();
+    const lowerMessage = sanitizedMessage.toLowerCase(); // Use sanitized message
     
     // Extract dentist recommendations from AI response
     const recommendedDentists: string[] = [];
@@ -614,7 +642,7 @@ Always maintain professional medical standards and suggest only appropriate trea
     }
 
     // Only show dentist widget when BOTH patient info and symptoms are present
-    const context = buildConversationContext(message, conversation_history);
+    const context = buildConversationContext(sanitizedMessage, conversation_history); // Use sanitized message
     const patientInfoPresent = hasPatientInfo(context);
     const symptomsPresent = hasSymptomInfo(context);
     
