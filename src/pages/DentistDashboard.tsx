@@ -17,7 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { ClinicalToday } from "@/components/ClinicalToday";
-import { MessagesPane } from "@/components/messages/MessagesPane";
+// Messaging functionality removed
 import { RecallsQueue } from "@/components/RecallsQueue";
 
 interface DentistDashboardProps {
@@ -25,7 +25,7 @@ interface DentistDashboardProps {
 }
 
 export function DentistDashboard({ user }: DentistDashboardProps) {
-  const [activeTab, setActiveTab] = useState<'clinical' | 'patients' | 'messages' | 'payments' | 'analytics' | 'availability' | 'manage' | 'debug' | 'inventory' | 'recalls'>('clinical');
+  const [activeTab, setActiveTab] = useState<'clinical' | 'patients' | 'payments' | 'analytics' | 'availability' | 'manage' | 'debug' | 'inventory' | 'recalls'>('clinical');
   const [dentistId, setDentistId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [showChangelog, setShowChangelog] = useState(false);
@@ -182,11 +182,7 @@ export function DentistDashboard({ user }: DentistDashboardProps) {
               <PatientManagement dentistId={dentistId} />
             )}
 
-            {activeTab === 'messages' && (
-              <div className="px-4 md:px-6 py-4 w-full">
-                <MessagesPane />
-              </div>
-            )}
+            {/* Messages functionality removed */}
 
             {activeTab === 'payments' && (
               <PaymentRequestManager dentistId={dentistId} />

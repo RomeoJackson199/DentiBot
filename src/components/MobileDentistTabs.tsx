@@ -11,11 +11,10 @@ import {
   Settings, 
   Database,
   Stethoscope,
-  MessageSquare,
   Package
 } from "lucide-react";
 
-type TabType = 'clinical' | 'patients' | 'messages' | 'payments' | 'analytics' | 'availability' | 'manage' | 'debug' | 'inventory' | 'recalls';
+type TabType = 'clinical' | 'patients' | 'payments' | 'analytics' | 'availability' | 'manage' | 'debug' | 'inventory' | 'recalls';
 
 interface MobileDentistTabsProps {
   activeTab: TabType;
@@ -35,7 +34,6 @@ export function MobileDentistTabs({ activeTab, setActiveTab, dentistId, children
       icon: Stethoscope,
       tabs: [
         { id: 'clinical' as TabType, label: 'Clinical', icon: Stethoscope },
-        { id: 'messages' as TabType, label: 'Messages', icon: MessageSquare },
       ]
     },
     {
