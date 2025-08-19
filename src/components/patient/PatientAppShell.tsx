@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
@@ -56,6 +57,7 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const isActive = (id: PatientSection) => activeSection === id;
 
@@ -98,7 +100,7 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
                 <User className="mr-2 h-4 w-4" />
                 Profile
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate('/about')}>
                 <Info className="mr-2 h-4 w-4" />
                 About Dentibot
               </DropdownMenuItem>
@@ -135,7 +137,7 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
                   <User className="mr-2 h-4 w-4" />
                   Profile Settings
                 </DropdownMenuItem>
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate('/about')}>
                   <Info className="mr-2 h-4 w-4" />
                   About Dentibot
                 </DropdownMenuItem>

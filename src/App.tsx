@@ -33,6 +33,7 @@ const FeatureDetail = lazy(() => import("./pages/FeatureDetail"));
 const UnifiedDashboard = lazy(() => import("./components/UnifiedDashboard"));
 const LanguageTest = lazy(() => import("./components/LanguageTest").then(module => ({ default: module.LanguageTest })));
 const Importer = lazy(() => import("./pages/Importer"));
+const About = lazy(() => import("./pages/About"));
 
 // Dashboard component that handles authentication with lazy loading
 const Dashboard = () => {
@@ -122,6 +123,7 @@ const App = () => (
                 <Route path="/dentists" element={<DentistProfiles />} />
                 <Route path="/terms" element={<Terms />} />
                 <Route path="/privacy" element={<PrivacyPolicy />} />
+                <Route path="/about" element={<About />} />
                 <Route path="/payment-success" element={<PaymentSuccess />} />
                 <Route path="/payment-cancelled" element={<PaymentCancelled />} />
                 <Route path="/schedule" element={<Schedule />} />
