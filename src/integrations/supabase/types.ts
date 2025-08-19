@@ -194,6 +194,105 @@ export type Database = {
         }
         Relationships: []
       }
+      backup_logs: {
+        Row: {
+          backup_type: string
+          checksum: string | null
+          completed_at: string | null
+          error_message: string | null
+          file_path: string | null
+          id: string
+          size_bytes: number | null
+          started_at: string
+          status: Database["public"]["Enums"]["backup_status"]
+        }
+        Insert: {
+          backup_type: string
+          checksum?: string | null
+          completed_at?: string | null
+          error_message?: string | null
+          file_path?: string | null
+          id?: string
+          size_bytes?: number | null
+          started_at?: string
+          status: Database["public"]["Enums"]["backup_status"]
+        }
+        Update: {
+          backup_type?: string
+          checksum?: string | null
+          completed_at?: string | null
+          error_message?: string | null
+          file_path?: string | null
+          id?: string
+          size_bytes?: number | null
+          started_at?: string
+          status?: Database["public"]["Enums"]["backup_status"]
+        }
+        Relationships: []
+      }
+      breach_incidents: {
+        Row: {
+          affected_records_count: number | null
+          assigned_to: string | null
+          authority_notified_at: string | null
+          contained_at: string | null
+          created_at: string
+          data_categories: string[] | null
+          description: string | null
+          discovered_at: string
+          id: string
+          mitigation_steps: string | null
+          patients_notified_at: string | null
+          reporter_id: string | null
+          resolved_at: string | null
+          root_cause: string | null
+          severity: Database["public"]["Enums"]["breach_severity"]
+          status: Database["public"]["Enums"]["breach_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          affected_records_count?: number | null
+          assigned_to?: string | null
+          authority_notified_at?: string | null
+          contained_at?: string | null
+          created_at?: string
+          data_categories?: string[] | null
+          description?: string | null
+          discovered_at: string
+          id?: string
+          mitigation_steps?: string | null
+          patients_notified_at?: string | null
+          reporter_id?: string | null
+          resolved_at?: string | null
+          root_cause?: string | null
+          severity: Database["public"]["Enums"]["breach_severity"]
+          status?: Database["public"]["Enums"]["breach_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          affected_records_count?: number | null
+          assigned_to?: string | null
+          authority_notified_at?: string | null
+          contained_at?: string | null
+          created_at?: string
+          data_categories?: string[] | null
+          description?: string | null
+          discovered_at?: string
+          id?: string
+          mitigation_steps?: string | null
+          patients_notified_at?: string | null
+          reporter_id?: string | null
+          resolved_at?: string | null
+          root_cause?: string | null
+          severity?: Database["public"]["Enums"]["breach_severity"]
+          status?: Database["public"]["Enums"]["breach_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       calendar_events: {
         Row: {
           appointment_id: string | null
@@ -323,6 +422,54 @@ export type Database = {
         }
         Relationships: []
       }
+      consent_records: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          granted_at: string
+          id: string
+          ip_address: unknown | null
+          legal_basis: string | null
+          patient_id: string
+          scope: Database["public"]["Enums"]["consent_scope"]
+          status: Database["public"]["Enums"]["consent_status"]
+          updated_at: string
+          user_agent: string | null
+          version: number | null
+          withdrawn_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          granted_at?: string
+          id?: string
+          ip_address?: unknown | null
+          legal_basis?: string | null
+          patient_id: string
+          scope: Database["public"]["Enums"]["consent_scope"]
+          status?: Database["public"]["Enums"]["consent_status"]
+          updated_at?: string
+          user_agent?: string | null
+          version?: number | null
+          withdrawn_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          granted_at?: string
+          id?: string
+          ip_address?: unknown | null
+          legal_basis?: string | null
+          patient_id?: string
+          scope?: Database["public"]["Enums"]["consent_scope"]
+          status?: Database["public"]["Enums"]["consent_status"]
+          updated_at?: string
+          user_agent?: string | null
+          version?: number | null
+          withdrawn_at?: string | null
+        }
+        Relationships: []
+      }
       consents: {
         Row: {
           consent_text: string | null
@@ -388,6 +535,36 @@ export type Database = {
           theme?: string | null
           updated_at?: string
           widget_positions?: Json | null
+        }
+        Relationships: []
+      }
+      data_minimization_settings: {
+        Row: {
+          auto_delete_old_images: boolean | null
+          auto_delete_old_messages: boolean | null
+          created_at: string
+          id: string
+          minimal_logging: boolean | null
+          patient_id: string
+          updated_at: string
+        }
+        Insert: {
+          auto_delete_old_images?: boolean | null
+          auto_delete_old_messages?: boolean | null
+          created_at?: string
+          id?: string
+          minimal_logging?: boolean | null
+          patient_id: string
+          updated_at?: string
+        }
+        Update: {
+          auto_delete_old_images?: boolean | null
+          auto_delete_old_messages?: boolean | null
+          created_at?: string
+          id?: string
+          minimal_logging?: boolean | null
+          patient_id?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -714,6 +891,158 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      gdpr_audit_log: {
+        Row: {
+          action: Database["public"]["Enums"]["audit_action"]
+          actor_id: string | null
+          actor_role: string | null
+          after_data: Json | null
+          before_data: Json | null
+          created_at: string
+          entity_id: string | null
+          entity_type: string | null
+          id: string
+          ip_address: unknown | null
+          patient_id: string | null
+          purpose_code: string | null
+          session_id: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          action: Database["public"]["Enums"]["audit_action"]
+          actor_id?: string | null
+          actor_role?: string | null
+          after_data?: Json | null
+          before_data?: Json | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          ip_address?: unknown | null
+          patient_id?: string | null
+          purpose_code?: string | null
+          session_id?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          action?: Database["public"]["Enums"]["audit_action"]
+          actor_id?: string | null
+          actor_role?: string | null
+          after_data?: Json | null
+          before_data?: Json | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          ip_address?: unknown | null
+          patient_id?: string | null
+          purpose_code?: string | null
+          session_id?: string | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
+      gdpr_export_bundles: {
+        Row: {
+          bundle_type: string | null
+          completed_at: string | null
+          created_at: string
+          download_count: number | null
+          expires_at: string | null
+          file_path: string | null
+          id: string
+          patient_id: string
+          request_id: string | null
+          signed_url: string | null
+          status: Database["public"]["Enums"]["export_status"]
+        }
+        Insert: {
+          bundle_type?: string | null
+          completed_at?: string | null
+          created_at?: string
+          download_count?: number | null
+          expires_at?: string | null
+          file_path?: string | null
+          id?: string
+          patient_id: string
+          request_id?: string | null
+          signed_url?: string | null
+          status?: Database["public"]["Enums"]["export_status"]
+        }
+        Update: {
+          bundle_type?: string | null
+          completed_at?: string | null
+          created_at?: string
+          download_count?: number | null
+          expires_at?: string | null
+          file_path?: string | null
+          id?: string
+          patient_id?: string
+          request_id?: string | null
+          signed_url?: string | null
+          status?: Database["public"]["Enums"]["export_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gdpr_export_bundles_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "gdpr_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gdpr_requests: {
+        Row: {
+          actor_id: string | null
+          created_at: string
+          description: string | null
+          due_at: string
+          id: string
+          legal_basis: string | null
+          patient_id: string
+          resolution_notes: string | null
+          resolved_at: string | null
+          status: Database["public"]["Enums"]["gdpr_request_status"]
+          submitted_at: string
+          type: Database["public"]["Enums"]["gdpr_request_type"]
+          updated_at: string
+          urgency_level: string | null
+        }
+        Insert: {
+          actor_id?: string | null
+          created_at?: string
+          description?: string | null
+          due_at?: string
+          id?: string
+          legal_basis?: string | null
+          patient_id: string
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          status?: Database["public"]["Enums"]["gdpr_request_status"]
+          submitted_at?: string
+          type: Database["public"]["Enums"]["gdpr_request_type"]
+          updated_at?: string
+          urgency_level?: string | null
+        }
+        Update: {
+          actor_id?: string | null
+          created_at?: string
+          description?: string | null
+          due_at?: string
+          id?: string
+          legal_basis?: string | null
+          patient_id?: string
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          status?: Database["public"]["Enums"]["gdpr_request_status"]
+          submitted_at?: string
+          type?: Database["public"]["Enums"]["gdpr_request_type"]
+          updated_at?: string
+          urgency_level?: string | null
+        }
+        Relationships: []
       }
       import_job_items: {
         Row: {
@@ -1356,6 +1685,48 @@ export type Database = {
         }
         Relationships: []
       }
+      legal_documents: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          entity_id: string | null
+          expires_at: string | null
+          file_path: string | null
+          id: string
+          metadata: Json | null
+          signed_at: string | null
+          title: string
+          type: Database["public"]["Enums"]["document_type"]
+          version: number | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          entity_id?: string | null
+          expires_at?: string | null
+          file_path?: string | null
+          id?: string
+          metadata?: Json | null
+          signed_at?: string | null
+          title: string
+          type: Database["public"]["Enums"]["document_type"]
+          version?: number | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          entity_id?: string | null
+          expires_at?: string | null
+          file_path?: string | null
+          id?: string
+          metadata?: Json | null
+          signed_at?: string | null
+          title?: string
+          type?: Database["public"]["Enums"]["document_type"]
+          version?: number | null
+        }
+        Relationships: []
+      }
       medical_records: {
         Row: {
           attachments: Json | null
@@ -1891,6 +2262,39 @@ export type Database = {
         }
         Relationships: []
       }
+      retention_policies: {
+        Row: {
+          created_at: string
+          entity_type: string
+          grace_period_days: number | null
+          id: string
+          is_locked: boolean | null
+          legal_basis: string
+          retention_period_months: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          entity_type: string
+          grace_period_days?: number | null
+          id?: string
+          is_locked?: boolean | null
+          legal_basis: string
+          retention_period_months: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          entity_type?: string
+          grace_period_days?: number | null
+          id?: string
+          is_locked?: boolean | null
+          legal_basis?: string
+          retention_period_months?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       security_audit_log: {
         Row: {
           action: string
@@ -2114,6 +2518,57 @@ export type Database = {
           },
         ]
       }
+      vendor_registry: {
+        Row: {
+          contact_email: string | null
+          created_at: string
+          data_categories: string[] | null
+          dpa_expires_at: string | null
+          dpa_signed_at: string | null
+          has_dpa: boolean | null
+          has_scc: boolean | null
+          id: string
+          is_active: boolean | null
+          name: string
+          purpose: string
+          region: string
+          scc_signed_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          contact_email?: string | null
+          created_at?: string
+          data_categories?: string[] | null
+          dpa_expires_at?: string | null
+          dpa_signed_at?: string | null
+          has_dpa?: boolean | null
+          has_scc?: boolean | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          purpose: string
+          region: string
+          scc_signed_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          contact_email?: string | null
+          created_at?: string
+          data_categories?: string[] | null
+          dpa_expires_at?: string | null
+          dpa_signed_at?: string | null
+          has_dpa?: boolean | null
+          has_scc?: boolean | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          purpose?: string
+          region?: string
+          scc_signed_at?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -2266,6 +2721,61 @@ export type Database = {
     }
     Enums: {
       appointment_status: "pending" | "confirmed" | "completed" | "cancelled"
+      audit_action:
+        | "login"
+        | "logout"
+        | "view_phi"
+        | "create"
+        | "update"
+        | "delete"
+        | "export"
+        | "consent_change"
+        | "gdpr_request"
+        | "price_override"
+        | "backup"
+        | "restore"
+      backup_status: "running" | "completed" | "failed"
+      breach_severity: "low" | "medium" | "high" | "critical"
+      breach_status:
+        | "reported"
+        | "investigating"
+        | "contained"
+        | "resolved"
+        | "closed"
+      consent_scope:
+        | "health_data_processing"
+        | "ai_intake"
+        | "notifications"
+        | "marketing"
+        | "analytics"
+      consent_status: "granted" | "withdrawn" | "expired"
+      document_type:
+        | "dpa"
+        | "dpia"
+        | "ropa"
+        | "scc"
+        | "breach_report"
+        | "gdpr_monthly"
+      export_status:
+        | "pending"
+        | "processing"
+        | "completed"
+        | "failed"
+        | "expired"
+      gdpr_request_status:
+        | "submitted"
+        | "in_progress"
+        | "approved"
+        | "rejected"
+        | "completed"
+        | "expired"
+      gdpr_request_type:
+        | "access"
+        | "rectification"
+        | "erasure"
+        | "restriction"
+        | "portability"
+        | "objection"
       pre_approval_status:
         | "draft"
         | "pending"
@@ -2405,6 +2915,68 @@ export const Constants = {
   public: {
     Enums: {
       appointment_status: ["pending", "confirmed", "completed", "cancelled"],
+      audit_action: [
+        "login",
+        "logout",
+        "view_phi",
+        "create",
+        "update",
+        "delete",
+        "export",
+        "consent_change",
+        "gdpr_request",
+        "price_override",
+        "backup",
+        "restore",
+      ],
+      backup_status: ["running", "completed", "failed"],
+      breach_severity: ["low", "medium", "high", "critical"],
+      breach_status: [
+        "reported",
+        "investigating",
+        "contained",
+        "resolved",
+        "closed",
+      ],
+      consent_scope: [
+        "health_data_processing",
+        "ai_intake",
+        "notifications",
+        "marketing",
+        "analytics",
+      ],
+      consent_status: ["granted", "withdrawn", "expired"],
+      document_type: [
+        "dpa",
+        "dpia",
+        "ropa",
+        "scc",
+        "breach_report",
+        "gdpr_monthly",
+      ],
+      export_status: [
+        "pending",
+        "processing",
+        "completed",
+        "failed",
+        "expired",
+      ],
+      gdpr_request_status: [
+        "submitted",
+        "in_progress",
+        "approved",
+        "rejected",
+        "completed",
+        "expired",
+      ],
+      gdpr_request_type: [
+        "access",
+        "rectification",
+        "erasure",
+        "restriction",
+        "portability",
+        "objection",
+      ],
       pre_approval_status: [
         "draft",
         "pending",
