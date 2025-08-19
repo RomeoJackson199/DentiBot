@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { Resend } from "npm:resend@2.0.0";
 
 interface InvitationEmailRequest {
   profileId: string;
@@ -32,8 +31,6 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
-
-    const resend = new Resend(Deno.env.get('RESEND_API_KEY'));
     
     const { profileId, email, firstName, lastName, dentistName }: InvitationEmailRequest = await req.json();
 
@@ -54,46 +51,35 @@ serve(async (req) => {
 
     console.log('Invitation token created:', tokenId);
 
-    // Generate invitation link - use the frontend URL
+    // Use Supabase's built-in invitation email system
     const siteUrl = Deno.env.get('SITE_URL') || 'https://gjvxcisbaxhhblhsytar.supabase.co';
     const invitationLink = `${siteUrl}/invite?token=${tokenId}`;
 
-    console.log('Generated invitation link:', invitationLink);
+    // Send invitation using Supabase's auth admin
+    const { data: emailResponse, error: emailError } = await supabase.auth.admin.inviteUserByEmail(
+      email,
+      {
+        redirectTo: invitationLink,
+        data: {
+          first_name: firstName,
+          last_name: lastName,
+          dentist_name: dentistName,
+          invitation_token: tokenId,
+          role: 'patient'
+        }
+      }
+    );
 
-    // Send invitation email
-    const emailResponse = await resend.emails.send({
-      from: 'DentiBot <noreply@resend.dev>',
-      to: [email],
-      subject: `Welcome to DentiBot - Complete Your Profile Setup`,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h1 style="color: #2563eb;">Welcome to DentiBot!</h1>
-          
-          <p>Hello ${firstName} ${lastName},</p>
-          
-          <p>You've been added as a patient by <strong>${dentistName}</strong>. To complete your profile setup and start using DentiBot, please click the button below:</p>
-          
-          <div style="text-align: center; margin: 30px 0;">
-            <a href="${invitationLink}" style="background-color: #2563eb; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold;">Complete Setup</a>
-          </div>
-          
-          <p>This invitation will expire in 72 hours. If you have any questions, please contact your dentist directly.</p>
-          
-          <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
-          
-          <p style="font-size: 12px; color: #6b7280;">
-            If the button doesn't work, you can copy and paste this link into your browser:<br>
-            <a href="${invitationLink}">${invitationLink}</a>
-          </p>
-        </div>
-      `,
-    });
+    if (emailError) {
+      console.error('Failed to send invitation email:', emailError);
+      throw new Error(`Failed to send invitation email: ${emailError.message}`);
+    }
 
-    console.log('Email sent successfully:', emailResponse);
+    console.log('Invitation email sent successfully via Supabase');
 
     return new Response(JSON.stringify({
       success: true,
-      emailId: emailResponse.data?.id,
+      emailId: emailResponse?.user?.id,
       tokenId: tokenId,
       invitationLink: invitationLink
     }), {
