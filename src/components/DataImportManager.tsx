@@ -99,24 +99,44 @@ export default function DataImportManager() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('Not authenticated');
 
-      const { data: profile } = await supabase
+      // First get the user's profile
+      const { data: userProfile, error: profileError } = await supabase
         .from('profiles')
-        .select('dentists(id)')
+        .select('id, role')
         .eq('user_id', session.user.id)
         .single();
 
-      if (!profile?.dentists?.[0]?.id) {
-        throw new Error('Dentist profile not found');
+      if (profileError || !userProfile) {
+        console.error('Profile fetch error:', profileError);
+        throw new Error('User profile not found');
+      }
+
+      if (userProfile.role !== 'dentist') {
+        throw new Error('Only dentists can import patient data');
+      }
+
+      // Get dentist record
+      const { data: dentist, error: dentistError } = await supabase
+        .from('dentists')
+        .select('id')
+        .eq('profile_id', userProfile.id)
+        .single();
+
+      if (dentistError || !dentist) {
+        console.error('Dentist fetch error:', dentistError);
+        throw new Error('Dentist profile not found. Please contact support.');
       }
 
       const csvData = await selectedFile.text();
+
+      console.log('Starting import with dentist ID:', dentist.id);
 
       const response = await supabase.functions.invoke('process-csv-import', {
         body: {
           csvData,
           fieldMapping,
           importType,
-          dentistId: profile.dentists[0].id,
+          dentistId: dentist.id,
           filename: selectedFile.name
         },
         headers: {
@@ -124,8 +144,17 @@ export default function DataImportManager() {
         }
       });
 
-      if (response.error) throw response.error;
+      if (response.error) {
+        console.error('Function invocation error:', response.error);
+        throw response.error;
+      }
 
+      if (!response.data) {
+        console.error('No data received from function');
+        throw new Error('No response data received');
+      }
+
+      console.log('Import response:', response.data);
       const result = response.data;
       setImportSession(result);
 

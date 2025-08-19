@@ -31,6 +31,14 @@ serve(async (req) => {
     );
 
     const { csvData, fieldMapping, importType, dentistId, filename }: ImportRequest = await req.json();
+    
+    console.log('Import request received:', {
+      importType,
+      dentistId,
+      filename,
+      fieldMappingKeys: Object.keys(fieldMapping),
+      csvDataLength: csvData.length
+    });
 
     // Create import session
     const { data: importSession, error: sessionError } = await supabase
@@ -57,6 +65,8 @@ serve(async (req) => {
     // Parse CSV data
     const rows = parseCSV(csvData);
     const totalRecords = rows.length;
+    
+    console.log(`Parsed ${totalRecords} rows from CSV`);
 
     // Update session with total count
     await supabase
@@ -75,12 +85,18 @@ serve(async (req) => {
           const row = rows[i];
           const profileData = mapRowToProfile(row, fieldMapping);
           
+          console.log(`Processing row ${i + 1}:`, { profileData });
+          
           // Check if profile already exists by email
-          const { data: existing } = await supabase
+          const { data: existing, error: existingError } = await supabase
             .from('profiles')
             .select('id')
             .eq('email', profileData.email)
-            .single();
+            .maybeSingle();
+          
+          if (existingError) {
+            console.error('Error checking existing profile:', existingError);
+          }
 
           if (existing) {
             errors.push({
@@ -93,14 +109,18 @@ serve(async (req) => {
           }
 
           // Create profile with incomplete status for imported patients
+          const insertData = {
+            ...profileData,
+            import_session_id: importSession.id,
+            profile_completion_status: 'incomplete',
+            role: 'patient'
+          };
+          
+          console.log(`Inserting profile for row ${i + 1}:`, insertData);
+          
           const { error: profileError } = await supabase
             .from('profiles')
-            .insert({
-              ...profileData,
-              import_session_id: importSession.id,
-              profile_completion_status: 'incomplete',
-              role: 'patient'
-            });
+            .insert(insertData);
 
           if (profileError) {
             console.error('Profile creation error:', profileError);
