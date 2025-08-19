@@ -15,8 +15,7 @@ import {
   X,
   LogOut,
   User,
-  Info,
-  MessageSquare
+  Info
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -29,7 +28,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
-export type PatientSection = 'home' | 'messages' | 'assistant' | 'care' | 'appointments' | 'payments' | 'settings';
+export type PatientSection = 'home' | 'assistant' | 'care' | 'appointments' | 'payments' | 'settings';
 
 interface PatientAppShellProps {
   activeSection: PatientSection;
@@ -41,7 +40,6 @@ interface PatientAppShellProps {
 // Simplified navigation items - only bottom bar, no duplication
 const NAV_ITEMS: Array<{ id: PatientSection; label: string; shortLabel?: string; icon: React.ComponentType<any>; color: string }> = [
   { id: 'home', label: 'Home', icon: HomeIcon, color: 'text-blue-600 bg-blue-100 dark:bg-blue-900/30' },
-  { id: 'messages', label: 'Messages', shortLabel: 'Msgs', icon: MessageSquare, color: 'text-sky-600 bg-sky-100 dark:bg-sky-900/30' },
   { id: 'assistant', label: 'Assistant', icon: Bot, color: 'text-emerald-600 bg-emerald-100 dark:bg-emerald-900/30' },
   { id: 'care', label: 'Treatment Records', shortLabel: 'Records', icon: FolderOpen, color: 'text-purple-600 bg-purple-100 dark:bg-purple-900/30' },
   { id: 'appointments', label: 'Appointments', shortLabel: 'Appts', icon: Calendar, color: 'text-orange-600 bg-orange-100 dark:bg-orange-900/30' },
