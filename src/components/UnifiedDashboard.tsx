@@ -51,9 +51,10 @@ export const UnifiedDashboard = memo(({ user }: UnifiedDashboardProps) => {
       }
     } catch (error: unknown) {
       setUserRole('patient');
+      console.error('Dashboard loading error:', error);
       toast({
-        title: "Error",
-        description: `Error loading dashboard: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        title: "Dashboard Error", 
+        description: `Error loading dashboard: ${error instanceof Error ? error.message : 'Unknown error'}. Please try refreshing the page.`,
         variant: "destructive",
       });
     } finally {

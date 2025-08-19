@@ -209,18 +209,44 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
         .from('profiles')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Error fetching user profile:', error);
-        setError('Failed to load user profile');
+        setError(`Database error: ${error.message}`);
         return;
       }
 
-      setUserProfile(profile);
+      if (!profile) {
+        // No profile exists for this user - create a basic one or handle gracefully
+        console.warn('No profile found for user, creating basic profile...');
+        
+        // Try to create a basic profile from user data
+        const { data: newProfile, error: createError } = await supabase
+          .from('profiles')
+          .insert({
+            user_id: user.id,
+            email: user.email || '',
+            first_name: user.user_metadata?.first_name || '',
+            last_name: user.user_metadata?.last_name || '',
+            role: 'patient'
+          })
+          .select()
+          .single();
+
+        if (createError) {
+          console.error('Error creating profile:', createError);
+          setError(`Failed to create user profile: ${createError.message}`);
+          return;
+        }
+
+        setUserProfile(newProfile);
+      } else {
+        setUserProfile(profile);
+      }
     } catch (error) {
       console.error('Error in fetchUserProfile:', error);
-      setError('Failed to load user profile');
+      setError(`Profile loading failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setLoading(false);
     }
