@@ -5,7 +5,7 @@ import { User } from "@supabase/supabase-js";
 import { EmergencyTriageEntry } from "@/components/EmergencyTriageEntry";
 import { AuthForm } from "@/components/AuthForm";
 import { useToast } from "@/hooks/use-toast";
-import { getTriageInfo } from "@/lib/mockApi";
+// import { getTriageInfo } from "@/lib/mockApi";
 import { Button } from "@/components/ui/button";
 
 const EmergencyTriage = () => {
@@ -28,13 +28,7 @@ const EmergencyTriage = () => {
         setLoading(false);
       }
       
-      // Initialize triage info
-      try {
-        await getTriageInfo();
-      } catch (error) {
-        console.error('Failed to load triage info:', error);
-        // Don't show toast for triage info failure as it's not critical
-      }
+      // Initialize triage info (optional: ping a health endpoint if you have one)
       
       subscription = supabase.auth.onAuthStateChange((_event, session) => {
         setUser(session?.user ?? null);

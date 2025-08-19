@@ -226,9 +226,14 @@ export const EnhancedUrgencyDashboard = ({ dentistId }: EnhancedUrgencyDashboard
 
     setSendingSMS(appointment.id);
     try {
-      // Mock SMS sending - would integrate with actual SMS service
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      const { error } = await supabase.functions.invoke('send-sms', {
+        body: {
+          to: appointment.phone,
+          message: `Reminder: ${appointment.patient_name}, your urgent dental consultation is scheduled. If you need to reschedule, contact us.`,
+          meta: { appointment_id: appointment.id, patient_id: appointment.patient_id }
+        }
+      });
+      if (error) throw error;
       toast({
         title: "SMS Sent",
         description: `Reminder sent to ${appointment.patient_name}`,

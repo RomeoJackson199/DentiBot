@@ -42,7 +42,9 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ user }) => {
       try {
         const data = await loadProfileData(user);
         setProfile(data);
-      } catch {}
+      } catch (e) {
+        console.warn('Failed to load profile data', e);
+      }
     })();
   }, [user]);
 

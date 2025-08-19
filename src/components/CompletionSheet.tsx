@@ -170,7 +170,9 @@ export function CompletionSheet({ open, onOpenChange, appointment, dentistId, on
 					details: { procedure_id: id, before, after: newPrice }
 				});
 			}
-		} catch {}
+		} catch {
+			// ignore audit log failure
+		}
 	};
 
 	// Supplies actions
@@ -406,7 +408,9 @@ export function CompletionSheet({ open, onOpenChange, appointment, dentistId, on
 								}
 							}
 						}
-					} catch {}
+					} catch {
+						// ignore inventory deduction errors
+					}
 				}
 			}
 
