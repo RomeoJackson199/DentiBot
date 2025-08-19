@@ -1228,6 +1228,42 @@ export type Database = {
           },
         ]
       }
+      invitation_tokens: {
+        Row: {
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          profile_id: string
+          token: string
+          updated_at: string
+          used: boolean
+          used_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          expires_at: string
+          id?: string
+          profile_id: string
+          token: string
+          updated_at?: string
+          used?: boolean
+          used_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          profile_id?: string
+          token?: string
+          updated_at?: string
+          used?: boolean
+          used_at?: string | null
+        }
+        Relationships: []
+      }
       invoice_items: {
         Row: {
           code: string

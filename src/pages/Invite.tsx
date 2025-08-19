@@ -31,23 +31,9 @@ export default function Invite() {
     }
 
     try {
-      // Check if invitation token exists and is valid
+      // Check if invitation token exists and is valid - using generic query to avoid type issues
       const { data, error } = await supabase
-        .from('invitation_tokens')
-        .select(`
-          *,
-          profiles:profile_id (
-            id,
-            email,
-            first_name,
-            last_name,
-            phone
-          )
-        `)
-        .eq('token', token)
-        .gt('expires_at', new Date().toISOString())
-        .eq('used', false)
-        .single();
+        .rpc('validate_invitation_token', { invitation_token: token });
 
       if (error || !data) {
         setError("This invitation link is invalid or has expired");
@@ -92,14 +78,14 @@ export default function Invite() {
       
       // Create auth user with Supabase
       const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: invitation.profiles.email,
+        email: invitation.email,
         password: password,
         options: {
           emailRedirectTo: redirectUrl,
           data: {
-            first_name: invitation.profiles.first_name,
-            last_name: invitation.profiles.last_name,
-            phone: invitation.profiles.phone,
+            first_name: invitation.first_name,
+            last_name: invitation.last_name,
+            phone: invitation.phone,
             health_data_consent: true,
             health_data_consent_at: new Date().toISOString(),
           },
@@ -110,9 +96,10 @@ export default function Invite() {
 
       // Link the existing profile to the new auth user
       const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ user_id: authData.user?.id })
-        .eq('id', invitation.profiles.id);
+        .rpc('link_profile_to_user', { 
+          profile_id: invitation.profile_id, 
+          user_id: authData.user?.id 
+        });
 
       if (updateError) {
         console.error('Error linking profile:', updateError);
@@ -120,9 +107,7 @@ export default function Invite() {
 
       // Mark invitation as used
       const { error: tokenError } = await supabase
-        .from('invitation_tokens')
-        .update({ used: true, used_at: new Date().toISOString() })
-        .eq('token', token);
+        .rpc('mark_invitation_used', { invitation_token: token });
 
       if (tokenError) {
         console.error('Error marking invitation as used:', tokenError);
@@ -201,14 +186,14 @@ export default function Invite() {
               <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
                 <h4 className="font-semibold mb-2">Your Account Details:</h4>
                 <p className="text-sm text-muted-foreground">
-                  Name: {invitation.profiles.first_name} {invitation.profiles.last_name}
+                  Name: {invitation.first_name} {invitation.last_name}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  Email: {invitation.profiles.email}
+                  Email: {invitation.email}
                 </p>
-                {invitation.profiles.phone && (
+                {invitation.phone && (
                   <p className="text-sm text-muted-foreground">
-                    Phone: {invitation.profiles.phone}
+                    Phone: {invitation.phone}
                   </p>
                 )}
               </div>
