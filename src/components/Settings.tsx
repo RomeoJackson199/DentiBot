@@ -65,6 +65,11 @@ export const Settings = ({ user }: SettingsProps) => {
   const [loading, setLoading] = useState(false);
   const [hasIncompleteProfile, setHasIncompleteProfile] = useState(false);
   const [showAiOptOutDialog, setShowAiOptOutDialog] = useState(false);
+  const [isDentist, setIsDentist] = useState(false);
+  const [profileId, setProfileId] = useState<string | null>(null);
+  const [dentistClinicAddress, setDentistClinicAddress] = useState<string>('');
+  const [dentistSpecialty, setDentistSpecialty] = useState<string>('');
+  const [hasDentistRecord, setHasDentistRecord] = useState<boolean>(false);
 
   useEffect(() => {
     fetchProfile();
@@ -78,6 +83,40 @@ export const Settings = ({ user }: SettingsProps) => {
       // Check if profile is incomplete (missing first or last name)
       const isIncomplete = !profileData.first_name || !profileData.last_name;
       setHasIncompleteProfile(isIncomplete);
+
+      // Load role and dentist-specific fields
+      const { data: profRow, error: profErr } = await supabase
+        .from('profiles')
+        .select('id, role')
+        .eq('user_id', user.id)
+        .single();
+      if (profErr) throw profErr;
+      setProfileId(profRow.id);
+      const userIsDentist = profRow.role === 'dentist';
+      setIsDentist(userIsDentist);
+      if (userIsDentist) {
+        const { data: dentistRow, error: dentistErr } = await supabase
+          .from('dentists')
+          .select('id, clinic_address, specialty')
+          .eq('profile_id', profRow.id)
+          .maybeSingle();
+        if (dentistErr) {
+          console.error('Error loading dentist record:', dentistErr);
+        }
+        if (dentistRow) {
+          setHasDentistRecord(true);
+          setDentistClinicAddress(dentistRow.clinic_address || '');
+          setDentistSpecialty(dentistRow.specialty || dentistRow.specialization || '');
+        } else {
+          setHasDentistRecord(false);
+          setDentistClinicAddress('');
+          setDentistSpecialty('');
+        }
+      } else {
+        setHasDentistRecord(false);
+        setDentistClinicAddress('');
+        setDentistSpecialty('');
+      }
     } catch (error) {
       console.error('Error fetching profile:', error);
       toast({
@@ -112,9 +151,31 @@ export const Settings = ({ user }: SettingsProps) => {
       const result = await saveProfileData(user, profile);
       console.log('Profile save result:', result);
 
+      // Save dentist-specific fields when applicable
+      if (isDentist && profileId) {
+        const dentistPayload: any = {
+          clinic_address: dentistClinicAddress?.trim() || null,
+          specialty: dentistSpecialty?.trim() || null,
+        };
+
+        if (hasDentistRecord) {
+          const { error: updErr } = await supabase
+            .from('dentists')
+            .update(dentistPayload)
+            .eq('profile_id', profileId);
+          if (updErr) throw updErr;
+        } else {
+          const { error: insErr } = await supabase
+            .from('dentists')
+            .insert({ profile_id: profileId, ...dentistPayload });
+          if (insErr) throw insErr;
+          setHasDentistRecord(true);
+        }
+      }
+
       toast({
         title: "Success",
-        description: "Personal information saved successfully",
+        description: isDentist ? "Personal and dentist information saved successfully" : "Personal information saved successfully",
       });
       
       // Refresh profile to update incomplete status
@@ -421,6 +482,32 @@ const handleDeleteAccount = async () => {
                     className="mt-2 bg-muted/30 border-border rounded-xl min-h-[120px] resize-none"
                   />
                 </div>
+
+                {isDentist && (
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-foreground mb-2">Dentist Settings</h3>
+                    <div>
+                      <Label htmlFor="clinicAddress" className="text-foreground font-medium">Clinic Address</Label>
+                      <Input
+                        id="clinicAddress"
+                        placeholder="Enter your clinic address"
+                        value={dentistClinicAddress}
+                        onChange={(e) => setDentistClinicAddress(e.target.value)}
+                        className="mt-2 bg-muted/30 border-border rounded-xl"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="specialty" className="text-foreground font-medium">Specialty</Label>
+                      <Input
+                        id="specialty"
+                        placeholder="e.g. Orthodontics, Endodontics, General Dentistry"
+                        value={dentistSpecialty}
+                        onChange={(e) => setDentistSpecialty(e.target.value)}
+                        className="mt-2 bg-muted/30 border-border rounded-xl"
+                      />
+                    </div>
+                  </div>
+                )}
 
                 <Button
                   onClick={handleSaveProfile}

@@ -94,23 +94,26 @@ const ProfileCompletionDialog = () => {
         });
       }
     } else if (data.role === "dentist") {
-      const typedData = data as ProfileData;
-      const dentist = typedData.dentists?.[0];
-      if (!dentist?.clinic_address) {
-        fields.push({
-          key: "clinic_address",
-          question: "Clinic address?",
-          type: "text",
-          table: "dentists",
-        });
-      }
-      if (!dentist?.specialty) {
-        fields.push({
-          key: "specialty",
-          question: "What is your specialty?",
-          type: "text",
-          table: "dentists",
-        });
+      // Only prompt dentist-specific fields during initial/incomplete onboarding
+      if (isImportedProfile || isIncomplete) {
+        const typedData = data as ProfileData;
+        const dentist = typedData.dentists?.[0];
+        if (!dentist?.clinic_address) {
+          fields.push({
+            key: "clinic_address",
+            question: "Clinic address?",
+            type: "text",
+            table: "dentists",
+          });
+        }
+        if (!dentist?.specialty) {
+          fields.push({
+            key: "specialty",
+            question: "What is your specialty?",
+            type: "text",
+            table: "dentists",
+          });
+        }
       }
     }
 
