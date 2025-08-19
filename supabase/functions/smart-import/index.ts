@@ -16,6 +16,7 @@ interface SmartImportResult {
   appointments_created: number;
   profiles_updated: number;
   errors: string[];
+  job_id?: string;
 }
 
 Deno.serve(async (req) => {
@@ -24,17 +25,22 @@ Deno.serve(async (req) => {
   }
 
   try {
+    console.log('Smart import function called')
+    
     // Get auth user
     const authHeader = req.headers.get('Authorization')!
     const token = authHeader.replace('Bearer ', '')
     const { data: { user }, error: authError } = await supabase.auth.getUser(token)
     
     if (authError || !user) {
+      console.error('Authentication failed:', authError)
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
+
+    console.log('User authenticated:', user.id)
 
     // Get dentist profile
     const { data: profile } = await supabase
@@ -44,6 +50,7 @@ Deno.serve(async (req) => {
       .single()
 
     if (profile?.role !== 'dentist') {
+      console.error('User is not a dentist:', profile?.role)
       return new Response(JSON.stringify({ error: 'Only dentists can import data' }), {
         status: 403,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -57,30 +64,37 @@ Deno.serve(async (req) => {
       .single()
 
     if (!dentist) {
+      console.error('Dentist profile not found for profile:', profile.id)
       return new Response(JSON.stringify({ error: 'Dentist profile not found' }), {
         status: 404,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
 
-    const formData = await req.formData()
-    const file = formData.get('file') as File
-    const detectedType = formData.get('detectedType') as string
-    const fieldMapping = JSON.parse(formData.get('fieldMapping') as string)
+    console.log('Dentist found:', dentist.id)
 
-    if (!file) {
-      return new Response(JSON.stringify({ error: 'No file provided' }), {
+    const body = await req.json()
+    const { file_content, detected_type, field_mapping, filename } = body
+
+    if (!file_content || !detected_type) {
+      console.error('Missing required data:', { file_content: !!file_content, detected_type })
+      return new Response(JSON.stringify({ error: 'Missing file content or detected type' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
 
+    console.log('Processing smart import for type:', detected_type)
+
     const result = await processSmartImport(
       dentist.id,
-      file,
-      detectedType,
-      fieldMapping
+      file_content,
+      detected_type,
+      field_mapping || {},
+      filename || 'unknown.csv'
     )
+
+    console.log('Import completed:', result)
 
     return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -88,7 +102,10 @@ Deno.serve(async (req) => {
 
   } catch (error) {
     console.error('Smart import error:', error)
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ 
+      error: error.message || 'Import failed',
+      details: error.stack
+    }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     })
@@ -97,12 +114,14 @@ Deno.serve(async (req) => {
 
 async function processSmartImport(
   dentist_id: string,
-  file: File,
+  fileContent: string,
   detectedType: string,
-  fieldMapping: Record<string, string>
+  fieldMapping: Record<string, string>,
+  filename: string
 ): Promise<SmartImportResult> {
-  const text = await file.text()
-  const lines = text.split('\n').filter(line => line.trim())
+  console.log('Processing smart import:', { detectedType, filename, fieldMappingCount: Object.keys(fieldMapping).length })
+  
+  const lines = fileContent.split('\n').filter(line => line.trim())
   const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''))
   
   const rows = lines.slice(1).map(line => {
@@ -113,6 +132,8 @@ async function processSmartImport(
     })
     return row
   })
+
+  console.log(`Parsed ${rows.length} rows from file`)
 
   const result: SmartImportResult = {
     imported: 0,
@@ -127,8 +148,8 @@ async function processSmartImport(
     .from('import_jobs')
     .insert({
       dentist_id,
-      filename: file.name,
-      file_size: file.size,
+      filename,
+      file_size: fileContent.length,
       total_rows: rows.length,
       import_type: detectedType,
       status: 'processing'
@@ -137,8 +158,12 @@ async function processSmartImport(
     .single()
 
   if (jobError || !job) {
+    console.error('Failed to create import job:', jobError)
     throw new Error('Failed to create import job')
   }
+
+  result.job_id = job.id
+  console.log('Created import job:', job.id)
 
   // Process each row intelligently
   for (let i = 0; i < rows.length; i++) {
@@ -187,7 +212,7 @@ async function processSmartImport(
   await supabase
     .from('import_jobs')
     .update({ 
-      status: 'completed',
+      status: result.errors.length > 0 ? 'completed' : 'completed',
       completed_at: new Date().toISOString(),
       successful_rows: result.imported,
       failed_rows: result.errors.length,
@@ -195,6 +220,7 @@ async function processSmartImport(
     })
     .eq('id', job.id)
 
+  console.log('Import completed:', result)
   return result
 }
 
