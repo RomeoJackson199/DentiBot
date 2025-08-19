@@ -212,6 +212,66 @@ export default function DataImportManager() {
         description: `Successfully imported ${result.successCount} of ${result.totalRecords} records`,
       });
 
+      // Send invitation emails for new profiles if they don't have user_id
+      if (result.successCount > 0) {
+        console.log("Checking for new profiles to send invitations...");
+        
+        try {
+          // Get all profiles without user_id (newly imported)
+          const { data: newProfiles, error: profilesError } = await supabase
+            .from('profiles')
+            .select('id, email, first_name, last_name')
+            .is('user_id', null);
+
+          if (newProfiles && newProfiles.length > 0) {
+            console.log(`Found ${newProfiles.length} profiles without user accounts`);
+
+            // Get dentist name for emails
+            const { data: dentistProfile } = await supabase
+              .from('profiles')
+              .select('first_name, last_name')
+              .eq('id', userProfile.id)
+              .single();
+
+            const dentistName = dentistProfile ? 
+              `${dentistProfile.first_name} ${dentistProfile.last_name}` : 
+              'Your Dentist';
+
+            // Send invitation emails
+            for (const profile of newProfiles) {
+              try {
+                console.log("Sending invitation email to:", profile.email);
+                
+                const { error: emailError } = await supabase.functions.invoke('send-invitation-email', {
+                  body: {
+                    profileId: profile.id,
+                    email: profile.email,
+                    firstName: profile.first_name,
+                    lastName: profile.last_name,
+                    dentistName
+                  }
+                });
+
+                if (emailError) {
+                  console.error("Error sending invitation email:", emailError);
+                } else {
+                  console.log("Invitation email sent successfully to:", profile.email);
+                }
+              } catch (emailError) {
+                console.error("Error processing invitation for profile:", profile.id, emailError);
+              }
+            }
+
+            toast({
+              title: "Invitations sent",
+              description: `Sent ${newProfiles.length} invitation emails to imported patients`,
+            });
+          }
+        } catch (inviteError) {
+          console.error("Error sending invitations:", inviteError);
+        }
+      }
+
     } catch (error) {
       console.error('Import error:', error);
       toast({

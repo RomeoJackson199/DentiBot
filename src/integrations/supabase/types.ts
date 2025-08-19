@@ -2208,6 +2208,14 @@ export type Database = {
         Args: { patient_profile_id: string }
         Returns: boolean
       }
+      link_profile_to_user: {
+        Args: { profile_id: string; user_id: string }
+        Returns: undefined
+      }
+      mark_invitation_used: {
+        Args: { invitation_token: string }
+        Returns: undefined
+      }
       process_csv_data_import: {
         Args: {
           p_csv_content: string
@@ -2242,6 +2250,18 @@ export type Database = {
           p_successful?: number
         }
         Returns: undefined
+      }
+      validate_invitation_token: {
+        Args: { invitation_token: string }
+        Returns: {
+          email: string
+          expires_at: string
+          first_name: string
+          id: string
+          last_name: string
+          phone: string
+          profile_id: string
+        }[]
       }
     }
     Enums: {

@@ -10,10 +10,13 @@ import { PWAInstallPrompt } from "./components/PWAInstallPrompt";
 import ProfileCompletionDialog from "./components/ProfileCompletionDialog";
 import { ChangelogPopup } from "./components/ChangelogPopup";
 import { useState, useEffect, lazy, Suspense } from "react";
+import React from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { User, Session } from "@supabase/supabase-js";
 import { SeoManager } from "./lib/seo";
 import { LazyLoadingWrapper } from "./components/optimized/LazyLoadingWrapper";
+
+const Invite = lazy(() => import("./pages/Invite"));
 
 // Lazy load pages for better performance
 const Index = lazy(() => import("./pages/Index"));
@@ -132,6 +135,7 @@ const App = () => (
                 <Route path="/features/:id" element={<FeatureDetail />} />
                 <Route path="/language-test" element={<LanguageTest />} />
                 <Route path="/chat" element={<Chat />} />
+                <Route path="/invite/:token" element={<Invite />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
