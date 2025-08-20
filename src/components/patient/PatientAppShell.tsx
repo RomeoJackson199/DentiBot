@@ -1,5 +1,4 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
@@ -10,21 +9,9 @@ import {
   Calendar,
   CreditCard,
   Settings as SettingsIcon,
-  Bot,
-  LogOut,
-  Info
+  Bot
 } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { NotificationButton } from "@/components/NotificationButton";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
 
 export type PatientSection = 'home' | 'assistant' | 'care' | 'appointments' | 'payments' | 'settings';
 
@@ -52,27 +39,11 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
   badges = {},
   userId,
 }) => {
-  const { toast } = useToast();
-  const navigate = useNavigate();
-
   const isActive = (id: PatientSection) => activeSection === id;
-
-  const handleSignOut = async () => {
-    try {
-      await supabase.auth.signOut();
-      window.location.href = '/';
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to sign out. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
-      {/* Mobile Header - cleaner with menu dropdown */}
+      {/* Mobile Header */}
       <div className="md:hidden fixed top-0 left-0 right-0 z-header bg-background/95 backdrop-blur-sm border-b">
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center space-x-2">
@@ -84,35 +55,20 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
 
           <div className="flex items-center space-x-2">
             <NotificationButton userId={userId} />
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="hover:bg-primary/10">
-                  <SettingsIcon className="h-5 w-5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuLabel>Menu</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => onChangeSection('settings')}>
-                  <SettingsIcon className="mr-2 h-4 w-4" />
-                  Settings
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate('/about')}>
-                  <Info className="mr-2 h-4 w-4" />
-                  About Dentinot
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleSignOut} className="text-red-600">
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Sign Out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="hover:bg-primary/10"
+              onClick={() => onChangeSection('settings')}
+            >
+              <SettingsIcon className="h-5 w-5" />
+              <span className="sr-only">Settings</span>
+            </Button>
           </div>
         </div>
       </div>
 
-      {/* Desktop Header - minimal top bar */}
+      {/* Desktop Header */}
       <div className="hidden md:block fixed top-0 left-0 right-0 z-header bg-background/95 backdrop-blur-sm border-b">
         <div className="flex items-center justify-between px-6 py-3">
           <div className="flex items-center space-x-3">
@@ -124,28 +80,15 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
 
           <div className="flex items-center space-x-2">
             <NotificationButton userId={userId} />
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="hover:bg-primary/10">
-                  <SettingsIcon className="h-5 w-5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem onClick={() => onChangeSection('settings')}>
-                  <SettingsIcon className="mr-2 h-4 w-4" />
-                  Settings
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate('/about')}>
-                  <Info className="mr-2 h-4 w-4" />
-                  About Dentinot
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleSignOut} className="text-red-600">
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Sign Out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="hover:bg-primary/10"
+              onClick={() => onChangeSection('settings')}
+            >
+              <SettingsIcon className="h-5 w-5" />
+              <span className="sr-only">Settings</span>
+            </Button>
           </div>
         </div>
       </div>
