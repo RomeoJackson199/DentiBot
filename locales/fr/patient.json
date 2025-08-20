@@ -1,6 +1,0 @@
-{
-  "dashboard.title": "Tableau de bord patient",
-  "appointment.onDate": "Rendez-vous le {{date}}",
-  "appointments": "{{count}} rendez-vous",
-  "appointments_plural": "{{count}} rendez-vous"
-}

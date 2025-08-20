@@ -32,14 +32,15 @@ export const ChatSettingsManager = ({ user, onResponse }: ChatSettingsManagerPro
   const [loading, setLoading] = useState(false);
 
   const handleLanguageChange = (lang: string) => {
-    const validLangs = ['en', 'fr'];
+    const validLangs = ['en', 'fr', 'nl'];
     if (validLangs.includes(lang)) {
-      changeLanguage(lang as 'en' | 'fr');
+      changeLanguage(lang as 'en' | 'fr' | 'nl');
       localStorage.setItem('preferred-language', lang);
       
       const langNames = {
         en: 'English',
-        fr: 'French'
+        fr: 'French',
+        nl: 'Dutch'
       };
       
       onResponse(`✅ Language changed to ${langNames[lang as keyof typeof langNames]} successfully!`);
@@ -49,7 +50,7 @@ export const ChatSettingsManager = ({ user, onResponse }: ChatSettingsManagerPro
         description: `Language changed to ${langNames[lang as keyof typeof langNames]}`
       });
     } else {
-      onResponse("I support English and French (français). Please specify one of these languages.");
+      onResponse("I support English, French (français), and Dutch (Nederlands). Please specify one of these languages.");
     }
   };
 
