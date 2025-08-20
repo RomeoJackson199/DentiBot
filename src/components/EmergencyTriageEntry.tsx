@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useLanguage } from "@/hooks/useLanguage";
+import { useLanguageDetection } from "@/hooks/useLanguageDetection";
 import { EmergencyTriageForm } from "./EmergencyTriageForm";
 import { LanguageSelector } from "./LanguageSelector";
 import { 
@@ -22,6 +23,7 @@ interface EmergencyTriageEntryProps {
 
 export const EmergencyTriageEntry = ({ onComplete, onCancel }: EmergencyTriageEntryProps) => {
   const { t } = useLanguage();
+  const { t: tDetect } = useLanguageDetection();
   const [showTriage, setShowTriage] = useState(false);
 
   if (showTriage) {
@@ -40,7 +42,7 @@ export const EmergencyTriageEntry = ({ onComplete, onCancel }: EmergencyTriageEn
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold text-primary">SmartTriage</h1>
-            <p className="text-muted-foreground">Emergency Dental Care Assessment</p>
+            <p className="text-muted-foreground">{tDetect('triage.title')}</p>
           </div>
           <LanguageSelector />
         </div>
@@ -54,10 +56,10 @@ export const EmergencyTriageEntry = ({ onComplete, onCancel }: EmergencyTriageEn
               </div>
               <div>
                 <CardTitle className="text-2xl md:text-3xl font-bold">
-                  Emergency Triage Assessment
+                  {tDetect('entry.heroTitle')}
                 </CardTitle>
                 <p className="text-white/90 mt-2">
-                  Fast, secure, and accurate dental emergency assessment
+                  {tDetect('entry.heroDesc')}
                 </p>
               </div>
             </div>
@@ -67,22 +69,22 @@ export const EmergencyTriageEntry = ({ onComplete, onCancel }: EmergencyTriageEn
               <div className="flex items-center space-x-3 p-3 bg-white/10 rounded-lg backdrop-blur-sm">
                 <Clock className="h-6 w-6 text-white" />
                 <div>
-                  <p className="font-semibold">2-3 Minutes</p>
-                  <p className="text-sm text-white/80">Quick Assessment</p>
+                  <p className="font-semibold">{tDetect('entry.stats.minutes')}</p>
+                  <p className="text-sm text-white/80">{tDetect('entry.stats.quick')}</p>
                 </div>
               </div>
               <div className="flex items-center space-x-3 p-3 bg-white/10 rounded-lg backdrop-blur-sm">
                 <Shield className="h-6 w-6 text-white" />
                 <div>
-                  <p className="font-semibold">GDPR Compliant</p>
-                  <p className="text-sm text-white/80">Secure & Private</p>
+                  <p className="font-semibold">{tDetect('entry.stats.gdpr')}</p>
+                  <p className="text-sm text-white/80">{tDetect('entry.stats.secure')}</p>
                 </div>
               </div>
               <div className="flex items-center space-x-3 p-3 bg-white/10 rounded-lg backdrop-blur-sm">
                 <CheckCircle2 className="h-6 w-6 text-white" />
                 <div>
-                  <p className="font-semibold">Direct Booking</p>
-                  <p className="text-sm text-white/80">No Chat Required</p>
+                  <p className="font-semibold">{tDetect('entry.stats.directBooking')}</p>
+                  <p className="text-sm text-white/80">{tDetect('entry.stats.noChat')}</p>
                 </div>
               </div>
             </div>
@@ -92,7 +94,7 @@ export const EmergencyTriageEntry = ({ onComplete, onCancel }: EmergencyTriageEn
               size="lg"
               className="w-full bg-white text-primary hover:bg-white/90 font-semibold text-lg py-6"
             >
-              Start Emergency Assessment
+              {tDetect('entry.ctaStart')}
               <ArrowRight className="h-5 w-5 ml-2" />
             </Button>
           </CardContent>
@@ -104,26 +106,26 @@ export const EmergencyTriageEntry = ({ onComplete, onCancel }: EmergencyTriageEn
             {
               step: "1",
               icon: AlertTriangle,
-              title: "Assess Symptoms",
-              description: "Answer questions about your pain and symptoms"
+              title: tDetect('entry.steps.assessSymptoms.title'),
+              description: tDetect('entry.steps.assessSymptoms.desc')
             },
             {
               step: "2",
               icon: Zap,
-              title: "Get Urgency Level",
-              description: "Receive your urgency rating (1-5 scale)"
+              title: tDetect('entry.steps.getUrgency.title'),
+              description: tDetect('entry.steps.getUrgency.desc')
             },
             {
               step: "3",
               icon: Clock,
-              title: "View Available Slots",
-              description: "See prioritized appointment times"
+              title: tDetect('entry.steps.viewSlots.title'),
+              description: tDetect('entry.steps.viewSlots.desc')
             },
             {
               step: "4",
               icon: CheckCircle2,
-              title: "Book Instantly",
-              description: "Confirm your appointment immediately"
+              title: tDetect('entry.steps.bookInstantly.title'),
+              description: tDetect('entry.steps.bookInstantly.desc')
             }
           ].map(({ step, icon: Icon, title, description }) => (
             <Card key={step} className="text-center p-4 hover:shadow-md transition-shadow">
@@ -149,10 +151,9 @@ export const EmergencyTriageEntry = ({ onComplete, onCancel }: EmergencyTriageEn
             <div className="flex items-start space-x-3">
               <Phone className="h-6 w-6 text-red-600 mt-1" />
               <div>
-                <h3 className="font-semibold text-red-800">Life-Threatening Emergency?</h3>
+                <h3 className="font-semibold text-red-800">{tDetect('entry.emergencyNotice.title')}</h3>
                 <p className="text-red-700 text-sm mt-1">
-                  If you're experiencing severe breathing difficulties, uncontrolled bleeding, 
-                  or signs of serious infection, call emergency services (112) immediately.
+                  {tDetect('entry.emergencyNotice.desc')}
                 </p>
               </div>
             </div>
@@ -165,10 +166,9 @@ export const EmergencyTriageEntry = ({ onComplete, onCancel }: EmergencyTriageEn
             <div className="flex items-start space-x-3">
               <Shield className="h-6 w-6 text-blue-600 mt-1" />
               <div>
-                <h3 className="font-semibold text-blue-800">Privacy & Security</h3>
+                <h3 className="font-semibold text-blue-800">{tDetect('entry.gdpr.title')}</h3>
                 <p className="text-blue-700 text-sm mt-1">
-                  Your health information is protected under GDPR. Data is encrypted and only 
-                  shared with your selected dentist for appointment purposes.
+                  {tDetect('entry.gdpr.desc')}
                 </p>
               </div>
             </div>
@@ -178,7 +178,7 @@ export const EmergencyTriageEntry = ({ onComplete, onCancel }: EmergencyTriageEn
         {/* Footer */}
         <div className="text-center py-6">
           <Button variant="outline" onClick={onCancel}>
-            Return to Main App
+            {tDetect('entry.return')}
           </Button>
         </div>
       </div>
