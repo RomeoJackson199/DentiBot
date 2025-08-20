@@ -40,6 +40,7 @@ import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSam
 import { RecallBanner } from "@/components/patient/RecallBanner";
 import { getPatientActiveRecall, RecallRecord } from "@/lib/recalls";
 import { AppointmentDetailsDialog } from "@/components/AppointmentDetailsDialog";
+import { useLanguage } from "@/hooks/useLanguage";
 
 export interface AppointmentsTabProps {
   user: User;
@@ -69,6 +70,7 @@ const CalendarView = ({
   appointments: Appointment[];
 }) => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const { t } = useLanguage();
   
   const days = useMemo(() => {
     const start = startOfMonth(currentMonth);
@@ -110,7 +112,7 @@ const CalendarView = ({
               onClick={() => setCurrentMonth(new Date())}
               className="hidden md:inline-flex"
             >
-              Today
+              {t.today}
             </Button>
             <Button
               variant="ghost"
@@ -201,6 +203,7 @@ const AppointmentCard = ({
   onCancel: () => void;
   onClick?: () => void;
 }) => {
+  const { t } = useLanguage();
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'confirmed': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400';
@@ -254,7 +257,7 @@ const AppointmentCard = ({
               </div>
               <div>
                 <p className="font-semibold text-sm md:text-base">
-                  {appointment.treatment_type || 'General Checkup'}
+                  {appointment.treatment_type || t.generalCheckup}
                 </p>
                 <p className="text-xs md:text-sm text-muted-foreground">
                   {format(new Date(appointment.appointment_date), 'EEEE, MMMM d, yyyy')}
@@ -284,7 +287,7 @@ const AppointmentCard = ({
             )}
             <div className="flex items-center space-x-2 text-sm">
               <Building className="h-3 w-3 text-muted-foreground" />
-              <span>Main Clinic</span>
+              <span>{t.mainClinic}</span>
             </div>
           </div>
 
@@ -305,7 +308,7 @@ const AppointmentCard = ({
                 className="flex-1 h-10"
               >
                 <RefreshCw className="h-4 w-4 mr-2" />
-                Reschedule
+                {t.reschedule}
               </Button>
               <Button
                 variant="outline"
@@ -314,7 +317,7 @@ const AppointmentCard = ({
                 className="flex-1 h-10 text-destructive hover:bg-destructive hover:text-destructive-foreground"
               >
                 <XCircle className="h-4 w-4 mr-2" />
-                Cancel
+                {t.cancel}
               </Button>
             </div>
           )}
@@ -339,6 +342,7 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({ user, onOpenAs
   const [activeRecall, setActiveRecall] = useState<RecallRecord | null>(null);
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | null>(null);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
+  const { t } = useLanguage();
 
   useEffect(() => {
     fetchAppointments();
@@ -442,12 +446,12 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({ user, onOpenAs
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-xl md:text-2xl font-bold">Appointments</h2>
-            <p className="text-sm text-muted-foreground">Manage your dental visits</p>
+            <h2 className="text-xl md:text-2xl font-bold">{t.appointments}</h2>
+            <p className="text-sm text-muted-foreground">{t.manageDentalVisits}</p>
           </div>
           <Button onClick={() => setShowBooking(true)} size="sm">
             <Plus className="h-4 w-4 mr-1" />
-            Book New
+            {t.bookNew}
           </Button>
         </div>
 
@@ -457,7 +461,7 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({ user, onOpenAs
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-muted-foreground">Total</p>
+                  <p className="text-xs text-muted-foreground">{t.total}</p>
                   <p className="text-2xl font-bold">{stats.total}</p>
                 </div>
                 <Calendar className="h-8 w-8 text-muted-foreground/30" />
@@ -468,7 +472,7 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({ user, onOpenAs
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-muted-foreground">Upcoming</p>
+                  <p className="text-xs text-muted-foreground">{t.upcoming}</p>
                   <p className="text-2xl font-bold text-green-600">{stats.upcoming}</p>
                 </div>
                 <TrendingUp className="h-8 w-8 text-green-600/30" />
@@ -479,7 +483,7 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({ user, onOpenAs
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-muted-foreground">Completed</p>
+                  <p className="text-xs text-muted-foreground">{t.completed}</p>
                   <p className="text-2xl font-bold text-blue-600">{stats.completed}</p>
                 </div>
                 <CheckCircle className="h-8 w-8 text-blue-600/30" />
@@ -490,7 +494,7 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({ user, onOpenAs
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-muted-foreground">Cancelled</p>
+                  <p className="text-xs text-muted-foreground">{t.cancelled}</p>
                   <p className="text-2xl font-bold text-red-600">{stats.cancelled}</p>
                 </div>
                 <XCircle className="h-8 w-8 text-red-600/30" />

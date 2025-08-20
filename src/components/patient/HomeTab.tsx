@@ -39,6 +39,7 @@ import { RecallBanner } from "@/components/patient/RecallBanner";
 import { useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getPatientActiveRecall, RecallRecord } from "@/lib/recalls";
+import { useLanguage } from "@/hooks/useLanguage";
 
 export interface HomeTabProps {
   userId: string;
@@ -72,6 +73,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
   const [greeting, setGreeting] = useState("");
   const unpaid = totalDueCents > 0;
   const [activeRecall, setActiveRecall] = useState<RecallRecord | null>(null);
+  const { t } = useLanguage();
 
   useEffect(() => {
     (async () => {
@@ -86,10 +88,10 @@ export const HomeTab: React.FC<HomeTabProps> = ({
 
   useEffect(() => {
     const hour = new Date().getHours();
-    if (hour < 12) setGreeting("Good morning");
-    else if (hour < 18) setGreeting("Good afternoon");
-    else setGreeting("Good evening");
-  }, []);
+    if (hour < 12) setGreeting(t.goodMorning);
+    else if (hour < 18) setGreeting(t.goodAfternoon);
+    else setGreeting(t.goodEvening);
+  }, [t]);
 
   // Mock data for demonstration - would come from API
   const healthRating = 85;

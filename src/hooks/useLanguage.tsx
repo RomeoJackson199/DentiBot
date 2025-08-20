@@ -251,6 +251,61 @@ interface Translations {
   total: string;
   created: string;
   failedToLoadDetails: string;
+
+  // Patient Dashboard Components  
+  goodMorning: string;
+  goodAfternoon: string;
+  goodEvening: string;
+  hereIsYourHealthOverview: string;
+  confirmed: string;
+  join: string;
+  activeMedications: string;
+  viewInCareTab: string;
+  balance: string;
+  due: string;
+  amountDue: string;
+  allPaid: string;
+  payNow: string;
+  aiAssistant: string;
+  getInstantHelpWith: string;
+  bookingAppointments: string;
+  dentalQuestions: string;
+  emergencyTriage: string;
+  startChat: string;
+  dailyTipsReminders: string;
+  morningReminder: string;
+  dontForgetToBrush: string;
+  healthTip: string;
+  flossingDaily: string;
+  upcoming: string;
+  dentalCleaningRecommended: string;
+  healthStats: string;
+  healthRating: string;
+  excellent: string;
+  visitsThisYear: string;
+  onTrack: string;
+  coverageUsed: string;
+  remaining: string;
+  healthImproved: string;
+  lastSixMonths: string;
+  treatmentPlans: string;
+  manageDentalVisits: string;
+  bookNew: string;
+  active: string;
+  mainClinic: string;
+  generalCheckup: string;
+  today: string;
+  calendar: string;
+  list: string;
+  history: string;
+  cancelled: string;
+
+  // Dentist Dashboard
+  loadingDentistDashboard: string;
+  notRegisteredAsDentist: string;
+  dentiDashboard: string;
+  dentistPortal: string;
+  loadingDentistProfile: string;
 }
 
 const translations: Record<Language, Translations> = {
@@ -536,6 +591,61 @@ How can I help you today?`,
     total: "Total:",
     created: "Created:",
     failedToLoadDetails: "Failed to load appointment details",
+
+    // Patient Dashboard Components
+    goodMorning: "Good morning",
+    goodAfternoon: "Good afternoon", 
+    goodEvening: "Good evening",
+    hereIsYourHealthOverview: "Here's your health overview",
+    confirmed: "Confirmed",
+    join: "Join",
+    activeMedications: "Active medications",
+    viewInCareTab: "View in Care tab",
+    balance: "Balance",
+    due: "Due",
+    amountDue: "Amount due",
+    allPaid: "All paid",
+    payNow: "Pay Now",
+    aiAssistant: "AI Assistant",
+    getInstantHelpWith: "Get instant help with:",
+    bookingAppointments: "Booking appointments",
+    dentalQuestions: "Dental questions",
+    emergencyTriage: "Emergency triage",
+    startChat: "Start Chat",
+    dailyTipsReminders: "Daily Tips & Reminders",
+    morningReminder: "Morning Reminder",
+    dontForgetToBrush: "Don't forget to brush for 2 minutes",
+    healthTip: "Health Tip",
+    flossingDaily: "Flossing daily reduces gum disease by 40%",
+    upcoming: "Upcoming",
+    dentalCleaningRecommended: "Dental cleaning recommended in 2 months",
+    healthStats: "Health Stats",
+    healthRating: "Health Rating",
+    excellent: "Excellent",
+    visitsThisYear: "Visits This Year",
+    onTrack: "On track",
+    coverageUsed: "Coverage Used",
+    remaining: "remaining",
+    healthImproved: "Health Improved",
+    lastSixMonths: "Last 6 months",
+    treatmentPlans: "Treatment Plans",
+    manageDentalVisits: "Manage your dental visits",
+    bookNew: "Book New",
+    active: "Active",
+    mainClinic: "Main Clinic",
+    generalCheckup: "General Checkup",
+    today: "Today",
+    calendar: "Calendar",
+    list: "List", 
+    history: "History",
+    cancelled: "Cancelled",
+
+    // Dentist Dashboard
+    loadingDentistDashboard: "Loading dentist dashboard...",
+    notRegisteredAsDentist: "You are not registered as a dentist. Please contact support.",
+    dentiDashboard: "Denti Dashboard",
+    dentistPortal: "Dentist Portal",
+    loadingDentistProfile: "Loading dentist profile...",
   },
   fr: {
     // Error & status messages
@@ -828,6 +938,61 @@ Comment puis-je vous aider aujourd'hui ?`,
     total: "Total :",
     created: "Créé :",
     failedToLoadDetails: "Échec du chargement des détails du rendez-vous",
+
+    // Patient Dashboard Components
+    goodMorning: "Bonjour",
+    goodAfternoon: "Bon après-midi",
+    goodEvening: "Bonsoir",
+    hereIsYourHealthOverview: "Voici votre aperçu santé",
+    confirmed: "Confirmé",
+    join: "Rejoindre",
+    activeMedications: "Médicaments actifs",
+    viewInCareTab: "Voir dans l'onglet Soins",
+    balance: "Solde",
+    due: "Dû",
+    amountDue: "Montant dû",
+    allPaid: "Tout payé",
+    payNow: "Payer Maintenant",
+    aiAssistant: "Assistant IA",
+    getInstantHelpWith: "Obtenez une aide instantanée avec :",
+    bookingAppointments: "Prise de rendez-vous",
+    dentalQuestions: "Questions dentaires",
+    emergencyTriage: "Triage d'urgence",
+    startChat: "Commencer le Chat",
+    dailyTipsReminders: "Conseils et Rappels Quotidiens",
+    morningReminder: "Rappel Matinal",
+    dontForgetToBrush: "N'oubliez pas de vous brosser les dents pendant 2 minutes",
+    healthTip: "Conseil Santé",
+    flossingDaily: "Utiliser le fil dentaire quotidiennement réduit les maladies des gencives de 40%",
+    upcoming: "À venir",
+    dentalCleaningRecommended: "Nettoyage dentaire recommandé dans 2 mois",
+    healthStats: "Statistiques de Santé",
+    healthRating: "Évaluation Santé",
+    excellent: "Excellent",
+    visitsThisYear: "Visites Cette Année",
+    onTrack: "Sur la bonne voie",
+    coverageUsed: "Couverture Utilisée",
+    remaining: "restant",
+    healthImproved: "Santé Améliorée",
+    lastSixMonths: "6 derniers mois",
+    treatmentPlans: "Plans de Traitement",
+    manageDentalVisits: "Gérez vos visites dentaires",
+    bookNew: "Nouveau",
+    active: "Actif",
+    mainClinic: "Clinique Principale",
+    generalCheckup: "Contrôle Général",
+    today: "Aujourd'hui",
+    calendar: "Calendrier",
+    list: "Liste",
+    history: "Historique",
+    cancelled: "Annulé",
+
+    // Dentist Dashboard
+    loadingDentistDashboard: "Chargement du tableau de bord dentiste...",
+    notRegisteredAsDentist: "Vous n'êtes pas enregistré comme dentiste. Veuillez contacter le support.",
+    dentiDashboard: "Tableau de Bord Denti",
+    dentistPortal: "Portail Dentiste",
+    loadingDentistProfile: "Chargement du profil dentiste...",
   },
   nl: {
     // Error & status messages
@@ -1116,6 +1281,61 @@ Hoe kan ik u vandaag helpen?`,
     total: "Totaal:",
     created: "Aangemaakt:",
     failedToLoadDetails: "Kan afspraak details niet laden",
+
+    // Patient Dashboard Components
+    goodMorning: "Goedemorgen",
+    goodAfternoon: "Goedemiddag",
+    goodEvening: "Goedenavond",
+    hereIsYourHealthOverview: "Hier is uw gezondheidsoverzicht",
+    confirmed: "Bevestigd",
+    join: "Deelnemen",
+    activeMedications: "Actieve medicijnen",
+    viewInCareTab: "Bekijk in Zorg tabblad",
+    balance: "Saldo",
+    due: "Verschuldigd",
+    amountDue: "Verschuldigd bedrag",
+    allPaid: "Alles betaald",
+    payNow: "Nu Betalen",
+    aiAssistant: "AI Assistent",
+    getInstantHelpWith: "Krijg directe hulp bij:",
+    bookingAppointments: "Afspraken maken",
+    dentalQuestions: "Tandheelkundige vragen",
+    emergencyTriage: "Spoed triage",
+    startChat: "Start Chat",
+    dailyTipsReminders: "Dagelijkse Tips & Herinneringen",
+    morningReminder: "Ochtend Herinnering",
+    dontForgetToBrush: "Vergeet niet om 2 minuten te poetsen",
+    healthTip: "Gezondheids Tip",
+    flossingDaily: "Dagelijks flossen vermindert tandvleesaandoeningen met 40%",
+    upcoming: "Komend",
+    dentalCleaningRecommended: "Tandreiniging aanbevolen over 2 maanden",
+    healthStats: "Gezondheids Statistieken",
+    healthRating: "Gezondheids Beoordeling",
+    excellent: "Uitstekend",
+    visitsThisYear: "Bezoeken Dit Jaar",
+    onTrack: "Op schema",
+    coverageUsed: "Dekking Gebruikt",
+    remaining: "resterend",
+    healthImproved: "Gezondheid Verbeterd",
+    lastSixMonths: "Laatste 6 maanden",
+    treatmentPlans: "Behandelplannen",
+    manageDentalVisits: "Beheer uw tandheelkundige bezoeken",
+    bookNew: "Nieuwe",
+    active: "Actief",
+    mainClinic: "Hoofdkliniek",
+    generalCheckup: "Algemene Controle",
+    today: "Vandaag",
+    calendar: "Kalender",
+    list: "Lijst",
+    history: "Geschiedenis",
+    cancelled: "Geannuleerd",
+
+    // Dentist Dashboard
+    loadingDentistDashboard: "Tandarts dashboard laden...",
+    notRegisteredAsDentist: "U bent niet geregistreerd als tandarts. Neem contact op met de ondersteuning.",
+    dentiDashboard: "Denti Dashboard",
+    dentistPortal: "Tandarts Portaal",
+    loadingDentistProfile: "Tandartsprofiel laden...",
   },
 };
 
