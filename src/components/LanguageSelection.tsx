@@ -6,8 +6,7 @@ import { useLanguage } from "@/hooks/useLanguage";
 
 const languages = [
   { code: 'en' as const, name: 'English', flag: '🇺🇸', label: 'US English' },
-  { code: 'fr' as const, name: 'Français', flag: '🇫🇷', label: 'FR Français' },
-  { code: 'nl' as const, name: 'Nederlands', flag: '🇳🇱', label: 'NL Nederlands' },
+  { code: 'fr' as const, name: 'Français', flag: '🇫🇷', label: 'FR Français' }
 ];
 
 interface LanguageSelectionProps {
@@ -16,9 +15,9 @@ interface LanguageSelectionProps {
 
 export const LanguageSelection = ({ onLanguageSelected }: LanguageSelectionProps) => {
   const { language, setLanguage, t } = useLanguage();
-  const [selectedLang, setSelectedLang] = useState<'en' | 'fr' | 'nl'>(language);
+  const [selectedLang, setSelectedLang] = useState<'en' | 'fr'>(language as 'en' | 'fr');
 
-  const handleLanguageSelect = (languageCode: 'en' | 'fr' | 'nl') => {
+  const handleLanguageSelect = (languageCode: 'en' | 'fr') => {
     setSelectedLang(languageCode);
   };
 

@@ -5,8 +5,7 @@ import { useLanguage } from "@/hooks/useLanguage";
 
 const languages = [
   { code: 'en', name: 'English', flag: '🇺🇸' },
-  { code: 'nl', name: 'Nederlands', flag: '🇳🇱' },
-  { code: 'fr', name: 'Français', flag: '🇫🇷' },
+  { code: 'fr', name: 'Français', flag: '🇫🇷' }
 ];
 
 export const LanguageSelector = () => {
@@ -31,7 +30,7 @@ export const LanguageSelector = () => {
         {languages.map((lang) => (
           <DropdownMenuItem
             key={lang.code}
-            onClick={() => setLanguage(lang.code as 'en' | 'fr' | 'nl')}
+            onClick={() => setLanguage(lang.code as 'en' | 'fr')}
             className={`gap-2 ${language === lang.code ? 'bg-dental-primary/10 text-dental-primary' : 'hover:bg-dental-primary/5'}`}
           >
             <span>{lang.flag}</span>

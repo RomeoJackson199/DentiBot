@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Check } from "lucide-react";
 import {
   Select,
@@ -12,27 +11,21 @@ import { useLanguage } from "@/hooks/useLanguage";
 
 const languages = [
   { code: 'en' as const, name: 'English', flag: '🇺🇸', label: 'US English' },
-  { code: 'fr' as const, name: 'Français', flag: '🇫🇷', label: 'FR Français' },
-  { code: 'nl' as const, name: 'Nederlands', flag: '🇳🇱', label: 'NL Nederlands' },
+  { code: 'fr' as const, name: 'Français', flag: '🇫🇷', label: 'FR Français' }
 ];
 
 export const LanguageSettings = () => {
-  const { language, setLanguage, t } = useLanguage();
+  const { language, setLanguage, t } = useLanguage('settings');
   const { toast } = useToast();
 
-  const handleLanguageChange = (languageCode: 'en' | 'fr' | 'nl') => {
-    console.log('Language change initiated:', languageCode);
+  const handleLanguageChange = (languageCode: 'en' | 'fr') => {
     setLanguage(languageCode);
+    document.cookie = `i18next=${languageCode}; path=/; max-age=${60 * 60 * 24 * 365}`;
     const languageObj = languages.find(lang => lang.code === languageCode);
     toast({
-      title: t.languageUpdated,
-      description: `${t.languageChangedTo} ${languageObj?.name}`,
+      title: (t as any)('language.updated'),
+      description: (t as any)('language.changedTo', { language: languageObj?.name })
     });
-    
-    // Force a small delay to ensure state updates propagate
-    setTimeout(() => {
-      console.log('Language should now be:', languageCode);
-    }, 100);
   };
 
   const currentLanguage = languages.find(lang => lang.code === language);

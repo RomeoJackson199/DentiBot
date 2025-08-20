@@ -1,0 +1,8 @@
+{
+  "actions.save": "Enregistrer",
+  "actions.cancel": "Annuler",
+  "actions.delete": "Supprimer",
+  "nav.home": "Accueil",
+  "nav.patients": "Patients",
+  "nav.settings": "Paramètres"
+}

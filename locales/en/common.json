@@ -1,0 +1,8 @@
+{
+  "actions.save": "Save",
+  "actions.cancel": "Cancel",
+  "actions.delete": "Delete",
+  "nav.home": "Home",
+  "nav.patients": "Patients",
+  "nav.settings": "Settings"
+}

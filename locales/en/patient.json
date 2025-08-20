@@ -1,0 +1,6 @@
+{
+  "dashboard.title": "Patient Dashboard",
+  "appointment.onDate": "Appointment on {{date}}",
+  "appointments": "{{count}} appointment",
+  "appointments_plural": "{{count}} appointments"
+}
