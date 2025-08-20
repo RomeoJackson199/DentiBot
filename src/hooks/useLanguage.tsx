@@ -228,6 +228,29 @@ interface Translations {
 
   // Emergency Triage
   'triage.title': string;
+
+  // Appointment Details Dialog
+  appointmentDetailsTitle: string;
+  appointmentInformation: string;
+  urgency: string;
+  reason: string;
+  completed: string;
+  notes: string;
+  consultationNotes: string;
+  additionalNotes: string;
+  medicalRecords: string;
+  prescriptions: string;
+  billingInformation: string;
+  findings: string;
+  recommendations: string;
+  prescribed: string;
+  invoice: string;
+  download: string;
+  patientAmount: string;
+  vat: string;
+  total: string;
+  created: string;
+  failedToLoadDetails: string;
 }
 
 const translations: Record<Language, Translations> = {
@@ -490,6 +513,29 @@ How can I help you today?`,
 
     // Emergency Triage
     'triage.title': "Emergency Dental Triage",
+
+    // Appointment Details Dialog
+    appointmentDetailsTitle: "Appointment Details",
+    appointmentInformation: "Appointment Information",
+    urgency: "urgency",
+    reason: "Reason:",
+    completed: "Completed:",
+    notes: "Notes",
+    consultationNotes: "Consultation Notes",
+    additionalNotes: "Additional Notes",
+    medicalRecords: "Medical Records",
+    prescriptions: "Prescriptions",
+    billingInformation: "Billing Information",
+    findings: "Findings:",
+    recommendations: "Recommendations:",
+    prescribed: "Prescribed:",
+    invoice: "Invoice",
+    download: "Download",
+    patientAmount: "Patient Amount:",
+    vat: "VAT:",
+    total: "Total:",
+    created: "Created:",
+    failedToLoadDetails: "Failed to load appointment details",
   },
   fr: {
     // Error & status messages
@@ -759,6 +805,29 @@ Comment puis-je vous aider aujourd'hui ?`,
 
     // Emergency Triage
     'triage.title': "Triage Dentaire d'Urgence",
+
+    // Appointment Details Dialog
+    appointmentDetailsTitle: "Détails du Rendez-vous",
+    appointmentInformation: "Informations du Rendez-vous",
+    urgency: "urgence",
+    reason: "Motif :",
+    completed: "Terminé :",
+    notes: "Notes",
+    consultationNotes: "Notes de Consultation",
+    additionalNotes: "Notes Supplémentaires",
+    medicalRecords: "Dossiers Médicaux",
+    prescriptions: "Prescriptions",
+    billingInformation: "Informations de Facturation",
+    findings: "Constatations :",
+    recommendations: "Recommandations :",
+    prescribed: "Prescrit :",
+    invoice: "Facture",
+    download: "Télécharger",
+    patientAmount: "Montant Patient :",
+    vat: "TVA :",
+    total: "Total :",
+    created: "Créé :",
+    failedToLoadDetails: "Échec du chargement des détails du rendez-vous",
   },
   nl: {
     // Error & status messages
@@ -1024,6 +1093,29 @@ Hoe kan ik u vandaag helpen?`,
 
     // Emergency Triage
     'triage.title': "Spoed Tandheelkundige Triage",
+
+    // Appointment Details Dialog
+    appointmentDetailsTitle: "Afspraak Details",
+    appointmentInformation: "Afspraak Informatie",
+    urgency: "urgentie",
+    reason: "Reden:",
+    completed: "Voltooid:",
+    notes: "Notities",
+    consultationNotes: "Consultatie Notities",
+    additionalNotes: "Aanvullende Notities",
+    medicalRecords: "Medische Dossiers",
+    prescriptions: "Voorschriften",
+    billingInformation: "Factuur Informatie",
+    findings: "Bevindingen:",
+    recommendations: "Aanbevelingen:",
+    prescribed: "Voorgeschreven:",
+    invoice: "Factuur",
+    download: "Downloaden",
+    patientAmount: "Patiënt Bedrag:",
+    vat: "BTW:",
+    total: "Totaal:",
+    created: "Aangemaakt:",
+    failedToLoadDetails: "Kan afspraak details niet laden",
   },
 };
 

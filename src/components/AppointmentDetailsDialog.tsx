@@ -21,6 +21,7 @@ import {
   Download
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/hooks/useLanguage";
 
 interface AppointmentDetailsProps {
   appointmentId: string;
@@ -31,6 +32,7 @@ interface AppointmentDetailsProps {
 export function AppointmentDetailsDialog({ appointmentId, open, onOpenChange }: AppointmentDetailsProps) {
   const [appointment, setAppointment] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const { t } = useLanguage();
 
   useEffect(() => {
     if (open && appointmentId) {
@@ -112,7 +114,7 @@ export function AppointmentDetailsDialog({ appointmentId, open, onOpenChange }: 
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Calendar className="h-5 w-5" />
-            Appointment Details
+            {t.appointmentDetailsTitle}
           </DialogTitle>
         </DialogHeader>
         
@@ -127,13 +129,13 @@ export function AppointmentDetailsDialog({ appointmentId, open, onOpenChange }: 
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center justify-between">
-                    <span>Appointment Information</span>
+                    <span>{t.appointmentInformation}</span>
                     <div className="flex items-center gap-2">
                       <Badge className={cn("text-white", getStatusColor(appointment.status))}>
                         {appointment.status}
                       </Badge>
                       <Badge className={getUrgencyColor(appointment.urgency)}>
-                        {appointment.urgency} urgency
+                        {appointment.urgency} {t.urgency}
                       </Badge>
                     </div>
                   </CardTitle>
@@ -174,7 +176,7 @@ export function AppointmentDetailsDialog({ appointmentId, open, onOpenChange }: 
                     )}
                     {appointment.reason && (
                       <div>
-                        <span className="text-sm font-medium">Reason:</span>
+                        <span className="text-sm font-medium">{t.reason}</span>
                         <p className="text-sm text-muted-foreground">{appointment.reason}</p>
                       </div>
                     )}
@@ -182,7 +184,7 @@ export function AppointmentDetailsDialog({ appointmentId, open, onOpenChange }: 
                       <div className="flex items-center gap-2">
                         <CheckCircle className="h-4 w-4 text-green-500" />
                         <span className="text-sm">
-                          Completed: {format(new Date(appointment.treatment_completed_at), 'PPp')}
+                          {t.completed} {format(new Date(appointment.treatment_completed_at), 'PPp')}
                         </span>
                       </div>
                     )}
@@ -196,13 +198,13 @@ export function AppointmentDetailsDialog({ appointmentId, open, onOpenChange }: 
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <FileText className="h-5 w-5" />
-                      Notes
+                      {t.notes}
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     {appointment.consultation_notes && (
                       <div>
-                        <h4 className="font-medium mb-2">Consultation Notes</h4>
+                        <h4 className="font-medium mb-2">{t.consultationNotes}</h4>
                         <p className="text-sm text-muted-foreground whitespace-pre-wrap">
                           {appointment.consultation_notes}
                         </p>
@@ -210,7 +212,7 @@ export function AppointmentDetailsDialog({ appointmentId, open, onOpenChange }: 
                     )}
                     {appointment.notes && (
                       <div>
-                        <h4 className="font-medium mb-2">Additional Notes</h4>
+                        <h4 className="font-medium mb-2">{t.additionalNotes}</h4>
                         <p className="text-sm text-muted-foreground whitespace-pre-wrap">
                           {appointment.notes}
                         </p>
@@ -226,7 +228,7 @@ export function AppointmentDetailsDialog({ appointmentId, open, onOpenChange }: 
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <FileText className="h-5 w-5" />
-                      Medical Records
+                      {t.medicalRecords}
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
@@ -244,13 +246,13 @@ export function AppointmentDetailsDialog({ appointmentId, open, onOpenChange }: 
                           )}
                           {record.findings && (
                             <div className="mb-2">
-                              <span className="text-sm font-medium">Findings:</span>
+                              <span className="text-sm font-medium">{t.findings}</span>
                               <p className="text-sm text-muted-foreground">{record.findings}</p>
                             </div>
                           )}
                           {record.recommendations && (
                             <div className="mb-2">
-                              <span className="text-sm font-medium">Recommendations:</span>
+                              <span className="text-sm font-medium">{t.recommendations}</span>
                               <p className="text-sm text-muted-foreground">{record.recommendations}</p>
                             </div>
                           )}
@@ -270,7 +272,7 @@ export function AppointmentDetailsDialog({ appointmentId, open, onOpenChange }: 
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <Pill className="h-5 w-5" />
-                      Prescriptions
+                      {t.prescriptions}
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
@@ -289,7 +291,7 @@ export function AppointmentDetailsDialog({ appointmentId, open, onOpenChange }: 
                             </p>
                           )}
                           <p className="text-xs text-muted-foreground">
-                            Prescribed: {format(new Date(prescription.prescribed_date), 'PPP')}
+                            {t.prescribed} {format(new Date(prescription.prescribed_date), 'PPP')}
                           </p>
                         </div>
                       ))}
@@ -304,7 +306,7 @@ export function AppointmentDetailsDialog({ appointmentId, open, onOpenChange }: 
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <DollarSign className="h-5 w-5" />
-                      Billing Information
+                      {t.billingInformation}
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
@@ -312,7 +314,7 @@ export function AppointmentDetailsDialog({ appointmentId, open, onOpenChange }: 
                       {appointment.invoices.map((invoice: any) => (
                         <div key={invoice.id} className="border rounded-lg p-4">
                           <div className="flex items-center justify-between mb-4">
-                            <h4 className="font-medium">Invoice #{invoice.id.slice(-8)}</h4>
+                            <h4 className="font-medium">{t.invoice} #{invoice.id.slice(-8)}</h4>
                             <div className="flex items-center gap-2">
                               <Badge 
                                 className={cn(
@@ -325,7 +327,7 @@ export function AppointmentDetailsDialog({ appointmentId, open, onOpenChange }: 
                               </Badge>
                               <Button variant="outline" size="sm">
                                 <Download className="h-4 w-4 mr-1" />
-                                Download
+                                {t.download}
                               </Button>
                             </div>
                           </div>
@@ -344,21 +346,21 @@ export function AppointmentDetailsDialog({ appointmentId, open, onOpenChange }: 
                           <Separator className="my-2" />
                           <div className="space-y-1 text-sm">
                             <div className="flex justify-between">
-                              <span>Patient Amount:</span>
+                              <span>{t.patientAmount}</span>
                               <span>{formatCurrency(invoice.patient_amount_cents)}</span>
                             </div>
                             <div className="flex justify-between">
-                              <span>VAT:</span>
+                              <span>{t.vat}</span>
                               <span>{formatCurrency(invoice.vat_amount_cents)}</span>
                             </div>
                             <div className="flex justify-between font-medium text-base">
-                              <span>Total:</span>
+                              <span>{t.total}</span>
                               <span>{formatCurrency(invoice.total_amount_cents)}</span>
                             </div>
                           </div>
                           
                           <p className="text-xs text-muted-foreground mt-2">
-                            Created: {format(new Date(invoice.created_at), 'PPP')}
+                            {t.created} {format(new Date(invoice.created_at), 'PPP')}
                           </p>
                         </div>
                       ))}
@@ -372,7 +374,7 @@ export function AppointmentDetailsDialog({ appointmentId, open, onOpenChange }: 
           <div className="flex items-center justify-center p-8">
             <div className="text-center">
               <AlertCircle className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-              <p className="text-muted-foreground">Failed to load appointment details</p>
+              <p className="text-muted-foreground">{t.failedToLoadDetails}</p>
             </div>
           </div>
         )}
