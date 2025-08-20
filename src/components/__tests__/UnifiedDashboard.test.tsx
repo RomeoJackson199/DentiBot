@@ -255,11 +255,14 @@ describe('UnifiedDashboard', () => {
         <UnifiedDashboard user={mockUser} />
       </BrowserRouter>
     );
-    
+
     await waitFor(async () => {
-      const logoutButton = screen.getByText(/logout/i);
+      const settingsButton = screen.getByText(/settings/i);
+      await user.click(settingsButton);
+
+      const logoutButton = await screen.findByText(/sign out/i);
       await user.click(logoutButton);
-      
+
       // Should redirect to login or show logout confirmation
       expect(mockToast.toast).toHaveBeenCalled();
     });
