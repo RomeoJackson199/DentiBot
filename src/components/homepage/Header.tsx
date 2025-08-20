@@ -4,6 +4,7 @@ import { ProgressiveAuthForm } from "@/components/ProgressiveAuthForm";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { User } from "@supabase/supabase-js";
 import { Stethoscope, Menu, X, Calendar, Activity, BarChart3, Settings, Phone } from "lucide-react";
+import { useLanguage } from "@/hooks/useLanguage";
 
 interface HeaderProps {
   user: User | null;
@@ -15,20 +16,22 @@ export const Header = ({
   minimal = false
 }: HeaderProps) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { language, t } = useLanguage();
+
   const navigation = [{
-    name: 'Emergency Triage',
+    name: language === 'fr' ? "Triage d'urgence" : language === 'nl' ? 'Spoed Triage' : 'Emergency Triage',
     href: '/emergency-triage',
     icon: Activity
   }, {
-    name: 'Schedule',
+    name: language === 'fr' ? 'Agenda' : language === 'nl' ? 'Agenda' : 'Schedule',
     href: '/schedule',
     icon: Calendar
   }, {
-    name: 'Analytics',
+    name: language === 'fr' ? 'Analyses' : language === 'nl' ? 'Analytics' : 'Analytics',
     href: '/analytics',
     icon: BarChart3
   }, {
-    name: 'Support',
+    name: language === 'fr' ? 'Assistance' : language === 'nl' ? 'Support' : 'Support',
     href: '/support',
     icon: Phone
   }];
@@ -51,7 +54,7 @@ export const Header = ({
                 Denti Bot Unified
               </h1>
               <p className="text-xs lg:text-sm text-dental-muted-foreground">
-                AI-Powered Dental Care Platform
+                {language === 'fr' ? "Plateforme de soins dentaires propulsée par l'IA" : language === 'nl' ? "Door AI aangedreven tandheelkundig platform" : 'AI-Powered Dental Care Platform'}
               </p>
             </div>
           </div>
@@ -84,7 +87,7 @@ export const Header = ({
                 </div>
                 <div className="block sm:hidden">
                   <Button size="sm" variant="outline" className="bg-white/10 backdrop-blur-sm border-white/20 text-dental-primary">
-                    Sign In
+                    {t.signIn}
                   </Button>
                 </div>
               </>
@@ -92,7 +95,7 @@ export const Header = ({
               <Button variant="outline" className="bg-white/10 backdrop-blur-sm border-white/20 text-dental-primary hover:bg-white/20" asChild>
                 <a href="/dashboard">
                   <Settings className="w-4 h-4 mr-2" />
-                  Dashboard
+                  {language === 'fr' ? 'Tableau de bord' : 'Dashboard'}
                 </a>
               </Button>
             )}
