@@ -24,21 +24,21 @@ interface ModernHeroSectionProps {
 }
 
 export function ModernHeroSection({ onBookAppointment, onStartTriage, onOpenAIChat, minimal = false }: ModernHeroSectionProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
 
   const features = [
-    { icon: Brain, title: "AI-Powered", description: "Smart dental assistance" },
-    { icon: Shield, title: "Secure", description: "HIPAA compliant platform" },
-    { icon: Zap, title: "Fast", description: "Instant triage & booking" },
-    { icon: Users, title: "Connected", description: "Seamless communication" }
+    { icon: Brain, title: t.aiDiagnosis, description: t.aiDiagnosisDesc },
+    { icon: Shield, title: "Secure", description: language === 'fr' ? 'Conforme à la HIPAA' : language === 'nl' ? 'HIPAA-conform' : 'HIPAA compliant platform' },
+    { icon: Zap, title: t.smartBooking, description: t.smartBookingDesc },
+    { icon: Users, title: language === 'fr' ? 'Connecté' : language === 'nl' ? 'Verbonden' : 'Connected', description: language === 'fr' ? 'Communication fluide' : language === 'nl' ? 'Naadloze communicatie' : 'Seamless communication' }
   ];
 
   const stats = [
-    { value: "10k+", label: "Happy Patients" },
-    { value: "500+", label: "Dental Professionals" },
-    { value: "95%", label: "Satisfaction Rate" },
-    { value: "24/7", label: "AI Support" }
+    { value: "10k+", label: language === 'fr' ? 'Patients satisfaits' : language === 'nl' ? 'Tevreden patiënten' : 'Happy Patients' },
+    { value: "500+", label: language === 'fr' ? 'Professionnels dentaires' : language === 'nl' ? 'Tandheelkundige professionals' : 'Dental Professionals' },
+    { value: "95%", label: language === 'fr' ? 'Taux de satisfaction' : language === 'nl' ? 'Tevredenheidspercentage' : 'Satisfaction Rate' },
+    { value: "24/7", label: language === 'fr' ? 'Assistance IA' : language === 'nl' ? 'AI-ondersteuning' : 'AI Support' }
   ];
 
   return (
@@ -78,21 +78,20 @@ export function ModernHeroSection({ onBookAppointment, onStartTriage, onOpenAICh
           <div className="animate-fade-in">
             <Badge variant="secondary" className="bg-gradient-primary text-white px-6 py-2 text-sm rounded-full shadow-glow">
               <Sparkles className="h-4 w-4 mr-2" />
-              Powered by Advanced AI
+              {language === 'fr' ? 'Propulsé par une IA avancée' : language === 'nl' ? 'Aangedreven door geavanceerde AI' : 'Powered by Advanced AI'}
             </Badge>
           </div>
 
           {/* Main Headline */}
           <div className="space-y-6 animate-slide-up" style={{ animationDelay: "0.2s" }}>
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold leading-tight">
-              <span className="gradient-text">Smart Dental Care</span>
+              <span className="gradient-text">{language === 'fr' ? 'Soins dentaires intelligents' : language === 'nl' ? 'Slimme tandheelkundige zorg' : 'Smart Dental Care'}</span>
               <br />
-              <span className="text-foreground">Made Simple</span>
+              <span className="text-foreground">{language === 'fr' ? 'Simplifiés' : language === 'nl' ? 'Eenvoudig gemaakt' : 'Made Simple'}</span>
             </h1>
             
             <p className="text-xl sm:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-              Experience the future of dental care with AI-powered triage, 
-              smart scheduling, and seamless patient-dentist communication.
+              {t.experienceFuture}
             </p>
           </div>
 
@@ -124,7 +123,7 @@ export function ModernHeroSection({ onBookAppointment, onStartTriage, onOpenAICh
               className="group min-w-[200px]"
             >
               <Calendar className="h-5 w-5 mr-2 group-hover:scale-110 transition-transform" />
-              Book Appointment
+              {t.bookAppointment}
               <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
             </Button>
             
@@ -136,7 +135,7 @@ export function ModernHeroSection({ onBookAppointment, onStartTriage, onOpenAICh
               className="group min-w-[200px] border-dental-primary/30 hover:bg-dental-primary/5"
             >
               <Shield className="h-5 w-5 mr-2 group-hover:scale-110 transition-transform" />
-              Emergency Triage
+              {t['triage.title']}
             </Button>
 
             {onOpenAIChat && (
@@ -148,7 +147,7 @@ export function ModernHeroSection({ onBookAppointment, onStartTriage, onOpenAICh
                 className="group min-w-[200px] border-dental-primary/30 hover:bg-dental-primary/5"
               >
                 <Brain className="h-5 w-5 mr-2 group-hover:scale-110 transition-transform" />
-                Talk to AI
+                {language === 'fr' ? "Parler à l'IA" : language === 'nl' ? 'Praat met AI' : 'Talk to AI'}
               </Button>
             )}
           </div>
@@ -181,11 +180,11 @@ export function ModernHeroSection({ onBookAppointment, onStartTriage, onOpenAICh
                       className="group hover:scale-110 transition-all duration-300"
                     >
                       <Play className="h-8 w-8 mr-2 group-hover:scale-110 transition-transform" />
-                      Watch Demo
-                    </Button>
-                  ) : (
+                      {language === 'fr' ? 'Regarder la démo' : language === 'nl' ? 'Bekijk demo' : 'Watch Demo'}
+                      </Button>
+                    ) : (
                     <div className="text-white text-lg font-medium">
-                      Demo Video Playing...
+                      {language === 'fr' ? 'Lecture de la vidéo de démonstration...' : language === 'nl' ? 'Demovideo wordt afgespeeld...' : 'Demo Video Playing...'}
                     </div>
                   )}
                 </div>
@@ -198,15 +197,15 @@ export function ModernHeroSection({ onBookAppointment, onStartTriage, onOpenAICh
             <div className="flex flex-col sm:flex-row items-center justify-center gap-8 pt-8 animate-fade-in" style={{ animationDelay: "1.4s" }}>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Shield className="h-4 w-4 text-dental-success" />
-                HIPAA Compliant
+                {language === 'fr' ? 'Conforme à la HIPAA' : language === 'nl' ? 'HIPAA-conform' : 'HIPAA Compliant'}
               </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Star className="h-4 w-4 text-dental-warning" />
-                4.9/5 Rating
+                {language === 'fr' ? 'Note 4,9/5' : language === 'nl' ? 'Beoordeling 4,9/5' : '4.9/5 Rating'}
               </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Users className="h-4 w-4 text-dental-info" />
-                Trusted by 500+ Dentists
+                {language === 'fr' ? 'Adopté par 500+ dentistes' : language === 'nl' ? 'Vertrouwd door 500+ tandartsen' : 'Trusted by 500+ Dentists'}
               </div>
             </div>
           )}

@@ -971,7 +971,7 @@ Hoe kan ik u vandaag helpen?`,
     childConsentNote: "Als u gegevens invoert voor een patiënt jonger dan 16 jaar, bevestigt u dat u hun ouder of wettelijke voogd bent en toestemt met de verwerking van hun gegevens.",
     downloadMyData: "Mijn Gegevens Downloaden",
     deleteAccount: "Mijn Account en Gegevens Verwijderen",
-    deleteAccountConfirm: "Het verwijderen van uw account verwijdert al uw persoonlijke- en gezondheidsgegevens permanent uit de systemen van DentiBot. Dit kan niet ongedaan worden gemaakt. Weet u het zeker?",
+    deleteAccountConfirm: "Het verwijderen van uw account verwijdert al uw persoonlijke- en gezondheidsgegevens permanent uit de systemen van DentiBot. Dette kan niet ongedaan worden gemaakt. Weet u het zeker?",
     aiAdviceDisclaimer: "⚠️ AI-suggesties zijn alleen voor informatiedoeleinden en vervangen geen professioneel tandheelkundig advies.",
 
     // Onboarding
@@ -1086,3 +1086,4 @@ export const useLanguage = () => {
   }
   return context;
 };
+
