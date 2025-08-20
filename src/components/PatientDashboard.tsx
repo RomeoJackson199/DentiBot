@@ -639,6 +639,26 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
 
       {activeSection === 'settings' && (
         <div className="px-4 md:px-6 py-4">
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-3">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setActiveSection('home')}
+                  className="hover:bg-muted/50"
+                >
+                  <ChevronRight className="h-4 w-4 rotate-180 mr-2" />
+                  Back to Home
+                </Button>
+              </div>
+            </div>
+            <div className="flex items-center space-x-3 mb-2">
+              <SettingsIcon className="h-6 w-6 text-primary" />
+              <h1 className="text-2xl font-bold text-foreground">Settings</h1>
+            </div>
+            <p className="text-muted-foreground">Manage your account preferences and personal information</p>
+          </div>
           <ModernSettings user={user} />
         </div>
       )}

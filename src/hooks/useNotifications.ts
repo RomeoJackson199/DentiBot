@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Notification, NotificationPreferences } from '../types/common';
 import { NotificationService } from '../lib/notificationService';
 
@@ -20,6 +20,17 @@ export const useNotifications = (userId: string): UseNotificationsReturn => {
   const [preferences, setPreferences] = useState<NotificationPreferences | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Debounced state update to prevent rapid changes
+  const debouncedSetUnreadCount = useCallback((newCount: number) => {
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+    debounceRef.current = setTimeout(() => {
+      setUnreadCount(newCount);
+    }, 100);
+  }, []);
 
   // Fetch notifications and preferences
   const fetchData = useCallback(async () => {
@@ -57,12 +68,12 @@ export const useNotifications = (userId: string): UseNotificationsReturn => {
             : notif
         )
       );
-      setUnreadCount(prev => Math.max(0, prev - 1));
+      debouncedSetUnreadCount(Math.max(0, unreadCount - 1));
     } catch (err) {
       console.error('Error marking notification as read:', err);
       setError(err instanceof Error ? err.message : 'Failed to mark notification as read');
     }
-  }, []);
+  }, [unreadCount, debouncedSetUnreadCount]);
 
   // Mark all notifications as read
   const markAllAsRead = useCallback(async () => {
@@ -101,19 +112,28 @@ export const useNotifications = (userId: string): UseNotificationsReturn => {
     const subscription = NotificationService.subscribeToNotifications(userId, (newNotification) => {
       setNotifications(prev => [newNotification, ...prev.slice(0, 49)]);
       if (!newNotification.is_read) {
-        setUnreadCount(prev => prev + 1);
+        debouncedSetUnreadCount(unreadCount + 1);
       }
     });
 
     return () => {
       NotificationService.unsubscribeFromNotifications(userId);
     };
-  }, [userId]);
+  }, [userId, unreadCount, debouncedSetUnreadCount]);
 
   // Initial fetch
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  // Cleanup debounce on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+    };
+  }, []);
 
   return {
     notifications,
