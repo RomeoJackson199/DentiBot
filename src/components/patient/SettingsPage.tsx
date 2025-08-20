@@ -42,7 +42,9 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ user }) => {
       try {
         const data = await loadProfileData(user);
         setProfile(data);
-      } catch {}
+      } catch {
+        // ignore profile load errors in settings
+      }
     })();
   }, [user]);
 

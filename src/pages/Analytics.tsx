@@ -56,9 +56,9 @@ const clamp = (value: number, min: number, max: number) => Math.max(min, Math.mi
 function generateTrend(days: number): TrendPoint[] {
   const today = new Date();
   const points: TrendPoint[] = [];
-  let revenueBase = 1100;
-  let apptBase = 18;
-  let noShowBase = 0.06;
+  const revenueBase = 1100;
+  const apptBase = 18;
+  const noShowBase = 0.06;
 
   for (let i = days - 1; i >= 0; i--) {
     const d = subDays(today, i);

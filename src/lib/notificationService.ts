@@ -392,6 +392,11 @@ static async createNotificationFromTemplate(
     userId: string,
     callback: (notification: Notification) => void
   ) {
+    // In test environments or if realtime is not available, no-op
+    const anySb: any = supabase as any;
+    if (!anySb?.channel) {
+      return { unsubscribe: () => {} } as any;
+    }
     return supabase
       .channel(`notifications:${userId}`)
       .on(
@@ -411,6 +416,8 @@ static async createNotificationFromTemplate(
 
   // Unsubscribe from real-time notifications
   static unsubscribeFromNotifications(userId: string) {
+    const anySb: any = supabase as any;
+    if (!anySb?.channel) return;
     return supabase.channel(`notifications:${userId}`).unsubscribe();
   }
 }

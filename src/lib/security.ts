@@ -62,7 +62,8 @@ export const validatePassword = (password: string): { isValid: boolean; errors: 
     errors.push('Password must contain at least one number');
   }
   
-  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\?]/.test(password)) {
+  // At least one non-alphanumeric character (treat as special character)
+  if (!/[^A-Za-z0-9]/.test(password)) {
     errors.push('Password must contain at least one special character');
   }
   

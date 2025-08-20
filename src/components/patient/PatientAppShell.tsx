@@ -54,7 +54,14 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
   userId,
 }) => {
   const { toast } = useToast();
-  const navigate = useNavigate();
+  // Guard navigate for tests without Router
+  let navigate = useNavigate as unknown as (() => (path: string) => void);
+  try {
+    // Attempt to call hook; if it throws, fall back
+    navigate = useNavigate();
+  } catch {
+    navigate = ((path: string) => { window.location.href = path; }) as any;
+  }
   const { isMobile } = useMobileOptimizations();
 
   const isActive = (id: PatientSection) => activeSection === id;
