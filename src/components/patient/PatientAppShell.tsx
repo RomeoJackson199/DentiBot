@@ -72,6 +72,15 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
     }
   };
 
+  const handleSettingsClick = () => {
+    // If we're already on settings, do nothing to prevent confusion
+    if (activeSection === 'settings') {
+      return;
+    }
+    // Change to settings section
+    onChangeSection('settings');
+  };
+
   if (isMobile) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
@@ -89,14 +98,21 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
               <NotificationButton userId={userId} />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="hover:bg-primary/10">
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className={cn(
+                      "hover:bg-primary/10 transition-colors",
+                      activeSection === 'settings' && "bg-primary/10 text-primary"
+                    )}
+                  >
                     <SettingsIcon className="h-5 w-5" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
                   <DropdownMenuLabel>Menu</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => onChangeSection('settings')}>
+                  <DropdownMenuItem onClick={handleSettingsClick}>
                     <SettingsIcon className="mr-2 h-4 w-4" />
                     Settings
                   </DropdownMenuItem>
@@ -226,12 +242,19 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
             <NotificationButton userId={userId} />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="hover:bg-primary/10">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className={cn(
+                    "hover:bg-primary/10 transition-colors",
+                    activeSection === 'settings' && "bg-primary/10 text-primary"
+                  )}
+                >
                   <SettingsIcon className="h-5 w-5" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48 mb-2">
-                <DropdownMenuItem onClick={() => onChangeSection('settings')}>
+                <DropdownMenuItem onClick={handleSettingsClick}>
                   <SettingsIcon className="mr-2 h-4 w-4" />
                   Settings
                 </DropdownMenuItem>
