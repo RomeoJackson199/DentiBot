@@ -118,7 +118,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
             <h1 className="text-2xl md:text-3xl font-bold">
               {greeting}, {firstName || 'Patient'}!
             </h1>
-            <p className="text-muted-foreground">Here's your health overview</p>
+            <p className="text-muted-foreground">{t.hereIsYourHealthOverview}</p>
           </div>
         </div>
         <NotificationButton userId={userId} />
@@ -145,10 +145,10 @@ export const HomeTab: React.FC<HomeTabProps> = ({
               <CardTitle className="flex items-center justify-between">
                 <span className="flex items-center gap-2">
                   <Calendar className="h-5 w-5 text-orange-600" />
-                  Next Appointment
+                  {t.nextAppointment}
                 </span>
                 {nextAppointment && (
-                  <Badge className="bg-green-100 text-green-800">Confirmed</Badge>
+                  <Badge className="bg-green-100 text-green-800">{t.confirmed}</Badge>
                 )}
               </CardTitle>
             </CardHeader>
@@ -180,9 +180,9 @@ export const HomeTab: React.FC<HomeTabProps> = ({
               ) : (
                 <div className="text-center py-4">
                   <Calendar className="h-12 w-12 text-muted-foreground/50 mx-auto mb-3" />
-                  <p className="text-muted-foreground mb-3">No upcoming appointments</p>
+                  <p className="text-muted-foreground mb-3">{t.noUpcomingAppointments}</p>
                   <Button onClick={() => onNavigateTo('appointments')} className="w-full">
-                    Book Appointment
+                    {t.bookAppointment}
                   </Button>
                 </div>
               )}
@@ -202,11 +202,11 @@ export const HomeTab: React.FC<HomeTabProps> = ({
               <CardTitle className="flex items-center justify-between text-base">
                 <span className="flex items-center gap-2">
                   <Pill className="h-5 w-5 text-purple-600" />
-                  Prescriptions
+                  {t.prescriptions}
                 </span>
                 {activePrescriptions > 0 && (
                   <Badge className="bg-purple-100 text-purple-800">
-                    {activePrescriptions} Active
+                    {activePrescriptions} {t.active}
                   </Badge>
                 )}
               </CardTitle>
@@ -214,9 +214,9 @@ export const HomeTab: React.FC<HomeTabProps> = ({
             <CardContent>
               <div className="space-y-2">
                 <p className="text-2xl font-bold">{activePrescriptions}</p>
-                <p className="text-sm text-muted-foreground">Active medications</p>
+                <p className="text-sm text-muted-foreground">{t.activeMedications}</p>
                 <Button variant="link" className="p-0 h-auto text-primary group-hover:underline">
-                  View in Care tab
+                  {t.viewInCareTab}
                   <ChevronRight className="h-4 w-4 ml-1" />
                 </Button>
               </div>
@@ -238,10 +238,10 @@ export const HomeTab: React.FC<HomeTabProps> = ({
               <CardTitle className="flex items-center justify-between text-base">
                 <span className="flex items-center gap-2">
                   <CreditCard className={cn("h-5 w-5", unpaid ? "text-red-600" : "text-green-600")} />
-                  Balance
+                  {t.balance}
                 </span>
                 {unpaid && (
-                  <Badge variant="destructive">Due</Badge>
+                  <Badge variant="destructive">{t.due}</Badge>
                 )}
               </CardTitle>
             </CardHeader>
@@ -251,7 +251,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                   €{(totalDueCents/100).toFixed(2)}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  {unpaid ? 'Amount due' : 'All paid'}
+                  {unpaid ? t.amountDue : t.allPaid}
                 </p>
                 {unpaid && (
                   <Button 
@@ -259,7 +259,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                     className="w-full bg-red-600 hover:bg-red-700"
                     size="sm"
                   >
-                    Pay Now
+                    {t.payNow}
                   </Button>
                 )}
               </div>
@@ -280,7 +280,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
               <CardTitle className="flex items-center justify-between text-base">
                 <span className="flex items-center gap-2">
                   <MessageSquare className="h-5 w-5 text-emerald-600" />
-                  AI Assistant
+                  {t.aiAssistant}
                 </span>
                 <Badge className="bg-emerald-100 text-emerald-700">
                   <Sparkles className="h-3 w-3 mr-1" />
@@ -290,24 +290,24 @@ export const HomeTab: React.FC<HomeTabProps> = ({
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                <p className="text-sm font-medium">Get instant help with:</p>
+                <p className="text-sm font-medium">{t.getInstantHelpWith}</p>
                 <ul className="text-xs text-muted-foreground space-y-1">
                   <li className="flex items-center gap-1">
                     <CheckCircle className="h-3 w-3 text-emerald-600" />
-                    Booking appointments
+                    {t.bookingAppointments}
                   </li>
                   <li className="flex items-center gap-1">
                     <CheckCircle className="h-3 w-3 text-emerald-600" />
-                    Dental questions
+                    {t.dentalQuestions}
                   </li>
                   <li className="flex items-center gap-1">
                     <CheckCircle className="h-3 w-3 text-emerald-600" />
-                    Emergency triage
+                    {t.emergencyTriage}
                   </li>
                 </ul>
                 <Button variant="secondary" className="w-full mt-3" size="sm">
                   <MessageSquare className="h-4 w-4 mr-2" />
-                  Start Chat
+                  {t.startChat}
                 </Button>
               </div>
             </CardContent>
@@ -329,35 +329,35 @@ export const HomeTab: React.FC<HomeTabProps> = ({
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
                 <Info className="h-5 w-5 text-blue-600" />
-                Daily Tips & Reminders
+                {t.dailyTipsReminders}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                 <p className="text-sm font-medium flex items-center gap-2">
                   <Clock className="h-4 w-4 text-blue-600" />
-                  Morning Reminder
+                  {t.morningReminder}
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Don't forget to brush for 2 minutes
+                  {t.dontForgetToBrush}
                 </p>
               </div>
               <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
                 <p className="text-sm font-medium flex items-center gap-2">
                   <Heart className="h-4 w-4 text-green-600" />
-                  Health Tip
+                  {t.healthTip}
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Flossing daily reduces gum disease by 40%
+                  {t.flossingDaily}
                 </p>
               </div>
               <div className="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
                 <p className="text-sm font-medium flex items-center gap-2">
                   <AlertCircle className="h-4 w-4 text-amber-600" />
-                  Upcoming
+                  {t.upcoming}
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Dental cleaning recommended in 2 months
+                  {t.dentalCleaningRecommended}
                 </p>
               </div>
             </CardContent>
@@ -375,7 +375,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
                 <Activity className="h-5 w-5 text-purple-600" />
-                Health Stats
+                {t.healthStats}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -386,32 +386,32 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                     <Progress value={healthRating} className="h-16 w-16 rounded-full" />
                     <span className="absolute text-lg font-bold">{healthRating}%</span>
                   </div>
-                  <p className="text-xs font-medium mt-2">Health Rating</p>
-                  <p className="text-xs text-muted-foreground">Excellent</p>
+                  <p className="text-xs font-medium mt-2">{t.healthRating}</p>
+                  <p className="text-xs text-muted-foreground">{t.excellent}</p>
                 </div>
 
                 {/* Visits This Year */}
                 <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-900/20 dark:to-blue-900/10 rounded-lg">
                   <Calendar className="h-8 w-8 text-blue-600 mx-auto mb-2" />
                   <p className="text-2xl font-bold">{visitsThisYear}</p>
-                  <p className="text-xs font-medium">Visits This Year</p>
-                  <p className="text-xs text-muted-foreground">On track</p>
+                  <p className="text-xs font-medium">{t.visitsThisYear}</p>
+                  <p className="text-xs text-muted-foreground">{t.onTrack}</p>
                 </div>
 
                 {/* Coverage */}
                 <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-purple-100/50 dark:from-purple-900/20 dark:to-purple-900/10 rounded-lg">
                   <Shield className="h-8 w-8 text-purple-600 mx-auto mb-2" />
                   <p className="text-2xl font-bold">{coverageUsed}%</p>
-                  <p className="text-xs font-medium">Coverage Used</p>
-                  <p className="text-xs text-muted-foreground">€350 remaining</p>
+                  <p className="text-xs font-medium">{t.coverageUsed}</p>
+                  <p className="text-xs text-muted-foreground">€350 {t.remaining}</p>
                 </div>
 
                 {/* Health Improved */}
                 <div className="text-center p-4 bg-gradient-to-br from-emerald-50 to-emerald-100/50 dark:from-emerald-900/20 dark:to-emerald-900/10 rounded-lg">
                   <TrendingUp className="h-8 w-8 text-emerald-600 mx-auto mb-2" />
                   <p className="text-2xl font-bold">+{healthImprovement}%</p>
-                  <p className="text-xs font-medium">Health Improved</p>
-                  <p className="text-xs text-muted-foreground">Last 6 months</p>
+                  <p className="text-xs font-medium">{t.healthImproved}</p>
+                  <p className="text-xs text-muted-foreground">{t.lastSixMonths}</p>
                 </div>
               </div>
             </CardContent>
@@ -432,7 +432,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
           onClick={() => onNavigateTo('care')}
         >
           <ClipboardList className="h-5 w-5 text-orange-600" />
-          <span className="text-xs">Treatment Plans</span>
+          <span className="text-xs">{t.treatmentPlans}</span>
           {activeTreatmentPlans > 0 && (
             <Badge variant="secondary" className="text-xs">{activeTreatmentPlans}</Badge>
           )}

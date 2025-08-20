@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { InteractiveDentalChat } from "@/components/chat/InteractiveDentalChat";
-import { Settings } from "@/components/Settings";
+import { ModernSettings } from "@/components/ModernSettings";
 import RealAppointmentsList from "@/components/RealAppointmentsList";
 import { AppointmentDebug } from "@/components/AppointmentDebug";
 import { SimpleAppointmentTest } from "@/components/SimpleAppointmentTest";
@@ -79,7 +79,6 @@ import { HomeTab } from "@/components/patient/HomeTab";
 import { CareTab, CareItem } from "@/components/patient/CareTab";
 import { AppointmentsTab } from "@/components/patient/AppointmentsTab";
 import { PaymentsTab } from "@/components/patient/PaymentsTab";
-import { SettingsPage } from "@/components/patient/SettingsPage";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { AppointmentBooking } from "@/components/AppointmentBooking";
 
@@ -639,7 +638,9 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
       )}
 
       {activeSection === 'settings' && (
-        <SettingsPage user={user} />
+        <div className="px-4 md:px-6 py-4">
+          <ModernSettings user={user} />
+        </div>
       )}
 
       <Dialog open={showAssistant} onOpenChange={setShowAssistant}>
