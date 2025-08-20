@@ -149,7 +149,7 @@ const ProfileCompletionDialog = () => {
     if (!field) return;
 
     let updateQuery: any;
-    let updateData: any = { [field.key]: value };
+    const updateData: any = { [field.key]: value };
 
     if (field.table === "profiles") {
       // If this is the last field, mark profile as complete

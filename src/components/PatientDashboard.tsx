@@ -234,7 +234,9 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
   useEffect(() => {
     try {
       localStorage.setItem('pd_section', activeSection);
-    } catch {}
+    } catch {
+      void 0;
+    }
   }, [activeSection]);
 
   const fetchUserProfile = async () => {

@@ -1,4 +1,17 @@
 import '@testing-library/jest-dom';
+// Mock Supabase client channel for tests
+jest.mock('@/integrations/supabase/client', () => {
+  const actual = jest.requireActual('@/integrations/supabase/client');
+  const supabase = {
+    ...actual.supabase,
+    channel: jest.fn().mockReturnValue({
+      on: jest.fn().mockReturnThis(),
+      subscribe: jest.fn().mockReturnValue({ unsubscribe: jest.fn() }),
+      unsubscribe: jest.fn(),
+    }),
+  };
+  return { ...actual, supabase };
+});
 
 // Mock IntersectionObserver (with full shape)
 Object.defineProperty(global, 'IntersectionObserver', {

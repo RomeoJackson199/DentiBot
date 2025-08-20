@@ -170,7 +170,9 @@ export function CompletionSheet({ open, onOpenChange, appointment, dentistId, on
 					details: { procedure_id: id, before, after: newPrice }
 				});
 			}
-		} catch {}
+		} catch {
+			// ignore procedure price update activity errors
+		}
 	};
 
 	// Supplies actions
@@ -406,7 +408,9 @@ export function CompletionSheet({ open, onOpenChange, appointment, dentistId, on
 								}
 							}
 						}
-					} catch {}
+					} catch {
+						// suppress inventory update notification errors
+					}
 				}
 			}
 
