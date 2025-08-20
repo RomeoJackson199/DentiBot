@@ -131,8 +131,32 @@ export function DentistDashboard({ user }: DentistDashboardProps) {
       <MobileOptimizations />
       <ChangelogPopup isOpen={showChangelog} onClose={() => setShowChangelog(false)} />
       
+      <header className="hidden lg:block sticky top-0 z-50 bg-background/95 backdrop-blur-lg border-b">
+        <div className="container mx-auto px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <div className="relative">
+              <div className="p-3 rounded-xl bg-gradient-primary shadow-lg">
+                <SettingsIcon className="h-6 w-6 text-white" />
+              </div>
+            </div>
+            <div>
+              <h1 className="text-xl font-bold">Denti Dashboard</h1>
+              <p className="text-sm text-muted-foreground">Dentist Portal</p>
+            </div>
+          </div>
+          <Button
+            variant="outline"
+            onClick={handleSignOut}
+            className="border-destructive/20 text-destructive hover:bg-destructive/10"
+          >
+            <LogOut className="h-4 w-4 mr-2" />
+            Sign Out
+          </Button>
+        </div>
+      </header>
+
       {/* Mobile-optimized header */}
-      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-lg border-b">
+      <header className="lg:hidden sticky top-0 z-50 bg-background/95 backdrop-blur-lg border-b">
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <div className="relative">

@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useMobileOptimizations } from "@/components/mobile/MobileOptimizations";
+import { cn } from "@/lib/utils";
 import { 
   Clock, 
   Calendar, 
@@ -182,55 +183,76 @@ export function MobileDentistTabs({ activeTab, setActiveTab, dentistId, children
     );
   }
 
-  // Desktop version with improved grouping and spacing
+  // Desktop layout with sidebar
   return (
-    <div className="min-h-screen mesh-bg">
-      <main className="container mx-auto px-6 py-8">
-        {/* Grouped Tab Navigation for Desktop - Improved layout */}
-        <div className="flex justify-center mb-10">
-          <div className="glass-card rounded-3xl p-6 animate-fade-in max-w-7xl w-full">
-            <div className="grid grid-cols-1 lg:grid-cols-6 gap-8">
-              {tabGroups.map((group) => (
-                <Card key={group.id} className="border-0 bg-background/60 backdrop-blur-sm hover:bg-background/70 transition-all duration-200">
-                  <CardHeader className="pb-4">
-                    <CardTitle className="flex items-center text-base font-semibold text-muted-foreground">
-                      <group.icon className="h-5 w-5 mr-2" />
-                      {group.title}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    {group.tabs.map((tab) => (
-                      <Button
-                        key={tab.id}
-                        variant={activeTab === tab.id ? 'default' : 'ghost'}
-                        onClick={() => setActiveTab(tab.id)}
-                        className={`w-full justify-start h-12 px-4 rounded-xl transition-all duration-300 ${
-                          activeTab === tab.id 
-                            ? 'bg-gradient-primary text-white shadow-elegant scale-105' 
-                            : 'text-muted-foreground hover:text-primary hover:bg-primary/10 hover:scale-105'
-                        }`}
-                      >
-                        <tab.icon className="h-5 w-5 mr-3" />
-                        <span className="font-medium text-sm">{tab.label}</span>
-                        {(tab as any).badge && (
-                          <Badge variant="destructive" className="ml-auto">
-                            {(tab as any).badge}
-                          </Badge>
-                        )}
-                      </Button>
-                    ))}
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+    <div className="min-h-screen bg-gradient-to-br from-background to-muted/10 flex">
+      {/* Desktop Sidebar */}
+      <div className="fixed left-0 top-20 bottom-0 w-72 bg-card/80 backdrop-blur-lg border-r border-border/50 z-header">
+        {/* Sidebar Header */}
+        <div className="flex items-center space-x-3 p-6 border-b border-border/50">
+          <div className="h-10 w-10 rounded-xl bg-gradient-primary flex items-center justify-center shadow-lg">
+            <span className="text-white font-bold text-lg">D</span>
+          </div>
+          <div>
+            <h1 className="font-semibold text-lg">Denti Dashboard</h1>
+            <p className="text-sm text-muted-foreground">Dentist Portal</p>
           </div>
         </div>
 
-        {/* Content */}
-        <div className="animate-fade-in">
+        {/* Navigation Groups */}
+        <div className="p-4 space-y-6 overflow-y-auto h-[calc(100vh-200px)]">
+          {tabGroups.map((group) => {
+            const GroupIcon = group.icon;
+            
+            return (
+              <div key={group.id} className="space-y-2">
+                <div className="flex items-center space-x-2 px-2 py-1">
+                  <GroupIcon className="h-4 w-4 text-muted-foreground" />
+                  <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+                    {group.title}
+                  </h3>
+                </div>
+                
+                <div className="space-y-1">
+                  {group.tabs.map((tab) => {
+                    const Icon = tab.icon;
+                    const isActive = tab.id === activeTab;
+                    const hasBadge = (tab as any).badge;
+                    
+                    return (
+                      <button
+                        key={tab.id}
+                        onClick={() => setActiveTab(tab.id)}
+                        className={cn(
+                          "w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-all relative group",
+                          isActive 
+                            ? "bg-primary text-primary-foreground shadow-md" 
+                            : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                        )}
+                      >
+                        <Icon className="h-5 w-5" />
+                        <span className="font-medium">{tab.label}</span>
+                        {hasBadge && (
+                          <span className="ml-auto bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                            {hasBadge}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Main Content Area */}
+      <div className="flex-1 ml-72 pt-20">
+        <div className="min-h-screen p-6">
           {children}
         </div>
-      </main>
+      </div>
     </div>
   );
 }
