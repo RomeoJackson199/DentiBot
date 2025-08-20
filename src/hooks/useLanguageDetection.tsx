@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useLanguage } from '@/hooks/useLanguage';
 
 export type SupportedLanguage = 'en' | 'nl' | 'fr';
 
@@ -44,11 +45,48 @@ const translations = {
     'booking.earliest': 'Earliest Available Slots',
     'booking.confirm': 'Confirm Appointment',
     'booking.success': 'Appointment booked successfully!',
+    'booking.detailsTitle': 'Appointment Details',
+    'booking.dentist': 'Dentist',
+    'booking.date': 'Date',
+    'booking.time': 'Time',
+    'booking.urgency': 'Urgency',
+    'booking.urgentArrivalNotice': 'Due to the urgent nature of your case, please arrive 15 minutes early. If your condition worsens, please contact emergency services immediately.',
+    'booking.continue': 'Continue to Dashboard',
+    'booking.selectDate': 'Select Date',
+    'booking.availableTimes': 'Available Times',
+    'booking.noSlots': 'No available slots for this date',
+    'booking.selectDatePrompt': 'Please select a date to view available times',
+    'booking.selectedDentist': 'Selected dentist',
+    'booking.selectedBadge': 'Selected',
+    // Entry Page (EmergencyTriageEntry)
+    'entry.heroTitle': 'Emergency Triage Assessment',
+    'entry.heroDesc': 'Fast, secure, and accurate dental emergency assessment',
+    'entry.ctaStart': 'Start Emergency Assessment',
+    'entry.steps.assessSymptoms.title': 'Assess Symptoms',
+    'entry.steps.assessSymptoms.desc': 'Answer questions about your pain and symptoms',
+    'entry.steps.getUrgency.title': 'Get Urgency Level',
+    'entry.steps.getUrgency.desc': 'Receive your urgency rating (1-5 scale)',
+    'entry.steps.viewSlots.title': 'View Available Slots',
+    'entry.steps.viewSlots.desc': 'See prioritized appointment times',
+    'entry.steps.bookInstantly.title': 'Book Instantly',
+    'entry.steps.bookInstantly.desc': 'Confirm your appointment immediately',
+    'entry.emergencyNotice.title': 'Life-Threatening Emergency?',
+    'entry.emergencyNotice.desc': "If you're experiencing severe breathing difficulties, uncontrolled bleeding, or signs of serious infection, call emergency services (112) immediately.",
+    'entry.gdpr.title': 'Privacy & Security',
+    'entry.gdpr.desc': 'Your health information is protected under GDPR. Data is encrypted and only shared with your selected dentist for appointment purposes.',
+    'entry.return': 'Return to Main App',
+    'entry.stats.minutes': '2-3 Minutes',
+    'entry.stats.quick': 'Quick Assessment',
+    'entry.stats.gdpr': 'GDPR Compliant',
+    'entry.stats.secure': 'Secure & Private',
+    'entry.stats.directBooking': 'Direct Booking',
+    'entry.stats.noChat': 'No Chat Required',
     // Common
     'common.cancel': 'Cancel',
     'common.next': 'Next',
     'common.back': 'Back',
     'common.loading': 'Loading...',
+    'common.success': 'Success',
   },
   nl: {
     // Emergency Triage
@@ -85,11 +123,48 @@ const translations = {
     'booking.earliest': 'Vroegst Beschikbare Tijdsloten',
     'booking.confirm': 'Afspraak Bevestigen',
     'booking.success': 'Afspraak succesvol geboekt!',
+    'booking.detailsTitle': 'Afsprakengegevens',
+    'booking.dentist': 'Tandarts',
+    'booking.date': 'Datum',
+    'booking.time': 'Tijd',
+    'booking.urgency': 'Urgentie',
+    'booking.urgentArrivalNotice': 'Vanwege de urgentie van uw situatie vragen we u 15 minuten eerder te komen. Als uw toestand verslechtert, neem dan onmiddellijk contact op met de hulpdiensten.',
+    'booking.continue': 'Doorgaan naar Dashboard',
+    'booking.selectDate': 'Selecteer Datum',
+    'booking.availableTimes': 'Beschikbare Tijden',
+    'booking.noSlots': 'Geen beschikbare tijden voor deze datum',
+    'booking.selectDatePrompt': 'Selecteer een datum om beschikbare tijden te zien',
+    'booking.selectedDentist': 'Geselecteerde tandarts',
+    'booking.selectedBadge': 'Geselecteerd',
+    // Entry Page (EmergencyTriageEntry)
+    'entry.heroTitle': 'Spoed Triage Beoordeling',
+    'entry.heroDesc': 'Snelle, veilige en nauwkeurige tandheelkundige spoedbeoordeling',
+    'entry.ctaStart': 'Start Spoedbeoordeling',
+    'entry.steps.assessSymptoms.title': 'Beoordeel Symptomen',
+    'entry.steps.assessSymptoms.desc': 'Beantwoord vragen over uw pijn en symptomen',
+    'entry.steps.getUrgency.title': 'Ontvang Urgentieniveau',
+    'entry.steps.getUrgency.desc': 'Ontvang uw urgentiescore (schaal 1-5)',
+    'entry.steps.viewSlots.title': 'Bekijk Beschikbare Tijden',
+    'entry.steps.viewSlots.desc': 'Zie geprioriteerde afspraakmomenten',
+    'entry.steps.bookInstantly.title': 'Boek Direct',
+    'entry.steps.bookInstantly.desc': 'Bevestig uw afspraak onmiddellijk',
+    'entry.emergencyNotice.title': 'Levensbedreigende Noodsituatie?',
+    'entry.emergencyNotice.desc': 'Als u ernstige ademhalingsproblemen, oncontroleerbare bloedingen of tekenen van een ernstige infectie ervaart, bel dan onmiddellijk de hulpdiensten (112).',
+    'entry.gdpr.title': 'Privacy & Beveiliging',
+    'entry.gdpr.desc': 'Uw gezondheidsgegevens worden beschermd volgens de AVG. Gegevens worden versleuteld en alleen gedeeld met uw geselecteerde tandarts voor afspraakdoeleinden.',
+    'entry.return': 'Terug naar de Hoofdapp',
+    'entry.stats.minutes': '2-3 Minuten',
+    'entry.stats.quick': 'Snelle beoordeling',
+    'entry.stats.gdpr': 'AVG-conform',
+    'entry.stats.secure': 'Veilig & Privé',
+    'entry.stats.directBooking': 'Direct boeken',
+    'entry.stats.noChat': 'Geen chat vereist',
     // Common
     'common.cancel': 'Annuleren',
     'common.next': 'Volgende',
     'common.back': 'Terug',
     'common.loading': 'Laden...',
+    'common.success': 'Succes',
   },
   fr: {
     // Emergency Triage
@@ -126,36 +201,61 @@ const translations = {
     'booking.earliest': 'Créneaux Disponibles au Plus Tôt',
     'booking.confirm': 'Confirmer le Rendez-vous',
     'booking.success': 'Rendez-vous réservé avec succès!',
+    'booking.detailsTitle': 'Détails du rendez-vous',
+    'booking.dentist': 'Dentiste',
+    'booking.date': 'Date',
+    'booking.time': 'Heure',
+    'booking.urgency': 'Urgence',
+    'booking.urgentArrivalNotice': 'En raison du caractère urgent de votre cas, veuillez arriver 15 minutes en avance. Si votre état s’aggrave, contactez immédiatement les services d’urgence.',
+    'booking.continue': 'Continuer vers le tableau de bord',
+    'booking.selectDate': 'Sélectionner une date',
+    'booking.availableTimes': 'Horaires disponibles',
+    'booking.noSlots': 'Aucun créneau disponible pour cette date',
+    'booking.selectDatePrompt': 'Veuillez sélectionner une date pour voir les horaires disponibles',
+    'booking.selectedDentist': 'Dentiste sélectionné',
+    'booking.selectedBadge': 'Sélectionné',
+    // Entry Page (EmergencyTriageEntry)
+    'entry.heroTitle': "Évaluation de Triage d'Urgence",
+    'entry.heroDesc': 'Évaluation dentaire d’urgence rapide, sécurisée et précise',
+    'entry.ctaStart': "Commencer l'évaluation d'urgence",
+    'entry.steps.assessSymptoms.title': 'Évaluer les symptômes',
+    'entry.steps.assessSymptoms.desc': 'Répondez aux questions sur votre douleur et vos symptômes',
+    'entry.steps.getUrgency.title': "Obtenir le niveau d'urgence",
+    'entry.steps.getUrgency.desc': 'Recevez votre niveau d’urgence (échelle 1-5)',
+    'entry.steps.viewSlots.title': 'Voir les créneaux disponibles',
+    'entry.steps.viewSlots.desc': 'Consultez les horaires de rendez-vous prioritaires',
+    'entry.steps.bookInstantly.title': 'Réserver instantanément',
+    'entry.steps.bookInstantly.desc': 'Confirmez votre rendez-vous immédiatement',
+    'entry.emergencyNotice.title': 'Urgence vitale ?',
+    'entry.emergencyNotice.desc': "Si vous avez de graves difficultés respiratoires, des saignements incontrôlables ou des signes d’infection grave, appelez immédiatement les services d’urgence (112).",
+    'entry.gdpr.title': 'Confidentialité & Sécurité',
+    'entry.gdpr.desc': 'Vos informations de santé sont protégées selon le RGPD. Les données sont chiffrées et uniquement partagées avec le dentiste sélectionné pour la prise de rendez-vous.',
+    'entry.return': "Retour à l'application principale",
+    'entry.stats.minutes': '2-3 minutes',
+    'entry.stats.quick': 'Évaluation rapide',
+    'entry.stats.gdpr': 'Conforme RGPD',
+    'entry.stats.secure': 'Sécurisé & Privé',
+    'entry.stats.directBooking': 'Réservation directe',
+    'entry.stats.noChat': 'Sans chat requis',
     // Common
     'common.cancel': 'Annuler',
     'common.next': 'Suivant',
     'common.back': 'Retour',
     'common.loading': 'Chargement...',
+    'common.success': 'Succès',
   },
 };
 
-const detectBrowserLanguage = (): SupportedLanguage => {
-  const browserLang = navigator.language.split('-')[0] as SupportedLanguage;
-  return ['en', 'nl', 'fr'].includes(browserLang) ? browserLang : 'en';
-};
-
 export const useLanguageDetection = (): LanguageDetectionHook => {
-  const [language, setLanguageState] = useState<SupportedLanguage>(() => {
-    const stored = localStorage.getItem('preferred-language') as SupportedLanguage;
-    return stored || detectBrowserLanguage();
-  });
-
-  useEffect(() => {
-    localStorage.setItem('preferred-language', language);
-  }, [language]);
-
-  const setLanguage = (lang: SupportedLanguage) => {
-    setLanguageState(lang);
-  };
+  const { language: contextLanguage, setLanguage: setContextLanguage } = useLanguage();
 
   const t = (key: string): string => {
-    return translations[language][key] || key;
+    return translations[contextLanguage as SupportedLanguage]?.[key] || key;
   };
 
-  return { language, setLanguage, t };
+  return {
+    language: contextLanguage as SupportedLanguage,
+    setLanguage: setContextLanguage as (lang: SupportedLanguage) => void,
+    t,
+  };
 };

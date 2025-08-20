@@ -385,26 +385,25 @@ export const EmergencyBookingFlow = ({ user, onComplete, onCancel }: EmergencyBo
             </Badge>
             
             <div className="p-4 bg-muted rounded-lg">
-              <h3 className="font-semibold mb-2">Appointment Details</h3>
-              <p><strong>Dentist:</strong> Dr. {selectedDentist?.profiles.first_name} {selectedDentist?.profiles.last_name}</p>
-              <p><strong>Date:</strong> {selectedDate && format(selectedDate, 'EEEE, MMMM d, yyyy')}</p>
-              <p><strong>Time:</strong> {selectedTime}</p>
-              <p><strong>Urgency:</strong> {urgencyConfig.label}</p>
+              <h3 className="font-semibold mb-2">{t('booking.detailsTitle')}</h3>
+              <p><strong>{t('booking.dentist')}:</strong> Dr. {selectedDentist?.profiles.first_name} {selectedDentist?.profiles.last_name}</p>
+              <p><strong>{t('booking.date')}:</strong> {selectedDate && format(selectedDate, 'EEEE, MMMM d, yyyy')}</p>
+              <p><strong>{t('booking.time')}:</strong> {selectedTime}</p>
+              <p><strong>{t('booking.urgency')}:</strong> {urgencyConfig.label}</p>
             </div>
 
             {urgencyLevel >= 4 && (
               <Alert>
                 <AlertTriangle className="h-4 w-4" />
                 <AlertDescription>
-                  Due to the urgent nature of your case, please arrive 15 minutes early. 
-                  If your condition worsens, please contact emergency services immediately.
+                  {t('booking.urgentArrivalNotice')}
                 </AlertDescription>
               </Alert>
             )}
           </div>
 
           <Button onClick={() => onComplete(appointmentId)} className="w-full">
-            Continue to Dashboard
+            {t('booking.continue')}
           </Button>
         </CardContent>
       </Card>
@@ -459,11 +458,11 @@ export const EmergencyBookingFlow = ({ user, onComplete, onCancel }: EmergencyBo
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-medium">
-                    ✅ Dentiste sélectionné: Dr. {selectedDentist.profiles.first_name} {selectedDentist.profiles.last_name}
+                    ✅ {t('booking.selectedDentist')}: Dr. {selectedDentist.profiles.first_name} {selectedDentist.profiles.last_name}
                   </p>
                   <p className="text-sm text-muted-foreground">{selectedDentist.specialization}</p>
                 </div>
-                <Badge variant="default">Sélectionné</Badge>
+                <Badge variant="default">{t('booking.selectedBadge')}</Badge>
               </div>
             </Card>
           )}
@@ -493,7 +492,7 @@ export const EmergencyBookingFlow = ({ user, onComplete, onCancel }: EmergencyBo
           {/* Calendar and Time Selection */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div>
-              <h3 className="font-semibold mb-3">Select Date</h3>
+              <h3 className="font-semibold mb-3">{t('booking.selectDate')}</h3>
               <Calendar
                 mode="single"
                 selected={selectedDate || undefined}
@@ -507,7 +506,7 @@ export const EmergencyBookingFlow = ({ user, onComplete, onCancel }: EmergencyBo
             </div>
 
             <div>
-              <h3 className="font-semibold mb-3">Available Times</h3>
+              <h3 className="font-semibold mb-3">{t('booking.availableTimes')}</h3>
               {loading ? (
                 <div className="text-center py-8">
                   <div className="text-sm text-muted-foreground">{t('common.loading')}</div>
@@ -530,11 +529,11 @@ export const EmergencyBookingFlow = ({ user, onComplete, onCancel }: EmergencyBo
                 </div>
               ) : selectedDate ? (
                 <p className="text-center py-8 text-muted-foreground">
-                  No available slots for this date
+                  {t('booking.noSlots')}
                 </p>
               ) : (
                 <p className="text-center py-8 text-muted-foreground">
-                  Please select a date to view available times
+                  {t('booking.selectDatePrompt')}
                 </p>
               )}
             </div>
