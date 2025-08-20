@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -11,10 +11,7 @@ import {
   CreditCard,
   Settings as SettingsIcon,
   Bot,
-  Menu,
-  X,
   LogOut,
-  User,
   Info
 } from "lucide-react";
 import {
@@ -25,6 +22,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { NotificationButton } from "@/components/NotificationButton";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -35,6 +33,7 @@ interface PatientAppShellProps {
   onChangeSection: (section: PatientSection) => void;
   children: React.ReactNode;
   badges?: Partial<Record<PatientSection, boolean>>;
+  userId: string;
 }
 
 // Simplified navigation items - only bottom bar, no duplication
@@ -44,7 +43,6 @@ const NAV_ITEMS: Array<{ id: PatientSection; label: string; shortLabel?: string;
   { id: 'care', label: 'Treatment Records', shortLabel: 'Records', icon: FolderOpen, color: 'text-purple-600 bg-purple-100 dark:bg-purple-900/30' },
   { id: 'appointments', label: 'Appointments', shortLabel: 'Appts', icon: Calendar, color: 'text-orange-600 bg-orange-100 dark:bg-orange-900/30' },
   { id: 'payments', label: 'Payments', icon: CreditCard, color: 'text-green-600 bg-green-100 dark:bg-green-900/30' },
-  { id: 'settings', label: 'Settings', icon: SettingsIcon, color: 'text-gray-600 bg-gray-100 dark:bg-gray-900/30' },
 ];
 
 export const PatientAppShell: React.FC<PatientAppShellProps> = ({
@@ -52,8 +50,8 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
   onChangeSection,
   children,
   badges = {},
+  userId,
 }) => {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -83,32 +81,34 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
             </div>
             <span className="font-semibold text-lg">Patient Portal</span>
           </div>
-          
-          {/* Simple dropdown menu for extra options */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="hover:bg-primary/10">
-                <Menu className="h-5 w-5" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuLabel>Menu</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => onChangeSection('settings')}>
-                <User className="mr-2 h-4 w-4" />
-                Profile
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate('/about')}>
-                <Info className="mr-2 h-4 w-4" />
-                About Dentibot
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleSignOut} className="text-red-600">
-                <LogOut className="mr-2 h-4 w-4" />
-                Sign Out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+
+          <div className="flex items-center space-x-2">
+            <NotificationButton userId={userId} />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="hover:bg-primary/10">
+                  <SettingsIcon className="h-5 w-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuLabel>Menu</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => onChangeSection('settings')}>
+                  <SettingsIcon className="mr-2 h-4 w-4" />
+                  Settings
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate('/about')}>
+                  <Info className="mr-2 h-4 w-4" />
+                  About Dentinot
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleSignOut} className="text-red-600">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Sign Out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
       </div>
 
@@ -121,23 +121,23 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
             </div>
             <span className="font-semibold text-xl">Patient Portal</span>
           </div>
-          
+
           <div className="flex items-center space-x-2">
+            <NotificationButton userId={userId} />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="hover:bg-primary/10">
-                  <User className="h-4 w-4 mr-2" />
-                  Account
+                <Button variant="ghost" size="icon" className="hover:bg-primary/10">
+                  <SettingsIcon className="h-5 w-5" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
                 <DropdownMenuItem onClick={() => onChangeSection('settings')}>
-                  <User className="mr-2 h-4 w-4" />
-                  Profile Settings
+                  <SettingsIcon className="mr-2 h-4 w-4" />
+                  Settings
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate('/about')}>
                   <Info className="mr-2 h-4 w-4" />
-                  About Dentibot
+                  About Dentinot
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut} className="text-red-600">

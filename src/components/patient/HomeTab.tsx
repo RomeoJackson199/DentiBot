@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { NotificationButton } from "@/components/NotificationButton";
 import { Progress } from "@/components/ui/progress";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -15,8 +14,6 @@ import {
   ClipboardList,
   CreditCard,
   MessageSquare,
-  User as UserIcon,
-  Bell,
   Heart,
   Activity,
   Clock,
@@ -36,7 +33,6 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { RecallBanner } from "@/components/patient/RecallBanner";
-import { useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getPatientActiveRecall, RecallRecord } from "@/lib/recalls";
 import { useLanguage } from "@/hooks/useLanguage";
@@ -121,7 +117,6 @@ export const HomeTab: React.FC<HomeTabProps> = ({
             <p className="text-muted-foreground">{t.hereIsYourHealthOverview}</p>
           </div>
         </div>
-        <NotificationButton userId={userId} />
       </motion.div>
 
       {activeRecall && (

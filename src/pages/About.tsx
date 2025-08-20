@@ -4,9 +4,9 @@ const About = () => {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-12 max-w-3xl">
-        <h1 className="text-3xl font-bold tracking-tight mb-6">About Dentibot</h1>
+        <h1 className="text-3xl font-bold tracking-tight mb-6">About Dentinot</h1>
         <p className="text-muted-foreground leading-relaxed mb-6">
-          Dentibot is an AI-powered assistant created to streamline dental clinic workflows. From patient intake and appointment scheduling to billing, treatment history, and reminders, Dentibot helps reduce administrative work by up to 30%, giving dentists more time to focus on patient care.
+          Dentinot is an AI-powered assistant created to streamline dental clinic workflows. From patient intake and appointment scheduling to billing, treatment history, and reminders, Dentinot helps reduce administrative work by up to 30%, giving dentists more time to focus on patient care.
         </p>
 
         <h2 className="text-2xl font-semibold tracking-tight mb-4">Our Mission</h2>
@@ -26,7 +26,7 @@ const About = () => {
         </ul>
 
         <p className="text-muted-foreground leading-relaxed">
-          Dentibot is developed by Caberu SRL, founded by Romeo Jackson and Thomas Iordache, with a vision to modernize dental care through secure, intelligent automation.
+          Dentinot is developed by Caberu SRL, founded by Romeo Jackson and Thomas Iordache, with a vision to modernize dental care through secure, intelligent automation.
         </p>
       </div>
     </div>
