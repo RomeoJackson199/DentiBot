@@ -11,7 +11,6 @@ import { PatientPaymentHistory } from "@/components/PatientPaymentHistory";
 import { EmergencyTriageForm } from "@/components/EmergencyTriageForm";
 import { PatientAnalytics } from "@/components/analytics/PatientAnalytics";
 import { DatabaseTest } from "@/components/DatabaseTest";
-import { NotificationButton } from "@/components/NotificationButton";
 import { NotificationTest } from "@/components/NotificationTest";
 import { useLanguage } from "@/hooks/useLanguage";
 import { Button } from "@/components/ui/button";
@@ -577,6 +576,7 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
       activeSection={activeSection}
       onChangeSection={setActiveSection}
       badges={badges}
+      userId={user.id}
     >
       {activeSection === 'home' && (
         <HomeTab
