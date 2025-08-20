@@ -328,7 +328,7 @@ const handleDeleteAccount = async () => {
             {activeTab === 'general' && (
               <div className="space-y-6">
                 <div>
-                  <h3 className="text-lg font-semibold text-foreground mb-4">Preferred Language</h3>
+                  <h3 className="text-lg font-semibold text-foreground mb-4">{(t as any)('language.select')}</h3>
                   <div className="bg-muted/30 rounded-xl p-4">
                     <LanguageSettings />
                   </div>

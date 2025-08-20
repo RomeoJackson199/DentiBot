@@ -781,17 +781,16 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
   };
 
   const handleLanguageChange = (lang: string) => {
-    changeLanguage(lang as 'en' | 'fr' | 'nl');
+    changeLanguage(lang as 'en' | 'fr');
     localStorage.setItem('preferred-language', lang);
-    
+
     const langNames = {
       en: 'English',
-      fr: 'French', 
-      nl: 'Dutch'
+      fr: 'French'
     };
-    
+
     addBotMessage(`✅ Language changed to ${langNames[lang as keyof typeof langNames]} successfully!`);
-    
+
     toast({
       title: "Success",
       description: `Language changed to ${langNames[lang as keyof typeof langNames]}`

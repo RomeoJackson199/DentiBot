@@ -65,8 +65,7 @@ interface UserProfile extends ProfileData {
 
 const languages = [
   { code: 'en' as const, name: 'English', flag: '🇺🇸', label: 'English' },
-  { code: 'fr' as const, name: 'Français', flag: '🇫🇷', label: 'Français' },
-  { code: 'nl' as const, name: 'Nederlands', flag: '🇳🇱', label: 'Nederlands' },
+  { code: 'fr' as const, name: 'Français', flag: '🇫🇷', label: 'Français' }
 ];
 
 export const ModernSettings = ({ user }: ModernSettingsProps) => {
@@ -198,7 +197,7 @@ export const ModernSettings = ({ user }: ModernSettingsProps) => {
     }
   };
 
-  const handleLanguageChange = (languageCode: 'en' | 'fr' | 'nl') => {
+  const handleLanguageChange = (languageCode: 'en' | 'fr') => {
     setLanguage(languageCode);
     const languageObj = languages.find(lang => lang.code === languageCode);
     toast({
