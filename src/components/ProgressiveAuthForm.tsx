@@ -251,9 +251,7 @@ export const ProgressiveAuthForm = ({ compact = false }: ProgressiveAuthFormProp
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
     try {
-      console.log('Starting Google sign-in...');
       const redirectUrl = `${window.location.origin}/`;
-      console.log('Redirect URL:', redirectUrl);
       
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -263,12 +261,9 @@ export const ProgressiveAuthForm = ({ compact = false }: ProgressiveAuthFormProp
       });
 
       if (error) {
-        console.error('Google sign-in error:', error);
         throw error;
       }
-      console.log('Google sign-in initiated successfully');
 } catch (error: unknown) {
-  console.error('Google sign-in catch block:', error);
   const message = error instanceof Error ? error.message : 'Unknown error';
   toast({
     title: t.signInError,
