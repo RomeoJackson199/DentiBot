@@ -677,7 +677,6 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
     const currentInput = inputMessage.toLowerCase();
     setInputMessage("");
     setIsLoading(true);
-  setActiveWidget(null);
 
   await saveMessage(userMessage);
 
