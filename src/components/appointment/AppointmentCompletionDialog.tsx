@@ -21,6 +21,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
+import { NotificationService } from '@/lib/notificationService';
 
 interface AppointmentCompletionDialogProps {
   open: boolean;
@@ -231,9 +232,100 @@ export function AppointmentCompletionDialog({
         });
       }
 
+      // 6. Send email notification to patient with appointment details
+      try {
+        const { data: patientProfile } = await supabase
+          .from('profiles')
+          .select('user_id, email, first_name, last_name')
+          .eq('id', appointment.patient_id)
+          .single();
+
+        if (patientProfile?.user_id && patientProfile?.email) {
+          const emailContent = `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <h2 style="color: #333; border-bottom: 2px solid #e5e5e5; padding-bottom: 10px;">Appointment Completed</h2>
+              
+              <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                <h3 style="color: #333; margin-top: 0;">Appointment Details</h3>
+                <p><strong>Date:</strong> ${format(new Date(appointment.appointment_date), 'PPP')}</p>
+                <p><strong>Time:</strong> ${format(new Date(appointment.appointment_date), 'p')}</p>
+                ${appointment.reason ? `<p><strong>Reason:</strong> ${appointment.reason}</p>` : ''}
+              </div>
+
+              ${treatments.length > 0 ? `
+                <div style="background: #fff; border: 1px solid #e5e5e5; border-radius: 8px; padding: 20px; margin: 20px 0;">
+                  <h3 style="color: #333; margin-top: 0;">Treatments Provided</h3>
+                  ${treatments.map(treatment => `
+                    <div style="border-bottom: 1px solid #f0f0f0; padding: 10px 0;">
+                      <div style="display: flex; justify-content: space-between;">
+                        <span><strong>${treatment.name}</strong>${treatment.tooth ? ` (Tooth: ${treatment.tooth})` : ''}</span>
+                        <span>€${treatment.price.toFixed(2)}</span>
+                      </div>
+                    </div>
+                  `).join('')}
+                  <div style="border-top: 2px solid #333; padding-top: 10px; margin-top: 10px;">
+                    <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 18px;">
+                      <span>Total Amount:</span>
+                      <span>€${totalAmount.toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
+              ` : ''}
+
+              ${(notes.trim() || consultationNotes.trim()) ? `
+                <div style="background: #f8f9fa; border-left: 4px solid #007bff; padding: 20px; margin: 20px 0;">
+                  <h3 style="color: #333; margin-top: 0;">Clinical Notes</h3>
+                  <p style="white-space: pre-wrap;">${consultationNotes.trim() || notes.trim()}</p>
+                </div>
+              ` : ''}
+
+              ${paymentReceived ? `
+                <div style="background: #d4edda; border: 1px solid #c3e6cb; border-radius: 8px; padding: 15px; margin: 20px 0;">
+                  <h4 style="color: #155724; margin-top: 0;">✅ Payment Received</h4>
+                  <p style="color: #155724; margin: 0;">Payment of €${totalAmount.toFixed(2)} has been received and processed.</p>
+                </div>
+              ` : ''}
+
+              ${followUpNeeded && followUpDate ? `
+                <div style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 15px; margin: 20px 0;">
+                  <h4 style="color: #856404; margin-top: 0;">📅 Follow-up Scheduled</h4>
+                  <p style="color: #856404; margin: 0;">A follow-up appointment has been scheduled for ${format(new Date(followUpDate), 'PPP p')}.</p>
+                </div>
+              ` : ''}
+
+              <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-top: 30px; border-top: 1px solid #e5e5e5;">
+                <p style="color: #666; margin: 0; font-size: 14px;">
+                  Thank you for your visit! If you have any questions about your treatment or need to schedule another appointment, 
+                  please don't hesitate to contact our office.
+                </p>
+              </div>
+            </div>
+          `;
+
+          await NotificationService.sendEmailNotification(
+            patientProfile.user_id,
+            'Appointment Completed - Treatment Summary',
+            emailContent,
+            'appointment',
+            true,
+            {
+              email: patientProfile.email,
+              dentistId: appointment.dentist_id,
+              appointmentId: appointment.id,
+              isSystemNotification: false
+            }
+          );
+
+          console.log('✅ Email sent to patient:', patientProfile.email);
+        }
+      } catch (emailError) {
+        console.error('Failed to send completion email:', emailError);
+        // Don't block the completion if email fails
+      }
+
       toast({
         title: "Appointment completed successfully",
-        description: `${treatments.length} treatment(s) recorded${paymentReceived ? ', payment received' : ''}${followUpNeeded ? ', follow-up scheduled' : ''}`,
+        description: `${treatments.length} treatment(s) recorded${paymentReceived ? ', payment received' : ''}${followUpNeeded ? ', follow-up scheduled' : ''}. Patient notified by email.`,
       });
 
       onCompleted();
