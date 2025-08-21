@@ -16,7 +16,7 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { createDossierAfterSignup } from "@/lib/medicalRecords";
 import { SimpleDatabaseSaveTest } from "@/components/SimpleDatabaseSaveTest";
 import { Card } from "@/components/ui/card";
-import { EmailTest } from "@/components/EmailTest";
+
 
 const Index = () => {
   const {
@@ -250,7 +250,6 @@ const Index = () => {
       <section className="py-16">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-md mx-auto space-y-8">
-            <EmailTest />
             <ProgressiveAuthForm />
           </div>
         </div>
