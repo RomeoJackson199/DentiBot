@@ -87,11 +87,18 @@ const queryClient = new QueryClient({
       gcTime: 10 * 60 * 1000, // 10 minutes (was cacheTime)
       refetchOnWindowFocus: false,
       retry: (failureCount, error) => {
-        // Don't retry auth errors
-        if (error && typeof error === 'object' && 'code' in error) {
-          const supabaseError = error as { code?: string };
-          if (supabaseError.code === 'PGRST301' || supabaseError.code === 'PGRST116') {
+        // Don't retry auth errors (401/403)
+        if (error && typeof error === 'object') {
+          // Check for status codes
+          if ('status' in error && (error.status === 401 || error.status === 403)) {
             return false;
+          }
+          // Check for Supabase error codes
+          if ('code' in error) {
+            const supabaseError = error as { code?: string };
+            if (supabaseError.code === 'PGRST301' || supabaseError.code === 'PGRST116') {
+              return false;
+            }
           }
         }
         return failureCount < 3;
@@ -112,7 +119,6 @@ const App = () => (
       >
         <LanguageProvider>
             <TooltipProvider>
-              <Toaster />
               <Sonner />
               <PWAInstallPrompt />
               <ProfileCompletionDialog />

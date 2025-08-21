@@ -77,7 +77,8 @@ export function EnhancedNotificationCenter({
     const iconClass = cn(
       "h-4 w-4 transition-colors duration-200",
       priority === 'high' && "text-red-500",
-      priority === 'medium' && "text-orange-500",
+      priority === 'normal' && "text-orange-500", 
+      priority === 'medium' && "text-orange-500", // Backward compatibility
       priority === 'low' && "text-blue-500"
     );
 
@@ -111,7 +112,7 @@ export function EnhancedNotificationCenter({
       );
     }
     
-    if (priority === 'medium') {
+    if (priority === 'normal' || priority === 'medium') {
       return cn(
         baseClasses,
         "border-l-4 border-l-orange-400 bg-gradient-to-r from-orange-50/50 to-transparent",

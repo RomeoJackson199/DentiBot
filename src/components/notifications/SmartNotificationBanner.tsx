@@ -41,8 +41,8 @@ export function SmartNotificationBanner({
     const activeNotifications = notifications
       .filter(n => !dismissedIds.has(n.id) && !n.is_read)
       .sort((a, b) => {
-        // Priority sorting: urgent > high > medium > low
-        const priorityOrder = { urgent: 4, high: 3, medium: 2, low: 1 };
+        // Priority mapping: handle both UI values and DB values
+        const priorityOrder = { urgent: 4, high: 3, normal: 2, medium: 2, low: 1 };
         const aPriority = priorityOrder[a.priority] || 0;
         const bPriority = priorityOrder[b.priority] || 0;
         
@@ -81,7 +81,8 @@ export function SmartNotificationBanner({
         "h-4 w-4",
         priority === 'urgent' && "text-red-500 animate-pulse",
         priority === 'high' && "text-orange-500",
-        priority === 'medium' && "text-blue-500",
+        priority === 'normal' && "text-blue-500",
+        priority === 'medium' && "text-blue-500", // Backward compatibility
         priority === 'low' && "text-gray-500"
       )
     };

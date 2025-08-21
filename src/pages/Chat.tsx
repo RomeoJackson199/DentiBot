@@ -6,10 +6,14 @@ import { Smartphone, Users, Bot } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { InteractiveDentalChat } from '@/components/chat/InteractiveDentalChat';
+import { User } from '@supabase/supabase-js';
+import type { Database } from '@/integrations/supabase/types';
+
+type Profile = Database['public']['Tables']['profiles']['Row'];
 
 export default function Chat() {
-  const [user, setUser] = useState<any>(null);
-  const [profile, setProfile] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -23,14 +27,39 @@ export default function Chat() {
 
       setUser(authUser);
 
-      const { data: profileData } = await supabase
+      const { data: profileData, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('user_id', authUser.id)
-        .single();
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error loading profile:', error);
+        return;
+      }
 
       if (profileData) {
         setProfile(profileData);
+      } else {
+        // Create a minimal default profile if none exists
+        const { data: newProfile, error: createError } = await supabase
+          .from('profiles')
+          .insert({
+            user_id: authUser.id,
+            email: authUser.email || '',
+            first_name: '',
+            last_name: '',
+            preferred_language: 'en'
+          })
+          .select()
+          .single();
+
+        if (createError) {
+          console.error('Error creating profile:', createError);
+          return;
+        }
+
+        setProfile(newProfile);
       }
     } catch (error) {
       console.error('Error loading user profile:', error);

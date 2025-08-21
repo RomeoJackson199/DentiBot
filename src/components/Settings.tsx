@@ -215,13 +215,13 @@ export const Settings = ({ user }: SettingsProps) => {
 
   const updateAiOptOut = async (optOut: boolean) => {
     try {
-      // Temporarily disabled until ai_opt_out migration is applied
-      // const { error } = await supabase
-      //   .from('profiles')
-      //   .update({ ai_opt_out: optOut })
-      //   .eq('user_id', user.id);
+      // Re-enabled after migration applied
+      const { error } = await supabase
+        .from('profiles')
+        .update({ ai_opt_out: optOut })
+        .eq('user_id', user.id);
 
-      // if (error) throw error;
+      if (error) throw error;
 
       setProfile(prev => ({ ...prev, ai_opt_out: optOut }));
       

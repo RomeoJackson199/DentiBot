@@ -111,7 +111,6 @@ export const NotificationTest: React.FC<NotificationTestProps> = ({ user }) => {
         .insert({
           patient_id: user.id,
           dentist_id: 'test-dentist-id',
-          plan_name: 'Test Treatment Plan',
           title: 'Test Treatment Plan',
           status: 'active'
         })

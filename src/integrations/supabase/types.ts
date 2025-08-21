@@ -2166,6 +2166,7 @@ export type Database = {
       profiles: {
         Row: {
           address: string | null
+          ai_opt_out: boolean | null
           avatar_url: string | null
           created_at: string
           date_of_birth: string | null
@@ -2185,6 +2186,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          ai_opt_out?: boolean | null
           avatar_url?: string | null
           created_at?: string
           date_of_birth?: string | null
@@ -2204,6 +2206,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          ai_opt_out?: boolean | null
           avatar_url?: string | null
           created_at?: string
           date_of_birth?: string | null

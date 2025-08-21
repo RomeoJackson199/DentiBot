@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { getAccessibleButtonProps } from "@/lib/accessibility";
 import { 
   Calendar, 
   Clock, 
@@ -58,7 +59,12 @@ export function ModernPatientCard({
 
   if (variant === "compact") {
     return (
-      <Card className="group hover:shadow-md transition-all duration-200 cursor-pointer border-l-4 border-l-dental-primary/20 hover:border-l-dental-primary/60">
+      <Card className="group hover:shadow-md transition-all duration-200 cursor-pointer border-l-4 border-l-dental-primary/20 hover:border-l-dental-primary/60"
+        onClick={() => onSelect?.(patient)}
+        role="button"
+        tabIndex={0}
+        aria-label={`Select patient ${patient.first_name} ${patient.last_name}`}
+      >
         <CardContent className="p-4" onClick={() => onSelect?.(patient)}>
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">

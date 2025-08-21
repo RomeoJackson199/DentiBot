@@ -160,7 +160,7 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
     title: "",
     description: "",
     diagnosis: "",
-    priority: "medium",
+    priority: "normal",
     estimated_cost: "",
     estimated_duration_weeks: "",
   });
@@ -418,7 +418,7 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
       title: plan.title || "",
       description: plan.description || "",
       diagnosis: plan.diagnosis || "",
-      priority: plan.priority || "medium",
+      priority: plan.priority || "normal",
       estimated_cost: plan.estimated_cost ? String(plan.estimated_cost) : "",
       estimated_duration_weeks: plan.estimated_duration_weeks ? String(plan.estimated_duration_weeks) : "",
     });
@@ -491,7 +491,7 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
         title: "",
         description: "",
         diagnosis: "",
-        priority: "medium",
+        priority: "normal",
         estimated_cost: "",
         estimated_duration_weeks: "",
       });
