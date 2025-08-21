@@ -31,6 +31,7 @@ interface EmailRequest {
   messageType: 'appointment_confirmation' | 'appointment_reminder' | 'prescription' | 'emergency' | 'system';
   patientId?: string;
   dentistId?: string;
+  isSystemNotification?: boolean;
 }
 
 serve(async (req) => {
@@ -64,45 +65,62 @@ serve(async (req) => {
       throw new Error('Invalid or expired token');
     }
 
-    const { to, subject, message, messageType, patientId, dentistId }: EmailRequest = await req.json();
+    const { to, subject, message, messageType, patientId, dentistId, isSystemNotification }: EmailRequest = await req.json();
 
-    // Authorization check: Only dentists can send email notifications to patients
-    if (dentistId && patientId) {
+    console.log('📧 Email request details:', { to, subject, messageType, patientId, dentistId, isSystemNotification });
+
+    // Authorization check: Skip for system notifications, otherwise verify dentist access
+    if (!isSystemNotification && dentistId && patientId) {
+      const { data: userProfile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (!userProfile) {
+        throw new Error('User profile not found');
+      }
+
       const { data: dentist, error: dentistError } = await supabase
         .from('dentists')
         .select('id')
         .eq('id', dentistId)
-        .eq('profile_id', (
-          await supabase.from('profiles').select('id').eq('user_id', user.id).single()
-        ).data?.id)
+        .eq('profile_id', userProfile.id)
         .single();
 
       if (dentistError || !dentist) {
         throw new Error('Unauthorized: Only the dentist can send email notifications');
       }
+    } else if (isSystemNotification) {
+      console.log('📧 System notification - skipping dentist authorization');
     }
 
-    // Create email notification record first
+    // Create email notification record (only for dentist-patient communications)
     let notificationId;
-    if (patientId && dentistId) {
-      const { data, error } = await supabase
-        .from('email_notifications')
-        .insert({
-          patient_id: patientId,
-          dentist_id: dentistId,
-          email_address: to,
-          message_type: messageType,
-          subject: subject,
-          message_content: message,
-          status: 'pending'
-        })
-        .select('id')
-        .single();
+    if (patientId && dentistId && !isSystemNotification) {
+      try {
+        const { data, error } = await supabase
+          .from('email_notifications')
+          .insert({
+            patient_id: patientId,
+            dentist_id: dentistId,
+            email_address: to,
+            message_type: messageType,
+            subject: subject,
+            message_content: message,
+            status: 'pending'
+          })
+          .select('id')
+          .single();
 
-      if (error) {
-        console.error('Error creating email notification record:', error);
-      } else {
-        notificationId = data.id;
+        if (error) {
+          console.error('Error creating email notification record:', error);
+        } else {
+          notificationId = data.id;
+          console.log('📝 Email notification record created:', notificationId);
+        }
+      } catch (recordError) {
+        console.error('Failed to create email record, continuing with send:', recordError);
       }
     }
 
@@ -125,10 +143,13 @@ serve(async (req) => {
     }
 
     // Send email using Twilio SendGrid
-    const twilioApiKey = Deno.env.get('TWILIO_API_KEY');
-    if (!twilioApiKey) {
-      throw new Error('Twilio API key not configured');
+    const sendGridApiKey = Deno.env.get('TWILIO_API_KEY');
+    if (!sendGridApiKey) {
+      console.error('❌ TWILIO_API_KEY environment variable not set');
+      throw new Error('SendGrid API key not configured - please set TWILIO_API_KEY environment variable');
     }
+
+    console.log('🔑 SendGrid API key configured, proceeding with email send...');
 
     const emailData = {
       personalizations: [{
@@ -156,28 +177,39 @@ serve(async (req) => {
     };
 
     // Send via Twilio SendGrid API
+    console.log('🚀 Sending email to SendGrid API...');
     const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${twilioApiKey}`,
+        'Authorization': `Bearer ${sendGridApiKey}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(emailData)
     });
 
+    console.log('📡 SendGrid API response status:', response.status);
+
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Twilio SendGrid error:', errorText);
+      console.error('❌ SendGrid API error:', {
+        status: response.status,
+        statusText: response.statusText,
+        error: errorText
+      });
       
       // Update notification status to failed
       if (notificationId) {
-        await supabase
-          .from('email_notifications')
-          .update({ status: 'failed', error_message: errorText })
-          .eq('id', notificationId);
+        try {
+          await supabase
+            .from('email_notifications')
+            .update({ status: 'failed', error_message: errorText })
+            .eq('id', notificationId);
+        } catch (updateError) {
+          console.error('Failed to update notification status:', updateError);
+        }
       }
       
-      throw new Error(`Failed to send email: ${response.status} ${errorText}`);
+      throw new Error(`SendGrid API failed: ${response.status} - ${errorText}`);
     }
 
     // Update notification status to sent

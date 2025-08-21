@@ -116,65 +116,62 @@ return data.id;
     sendEmail = true,
     metadata?: Record<string, unknown>
   ): Promise<void> {
+    if (!sendEmail) {
+      console.log('📧 Email sending disabled, skipping...');
+      return;
+    }
+
     try {
-      console.log('🔔 sendEmailNotification called with:', { userId, title, sendEmail });
+      console.log('🔔 Starting email notification process for user:', userId);
       
       // Get user profile for contact info
-      const { data: profile } = await supabase
+      const { data: profile, error: profileError } = await supabase
         .from('profiles')
-        .select('email, first_name, last_name')
+        .select('email, first_name, last_name, id')
         .eq('user_id', userId)
         .single();
 
-      console.log('👤 Profile found:', profile);
-
-      if (!profile) {
-        console.error('❌ Profile not found for user:', userId);
-        return;
+      if (profileError || !profile) {
+        console.error('❌ Profile not found for user:', userId, profileError);
+        throw new Error('User profile not found');
       }
 
-      // Send email if enabled and user has email
-      if (sendEmail && profile.email) {
-        // Use provided email from metadata if available, otherwise use profile email
-        const recipientEmail = (metadata?.email as string) || profile.email;
-        
-        console.log('📧 Preparing to send to:', recipientEmail);
-        
-        // Get profile ID to use as patientId
-        const { data: recipientProfile } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('user_id', userId)
-          .single();
+      console.log('👤 Profile found:', { 
+        email: profile.email, 
+        name: `${profile.first_name} ${profile.last_name}`,
+        id: profile.id 
+      });
 
-        console.log('🆔 Recipient profile ID:', recipientProfile?.id);
+      const recipientEmail = (metadata?.email as string) || profile.email;
+      if (!recipientEmail) {
+        console.error('❌ No email address available');
+        throw new Error('No email address found');
+      }
 
-        try {
-          console.log('🚀 Invoking send-email-notification edge function...');
-          const result = await supabase.functions.invoke('send-email-notification', {
-            body: {
-              to: recipientEmail,
-              subject: title,
-              message: message,
-              messageType: this.mapNotificationTypeToEmail(type),
-              patientId: recipientProfile?.id || null,
-              dentistId: metadata?.sent_by_dentist || metadata?.dentistId || null
-            }
-          });
-          console.log('✅ Email notification result:', result);
-        } catch (emailError) {
-          console.error('❌ Failed to send email notification:', emailError);
-          throw emailError;
+      console.log('📧 Preparing to send email to:', recipientEmail);
+
+      // Invoke the edge function with simplified parameters
+      const { data, error } = await supabase.functions.invoke('send-email-notification', {
+        body: {
+          to: recipientEmail,
+          subject: title,
+          message: message,
+          messageType: this.mapNotificationTypeToEmail(type),
+          patientId: profile.id,
+          dentistId: metadata?.dentistId || null,
+          isSystemNotification: !metadata?.dentistId // Flag for system notifications
         }
-      } else {
-        console.log('⚠️ Email not sent - conditions not met:', {
-          sendEmail,
-          has_email: !!profile.email,
-          provided_email: !!metadata?.email
-        });
+      });
+
+      if (error) {
+        console.error('❌ Edge function error:', error);
+        throw new Error(`Email service error: ${error.message}`);
       }
+
+      console.log('✅ Email sent successfully:', data);
+      
     } catch (error) {
-      console.error('❌ Error sending email notification:', error);
+      console.error('❌ Email notification failed:', error);
       throw error;
     }
   }

@@ -39,19 +39,19 @@ export const EmailTest: React.FC = () => {
       
       console.log('📧 Sending to email:', recipientEmail);
         
-      const notificationId = await NotificationService.createNotification(
+      // Send email directly without creating database notification first
+      await NotificationService.sendEmailNotification(
         user.id,
-        '🧪 Email Test - Twilio SendGrid Working!',
-        `Hi ${profile?.first_name || 'there'}! This is a test email sent via Twilio SendGrid. If you receive this, your email notifications are working perfectly!`,
+        '🧪 Email Test - SendGrid Integration Working!',
+        `Hi ${profile?.first_name || 'there'}! This is a test email sent via SendGrid. If you receive this, your email notifications are working perfectly!
+
+This test was sent at: ${new Date().toLocaleString()}`,
         'system',
-        'info',
-        undefined,
-        { test: true, email: recipientEmail },
-        undefined,
-        true // sendEmail
+        true, // sendEmail
+        { test: true, email: recipientEmail }
       );
 
-      console.log('Notification created with ID:', notificationId);
+      console.log('✅ Email test completed successfully');
       
       setResult('success');
       toast({
