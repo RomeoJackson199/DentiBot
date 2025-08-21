@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom';
 import userEvent from '@testing-library/user-event';
 import { UnifiedDashboard } from '../UnifiedDashboard';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 // Mock dependencies
 jest.mock('@/hooks/use-toast');
@@ -12,17 +13,38 @@ jest.mock('@/integrations/supabase/client', () => ({
     from: jest.fn(() => ({
       select: jest.fn(() => ({
         eq: jest.fn(() => ({
-          single: jest.fn(() => Promise.resolve({ 
-            data: { 
+          single: jest.fn(() => Promise.resolve({
+            data: {
               id: 'test-user',
               role: 'patient',
               email: 'test@example.com'
-            }, 
-            error: null 
+            },
+            error: null
+          })),
+          maybeSingle: jest.fn(() => Promise.resolve({
+            data: {
+              id: 'test-user',
+              role: 'patient',
+              email: 'test@example.com'
+            },
+            error: null
           }))
         }))
       }))
-    }))
+    })),
+    channel: jest.fn(() => {
+      const channelObj: any = {
+        on: jest.fn(() => channelObj),
+        subscribe: jest.fn(() => ({ unsubscribe: jest.fn() })),
+        unsubscribe: jest.fn(),
+      };
+      return channelObj;
+    }),
+    removeChannel: jest.fn()
+  ,
+    auth: {
+      signOut: jest.fn().mockResolvedValue({})
+    }
   }
 }));
 
@@ -35,6 +57,30 @@ const mockToast = {
 describe('UnifiedDashboard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+
+    // Reset supabase mock to default successful patient profile for each test
+    (supabase.from as unknown as jest.Mock).mockReturnValue({
+      select: jest.fn(() => ({
+        eq: jest.fn(() => ({
+          single: jest.fn(() => Promise.resolve({
+            data: {
+              id: 'test-user',
+              role: 'patient',
+              email: 'test@example.com'
+            },
+            error: null
+          })),
+          maybeSingle: jest.fn(() => Promise.resolve({
+            data: {
+              id: 'test-user',
+              role: 'patient',
+              email: 'test@example.com'
+            },
+            error: null
+          }))
+        }))
+      }))
+    });
   });
 
   it('renders dashboard with user role detection', async () => {
@@ -55,13 +101,21 @@ describe('UnifiedDashboard', () => {
     (supabase.from as unknown as jest.Mock).mockReturnValue({
       select: jest.fn(() => ({
         eq: jest.fn(() => ({
-          single: jest.fn(() => Promise.resolve({ 
-            data: { 
+          single: jest.fn(() => Promise.resolve({
+            data: {
               id: 'test-user',
               role: 'patient',
               email: 'patient@example.com'
-            }, 
-            error: null 
+            },
+            error: null
+          })),
+          maybeSingle: jest.fn(() => Promise.resolve({
+            data: {
+              id: 'test-user',
+              role: 'patient',
+              email: 'patient@example.com'
+            },
+            error: null
           }))
         }))
       }))
@@ -84,13 +138,21 @@ describe('UnifiedDashboard', () => {
     (supabase.from as unknown as jest.Mock).mockReturnValue({
       select: jest.fn(() => ({
         eq: jest.fn(() => ({
-          single: jest.fn(() => Promise.resolve({ 
-            data: { 
+          single: jest.fn(() => Promise.resolve({
+            data: {
               id: 'test-user',
               role: 'dentist',
               email: 'dentist@example.com'
-            }, 
-            error: null 
+            },
+            error: null
+          })),
+          maybeSingle: jest.fn(() => Promise.resolve({
+            data: {
+              id: 'test-user',
+              role: 'dentist',
+              email: 'dentist@example.com'
+            },
+            error: null
           }))
         }))
       }))
@@ -124,9 +186,13 @@ describe('UnifiedDashboard', () => {
     (supabase.from as unknown as jest.Mock).mockReturnValue({
       select: jest.fn(() => ({
         eq: jest.fn(() => ({
-          single: jest.fn(() => Promise.resolve({ 
-            data: null, 
-            error: { message: 'Failed to fetch user' } 
+          single: jest.fn(() => Promise.resolve({
+            data: null,
+            error: { message: 'Failed to fetch user' }
+          })),
+          maybeSingle: jest.fn(() => Promise.resolve({
+            data: null,
+            error: { message: 'Failed to fetch user' }
           }))
         }))
       }))
@@ -172,7 +238,11 @@ describe('UnifiedDashboard', () => {
 
   it('shows quick action buttons', async () => {
     const mockUser: any = { id: 'test-user' };
-    render(<UnifiedDashboard user={mockUser} />);
+    render(
+      <BrowserRouter>
+        <UnifiedDashboard user={mockUser} />
+      </BrowserRouter>
+    );
     
     await waitFor(() => {
       expect(screen.getByText(/book appointment/i)).toBeInTheDocument();
@@ -240,7 +310,11 @@ describe('UnifiedDashboard', () => {
 
   it('shows emergency booking option', async () => {
     const mockUser: any = { id: 'test-user' };
-    render(<UnifiedDashboard user={mockUser} />);
+    render(
+      <BrowserRouter>
+        <UnifiedDashboard user={mockUser} />
+      </BrowserRouter>
+    );
     
     await waitFor(() => {
       expect(screen.getByText(/emergency booking/i)).toBeInTheDocument();
@@ -285,7 +359,11 @@ describe('UnifiedDashboard', () => {
 
   it('displays responsive design elements', async () => {
     const mockUser: any = { id: 'test-user' };
-    render(<UnifiedDashboard user={mockUser} />);
+    render(
+      <BrowserRouter>
+        <UnifiedDashboard user={mockUser} />
+      </BrowserRouter>
+    );
     
     await waitFor(() => {
       // Check for mobile-friendly elements
@@ -296,7 +374,11 @@ describe('UnifiedDashboard', () => {
 
   it('shows accessibility features', async () => {
     const mockUser: any = { id: 'test-user' };
-    render(<UnifiedDashboard user={mockUser} />);
+    render(
+      <BrowserRouter>
+        <UnifiedDashboard user={mockUser} />
+      </BrowserRouter>
+    );
     
     await waitFor(() => {
       // Check for ARIA labels and roles
@@ -327,7 +409,11 @@ describe('UnifiedDashboard', () => {
   it('shows language selection options', async () => {
     const user = userEvent.setup();
     const mockUser: any = { id: 'test-user' };
-    render(<UnifiedDashboard user={mockUser} />);
+    render(
+      <BrowserRouter>
+        <UnifiedDashboard user={mockUser} />
+      </BrowserRouter>
+    );
     
     await waitFor(async () => {
       const languageButton = screen.getByText(/language/i);
@@ -343,7 +429,11 @@ describe('UnifiedDashboard', () => {
   it('handles notification preferences', async () => {
     const user = userEvent.setup();
     const mockUser: any = { id: 'test-user' };
-    render(<UnifiedDashboard user={mockUser} />);
+    render(
+      <BrowserRouter>
+        <UnifiedDashboard user={mockUser} />
+      </BrowserRouter>
+    );
     
     await waitFor(async () => {
       const notificationsButton = screen.getByText(/notifications/i);
