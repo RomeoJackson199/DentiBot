@@ -596,6 +596,142 @@ const UrgencySliderWidget = ({
   );
 };
 
+// Symptom Intake Widget
+const SymptomIntakeWidget = ({
+  onComplete,
+  onCancel
+}: {
+  onComplete: (data: {
+    primarySymptoms: string[];
+    severity: number;
+    duration: string;
+    notes?: string;
+    hasFever?: boolean;
+    hasSwelling?: boolean;
+    hasBleeding?: boolean;
+  }) => void;
+  onCancel: () => void;
+}) => {
+  const [primarySymptoms, setPrimarySymptoms] = useState<string[]>([]);
+  const [severity, setSeverity] = useState(2);
+  const [duration, setDuration] = useState("");
+  const [notes, setNotes] = useState("");
+  const [hasFever, setHasFever] = useState(false);
+  const [hasSwelling, setHasSwelling] = useState(false);
+  const [hasBleeding, setHasBleeding] = useState(false);
+
+  const toggleSymptom = (symptom: string) => {
+    setPrimarySymptoms(prev => prev.includes(symptom) ? prev.filter(s => s !== symptom) : [...prev, symptom]);
+  };
+
+  const canContinue = primarySymptoms.length > 0 && duration !== "";
+
+  const symptomOptions = [
+    'Toothache',
+    'Sensitivity to cold',
+    'Sensitivity to heat',
+    'Swollen gums',
+    'Bleeding gums',
+    'Bad breath',
+    'Jaw pain',
+    'Broken tooth',
+    'Lost filling',
+    'Other'
+  ];
+
+  return (
+    <Card className="max-w-md mx-auto my-4 border-primary/20 shadow-lg">
+      <CardHeader className="text-center">
+        <Heart className="h-8 w-8 mx-auto text-primary mb-2" />
+        <CardTitle className="text-lg">Tell us about your symptoms</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div>
+          <Label className="text-sm font-medium">Primary symptoms</Label>
+          <div className="grid grid-cols-2 gap-2 mt-2">
+            {symptomOptions.map((symptom) => (
+              <Button
+                key={symptom}
+                variant={primarySymptoms.includes(symptom) ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => toggleSymptom(symptom)}
+                className="justify-start"
+              >
+                {symptom}
+              </Button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <Label className="text-sm font-medium">Severity</Label>
+          <div className="px-2 mt-2">
+            <Slider value={[severity]} max={10} min={0} step={1} onValueChange={(v) => setSeverity(v[0])} />
+          </div>
+          <div className="flex justify-between text-xs text-muted-foreground px-1">
+            <span>Mild</span>
+            <span>Severe</span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-2">
+          <div>
+            <Label className="text-sm font-medium">Duration</Label>
+            <Select value={duration} onValueChange={setDuration}>
+              <SelectTrigger className="mt-1">
+                <SelectValue placeholder="Select duration" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="<1 day">Less than 1 day</SelectItem>
+                <SelectItem value="1-3 days">1-3 days</SelectItem>
+                <SelectItem value="4-7 days">4-7 days</SelectItem>
+                <SelectItem value="1-2 weeks">1-2 weeks</SelectItem>
+                <SelectItem value=">2 weeks">More than 2 weeks</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="grid grid-cols-3 gap-2 mt-2">
+            <div className="flex items-center space-x-2">
+              <Checkbox id="fever" checked={hasFever} onCheckedChange={(v) => setHasFever(Boolean(v))} />
+              <Label htmlFor="fever" className="text-sm">Fever</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox id="swelling" checked={hasSwelling} onCheckedChange={(v) => setHasSwelling(Boolean(v))} />
+              <Label htmlFor="swelling" className="text-sm">Swelling</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox id="bleeding" checked={hasBleeding} onCheckedChange={(v) => setHasBleeding(Boolean(v))} />
+              <Label htmlFor="bleeding" className="text-sm">Bleeding</Label>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <Label className="text-sm font-medium">Notes (optional)</Label>
+          <Textarea
+            placeholder="Describe your pain, triggers, or anything else..."
+            className="min-h-[80px]"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+          />
+        </div>
+
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={onCancel} className="flex-1">
+            Cancel
+          </Button>
+          <Button 
+            onClick={() => onComplete({ primarySymptoms, severity, duration, notes, hasFever, hasSwelling, hasBleeding })}
+            disabled={!canContinue}
+            className="flex-1"
+          >
+            Continue
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
 
 // Symptom Summary Widget
 const SymptomSummaryWidget = ({
@@ -654,5 +790,6 @@ export {
   QuickSettingsWidget,
   ImageUploadWidget,
   UrgencySliderWidget,
+  SymptomIntakeWidget,
   SymptomSummaryWidget
 };
