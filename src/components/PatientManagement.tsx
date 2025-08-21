@@ -24,7 +24,6 @@ import {
   Phone,
   Mail,
   MapPin,
-  AlertTriangle,
   CreditCard
 } from "lucide-react";
 import { format } from "date-fns";
@@ -47,7 +46,6 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { PatientPaymentHistory } from "@/components/PatientPaymentHistory";
 import { PaymentRequestForm } from "@/components/PaymentRequestForm";
 import { SimpleAppointmentBooking } from "@/components/SimpleAppointmentBooking";
-import { UnifiedAppointments } from "@/components/UnifiedAppointments";
 import { useNavigate } from "react-router-dom";
 
 interface Patient {
@@ -127,14 +125,11 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
   const [lastAppointment, setLastAppointment] = useState<Appointment | null>(null);
   const [completionAppointment, setCompletionAppointment] = useState<Appointment | null>(null);
   
-  // New filters
-  const [filterUnpaid, setFilterUnpaid] = useState(false);
-  const [filterUpcoming, setFilterUpcoming] = useState(false);
-  const [filterActivePlan, setFilterActivePlan] = useState(false);
-  const [filterFrequentCancels, setFilterFrequentCancels] = useState(false);
-  const [filterFollowUpsDue, setFilterFollowUpsDue] = useState(false);
+  // Pagination state for appointments
+  const [appointmentsPage, setAppointmentsPage] = useState(1);
+  const appointmentsPerPage = 3;
   
-  // Flags per patient for filters and badges
+  // Flags per patient for badges
   const [patientFlags, setPatientFlags] = useState<Record<string, {
     hasUnpaidBalance: boolean;
     outstandingCents?: number;
@@ -143,8 +138,6 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
     lastVisitDate?: string;
     nextAppointmentDate?: string;
     nextAppointmentStatus?: string;
-    cancellationsCount?: number;
-    followUpsDueToday?: number;
   }>>({});
 
   // Editing state for inline edit flows
@@ -322,24 +315,7 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
         .sort((a, b) => new Date(a.appointment_date).getTime() - new Date(b.appointment_date).getTime())[0];
       const hasActiveTreatmentPlan = (treatmentData || []).some(t => t.status === 'active');
 
-      // Frequent cancellations
-      const cancellationsCount = (appointmentsData || []).filter(a => a.status === 'cancelled').length;
 
-      // Follow-ups due today
-      let followUpsDueToday = 0;
-      try {
-        const start = new Date(); start.setHours(0,0,0,0);
-        const end = new Date(); end.setHours(23,59,59,999);
-        const { data: fus } = await sb.from('appointment_follow_ups')
-          .select('id')
-          .eq('status', 'pending')
-          .gte('scheduled_date', start.toISOString())
-          .lt('scheduled_date', end.toISOString())
-          .in('appointment_id', (appointmentsData || []).map((a: any) => a.id));
-        followUpsDueToday = (fus || []).length;
-      } catch {
-        // ignore follow-up query errors
-      }
 
       // Outstanding balance (sum pending payment_requests + unpaid invoices patient_amount_cents)
       let outstandingCents = 0;
@@ -366,9 +342,7 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
           hasActiveTreatmentPlan, 
           lastVisitDate,
           nextAppointmentDate: nextAppointment?.appointment_date,
-          nextAppointmentStatus: nextAppointment?.status,
-          cancellationsCount,
-          followUpsDueToday
+          nextAppointmentStatus: nextAppointment?.status
         }
       }));
 
@@ -412,18 +386,10 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
   const filteredPatients = patients.filter(patient => {
     const fullName = `${patient.first_name} ${patient.last_name}`.toLowerCase();
     const search = searchTerm.toLowerCase();
-    const matchesSearch = fullName.includes(search)
+    return fullName.includes(search)
       || patient.email.toLowerCase().includes(search)
       || (patient.phone || '').toLowerCase().includes(search)
       || patient.id.toLowerCase().includes(search);
-
-    const flags = patientFlags[patient.id];
-    const matchesUnpaid = !filterUnpaid || (flags && flags.hasUnpaidBalance);
-    const matchesUpcoming = !filterUpcoming || (flags && flags.hasUpcomingAppointment);
-    const matchesActive = !filterActivePlan || (flags && flags.hasActiveTreatmentPlan);
-    const matchesCancels = !filterFrequentCancels || ((flags?.cancellationsCount || 0) >= 2);
-    const matchesFollowUps = !filterFollowUpsDue || ((flags?.followUpsDueToday || 0) > 0);
-    return matchesSearch && matchesUnpaid && matchesUpcoming && matchesActive && matchesCancels && matchesFollowUps;
   });
 
   const getStatusColor = (status: string) => {
@@ -712,54 +678,7 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
                 className="pl-10 h-12 text-base"
               />
             </div>
-            {/* Improved filter buttons for mobile and desktop */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              <Button
-                variant={filterUnpaid ? "default" : "outline"}
-                size="sm"
-                onClick={() => setFilterUnpaid(!filterUnpaid)}
-                className="h-10 justify-start px-3 rounded-lg"
-              >
-                <CreditCard className="h-4 w-4 mr-2" />
-                <span className="text-xs">Has unpaid balance</span>
-              </Button>
-              <Button
-                variant={filterUpcoming ? "default" : "outline"}
-                size="sm"
-                onClick={() => setFilterUpcoming(!filterUpcoming)}
-                className="h-10 justify-start px-3 rounded-lg"
-              >
-                <Calendar className="h-4 w-4 mr-2" />
-                <span className="text-xs">Upcoming appointment</span>
-              </Button>
-              <Button
-                variant={filterActivePlan ? "default" : "outline"}
-                size="sm"
-                onClick={() => setFilterActivePlan(!filterActivePlan)}
-                className="h-10 justify-start px-3 rounded-lg"
-              >
-                <ClipboardList className="h-4 w-4 mr-2" />
-                <span className="text-xs">Active treatment plan</span>
-              </Button>
-              <Button
-                variant={filterFrequentCancels ? "default" : "outline"}
-                size="sm"
-                onClick={() => setFilterFrequentCancels(!filterFrequentCancels)}
-                className="h-10 justify-start px-3 rounded-lg"
-              >
-                <AlertTriangle className="h-4 w-4 mr-2" />
-                <span className="text-xs">Frequent cancellations</span>
-              </Button>
-              <Button
-                variant={filterFollowUpsDue ? "default" : "outline"}
-                size="sm"
-                onClick={() => setFilterFollowUpsDue(!filterFollowUpsDue)}
-                className="h-10 justify-start px-3 rounded-lg sm:col-span-2"
-              >
-                <ClipboardList className="h-4 w-4 mr-2" />
-                <span className="text-xs">Follow-ups due today</span>
-              </Button>
-            </div>
+
           </div>
         </CardHeader>
         <CardContent className="p-0">
@@ -785,8 +704,6 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
                       {patient.medical_history && patient.medical_history.toLowerCase().includes('allerg') && (
                         <Badge variant="destructive" className="text-[10px] px-2 py-0.5">Allergies</Badge>
                       )}
-                      {/* Mutuality badge placeholder */}
-                      <Badge variant="secondary" className="text-[10px] px-2 py-0.5">No mutuality</Badge>
                     </div>
                     <div className="flex items-center gap-2 text-xs text-muted-foreground truncate mt-1">
                       <span>{patient.phone || 'No phone'}</span>
@@ -806,12 +723,7 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
                           Unpaid {patientFlags[patient.id]?.outstandingCents ? `€${(patientFlags[patient.id]!.outstandingCents!/100).toFixed(2)}` : ''}
                         </Badge>
                       )}
-                      {(patientFlags[patient.id]?.cancellationsCount || 0) >= 2 && (
-                        <Badge variant="outline" className="text-[10px] px-2 py-0.5">Frequent cancels</Badge>
-                      )}
-                      {(patientFlags[patient.id]?.followUpsDueToday || 0) > 0 && (
-                        <Badge variant="secondary" className="text-[10px] px-2 py-0.5">Follow-ups due</Badge>
-                      )}
+
                     </div>
                   </div>
                 </div>
@@ -836,7 +748,6 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="font-semibold">{selectedPatient.first_name} {selectedPatient.last_name}</span>
-                        <Badge variant="secondary" className="text-[10px]">No mutuality</Badge>
                         {patientFlags[selectedPatient.id]?.hasUnpaidBalance && (
                           <CreditCard className="h-4 w-4 text-red-500" />
                         )}
@@ -1173,12 +1084,77 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
               </CardContent>
             </Card>
 
-            {/* Appointments Section - Using Unified Component */}
-            <UnifiedAppointments 
-              dentistId={dentistId}
-              patientId={selectedPatient.id}
-              viewMode="patient"
-            />
+            {/* Appointments Section - Custom Implementation */}
+            <Card className="glass-card">
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Calendar className="h-5 w-5 text-dental-primary" />
+                  <span>Appointments</span>
+                  <Badge variant="outline">{appointments.length}</Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {appointments.length > 0 ? (
+                  <div className="space-y-3">
+                    {appointments
+                      .filter(apt => apt.status !== 'cancelled')
+                      .sort((a, b) => new Date(a.appointment_date).getTime() - new Date(b.appointment_date).getTime())
+                      .slice(0, appointmentsPage === 1 ? 3 : 10)
+                      .map((appointment) => (
+                        <div key={appointment.id} className="p-4 border rounded-lg hover:shadow-md transition-shadow">
+                          <div className="flex justify-between items-start">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-2">
+                                <p className="font-medium">
+                                  {format(new Date(appointment.appointment_date), 'PPP')}
+                                </p>
+                                <Badge className={getStatusColor(appointment.status)}>
+                                  {appointment.status}
+                                </Badge>
+                              </div>
+                              <p className="text-sm text-muted-foreground">
+                                {format(new Date(appointment.appointment_date), 'p')}
+                                {appointment.duration_minutes && ` • ${appointment.duration_minutes} minutes`}
+                              </p>
+                              {appointment.reason && (
+                                <p className="text-sm text-muted-foreground mt-1">
+                                  Reason: {appointment.reason}
+                                </p>
+                              )}
+                              {appointment.consultation_notes && (
+                                <div className="mt-2 p-2 bg-muted rounded text-sm">
+                                  {appointment.consultation_notes}
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Button size="sm" variant="outline">
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    
+                    {appointments.filter(apt => apt.status !== 'cancelled').length > 3 && (
+                      <div className="flex justify-center pt-4">
+                        <Button 
+                          variant="outline" 
+                          onClick={() => setAppointmentsPage(appointmentsPage === 1 ? 2 : 1)}
+                        >
+                          {appointmentsPage === 1 ? 'View All' : 'Show Less'}
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <Calendar className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                    <p className="text-muted-foreground">No appointments found</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
 
             {/* Collapsible Sections */}
             <Accordion type="single" collapsible value={accordionValue} onValueChange={(val) => {
