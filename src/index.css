@@ -346,6 +346,69 @@
     transform: rotate(5deg);
   }
 
+  /* Button Ripple Utilities */
+  .btn-ripple {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+  }
+
+  .btn-ripple::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(circle, rgba(255,255,255,0.35) 10%, rgba(255,255,255,0.2) 20%, transparent 40%);
+    transform: scale(0);
+    opacity: 0;
+    transition: transform 400ms ease, opacity 600ms ease;
+  }
+
+  .btn-ripple:active::after {
+    transform: scale(3);
+    opacity: 1;
+    transition: transform 0s, opacity 600ms ease;
+  }
+
+  /* Touch-friendly helpers */
+  .touch-target {
+    min-height: theme('minHeight.touch');
+    min-width: theme('minWidth.touch');
+  }
+
+  .btn-rounded-xl {
+    border-radius: theme('borderRadius.4xl');
+  }
+
+  .btn-rounded-2xl {
+    border-radius: theme('borderRadius.5xl');
+  }
+
+  .btn-elevated {
+    box-shadow: var(--shadow-medium);
+  }
+
+  .btn-elevated:hover {
+    box-shadow: var(--shadow-large);
+  }
+
+  .btn-soft {
+    box-shadow: var(--shadow-soft);
+  }
+
+  .btn-soft:hover {
+    box-shadow: var(--shadow-medium);
+  }
+
+  /* Mobile/desktop visibility helpers */
+  @media (max-width: 767px) {
+    .only-desktop { display: none !important; }
+  }
+
+  @media (min-width: 768px) {
+    .only-mobile { display: none !important; }
+  }
+
   /* Enhanced Animations */
   @keyframes float {
     0%, 100% { transform: translateY(0px); }

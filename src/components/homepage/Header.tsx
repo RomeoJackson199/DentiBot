@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { AppButton } from "@/components/ui/AppButton";
 import { ProgressiveAuthForm } from "@/components/ProgressiveAuthForm";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { User } from "@supabase/supabase-js";
@@ -86,25 +86,25 @@ export const Header = ({
                   <ProgressiveAuthForm compact />
                 </div>
                 <div className="block sm:hidden">
-                  <Button size="sm" variant="outline" className="bg-white/10 backdrop-blur-sm border-white/20 text-dental-primary">
+                  <AppButton size="mobile" variant="outline" className="bg-white/10 backdrop-blur-sm border-white/20 text-dental-primary">
                     {t.signIn}
-                  </Button>
+                  </AppButton>
                 </div>
               </>
             ) : (
-              <Button variant="outline" className="bg-white/10 backdrop-blur-sm border-white/20 text-dental-primary hover:bg-white/20" asChild>
+              <AppButton variant="outline" size="desktop" className="bg-white/10 backdrop-blur-sm border-white/20 text-dental-primary hover:bg-white/20" asChild>
                 <a href="/dashboard">
                   <Settings className="w-4 h-4 mr-2" />
                   {language === 'fr' ? 'Tableau de bord' : 'Dashboard'}
                 </a>
-              </Button>
+              </AppButton>
             )}
 
             {/* Mobile Menu Button */}
             {!minimal && (
-              <Button variant="ghost" size="sm" className="lg:hidden" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
+              <AppButton variant="ghost" size="mobile" className="lg:hidden" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
                 {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-              </Button>
+              </AppButton>
             )}
           </div>
         </div>
