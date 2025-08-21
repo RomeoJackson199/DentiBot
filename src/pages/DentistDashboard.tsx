@@ -18,6 +18,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { ClinicalToday } from "@/components/ClinicalToday";
 // Messaging functionality removed
+import { NotificationButton } from "@/components/NotificationButton";
+import { ModernNotificationCenter } from "@/components/notifications/ModernNotificationCenter";
 import { RecallsQueue } from "@/components/RecallsQueue";
 import DataImportManager from "@/components/DataImportManager";
 import { DentistEmailTest } from "@/components/DentistEmailTest";
@@ -145,14 +147,17 @@ export function DentistDashboard({ user }: DentistDashboardProps) {
               <p className="text-sm text-muted-foreground">Dentist Portal</p>
             </div>
           </div>
-          <Button
-            variant="outline"
-            onClick={handleSignOut}
-            className="border-destructive/20 text-destructive hover:bg-destructive/10"
-          >
-            <LogOut className="h-4 w-4 mr-2" />
-            Sign Out
-          </Button>
+          <div className="flex items-center gap-3">
+            <ModernNotificationCenter userId={user.id} />
+            <Button
+              variant="outline"
+              onClick={handleSignOut}
+              className="border-destructive/20 text-destructive hover:bg-destructive/10"
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Sign Out
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -170,15 +175,18 @@ export function DentistDashboard({ user }: DentistDashboardProps) {
               <p className="text-xs text-muted-foreground">Dentist Portal</p>
             </div>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleSignOut}
-            className="border-destructive/20 text-destructive hover:bg-destructive/10"
-          >
-            <LogOut className="h-4 w-4 mr-1" />
-            <span className="hidden sm:inline">Sign Out</span>
-          </Button>
+          <div className="flex items-center gap-2">
+            <ModernNotificationCenter userId={user.id} className="h-8 w-8" />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleSignOut}
+              className="border-destructive/20 text-destructive hover:bg-destructive/10"
+            >
+              <LogOut className="h-4 w-4 mr-1" />
+              <span className="hidden sm:inline">Sign Out</span>
+            </Button>
+          </div>
         </div>
       </header>
 

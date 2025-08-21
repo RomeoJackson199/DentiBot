@@ -23,6 +23,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { NotificationButton } from "@/components/NotificationButton";
+import { ModernNotificationCenter } from "@/components/notifications/ModernNotificationCenter";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useMobileOptimizations } from "@/components/mobile/MobileOptimizations";
@@ -95,7 +96,7 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
             </div>
 
             <div className="flex items-center space-x-2">
-              <NotificationButton userId={userId} />
+              <ModernNotificationCenter userId={userId} />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button 
@@ -239,7 +240,7 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
         {/* Sidebar Footer */}
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-border/50">
           <div className="flex items-center justify-between">
-            <NotificationButton userId={userId} />
+            <ModernNotificationCenter userId={userId} />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button 

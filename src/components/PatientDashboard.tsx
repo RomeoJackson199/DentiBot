@@ -12,6 +12,7 @@ import { EmergencyTriageForm } from "@/components/EmergencyTriageForm";
 import { PatientAnalytics } from "@/components/analytics/PatientAnalytics";
 import { DatabaseTest } from "@/components/DatabaseTest";
 import { NotificationTest } from "@/components/NotificationTest";
+import { ModernNotificationCenter } from "@/components/notifications/ModernNotificationCenter";
 import { useLanguage } from "@/hooks/useLanguage";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
