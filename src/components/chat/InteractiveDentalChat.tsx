@@ -236,6 +236,9 @@ export const InteractiveDentalChat = ({
     }
 
     if (suggestions.includes('symptom-intake')) {
+      if (isLoading) {
+        return;
+      }
       setActiveWidget('symptom-intake');
       addBotMessage('Please share a few details about your symptoms:');
       return;
@@ -775,9 +778,9 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
     setMessages(prev => [...prev, botResponse]);
     await saveMessage(botResponse);
 
-    handleSuggestions(suggestions, recommendedDentists);
-
     setIsLoading(false);
+
+    handleSuggestions(suggestions, recommendedDentists);
   };
 
   const handleLanguageChange = (lang: string) => {
