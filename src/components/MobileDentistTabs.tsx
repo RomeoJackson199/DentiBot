@@ -15,7 +15,7 @@ import {
   Package
 } from "lucide-react";
 
-type TabType = 'clinical' | 'patients' | 'payments' | 'analytics' | 'availability' | 'manage' | 'debug' | 'inventory' | 'import';
+type TabType = 'clinical' | 'patients' | 'payments' | 'analytics' | 'availability' | 'manage' | 'debug' | 'inventory' | 'import' | 'recalls';
 
 interface MobileDentistTabsProps {
   activeTab: TabType;
