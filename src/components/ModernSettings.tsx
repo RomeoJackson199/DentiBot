@@ -54,6 +54,7 @@ import {
 } from "lucide-react";
 import { saveProfileData, loadProfileData, ProfileData } from "@/lib/profileUtils";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DentistManagement } from "@/components/DentistManagement";
 
 interface ModernSettingsProps {
   user: User;
@@ -557,6 +558,20 @@ export const ModernSettings = ({ user }: ModernSettingsProps) => {
                       {t.childConsentNote}
                     </p>
                   </div>
+                  
+                  {/* Dentist Management Section */}
+                  {isDentist && profileId && (
+                    <>
+                      <Separator className="my-6" />
+                      <div className="space-y-4">
+                        <h4 className="text-lg font-semibold flex items-center gap-2">
+                          <Stethoscope className="h-5 w-5" />
+                          Dentist Management
+                        </h4>
+                        <DentistManagement currentDentistId={profileId} />
+                      </div>
+                    </>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>

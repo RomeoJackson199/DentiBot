@@ -29,6 +29,7 @@ import {
   AlertCircle
 } from "lucide-react";
 import { saveProfileData, loadProfileData, testDatabaseConnection, ProfileData } from "@/lib/profileUtils";
+import { DentistManagement } from "@/components/DentistManagement";
 
 interface SettingsProps {
   user: User;
@@ -401,192 +402,158 @@ const handleDeleteAccount = async () => {
 
             {activeTab === 'personal' && (
               <div className="space-y-6">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="firstName" className="text-foreground font-medium">First Name</Label>
-                    <Input
-                      id="firstName"
-                      placeholder="Enter your first name"
-                      value={profile.first_name}
-                      onChange={(e) => setProfile(prev => ({ ...prev, first_name: e.target.value }))}
-                      className="mt-2 bg-muted/30 border-border rounded-xl"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="lastName" className="text-foreground font-medium">Last Name</Label>
-                    <Input
-                      id="lastName"
-                      placeholder="Enter your last name"
-                      value={profile.last_name}
-                      onChange={(e) => setProfile(prev => ({ ...prev, last_name: e.target.value }))}
-                      className="mt-2 bg-muted/30 border-border rounded-xl"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="phone" className="text-foreground font-medium">Phone Number</Label>
-                    <Input
-                      id="phone"
-                      placeholder="Enter your phone number"
-                      value={profile.phone}
-                      onChange={(e) => setProfile(prev => ({ ...prev, phone: e.target.value }))}
-                      className="mt-2 bg-muted/30 border-border rounded-xl"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="dateOfBirth" className="text-foreground font-medium">Date of Birth</Label>
-                    <Input
-                      id="dateOfBirth"
-                      type="date"
-                      value={profile.date_of_birth}
-                      onChange={(e) => setProfile(prev => ({ ...prev, date_of_birth: e.target.value }))}
-                      className="mt-2 bg-muted/30 border-border rounded-xl"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="address" className="text-foreground font-medium">Address</Label>
-                  <Input
-                    id="address"
-                    placeholder="Enter your address"
-                    value={profile.address}
-                    onChange={(e) => setProfile(prev => ({ ...prev, address: e.target.value }))}
-                    className="mt-2 bg-muted/30 border-border rounded-xl"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="emergencyContact" className="text-foreground font-medium">Emergency Contact</Label>
-                  <Input
-                    id="emergencyContact"
-                    placeholder="Emergency contact name and phone"
-                    value={profile.emergency_contact}
-                    onChange={(e) => setProfile(prev => ({ ...prev, emergency_contact: e.target.value }))}
-                    className="mt-2 bg-muted/30 border-border rounded-xl"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="medicalHistory" className="text-foreground font-medium flex items-center space-x-2">
-                    <Heart className="h-4 w-4" />
-                    <span>Medical History</span>
-                  </Label>
-                  <Textarea
-                    id="medicalHistory"
-                    placeholder="Enter relevant medical history, allergies, medications, etc."
-                    value={profile.medical_history}
-                    onChange={(e) => setProfile(prev => ({ ...prev, medical_history: e.target.value }))}
-                    className="mt-2 bg-muted/30 border-border rounded-xl min-h-[120px] resize-none"
-                  />
-                </div>
-
-                {isDentist && (
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-foreground mb-2">Dentist Settings</h3>
+                <div className="bg-muted/20 rounded-xl p-6">
+                  <h3 className="text-lg font-semibold text-foreground mb-4">Personal Information</h3>
+                  <div className="grid grid-cols-2 gap-4 mb-4">
                     <div>
-                      <Label htmlFor="clinicAddress" className="text-foreground font-medium">Clinic Address</Label>
+                      <Label htmlFor="firstName" className="text-foreground font-medium">First Name</Label>
                       <Input
-                        id="clinicAddress"
-                        placeholder="Enter your clinic address"
-                        value={dentistClinicAddress}
-                        onChange={(e) => setDentistClinicAddress(e.target.value)}
+                        id="firstName"
+                        placeholder="Enter your first name"
+                        value={profile.first_name}
+                        onChange={(e) => setProfile(prev => ({ ...prev, first_name: e.target.value }))}
                         className="mt-2 bg-muted/30 border-border rounded-xl"
                       />
                     </div>
                     <div>
-                      <Label htmlFor="specialty" className="text-foreground font-medium">Specialty</Label>
+                      <Label htmlFor="lastName" className="text-foreground font-medium">Last Name</Label>
                       <Input
-                        id="specialty"
-                        placeholder="e.g. Orthodontics, Endodontics, General Dentistry"
-                        value={dentistSpecialty}
-                        onChange={(e) => setDentistSpecialty(e.target.value)}
+                        id="lastName"
+                        placeholder="Enter your last name"
+                        value={profile.last_name}
+                        onChange={(e) => setProfile(prev => ({ ...prev, last_name: e.target.value }))}
                         className="mt-2 bg-muted/30 border-border rounded-xl"
                       />
                     </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <Label htmlFor="phone" className="text-foreground font-medium">Phone Number</Label>
+                      <Input
+                        id="phone"
+                        placeholder="Enter your phone number"
+                        value={profile.phone}
+                        onChange={(e) => setProfile(prev => ({ ...prev, phone: e.target.value }))}
+                        className="mt-2 bg-muted/30 border-border rounded-xl"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="dateOfBirth" className="text-foreground font-medium">Date of Birth</Label>
+                      <Input
+                        id="dateOfBirth"
+                        type="date"
+                        value={profile.date_of_birth}
+                        onChange={(e) => setProfile(prev => ({ ...prev, date_of_birth: e.target.value }))}
+                        className="mt-2 bg-muted/30 border-border rounded-xl"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="mb-4">
+                    <Label htmlFor="address" className="text-foreground font-medium">Address</Label>
+                    <Input
+                      id="address"
+                      placeholder="Enter your address"
+                      value={profile.address}
+                      onChange={(e) => setProfile(prev => ({ ...prev, address: e.target.value }))}
+                      className="mt-2 bg-muted/30 border-border rounded-xl"
+                    />
+                  </div>
+
+                  <div className="mb-4">
+                    <Label htmlFor="emergencyContact" className="text-foreground font-medium">Emergency Contact</Label>
+                    <Input
+                      id="emergencyContact"
+                      placeholder="Enter emergency contact information"
+                      value={profile.emergency_contact}
+                      onChange={(e) => setProfile(prev => ({ ...prev, emergency_contact: e.target.value }))}
+                      className="mt-2 bg-muted/30 border-border rounded-xl"
+                    />
+                  </div>
+
+                  <div className="mb-4">
+                    <Label htmlFor="medicalHistory" className="text-foreground font-medium">Medical History</Label>
+                    <Textarea
+                      id="medicalHistory"
+                      placeholder="Enter any relevant medical history"
+                      value={profile.medical_history}
+                      onChange={(e) => setProfile(prev => ({ ...prev, medical_history: e.target.value }))}
+                      className="mt-2 bg-muted/30 border-border rounded-xl"
+                      rows={4}
+                    />
+                  </div>
+
+                  {/* Dentist-specific fields */}
+                  {isDentist && (
+                    <div className="space-y-4 pt-4 border-t border-border">
+                      <h4 className="text-lg font-semibold text-foreground">Dentist Information</h4>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="clinicAddress" className="text-foreground font-medium">Clinic Address</Label>
+                          <Input
+                            id="clinicAddress"
+                            placeholder="Enter clinic address"
+                            value={dentistClinicAddress}
+                            onChange={(e) => setDentistClinicAddress(e.target.value)}
+                            className="mt-2 bg-muted/30 border-border rounded-xl"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="specialty" className="text-foreground font-medium">Specialty</Label>
+                          <Input
+                            id="specialty"
+                            placeholder="Enter specialty"
+                            value={dentistSpecialty}
+                            onChange={(e) => setDentistSpecialty(e.target.value)}
+                            className="mt-2 bg-muted/30 border-border rounded-xl"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex justify-end space-x-2 pt-4">
+                    <Button 
+                      onClick={handleSaveProfile}
+                      disabled={loading}
+                      className="bg-primary hover:bg-primary/90 text-primary-foreground px-6"
+                    >
+                      {loading ? (
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                      ) : (
+                        <Heart className="h-4 w-4 mr-2" />
+                      )}
+                      {loading ? 'Saving...' : 'Save Changes'}
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Dentist Management Section - Only for Dentists */}
+                {isDentist && profileId && (
+                  <div className="bg-muted/20 rounded-xl p-6">
+                    <h3 className="text-lg font-semibold text-foreground mb-4">Dentist Management</h3>
+                    <DentistManagement currentDentistId={profileId} />
                   </div>
                 )}
 
-                <Button
-                  onClick={handleSaveProfile}
-                  disabled={loading}
-                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium py-4 rounded-xl"
-                >
-                  {loading ? 'Saving...' : 'Save Personal Information'}
-                </Button>
-
-                <Button
-                  onClick={async () => {
-                    console.log('=== PROFILE DATA TEST ===');
-                    console.log('Current profile state:', profile);
-                    
-                    try {
-                      const profileData = await loadProfileData(user);
-                      console.log('Loaded profile data:', profileData);
-                    } catch (error) {
-                      console.error('Failed to load profile data:', error);
-                    }
-                  }}
-                  variant="outline"
-                  className="w-full mb-4"
-                >
-                  Test Profile Data
-                </Button>
-
-                <Button
-                  onClick={async () => {
-                    console.log('=== COMPREHENSIVE DATABASE TEST ===');
-                    
-                    // Test 1: Check database connection
-                    const connectionTest = await testDatabaseConnection();
-                    console.log('Database connection test:', connectionTest);
-                    
-                    // Test 2: Check current user
-                    console.log('Current user ID:', user.id);
-                    console.log('Current user email:', user.email);
-                    
-                    // Test 3: Try to save test data
-                    const testData: ProfileData = {
-                      ...profile,
-                      address: 'Test Address ' + new Date().toISOString(),
-                      emergency_contact: 'Test Contact ' + new Date().toISOString(),
-                      date_of_birth: '1990-01-01'
-                    };
-                    
-                    console.log('Attempting to save test data:', testData);
-                    
-                    try {
-                      const saveResult = await saveProfileData(user, testData);
-                      console.log('Save result:', saveResult);
-                      
-                      // Test 4: Load the data back
-                      const loadResult = await loadProfileData(user);
-                      console.log('Load result:', loadResult);
-                      
-                      // Test 5: Refresh the form data
-                      fetchProfile();
-                    } catch (error) {
-                      console.error('Test failed:', error);
-                    }
-                  }}
-                  variant="outline"
-                  className="w-full mb-4"
-                >
-                  Comprehensive DB Test
-                </Button>
-
-                <div className="space-y-2">
-                  <Button onClick={handleDownloadData} variant="outline" className="w-full">
-                    {t.downloadMyData}
-                  </Button>
-                  <Button onClick={handleDeleteAccount} variant="destructive" className="w-full">
-                    {t.deleteAccount}
-                  </Button>
-                </div>
-
                 <div className="pt-4 border-t border-border">
+                  <Button 
+                    onClick={handleDownloadData}
+                    variant="outline"
+                    className="w-full mb-4"
+                  >
+                    Download My Data
+                  </Button>
+                  
+                  <Button 
+                    onClick={handleDeleteAccount}
+                    variant="destructive"
+                    className="w-full mb-4"
+                  >
+                    Delete Account
+                  </Button>
+                  
                   <Button 
                     variant="destructive" 
                     onClick={handleSignOut}
@@ -641,13 +608,13 @@ const handleDeleteAccount = async () => {
                 Cancel
               </Button>
               <Button
-                onClick={async () => {
-                  await updateAiOptOut(true);
+                onClick={() => {
+                  updateAiOptOut(true);
                   setShowAiOptOutDialog(false);
                 }}
-                className="flex-1 bg-red-500 hover:bg-red-600"
+                className="flex-1 bg-red-500 hover:bg-red-600 text-white"
               >
-                Disable AI Features
+                Disable AI
               </Button>
             </div>
           </div>
