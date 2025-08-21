@@ -171,8 +171,11 @@ export const DentistNotificationSender: React.FC<DentistNotificationSenderProps>
         {
           sent_by: dentist.id,
           patient_id: selectedPatient,
-          notification_type: notificationType
-        }
+          notification_type: notificationType,
+          email: patient.email
+        },
+        undefined, // expires_at
+        true // sendEmail - send both in-app and email notification
       );
 
       // Reset form

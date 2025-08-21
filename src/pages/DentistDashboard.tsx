@@ -20,13 +20,14 @@ import { ClinicalToday } from "@/components/ClinicalToday";
 // Messaging functionality removed
 import { RecallsQueue } from "@/components/RecallsQueue";
 import DataImportManager from "@/components/DataImportManager";
+import { DentistEmailTest } from "@/components/DentistEmailTest";
 
 interface DentistDashboardProps {
   user: User;
 }
 
 export function DentistDashboard({ user }: DentistDashboardProps) {
-  const [activeTab, setActiveTab] = useState<'clinical' | 'patients' | 'payments' | 'analytics' | 'availability' | 'manage' | 'debug' | 'inventory' | 'recalls' | 'import'>('clinical');
+  const [activeTab, setActiveTab] = useState<'clinical' | 'patients' | 'payments' | 'analytics' | 'availability' | 'manage' | 'debug' | 'inventory' | 'recalls' | 'import' | 'email-test'>('clinical');
   const [dentistId, setDentistId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [showChangelog, setShowChangelog] = useState(false);
@@ -241,6 +242,20 @@ export function DentistDashboard({ user }: DentistDashboardProps) {
 
             {activeTab === 'debug' && (
               <DebugDatabaseConnection />
+            )}
+
+            {activeTab === 'email-test' && (
+              <div className="px-4 md:px-6 py-4 w-full">
+                <div className="max-w-4xl mx-auto">
+                  <div className="mb-6">
+                    <h2 className="text-2xl font-bold mb-2">Email System Testing</h2>
+                    <p className="text-muted-foreground">
+                      Test the Twilio SendGrid email integration by sending test emails to your patients.
+                    </p>
+                  </div>
+                  <DentistEmailTest dentistId={dentistId} />
+                </div>
+              </div>
             )}
           </>
         )}

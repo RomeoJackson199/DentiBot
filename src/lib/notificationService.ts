@@ -133,17 +133,27 @@ return data.id;
       }
 
       // Send email if enabled and user has email
-      if (sendEmail && preferences?.email_enabled && profile.email) {
+      if (sendEmail && profile.email) {
+        // Use provided email from metadata if available, otherwise use profile email
+        const recipientEmail = (metadata?.email as string) || profile.email;
+        
+        // Get profile ID to use as patientId
+        const { data: recipientProfile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('user_id', userId)
+          .single();
+
         try {
-          console.log('Sending email notification to:', profile.email);
+          console.log('Sending email notification to:', recipientEmail, 'for user:', userId);
           const result = await supabase.functions.invoke('send-email-notification', {
             body: {
-              to: profile.email,
+              to: recipientEmail,
               subject: title,
               message: message,
               messageType: this.mapNotificationTypeToEmail(type),
-              patientId: metadata?.patientId || null,
-              dentistId: metadata?.dentistId || null
+              patientId: recipientProfile?.id || null,
+              dentistId: metadata?.sent_by_dentist || metadata?.dentistId || null
             }
           });
           console.log('Email notification result:', result);
@@ -154,7 +164,8 @@ return data.id;
         console.log('Email not sent - conditions not met:', {
           sendEmail,
           email_enabled: preferences?.email_enabled,
-          has_email: !!profile.email
+          has_email: !!profile.email,
+          provided_email: !!metadata?.email
         });
       }
     } catch (error) {
