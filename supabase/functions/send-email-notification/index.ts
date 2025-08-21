@@ -124,9 +124,9 @@ serve(async (req) => {
       }
     }
 
-    // Get dentist info for "from" field
-    let fromEmail = 'noreply@dentalapp.com';
-    let fromName = 'Dental App';
+    // Always use Romeo@caberu.be as the sender
+    let fromEmail = 'Romeo@caberu.be';
+    let fromName = 'Romeo - Dental Practice';
     
     if (dentistId) {
       const { data: dentistProfile } = await supabase
@@ -138,7 +138,7 @@ serve(async (req) => {
         .single();
       
       if (dentistProfile?.profile) {
-        fromName = `Dr. ${dentistProfile.profile.first_name} ${dentistProfile.profile.last_name}`;
+        fromName = `Dr. ${dentistProfile.profile.first_name} ${dentistProfile.profile.last_name} - Romeo Dental`;
       }
     }
 
