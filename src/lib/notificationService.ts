@@ -117,8 +117,7 @@ return data.id;
     metadata?: Record<string, unknown>
   ): Promise<void> {
     try {
-      // Get user preferences
-      const preferences = await this.getNotificationPreferences(userId);
+      console.log('🔔 sendEmailNotification called with:', { userId, title, sendEmail });
       
       // Get user profile for contact info
       const { data: profile } = await supabase
@@ -127,8 +126,10 @@ return data.id;
         .eq('user_id', userId)
         .single();
 
+      console.log('👤 Profile found:', profile);
+
       if (!profile) {
-        console.error('Profile not found for user:', userId);
+        console.error('❌ Profile not found for user:', userId);
         return;
       }
 
@@ -137,6 +138,8 @@ return data.id;
         // Use provided email from metadata if available, otherwise use profile email
         const recipientEmail = (metadata?.email as string) || profile.email;
         
+        console.log('📧 Preparing to send to:', recipientEmail);
+        
         // Get profile ID to use as patientId
         const { data: recipientProfile } = await supabase
           .from('profiles')
@@ -144,8 +147,10 @@ return data.id;
           .eq('user_id', userId)
           .single();
 
+        console.log('🆔 Recipient profile ID:', recipientProfile?.id);
+
         try {
-          console.log('Sending email notification to:', recipientEmail, 'for user:', userId);
+          console.log('🚀 Invoking send-email-notification edge function...');
           const result = await supabase.functions.invoke('send-email-notification', {
             body: {
               to: recipientEmail,
@@ -156,20 +161,21 @@ return data.id;
               dentistId: metadata?.sent_by_dentist || metadata?.dentistId || null
             }
           });
-          console.log('Email notification result:', result);
+          console.log('✅ Email notification result:', result);
         } catch (emailError) {
-          console.error('Failed to send email notification:', emailError);
+          console.error('❌ Failed to send email notification:', emailError);
+          throw emailError;
         }
       } else {
-        console.log('Email not sent - conditions not met:', {
+        console.log('⚠️ Email not sent - conditions not met:', {
           sendEmail,
-          email_enabled: preferences?.email_enabled,
           has_email: !!profile.email,
           provided_email: !!metadata?.email
         });
       }
     } catch (error) {
-      console.error('Error sending email notification:', error);
+      console.error('❌ Error sending email notification:', error);
+      throw error;
     }
   }
 
