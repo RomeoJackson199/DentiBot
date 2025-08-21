@@ -17,7 +17,6 @@ export class NotificationService {
     }
 
     const rows = (data ?? []) as any[];
-    // Ensure metadata is an object to satisfy Notification type
     return rows.map((row) => ({ ...row, metadata: (row.metadata && typeof row.metadata === 'object') ? row.metadata : {} })) as unknown as Notification[];
   }
 
@@ -37,37 +36,37 @@ export class NotificationService {
     return data?.length || 0;
   }
 
-// Mark notification as read
-static async markAsRead(notificationId: string): Promise<boolean> {
-  const { error } = await supabase
-    .from('notifications')
-    .update({ is_read: true })
-    .eq('id', notificationId);
+  // Mark notification as read
+  static async markAsRead(notificationId: string): Promise<boolean> {
+    const { error } = await supabase
+      .from('notifications')
+      .update({ is_read: true })
+      .eq('id', notificationId);
 
-  if (error) {
-    console.error('Error marking notification as read:', error);
-    throw new Error('Failed to mark notification as read');
+    if (error) {
+      console.error('Error marking notification as read:', error);
+      throw new Error('Failed to mark notification as read');
+    }
+
+    return true;
   }
 
-  return true;
-}
+  // Mark all notifications as read
+  static async markAllAsRead(): Promise<number> {
+    const { data, error } = await supabase
+      .from('notifications')
+      .update({ is_read: true })
+      .select('id');
 
-// Mark all notifications as read
-static async markAllAsRead(): Promise<number> {
-  const { data, error } = await supabase
-    .from('notifications')
-    .update({ is_read: true })
-    .select('id');
+    if (error) {
+      console.error('Error marking all notifications as read:', error);
+      throw new Error('Failed to mark all notifications as read');
+    }
 
-  if (error) {
-    console.error('Error marking all notifications as read:', error);
-    throw new Error('Failed to mark all notifications as read');
+    return data?.length || 0;
   }
 
-  return data?.length || 0;
-}
-
-  // Create a new notification with email sending only
+  // Create a new notification with optional email sending
   static async createNotification(
     userId: string,
     title: string,
@@ -77,102 +76,105 @@ static async markAllAsRead(): Promise<number> {
     actionUrl?: string,
     metadata?: Record<string, unknown>,
     expiresAt?: string,
-    sendEmail = true
+    sendEmail = false
   ): Promise<string> {
-const { data, error } = await supabase
-  .from('notifications')
-  .insert({
-    user_id: userId,
-    type,
-    category,
-    title,
-    message,
-    action_url: actionUrl,
-    metadata: (metadata as any) || null,
-    expires_at: expiresAt || null,
-    is_read: false,
-    created_at: new Date().toISOString(),
-  })
-  .select('id')
-  .single();
+    console.log('🔔 Creating notification:', { userId, title, sendEmail });
 
-if (error) {
-  console.error('Error creating notification:', error);
-  throw new Error('Failed to create notification');
-}
+    const { data, error } = await supabase
+      .from('notifications')
+      .insert({
+        user_id: userId,
+        type,
+        category,
+        title,
+        message,
+        action_url: actionUrl,
+        metadata: (metadata as any) || null,
+        expires_at: expiresAt || null,
+        is_read: false,
+        created_at: new Date().toISOString(),
+      })
+      .select('id')
+      .single();
 
-// Send email notification if enabled
-await this.sendEmailNotification(userId, title, message, type, sendEmail, metadata);
+    if (error) {
+      console.error('❌ Error creating notification:', error);
+      throw new Error(`Failed to create notification: ${error.message}`);
+    }
 
-return data.id;
+    const notificationId = data.id;
+    console.log('✅ Notification created with ID:', notificationId);
+
+    // Send email notification if enabled
+    if (sendEmail) {
+      try {
+        await this.sendEmailNotification(userId, title, message, type, metadata);
+      } catch (emailError) {
+        console.error('❌ Email sending failed but notification was created:', emailError);
+        // Don't throw here - notification was created successfully
+      }
+    }
+
+    return notificationId;
   }
 
-  // Send email notification only
+  // Send email notification via edge function
   static async sendEmailNotification(
     userId: string,
     title: string,
     message: string,
     type: Notification['type'],
-    sendEmail = true,
     metadata?: Record<string, unknown>
   ): Promise<void> {
     try {
-      console.log('🔔 sendEmailNotification called with:', { userId, title, sendEmail });
+      console.log('📧 sendEmailNotification called with:', { userId, title });
       
       // Get user profile for contact info
-      const { data: profile } = await supabase
+      const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('email, first_name, last_name')
         .eq('user_id', userId)
         .single();
 
-      console.log('👤 Profile found:', profile);
+      if (profileError) {
+        console.error('❌ Profile fetch error:', profileError);
+        throw new Error(`Failed to fetch profile: ${profileError.message}`);
+      }
 
       if (!profile) {
-        console.error('❌ Profile not found for user:', userId);
-        return;
+        throw new Error('Profile not found for user');
       }
 
-      // Send email if enabled and user has email
-      if (sendEmail && profile.email) {
-        // Use provided email from metadata if available, otherwise use profile email
-        const recipientEmail = (metadata?.email as string) || profile.email;
-        
-        console.log('📧 Preparing to send to:', recipientEmail);
-        
-        // Get profile ID to use as patientId
-        const { data: recipientProfile } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('user_id', userId)
-          .single();
+      console.log('👤 Profile found:', { email: profile.email, name: profile.first_name });
 
-        console.log('🆔 Recipient profile ID:', recipientProfile?.id);
+      if (!profile.email) {
+        throw new Error('No email address found for user');
+      }
 
-        try {
-          console.log('🚀 Invoking send-email-notification edge function...');
-          const result = await supabase.functions.invoke('send-email-notification', {
-            body: {
-              to: recipientEmail,
-              subject: title,
-              message: message,
-              messageType: this.mapNotificationTypeToEmail(type),
-              patientId: recipientProfile?.id || null,
-              dentistId: metadata?.sent_by_dentist || metadata?.dentistId || null
-            }
-          });
-          console.log('✅ Email notification result:', result);
-        } catch (emailError) {
-          console.error('❌ Failed to send email notification:', emailError);
-          throw emailError;
+      // Use provided email from metadata if available, otherwise use profile email
+      const recipientEmail = (metadata?.email as string) || profile.email;
+      
+      console.log('📧 Preparing to send to:', recipientEmail);
+      
+      // Call the edge function
+      console.log('🚀 Invoking send-email-notification edge function...');
+      const { data: result, error: functionError } = await supabase.functions.invoke('send-email-notification', {
+        body: {
+          to: recipientEmail,
+          subject: title,
+          message: message,
+          messageType: this.mapNotificationTypeToEmail(type),
+          patientId: profile.id || null,
+          dentistId: metadata?.sent_by_dentist || metadata?.dentistId || null
         }
-      } else {
-        console.log('⚠️ Email not sent - conditions not met:', {
-          sendEmail,
-          has_email: !!profile.email,
-          provided_email: !!metadata?.email
-        });
+      });
+
+      if (functionError) {
+        console.error('❌ Edge function error:', functionError);
+        throw new Error(`Email function failed: ${functionError.message}`);
       }
+
+      console.log('✅ Email notification result:', result);
     } catch (error) {
       console.error('❌ Error sending email notification:', error);
       throw error;
@@ -189,83 +191,82 @@ return data.id;
     }
   }
 
-
   // Create appointment reminder notification
   static async createAppointmentReminder(
     appointmentId: string,
     reminderType: '24h' | '2h' | '1h' = '24h'
   ): Promise<string> {
-const { data, error } = await supabase
-  .from('notifications')
-  .insert({
-    user_id: 'unknown',
-    type: 'appointment',
-    category: 'info',
-    title: `Appointment Reminder (${reminderType})`,
-    message: `Reminder for appointment ${appointmentId}`,
-    is_read: false,
-    created_at: new Date().toISOString(),
-  })
-  .select('id')
-  .single();
+    const { data, error } = await supabase
+      .from('notifications')
+      .insert({
+        user_id: 'unknown',
+        type: 'appointment',
+        category: 'info',
+        title: `Appointment Reminder (${reminderType})`,
+        message: `Reminder for appointment ${appointmentId}`,
+        is_read: false,
+        created_at: new Date().toISOString(),
+      })
+      .select('id')
+      .single();
 
-if (error) {
-  console.error('Error creating appointment reminder:', error);
-  throw new Error('Failed to create appointment reminder');
-}
+    if (error) {
+      console.error('Error creating appointment reminder:', error);
+      throw new Error('Failed to create appointment reminder');
+    }
 
-return data.id;
+    return data.id;
   }
 
   // Create prescription notification
-static async createPrescriptionNotification(prescriptionId: string): Promise<string> {
-  const { data, error } = await supabase
-    .from('notifications')
-    .insert({
-      user_id: 'unknown',
-      type: 'prescription',
-      category: 'info',
-      title: 'New Prescription',
-      message: `Prescription created (${prescriptionId})`,
-      is_read: false,
-      created_at: new Date().toISOString(),
-    })
-    .select('id')
-    .single();
+  static async createPrescriptionNotification(prescriptionId: string): Promise<string> {
+    const { data, error } = await supabase
+      .from('notifications')
+      .insert({
+        user_id: 'unknown',
+        type: 'prescription',
+        category: 'info',
+        title: 'New Prescription',
+        message: `Prescription created (${prescriptionId})`,
+        is_read: false,
+        created_at: new Date().toISOString(),
+      })
+      .select('id')
+      .single();
 
-  if (error) {
-    console.error('Error creating prescription notification:', error);
-    throw new Error('Failed to create prescription notification');
+    if (error) {
+      console.error('Error creating prescription notification:', error);
+      throw new Error('Failed to create prescription notification');
+    }
+
+    return data.id;
   }
-
-  return data.id;
-}
 
   // Create treatment plan notification
   static async createTreatmentPlanNotification(
     treatmentPlanId: string,
     notificationType: 'created' | 'updated' | 'completed' = 'created'
   ): Promise<string> {
-const { data, error } = await supabase
-  .from('notifications')
-  .insert({
-    user_id: 'unknown',
-    type: 'treatment_plan',
-    category: 'info',
-    title: `Treatment Plan ${notificationType}`,
-    message: `Treatment plan update (${treatmentPlanId})`,
-    is_read: false,
-    created_at: new Date().toISOString(),
-  })
-  .select('id')
-  .single();
+    const { data, error } = await supabase
+      .from('notifications')
+      .insert({
+        user_id: 'unknown',
+        type: 'treatment_plan',
+        category: 'info',
+        title: `Treatment Plan ${notificationType}`,
+        message: `Treatment plan update (${treatmentPlanId})`,
+        is_read: false,
+        created_at: new Date().toISOString(),
+      })
+      .select('id')
+      .single();
 
-if (error) {
-  console.error('Error creating treatment plan notification:', error);
-  throw new Error('Failed to create treatment plan notification');
-}
+    if (error) {
+      console.error('Error creating treatment plan notification:', error);
+      throw new Error('Failed to create treatment plan notification');
+    }
 
-return data.id;
+    return data.id;
   }
 
   // Get notification preferences
@@ -278,12 +279,11 @@ return data.id;
         .single();
 
       if (error || !data) {
-        // Return default preferences if none exist
         return {
           id: `default-${userId}`,
           user_id: userId,
           email_enabled: true,
-          sms_enabled: false, // Disabled for now
+          sms_enabled: false,
           push_enabled: true,
           in_app_enabled: true,
           appointment_reminders: true,
@@ -301,7 +301,6 @@ return data.id;
       return data as any;
     } catch (error) {
       console.error('Error fetching notification preferences:', error);
-      // Return default preferences on error
       return {
         id: `default-${userId}`,
         user_id: userId,
@@ -322,8 +321,8 @@ return data.id;
     }
   }
 
-// Update notification preferences
-static async updateNotificationPreferences(
+  // Update notification preferences
+  static async updateNotificationPreferences(
     userId: string,
     preferences: Partial<NotificationPreferences>
   ): Promise<NotificationPreferences> {
@@ -346,7 +345,6 @@ static async updateNotificationPreferences(
       return data as any;
     } catch (error) {
       console.error('Error updating notification preferences:', error);
-      // Return merged default preferences on error
       const defaultPrefs: NotificationPreferences = {
         id: `default-${userId}`,
         user_id: userId,
@@ -370,12 +368,12 @@ static async updateNotificationPreferences(
   }
 
   // Get notification templates
-static async getNotificationTemplates(): Promise<NotificationTemplate[]> {
+  static async getNotificationTemplates(): Promise<NotificationTemplate[]> {
     return [];
   }
 
   // Create notification from template
-static async createNotificationFromTemplate(
+  static async createNotificationFromTemplate(
     userId: string,
     templateKey: string,
     variables: Record<string, string> = {},

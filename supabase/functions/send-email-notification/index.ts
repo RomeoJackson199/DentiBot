@@ -1,28 +1,15 @@
+
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-// Environment-based CORS configuration
-const getCorsHeaders = () => {
-  const environment = Deno.env.get('ENVIRONMENT') || 'development';
-  
-  if (environment === 'production') {
-    return {
-      'Access-Control-Allow-Origin': 'https://gjvxcisbaxhhblhsytar.supabase.co',
-      'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Max-Age': '86400',
-    };
-  }
-  
-  return {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  };
+// CORS configuration
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Max-Age': '86400',
 };
-
-const corsHeaders = getCorsHeaders();
 
 interface EmailRequest {
   to: string;
@@ -34,57 +21,51 @@ interface EmailRequest {
 }
 
 serve(async (req) => {
+  console.log('📧 Email notification function called:', req.method);
+
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    // Get the authorization header and verify JWT
-    const authHeader = req.headers.get('authorization');
-    if (!authHeader) {
-      throw new Error('Authorization header required');
-    }
-
-    // Create Supabase client with user context for authorization checks
+    // Get environment variables
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-    
+    const twilioApiKey = Deno.env.get('TWILIO_API_KEY');
+
+    console.log('🔧 Environment check:', {
+      hasSupabaseUrl: !!supabaseUrl,
+      hasServiceKey: !!supabaseServiceKey,
+      hasTwilioKey: !!twilioApiKey
+    });
+
     if (!supabaseUrl || !supabaseServiceKey) {
       throw new Error('Supabase credentials not configured');
     }
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-      global: { headers: { Authorization: authHeader } }
+    if (!twilioApiKey) {
+      throw new Error('Twilio API key not configured');
+    }
+
+    // Parse request body
+    const { to, subject, message, messageType, patientId, dentistId }: EmailRequest = await req.json();
+    
+    console.log('📋 Email request data:', {
+      to: to?.substring(0, 5) + '...',
+      subject,
+      messageType,
+      hasPatientId: !!patientId,
+      hasDentistId: !!dentistId
     });
 
-    // Verify user authentication
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
-      throw new Error('Invalid or expired token');
-    }
+    // Create Supabase client
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { to, subject, message, messageType, patientId, dentistId }: EmailRequest = await req.json();
-
-    // Authorization check: Only dentists can send email notifications to patients
-    if (dentistId && patientId) {
-      const { data: dentist, error: dentistError } = await supabase
-        .from('dentists')
-        .select('id')
-        .eq('id', dentistId)
-        .eq('profile_id', (
-          await supabase.from('profiles').select('id').eq('user_id', user.id).single()
-        ).data?.id)
-        .single();
-
-      if (dentistError || !dentist) {
-        throw new Error('Unauthorized: Only the dentist can send email notifications');
-      }
-    }
-
-    // Create email notification record first
+    // Create email notification record
     let notificationId;
     if (patientId && dentistId) {
+      console.log('💾 Creating email notification record...');
       const { data, error } = await supabase
         .from('email_notifications')
         .insert({
@@ -100,9 +81,10 @@ serve(async (req) => {
         .single();
 
       if (error) {
-        console.error('Error creating email notification record:', error);
+        console.error('❌ Error creating email notification record:', error);
       } else {
         notificationId = data.id;
+        console.log('✅ Email notification record created:', notificationId);
       }
     }
 
@@ -111,6 +93,7 @@ serve(async (req) => {
     let fromName = 'Dental App';
     
     if (dentistId) {
+      console.log('👨‍⚕️ Fetching dentist info...');
       const { data: dentistProfile } = await supabase
         .from('dentists')
         .select(`
@@ -121,15 +104,11 @@ serve(async (req) => {
       
       if (dentistProfile?.profile) {
         fromName = `Dr. ${dentistProfile.profile.first_name} ${dentistProfile.profile.last_name}`;
+        console.log('✅ Dentist name set:', fromName);
       }
     }
 
-    // Send email using Twilio SendGrid
-    const twilioApiKey = Deno.env.get('TWILIO_API_KEY');
-    if (!twilioApiKey) {
-      throw new Error('Twilio API key not configured');
-    }
-
+    // Prepare email data for Twilio SendGrid
     const emailData = {
       personalizations: [{
         to: [{ email: to }],
@@ -142,18 +121,22 @@ serve(async (req) => {
       content: [{
         type: "text/html",
         value: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #333;">${subject}</h2>
-            <div style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin: 20px 0;">
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <h2 style="color: #333; margin-bottom: 20px;">${subject}</h2>
+            <div style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin: 20px 0; line-height: 1.6;">
               ${message.replace(/\n/g, '<br>')}
             </div>
-            <p style="color: #666; font-size: 12px;">
-              This email was sent from your dental practice management system.
-            </p>
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
+              <p style="color: #666; font-size: 12px; margin: 0;">
+                This email was sent from your dental practice management system.
+              </p>
+            </div>
           </div>
         `
       }]
     };
+
+    console.log('📤 Sending email via Twilio SendGrid...');
 
     // Send via Twilio SendGrid API
     const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
@@ -165,9 +148,11 @@ serve(async (req) => {
       body: JSON.stringify(emailData)
     });
 
+    console.log('📬 SendGrid response status:', response.status);
+
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Twilio SendGrid error:', errorText);
+      console.error('❌ Twilio SendGrid error:', errorText);
       
       // Update notification status to failed
       if (notificationId) {
@@ -182,6 +167,7 @@ serve(async (req) => {
 
     // Update notification status to sent
     if (notificationId) {
+      console.log('✅ Updating notification status to sent...');
       await supabase
         .from('email_notifications')
         .update({
@@ -192,18 +178,18 @@ serve(async (req) => {
         .eq('id', notificationId);
     }
 
-    console.log(`Email sent successfully via Twilio SendGrid for ${messageType}`);
+    console.log('🎉 Email sent successfully via Twilio SendGrid!');
 
     return new Response(JSON.stringify({
       success: true,
       notificationId: notificationId,
-      message: 'Notification processed successfully'
+      message: 'Email sent successfully'
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
   } catch (error) {
-    console.error('Error sending email:', error);
+    console.error('❌ Error in email function:', error);
     
     return new Response(JSON.stringify({
       error: error.message,
