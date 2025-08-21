@@ -838,6 +838,57 @@ export type Database = {
           },
         ]
       }
+      email_event_logs: {
+        Row: {
+          appointment_id: string | null
+          created_at: string
+          event_type: string
+          id: string
+          idempotency_key: string
+          invoice_id: string | null
+          message_id: string | null
+          metadata: Json | null
+          patient_id: string
+          priority: string
+          sent_at: string
+          template_id: string
+          tenant_id: string | null
+          treatment_plan_id: string | null
+        }
+        Insert: {
+          appointment_id?: string | null
+          created_at?: string
+          event_type: string
+          id?: string
+          idempotency_key: string
+          invoice_id?: string | null
+          message_id?: string | null
+          metadata?: Json | null
+          patient_id: string
+          priority?: string
+          sent_at?: string
+          template_id: string
+          tenant_id?: string | null
+          treatment_plan_id?: string | null
+        }
+        Update: {
+          appointment_id?: string | null
+          created_at?: string
+          event_type?: string
+          id?: string
+          idempotency_key?: string
+          invoice_id?: string | null
+          message_id?: string | null
+          metadata?: Json | null
+          patient_id?: string
+          priority?: string
+          sent_at?: string
+          template_id?: string
+          tenant_id?: string | null
+          treatment_plan_id?: string | null
+        }
+        Relationships: []
+      }
       email_notifications: {
         Row: {
           created_at: string
@@ -2175,6 +2226,7 @@ export type Database = {
           first_name: string
           id: string
           import_session_id: string | null
+          language_preference: string | null
           last_name: string
           medical_history: string | null
           phone: string | null
@@ -2195,6 +2247,7 @@ export type Database = {
           first_name: string
           id?: string
           import_session_id?: string | null
+          language_preference?: string | null
           last_name: string
           medical_history?: string | null
           phone?: string | null
@@ -2215,6 +2268,7 @@ export type Database = {
           first_name?: string
           id?: string
           import_session_id?: string | null
+          language_preference?: string | null
           last_name?: string
           medical_history?: string | null
           phone?: string | null

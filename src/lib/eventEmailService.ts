@@ -86,11 +86,12 @@ export class EventEmailService {
    * Check if email was already sent using idempotency key
    */
   private async checkIdempotency(idempotencyKey: string): Promise<boolean> {
+    // Use existing email_notifications table for now
     const { data } = await supabase
-      .from('email_event_logs')
+      .from('email_notifications')
       .select('id')
-      .eq('idempotency_key', idempotencyKey)
-      .single();
+      .eq('message_content', idempotencyKey) // Store idempotency key in message_content temporarily
+      .maybeSingle();
     
     return !!data;
   }
@@ -104,12 +105,12 @@ export class EventEmailService {
 
     const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
     
+    // Use existing email_notifications table for rate limiting
     const { data, error } = await supabase
-      .from('email_event_logs')
+      .from('email_notifications')
       .select('id')
       .eq('patient_id', patientId)
-      .eq('priority', priority)
-      .gte('sent_at', twentyFourHoursAgo);
+      .gte('created_at', twentyFourHoursAgo);
 
     if (error) {
       console.error('Error checking rate limit:', error);
@@ -132,9 +133,9 @@ export class EventEmailService {
   private async getEmailContext(event: EmailEvent) {
     const { data: patient } = await supabase
       .from('profiles')
-      .select('first_name, last_name, email, language_preference')
+      .select('first_name, last_name, email')
       .eq('id', event.patient_id)
-      .single();
+      .maybeSingle();
 
     if (!patient) return null;
 
@@ -147,12 +148,12 @@ export class EventEmailService {
         profiles!inner(first_name, last_name, email, phone)
       `)
       .limit(1)
-      .single();
+      .maybeSingle();
 
     return {
       patient_name: `${patient.first_name} ${patient.last_name}`,
       patient_email: patient.email,
-      patient_language: patient.language_preference || 'en',
+      patient_language: 'en', // Default to English for now
       clinic_name: clinic?.profiles?.first_name ? `Dr. ${clinic.profiles.first_name} ${clinic.profiles.last_name}` : 'Dental Clinic',
       clinic_address: clinic?.clinic_address || '',
       clinic_phone: clinic?.profiles?.phone || '',
@@ -286,11 +287,17 @@ END:VCALENDAR`;
     sent_at: string;
     tenant_id: string;
   }) {
+    // Use existing email_notifications table for logging
     await supabase
-      .from('email_event_logs')
+      .from('email_notifications')
       .insert([{
-        ...logData,
-        priority: EMAIL_TEMPLATES[logData.event_type as keyof typeof EMAIL_TEMPLATES]?.priority || 'normal'
+        patient_id: logData.patient_id,
+        dentist_id: logData.tenant_id,
+        email_address: '', // Will be filled by the email service
+        subject: logData.template_id,
+        message_content: logData.idempotency_key, // Store idempotency key here
+        message_type: logData.event_type,
+        status: 'sent'
       }]);
   }
 
