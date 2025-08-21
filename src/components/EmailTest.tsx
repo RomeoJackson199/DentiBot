@@ -20,19 +20,31 @@ export const EmailTest: React.FC = () => {
         throw new Error('Not authenticated');
       }
 
-      console.log('Testing email notification for user:', user.id);
-      
-      const notificationId = await NotificationService.createNotification(
-        user.id,
-        '🧪 Email Test - Working!',
-        'This is a test email notification. If you receive this, your email notifications are working perfectly!',
-        'system',
-        'info',
-        undefined,
-        { test: true },
-        undefined,
-        true // sendEmail
-      );
+        console.log('Testing email notification for user:', user.id);
+        
+        // Test email with user's email from profile
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('email, first_name')
+          .eq('user_id', user.id)
+          .single();
+
+        const recipientEmail = profile?.email || user.email;
+        if (!recipientEmail) {
+          throw new Error('No email address found for user');
+        }
+        
+        const notificationId = await NotificationService.createNotification(
+          user.id,
+          '🧪 Email Test - Twilio SendGrid Working!',
+          `Hi ${profile?.first_name || 'there'}! This is a test email sent via Twilio SendGrid. If you receive this, your email notifications are working perfectly!`,
+          'system',
+          'info',
+          undefined,
+          { test: true, email: recipientEmail },
+          undefined,
+          true // sendEmail
+        );
 
       console.log('Notification created with ID:', notificationId);
       

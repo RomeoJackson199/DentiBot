@@ -124,7 +124,63 @@ serve(async (req) => {
       }
     }
 
-    // Store the email notification - Supabase will handle delivery
+    // Send email using Twilio SendGrid
+    const twilioApiKey = Deno.env.get('TWILIO_API_KEY');
+    if (!twilioApiKey) {
+      throw new Error('Twilio API key not configured');
+    }
+
+    const emailData = {
+      personalizations: [{
+        to: [{ email: to }],
+        subject: subject
+      }],
+      from: { 
+        email: fromEmail,
+        name: fromName
+      },
+      content: [{
+        type: "text/html",
+        value: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #333;">${subject}</h2>
+            <div style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              ${message.replace(/\n/g, '<br>')}
+            </div>
+            <p style="color: #666; font-size: 12px;">
+              This email was sent from your dental practice management system.
+            </p>
+          </div>
+        `
+      }]
+    };
+
+    // Send via Twilio SendGrid API
+    const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${twilioApiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(emailData)
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Twilio SendGrid error:', errorText);
+      
+      // Update notification status to failed
+      if (notificationId) {
+        await supabase
+          .from('email_notifications')
+          .update({ status: 'failed', error_message: errorText })
+          .eq('id', notificationId);
+      }
+      
+      throw new Error(`Failed to send email: ${response.status} ${errorText}`);
+    }
+
+    // Update notification status to sent
     if (notificationId) {
       await supabase
         .from('email_notifications')
@@ -136,9 +192,7 @@ serve(async (req) => {
         .eq('id', notificationId);
     }
 
-    // For system notifications, we can use Supabase's built-in notification system
-    // or simply store in database and handle via triggers
-    console.log(`Email notification stored successfully for ${messageType}`);
+    console.log(`Email sent successfully via Twilio SendGrid for ${messageType}`);
 
     return new Response(JSON.stringify({
       success: true,
