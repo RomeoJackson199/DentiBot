@@ -22,7 +22,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { NotificationButton } from "@/components/NotificationButton";
 import { ModernNotificationCenter } from "@/components/notifications/ModernNotificationCenter";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -38,7 +37,6 @@ interface PatientAppShellProps {
   userId: string;
 }
 
-// Simplified navigation items - only bottom bar, no duplication
 const NAV_ITEMS: Array<{ id: PatientSection; label: string; shortLabel?: string; icon: React.ComponentType<any>; color: string }> = [
   { id: 'home', label: 'Home', icon: HomeIcon, color: 'text-blue-600 bg-blue-100 dark:bg-blue-900/30' },
   { id: 'assistant', label: 'Assistant', icon: Bot, color: 'text-emerald-600 bg-emerald-100 dark:bg-emerald-900/30' },
@@ -74,11 +72,7 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
   };
 
   const handleSettingsClick = () => {
-    // If we're already on settings, do nothing to prevent confusion
-    if (activeSection === 'settings') {
-      return;
-    }
-    // Change to settings section
+    if (activeSection === 'settings') return;
     onChangeSection('settings');
   };
 
@@ -86,7 +80,7 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
         {/* Mobile Header */}
-        <div className="fixed top-0 left-0 right-0 z-header bg-background/95 backdrop-blur-sm border-b">
+        <div className="fixed top-0 left-0 right-0 z-header bg-background/95 backdrop-blur-sm border-b" role="banner">
           <div className="flex items-center justify-between px-4 py-3">
             <div className="flex items-center space-x-2">
               <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
@@ -99,13 +93,14 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
               <ModernNotificationCenter userId={userId} />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
+                  <Button
+                    variant="ghost"
+                    size="icon"
                     className={cn(
                       "hover:bg-primary/10 transition-colors",
                       activeSection === 'settings' && "bg-primary/10 text-primary"
                     )}
+                    aria-label="Open menu"
                   >
                     <SettingsIcon className="h-5 w-5" />
                   </Button>
@@ -113,16 +108,16 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
                 <DropdownMenuContent align="end" className="w-48">
                   <DropdownMenuLabel>Menu</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleSettingsClick}>
+                  <DropdownMenuItem onClick={handleSettingsClick} aria-label="Settings">
                     <SettingsIcon className="mr-2 h-4 w-4" />
                     Settings
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate('/about')}>
+                  <DropdownMenuItem onClick={() => navigate('/about')} aria-label="About">
                     <Info className="mr-2 h-4 w-4" />
                     About Dentinot
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleSignOut} className="text-red-600">
+                  <DropdownMenuItem onClick={handleSignOut} className="text-red-600" aria-label="Logout">
                     <LogOut className="mr-2 h-4 w-4" />
                     Sign Out
                   </DropdownMenuItem>
@@ -150,22 +145,24 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
 
         {/* Bottom Navigation Bar */}
         <div className="fixed bottom-0 left-0 right-0 z-header bg-background/95 backdrop-blur-sm border-t safe-bottom">
-          <nav className="flex items-center justify-around py-2">
+          <nav className="flex items-center justify-around py-2" role="navigation" aria-label="Primary">
             {NAV_ITEMS.map((item) => {
               const Icon = item.icon;
               const active = isActive(item.id);
               const hasBadge = badges[item.id];
-              
+
               return (
                 <button
                   key={item.id}
                   onClick={() => onChangeSection(item.id)}
                   className={cn(
                     "flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-all relative touch-target",
-                    active 
-                      ? "text-primary" 
+                    active
+                      ? "text-primary"
                       : "text-muted-foreground hover:text-foreground"
                   )}
+                  aria-current={active ? 'page' : undefined}
+                  aria-label={item.label}
                 >
                   <div className="relative">
                     <Icon className={cn("h-5 w-5", active && "scale-110")} />
@@ -185,7 +182,7 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
 
   // Desktop Layout with Sidebar
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex" role="main">
       {/* Desktop Sidebar */}
       <div className="fixed left-0 top-0 bottom-0 w-64 bg-card/80 backdrop-blur-lg border-r border-border/50 z-header">
         {/* Sidebar Header */}
@@ -200,13 +197,13 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
         </div>
 
         {/* Navigation */}
-        <nav className="p-4 space-y-2">
+        <nav className="p-4 space-y-2" role="navigation" aria-label="Primary">
           <TooltipProvider>
             {NAV_ITEMS.map((item) => {
               const Icon = item.icon;
               const active = isActive(item.id);
               const hasBadge = badges[item.id];
-              
+
               return (
                 <Tooltip key={item.id}>
                   <TooltipTrigger asChild>
@@ -214,10 +211,12 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
                       onClick={() => onChangeSection(item.id)}
                       className={cn(
                         "w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all relative group",
-                        active 
-                          ? "bg-primary text-primary-foreground shadow-md" 
+                        active
+                          ? "bg-primary text-primary-foreground shadow-md"
                           : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                       )}
+                      aria-current={active ? 'page' : undefined}
+                      aria-label={item.label}
                     >
                       <div className="relative">
                         <Icon className="h-5 w-5" />
@@ -243,28 +242,29 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
             <ModernNotificationCenter userId={userId} />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
+                <Button
+                  variant="ghost"
+                  size="icon"
                   className={cn(
                     "hover:bg-primary/10 transition-colors",
                     activeSection === 'settings' && "bg-primary/10 text-primary"
                   )}
+                  aria-label="Open menu"
                 >
                   <SettingsIcon className="h-5 w-5" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48 mb-2">
-                <DropdownMenuItem onClick={handleSettingsClick}>
+                <DropdownMenuItem onClick={handleSettingsClick} aria-label="Settings">
                   <SettingsIcon className="mr-2 h-4 w-4" />
                   Settings
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate('/about')}>
+                <DropdownMenuItem onClick={() => navigate('/about')} aria-label="About">
                   <Info className="mr-2 h-4 w-4" />
                   About Dentinot
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleSignOut} className="text-red-600">
+                <DropdownMenuItem onClick={handleSignOut} className="text-red-600" aria-label="Logout">
                   <LogOut className="mr-2 h-4 w-4" />
                   Sign Out
                 </DropdownMenuItem>
@@ -292,3 +292,5 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
     </div>
   );
 };
+
+export default PatientAppShell;

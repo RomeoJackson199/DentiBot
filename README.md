@@ -64,6 +64,22 @@ This project is built with:
 
 Simply open [Lovable](https://lovable.dev/projects/952bbe84-3a4d-4f46-b2b7-7a7945d9eaf0) and click on Share -> Publish.
 
+### Environment variables
+
+Create a `.env` file (or set variables in your hosting provider) with:
+
+```
+VITE_SUPABASE_URL=<your-supabase-url>
+VITE_SUPABASE_ANON_KEY=<your-supabase-anon-key>
+```
+
+For local dev:
+
+```
+cp .env.example .env
+# fill in the values above
+```
+
 ## Can I connect a custom domain to my Lovable project?
 
 Yes, you can!

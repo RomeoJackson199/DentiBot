@@ -1,5 +1,5 @@
 {
-  "name": "Denti Smart Scheduler",
+  "name": "DentiSmart Scheduler",
   "short_name": "DentiScheduler",
   "description": "Intelligent dental appointment scheduling and patient management platform",
   "start_url": "/",
@@ -12,104 +12,16 @@
   "categories": ["medical", "health", "productivity"],
   "icons": [
     {
-      "src": "/icons/icon-72x72.png",
-      "sizes": "72x72",
-      "type": "image/png",
-      "purpose": "maskable any"
-    },
-    {
-      "src": "/icons/icon-96x96.png",
-      "sizes": "96x96",
-      "type": "image/png",
-      "purpose": "maskable any"
-    },
-    {
-      "src": "/icons/icon-128x128.png",
-      "sizes": "128x128",
-      "type": "image/png",
-      "purpose": "maskable any"
-    },
-    {
-      "src": "/icons/icon-144x144.png",
-      "sizes": "144x144",
-      "type": "image/png",
-      "purpose": "maskable any"
-    },
-    {
-      "src": "/icons/icon-152x152.png",
-      "sizes": "152x152",
-      "type": "image/png",
-      "purpose": "maskable any"
-    },
-    {
-      "src": "/icons/icon-192x192.png",
+      "src": "/lovable-uploads/bd9069b9-f5b0-427d-8acb-8b6a25ccba24.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "maskable any"
+      "purpose": "any maskable"
     },
     {
-      "src": "/icons/icon-384x384.png",
-      "sizes": "384x384",
-      "type": "image/png",
-      "purpose": "maskable any"
-    },
-    {
-      "src": "/icons/icon-512x512.png",
+      "src": "/lovable-uploads/bd9069b9-f5b0-427d-8acb-8b6a25ccba24.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "maskable any"
-    }
-  ],
-  "shortcuts": [
-    {
-      "name": "Book Appointment",
-      "short_name": "Book",
-      "description": "Quickly book a new dental appointment",
-      "url": "/book-appointment",
-      "icons": [
-        {
-          "src": "/icons/shortcut-book.png",
-          "sizes": "96x96"
-        }
-      ]
-    },
-    {
-      "name": "Patient Dashboard",
-      "short_name": "Dashboard",
-      "description": "View patient dashboard and appointments",
-      "url": "/dashboard",
-      "icons": [
-        {
-          "src": "/icons/shortcut-dashboard.png",
-          "sizes": "96x96"
-        }
-      ]
-    },
-    {
-      "name": "Emergency Booking",
-      "short_name": "Emergency",
-      "description": "Book emergency dental appointment",
-      "url": "/emergency-booking",
-      "icons": [
-        {
-          "src": "/icons/shortcut-emergency.png",
-          "sizes": "96x96"
-        }
-      ]
-    }
-  ],
-  "screenshots": [
-    {
-      "src": "/screenshots/mobile-dashboard.png",
-      "sizes": "390x844",
-      "type": "image/png",
-      "form_factor": "narrow"
-    },
-    {
-      "src": "/screenshots/desktop-dashboard.png",
-      "sizes": "1920x1080",
-      "type": "image/png",
-      "form_factor": "wide"
+      "purpose": "any maskable"
     }
   ]
 }
