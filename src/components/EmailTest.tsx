@@ -60,11 +60,16 @@ export const EmailTest: React.FC = () => {
       });
       
     } catch (error) {
-      console.error('Email test failed:', error);
+      console.error('❌ Email test failed:', error);
       setResult('error');
+      
+      // Show the actual error message to help debug
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error('Full error details:', error);
+      
       toast({
         title: "❌ Email Test Failed",
-        description: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        description: `Error: ${errorMessage}`,
         variant: "destructive",
       });
     } finally {
