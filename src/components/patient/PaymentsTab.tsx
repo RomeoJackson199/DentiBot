@@ -1,10 +1,9 @@
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PatientPaymentHistory } from "@/components/PatientPaymentHistory";
-import { DollarSign, PieChart, CreditCard, AlertCircle, CheckCircle } from "lucide-react";
+import { DollarSign, CreditCard, AlertCircle, CheckCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -141,93 +140,11 @@ export const PaymentsTab: React.FC<PaymentsTabProps> = ({ patientId, totalDueCen
           <TabsTrigger value="history" className="flex-1 sm:flex-initial">
             Payment History
           </TabsTrigger>
-          <TabsTrigger value="analytics" className="flex-1 sm:flex-initial">
-            Analytics
-          </TabsTrigger>
         </TabsList>
         
         <div className="mt-6">
           <TabsContent value="history" className="mt-0">
             <PatientPaymentHistory patientId={patientId} />
-          </TabsContent>
-          
-          <TabsContent value="analytics" className="mt-0">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <PieChart className="h-5 w-5 mr-2" />
-                  Payment Analytics
-                </CardTitle>
-                <CardDescription>
-                  Track your payment history and spending patterns
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {/* Payment Summary Chart */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Card>
-                      <CardContent className="p-4">
-                        <div className="text-center">
-                          <div className="text-2xl font-bold text-green-600">€2,340</div>
-                          <div className="text-sm text-muted-foreground">Total Paid This Year</div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                    <Card>
-                      <CardContent className="p-4">
-                        <div className="text-center">
-                          <div className="text-2xl font-bold text-blue-600">€180</div>
-                          <div className="text-sm text-muted-foreground">Average Per Visit</div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-
-                  {/* Monthly Breakdown */}
-                  <div>
-                    <h4 className="font-semibold mb-3">Monthly Spending</h4>
-                    <div className="space-y-2">
-                      {[
-                        { month: "December 2024", amount: 280, treatments: ["Cleaning", "Check-up"] },
-                        { month: "November 2024", amount: 450, treatments: ["Filling", "X-ray"] },
-                        { month: "October 2024", amount: 120, treatments: ["Consultation"] },
-                        { month: "September 2024", amount: 600, treatments: ["Root Canal", "Crown"] },
-                      ].map((item, index) => (
-                        <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
-                          <div>
-                            <div className="font-medium">{item.month}</div>
-                            <div className="text-sm text-muted-foreground">
-                              {item.treatments.join(", ")}
-                            </div>
-                          </div>
-                          <div className="font-bold">€{item.amount}</div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Treatment Categories */}
-                  <div>
-                    <h4 className="font-semibold mb-3">Spending by Category</h4>
-                    <div className="grid grid-cols-2 gap-4">
-                      {[
-                        { category: "Preventive Care", amount: 680, percentage: 29 },
-                        { category: "Restorative", amount: 1200, percentage: 51 },
-                        { category: "Emergency", amount: 320, percentage: 14 },
-                        { category: "Cosmetic", amount: 140, percentage: 6 },
-                      ].map((item, index) => (
-                        <div key={index} className="text-center">
-                          <div className="text-lg font-bold">€{item.amount}</div>
-                          <div className="text-sm text-muted-foreground">{item.category}</div>
-                          <div className="text-xs text-blue-600">{item.percentage}%</div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
           </TabsContent>
         </div>
       </Tabs>
