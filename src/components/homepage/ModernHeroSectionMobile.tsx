@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+import { AppButton } from "@/components/ui/AppButton";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Shield, Sparkles, ArrowRight } from "lucide-react";
@@ -40,7 +40,7 @@ export function ModernHeroSectionMobile({ onBookAppointment, onStartTriage, mini
 					</div>
 
 					<div className="space-y-3">
-						<Button
+						<AppButton
 							variant="gradient"
 							size="mobile"
 							onClick={onBookAppointment}
@@ -50,9 +50,9 @@ export function ModernHeroSectionMobile({ onBookAppointment, onStartTriage, mini
 							<Calendar className="h-5 w-5 mr-2" />
 							{t.bookAppointment}
 							<ArrowRight className="h-4 w-4 ml-2" />
-						</Button>
+						</AppButton>
 
-						<Button
+						<AppButton
 							variant="outline"
 							size="mobile"
 							onClick={onStartTriage}
@@ -61,7 +61,7 @@ export function ModernHeroSectionMobile({ onBookAppointment, onStartTriage, mini
 						>
 							<Shield className="h-5 w-5 mr-2" />
 							{t['triage.title']}
-						</Button>
+						</AppButton>
 					</div>
 
 					{!minimal && (
