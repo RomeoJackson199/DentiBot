@@ -306,6 +306,27 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
         </div>
       </div>
 
+      {/* Desktop Top Header (right side) */}
+      <div className="fixed top-0 left-64 right-0 z-header bg-background/95 backdrop-blur-sm border-b">
+        <div className="flex items-center justify-end px-6 py-3">
+          <div className="flex items-center space-x-3">
+            <ModernNotificationCenter userId={userId} />
+            {onBookAppointment && (
+              <Button
+                variant="gradient"
+                size="sm"
+                onClick={onBookAppointment}
+                className="touch-target"
+                aria-label="Book now"
+              >
+                <Calendar className="h-4 w-4 mr-2" />
+                Book now
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
+
       {/* Main Content Area */}
       <div className="flex-1 ml-64">
         <AnimatePresence mode="wait">
@@ -315,7 +336,7 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
             transition={{ duration: 0.3 }}
-            className="min-h-screen p-6"
+            className="min-h-screen p-6 pt-20"
           >
             {children}
           </motion.div>
