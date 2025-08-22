@@ -11,42 +11,17 @@ import { AppointmentBooking } from "@/components/AppointmentBooking";
 import { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  Calendar,
-  Clock,
-  MapPin,
-  User as UserIcon,
-  Plus,
-  ChevronLeft,
-  ChevronRight,
-  CalendarDays,
-  Filter,
-  Search,
-  Phone,
-  Mail,
-  FileText,
-  AlertCircle,
-  CheckCircle,
-  XCircle,
-  RefreshCw,
-  Video,
-  Building,
-  Star,
-  TrendingUp,
-  MessageSquare
-} from "lucide-react";
+import { Calendar, Clock, MapPin, User as UserIcon, Plus, ChevronLeft, ChevronRight, CalendarDays, Filter, Search, Phone, Mail, FileText, AlertCircle, CheckCircle, XCircle, RefreshCw, Video, Building, Star, TrendingUp, MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, isToday, isPast, isFuture } from "date-fns";
 import { RecallBanner } from "@/components/patient/RecallBanner";
 import { getPatientActiveRecall, RecallRecord } from "@/lib/recalls";
 import { AppointmentDetailsDialog } from "@/components/AppointmentDetailsDialog";
 import { useLanguage } from "@/hooks/useLanguage";
-
 export interface AppointmentsTabProps {
   user: User;
   onOpenAssistant?: () => void;
 }
-
 interface Appointment {
   id: string;
   appointment_date: string;
@@ -59,38 +34,36 @@ interface Appointment {
   };
   notes?: string;
 }
-
-const CalendarView = ({ 
-  selectedDate, 
-  onSelectDate, 
-  appointments 
-}: { 
-  selectedDate: Date; 
+const CalendarView = ({
+  selectedDate,
+  onSelectDate,
+  appointments
+}: {
+  selectedDate: Date;
   onSelectDate: (date: Date) => void;
   appointments: Appointment[];
 }) => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
-  const { t } = useLanguage();
-  
+  const {
+    t
+  } = useLanguage();
   const days = useMemo(() => {
     const start = startOfMonth(currentMonth);
     const end = endOfMonth(currentMonth);
-    return eachDayOfInterval({ start, end });
+    return eachDayOfInterval({
+      start,
+      end
+    });
   }, [currentMonth]);
-
   const firstDayOfWeek = startOfMonth(currentMonth).getDay();
-  const emptyDays = Array.from({ length: firstDayOfWeek }, (_, i) => i);
-
+  const emptyDays = Array.from({
+    length: firstDayOfWeek
+  }, (_, i) => i);
   const getAppointmentsForDay = (date: Date) => {
-    return appointments.filter(apt => 
-      isSameDay(new Date(apt.appointment_date), date)
-    );
+    return appointments.filter(apt => isSameDay(new Date(apt.appointment_date), date));
   };
-
   const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-
-  return (
-    <Card className="overflow-hidden">
+  return <Card className="overflow-hidden">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-base md:text-lg flex items-center">
@@ -98,28 +71,13 @@ const CalendarView = ({
             {format(currentMonth, 'MMMM yyyy')}
           </CardTitle>
           <div className="flex items-center space-x-1">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
-              className="h-8 w-8"
-            >
+            <Button variant="ghost" size="icon" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))} className="h-8 w-8">
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setCurrentMonth(new Date())}
-              className="hidden md:inline-flex"
-            >
+            <Button variant="ghost" size="sm" onClick={() => setCurrentMonth(new Date())} className="hidden md:inline-flex">
               {t.today}
             </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-              className="h-8 w-8"
-            >
+            <Button variant="ghost" size="icon" onClick={() => setCurrentMonth(addMonths(currentMonth, 1))} className="h-8 w-8">
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
@@ -128,131 +86,99 @@ const CalendarView = ({
       <CardContent className="p-3 md:p-6">
         <div className="grid grid-cols-7 gap-1 md:gap-2">
           {/* Week day headers */}
-          {weekDays.map(day => (
-            <div key={day} className="text-center text-xs md:text-sm font-medium text-muted-foreground py-1">
+          {weekDays.map(day => <div key={day} className="text-center text-xs md:text-sm font-medium text-muted-foreground py-1">
               <span className="hidden md:inline">{day}</span>
               <span className="md:hidden">{day[0]}</span>
-            </div>
-          ))}
+            </div>)}
           
           {/* Empty days */}
-          {emptyDays.map(day => (
-            <div key={`empty-${day}`} className="aspect-square" />
-          ))}
+          {emptyDays.map(day => <div key={`empty-${day}`} className="aspect-square" />)}
           
           {/* Calendar days */}
           {days.map(day => {
-            const dayAppointments = getAppointmentsForDay(day);
-            const hasAppointments = dayAppointments.length > 0;
-            const isSelected = isSameDay(day, selectedDate);
-            const isCurrentDay = isToday(day);
-            const isPastDay = isPast(day) && !isCurrentDay;
-            
-            return (
-              <motion.button
-                key={day.toString()}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => onSelectDate(day)}
-                className={cn(
-                  "aspect-square rounded-lg border flex flex-col items-center justify-center relative transition-all",
-                  isSelected && "bg-primary text-primary-foreground border-primary",
-                  !isSelected && isCurrentDay && "bg-primary/10 border-primary/50",
-                  !isSelected && !isCurrentDay && "hover:bg-muted border-border",
-                  isPastDay && "opacity-50",
-                  hasAppointments && !isSelected && "border-orange-500/50"
-                )}
-              >
-                <span className={cn(
-                  "text-xs md:text-sm font-medium",
-                  isSelected && "text-primary-foreground",
-                  !isSelected && isCurrentDay && "text-primary"
-                )}>
+          const dayAppointments = getAppointmentsForDay(day);
+          const hasAppointments = dayAppointments.length > 0;
+          const isSelected = isSameDay(day, selectedDate);
+          const isCurrentDay = isToday(day);
+          const isPastDay = isPast(day) && !isCurrentDay;
+          return <motion.button key={day.toString()} whileHover={{
+            scale: 1.05
+          }} whileTap={{
+            scale: 0.95
+          }} onClick={() => onSelectDate(day)} className={cn("aspect-square rounded-lg border flex flex-col items-center justify-center relative transition-all", isSelected && "bg-primary text-primary-foreground border-primary", !isSelected && isCurrentDay && "bg-primary/10 border-primary/50", !isSelected && !isCurrentDay && "hover:bg-muted border-border", isPastDay && "opacity-50", hasAppointments && !isSelected && "border-orange-500/50")}>
+                <span className={cn("text-xs md:text-sm font-medium", isSelected && "text-primary-foreground", !isSelected && isCurrentDay && "text-primary")}>
                   {format(day, 'd')}
                 </span>
-                {hasAppointments && (
-                  <div className="absolute bottom-1 left-1/2 -translate-x-1/2 flex space-x-0.5">
-                    {dayAppointments.slice(0, 3).map((_, idx) => (
-                      <div
-                        key={idx}
-                        className={cn(
-                          "h-1 w-1 rounded-full",
-                          isSelected ? "bg-primary-foreground" : "bg-orange-500"
-                        )}
-                      />
-                    ))}
-                  </div>
-                )}
-              </motion.button>
-            );
-          })}
+                {hasAppointments && <div className="absolute bottom-1 left-1/2 -translate-x-1/2 flex space-x-0.5">
+                    {dayAppointments.slice(0, 3).map((_, idx) => <div key={idx} className={cn("h-1 w-1 rounded-full", isSelected ? "bg-primary-foreground" : "bg-orange-500")} />)}
+                  </div>}
+              </motion.button>;
+        })}
         </div>
       </CardContent>
-    </Card>
-  );
+    </Card>;
 };
-
-const AppointmentCard = ({ 
-  appointment, 
+const AppointmentCard = ({
+  appointment,
   onReschedule,
   onCancel,
   onClick
-}: { 
+}: {
   appointment: Appointment;
   onReschedule: () => void;
   onCancel: () => void;
   onClick?: () => void;
 }) => {
-  const { t } = useLanguage();
+  const {
+    t
+  } = useLanguage();
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'confirmed': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400';
-      case 'pending': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400';
-      case 'cancelled': return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400';
-      case 'completed': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400';
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400';
+      case 'confirmed':
+        return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400';
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400';
+      case 'cancelled':
+        return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400';
+      case 'completed':
+        return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400';
+      default:
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400';
     }
   };
-
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'confirmed': return CheckCircle;
-      case 'pending': return Clock;
-      case 'cancelled': return XCircle;
-      case 'completed': return CheckCircle;
-      default: return AlertCircle;
+      case 'confirmed':
+        return CheckCircle;
+      case 'pending':
+        return Clock;
+      case 'cancelled':
+        return XCircle;
+      case 'completed':
+        return CheckCircle;
+      default:
+        return AlertCircle;
     }
   };
-
   const StatusIcon = getStatusIcon(appointment.status);
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      whileHover={{ scale: 1.01 }}
-      className="group cursor-pointer"
-      onClick={onClick}
-    >
+  return <motion.div initial={{
+    opacity: 0,
+    y: 20
+  }} animate={{
+    opacity: 1,
+    y: 0
+  }} exit={{
+    opacity: 0,
+    y: -20
+  }} whileHover={{
+    scale: 1.01
+  }} className="group cursor-pointer" onClick={onClick}>
       <Card className="overflow-hidden hover:shadow-lg transition-all">
-        <div className={cn(
-          "h-1 w-full",
-          appointment.status === 'confirmed' && "bg-green-500",
-          appointment.status === 'pending' && "bg-yellow-500",
-          appointment.status === 'cancelled' && "bg-red-500",
-          appointment.status === 'completed' && "bg-blue-500"
-        )} />
+        <div className={cn("h-1 w-full", appointment.status === 'confirmed' && "bg-green-500", appointment.status === 'pending' && "bg-yellow-500", appointment.status === 'cancelled' && "bg-red-500", appointment.status === 'completed' && "bg-blue-500")} />
         <CardContent className="p-4 md:p-6">
           <div className="flex items-start justify-between mb-3">
             <div className="flex items-center space-x-3">
-              <div className={cn(
-                "p-2 rounded-lg",
-                appointment.status === 'confirmed' && "bg-green-100 dark:bg-green-900/30",
-                appointment.status === 'pending' && "bg-yellow-100 dark:bg-yellow-900/30",
-                appointment.status === 'cancelled' && "bg-red-100 dark:bg-red-900/30",
-                appointment.status === 'completed' && "bg-blue-100 dark:bg-blue-900/30"
-              )}>
+              <div className={cn("p-2 rounded-lg", appointment.status === 'confirmed' && "bg-green-100 dark:bg-green-900/30", appointment.status === 'pending' && "bg-yellow-100 dark:bg-yellow-900/30", appointment.status === 'cancelled' && "bg-red-100 dark:bg-red-900/30", appointment.status === 'completed' && "bg-blue-100 dark:bg-blue-900/30")}>
                 <StatusIcon className="h-4 w-4 md:h-5 md:w-5" />
               </div>
               <div>
@@ -274,60 +200,43 @@ const AppointmentCard = ({
               <Clock className="h-3 w-3 text-muted-foreground" />
               <span>{format(new Date(appointment.appointment_date), 'HH:mm')}</span>
             </div>
-            {appointment.dentist && (
-              <div className="flex items-center space-x-2 text-sm">
+            {appointment.dentist && <div className="flex items-center space-x-2 text-sm">
                 <UserIcon className="h-3 w-3 text-muted-foreground" />
                 <span>Dr. {appointment.dentist.first_name} {appointment.dentist.last_name}</span>
-                {appointment.dentist.specialization && (
-                  <Badge variant="outline" className="text-xs">
+                {appointment.dentist.specialization && <Badge variant="outline" className="text-xs">
                     {appointment.dentist.specialization}
-                  </Badge>
-                )}
-              </div>
-            )}
+                  </Badge>}
+              </div>}
             <div className="flex items-center space-x-2 text-sm">
               <Building className="h-3 w-3 text-muted-foreground" />
               <span>{t.mainClinic}</span>
             </div>
           </div>
 
-          {appointment.notes && (
-            <div className="p-3 bg-muted/50 rounded-lg mb-4">
+          {appointment.notes && <div className="p-3 bg-muted/50 rounded-lg mb-4">
               <p className="text-xs md:text-sm text-muted-foreground">
                 {appointment.notes}
               </p>
-            </div>
-          )}
+            </div>}
 
-          {appointment.status === 'confirmed' && (
-            <div className="flex gap-3 mt-4">
-              <Button
-                variant="outline"
-                size="default"
-                onClick={onReschedule}
-                className="flex-1 h-10"
-              >
+          {appointment.status === 'confirmed' && <div className="flex gap-3 mt-4">
+              <Button variant="outline" size="default" onClick={onReschedule} className="flex-1 h-10">
                 <RefreshCw className="h-4 w-4 mr-2" />
                 {t.reschedule}
               </Button>
-              <Button
-                variant="outline"
-                size="default"
-                onClick={onCancel}
-                className="flex-1 h-10 text-destructive hover:bg-destructive hover:text-destructive-foreground"
-              >
+              <Button variant="outline" size="default" onClick={onCancel} className="flex-1 h-10 text-destructive hover:bg-destructive hover:text-destructive-foreground">
                 <XCircle className="h-4 w-4 mr-2" />
                 {t.cancel}
               </Button>
-            </div>
-          )}
+            </div>}
         </CardContent>
       </Card>
-    </motion.div>
-  );
+    </motion.div>;
 };
-
-export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({ user, onOpenAssistant }) => {
+export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({
+  user,
+  onOpenAssistant
+}) => {
   const [tab, setTab] = useState<'calendar' | 'upcoming' | 'past'>('calendar');
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -342,15 +251,20 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({ user, onOpenAs
   const [activeRecall, setActiveRecall] = useState<RecallRecord | null>(null);
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | null>(null);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
-  const { t } = useLanguage();
-
+  const {
+    t
+  } = useLanguage();
   useEffect(() => {
     fetchAppointments();
     (async () => {
-      const { data: session } = await supabase.auth.getUser();
+      const {
+        data: session
+      } = await supabase.auth.getUser();
       const uid = session.user?.id;
       if (uid) {
-        const { data: profile } = await supabase.from('profiles').select('id').eq('user_id', uid).single();
+        const {
+          data: profile
+        } = await supabase.from('profiles').select('id').eq('user_id', uid).single();
         if (profile?.id) {
           const rec = await getPatientActiveRecall(profile.id);
           setActiveRecall(rec);
@@ -358,29 +272,24 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({ user, onOpenAs
       }
     })();
   }, [user.id]);
-
   const fetchAppointments = async () => {
     try {
       setLoading(true);
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
-
+      const {
+        data: profile
+      } = await supabase.from('profiles').select('id').eq('user_id', user.id).single();
       if (profile) {
-        const { data: appointmentsData } = await supabase
-          .from('appointments')
-          .select(`
+        const {
+          data: appointmentsData
+        } = await supabase.from('appointments').select(`
             *,
             dentist:dentist_id(
               specialization,
               profile:profile_id(first_name, last_name)
             )
-          `)
-          .eq('patient_id', profile.id)
-          .order('appointment_date', { ascending: false });
-
+          `).eq('patient_id', profile.id).order('appointment_date', {
+          ascending: false
+        });
         if (appointmentsData) {
           // Transform the data to match the expected structure
           const transformedData = appointmentsData.map(apt => ({
@@ -392,15 +301,12 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({ user, onOpenAs
             } : undefined
           }));
           setAppointments(transformedData as any);
-          
+
           // Calculate stats
           const now = new Date();
-          const upcoming = appointmentsData.filter(apt => 
-            new Date(apt.appointment_date) > now && apt.status === 'confirmed'
-          ).length;
+          const upcoming = appointmentsData.filter(apt => new Date(apt.appointment_date) > now && apt.status === 'confirmed').length;
           const completed = appointmentsData.filter(apt => apt.status === 'completed').length;
           const cancelled = appointmentsData.filter(apt => apt.status === 'cancelled').length;
-          
           setStats({
             total: appointmentsData.length,
             upcoming,
@@ -415,33 +321,18 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({ user, onOpenAs
       setLoading(false);
     }
   };
-
   const selectedDateAppointments = useMemo(() => {
-    return appointments.filter(apt => 
-      isSameDay(new Date(apt.appointment_date), selectedDate)
-    );
+    return appointments.filter(apt => isSameDay(new Date(apt.appointment_date), selectedDate));
   }, [appointments, selectedDate]);
-
   const upcomingAppointments = useMemo(() => {
     const now = new Date();
-    return appointments.filter(apt => 
-      new Date(apt.appointment_date) > now && apt.status !== 'cancelled'
-    ).sort((a, b) => 
-      new Date(a.appointment_date).getTime() - new Date(b.appointment_date).getTime()
-    );
+    return appointments.filter(apt => new Date(apt.appointment_date) > now && apt.status !== 'cancelled').sort((a, b) => new Date(a.appointment_date).getTime() - new Date(b.appointment_date).getTime());
   }, [appointments]);
-
   const pastAppointments = useMemo(() => {
     const now = new Date();
-    return appointments.filter(apt => 
-      new Date(apt.appointment_date) <= now || apt.status === 'completed'
-    ).sort((a, b) => 
-      new Date(b.appointment_date).getTime() - new Date(a.appointment_date).getTime()
-    );
+    return appointments.filter(apt => new Date(apt.appointment_date) <= now || apt.status === 'completed').sort((a, b) => new Date(b.appointment_date).getTime() - new Date(a.appointment_date).getTime());
   }, [appointments]);
-
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
+  return <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
       <div className="px-4 md:px-6 py-4 md:py-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
@@ -449,10 +340,7 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({ user, onOpenAs
             <h2 className="text-xl md:text-2xl font-bold">{t.appointments}</h2>
             <p className="text-sm text-muted-foreground">{t.manageDentalVisits}</p>
           </div>
-          <Button onClick={() => setShowBooking(true)} size="sm">
-            <Plus className="h-4 w-4 mr-1" />
-            {t.bookNew}
-          </Button>
+          
         </div>
 
         {/* Stats Cards */}
@@ -504,7 +392,7 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({ user, onOpenAs
         </div>
 
         {/* Tabs */}
-        <Tabs value={tab} onValueChange={(v) => setTab(v as any)} className="w-full">
+        <Tabs value={tab} onValueChange={v => setTab(v as any)} className="w-full">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="calendar" className="flex items-center space-x-1">
               <CalendarDays className="h-4 w-4" />
@@ -519,11 +407,7 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({ user, onOpenAs
             <TabsContent value="calendar" className="mt-0 space-y-4">
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                 <div className="lg:col-span-2">
-                  <CalendarView
-                    selectedDate={selectedDate}
-                    onSelectDate={setSelectedDate}
-                    appointments={appointments}
-                  />
+                  <CalendarView selectedDate={selectedDate} onSelectDate={setSelectedDate} appointments={appointments} />
                 </div>
                 <div className="space-y-4">
                   <Card>
@@ -535,42 +419,25 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({ user, onOpenAs
                     <CardContent>
                       <ScrollArea className="h-[400px]">
                         <AnimatePresence mode="wait">
-                          {selectedDateAppointments.length > 0 ? (
-                            <div className="space-y-3">
-                              {selectedDateAppointments.map(apt => (
-                                 <AppointmentCard
-                                   key={apt.id}
-                                   appointment={apt}
-                                   onReschedule={() => setShowBooking(true)}
-                                   onCancel={() => {}}
-                                   onClick={() => {
-                                     setSelectedAppointmentId(apt.id);
-                                     setDetailsDialogOpen(true);
-                                   }}
-                                 />
-                              ))}
-                            </div>
-                          ) : (
-                            <motion.div
-                              initial={{ opacity: 0 }}
-                              animate={{ opacity: 1 }}
-                              className="text-center py-8"
-                            >
+                          {selectedDateAppointments.length > 0 ? <div className="space-y-3">
+                              {selectedDateAppointments.map(apt => <AppointmentCard key={apt.id} appointment={apt} onReschedule={() => setShowBooking(true)} onCancel={() => {}} onClick={() => {
+                            setSelectedAppointmentId(apt.id);
+                            setDetailsDialogOpen(true);
+                          }} />)}
+                            </div> : <motion.div initial={{
+                          opacity: 0
+                        }} animate={{
+                          opacity: 1
+                        }} className="text-center py-8">
                               <Calendar className="h-12 w-12 text-muted-foreground/30 mx-auto mb-3" />
                               <p className="text-sm text-muted-foreground">
                                 No appointments on this day
                               </p>
-                              <Button
-                                variant="outline"
-                                size="default"
-                                className="mt-4 w-full h-11"
-                                onClick={onOpenAssistant || (() => setShowBooking(true))}
-                              >
+                              <Button variant="outline" size="default" className="mt-4 w-full h-11" onClick={onOpenAssistant || (() => setShowBooking(true))}>
                                 <MessageSquare className="h-5 w-5 mr-2" />
                                 Book with AI Assistant
                               </Button>
-                            </motion.div>
-                          )}
+                            </motion.div>}
                         </AnimatePresence>
                       </ScrollArea>
                     </CardContent>
@@ -582,38 +449,22 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({ user, onOpenAs
             <TabsContent value="upcoming" className="mt-0">
               <div className="space-y-3">
                 <AnimatePresence>
-                  {upcomingAppointments.length > 0 ? (
-                    upcomingAppointments.map(apt => (
-                       <AppointmentCard
-                         key={apt.id}
-                         appointment={apt}
-                         onReschedule={onOpenAssistant || (() => setShowBooking(true))}
-                         onCancel={() => {}}
-                         onClick={() => {
-                           setSelectedAppointmentId(apt.id);
-                           setDetailsDialogOpen(true);
-                         }}
-                       />
-                    ))
-                  ) : (
-                    <Card>
+                  {upcomingAppointments.length > 0 ? upcomingAppointments.map(apt => <AppointmentCard key={apt.id} appointment={apt} onReschedule={onOpenAssistant || (() => setShowBooking(true))} onCancel={() => {}} onClick={() => {
+                  setSelectedAppointmentId(apt.id);
+                  setDetailsDialogOpen(true);
+                }} />) : <Card>
                       <CardContent className="py-12 text-center">
                         <Calendar className="h-16 w-16 text-muted-foreground/30 mx-auto mb-4" />
                         <h3 className="text-lg font-medium mb-2">No upcoming appointments</h3>
                         <p className="text-sm text-muted-foreground mb-4">
                           Schedule your next dental visit
                         </p>
-                        <Button 
-                          size="lg"
-                          className="w-full sm:w-auto px-8 h-12"
-                          onClick={onOpenAssistant || (() => setShowBooking(true))}
-                        >
+                        <Button size="lg" className="w-full sm:w-auto px-8 h-12" onClick={onOpenAssistant || (() => setShowBooking(true))}>
                           <MessageSquare className="h-5 w-5 mr-2" />
                           Book with AI Assistant
                         </Button>
                       </CardContent>
-                    </Card>
-                  )}
+                    </Card>}
                 </AnimatePresence>
               </div>
             </TabsContent>
@@ -621,21 +472,10 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({ user, onOpenAs
             <TabsContent value="past" className="mt-0">
               <div className="space-y-3">
                 <AnimatePresence>
-                  {pastAppointments.length > 0 ? (
-                    pastAppointments.map(apt => (
-                       <AppointmentCard
-                         key={apt.id}
-                         appointment={apt}
-                         onReschedule={() => {}}
-                         onCancel={() => {}}
-                         onClick={() => {
-                           setSelectedAppointmentId(apt.id);
-                           setDetailsDialogOpen(true);
-                         }}
-                       />
-                    ))
-                  ) : (
-                    <Card>
+                  {pastAppointments.length > 0 ? pastAppointments.map(apt => <AppointmentCard key={apt.id} appointment={apt} onReschedule={() => {}} onCancel={() => {}} onClick={() => {
+                  setSelectedAppointmentId(apt.id);
+                  setDetailsDialogOpen(true);
+                }} />) : <Card>
                       <CardContent className="py-12 text-center">
                         <Clock className="h-16 w-16 text-muted-foreground/30 mx-auto mb-4" />
                         <h3 className="text-lg font-medium mb-2">No past appointments</h3>
@@ -643,8 +483,7 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({ user, onOpenAs
                           Your appointment history will appear here
                         </p>
                       </CardContent>
-                    </Card>
-                  )}
+                    </Card>}
                 </AnimatePresence>
               </div>
             </TabsContent>
@@ -655,32 +494,19 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({ user, onOpenAs
       {/* Booking Dialog */}
       <Dialog open={showBooking} onOpenChange={setShowBooking}>
         <DialogContent className="max-w-4xl w-full max-h-[90vh] overflow-auto p-0">
-          <AppointmentBooking
-            user={user}
-            onCancel={() => setShowBooking(false)}
-            onComplete={() => {
-              setShowBooking(false);
-              fetchAppointments();
-            }}
-          />
+          <AppointmentBooking user={user} onCancel={() => setShowBooking(false)} onComplete={() => {
+          setShowBooking(false);
+          fetchAppointments();
+        }} />
         </DialogContent>
       </Dialog>
 
       {/* Appointment Details Dialog */}
-      {selectedAppointmentId && (
-        <AppointmentDetailsDialog
-          appointmentId={selectedAppointmentId}
-          open={detailsDialogOpen}
-          onOpenChange={setDetailsDialogOpen}
-        />
-      )}
+      {selectedAppointmentId && <AppointmentDetailsDialog appointmentId={selectedAppointmentId} open={detailsDialogOpen} onOpenChange={setDetailsDialogOpen} />}
 
       {/* Recall Banner */}
-      {activeRecall && (
-        <div className="mt-6">
+      {activeRecall && <div className="mt-6">
           <RecallBanner recall={activeRecall} />
-        </div>
-      )}
-    </div>
-  );
+        </div>}
+    </div>;
 };
