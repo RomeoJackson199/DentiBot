@@ -610,6 +610,36 @@ Always maintain professional medical standards and suggest only appropriate trea
     const lowerResponse = botResponse.toLowerCase();
     const lowerMessage = sanitizedMessage.toLowerCase(); // Use sanitized message
     
+    // Check for payment-related requests
+    if (lowerMessage.includes('pay') || lowerMessage.includes('payment') || lowerMessage.includes('bill') || 
+        lowerMessage.includes('balance') || lowerMessage.includes('money') || lowerMessage.includes('owe') ||
+        lowerMessage.includes('payer') || lowerMessage.includes('facture') || lowerMessage.includes('argent')) {
+      suggestions.push('pay-now');
+    }
+    
+    // Check for appointment rescheduling requests
+    if (lowerMessage.includes('reschedule') || lowerMessage.includes('change appointment') || 
+        lowerMessage.includes('move appointment') || lowerMessage.includes('different time') ||
+        lowerMessage.includes('reprogrammer') || lowerMessage.includes('changer rendez-vous') ||
+        lowerMessage.includes('modifier rendez-vous')) {
+      suggestions.push('reschedule');
+    }
+    
+    // Check for appointment cancellation requests
+    if (lowerMessage.includes('cancel') || lowerMessage.includes('cancel appointment') ||
+        lowerMessage.includes('delete appointment') || lowerMessage.includes('remove appointment') ||
+        lowerMessage.includes('annuler') || lowerMessage.includes('annuler rendez-vous') ||
+        lowerMessage.includes('supprimer rendez-vous')) {
+      suggestions.push('cancel-appointment');
+    }
+    
+    // Check for prescription refill requests
+    if (lowerMessage.includes('prescription') || lowerMessage.includes('refill') || lowerMessage.includes('medication') ||
+        lowerMessage.includes('medicine') || lowerMessage.includes('pills') || lowerMessage.includes('drug') ||
+        lowerMessage.includes('ordonnance') || lowerMessage.includes('médicament') || lowerMessage.includes('renouveler')) {
+      suggestions.push('prescription-refill');
+    }
+    
     // Extract dentist recommendations from AI response
     const recommendedDentists: string[] = [];
     const availableDentists = [
@@ -641,16 +671,19 @@ Always maintain professional medical standards and suggest only appropriate trea
       recommendedDentists.push('Firdaws Benhsain');
     }
 
-    // Only show dentist widget when BOTH patient info and symptoms are present
+    // Only show dentist widget when BOTH patient info and symptoms are present (and no other priority actions)
     const context = buildConversationContext(sanitizedMessage, conversation_history); // Use sanitized message
     const patientInfoPresent = hasPatientInfo(context);
     const symptomsPresent = hasSymptomInfo(context);
     
-    if (recommendedDentists.length > 0 && patientInfoPresent && symptomsPresent) {
-      suggestions.push('recommend-dentist');
-    } else if (!symptomsPresent) {
-      // Ask for symptoms via widget to collect necessary info
-      suggestions.push('symptom-intake');
+    // If no priority actions detected, check for dentist recommendations
+    if (suggestions.length === 0) {
+      if (recommendedDentists.length > 0 && patientInfoPresent && symptomsPresent) {
+        suggestions.push('recommend-dentist');
+      } else if (!symptomsPresent && !patientInfoPresent) {
+        // Ask for symptoms via widget to collect necessary info
+        suggestions.push('symptom-intake');
+      }
     }
     
     // Remove duplicates and limit to maximum 2 recommendations

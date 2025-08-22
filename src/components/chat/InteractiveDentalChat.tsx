@@ -165,7 +165,7 @@ export const InteractiveDentalChat = ({
     history: ChatMessage[]
   ): Promise<{ message: ChatMessage; fallback: boolean; suggestions: string[]; recommendedDentists: string[] }> => {
     try {
-      const { data, error } = await supabase.functions.invoke('dental-ai-chat', {
+      const aiResponse = await supabase.functions.invoke('dental-ai-chat', {
         body: {
           message: userMessage,
           conversation_history: history,
@@ -179,9 +179,14 @@ export const InteractiveDentalChat = ({
         }
       });
 
-      if (error) throw error;
+      console.log('🔧 AI Response received:', aiResponse);
 
-      const responseText = data.response || data.fallback_response || "I'm sorry, I couldn't process your request.";
+      if (aiResponse.error) {
+        console.error('AI function error:', aiResponse.error);
+        throw aiResponse.error;
+      }
+
+      const responseText = aiResponse.data?.response || aiResponse.data?.fallback_response || "I'm sorry, I couldn't process your request.";
       const result = {
         id: crypto.randomUUID(),
         session_id: sessionId as any,
@@ -192,9 +197,9 @@ export const InteractiveDentalChat = ({
       } as ChatMessage;
       return {
         message: result,
-        fallback: Boolean(data.fallback_response && !data.response),
-        suggestions: data.suggestions || [],
-        recommendedDentists: data.recommended_dentist || []
+        fallback: Boolean(aiResponse.data?.fallback_response && !aiResponse.data?.response),
+        suggestions: aiResponse.data?.suggestions || [],
+        recommendedDentists: aiResponse.data?.recommended_dentist || []
       };
     } catch (error) {
       console.error('Error generating AI response:', error);
@@ -214,9 +219,11 @@ export const InteractiveDentalChat = ({
     }
   };
 
-  const handleSuggestions = (suggestions?: string[], recommendedDentists?: string[]) => {
+  const handleSuggestions = (suggestions: string[], recommendedDentists?: string[]) => {
+    console.log('🔧 handleSuggestions called with:', { suggestions, recommendedDentists });
+    
     if (!suggestions || suggestions.length === 0) return;
-
+    
     if (suggestions.includes('appointments-list')) {
       showAppointments();
       return;
@@ -233,21 +240,25 @@ export const InteractiveDentalChat = ({
     }
     
     if (suggestions.includes('pay-now')) {
+      console.log('🔧 Triggering pay-now widget');
       showPayNowWidget();
       return;
     }
     
     if (suggestions.includes('reschedule')) {
+      console.log('🔧 Triggering reschedule widget');
       showRescheduleWidget();
       return;
     }
     
     if (suggestions.includes('cancel-appointment')) {
+      console.log('🔧 Triggering cancel-appointment widget');
       showCancelAppointmentWidget();
       return;
     }
     
     if (suggestions.includes('prescription-refill')) {
+      console.log('🔧 Triggering prescription-refill widget');
       showPrescriptionRefillWidget();
       return;
     }
@@ -257,16 +268,15 @@ export const InteractiveDentalChat = ({
       return;
     }
 
-
     if (suggestions.includes('theme-dark')) {
       setTheme('dark');
-      addBotMessage('Theme changed to dark mode! \uD83C\uDF19');
+      addBotMessage('Theme changed to dark mode! 🌙');
       return;
     }
 
     if (suggestions.includes('theme-light')) {
       setTheme('light');
-      addBotMessage('Theme changed to light mode! \u2600\uFE0F');
+      addBotMessage('Theme changed to light mode! ☀️');
       return;
     }
 
