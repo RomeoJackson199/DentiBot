@@ -163,51 +163,17 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
   const [isMobile, setIsMobile] = useState(false);
   const [activeSection, setActiveSection] = useState<PatientSection>(() => {
     try {
+      const hash = window.location.hash?.replace('#','') as PatientSection | undefined;
+      if (hash && ['home','assistant','care','appointments','payments','settings'].includes(hash)) return hash;
       return (localStorage.getItem('pd_section') as PatientSection) || 'home';
     } catch {
       return 'home';
     }
   });
-
-  // Subscribe to real-time updates for medical records
-  useEffect(() => {
-    if (!userProfile?.id) return;
-
-    const channel = supabase
-      .channel('medical-records-updates')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'medical_records',
-          filter: `patient_id=eq.${userProfile.id}`,
-        },
-        (payload) => {
-          console.log('New medical record created:', payload);
-          // Add the new medical record to the list
-          const newRecord = {
-            ...payload.new,
-            visit_date: payload.new.record_date
-          } as MedicalRecord;
-          setMedicalRecords(prev => [newRecord, ...prev]);
-          
-          // Show a toast notification
-          toast({
-            title: "New Medical Record",
-            description: "A new medical record has been added to your file.",
-          });
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [userProfile?.id, toast]);
   const [showAssistant, setShowAssistant] = useState(false);
   const [showBooking, setShowBooking] = useState(false);
   const [totalDueCents, setTotalDueCents] = useState(0);
+  const [seedAssistantFromBookNow, setSeedAssistantFromBookNow] = useState(false);
   // Messaging functionality removed
 
   // Check if mobile
@@ -217,6 +183,26 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  // Keep history in sync with section; handle back/forward
+  useEffect(() => {
+    try {
+      window.history.replaceState({ section: activeSection }, '', `#${activeSection}`);
+    } catch {}
+    const onPopState = () => {
+      const hash = window.location.hash?.replace('#','');
+      if (hash && ['home','assistant','care','appointments','payments','settings'].includes(hash)) {
+        setActiveSection(hash as PatientSection);
+      }
+    };
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, []);
+
+  const handleChangeSection = (section: PatientSection) => {
+    setActiveSection(section);
+    try { window.history.pushState({ section }, '', `#${section}`); } catch {}
+  };
 
   const handleEmergencyComplete = (urgency: 'low' | 'medium' | 'high' | 'emergency') => {
     setActiveTab('chat');
@@ -573,13 +559,19 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
     // messages functionality removed
   } as Record<PatientSection, boolean>;
 
+  const handleGlobalBookNow = () => {
+    try { localStorage.setItem('pd_assistant_prefill_active', 'true'); localStorage.removeItem('pd_assistant_started'); } catch {}
+    setSeedAssistantFromBookNow(true);
+    handleChangeSection('assistant');
+  };
+
   return (
     <PatientAppShell
       activeSection={activeSection}
-      onChangeSection={setActiveSection}
+      onChangeSection={handleChangeSection}
       badges={badges}
       userId={user.id}
-      onBookAppointment={() => setShowBooking(true)}
+      onBookAppointment={handleGlobalBookNow}
     >
       {activeSection === 'home' && (
         <HomeTab
@@ -595,9 +587,9 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
           activePrescriptions={patientStats.activePrescriptions}
           activeTreatmentPlans={patientStats.activeTreatmentPlans}
           totalDueCents={totalDueCents}
-          onNavigateTo={(s) => setActiveSection(s)}
-          onOpenAssistant={() => setActiveSection('assistant')}
-          onBookAppointment={() => setShowBooking(true)}
+          onNavigateTo={(s) => handleChangeSection(s)}
+          onOpenAssistant={() => handleChangeSection('assistant')}
+          onBookAppointment={handleGlobalBookNow}
         />
       )}
 
@@ -609,7 +601,13 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
             </CardHeader>
             <CardContent>
               <div className="h-[70vh]">
-                <InteractiveDentalChat user={user} triggerBooking={triggerBooking} />
+                <InteractiveDentalChat 
+                  user={user} 
+                  triggerBooking={triggerBooking} 
+                  seedFromBookNow={seedAssistantFromBookNow}
+                  onSeedConsumed={() => setSeedAssistantFromBookNow(false)}
+                  onNavigateSection={(s) => handleChangeSection(s)}
+                />
               </div>
             </CardContent>
           </Card>
@@ -633,7 +631,7 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
       {activeSection === 'appointments' && (
         <AppointmentsTab 
           user={user} 
-          onOpenAssistant={() => setActiveSection('assistant')}
+          onOpenAssistant={() => handleChangeSection('assistant')}
         />
       )}
 
@@ -649,7 +647,7 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => setActiveSection('home')}
+                  onClick={() => handleChangeSection('home')}
                   className="hover:bg-muted/50"
                 >
                   <ChevronRight className="h-4 w-4 rotate-180 mr-2" />
@@ -807,12 +805,13 @@ const DashboardOverview = ({ userProfile, patientStats, recentAppointments, getW
             <div>
               <p className="text-sm font-medium text-muted-foreground">Active Prescriptions</p>
               <p className="text-3xl font-bold mt-2">{patientStats.activePrescriptions}</p>
-              <p className="text-xs text-muted-foreground mt-2">
-                Total: {patientStats.totalPrescriptions} prescribed
-              </p>
+              <div className="flex items-center mt-2">
+                <Pill className="h-3 w-3 text-orange-600 mr-1" />
+                <span className="text-xs text-orange-600">Check refills</span>
+              </div>
             </div>
-            <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-full">
-              <Pill className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+            <div className="p-3 bg-orange-100 dark:bg-orange-900/30 rounded-full">
+              <Pill className="h-6 w-6 text-orange-600 dark:text-orange-400" />
             </div>
           </div>
         </CardContent>
@@ -824,112 +823,66 @@ const DashboardOverview = ({ userProfile, patientStats, recentAppointments, getW
             <div>
               <p className="text-sm font-medium text-muted-foreground">Treatment Plans</p>
               <p className="text-3xl font-bold mt-2">{patientStats.activeTreatmentPlans}</p>
-              <p className="text-xs text-muted-foreground mt-2">
-                {patientStats.totalNotes} clinical notes
-              </p>
+              <div className="flex items-center mt-2">
+                <ClipboardList className="h-3 w-3 text-purple-600 mr-1" />
+                <span className="text-xs text-purple-600">Ongoing treatments</span>
+              </div>
             </div>
-            <div className="p-3 bg-orange-100 dark:bg-orange-900/30 rounded-full">
-              <ClipboardList className="h-6 w-6 text-orange-600 dark:text-orange-400" />
+            <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-full">
+              <ClipboardList className="h-6 w-6 text-purple-600 dark:text-purple-400" />
             </div>
           </div>
         </CardContent>
       </Card>
     </div>
 
-    {/* Recent Activity & Health Summary */}
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      {/* Recent Appointments */}
-      <Card className="lg:col-span-2">
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span>Recent Appointments</span>
-            <Button variant="ghost" size="sm" onClick={() => setActiveTab('appointments')}>
-              View All
-              <ChevronRight className="h-4 w-4 ml-1" />
-            </Button>
-          </CardTitle>
+    {/* Recent Appointments */}
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">Recent Appointments</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {recentAppointments.slice(0, 3).map((appointment) => (
-              <div key={appointment.id} className="flex items-center justify-between p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
-                <div className="flex items-center space-x-4">
-                  <div className={cn("h-10 w-10 rounded-full flex items-center justify-center",
-                    appointment.status === 'completed' ? 'bg-blue-100 dark:bg-blue-900/30' :
-                    appointment.status === 'confirmed' ? 'bg-green-100 dark:bg-green-900/30' :
-                    'bg-yellow-100 dark:bg-yellow-900/30'
-                  )}>
-                    <Calendar className={cn("h-5 w-5",
-                      appointment.status === 'completed' ? 'text-blue-600 dark:text-blue-400' :
-                      appointment.status === 'confirmed' ? 'text-green-600 dark:text-green-400' :
-                      'text-yellow-600 dark:text-yellow-400'
-                    )} />
-                  </div>
-                  <div>
-                    <p className="font-medium">{appointment.reason || 'General Checkup'}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {formatDate(appointment.appointment_date)} at {new Date(appointment.appointment_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </p>
-                  </div>
+            {recentAppointments.slice(0,3).map(apt => (
+              <div key={apt.id} className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/50">
+                <div>
+                  <p className="font-medium">{apt.reason || 'Visit'}</p>
+                  <p className="text-sm text-muted-foreground">{formatDate(apt.appointment_date)}</p>
                 </div>
-                <Badge className={getStatusColor(appointment.status)}>
-                  {appointment.status}
-                </Badge>
+                <Badge className={cn('capitalize', getStatusColor(apt.status))}>{apt.status}</Badge>
               </div>
             ))}
-            {recentAppointments.length === 0 && (
-              <div className="text-center py-8">
-                <Calendar className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
-                <p className="text-muted-foreground">No appointments yet</p>
-                <Button className="mt-4" onClick={() => setActiveTab('appointments')}>
-                  Book Your First Appointment
-                </Button>
-              </div>
-            )}
           </div>
         </CardContent>
       </Card>
 
-      {/* Health Summary */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Heart className="h-5 w-5 text-red-500" />
-            <span>Health Summary</span>
-          </CardTitle>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">Health Overview</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Overall Health</span>
-              <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">Good</Badge>
+        <CardContent>
+          <div className="space-y-4">
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-muted-foreground">Oral Health Score</span>
+                <span className="text-sm font-medium">85%</span>
+              </div>
+              <Progress value={85} className="h-2" />
             </div>
-            <Separator />
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Last Checkup</span>
-                <span className="font-medium">
-                  {patientStats.lastVisit ? formatDate(patientStats.lastVisit) : 'Not yet'}
-                </span>
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-muted-foreground">Visits this year</span>
+                <span className="text-sm font-medium">3</span>
               </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Next Due</span>
-                <span className="font-medium text-orange-600">In 2 months</span>
-              </div>
+              <Progress value={60} className="h-2" />
             </div>
-            <Separator />
-            <div className="pt-2">
-              <p className="text-sm font-medium mb-2">Recommendations</p>
-              <div className="space-y-2">
-                <div className="flex items-start space-x-2">
-                  <CheckCircle className="h-4 w-4 text-green-600 mt-0.5" />
-                  <p className="text-sm text-muted-foreground">Regular brushing twice daily</p>
-                </div>
-                <div className="flex items-start space-x-2">
-                  <AlertCircle className="h-4 w-4 text-yellow-600 mt-0.5" />
-                  <p className="text-sm text-muted-foreground">Schedule cleaning soon</p>
-                </div>
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-muted-foreground">Insurance used</span>
+                <span className="text-sm font-medium">65%</span>
               </div>
+              <Progress value={65} className="h-2" />
             </div>
           </div>
         </CardContent>
