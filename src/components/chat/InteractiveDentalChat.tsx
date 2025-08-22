@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Send, Bot, User as UserIcon, Mic, MicOff } from "lucide-react";
 import { ChatMessage } from "@/types/chat";
 import { format } from "date-fns";
-import {
+import { 
   PrivacyConsentWidget,
   InlineCalendarWidget,
   TimeSlotsWidget,
@@ -21,7 +21,11 @@ import {
   PersonalInfoFormWidget,
   QuickSettingsWidget,
   ImageUploadWidget,
-  UrgencySliderWidget
+  UrgencySliderWidget,
+  PayNowWidget,
+  RescheduleWidget,
+  CancelAppointmentWidget,
+  PrescriptionRefillWidget
 } from "./InteractiveChatWidgets";
 
 interface InteractiveDentalChatProps {
@@ -215,6 +219,36 @@ export const InteractiveDentalChat = ({
 
     if (suggestions.includes('appointments-list')) {
       showAppointments();
+      return;
+    }
+    
+    if (suggestions.includes('show-appointments')) {
+      showAppointments();
+      return;
+    }
+    
+    if (suggestions.includes('appointments')) {
+      showAppointments();
+      return;
+    }
+    
+    if (suggestions.includes('pay-now')) {
+      showPayNowWidget();
+      return;
+    }
+    
+    if (suggestions.includes('reschedule')) {
+      showRescheduleWidget();
+      return;
+    }
+    
+    if (suggestions.includes('cancel-appointment')) {
+      showCancelAppointmentWidget();
+      return;
+    }
+    
+    if (suggestions.includes('prescription-refill')) {
+      showPrescriptionRefillWidget();
       return;
     }
 
@@ -731,6 +765,368 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
     });
   };
 
+  const handlePayNow = async () => {
+    if (!user) return;
+    
+    try {
+      setActiveWidget(null);
+      addBotMessage("Opening secure payment page... 💳");
+      
+      // Get user's profile and outstanding payments
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (!profile) throw new Error("Profile not found");
+
+      // Get outstanding payment requests
+      const { data: paymentRequests } = await supabase
+        .from('payment_requests')
+        .select('*')
+        .eq('patient_id', profile.id)
+        .eq('status', 'pending')
+        .limit(1);
+
+      if (paymentRequests && paymentRequests.length > 0) {
+        const paymentRequest = paymentRequests[0];
+        
+        const { data } = await supabase.functions.invoke('create-payment-request', {
+          body: {
+            payment_request_id: paymentRequest.id
+          }
+        });
+
+        if (data?.payment_url) {
+          window.open(data.payment_url, '_blank');
+          addBotMessage("✅ Payment page opened in a new tab. Complete your payment there and I'll update your status!");
+        }
+      } else {
+        addBotMessage("No outstanding payments found. Your account appears to be up to date! ✅");
+      }
+    } catch (error) {
+      console.error('Error initiating payment:', error);
+      addBotMessage("Sorry, I couldn't open the payment page. Please try again or contact your dentist.");
+    }
+  };
+
+  const handleReschedule = () => {
+    setActiveWidget(null);
+    addBotMessage("Let me help you reschedule your appointment. I'll start the booking process to find you a new slot!");
+    
+    // Start booking flow for rescheduling
+    setTimeout(() => {
+      startBookingFlow();
+    }, 1000);
+  };
+
+  const handleCancelAppointment = async () => {
+    if (!user || !widgetData?.appointment) return;
+    
+    try {
+      setActiveWidget(null);
+      addBotMessage("Cancelling your appointment... 🗓️");
+      
+      const { error } = await supabase
+        .from('appointments')
+        .update({ status: 'cancelled' })
+        .eq('id', widgetData.appointment.id);
+
+      if (error) throw error;
+
+      addBotMessage("✅ Your appointment has been cancelled successfully. If you need to book a new appointment, just let me know!");
+      
+    } catch (error) {
+      console.error('Error cancelling appointment:', error);
+      addBotMessage("Sorry, I couldn't cancel your appointment. Please contact your dentist directly.");
+    }
+  };
+
+  const handlePrescriptionRefill = async (prescriptionId: string) => {
+    if (!user) return;
+    
+    try {
+      setActiveWidget(null);
+      addBotMessage("Sending refill request to your dentist... 💊");
+      
+      // Get prescription details
+      const { data: prescription } = await supabase
+        .from('prescriptions')
+        .select('*, dentist_id')
+        .eq('id', prescriptionId)
+        .single();
+
+      if (!prescription) throw new Error("Prescription not found");
+
+      // Get user profile
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (!profile) throw new Error("Profile not found");
+
+      // Create notification for dentist
+      const { data: dentistProfile } = await supabase
+        .from('dentists')
+        .select('profile_id')
+        .eq('id', prescription.dentist_id)
+        .single();
+
+      if (dentistProfile) {
+        const { data: dentistUserProfile } = await supabase
+          .from('profiles')
+          .select('user_id, first_name, last_name')
+          .eq('id', dentistProfile.profile_id)
+          .single();
+
+        if (dentistUserProfile) {
+          await supabase
+            .from('notifications')
+            .insert({
+              user_id: dentistUserProfile.user_id,
+              patient_id: profile.id,
+              dentist_id: prescription.dentist_id,
+              type: 'prescription_refill',
+              title: 'Prescription Refill Request',
+              message: `Refill request for ${prescription.medication_name}`,
+              priority: 'medium',
+              metadata: { prescription_id: prescriptionId }
+            });
+        }
+      }
+
+      addBotMessage(`✅ Refill request sent for ${prescription.medication_name}! Your dentist will review and contact you soon.`);
+      
+    } catch (error) {
+      console.error('Error requesting refill:', error);
+      addBotMessage("Sorry, I couldn't send the refill request. Please contact your dentist directly.");
+    }
+  };
+
+  const showPayNowWidget = async () => {
+    if (!user) {
+      addBotMessage("Please log in to view your payment information.");
+      return;
+    }
+
+    try {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("user_id", user.id)
+        .single();
+
+      if (!profile) {
+        addBotMessage("Profile not found. Please complete your profile first.");
+        return;
+      }
+
+      // Get outstanding payment requests
+      const { data: paymentRequests, error } = await supabase
+        .from('payment_requests')
+        .select('amount')
+        .eq('patient_id', profile.id)
+        .eq('status', 'pending');
+
+      if (error) throw error;
+
+      const totalOutstanding = paymentRequests?.reduce((sum, req) => sum + req.amount, 0) || 0;
+
+      if (totalOutstanding === 0) {
+        addBotMessage("Great news! You don't have any outstanding payments. Your account is up to date! ✅");
+        return;
+      }
+
+      setWidgetData({ outstandingAmount: totalOutstanding });
+      setActiveWidget('pay-now');
+      addBotMessage("I found outstanding payments on your account. You can pay securely online:");
+
+    } catch (error) {
+      console.error("Error fetching payment info:", error);
+      addBotMessage("I couldn't retrieve your payment information. Please try again.");
+    }
+  };
+
+  const showRescheduleWidget = async () => {
+    if (!user) {
+      addBotMessage("Please log in to reschedule your appointment.");
+      return;
+    }
+
+    try {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("user_id", user.id)
+        .single();
+
+      if (!profile) {
+        addBotMessage("Profile not found. Please complete your profile first.");
+        return;
+      }
+
+      // Get next upcoming appointment
+      const { data: appointments, error } = await supabase
+        .from("appointments")
+        .select(`
+          id,
+          appointment_date,
+          reason,
+          dentists (
+            profiles:profile_id (
+              first_name,
+              last_name
+            )
+          )
+        `)
+        .eq("patient_id", profile.id)
+        .gte("appointment_date", new Date().toISOString())
+        .eq("status", "confirmed")
+        .order("appointment_date", { ascending: true })
+        .limit(1);
+
+      if (error) throw error;
+
+      if (!appointments || appointments.length === 0) {
+        addBotMessage("You don't have any upcoming appointments to reschedule. Would you like to book a new appointment?");
+        return;
+      }
+
+      const appointment = appointments[0];
+      const dentistName = appointment.dentists?.profiles ? 
+        `${appointment.dentists.profiles.first_name} ${appointment.dentists.profiles.last_name}` : 
+        "Your dentist";
+
+      setWidgetData({ 
+        appointment: { 
+          ...appointment, 
+          dentist_name: dentistName 
+        } 
+      });
+      setActiveWidget('reschedule');
+      addBotMessage("I found your next appointment. Would you like to reschedule it?");
+
+    } catch (error) {
+      console.error("Error fetching appointment:", error);
+      addBotMessage("I couldn't retrieve your appointment information. Please try again.");
+    }
+  };
+
+  const showCancelAppointmentWidget = async () => {
+    if (!user) {
+      addBotMessage("Please log in to cancel your appointment.");
+      return;
+    }
+
+    try {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("user_id", user.id)
+        .single();
+
+      if (!profile) {
+        addBotMessage("Profile not found. Please complete your profile first.");
+        return;
+      }
+
+      // Get next upcoming appointment
+      const { data: appointments, error } = await supabase
+        .from("appointments")
+        .select(`
+          id,
+          appointment_date,
+          reason,
+          dentists (
+            profiles:profile_id (
+              first_name,
+              last_name
+            )
+          )
+        `)
+        .eq("patient_id", profile.id)
+        .gte("appointment_date", new Date().toISOString())
+        .eq("status", "confirmed")
+        .order("appointment_date", { ascending: true })
+        .limit(1);
+
+      if (error) throw error;
+
+      if (!appointments || appointments.length === 0) {
+        addBotMessage("You don't have any upcoming appointments to cancel.");
+        return;
+      }
+
+      const appointment = appointments[0];
+      const dentistName = appointment.dentists?.profiles ? 
+        `${appointment.dentists.profiles.first_name} ${appointment.dentists.profiles.last_name}` : 
+        "Your dentist";
+
+      setWidgetData({ 
+        appointment: { 
+          ...appointment, 
+          dentist_name: dentistName 
+        } 
+      });
+      setActiveWidget('cancel-appointment');
+      addBotMessage("I found your next appointment. Are you sure you want to cancel it?");
+
+    } catch (error) {
+      console.error("Error fetching appointment:", error);
+      addBotMessage("I couldn't retrieve your appointment information. Please try again.");
+    }
+  };
+
+  const showPrescriptionRefillWidget = async () => {
+    if (!user) {
+      addBotMessage("Please log in to request prescription refills.");
+      return;
+    }
+
+    try {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("user_id", user.id)
+        .single();
+
+      if (!profile) {
+        addBotMessage("Profile not found. Please complete your profile first.");
+        return;
+      }
+
+      // Get recent prescriptions (last 6 months)
+      const sixMonthsAgo = new Date();
+      sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+      const { data: prescriptions, error } = await supabase
+        .from('prescriptions')
+        .select('*')
+        .eq('patient_id', profile.id)
+        .gte('created_at', sixMonthsAgo.toISOString())
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      if (error) throw error;
+
+      setWidgetData({ prescriptions: prescriptions || [] });
+      setActiveWidget('prescription-refill');
+      
+      if (!prescriptions || prescriptions.length === 0) {
+        addBotMessage("I couldn't find any recent prescriptions. You can still request a refill - I'll help you contact your dentist.");
+      } else {
+        addBotMessage("I found your recent prescriptions. Which one would you like to refill?");
+      }
+
+    } catch (error) {
+      console.error("Error fetching prescriptions:", error);
+      addBotMessage("I couldn't retrieve your prescription information. Please try again.");
+    }
+  };
+
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -825,6 +1221,67 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
             onCancel={() => {
               setActiveWidget(null);
               addBotMessage("Image upload cancelled.");
+            }}
+          />
+        );
+
+      case 'pay-now':
+        return widgetData?.outstandingAmount > 0 ? (
+          <PayNowWidget
+            outstandingAmount={widgetData.outstandingAmount}
+            onPay={handlePayNow}
+            onCancel={() => {
+              setActiveWidget(null);
+              addBotMessage("Payment cancelled. You can pay your balance anytime from your dashboard.");
+            }}
+          />
+        ) : null;
+
+      case 'reschedule':
+        return widgetData?.appointment ? (
+          <RescheduleWidget
+            appointment={widgetData.appointment}
+            onReschedule={handleReschedule}
+            onCancel={() => {
+              setActiveWidget(null);
+              addBotMessage("Keeping your current appointment. If you need to reschedule later, just let me know!");
+            }}
+          />
+        ) : null;
+
+      case 'cancel-appointment':
+        return widgetData?.appointment ? (
+          <CancelAppointmentWidget
+            appointment={widgetData.appointment}
+            onConfirm={handleCancelAppointment}
+            onCancel={() => {
+              setActiveWidget(null);
+              addBotMessage("Your appointment is still scheduled. If you need to cancel later, just let me know!");
+            }}
+          />
+        ) : null;
+
+      case 'prescription-refill':
+        return (
+          <PrescriptionRefillWidget
+            prescriptions={widgetData?.prescriptions || []}
+            onRequestRefill={handlePrescriptionRefill}
+            onCancel={() => {
+              setActiveWidget(null);
+              addBotMessage("Prescription refill request cancelled. You can request refills anytime!");
+            }}
+          />
+        );
+
+      case 'urgency-slider':
+        return (
+          <UrgencySliderWidget
+            value={bookingFlow.urgency}
+            onChange={(value) => {
+              setBookingFlow({ ...bookingFlow, urgency: value });
+              setActiveWidget(null);
+              addBotMessage(`Urgency level set to ${value}/5. Let me help you with your appointment.`);
+              loadDentistsForBooking(false);
             }}
           />
         );

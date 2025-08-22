@@ -506,25 +506,33 @@ const ImageUploadWidget = ({
     }
   };
 
+  const handleDragOver = (event: React.DragEvent) => {
+    event.preventDefault();
+    setDragOver(true);
+  };
+
+  const handleDragLeave = () => {
+    setDragOver(false);
+  };
+
   return (
     <Card className="max-w-md mx-auto my-4 border-primary/20 shadow-lg">
       <CardHeader className="text-center">
         <Camera className="h-8 w-8 mx-auto text-primary mb-2" />
         <CardTitle className="text-lg">Upload Image</CardTitle>
-        <p className="text-sm text-muted-foreground">Share a photo or X-ray</p>
       </CardHeader>
       <CardContent className="space-y-4">
         <div
-          className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
-            dragOver ? 'border-primary bg-primary/5' : 'border-muted-foreground/25'
+          className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+            dragOver ? 'border-primary bg-primary/5' : 'border-gray-300'
           }`}
-          onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-          onDragLeave={() => setDragOver(false)}
           onDrop={handleDrop}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
         >
-          <FileImage className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
-          <p className="text-sm text-muted-foreground">
-            Drag and drop an image here, or click to select
+          <FileImage className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+          <p className="text-sm text-muted-foreground mb-2">
+            Drag and drop your image here, or click to select
           </p>
           <input
             type="file"
@@ -533,20 +541,17 @@ const ImageUploadWidget = ({
             className="hidden"
             id="file-upload"
           />
-          <Label htmlFor="file-upload" className="cursor-pointer">
-            <Button variant="outline" className="mt-2" asChild>
-              <span>Select File</span>
-            </Button>
-          </Label>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => document.getElementById('file-upload')?.click()}
+          >
+            Select Image
+          </Button>
         </div>
-
         <div className="flex gap-2">
           <Button variant="outline" onClick={onCancel} className="flex-1">
             Cancel
-          </Button>
-          <Button variant="outline" className="flex-1">
-            <CameraIcon className="h-4 w-4 mr-2" />
-            Take Photo
           </Button>
         </div>
       </CardContent>
@@ -555,48 +560,311 @@ const ImageUploadWidget = ({
 };
 
 // Urgency Slider Widget
-const UrgencySliderWidget = ({
+const UrgencySliderWidget = ({ 
   value, 
   onChange 
 }: { 
   value: number;
   onChange: (value: number) => void;
 }) => {
-  const urgencyLabels = ['Low', 'Medium', 'High', 'Emergency'];
-  
+  const [sliderValue, setSliderValue] = useState([value]);
+
+  const handleSliderChange = (newValue: number[]) => {
+    setSliderValue(newValue);
+  };
+
+  const handleConfirm = () => {
+    onChange(sliderValue[0]);
+  };
+
+  const getUrgencyLabel = (val: number) => {
+    switch (val) {
+      case 1: return 'Low - General check-up';
+      case 2: return 'Routine - Mild discomfort';
+      case 3: return 'Medium - Noticeable pain';
+      case 4: return 'High - Significant pain';
+      case 5: return 'Emergency - Severe pain';
+      default: return 'Medium';
+    }
+  };
+
+  const getUrgencyColor = (val: number) => {
+    if (val <= 2) return 'text-green-600';
+    if (val <= 3) return 'text-yellow-600';
+    if (val <= 4) return 'text-orange-600';
+    return 'text-red-600';
+  };
+
   return (
     <Card className="max-w-md mx-auto my-4 border-primary/20 shadow-lg">
       <CardHeader className="text-center">
-        <AlertTriangle className="h-8 w-8 mx-auto text-primary mb-2" />
-        <CardTitle className="text-lg">How urgent is this?</CardTitle>
+        <AlertTriangle className="h-8 w-8 mx-auto text-orange-500 mb-2" />
+        <CardTitle className="text-lg">How urgent is your appointment?</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="px-4">
-          <Slider
-            value={[value]}
-            onValueChange={(values) => onChange(values[0])}
-            max={3}
-            min={0}
-            step={1}
-            className="w-full"
-          />
+      <CardContent className="space-y-6">
+        <div className="space-y-4">
+          <div className="text-center">
+            <div className={`text-lg font-semibold ${getUrgencyColor(sliderValue[0])}`}>
+              Level {sliderValue[0]}: {getUrgencyLabel(sliderValue[0])}
+            </div>
+          </div>
+          
+          <div className="px-4">
+            <Slider
+              value={sliderValue}
+              onValueChange={handleSliderChange}
+              max={5}
+              min={1}
+              step={1}
+              className="w-full"
+            />
+            <div className="flex justify-between text-xs text-muted-foreground mt-2">
+              <span>Low</span>
+              <span>Medium</span>
+              <span>Emergency</span>
+            </div>
+          </div>
         </div>
-        <div className="flex justify-between text-sm text-muted-foreground px-2">
-          {urgencyLabels.map((label, index) => (
-            <span key={index} className={value === index ? 'text-primary font-medium' : ''}>
-              {label}
-            </span>
-          ))}
+
+        <div className="flex gap-2">
+          <Button onClick={handleConfirm} className="flex-1">
+            Continue with Level {sliderValue[0]}
+          </Button>
         </div>
-        <p className="text-center text-sm">
-          Current: <span className="font-medium text-primary">{urgencyLabels[value]}</span>
-        </p>
       </CardContent>
     </Card>
   );
 };
 
-export {
+// Pay Now Widget
+const PayNowWidget = ({ 
+  outstandingAmount, 
+  onPay, 
+  onCancel 
+}: { 
+  outstandingAmount: number; 
+  onPay: () => void;
+  onCancel: () => void;
+}) => {
+  return (
+    <Card className="max-w-md mx-auto my-4 border-primary/20 shadow-lg">
+      <CardHeader className="text-center">
+        <div className="h-8 w-8 mx-auto text-red-500 mb-2 rounded-full bg-red-50 flex items-center justify-center">
+          €
+        </div>
+        <CardTitle className="text-lg">Outstanding Balance</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="text-center">
+          <div className="text-2xl font-bold text-red-600">
+            €{(outstandingAmount / 100).toFixed(2)}
+          </div>
+          <p className="text-sm text-muted-foreground mt-1">
+            Total amount due
+          </p>
+        </div>
+        
+        <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
+          <p className="text-sm text-orange-800">
+            Pay your outstanding balance securely with Stripe. You'll be redirected to a secure payment page.
+          </p>
+        </div>
+        
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={onCancel} className="flex-1">
+            Not Now
+          </Button>
+          <Button onClick={onPay} className="flex-1 bg-green-600 hover:bg-green-700">
+            Pay Now
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+// Reschedule Widget
+const RescheduleWidget = ({ 
+  appointment, 
+  onReschedule, 
+  onCancel 
+}: { 
+  appointment: any; 
+  onReschedule: () => void;
+  onCancel: () => void;
+}) => {
+  return (
+    <Card className="max-w-md mx-auto my-4 border-primary/20 shadow-lg">
+      <CardHeader className="text-center">
+        <CalendarIcon className="h-8 w-8 mx-auto text-blue-500 mb-2" />
+        <CardTitle className="text-lg">Reschedule Appointment</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+          <h4 className="font-medium text-blue-900 mb-2">Current Appointment</h4>
+          <div className="space-y-1 text-sm text-blue-800">
+            <div className="flex items-center gap-2">
+              <CalendarIcon className="h-4 w-4" />
+              <span>{format(new Date(appointment.appointment_date), "EEEE, MMMM d, yyyy")}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4" />
+              <span>{format(new Date(appointment.appointment_date), "h:mm a")}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <UserIcon className="h-4 w-4" />
+              <span>Dr. {appointment.dentist_name || 'Your dentist'}</span>
+            </div>
+          </div>
+        </div>
+        
+        <p className="text-sm text-muted-foreground text-center">
+          I'll help you find a new date and time that works for you.
+        </p>
+        
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={onCancel} className="flex-1">
+            Keep Current
+          </Button>
+          <Button onClick={onReschedule} className="flex-1">
+            Reschedule
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+// Cancel Appointment Widget
+const CancelAppointmentWidget = ({ 
+  appointment, 
+  onConfirm, 
+  onCancel 
+}: { 
+  appointment: any; 
+  onConfirm: () => void;
+  onCancel: () => void;
+}) => {
+  return (
+    <Card className="max-w-md mx-auto my-4 border-red-200 shadow-lg">
+      <CardHeader className="text-center">
+        <AlertTriangle className="h-8 w-8 mx-auto text-red-500 mb-2" />
+        <CardTitle className="text-lg text-red-700">Cancel Appointment</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="p-4 bg-red-50 rounded-lg border border-red-200">
+          <h4 className="font-medium text-red-900 mb-2">Appointment to Cancel</h4>
+          <div className="space-y-1 text-sm text-red-800">
+            <div className="flex items-center gap-2">
+              <CalendarIcon className="h-4 w-4" />
+              <span>{format(new Date(appointment.appointment_date), "EEEE, MMMM d, yyyy")}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4" />
+              <span>{format(new Date(appointment.appointment_date), "h:mm a")}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <UserIcon className="h-4 w-4" />
+              <span>Dr. {appointment.dentist_name || 'Your dentist'}</span>
+            </div>
+          </div>
+        </div>
+        
+        <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+          <p className="text-sm text-yellow-800">
+            <strong>Please note:</strong> Cancelling less than 24 hours before your appointment may incur a cancellation fee.
+          </p>
+        </div>
+        
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={onCancel} className="flex-1">
+            Keep Appointment
+          </Button>
+          <Button variant="destructive" onClick={onConfirm} className="flex-1">
+            Cancel Appointment
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+// Prescription Refill Widget
+const PrescriptionRefillWidget = ({ 
+  prescriptions, 
+  onRequestRefill, 
+  onCancel 
+}: { 
+  prescriptions: any[]; 
+  onRequestRefill: (prescriptionId: string) => void;
+  onCancel: () => void;
+}) => {
+  return (
+    <Card className="max-w-md mx-auto my-4 border-primary/20 shadow-lg">
+      <CardHeader className="text-center">
+        <div className="h-8 w-8 mx-auto text-green-600 mb-2 rounded-full bg-green-50 flex items-center justify-center">
+          💊
+        </div>
+        <CardTitle className="text-lg">Request Prescription Refill</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {prescriptions.length === 0 ? (
+          <div className="text-center py-4">
+            <p className="text-sm text-muted-foreground">
+              No recent prescriptions found. Please contact your dentist directly.
+            </p>
+          </div>
+        ) : (
+          <>
+            <p className="text-sm text-muted-foreground text-center">
+              Select a prescription to request a refill:
+            </p>
+            
+            <div className="space-y-2">
+              {prescriptions.map((prescription) => (
+                <Card key={prescription.id} className="cursor-pointer hover:border-primary/50 transition-colors">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <h4 className="font-medium">{prescription.medication_name}</h4>
+                        <p className="text-sm text-muted-foreground">
+                          {prescription.dosage} - {prescription.frequency}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Prescribed: {format(new Date(prescription.created_at), "MMM d, yyyy")}
+                        </p>
+                      </div>
+                      <Button 
+                        size="sm" 
+                        onClick={() => onRequestRefill(prescription.id)}
+                        className="ml-2"
+                      >
+                        Request Refill
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </>
+        )}
+        
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={onCancel} className="flex-1">
+            Cancel
+          </Button>
+          {prescriptions.length === 0 && (
+            <Button variant="outline" className="flex-1">
+              Contact Dentist
+            </Button>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+export { 
   PrivacyConsentWidget,
   InlineCalendarWidget,
   TimeSlotsWidget,
@@ -605,5 +873,9 @@ export {
   PersonalInfoFormWidget,
   QuickSettingsWidget,
   ImageUploadWidget,
-  UrgencySliderWidget
+  UrgencySliderWidget,
+  PayNowWidget,
+  RescheduleWidget,
+  CancelAppointmentWidget,
+  PrescriptionRefillWidget
 };
