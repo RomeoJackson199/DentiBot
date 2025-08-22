@@ -122,6 +122,12 @@ export default function DataImportManager() {
   };
 
   const handleImport = async () => {
+    console.log("Import button clicked", {
+      selectedFile: selectedFile?.name,
+      fieldMappingCount: Object.keys(fieldMapping).length,
+      fieldMapping
+    });
+
     if (!selectedFile) {
       toast({
         title: "No file selected",
@@ -431,28 +437,62 @@ export default function DataImportManager() {
                   <Progress value={undefined} className="w-full" />
                 </div>
               ) : (
-                <div className="flex gap-4">
-                  <Button
-                    onClick={handleImport}
-                    disabled={!selectedFile || Object.keys(fieldMapping).length === 0}
-                    className="flex items-center gap-2"
-                  >
-                    <Upload className="w-4 h-4" />
-                    Import Data
-                  </Button>
-                  
-                  {selectedFile && (
+                <div className="space-y-4">
+                  <div className="flex gap-4">
                     <Button
-                      variant="outline"
-                      onClick={() => {
-                        setSelectedFile(null);
-                        setCsvPreview([]);
-                        setFieldMapping({});
-                      }}
+                      onClick={handleImport}
+                      disabled={!selectedFile || Object.keys(fieldMapping).length === 0}
+                      className="flex items-center gap-2"
+                      title={
+                        !selectedFile 
+                          ? "Please select a CSV file first"
+                          : Object.keys(fieldMapping).length === 0
+                          ? "Please map at least one CSV field to a profile field"
+                          : "Import your data"
+                      }
                     >
-                      Clear
+                      <Upload className="w-4 h-4" />
+                      Import Data
                     </Button>
-                  )}
+                    
+                    {selectedFile && (
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setSelectedFile(null);
+                          setCsvPreview([]);
+                          setFieldMapping({});
+                        }}
+                      >
+                        Clear
+                      </Button>
+                    )}
+                  </div>
+                  
+                  {/* Debug info for troubleshooting */}
+                  <div className="mt-4 p-3 bg-muted/50 rounded-lg text-sm">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className={selectedFile ? "text-green-600" : "text-red-600"}>
+                          {selectedFile ? "✓" : "✗"}
+                        </span>
+                        <span>File selected: {selectedFile ? selectedFile.name : "None"}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className={Object.keys(fieldMapping).length > 0 ? "text-green-600" : "text-red-600"}>
+                          {Object.keys(fieldMapping).length > 0 ? "✓" : "✗"}
+                        </span>
+                        <span>Fields mapped: {Object.keys(fieldMapping).length}</span>
+                      </div>
+                      {Object.keys(fieldMapping).length > 0 && (
+                        <div className="ml-6 text-muted-foreground">
+                          Mappings: {Object.entries(fieldMapping).map(([csv, field]) => 
+                            csv + " → " + field
+                          ).join(", ")}
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
               )}
             </CardContent>
