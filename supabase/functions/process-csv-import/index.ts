@@ -160,10 +160,10 @@ serve(async (req) => {
           } else {
             console.log(`Profile created successfully:`, newProfile);
             
-            // Generate invitation token for the new profile
+          // Generate invitation token for the new profile
             try {
               const { data: tokenData, error: tokenError } = await supabase
-                .rpc('create_invitation_token', {
+                .rpc('create_invitation_token_with_cleanup', {
                   p_profile_id: newProfile.id,
                   p_email: newProfile.email,
                   p_expires_hours: 72
@@ -173,6 +173,27 @@ serve(async (req) => {
                 console.error('Failed to create invitation token:', tokenError);
               } else {
                 console.log('Invitation token created:', tokenData);
+                
+                // Send invitation email using the new edge function
+                try {
+                  const { data: emailResult, error: emailError } = await supabase.functions.invoke('send-invitation-email', {
+                    body: {
+                      profileId: newProfile.id,
+                      email: newProfile.email,
+                      firstName: newProfile.first_name || '',
+                      lastName: newProfile.last_name || '',
+                      dentistName: 'Dr. Dentist' // Will be updated by the frontend with real dentist name
+                    }
+                  });
+
+                  if (emailError) {
+                    console.error('Failed to send invitation email:', emailError);
+                  } else {
+                    console.log('Invitation email sent successfully');
+                  }
+                } catch (emailError) {
+                  console.error('Error sending invitation email:', emailError);
+                }
               }
             } catch (tokenError) {
               console.error('Error creating invitation token:', tokenError);

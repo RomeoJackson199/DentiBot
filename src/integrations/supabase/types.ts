@@ -1934,55 +1934,67 @@ export type Database = {
         Row: {
           action_label: string | null
           action_url: string | null
-          created_at: string
+          created_at: string | null
           dentist_id: string | null
-          expires_at: string | null
           id: string
-          is_read: boolean
+          is_read: boolean | null
           message: string
           metadata: Json | null
           patient_id: string | null
-          priority: string
+          priority: string | null
           title: string
           type: string
-          updated_at: string
-          user_id: string
+          updated_at: string | null
+          user_id: string | null
         }
         Insert: {
           action_label?: string | null
           action_url?: string | null
-          created_at?: string
+          created_at?: string | null
           dentist_id?: string | null
-          expires_at?: string | null
           id?: string
-          is_read?: boolean
+          is_read?: boolean | null
           message: string
           metadata?: Json | null
           patient_id?: string | null
-          priority?: string
+          priority?: string | null
           title: string
-          type?: string
-          updated_at?: string
-          user_id: string
+          type: string
+          updated_at?: string | null
+          user_id?: string | null
         }
         Update: {
           action_label?: string | null
           action_url?: string | null
-          created_at?: string
+          created_at?: string | null
           dentist_id?: string | null
-          expires_at?: string | null
           id?: string
-          is_read?: boolean
+          is_read?: boolean | null
           message?: string
           metadata?: Json | null
           patient_id?: string | null
-          priority?: string
+          priority?: string | null
           title?: string
           type?: string
-          updated_at?: string
-          user_id?: string
+          updated_at?: string | null
+          user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "notifications_dentist_id_fkey"
+            columns: ["dentist_id"]
+            isOneToOne: false
+            referencedRelation: "dentists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       patient_documents: {
         Row: {
@@ -2659,6 +2671,14 @@ export type Database = {
         Returns: boolean
       }
       create_invitation_token: {
+        Args: {
+          p_email: string
+          p_expires_hours?: number
+          p_profile_id: string
+        }
+        Returns: string
+      }
+      create_invitation_token_with_cleanup: {
         Args: {
           p_email: string
           p_expires_hours?: number

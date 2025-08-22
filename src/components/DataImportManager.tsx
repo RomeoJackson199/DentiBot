@@ -215,96 +215,11 @@ export default function DataImportManager() {
         description: `Successfully imported ${result.successCount} of ${result.totalRecords} records`,
       });
 
-      // Send invitation emails for new profiles if they don't have user_id
-      if (result.successCount > 0) {
-        console.log("Checking for new profiles to send invitations...");
-        
-        try {
-        // Get newly imported profiles from this session
-        const { data: newProfiles, error: profilesError } = await supabase
-          .from('profiles')
-          .select('id, email, first_name, last_name')
-          .eq('import_session_id', result.sessionId)
-          .is('user_id', null);
-
-          if (profilesError) {
-            console.error('Error fetching new profiles:', profilesError);
-            throw new Error('Failed to fetch imported profiles');
-          }
-
-          if (newProfiles && newProfiles.length > 0) {
-            console.log(`Found ${newProfiles.length} profiles without user accounts`);
-
-            // Get dentist name for emails
-            const { data: dentistProfile } = await supabase
-              .from('profiles')
-              .select('first_name, last_name')
-              .eq('id', userProfile.id)
-              .single();
-
-            const dentistName = dentistProfile ? 
-              `Dr. ${dentistProfile.first_name} ${dentistProfile.last_name}` : 
-              'Your Dentist';
-
-            let successfulInvitations = 0;
-
-            // Send invitation emails
-            for (const profile of newProfiles) {
-              try {
-                console.log("Sending invitation email to:", profile.email);
-                
-                const { data: emailResult, error: emailError } = await supabase.functions.invoke('send-invitation-email', {
-                  body: {
-                    profileId: profile.id,
-                    email: profile.email,
-                    firstName: profile.first_name || '',
-                    lastName: profile.last_name || '',
-                    dentistName
-                  }
-                });
-
-                if (emailError) {
-                  console.error("Error sending invitation email:", emailError);
-                } else {
-                  console.log("Invitation email sent successfully to:", profile.email);
-                  successfulInvitations++;
-                }
-              } catch (emailError) {
-                console.error("Error processing invitation for profile:", profile.id, emailError);
-              }
-            }
-
-            // Notify dentist about new patients
-            const { data: { user } } = await supabase.auth.getUser();
-            const { error: notificationError } = await supabase
-              .from('notifications')
-              .insert({
-                user_id: user?.id,
-                dentist_id: dentist.id,
-                type: 'import_complete',
-                title: 'Patient Import Completed',
-                message: `Successfully imported ${result.successCount} new patients. ${successfulInvitations} invitation emails sent.`,
-                priority: 'medium',
-                metadata: {
-                  import_session_id: result.sessionId,
-                  imported_count: result.successCount,
-                  invitations_sent: successfulInvitations
-                }
-              });
-
-            if (notificationError) {
-              console.error('Failed to create notification:', notificationError);
-            }
-
-            toast({
-              title: "Import and invitations completed",
-              description: `Imported ${result.successCount} patients and sent ${successfulInvitations} invitation emails`,
-            });
-          }
-        } catch (inviteError) {
-          console.error("Error sending invitations:", inviteError);
-        }
-      }
+      // The edge function already handles invitation emails, so we just need to show success
+      toast({
+        title: "Import and invitations completed",
+        description: `Successfully imported ${result.successCount} of ${result.totalRecords} records. Invitation emails will be sent automatically.`,
+      });
 
     } catch (error) {
       console.error('Import error:', error);

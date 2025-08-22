@@ -38,7 +38,7 @@ serve(async (req) => {
 
     // Generate invitation token
     const { data: tokenId, error: tokenError } = await supabase
-      .rpc('create_invitation_token', {
+      .rpc('create_invitation_token_with_cleanup', {
         p_profile_id: profileId,
         p_email: email,
         p_expires_hours: 72

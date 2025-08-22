@@ -22,6 +22,7 @@ import { NotificationButton } from "@/components/NotificationButton";
 import { ModernNotificationCenter } from "@/components/notifications/ModernNotificationCenter";
 import { RecallsQueue } from "@/components/RecallsQueue";
 import DataImportManager from "@/components/DataImportManager";
+import NotificationCenter from "@/components/NotificationCenter";
  
 
 interface DentistDashboardProps {
@@ -243,8 +244,13 @@ export function DentistDashboard({ user }: DentistDashboardProps) {
 
 
             {activeTab === 'import' && (
-              <div className="px-4 md:px-6 py-4 w-full">
+              <div className="px-4 md:px-6 py-4 w-full space-y-6">
                 <DataImportManager />
+                
+                <div className="border-t pt-6">
+                  <h3 className="text-lg font-semibold mb-4">Import Notifications</h3>
+                  <NotificationCenter />
+                </div>
               </div>
             )}
 
