@@ -129,6 +129,7 @@ serve(async (req) => {
       let fallbackResponse = "I'm here to help you with your dental care. How can I assist you today?";
       let suggestions: string[] = [];
       const recommendedDentist: string[] = [];
+      const action_widgets: any[] = [];
       
       // Use the sanitized message for the AI request
       const context = buildConversationContext(sanitizedMessage, conversation_history);
@@ -152,8 +153,6 @@ serve(async (req) => {
       // Only suggest dentist widget when BOTH patient info and symptoms are present
       if (patientInfoPresent && symptomsPresent) {
         suggestions = ['recommend-dentist'];
-      } else if (!symptomsPresent) {
-        suggestions = ['symptom-intake'];
       }
       
       return new Response(JSON.stringify({ 
@@ -162,7 +161,8 @@ serve(async (req) => {
         urgency_detected: false,
         emergency_detected: false,
         recommended_dentist: recommendedDentist,
-        consultation_reason: "General consultation"
+        consultation_reason: "General consultation",
+        action_widgets
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -405,6 +405,28 @@ PROFESSIONAL LANGUAGE EXAMPLES:
       }
     };
 
+    // Additional contract for action widgets and banning Symptom widget
+    const ACTION_WIDGETS_PROMPT = `
+CONTRACT FOR ACTION WIDGETS:
+- Never propose or mention a "Symptom" widget. If uncertain, ask 1-2 targeted questions instead of proposing UI.
+- When it's genuinely helpful, you may propose up to 2 action widgets, chosen by reasoning over the chat history and patient context. Do NOT use keyword matching.
+- Allowed widget types:
+  - pay_now
+  - reschedule
+  - cancel_appointment
+  - view_next_appointment
+  - start_booking
+- For each widget, provide a one-line reason that explains why it is helpful now.
+- Output must be valid JSON with this structure:
+{
+  "response": "Conversational reply to the patient",
+  "action_widgets": [
+    { "type": "pay_now" | "reschedule" | "cancel_appointment" | "view_next_appointment" | "start_booking", "reason": "one line", "data": { } }
+  ]
+}
+- If confidence is low or information is missing, set action_widgets to an empty array and ask targeted questions.
+`;
+
     let systemPrompt = '';
     let responseFormat = {};
 
@@ -447,7 +469,7 @@ ${patient_context.treatment_plans.map((plan: TreatmentPlan) => `
 - Priority: ${plan.priority}
 - Description: ${plan.description || 'No description'}
 - Diagnosis: ${plan.diagnosis || 'No diagnosis recorded'}
-- Estimated Duration: ${plan.estimated_duration_weeks || 'Not specified'} weeks
+- Estimated Duration: €{plan.estimated_duration_weeks || 'Not specified'} weeks
 - Estimated Cost: €${plan.estimated_cost || 'Not specified'}
 - Start Date: ${plan.start_date || 'Not scheduled'}
 - Treatment Steps: ${plan.treatment_steps ? JSON.stringify(plan.treatment_steps) : 'No steps defined'}
@@ -490,9 +512,13 @@ Always maintain professional medical standards and suggest only appropriate trea
         content.guidelines,
         content.dentists,
         content.examples,
+        ACTION_WIDGETS_PROMPT,
         `Patient Information: ${JSON.stringify(user_profile)}`,
-        `Conversation History:\n${conversation_history.map((msg: any) => (msg.is_bot ? 'Assistant' : 'Patient') + ': ' + msg.message).join('\n')}`
+        `Conversation History:\n${(conversation_history || []).map((msg: any) => (msg.is_bot ? 'Assistant' : 'Patient') + ': ' + (msg.message || msg.content)).join('\n')}`
       ].join('\n\n');
+
+      // Request JSON to ensure action_widgets can be parsed
+      responseFormat = { response_format: { type: "json_object" } };
     }
 
     const messages = [
@@ -538,26 +564,26 @@ Always maintain professional medical standards and suggest only appropriate trea
           console.log('OpenAI response received');
         }
 
-    const result = data.choices[0].message.content;
+    const rawResult = data.choices[0].message.content;
 
-    if (mode === 'dentist_consultation') {
-      try {
-        const parsedResult = JSON.parse(result);
-        return new Response(JSON.stringify(parsedResult), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      } catch (e) {
-        // If JSON parsing fails, return as simple response
-        return new Response(JSON.stringify({
-          response: result,
-          suggestions: []
-        }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
+    // Try to parse JSON to extract response and action_widgets
+    let botResponse = rawResult;
+    let modelActionWidgets: any[] = [];
+    try {
+      const parsed = JSON.parse(rawResult);
+      if (parsed && typeof parsed === 'object') {
+        if (typeof parsed.response === 'string') botResponse = parsed.response;
+        if (Array.isArray(parsed.action_widgets)) modelActionWidgets = parsed.action_widgets;
       }
+    } catch (_) {
+      // Keep text response if not JSON
     }
 
-    const botResponse = result;
+    // Whitelist action widget types and cap at 2
+    const allowedWidgetTypes = new Set(['pay_now','reschedule','cancel_appointment','view_next_appointment','start_booking']);
+    const action_widgets = (modelActionWidgets || [])
+      .filter((w: any) => w && allowedWidgetTypes.has(String(w.type)))
+      .slice(0, 2);
 
     // Extract consultation reason from conversation
     const extractConsultationReason = (message: string, history: any[]): string => {
@@ -648,9 +674,6 @@ Always maintain professional medical standards and suggest only appropriate trea
     
     if (recommendedDentists.length > 0 && patientInfoPresent && symptomsPresent) {
       suggestions.push('recommend-dentist');
-    } else if (!symptomsPresent) {
-      // Ask for symptoms via widget to collect necessary info
-      suggestions.push('symptom-intake');
     }
     
     // Remove duplicates and limit to maximum 2 recommendations
@@ -667,7 +690,8 @@ Always maintain professional medical standards and suggest only appropriate trea
       urgency_detected,
       emergency_detected,
       recommended_dentist: finalRecommendations, // Pass the recommended dentists to frontend
-      consultation_reason: consultationReason
+      consultation_reason: consultationReason,
+      action_widgets
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
