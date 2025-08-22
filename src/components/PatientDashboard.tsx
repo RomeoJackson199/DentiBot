@@ -63,7 +63,6 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
-import { MobilePatientTabs } from "@/components/MobilePatientTabs";
 import { MobileOptimizations } from "@/components/mobile/MobileOptimizations";
 import { 
   Prescription, 
@@ -580,6 +579,7 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
       onChangeSection={setActiveSection}
       badges={badges}
       userId={user.id}
+      onBookAppointment={() => setShowBooking(true)}
     >
       {activeSection === 'home' && (
         <HomeTab
@@ -597,6 +597,7 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
           totalDueCents={totalDueCents}
           onNavigateTo={(s) => setActiveSection(s)}
           onOpenAssistant={() => setActiveSection('assistant')}
+          onBookAppointment={() => setShowBooking(true)}
         />
       )}
 

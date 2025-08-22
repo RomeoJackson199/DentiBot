@@ -172,7 +172,7 @@ export function ModernHeroSection({ onBookAppointment, onStartTriage, onOpenAICh
               <Card variant="elevated" className="relative overflow-hidden group">
                 <div className="aspect-video bg-gradient-to-br from-dental-primary/20 to-dental-accent/20 flex items-center justify-center">
                   {!isVideoPlaying ? (
-                    <Button
+                    <AppButton
                       variant="glass"
                       size="lg"
                       onClick={() => setIsVideoPlaying(true)}
@@ -181,7 +181,7 @@ export function ModernHeroSection({ onBookAppointment, onStartTriage, onOpenAICh
                     >
                       <Play className="h-8 w-8 mr-2 group-hover:scale-110 transition-transform" />
                       {language === 'fr' ? 'Regarder la démo' : language === 'nl' ? 'Bekijk demo' : 'Watch Demo'}
-                      </Button>
+                    </AppButton>
                     ) : (
                     <div className="text-white text-lg font-medium">
                       {language === 'fr' ? 'Lecture de la vidéo de démonstration...' : language === 'nl' ? 'Demovideo wordt afgespeeld...' : 'Demo Video Playing...'}

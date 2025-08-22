@@ -53,6 +53,7 @@ export interface HomeTabProps {
   totalDueCents: number;
   onNavigateTo: (section: 'appointments' | 'care' | 'payments') => void;
   onOpenAssistant?: () => void;
+  onBookAppointment?: () => void;
 }
 
 export const HomeTab: React.FC<HomeTabProps> = ({
@@ -65,6 +66,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
   totalDueCents,
   onNavigateTo,
   onOpenAssistant,
+  onBookAppointment,
 }) => {
   const [greeting, setGreeting] = useState("");
   const unpaid = totalDueCents > 0;
@@ -176,7 +178,11 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                 <div className="text-center py-4">
                   <Calendar className="h-12 w-12 text-muted-foreground/50 mx-auto mb-3" />
                   <p className="text-muted-foreground mb-3">{t.noUpcomingAppointments}</p>
-                  <Button onClick={() => onNavigateTo('appointments')} className="w-full">
+                  <Button 
+                    onClick={onBookAppointment || (() => onNavigateTo('appointments'))} 
+                    className="w-full"
+                    aria-label="Book appointment"
+                  >
                     {t.bookAppointment}
                   </Button>
                 </div>
@@ -191,7 +197,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <Card className="h-full hover:shadow-lg transition-all cursor-pointer group"
+          <Card className="h-full border-l-4 border-l-primary hover:border-l-2 hover:border-l-primary transition-all hover:shadow-md"
                 onClick={() => onNavigateTo('care')}>
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center justify-between text-base">
@@ -269,7 +275,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
           transition={{ delay: 0.4 }}
           className="md:col-span-2 lg:col-span-1"
         >
-          <Card className="h-full bg-gradient-to-br from-emerald-50 to-emerald-100/50 dark:from-emerald-900/20 dark:to-emerald-900/10 border-emerald-200 hover:shadow-lg transition-all cursor-pointer"
+          <Card className="h-full bg-gradient-to-br from-emerald-50/50 to-emerald-100/30 dark:from-emerald-900/10 dark:to-emerald-900/5 border-emerald-200/50 hover:shadow-md transition-all cursor-pointer"
                 onClick={onOpenAssistant}>
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center justify-between text-base">

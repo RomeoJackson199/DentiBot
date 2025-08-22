@@ -23,6 +23,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ModernNotificationCenter } from "@/components/notifications/ModernNotificationCenter";
+import { FloatingBookingButton } from "@/components/patient/FloatingBookingButton";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useMobileOptimizations } from "@/components/mobile/MobileOptimizations";
@@ -35,6 +36,7 @@ interface PatientAppShellProps {
   children: React.ReactNode;
   badges?: Partial<Record<PatientSection, boolean>>;
   userId: string;
+  onBookAppointment?: () => void;
 }
 
 const NAV_ITEMS: Array<{ id: PatientSection; label: string; shortLabel?: string; icon: React.ComponentType<any>; color: string }> = [
@@ -51,6 +53,7 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
   children,
   badges = {},
   userId,
+  onBookAppointment,
 }) => {
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -91,17 +94,29 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
 
             <div className="flex items-center space-x-2">
               <ModernNotificationCenter userId={userId} />
+              {onBookAppointment && (
+                <Button
+                  variant="gradient"
+                  size="sm"
+                  onClick={onBookAppointment}
+                  className="hidden sm:flex touch-target"
+                  aria-label="Book appointment"
+                >
+                  <Calendar className="h-4 w-4 mr-2" />
+                  Book
+                </Button>
+              )}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className={cn(
-                      "hover:bg-primary/10 transition-colors",
-                      activeSection === 'settings' && "bg-primary/10 text-primary"
-                    )}
-                    aria-label="Open menu"
-                  >
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className={cn(
+                    "hover:bg-primary/10 transition-colors touch-target min-h-[44px] min-w-[44px] focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+                    activeSection === 'settings' && "bg-primary/10 text-primary"
+                  )}
+                  aria-label="Open menu"
+                >
                     <SettingsIcon className="h-5 w-5" />
                   </Button>
                 </DropdownMenuTrigger>
@@ -143,6 +158,9 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
           </AnimatePresence>
         </div>
 
+        {/* Floating Book Button for Mobile */}
+        {onBookAppointment && <FloatingBookingButton onBookAppointment={onBookAppointment} />}
+
         {/* Bottom Navigation Bar */}
         <div className="fixed bottom-0 left-0 right-0 z-header bg-background/95 backdrop-blur-sm border-t safe-bottom">
           <nav className="flex items-center justify-around py-2" role="navigation" aria-label="Primary">
@@ -156,7 +174,7 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
                   key={item.id}
                   onClick={() => onChangeSection(item.id)}
                   className={cn(
-                    "flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-all relative touch-target",
+                    "flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-all relative touch-target min-h-[44px] min-w-[44px]",
                     active
                       ? "text-primary"
                       : "text-muted-foreground hover:text-foreground"
@@ -210,7 +228,7 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
                     <button
                       onClick={() => onChangeSection(item.id)}
                       className={cn(
-                        "w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all relative group",
+                        "w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all relative group touch-target min-h-[44px] focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
                         active
                           ? "bg-primary text-primary-foreground shadow-md"
                           : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
@@ -240,36 +258,50 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-border/50">
           <div className="flex items-center justify-between">
             <ModernNotificationCenter userId={userId} />
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
+            <div className="flex items-center space-x-2">
+              {onBookAppointment && (
                 <Button
-                  variant="ghost"
-                  size="icon"
-                  className={cn(
-                    "hover:bg-primary/10 transition-colors",
-                    activeSection === 'settings' && "bg-primary/10 text-primary"
-                  )}
-                  aria-label="Open menu"
+                  variant="gradient"
+                  size="sm"
+                  onClick={onBookAppointment}
+                  className="touch-target"
+                  aria-label="Book appointment"
                 >
-                  <SettingsIcon className="h-5 w-5" />
+                  <Calendar className="h-4 w-4 mr-2" />
+                  Book
                 </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48 mb-2">
-                <DropdownMenuItem onClick={handleSettingsClick} aria-label="Settings">
-                  <SettingsIcon className="mr-2 h-4 w-4" />
-                  Settings
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate('/about')} aria-label="About">
-                  <Info className="mr-2 h-4 w-4" />
-                  About Dentinot
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleSignOut} className="text-red-600" aria-label="Logout">
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Sign Out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+              )}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className={cn(
+                      "hover:bg-primary/10 transition-colors touch-target min-h-[44px] min-w-[44px] focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+                      activeSection === 'settings' && "bg-primary/10 text-primary"
+                    )}
+                    aria-label="Open menu"
+                  >
+                    <SettingsIcon className="h-5 w-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48 mb-2">
+                  <DropdownMenuItem onClick={handleSettingsClick} aria-label="Settings">
+                    <SettingsIcon className="mr-2 h-4 w-4" />
+                    Settings
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/about')} aria-label="About">
+                    <Info className="mr-2 h-4 w-4" />
+                    About Dentinot
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut} className="text-red-600" aria-label="Logout">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
         </div>
       </div>

@@ -34,6 +34,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 
+import { QuietModeToggle } from "@/components/notifications/QuietModeToggle";
+
 interface ModernNotificationCenterProps {
   userId: string;
   className?: string;
