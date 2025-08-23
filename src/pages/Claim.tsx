@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { supabase, getFunctionUrl } from "@/integrations/supabase/client";
+import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -77,15 +77,13 @@ const Claim = () => {
     setErrorMessage("");
     setQualifyingProfile(null);
     try {
-      const res = await fetch(getFunctionUrl("claim-profile"), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: normalizedEmail })
+      const { data: funcData, error: funcErr } = await supabase.functions.invoke('claim-profile', {
+        body: { email: normalizedEmail }
       });
 
       let proceedPassword = false;
-      if (res.ok) {
-        const body = await res.json().catch(() => ({}));
+      if (!funcErr && funcData) {
+        const body = funcData as any;
         proceedPassword = body?.claimable === true;
       }
 
@@ -141,26 +139,23 @@ const Claim = () => {
     setLoading(true);
     try {
       // Call production claim function to create user and link profile
-      const res = await fetch(getFunctionUrl("claim-profile"), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim().toLowerCase(), password })
+      const { data: claimData, error: claimError, status } = await supabase.functions.invoke('claim-profile', {
+        body: { email: email.trim().toLowerCase(), password }
       });
 
-      if (!res.ok) {
+      if (claimError) {
         // Show neutral if the backend rejected; don't leak details
-        if (res.status === 403 || res.status === 404) {
+        if (status === 403 || status === 404) {
           setStep("neutral");
           return;
         }
-        if (res.status === 409) {
+        if (status === 409) {
           // User already exists in auth; guide to login or reset password
           setErrorMessage("An account already exists for this email. Please sign in or reset your password.");
           setStep("error");
           return;
         }
-        const body = await res.json().catch(() => ({}));
-        const message = body?.error || "Unable to complete account claim.";
+        const message = (claimError as any)?.message || "Unable to complete account claim.";
         setErrorMessage(message);
         setStep("error");
         return;
