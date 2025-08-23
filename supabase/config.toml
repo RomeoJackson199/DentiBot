@@ -35,3 +35,6 @@ verify_jwt = true
 
 [functions.dev-claim-bypass]
 verify_jwt = false
+
+[functions.claim-profile]
+verify_jwt = false
