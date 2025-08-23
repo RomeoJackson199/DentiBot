@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase, getFunctionUrl } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,6 +27,7 @@ const maskEmail = (email: string) => {
 
 const Claim = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
   const [step, setStep] = useState<"email" | "password" | "neutral" | "error">("email");
   const [email, setEmail] = useState("");
@@ -45,6 +46,15 @@ const Claim = () => {
       setStep("neutral");
     }
   }, [isProduction]);
+
+  // Prefill email from query parameter if present
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const emailParam = params.get("email");
+    if (emailParam) {
+      setEmail(emailParam);
+    }
+  }, [location.search]);
 
   useEffect(() => {
     // Telemetry: entering claim flow and whether bypass is enabled

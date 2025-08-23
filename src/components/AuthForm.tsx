@@ -340,8 +340,8 @@ export const AuthForm = ({ compact = false }: AuthFormProps) => {
                    {t.signInButton}
                  </Button>
                  <div className="flex justify-center">
-                   <a href="/claim" className="text-sm text-dental-primary underline">
-                     Already registered at this clinic?
+                   <a href={`/claim?email=${encodeURIComponent(formData.email)}`} className="text-sm text-dental-primary underline">
+                     Check if I'm registered at this clinic
                    </a>
                  </div>
                </form>
@@ -491,6 +491,11 @@ export const AuthForm = ({ compact = false }: AuthFormProps) => {
                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                  {t.createAccountButton}
                </Button>
+               <div className="flex justify-center">
+                 <a href={`/claim?email=${encodeURIComponent(formData.email)}`} className="text-sm text-dental-primary underline">
+                   Check if I'm registered at this clinic
+                 </a>
+               </div>
             </form>
             </div>
           </TabsContent>
