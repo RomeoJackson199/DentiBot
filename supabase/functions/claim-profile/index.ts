@@ -79,8 +79,17 @@ serve(async (req) => {
       }
     });
 
+    // If the user already exists in auth, return a specific error to guide frontend
+    if (createErr && (createErr as any)?.status === 409) {
+      return new Response(
+        JSON.stringify({ error: 'USER_EXISTS' }),
+        { status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     if (createErr || !userData?.user) {
-      return new Response(JSON.stringify({ error: 'Unable to complete' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      const message = (createErr as any)?.message || 'Unable to complete';
+      return new Response(JSON.stringify({ error: message }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
     // Remove any auto-created profile row from signup trigger to avoid unique user_id conflicts
