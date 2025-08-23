@@ -87,3 +87,9 @@ Yes, you can!
 To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+
+## Invitation Flow
+
+- CSV import creates profiles with `user_id=null` and generates an invitation token
+- Invitation emails are sent via `send-email-notification` using system mode
+- The invitation link format is `/invite?token=...` and the app reads from the query string

@@ -41,40 +41,46 @@ serve(async (req) => {
   }
 
   try {
-    // Get the authorization header and verify JWT
-    const authHeader = req.headers.get('authorization');
-    if (!authHeader) {
-      throw new Error('Authorization header required');
-    }
-
-    // Create Supabase client with user context for authorization checks
+    // Read request payload first to determine system-mode
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-    
     if (!supabaseUrl || !supabaseServiceKey) {
       throw new Error('Supabase credentials not configured');
     }
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-      global: { headers: { Authorization: authHeader } }
-    });
+    const { to, subject, message, messageType, patientId, dentistId, isSystemNotification }: EmailRequest = await req.json();
+    const isSystem = isSystemNotification === true || messageType === 'system';
 
-    // Verify user authentication
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
-      throw new Error('Invalid or expired token');
+    let supabase;
+    let authedUserId: string | null = null;
+    if (isSystem) {
+      // System notifications use service role and bypass end-user auth
+      supabase = createClient(supabaseUrl, supabaseServiceKey);
+      console.log('📧 System notification - skipping user authentication');
+    } else {
+      // Require end-user token for non-system notifications
+      const authHeader = req.headers.get('authorization');
+      if (!authHeader) {
+        throw new Error('Authorization header required');
+      }
+      supabase = createClient(supabaseUrl, supabaseServiceKey, {
+        global: { headers: { Authorization: authHeader } }
+      });
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) {
+        throw new Error('Invalid or expired token');
+      }
+      authedUserId = user.id;
     }
 
-    const { to, subject, message, messageType, patientId, dentistId, isSystemNotification }: EmailRequest = await req.json();
-
-    console.log('📧 Email request details:', { to, subject, messageType, patientId, dentistId, isSystemNotification });
+    console.log('📧 Email request details:', { to, subject, messageType, patientId, dentistId, isSystemNotification: isSystem });
 
     // Authorization check: Skip for system notifications, otherwise verify dentist access
-    if (!isSystemNotification && dentistId && patientId) {
+    if (!isSystem && dentistId && patientId) {
       const { data: userProfile } = await supabase
         .from('profiles')
         .select('id')
-        .eq('user_id', user.id)
+        .eq('user_id', authedUserId)
         .single();
 
       if (!userProfile) {
@@ -91,13 +97,13 @@ serve(async (req) => {
       if (dentistError || !dentist) {
         throw new Error('Unauthorized: Only the dentist can send email notifications');
       }
-    } else if (isSystemNotification) {
+    } else if (isSystem) {
       console.log('📧 System notification - skipping dentist authorization');
     }
 
     // Create email notification record (only for dentist-patient communications)
     let notificationId;
-    if (patientId && dentistId && !isSystemNotification) {
+    if (patientId && dentistId && !isSystem) {
       try {
         const { data, error } = await supabase
           .from('email_notifications')
