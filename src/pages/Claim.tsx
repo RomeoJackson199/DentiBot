@@ -41,10 +41,7 @@ const Claim = () => {
   const isNonProduction = !isProduction;
 
   useEffect(() => {
-    if (isProduction) {
-      // In production, do not expose bypass flow; show neutral guidance
-      setStep("neutral");
-    }
+    // Production: enable claim flow
   }, [isProduction]);
 
   // Prefill email from query parameter if present
@@ -67,11 +64,7 @@ const Claim = () => {
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const minDelayPromise = new Promise((resolve) => setTimeout(resolve, 900));
-    if (isProduction) {
-      setStep("neutral");
-      await minDelayPromise;
-      return;
-    }
+    // Production: proceed to server-side check
 
     const normalizedEmail = email.trim().toLowerCase();
     if (!normalizedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
@@ -83,36 +76,25 @@ const Claim = () => {
     setLoading(true);
     setErrorMessage("");
     try {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("id, email, user_id, first_name, last_name, phone")
-        .eq("email", normalizedEmail);
+      const res = await fetch(getFunctionUrl("claim-profile"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: normalizedEmail })
+      });
 
-      if (error) {
-        // Fail safe to neutral to avoid enumeration
+      if (!res.ok) {
         setStep("neutral");
         await minDelayPromise;
         return;
       }
 
-      const claimable = (data || []).filter((p) => p.user_id === null);
-
-      if (claimable.length > 1) {
-        // Duplicate imported records; show generic error instructing to contact clinic
-        setErrorMessage("Something went wrong. Please contact the clinic to complete your access.");
-        setStep("error");
-        await minDelayPromise;
-        return;
-      }
-
-      if (claimable.length === 1 && isNonProduction) {
-        setQualifyingProfile(claimable[0]);
+      const body = await res.json().catch(() => ({}));
+      if (body?.claimable === true) {
         setStep("password");
         await minDelayPromise;
         return;
       }
 
-      // Not found or not claimable
       setStep("neutral");
       await minDelayPromise;
       return;
@@ -123,7 +105,7 @@ const Claim = () => {
 
   const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!qualifyingProfile) return;
+    // Password submit always uses function; profile is resolved server-side
 
     if (password !== confirmPassword) {
       toast({ title: "Passwords don't match", description: "Please re-enter your password.", variant: "destructive" });
@@ -137,11 +119,11 @@ const Claim = () => {
 
     setLoading(true);
     try {
-      // Call dev-only bypass function to create user and link profile without email/SMS
-      const res = await fetch(getFunctionUrl("dev-claim-bypass"), {
+      // Call production claim function to create user and link profile
+      const res = await fetch(getFunctionUrl("claim-profile"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim().toLowerCase(), password, profileId: qualifyingProfile.id })
+        body: JSON.stringify({ email: email.trim().toLowerCase(), password })
       });
 
       if (!res.ok) {
@@ -169,10 +151,7 @@ const Claim = () => {
       }
 
       // Telemetry after sign-in
-      await emitAnalyticsEvent('CLAIM_PASSWORD_CREATED', 'unknown', { profile_id: qualifyingProfile.id });
-      if (isNonProduction) {
-        await emitAnalyticsEvent('CLAIM_DEV_BYPASS_USED', 'unknown', { profile_id: qualifyingProfile.id });
-      }
+      await emitAnalyticsEvent('CLAIM_PASSWORD_CREATED', 'unknown', {});
 
       // Navigate to dashboard; ProfileCompletionDialog will handle missing fields
       navigate("/dashboard", { replace: true });
@@ -225,7 +204,7 @@ const Claim = () => {
           </Card>
         )}
 
-        {step === "password" && qualifyingProfile && (
+        {step === "password" && (
           <Card className="shadow-elegant glass-card border border-border/20">
             <CardHeader>
               <CardTitle>Secure your account</CardTitle>
