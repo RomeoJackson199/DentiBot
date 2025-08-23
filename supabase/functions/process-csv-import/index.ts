@@ -261,21 +261,32 @@ serve(async (req) => {
   <p>If you didn’t request this, you can ignore this email.</p>
 `;
 
-                  const { data: mailData, error: mailError } = await supabase.functions.invoke('send-email-notification', {
-                    body: {
-                      to: newProfile.email,
-                      subject,
-                      message,
-                      messageType: 'system',
-                      isSystemNotification: true,
-                      patientId: newProfile.id ?? null,
-                      dentistId: null
-                    }
+                  const authHeader = req.headers.get('authorization') || '';
+                  const functionUrl = `${supabaseUrl}/functions/v1/send-email-notification`;
+                  const emailPayload = {
+                    to: newProfile.email,
+                    subject,
+                    message,
+                    messageType: 'system',
+                    isSystemNotification: true,
+                    patientId: newProfile.id ?? null,
+                    dentistId: null
+                  };
+
+                  const emailResponse = await fetch(functionUrl, {
+                    method: 'POST',
+                    headers: {
+                      'Authorization': authHeader,
+                      'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(emailPayload)
                   });
 
-                  if (mailError) {
-                    console.error('Invitation email failed:', mailError);
+                  if (!emailResponse.ok) {
+                    const errorText = await emailResponse.text().catch(() => '');
+                    console.error('Invitation email failed:', emailResponse.status, errorText);
                   } else {
+                    const mailData = await emailResponse.json().catch(() => ({}));
                     console.log('Invitation email sent:', mailData);
                   }
                 } catch (emailError) {
