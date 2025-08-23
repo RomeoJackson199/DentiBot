@@ -15,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { User, Session } from "@supabase/supabase-js";
 import { SeoManager } from "./lib/seo";
 import { LazyLoadingWrapper } from "./components/optimized/LazyLoadingWrapper";
+import AuthCallbackHandler from "./components/AuthCallbackHandler";
 
 const Invite = lazy(() => import("./pages/Invite"));
 
@@ -119,6 +120,7 @@ const App = () => (
         disableTransitionOnChange={false}
       >
         <LanguageProvider>
+            <AuthCallbackHandler />
             <TooltipProvider>
               <Sonner />
               <PWAInstallPrompt />
