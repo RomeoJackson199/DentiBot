@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, Lock, Mail, ShieldAlert } from "lucide-react";
+import { emitAnalyticsEvent } from "@/lib/analyticsEvents";
 
 interface ProfileRow {
   id: string;
@@ -45,16 +46,27 @@ const Claim = () => {
     }
   }, [isProduction]);
 
+  useEffect(() => {
+    // Telemetry: entering claim flow and whether bypass is enabled
+    emitAnalyticsEvent('CLAIM_FLOW_ENTERED', 'unknown', { bypassEnabled: isNonProduction });
+    if (isNonProduction) {
+      emitAnalyticsEvent('CLAIM_DEV_BYPASS_ENABLED', 'unknown', {});
+    }
+  }, [isNonProduction]);
+
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const minDelayPromise = new Promise((resolve) => setTimeout(resolve, 900));
     if (isProduction) {
       setStep("neutral");
+      await minDelayPromise;
       return;
     }
 
     const normalizedEmail = email.trim().toLowerCase();
     if (!normalizedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
       toast({ title: "Invalid email", description: "Please enter a valid email.", variant: "destructive" });
+      await minDelayPromise;
       return;
     }
 
@@ -69,6 +81,7 @@ const Claim = () => {
       if (error) {
         // Fail safe to neutral to avoid enumeration
         setStep("neutral");
+        await minDelayPromise;
         return;
       }
 
@@ -78,17 +91,21 @@ const Claim = () => {
         // Duplicate imported records; show generic error instructing to contact clinic
         setErrorMessage("Something went wrong. Please contact the clinic to complete your access.");
         setStep("error");
+        await minDelayPromise;
         return;
       }
 
       if (claimable.length === 1 && isNonProduction) {
         setQualifyingProfile(claimable[0]);
         setStep("password");
+        await minDelayPromise;
         return;
       }
 
       // Not found or not claimable
       setStep("neutral");
+      await minDelayPromise;
+      return;
     } finally {
       setLoading(false);
     }
@@ -141,6 +158,12 @@ const Claim = () => {
         return;
       }
 
+      // Telemetry after sign-in
+      await emitAnalyticsEvent('CLAIM_PASSWORD_CREATED', 'unknown', { profile_id: qualifyingProfile.id });
+      if (isNonProduction) {
+        await emitAnalyticsEvent('CLAIM_DEV_BYPASS_USED', 'unknown', { profile_id: qualifyingProfile.id });
+      }
+
       // Navigate to dashboard; ProfileCompletionDialog will handle missing fields
       navigate("/dashboard", { replace: true });
     } finally {
@@ -161,8 +184,8 @@ const Claim = () => {
         {step === "email" && (
           <Card className="shadow-elegant glass-card border border-border/20">
             <CardHeader>
-              <CardTitle>Account Claim</CardTitle>
-              <CardDescription>Enter your email. If we find your profile, we’ll help you secure it.</CardDescription>
+              <CardTitle>Claim your account</CardTitle>
+              <CardDescription>Enter your email. If we find your profile, we’ll help you sign in.</CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleEmailSubmit} className="space-y-4">
@@ -195,12 +218,11 @@ const Claim = () => {
         {step === "password" && qualifyingProfile && (
           <Card className="shadow-elegant glass-card border border-border/20">
             <CardHeader>
-              <CardTitle>We found your profile. Let’s secure it with a password.</CardTitle>
-              <CardDescription>
-                {maskEmail(email)}
-              </CardDescription>
+              <CardTitle>Secure your account</CardTitle>
+              <CardDescription>Create a strong password to continue.</CardDescription>
             </CardHeader>
             <CardContent>
+              <p className="text-xs text-muted-foreground mb-2">{maskEmail(email)}</p>
               <form onSubmit={handlePasswordSubmit} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="password">New password</Label>

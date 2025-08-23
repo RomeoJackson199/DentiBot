@@ -5,9 +5,11 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { emitAnalyticsEvent } from "@/lib/analyticsEvents";
 
 interface MissingField {
   key: string;
@@ -184,6 +186,9 @@ const ProfileCompletionDialog = () => {
           .eq("id", profileId);
       }
       
+      // Telemetry: profile completion finished
+      await emitAnalyticsEvent('PROFILE_COMPLETION_FINISHED', 'unknown', { missing_fields_count: missingFields.length });
+      
       setCompleted(true);
       setTimeout(() => {
         setOpen(false);
@@ -201,8 +206,10 @@ const ProfileCompletionDialog = () => {
         {!completed && field && (
           <>
             <DialogHeader>
-              <DialogTitle>{field.question}</DialogTitle>
+              <DialogTitle>Complete your profile</DialogTitle>
+              <DialogDescription>We’re missing a few details. Please review and fill in what’s left.</DialogDescription>
             </DialogHeader>
+            <div className="mt-2 text-sm font-medium">{field.question}</div>
             {field.type === "text" && (
               <Input value={value} onChange={(e) => setValue(e.target.value)} />
             )}
