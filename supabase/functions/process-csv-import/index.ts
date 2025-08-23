@@ -4,6 +4,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS, PUT, DELETE',
 };
 
 interface CSVRow {
@@ -19,7 +20,7 @@ interface ImportRequest {
 }
 
 serve(async (req) => {
-  console.log(`${req.method} request received`);
+  console.log(`${req.method} request received from ${req.headers.get('origin')} at ${new Date().toISOString()}`);
   
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -34,13 +35,69 @@ serve(async (req) => {
   }
 
   try {
-    // Use service role key for system-level operations
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
+    // Log request headers for debugging
+    console.log('Request headers:', {
+      'content-type': req.headers.get('content-type'),
+      'authorization': req.headers.get('authorization') ? 'present' : 'missing',
+      'x-client-info': req.headers.get('x-client-info') ? 'present' : 'missing',
+      'apikey': req.headers.get('apikey') ? 'present' : 'missing'
+    });
 
-    const { csvData, fieldMapping, importType, dentistId, filename }: ImportRequest = await req.json();
+    // Validate request body
+    const requestBody = await req.text();
+    console.log('Request body length:', requestBody.length);
+    
+    if (!requestBody) {
+      return new Response(JSON.stringify({ error: 'Request body is empty' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    let parsedBody: ImportRequest;
+    try {
+      parsedBody = JSON.parse(requestBody);
+    } catch (parseError) {
+      console.error('JSON parsing error:', parseError);
+      return new Response(JSON.stringify({ 
+        error: 'Invalid JSON in request body',
+        details: parseError.message 
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    const { csvData, fieldMapping, importType, dentistId, filename } = parsedBody;
+
+    // Validate required fields
+    if (!csvData || !fieldMapping || !importType || !dentistId || !filename) {
+      return new Response(JSON.stringify({ 
+        error: 'Missing required fields',
+        required: ['csvData', 'fieldMapping', 'importType', 'dentistId', 'filename'],
+        received: Object.keys(parsedBody)
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    // Use service role key for system-level operations
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.error('Missing Supabase environment variables');
+      return new Response(JSON.stringify({ 
+        error: 'Server configuration error',
+        details: 'Missing required environment variables'
+      }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
     
     console.log('Import request received:', {
       importType,

@@ -13,13 +13,18 @@ import { ImportHistory } from './ImportHistory';
 
 interface ImportSession {
   id: string;
+  sessionId?: string;
   filename: string;
   status: 'processing' | 'completed' | 'failed';
-  total_records: number;
-  successful_records: number;
-  failed_records: number;
+  total_records?: number;
+  totalRecords?: number;
+  successful_records?: number;
+  successCount?: number;
+  failed_records?: number;
+  failureCount?: number;
   created_at: string;
   error_details?: any[];
+  errors?: any[];
 }
 
 export default function DataImportManager() {
@@ -73,51 +78,63 @@ export default function DataImportManager() {
     }
   }, [importType, toast]);
 
+  // Test function to verify edge function connectivity
   const testFunction = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        toast({
-          title: "Not authenticated",
-          description: "Please log in first",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      console.log('Testing function connection...');
-      
+      console.log('Testing edge function connection...');
       const { data, error } = await supabase.functions.invoke('process-csv-import', {
-        body: {
-          csvData: 'test,data\nvalue1,value2',
-          fieldMapping: { test: 'first_name' },
-          importType: 'patients' as const,
-          dentistId: 'test-id',
-          filename: 'test.csv'
-        }
+        body: { test: true }
       });
-
-      console.log('Test response:', { data, error });
-
-      if (error) {
+      
+      console.log('Test function response:', { data, error });
+      
+      if (error && error.message?.includes('Missing required fields')) {
+        // This is expected for a test request, function is working
         toast({
-          title: "Function Error",
-          description: `Error: ${error.message}`,
+          title: "Connection test successful",
+          description: "Edge function is responding correctly",
+        });
+        return true;
+      } else if (error) {
+        console.error('Function test error:', error);
+        toast({
+          title: "Connection test failed",
+          description: error.message || "Edge function not responding",
           variant: "destructive"
         });
-      } else {
-        toast({
-          title: "Function Test",
-          description: "Function is reachable (may have failed due to test data)",
-        });
+        return false;
       }
-    } catch (error) {
-      console.error('Test error:', error);
+      
+      return true;
+    } catch (error: any) {
+      console.error('Test function error:', error);
       toast({
-        title: "Connection Test Failed",
-        description: error.message,
+        title: "Connection test failed", 
+        description: error.message || "Cannot reach edge function",
         variant: "destructive"
       });
+      return false;
+    }
+  };
+
+  // Retry logic for failed requests
+  const retryRequest = async (fn: () => Promise<any>, maxRetries = 3): Promise<any> => {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        console.log(`Attempt ${attempt} of ${maxRetries}`);
+        return await fn();
+      } catch (error: any) {
+        console.error(`Attempt ${attempt} failed:`, error);
+        
+        if (attempt === maxRetries) {
+          throw error;
+        }
+        
+        // Wait before retrying (exponential backoff)
+        const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
+        console.log(`Retrying in ${delay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
     }
   };
 
@@ -149,6 +166,13 @@ export default function DataImportManager() {
     setImporting(true);
 
     try {
+      // First test the connection
+      console.log("Testing edge function connection...");
+      const connectionWorking = await testFunction();
+      if (!connectionWorking) {
+        throw new Error('Edge function is not responding. Please try again later.');
+      }
+
       // Get current user's dentist ID
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('Not authenticated');
@@ -187,51 +211,60 @@ export default function DataImportManager() {
       console.log('CSV data length:', csvData.length);
       console.log('Field mapping:', fieldMapping);
 
-      const { data, error } = await supabase.functions.invoke('process-csv-import', {
-        body: {
-          csvData,
-          fieldMapping,
-          importType,
-          dentistId: dentist.id,
-          filename: selectedFile.name
-        },
-        headers: {
-          'x-user-id': session.user.id
+      // Use retry logic for the import request
+      const result = await retryRequest(async () => {
+        const { data, error } = await supabase.functions.invoke('process-csv-import', {
+          body: {
+            csvData,
+            fieldMapping,
+            importType,
+            dentistId: dentist.id,
+            filename: selectedFile.name
+          },
+          headers: {
+            'x-user-id': session.user.id
+          }
+        });
+
+        console.log('Function response received:', { data, error });
+
+        if (error) {
+          console.error('Function invocation error:', error);
+          throw new Error(`Function error: ${error.message || JSON.stringify(error)}`);
         }
+
+        if (!data) {
+          console.error('No data received from function');
+          throw new Error('No response data received from function');
+        }
+
+        return data;
       });
 
-      console.log('Function response received:', { data, error });
-
-      if (error) {
-        console.error('Function invocation error:', error);
-        throw new Error(`Function error: ${error.message || 'Unknown error'}`);
-      }
-
-      if (!data) {
-        console.error('No data received from function');
-        throw new Error('No response data received from function');
-      }
-
-      console.log('Import response:', data);
-      const result = data;
+      console.log('Import response:', result);
       setImportSession(result);
+
+      const successCount = result.successCount || result.successful_records || 0;
+      const totalRecords = result.totalRecords || result.total_records || 0;
 
       toast({
         title: "Import completed",
-        description: `Successfully imported ${result.successCount} of ${result.totalRecords} records`,
+        description: `Successfully imported ${successCount} of ${totalRecords} records`,
       });
 
-      // The edge function already handles invitation emails, so we just need to show success
-      toast({
-        title: "Import and invitations completed",
-        description: `Successfully imported ${result.successCount} of ${result.totalRecords} records. Invitation emails will be sent automatically.`,
-      });
+      // Show success message for invitations
+      if (successCount > 0) {
+        toast({
+          title: "Import and invitations completed",
+          description: `Successfully imported ${successCount} of ${totalRecords} records. Invitation emails will be sent automatically.`,
+        });
+      }
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Import error:', error);
       toast({
         title: "Import failed",
-        description: error.message || "Failed to process import",
+        description: error.message || "Failed to process import. Please check your internet connection and try again.",
         variant: "destructive"
       });
     } finally {
@@ -503,7 +536,7 @@ export default function DataImportManager() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  {importSession.failed_records === 0 ? (
+                  {(importSession.failed_records || importSession.failureCount || 0) === 0 ? (
                     <CheckCircle className="w-5 h-5 text-green-500" />
                   ) : (
                     <AlertCircle className="w-5 h-5 text-yellow-500" />
@@ -515,41 +548,41 @@ export default function DataImportManager() {
                 <div className="grid grid-cols-3 gap-4">
                   <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
                     <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-                      {importSession.successful_records}
+                      {importSession.successful_records || importSession.successCount || 0}
                     </div>
                     <div className="text-sm text-muted-foreground">Successful</div>
                   </div>
                   
                   <div className="text-center p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
                     <div className="text-2xl font-bold text-red-600 dark:text-red-400">
-                      {importSession.failed_records}
+                      {importSession.failed_records || importSession.failureCount || 0}
                     </div>
                     <div className="text-sm text-muted-foreground">Failed</div>
                   </div>
                   
                   <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                     <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                      {importSession.total_records}
+                      {importSession.total_records || importSession.totalRecords || 0}
                     </div>
                     <div className="text-sm text-muted-foreground">Total</div>
                   </div>
                 </div>
 
-                {importSession.error_details && importSession.error_details.length > 0 && (
+                {(importSession.error_details || importSession.errors) && (importSession.error_details?.length > 0 || importSession.errors?.length > 0) && (
                   <Alert>
                     <AlertCircle className="h-4 w-4" />
                     <AlertDescription>
                       <div className="space-y-2">
                         <p>Some records failed to import:</p>
                         <div className="max-h-40 overflow-y-auto space-y-1">
-                          {importSession.error_details.slice(0, 5).map((error, index) => (
+                          {(importSession.error_details || importSession.errors)?.slice(0, 5).map((error: any, index: number) => (
                             <div key={index} className="text-sm bg-muted p-2 rounded">
                               <strong>Row {error.row}:</strong> {error.error}
                             </div>
                           ))}
-                          {importSession.error_details.length > 5 && (
+                          {(importSession.error_details?.length || importSession.errors?.length || 0) > 5 && (
                             <div className="text-sm text-muted-foreground">
-                              + {importSession.error_details.length - 5} more errors
+                              + {(importSession.error_details?.length || importSession.errors?.length || 0) - 5} more errors
                             </div>
                           )}
                         </div>
