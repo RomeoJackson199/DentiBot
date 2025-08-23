@@ -33,7 +33,6 @@ export default function Invite() {
     }
 
     try {
-      // Query invitation tokens and profiles directly without strict typing
       const { data: tokenData, error: tokenError } = await supabase
         .from('invitation_tokens')
         .select('*')
@@ -48,7 +47,6 @@ export default function Invite() {
         return;
       }
 
-      // Get profile data
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('*')
@@ -61,7 +59,6 @@ export default function Invite() {
         return;
       }
 
-      // Combine the data
       setInvitation({
         ...tokenData,
         first_name: profileData.first_name,
@@ -103,7 +100,6 @@ export default function Invite() {
     try {
       const redirectUrl = `${window.location.origin}/`;
       
-      // Create auth user with Supabase
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: invitation.email,
         password: password,
@@ -121,24 +117,33 @@ export default function Invite() {
 
       if (authError) throw authError;
 
-      // Link the existing profile to the new auth user
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ user_id: authData.user?.id })
-        .eq('id', invitation.profile_id);
-
-      if (updateError) {
-        console.error('Error linking profile:', updateError);
+      // Prefer secure RPC to link profile and mark token used
+      let linkError: any = null;
+      try {
+        const { error: rpcError } = await supabase.rpc('link_profile_to_user', {
+          profile_id: invitation.profile_id,
+          user_id: authData.user?.id
+        });
+        if (rpcError) linkError = rpcError;
+        const { error: markError } = await supabase.rpc('mark_invitation_used', { invitation_token: token });
+        if (markError) console.error('Error marking invitation used (RPC):', markError);
+      } catch (rpcCatch) {
+        linkError = rpcCatch;
       }
 
-      // Mark invitation as used
-      const { error: tokenError } = await supabase
-        .from('invitation_tokens')
-        .update({ used: true, used_at: new Date().toISOString() })
-        .eq('token', token);
+      if (linkError) {
+        // Fallback to direct table updates if RPC not available
+        const { error: updateError } = await supabase
+          .from('profiles')
+          .update({ user_id: authData.user?.id })
+          .eq('id', invitation.profile_id);
+        if (updateError) console.error('Error linking profile (fallback):', updateError);
 
-      if (tokenError) {
-        console.error('Error marking invitation as used:', tokenError);
+        const { error: tokenError } = await supabase
+          .from('invitation_tokens')
+          .update({ used: true, used_at: new Date().toISOString() })
+          .eq('token', token);
+        if (tokenError) console.error('Error marking invitation as used (fallback):', tokenError);
       }
 
       toast({
@@ -146,7 +151,6 @@ export default function Invite() {
         description: "Please check your email to verify your account, then you can sign in.",
       });
 
-      // Redirect to home page after a delay
       setTimeout(() => {
         navigate('/');
       }, 3000);
@@ -238,36 +242,28 @@ export default function Invite() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       className="pl-10"
-                      required
-                      minLength={6}
                     />
                   </div>
                 </div>
-
                 <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">Confirm Password</Label>
+                  <Label htmlFor="confirmPassword">Confirm Your Password</Label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="confirmPassword"
                       type="password"
-                      placeholder="Confirm your password"
+                      placeholder="Re-enter your password"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       className="pl-10"
-                      required
                     />
                   </div>
                 </div>
 
-                {password && confirmPassword && password !== confirmPassword && (
-                  <p className="text-sm text-destructive">Passwords do not match</p>
-                )}
-
                 <Button
                   type="submit"
                   className="w-full"
-                  disabled={isSettingPassword || !password || !confirmPassword || password !== confirmPassword}
+                  disabled={isSettingPassword}
                 >
                   {isSettingPassword ? (
                     <>
@@ -276,16 +272,12 @@ export default function Invite() {
                     </>
                   ) : (
                     <>
-                      <CheckCircle className="h-4 w-4 mr-2" />
-                      Create My Account
+                      <CheckCircle className="mr-2 h-4 w-4" />
+                      Set Up Account
                     </>
                   )}
                 </Button>
               </form>
-
-              <div className="text-center text-sm text-muted-foreground">
-                <p>By creating your account, you agree to our terms of service and privacy policy.</p>
-              </div>
             </div>
           )}
         </CardContent>
