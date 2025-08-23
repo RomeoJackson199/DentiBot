@@ -401,10 +401,10 @@ export const ProgressiveAuthForm = ({ compact = false }: ProgressiveAuthFormProp
                   ))}
                   
                   <div className="flex justify-center">
-                  <a href="/claim" className="text-sm text-dental-primary underline">
-                    Already registered at this clinic?
-                  </a>
-                </div>
+                    <Button variant="ghost" size="sm" asChild>
+                      <a href="/claim">Already registered at this clinic?</a>
+                    </Button>
+                  </div>
                   <div className="flex space-x-2 pt-4">
                     {currentStep > 0 && (
                       <Button
