@@ -258,6 +258,11 @@ export default function DataImportManager() {
           title: "Import and invitations completed",
           description: `Successfully imported ${successCount} of ${totalRecords} records. Invitation emails will be sent automatically.`,
         });
+        
+        // Refresh the page after 2 seconds to show new patients
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
       }
 
     } catch (error: any) {
