@@ -569,6 +569,11 @@ export const ProgressiveAuthForm = ({ compact = false }: ProgressiveAuthFormProp
                         </>
                       )}
                     </Button>
+                    {currentStep === currentSteps.length - 1 && (
+                      <Button variant="ghost" size="sm" asChild>
+                        <a href="/claim">Already registered?</a>
+                      </Button>
+                    )}
                   </div>
                 </div>
               </div>
