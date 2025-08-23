@@ -43,7 +43,7 @@ serve(async (req) => {
     const { data: profiles, error: qErr } = await admin
       .from('profiles')
       .select('id, email, user_id, first_name, last_name')
-      .eq('email', email);
+      .ilike('email', email);
 
     if (qErr) {
       // On error, avoid leaking details

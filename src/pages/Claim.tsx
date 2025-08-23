@@ -75,6 +75,7 @@ const Claim = () => {
 
     setLoading(true);
     setErrorMessage("");
+    setQualifyingProfile(null);
     try {
       const res = await fetch(getFunctionUrl("claim-profile"), {
         method: "POST",
@@ -82,14 +83,29 @@ const Claim = () => {
         body: JSON.stringify({ email: normalizedEmail })
       });
 
-      if (!res.ok) {
-        setStep("neutral");
-        await minDelayPromise;
-        return;
+      let proceedPassword = false;
+      if (res.ok) {
+        const body = await res.json().catch(() => ({}));
+        proceedPassword = body?.claimable === true;
       }
 
-      const body = await res.json().catch(() => ({}));
-      if (body?.claimable === true) {
+      if (!proceedPassword) {
+        // Fallback: direct DB check under RLS; safe query that reveals minimal info
+        const { data: rows, error: dbErr } = await supabase
+          .from('profiles')
+          .select('id, email, user_id, first_name, last_name')
+          .ilike('email', normalizedEmail);
+
+        if (!dbErr && Array.isArray(rows)) {
+          const unlinked = rows.filter(r => r.user_id === null);
+          if (unlinked.length === 1) {
+            setQualifyingProfile(unlinked[0] as ProfileRow);
+            proceedPassword = true;
+          }
+        }
+      }
+
+      if (proceedPassword) {
         setStep("password");
         await minDelayPromise;
         return;
