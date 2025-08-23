@@ -45,7 +45,7 @@ console.log("   ✓ dentists.specialty column added");
 
 console.log("\n5. Edge Functions:");
 console.log("   ✓ process-csv-import - Handles CSV parsing and profile creation");
-console.log("   ✓ send-invitation-email - Generates tokens and sends emails");
+console.log("   ✓ send-email-notification - Sends invitations and other system emails");
 
 console.log("\n6. Frontend Components:");
 console.log("   ✓ DataImportManager - Updated with proper headers and error handling");

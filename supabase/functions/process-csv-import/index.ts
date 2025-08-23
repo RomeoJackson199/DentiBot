@@ -161,12 +161,29 @@ serve(async (req) => {
 
     // Process each row based on import type
     if (importType === 'patients') {
+      const seenEmails = new Set<string>();
       for (let i = 0; i < rows.length; i++) {
         try {
           const row = rows[i];
           const profileData = mapRowToProfile(row, fieldMapping);
           
           console.log(`Processing row ${i + 1}:`, { profileData });
+
+          // Guard against invalid or duplicate emails in the CSV
+          const normalizedEmail = (profileData.email || '').toString().trim().toLowerCase();
+          if (!normalizedEmail || !normalizedEmail.includes('@')) {
+            console.warn('Skipping invite: invalid email for profile at row', i + 1, profileData.email);
+            errors.push({ row: i + 1, error: `Invalid email: ${profileData.email || '(empty)'}`, data: row });
+            failureCount++;
+            continue;
+          }
+          if (seenEmails.has(normalizedEmail)) {
+            console.warn('Skipping invite: duplicate email in CSV at row', i + 1, normalizedEmail);
+            errors.push({ row: i + 1, error: `Duplicate email in CSV: ${normalizedEmail}` , data: row });
+            failureCount++;
+            continue;
+          }
+          seenEmails.add(normalizedEmail);
           
           // Check if profile already exists by email
           const { data: existing, error: existingError } = await supabase
@@ -231,22 +248,35 @@ serve(async (req) => {
               } else {
                 console.log('Invitation token created:', tokenData);
                 
-                // Send invitation email using the new edge function
+                // Send invitation email using the shared send-email-notification function (system mode)
                 try {
-                  const { data: emailResult, error: emailError } = await supabase.functions.invoke('send-patient-email', {
+                  const siteUrl = Deno.env.get('SITE_URL') || 'http://localhost:3000';
+                  const invitationLink = `${siteUrl}/invite?token=${tokenData}`;
+
+                  const subject = 'Welcome to DentiBot — set your password';
+                  const message = `
+  <p>Hi ${newProfile.first_name || ''} ${newProfile.last_name || ''},</p>
+  <p>Your profile has been created. Click below to set your password and claim your account.</p>
+  <p><a href="${invitationLink}">Set up your password</a></p>
+  <p>If you didn’t request this, you can ignore this email.</p>
+`;
+
+                  const { data: mailData, error: mailError } = await supabase.functions.invoke('send-email-notification', {
                     body: {
-                      profileId: newProfile.id,
-                      email: newProfile.email,
-                      firstName: newProfile.first_name || '',
-                      lastName: newProfile.last_name || '',
-                      dentistName: 'Dr. Dentist' // Will be updated by the frontend with real dentist name
+                      to: newProfile.email,
+                      subject,
+                      message,
+                      messageType: 'system',
+                      isSystemNotification: true,
+                      patientId: newProfile.id ?? null,
+                      dentistId: null
                     }
                   });
 
-                  if (emailError) {
-                    console.error('Failed to send invitation email:', emailError);
+                  if (mailError) {
+                    console.error('Invitation email failed:', mailError);
                   } else {
-                    console.log('Invitation email sent successfully');
+                    console.log('Invitation email sent:', mailData);
                   }
                 } catch (emailError) {
                   console.error('Error sending invitation email:', emailError);
