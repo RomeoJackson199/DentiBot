@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, Lock, User, CheckCircle, ArrowLeft } from "lucide-react";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 
 interface AccountClaimFlowProps {
   email: string;
@@ -20,10 +21,14 @@ export const AccountClaimFlow = ({ email, existingProfile, onBack, onSuccess }: 
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isCodeMode, setIsCodeMode] = useState(false);
+  const [code, setCode] = useState("");
+  const [codeSent, setCodeSent] = useState(false);
   const { toast } = useToast();
 
   const handleClaimAccount = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isCodeMode) return; // Avoid double-submit when in code mode
     
     if (password !== confirmPassword) {
       toast({
@@ -46,8 +51,6 @@ export const AccountClaimFlow = ({ email, existingProfile, onBack, onSuccess }: 
     setIsLoading(true);
     try {
       const redirectUrl = `${window.location.origin}/`;
-      
-      // Sign up the user with Supabase Auth
       const { data, error } = await supabase.auth.signUp({
         email: email,
         password: password,
@@ -59,7 +62,7 @@ export const AccountClaimFlow = ({ email, existingProfile, onBack, onSuccess }: 
             phone: existingProfile.phone,
             health_data_consent: true,
             health_data_consent_at: new Date().toISOString(),
-            claim_existing_profile: existingProfile.id, // Flag to link to existing profile
+            claim_existing_profile: existingProfile.id,
           },
         },
       });
@@ -67,7 +70,6 @@ export const AccountClaimFlow = ({ email, existingProfile, onBack, onSuccess }: 
       if (error) throw error;
 
       if (data.user) {
-        // Update the existing profile to link it to the new auth user
         const { error: updateError } = await supabase
           .from('profiles')
           .update({ user_id: data.user.id })
@@ -75,7 +77,6 @@ export const AccountClaimFlow = ({ email, existingProfile, onBack, onSuccess }: 
 
         if (updateError) {
           console.error('Error linking profile:', updateError);
-          // Don't throw here - the auth user was created successfully
         }
 
         toast({
@@ -96,6 +97,58 @@ export const AccountClaimFlow = ({ email, existingProfile, onBack, onSuccess }: 
     }
   };
 
+  const handleSendCode = async () => {
+    setIsLoading(true);
+    try {
+      // Ensure a session exists for current email (user may have started sign up flow elsewhere)
+      // Attempt to generate a claim code for the current user; requires user to be authenticated
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData?.session) {
+        // If not signed in yet, attempt to start a sign up to create user; no password needed for code mode
+        const tempPassword = crypto?.randomUUID?.()?.slice(0, 12) || Math.random().toString(36).slice(2, 10);
+        const redirectUrl = `${window.location.origin}/`;
+        await supabase.auth.signUp({
+          email,
+          password: tempPassword,
+          options: { emailRedirectTo: redirectUrl }
+        }).catch(() => undefined);
+      }
+
+      const { data: codeData, error } = await supabase.rpc('create_claim_code_for_current_user', { p_expires_minutes: 15 });
+      if (error) throw error;
+
+      setCodeSent(true);
+      toast({ title: "Code sent", description: "We've emailed a 6-digit code to you." });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      toast({ title: "Failed to send code", description: message, variant: "destructive" });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleClaimWithCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (code.length !== 6) {
+      toast({ title: "Invalid code", description: "Enter the 6-digit code.", variant: "destructive" });
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.rpc('claim_profile_with_code', { p_code: code });
+      if (error) throw error;
+      if (data === true) {
+        toast({ title: "Account Linked", description: "Your imported profile is now linked to your login." });
+        onSuccess();
+      }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      toast({ title: "Failed to claim", description: message, variant: "destructive" });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <Card className="shadow-elegant glass-card border border-border/20">
       <CardHeader className="text-center">
@@ -104,7 +157,7 @@ export const AccountClaimFlow = ({ email, existingProfile, onBack, onSuccess }: 
           Claim Your Account
         </CardTitle>
         <CardDescription>
-          We found an existing profile for {email}. Set a password to claim your account.
+          We found an existing profile for {email}. {isCodeMode ? 'Enter the 6-digit code we email you to link it.' : 'Set a password to claim your account.'}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -124,71 +177,116 @@ export const AccountClaimFlow = ({ email, existingProfile, onBack, onSuccess }: 
             </p>
           </div>
 
-          <form onSubmit={handleClaimAccount} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="password">Create Password</Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="Enter a new password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10"
-                  required
-                  minLength={6}
-                />
+          <div className="flex justify-center">
+            <Button variant="outline" onClick={() => setIsCodeMode(!isCodeMode)} disabled={isLoading}>
+              {isCodeMode ? 'Use password instead' : 'Use 6-digit code instead'}
+            </Button>
+          </div>
+
+          {!isCodeMode ? (
+            <form onSubmit={handleClaimAccount} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="password">Create Password</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="Enter a new password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="pl-10"
+                    required
+                    minLength={6}
+                  />
+                </div>
               </div>
-            </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="confirmPassword"
-                  type="password"
-                  placeholder="Confirm your password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="pl-10"
-                  required
-                />
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="confirmPassword"
+                    type="password"
+                    placeholder="Confirm your password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="pl-10"
+                    required
+                  />
+                </div>
               </div>
-            </div>
 
-            {password && confirmPassword && password !== confirmPassword && (
-              <p className="text-sm text-red-500">Passwords do not match</p>
-            )}
+              {password && confirmPassword && password !== confirmPassword && (
+                <p className="text-sm text-red-500">Passwords do not match</p>
+              )}
 
-            <div className="flex space-x-2 pt-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={onBack}
-                className="flex-1"
-                disabled={isLoading}
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back
-              </Button>
-              <Button
-                type="submit"
-                className="flex-1"
-                disabled={isLoading || !password || !confirmPassword || password !== confirmPassword}
-              >
-                {isLoading ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <>
-                    <CheckCircle className="h-4 w-4 mr-2" />
-                    Claim Account
-                  </>
-                )}
-              </Button>
-            </div>
-          </form>
+              <div className="flex space-x-2 pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={onBack}
+                  className="flex-1"
+                  disabled={isLoading}
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back
+                </Button>
+                <Button
+                  type="submit"
+                  className="flex-1"
+                  disabled={isLoading || !password || !confirmPassword || password !== confirmPassword}
+                >
+                  {isLoading ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <>
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      Claim Account
+                    </>
+                  )}
+                </Button>
+              </div>
+            </form>
+          ) : (
+            <form onSubmit={handleClaimWithCode} className="space-y-4">
+              <div className="space-y-2">
+                <Label>Enter 6-digit code</Label>
+                <div className="flex items-center gap-3">
+                  <InputOTP maxLength={6} value={code} onChange={setCode}>
+                    <InputOTPGroup>
+                      <InputOTPSlot index={0} />
+                      <InputOTPSlot index={1} />
+                      <InputOTPSlot index={2} />
+                      <InputOTPSlot index={3} />
+                      <InputOTPSlot index={4} />
+                      <InputOTPSlot index={5} />
+                    </InputOTPGroup>
+                  </InputOTP>
+                  <Button type="button" variant="outline" onClick={handleSendCode} disabled={isLoading}>
+                    {codeSent ? 'Resend' : 'Send code'}
+                  </Button>
+                </div>
+              </div>
+
+              <div className="flex space-x-2 pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={onBack}
+                  className="flex-1"
+                  disabled={isLoading}
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back
+                </Button>
+                <Button type="submit" className="flex-1" disabled={isLoading || code.length !== 6}>
+                  {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Claim with code'}
+                </Button>
+              </div>
+            </form>
+          )}
         </div>
       </CardContent>
     </Card>
