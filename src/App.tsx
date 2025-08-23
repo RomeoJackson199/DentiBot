@@ -16,6 +16,7 @@ import { User, Session } from "@supabase/supabase-js";
 import { SeoManager } from "./lib/seo";
 import { LazyLoadingWrapper } from "./components/optimized/LazyLoadingWrapper";
 import AuthCallbackHandler from "./components/AuthCallbackHandler";
+import { ModernLoadingSpinner } from "@/components/enhanced/ModernLoadingSpinner";
 
 const Invite = lazy(() => import("./pages/Invite"));
 
@@ -127,6 +128,7 @@ const App = () => (
               <ProfileCompletionDialog />
               <BrowserRouter>
                 <SeoManager />
+              <Suspense fallback={<ModernLoadingSpinner variant="overlay" message="Loading..." /> }>
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/dashboard" element={<Dashboard />} />
@@ -149,6 +151,7 @@ const App = () => (
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
+              </Suspense>
             </BrowserRouter>
           </TooltipProvider>
         </LanguageProvider>
