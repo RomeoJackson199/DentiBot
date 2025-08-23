@@ -103,13 +103,9 @@ const Claim = () => {
         }
       }
 
-      if (proceedPassword) {
-        setStep("password");
-        await minDelayPromise;
-        return;
-      }
-
-      setStep("neutral");
+      // Always allow proceeding to password creation. The backend will
+      // validate claimability and respond generically if not allowed.
+      setStep("password");
       await minDelayPromise;
       return;
     } catch (_err) {
