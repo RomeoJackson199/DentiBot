@@ -153,6 +153,12 @@ const Claim = () => {
           setStep("neutral");
           return;
         }
+        if (res.status === 409) {
+          // User already exists in auth; guide to login or reset password
+          setErrorMessage("An account already exists for this email. Please sign in or reset your password.");
+          setStep("error");
+          return;
+        }
         const body = await res.json().catch(() => ({}));
         const message = body?.error || "Unable to complete account claim.";
         setErrorMessage(message);
