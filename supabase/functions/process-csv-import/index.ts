@@ -233,7 +233,7 @@ serve(async (req) => {
                 
                 // Send invitation email using the new edge function
                 try {
-                  const { data: emailResult, error: emailError } = await supabase.functions.invoke('send-invitation-email', {
+                  const { data: emailResult, error: emailError } = await supabase.functions.invoke('send-patient-email', {
                     body: {
                       profileId: newProfile.id,
                       email: newProfile.email,
