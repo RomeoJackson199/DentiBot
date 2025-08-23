@@ -571,7 +571,7 @@ export const ProgressiveAuthForm = ({ compact = false }: ProgressiveAuthFormProp
                     </Button>
                     {currentStep === currentSteps.length - 1 && (
                       <Button variant="ghost" size="sm" asChild>
-                        <a href="/claim">Already registered?</a>
+                        <a href={`/claim?email=${encodeURIComponent(formData.email)}`}>Check if I'm registered at this clinic</a>
                       </Button>
                     )}
                   </div>
