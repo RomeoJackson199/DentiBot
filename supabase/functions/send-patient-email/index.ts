@@ -81,9 +81,10 @@ serve(async (req) => {
         subject: emailSubject,
         html: emailHtml,
         metadata: {
-          type: 'patient_invitation',
-          profileId: profileId,
-          tokenId: tokenId
+          event_type: 'patient_invitation',
+          patient_id: profileId,
+          template_id: 'patient_invitation_template',
+          idempotency_key: `invite_${profileId}_${Date.now()}`
         }
       }
     });
