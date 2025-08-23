@@ -15,6 +15,7 @@ import { Stethoscope } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
 import { createDossierAfterSignup } from "@/lib/medicalRecords";
 import { SimpleDatabaseSaveTest } from "@/components/SimpleDatabaseSaveTest";
+import { EmailTest } from "@/components/EmailTest";
 import { Card } from "@/components/ui/card";
 
 
@@ -209,6 +210,14 @@ const Index = () => {
     // For testing purposes, show the database test component
     if (window.location.search.includes('test=database')) {
       return <SimpleDatabaseSaveTest />;
+    }
+    // For testing purposes, show the email test component
+    if (window.location.search.includes('test=email')) {
+      return (
+        <div className="min-h-screen p-8 flex items-center justify-center">
+          <EmailTest />
+        </div>
+      );
     }
     return <UnifiedDashboard user={user} />;
   }
