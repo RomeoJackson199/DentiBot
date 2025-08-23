@@ -339,9 +339,14 @@ export const AuthForm = ({ compact = false }: AuthFormProps) => {
                    {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                    {t.signInButton}
                  </Button>
-              </form>
-              </div>
-            </TabsContent>
+                 <div className="flex justify-center">
+                   <a href="/claim" className="text-sm text-dental-primary underline">
+                     Already registered at this clinic?
+                   </a>
+                 </div>
+               </form>
+               </div>
+             </TabsContent>
             
             <TabsContent value="signup">
               <div className="space-y-4">
