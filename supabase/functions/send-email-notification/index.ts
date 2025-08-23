@@ -152,37 +152,7 @@ serve(async (req) => {
     const sendGridApiKey = Deno.env.get('TWILIO_API_KEY');
     if (!sendGridApiKey) {
       console.error('❌ TWILIO_API_KEY environment variable not set');
-      // Fallback to Resend-based transactional function
-      try {
-        const resendResponse = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/send-transactional-email`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''}`
-          },
-          body: JSON.stringify({
-            to,
-            subject,
-            html: message,
-            metadata: {
-              event_type: messageType || 'system',
-              patient_id: patientId || 'system',
-              template_id: 'invite_fallback',
-              idempotency_key: `invite_${to}`
-            }
-          })
-        });
-        const resendJson = await resendResponse.json().catch(() => ({}));
-        if (!resendResponse.ok) {
-          throw new Error(`Resend fallback failed: ${resendResponse.status} ${JSON.stringify(resendJson)}`);
-        }
-        console.log('✅ Email sent via Resend fallback');
-        return new Response(JSON.stringify({ success: true, message: 'Sent via Resend fallback' }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      } catch (fallbackErr) {
-        throw new Error(`SendGrid not configured and Resend fallback failed: ${fallbackErr.message}`);
-      }
+      throw new Error('SendGrid API key not configured - please set TWILIO_API_KEY environment variable');
     }
 
     console.log('🔑 SendGrid API key configured, proceeding with email send...');
@@ -245,37 +215,7 @@ serve(async (req) => {
         }
       }
       
-      // Try Resend fallback if SendGrid fails
-      try {
-        const resendResponse = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/send-transactional-email`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''}`
-          },
-          body: JSON.stringify({
-            to,
-            subject,
-            html: message,
-            metadata: {
-              event_type: messageType || 'system',
-              patient_id: patientId || 'system',
-              template_id: 'invite_fallback',
-              idempotency_key: `invite_${to}`
-            }
-          })
-        });
-        const resendJson = await resendResponse.json().catch(() => ({}));
-        if (!resendResponse.ok) {
-          throw new Error(`Resend fallback failed: ${resendResponse.status} ${JSON.stringify(resendJson)}`);
-        }
-        console.log('✅ Email sent via Resend fallback after SendGrid error');
-        return new Response(JSON.stringify({ success: true, message: 'Sent via Resend fallback' }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      } catch (fallbackErr) {
-        throw new Error(`SendGrid failed and Resend fallback failed: ${fallbackErr.message}`);
-      }
+      throw new Error(`SendGrid API failed: ${response.status} - ${errorText}`);
     }
 
     // Update notification status to sent

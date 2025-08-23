@@ -22,21 +22,17 @@ serve(async (req) => {
     console.log('Testing email send to:', email);
 
     // Test sending email directly
-    const { data: emailResult, error: emailError } = await supabase.functions.invoke('send-transactional-email', {
+    const { data: emailResult, error: emailError } = await supabase.functions.invoke('send-email-notification', {
       body: {
         to: email,
         subject: 'Test Email from Dental System',
-        html: `
+        message: `
           <h2>Email Test Successful!</h2>
           <p>This is a test email from your dental system.</p>
           <p>If you received this, the email system is working correctly.</p>
         `,
-        metadata: {
-          event_type: 'test_email',
-          patient_id: 'test-patient-id',
-          template_id: 'test_email_template',
-          idempotency_key: `test_${Date.now()}`
-        }
+        messageType: 'system',
+        isSystemNotification: true
       }
     });
 

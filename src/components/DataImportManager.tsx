@@ -219,7 +219,8 @@ export default function DataImportManager() {
             fieldMapping,
             importType,
             dentistId: dentist.id,
-            filename: selectedFile.name
+            filename: selectedFile.name,
+            sendEmails: false
           },
           headers: {
             'x-user-id': session.user.id
@@ -492,7 +493,34 @@ export default function DataImportManager() {
                       <Upload className="w-4 h-4" />
                       Import Data
                     </Button>
-                    
+                    {importSession?.sessionId || importSession?.id ? (
+                      <Button
+                        variant="default"
+                        onClick={async () => {
+                          try {
+                            const sessionId = (importSession.sessionId || importSession.id) as string;
+                            const { data, error } = await supabase.functions.invoke('send-import-invitations', {
+                              body: { sessionId }
+                            });
+                            if (error) throw error;
+                            toast({
+                              title: 'Emails sent',
+                              description: `Processed ${data.sent}/${data.total} invitations${data.failed ? `, ${data.failed} failed` : ''}.`
+                            });
+                          } catch (e: any) {
+                            toast({
+                              title: 'Failed to send emails',
+                              description: e?.message || 'Unknown error',
+                              variant: 'destructive'
+                            });
+                          }
+                        }}
+                        className="flex items-center gap-2"
+                        title="Send invitation emails to all imported patients"
+                      >
+                        Email patients
+                      </Button>
+                    ) : null}
                     {selectedFile && (
                       <Button
                         variant="outline"

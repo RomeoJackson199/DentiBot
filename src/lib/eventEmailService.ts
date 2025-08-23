@@ -266,8 +266,14 @@ END:VCALENDAR`;
     attachments?: any[];
     metadata: any;
   }) {
-    const { data, error } = await supabase.functions.invoke('send-transactional-email', {
-      body: emailData
+    const { data, error } = await supabase.functions.invoke('send-email-notification', {
+      body: {
+        to: emailData.to,
+        subject: emailData.subject,
+        message: emailData.html,
+        messageType: 'system',
+        isSystemNotification: true
+      }
     });
 
     if (error) throw error;
