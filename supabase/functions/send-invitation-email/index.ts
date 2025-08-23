@@ -51,37 +51,79 @@ serve(async (req) => {
 
     console.log('Invitation token created:', tokenId);
 
-    // Use Supabase's built-in invitation email system
-    const siteUrl = Deno.env.get('SITE_URL') || 'https://gjvxcisbaxhhblhsytar.supabase.co';
-    const invitationLink = `${siteUrl}/invite?token=${tokenId}`;
+    // Create invitation link to our app
+    const invitationLink = `${Deno.env.get('SITE_URL') || 'https://preview--dentibot.lovable.app'}/invite?token=${tokenId}`;
 
-    // Send invitation using Supabase's auth admin
-    const { data: emailResponse, error: emailError } = await supabase.auth.admin.inviteUserByEmail(
-      email,
-      {
-        redirectTo: invitationLink,
-        data: {
-          first_name: firstName,
-          last_name: lastName,
-          dentist_name: dentistName,
-          invitation_token: tokenId,
-          role: 'patient'
-        }
-      }
-    );
+    // Send SMS using Twilio
+    const twilioAccountSid = Deno.env.get('TWILIO_ACCOUNT_SID');
+    const twilioAuthToken = Deno.env.get('TWILIO_AUTH_TOKEN');
+    const twilioFromNumber = Deno.env.get('TWILIO_FROM_NUMBER');
 
-    if (emailError) {
-      console.error('Failed to send invitation email:', emailError);
-      throw new Error(`Failed to send invitation email: ${emailError.message}`);
+    if (!twilioAccountSid || !twilioAuthToken || !twilioFromNumber) {
+      throw new Error('Twilio configuration is incomplete. Missing account SID, auth token, or from number.');
     }
 
-    console.log('Invitation email sent successfully via Supabase');
+    // Create email message
+    const emailMessage = `
+Dear ${firstName} ${lastName},
+
+You have been invited to join ${dentistName}'s dental practice portal.
+
+Click the link below to create your account:
+${invitationLink}
+
+You will only need to set a password - all your information has been pre-filled.
+
+This invitation expires in 72 hours.
+
+Best regards,
+${dentistName}
+    `.trim();
+
+    // Send via Twilio Email API (using SendGrid)
+    const twilioEmailUrl = `https://email.twilio.com/v3/mail/send`;
+    
+    const emailData = {
+      from: {
+        email: "noreply@denti-smart.com",
+        name: dentistName
+      },
+      personalizations: [
+        {
+          to: [{ email: email, name: `${firstName} ${lastName}` }],
+          subject: `Invitation to join ${dentistName}'s dental practice`
+        }
+      ],
+      content: [
+        {
+          type: "text/plain",
+          value: emailMessage
+        }
+      ]
+    };
+
+    const emailResponse = await fetch(twilioEmailUrl, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${Deno.env.get('TWILIO_API_KEY')}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(emailData),
+    });
+
+    if (!emailResponse.ok) {
+      const errorText = await emailResponse.text();
+      console.error('Twilio email error:', errorText);
+      throw new Error(`Failed to send email via Twilio: ${errorText}`);
+    }
+
+    console.log('Invitation email sent successfully via Twilio');
 
     return new Response(JSON.stringify({
       success: true,
-      emailId: emailResponse?.user?.id,
       tokenId: tokenId,
-      invitationLink: invitationLink
+      invitationLink: invitationLink,
+      messageId: await emailResponse.text()
     }), {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
