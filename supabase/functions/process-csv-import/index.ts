@@ -17,6 +17,7 @@ interface ImportRequest {
   importType: 'patients' | 'appointments' | 'inventory';
   dentistId: string;
   filename: string;
+  sendEmails?: boolean;
 }
 
 serve(async (req) => {
@@ -68,7 +69,7 @@ serve(async (req) => {
       });
     }
 
-    const { csvData, fieldMapping, importType, dentistId, filename } = parsedBody;
+    const { csvData, fieldMapping, importType, dentistId, filename, sendEmails } = parsedBody;
 
     // Validate required fields
     if (!csvData || !fieldMapping || !importType || !dentistId || !filename) {
@@ -248,21 +249,23 @@ serve(async (req) => {
               } else {
                 console.log('Invitation token created:', tokenData);
                 
-                // Send invitation email using the shared send-email-notification function (system mode)
-                try {
-                  const siteUrl = Deno.env.get('SITE_URL') || 'http://localhost:3000';
-                  const invitationLink = `${siteUrl}/invite?token=${tokenData}`;
+                // Optionally send invitation email immediately if requested
+                if (sendEmails === true) {
+                  try {
+                    const siteUrl = Deno.env.get('SITE_URL') || 'http://localhost:3000';
+                    const invitationLink = `${siteUrl}/invite?token=${tokenData}`;
 
-                  const subject = 'Welcome to DentiBot — set your password';
-                  const message = `
+                    const subject = 'Welcome to DentiBot — set your password';
+                    const message = `
   <p>Hi ${newProfile.first_name || ''} ${newProfile.last_name || ''},</p>
   <p>Your profile has been created. Click below to set your password and claim your account.</p>
   <p><a href="${invitationLink}">Set up your password</a></p>
   <p>If you didn’t request this, you can ignore this email.</p>
 `;
 
-                  const { data: mailData, error: mailError } = await supabase.functions.invoke('send-email-notification', {
-                    body: {
+                    const authHeader = req.headers.get('authorization') || '';
+                    const functionUrl = `${supabaseUrl}/functions/v1/send-email-notification`;
+                    const emailPayload = {
                       to: newProfile.email,
                       subject,
                       message,
@@ -270,18 +273,28 @@ serve(async (req) => {
                       isSystemNotification: true,
                       patientId: newProfile.id ?? null,
                       dentistId: null
-                    }
-                  });
+                    };
 
-                  if (mailError) {
-                    console.error('Invitation email failed:', mailError);
-                  } else {
-                    console.log('Invitation email sent:', mailData);
+                    const emailResponse = await fetch(functionUrl, {
+                      method: 'POST',
+                      headers: {
+                        'Authorization': authHeader,
+                        'Content-Type': 'application/json'
+                      },
+                      body: JSON.stringify(emailPayload)
+                    });
+
+                    if (!emailResponse.ok) {
+                      const errorText = await emailResponse.text().catch(() => '');
+                      console.error('Invitation email failed:', emailResponse.status, errorText);
+                    } else {
+                      const mailData = await emailResponse.json().catch(() => ({}));
+                      console.log('Invitation email sent:', mailData);
+                    }
+                  } catch (emailError) {
+                    console.error('Error sending invitation email:', emailError);
                   }
-                } catch (emailError) {
-                  console.error('Error sending invitation email:', emailError);
                 }
-              }
             } catch (tokenError) {
               console.error('Error creating invitation token:', tokenError);
             }

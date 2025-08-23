@@ -29,3 +29,6 @@ verify_jwt = true
 
 [functions.send-email-notification]
 verify_jwt = true
+
+[functions.send-import-invitations]
+verify_jwt = true
