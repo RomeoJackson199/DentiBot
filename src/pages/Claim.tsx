@@ -98,6 +98,11 @@ const Claim = () => {
       setStep("neutral");
       await minDelayPromise;
       return;
+    } catch (_err) {
+      setErrorMessage("We couldn't verify your email right now. Please try again.");
+      setStep("error");
+      await minDelayPromise;
+      return;
     } finally {
       setLoading(false);
     }
@@ -155,6 +160,10 @@ const Claim = () => {
 
       // Navigate to dashboard; ProfileCompletionDialog will handle missing fields
       navigate("/dashboard", { replace: true });
+    } catch (_err) {
+      setErrorMessage("Unable to complete account claim. Please try again.");
+      setStep("error");
+      return;
     } finally {
       setLoading(false);
     }
