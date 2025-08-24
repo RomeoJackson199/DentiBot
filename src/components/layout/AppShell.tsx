@@ -53,6 +53,7 @@ import {
   Bell,
   ChevronDown,
   Home,
+  PanelLeft,
 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
@@ -92,6 +93,7 @@ function TopBar() {
   const [userId, setUserId] = useState<string | null>(null);
   const { setTheme, theme } = useTheme();
   const { language, setLanguage, t } = useLanguage();
+  const { state, toggleSidebar } = useSidebar();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setUserId(data.session?.user?.id ?? null));
@@ -100,7 +102,18 @@ function TopBar() {
   return (
     <div className="sticky top-0 z-40 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
       <div className="flex items-center gap-2 px-3 md:px-4 py-2">
-        <SidebarTrigger />
+        <SidebarTrigger className="md:hidden" />
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={toggleSidebar}
+          className="hidden md:inline-flex gap-2"
+          aria-label={state === 'expanded' ? 'Collapse sidebar' : 'Expand sidebar'}
+          title={state === 'expanded' ? 'Collapse sidebar' : 'Expand sidebar'}
+        >
+          <PanelLeft className="h-4 w-4" />
+          <span>{state === 'expanded' ? 'Collapse' : 'Expand'}</span>
+        </Button>
         <div className="flex items-center gap-2 text-muted-foreground">
           <Home className="h-4 w-4" />
           <Separator orientation="vertical" className="h-4" />
