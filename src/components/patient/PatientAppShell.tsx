@@ -12,7 +12,8 @@ import {
   Settings as SettingsIcon,
   Bot,
   LogOut,
-  Info
+  Info,
+  PanelLeft,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -58,6 +59,12 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
   const { toast } = useToast();
   const navigate = useNavigate();
   const { isMobile } = useMobileOptimizations();
+  const [collapsed, setCollapsed] = React.useState<boolean>(() => {
+    try { return localStorage.getItem('psidebar:collapsed') === '1'; } catch { return false; }
+  });
+  React.useEffect(() => {
+    try { localStorage.setItem('psidebar:collapsed', collapsed ? '1' : '0'); } catch {}
+  }, [collapsed]);
 
   const isActive = (id: PatientSection) => activeSection === id;
 
@@ -202,20 +209,37 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex" role="main">
       {/* Desktop Sidebar */}
-      <div className="fixed left-0 top-0 bottom-0 w-64 bg-card/80 backdrop-blur-lg border-r border-border/50 z-header">
+      <div className={cn(
+        "fixed left-0 top-0 bottom-0 bg-card/80 backdrop-blur-lg border-r border-border/50 z-header transition-[width] duration-200 ease-linear",
+        collapsed ? "w-16" : "w-64"
+      )}>
         {/* Sidebar Header */}
-        <div className="flex items-center space-x-3 p-6 border-b border-border/50">
-          <div className="h-10 w-10 rounded-lg bg-primary flex items-center justify-center">
-            <span className="text-primary-foreground font-bold text-lg">P</span>
+        <div className={cn("flex items-center p-4 border-b border-border/50 gap-3")}> 
+          <div className="h-9 w-9 rounded-lg bg-primary flex items-center justify-center shrink-0">
+            <span className="text-primary-foreground font-bold text-sm">P</span>
           </div>
-          <div>
-            <h1 className="font-semibold text-lg">Patient Portal</h1>
-            <p className="text-sm text-muted-foreground">Healthcare Dashboard</p>
+          {!collapsed && (
+            <div className="min-w-0">
+              <h1 className="font-semibold text-base leading-tight truncate">Patient Portal</h1>
+              <p className="text-xs text-muted-foreground">Healthcare Dashboard</p>
+            </div>
+          )}
+          <div className="ml-auto">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => setCollapsed((v) => !v)}
+              aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+              title={collapsed ? "Expand" : "Collapse"}
+            >
+              <PanelLeft className="h-4 w-4" />
+            </Button>
           </div>
         </div>
 
         {/* Navigation */}
-        <nav className="p-4 space-y-2" role="navigation" aria-label="Primary">
+        <nav className={cn("p-2", collapsed ? "space-y-1" : "space-y-2 p-4")} role="navigation" aria-label="Primary">
           <TooltipProvider>
             {NAV_ITEMS.map((item) => {
               const Icon = item.icon;
@@ -228,26 +252,29 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
                     <button
                       onClick={() => onChangeSection(item.id)}
                       className={cn(
-                        "w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all relative group touch-target min-h-[44px] focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+                        "w-full flex items-center px-3 py-3 rounded-xl transition-all relative group touch-target min-h-[40px] focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
                         active
                           ? "bg-primary text-primary-foreground shadow-md"
-                          : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                          : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
+                        collapsed ? "justify-center" : "gap-3"
                       )}
                       aria-current={active ? 'page' : undefined}
                       aria-label={item.label}
                     >
-                      <div className="relative">
+                      <div className="relative shrink-0">
                         <Icon className="h-5 w-5" />
                         {hasBadge && (
                           <span className="absolute -top-1 -right-1 h-2.5 w-2.5 bg-red-500 rounded-full animate-pulse" />
                         )}
                       </div>
-                      <span className="font-medium">{item.label}</span>
+                      {!collapsed && <span className="font-medium truncate">{item.label}</span>}
                     </button>
                   </TooltipTrigger>
-                  <TooltipContent side="right">
-                    <p>{item.label}</p>
-                  </TooltipContent>
+                  {collapsed && (
+                    <TooltipContent side="right">
+                      <p>{item.label}</p>
+                    </TooltipContent>
+                  )}
                 </Tooltip>
               );
             })}
@@ -255,16 +282,16 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
         </nav>
 
         {/* Sidebar Footer */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-border/50">
+        <div className={cn("absolute bottom-0 left-0 right-0 border-t border-border/50", collapsed ? "p-2" : "p-4")}> 
           <div className="flex items-center justify-between">
-            <ModernNotificationCenter userId={userId} />
-            <div className="flex items-center space-x-2">
+            {!collapsed && <ModernNotificationCenter userId={userId} />}
+            <div className={cn("flex items-center", collapsed ? "gap-1" : "space-x-2")}> 
               {onBookAppointment && (
                 <Button
                   variant="gradient"
                   size="sm"
                   onClick={onBookAppointment}
-                  className="touch-target"
+                  className={cn("touch-target", collapsed && "hidden")}
                   aria-label="Book appointment"
                 >
                   <Calendar className="h-4 w-4 mr-2" />
@@ -276,10 +303,8 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
                   <Button
                     variant="ghost"
                     size="icon"
-                    className={cn(
-                      "hover:bg-primary/10 transition-colors touch-target min-h-[44px] min-w-[44px] focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
-                      activeSection === 'settings' && "bg-primary/10 text-primary"
-                    )}
+                    className={cn("hover:bg-primary/10 transition-colors touch-target min-h-[40px] min-w-[40px] focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+                      activeSection === 'settings' && "bg-primary/10 text-primary")}
                     aria-label="Open menu"
                   >
                     <SettingsIcon className="h-5 w-5" />
@@ -307,7 +332,7 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 ml-64">
+      <div className={cn("flex-1 transition-[margin-left] duration-200 ease-linear", collapsed ? "ml-16" : "ml-64")}> 
         <AnimatePresence mode="wait">
           <motion.div
             key={activeSection}
