@@ -579,7 +579,7 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
       onChangeSection={setActiveSection}
       badges={badges}
       userId={user.id}
-      onBookAppointment={() => setShowBooking(true)}
+      onBookAppointment={() => setActiveSection('assistant')}
     >
       {activeSection === 'home' && (
         <HomeTab
@@ -597,7 +597,7 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
           totalDueCents={totalDueCents}
           onNavigateTo={(s) => setActiveSection(s)}
           onOpenAssistant={() => setActiveSection('assistant')}
-          onBookAppointment={() => setShowBooking(true)}
+          onBookAppointment={() => setActiveSection('assistant')}
         />
       )}
 
