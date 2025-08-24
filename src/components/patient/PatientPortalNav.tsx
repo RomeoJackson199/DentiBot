@@ -3,12 +3,14 @@ import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupAction, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuBadge, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarRail, SidebarSeparator, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useLanguage } from "@/hooks/useLanguage";
-import { Home, Calendar, Pill, FileText, CreditCard, Folder, User, IdCard, Shield, HelpCircle, ChevronDown, MoreHorizontal, PanelLeft } from "lucide-react";
+import { Home, Calendar, Pill, FileText, CreditCard, Folder, User, IdCard, Shield, HelpCircle, ChevronDown, MoreHorizontal, PanelLeft, Settings as SettingsIcon, LogOut, Info } from "lucide-react";
 import { usePatientBadgeCounts } from "@/hooks/usePatientBadges";
 import { cn } from "@/lib/utils";
 import { emitAnalyticsEvent } from "@/lib/analyticsEvents";
+import { supabase } from "@/integrations/supabase/client";
 
 type NavItem = {
   id: string;
@@ -51,6 +53,15 @@ export function PatientPortalNav({ children }: { children: React.ReactNode }) {
   const [openGroupId, setOpenGroupId] = useState<string | null>(() => localStorage.getItem(STORAGE_KEYS.lastGroup));
   const [moreOpen, setMoreOpen] = useState(false);
   const [defaultOpen, setDefaultOpen] = useState(true);
+
+  const handleSignOut = async () => {
+    try {
+      await supabase.auth.signOut();
+      window.location.href = '/';
+    } catch (error) {
+      console.error('Failed to sign out', error);
+    }
+  };
 
   useEffect(() => {
     const cookieOpen = readSidebarCookie();
@@ -302,7 +313,31 @@ export function PatientPortalNav({ children }: { children: React.ReactNode }) {
                 <span>{state === 'expanded' ? 'Collapse' : 'Expand'}</span>
               </Button>
             </div>
-            {/* Primary CTA per spec: on Home header show Book appointment, CTA placement handled in page components */}
+            <div className="flex items-center gap-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="gap-2" aria-label="Open menu" title="Menu">
+                    <SettingsIcon className="h-4 w-4" />
+                    <span className="hidden sm:inline">Menu</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuItem onClick={() => navigate('/account/profile')} aria-label="Profile">
+                    <User className="mr-2 h-4 w-4" />
+                    Profile
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/about')} aria-label="About">
+                    <Info className="mr-2 h-4 w-4" />
+                    About
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut} className="text-red-600" aria-label="Logout">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
           <div className="p-3 md:p-4">{children ?? <Outlet />}</div>
         </div>
