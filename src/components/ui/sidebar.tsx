@@ -176,6 +176,7 @@ const Sidebar = React.forwardRef<
   ) => {
     const { isMobile, state, openMobile, setOpenMobile } = useSidebar()
 
+    // Always-visible desktop sidebar, with simple collapsed width toggle.
     if (collapsible === "none") {
       return (
         <div
@@ -198,11 +199,7 @@ const Sidebar = React.forwardRef<
             data-sidebar="sidebar"
             data-mobile="true"
             className="w-[--sidebar-width] bg-sidebar p-0 text-sidebar-foreground [&>button]:hidden"
-            style={
-              {
-                "--sidebar-width": SIDEBAR_WIDTH_MOBILE,
-              } as React.CSSProperties
-            }
+            style={{ "--sidebar-width": SIDEBAR_WIDTH_MOBILE } as React.CSSProperties}
             side={side}
           >
             <div className="flex h-full w-full flex-col">{children}</div>
@@ -211,47 +208,38 @@ const Sidebar = React.forwardRef<
       )
     }
 
+    const desktopWidth = state === "collapsed" ? "var(--sidebar-width-icon)" : "var(--sidebar-width)"
+
     return (
       <div
         ref={ref}
-        className="group peer hidden md:block text-sidebar-foreground"
+        className={cn("peer group text-sidebar-foreground", className)}
         data-state={state}
-        data-collapsible={state === "collapsed" ? collapsible : ""}
         data-variant={variant}
         data-side={side}
+        data-collapsible={state === "collapsed" ? "icon" : "none"}
       >
-        {/* This is what handles the sidebar gap on desktop */}
+        {/* Spacer to create layout gap equal to sidebar width */}
         <div
-          className={cn(
-            "duration-200 relative h-svh w-[--sidebar-width] bg-transparent transition-[width] ease-linear",
-            "group-data-[collapsible=offcanvas]:w-0",
-            "group-data-[side=right]:rotate-180",
-            variant === "floating" || variant === "inset"
-              ? "group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)_+_theme(spacing.4))]"
-              : "group-data-[collapsible=icon]:w-[--sidebar-width-icon]",
-            // Hover-to-expand on tablet widths when collapsed to icons
-            "md:group-hover/sidebar-wrapper:group-data-[collapsible=icon]:w-[--sidebar-width]"
-          )}
+          className="relative h-svh bg-transparent transition-[width] duration-200 ease-linear"
+          style={{ width: desktopWidth }}
         />
+        {/* Fixed, always-visible desktop sidebar */}
         <div
           className={cn(
-            "duration-200 fixed inset-y-0 z-10 hidden h-svh w-[--sidebar-width] transition-[left,right,width] ease-linear md:flex",
-            side === "left"
-              ? "left-0 group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)]"
-              : "right-0 group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)]",
-            // Adjust the padding for floating and inset variants.
-            variant === "floating" || variant === "inset"
-              ? "p-2 group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)_+_theme(spacing.4)_+2px)]"
-              : "group-data-[collapsible=icon]:w-[--sidebar-width-icon] group-data-[side=left]:border-r group-data-[side=right]:border-l",
-            // Hover-to-expand on tablet widths when collapsed to icons
-            "md:group-hover/sidebar-wrapper:group-data-[collapsible=icon]:w-[--sidebar-width]",
-            className
+            "fixed inset-y-0 z-30 h-svh transition-[width] duration-200 ease-linear",
+            side === "left" ? "left-0 border-r" : "right-0 border-l",
+            "bg-sidebar"
           )}
+          style={{ width: desktopWidth }}
           {...props}
         >
           <div
             data-sidebar="sidebar"
-            className="flex h-full w-full flex-col bg-sidebar group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:border-sidebar-border group-data-[variant=floating]:shadow"
+            className={cn(
+              "flex h-full w-full flex-col",
+              variant === "floating" && "rounded-lg border border-sidebar-border shadow"
+            )}
           >
             {children}
           </div>
