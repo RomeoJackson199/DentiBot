@@ -114,11 +114,13 @@ export const AccountClaimFlow = ({ email, existingProfile, onBack, onSuccess }: 
         }).catch(() => undefined);
       }
 
-      const { data: codeData, error } = await supabase.rpc('create_claim_code_for_current_user', { p_expires_minutes: 15 });
-      if (error) throw error;
-
-      setCodeSent(true);
-      toast({ title: "Code sent", description: "We've emailed a 6-digit code to you." });
+      // This functionality is not available - just show a message
+      toast({ 
+        title: "Code method unavailable", 
+        description: "Please use the password method instead.", 
+        variant: "destructive" 
+      });
+      setIsCodeMode(false);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Unknown error';
       toast({ title: "Failed to send code", description: message, variant: "destructive" });
@@ -135,12 +137,13 @@ export const AccountClaimFlow = ({ email, existingProfile, onBack, onSuccess }: 
     }
     setIsLoading(true);
     try {
-      const { data, error } = await supabase.rpc('claim_profile_with_code', { p_code: code });
-      if (error) throw error;
-      if (data === true) {
-        toast({ title: "Account Linked", description: "Your imported profile is now linked to your login." });
-        onSuccess();
-      }
+      // This functionality is not available - redirect to password method
+      toast({ 
+        title: "Code method unavailable", 
+        description: "Please use the password method instead.", 
+        variant: "destructive" 
+      });
+      setIsCodeMode(false);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Unknown error';
       toast({ title: "Failed to claim", description: message, variant: "destructive" });

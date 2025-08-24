@@ -135,20 +135,23 @@ const Claim = () => {
     setLoading(true);
     try {
       // Call production claim function to create user and link profile
-      const { data: claimData, error: claimError, status } = await supabase.functions.invoke('claim-profile', {
+      const response = await supabase.functions.invoke('claim-profile', {
         body: { email: email.trim().toLowerCase(), password }
       });
 
+      const { data: claimData, error: claimError } = response;
+
       if (claimError) {
-        // Show neutral if the backend rejected; don't leak details
-        if (status === 403 || status === 404) {
-          setStep("neutral");
-          return;
-        }
-        if (status === 409) {
+        // Check for specific error types in the claimError object
+        if (claimError.message === 'USER_EXISTS') {
           // User already exists in auth; guide to login or reset password
           setErrorMessage("An account already exists for this email. Please sign in or reset your password.");
           setStep("error");
+          return;
+        }
+        if (claimError.message === 'Not allowed') {
+          // Show neutral if the backend rejected; don't leak details
+          setStep("neutral");
           return;
         }
         const message = (claimError as any)?.message || "Unable to complete account claim.";
