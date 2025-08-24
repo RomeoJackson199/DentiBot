@@ -324,6 +324,34 @@ interface Translations {
   topSearch: string;
   topClinic: string;
   topProfile: string;
+
+  // Patient portal navigation (pnav.*)
+  pnav: {
+    group: {
+      care: string;
+      billing: string;
+      documents: string;
+      account: string;
+    };
+    care: {
+      home: string;
+      appointments: string;
+      prescriptions: string;
+      history: string;
+    };
+    billing: {
+      main: string;
+    };
+    docs: {
+      main: string;
+    };
+    account: {
+      profile: string;
+      insurance: string;
+      privacy: string;
+      help: string;
+    };
+  };
 }
 
 const translations: Record<Language, Translations> = {
@@ -681,6 +709,29 @@ How can I help you today?`,
     topSearch: "Search",
     topClinic: "Clinic",
     topProfile: "Profile",
+    // Patient portal navigation (pnav.*)
+    pnav: {
+      group: {
+        care: "Care",
+        billing: "Billing",
+        documents: "Documents",
+        account: "Account",
+      },
+      care: {
+        home: "Home",
+        appointments: "Appointments",
+        prescriptions: "Prescriptions",
+        history: "Treatment History",
+      },
+      billing: { main: "Invoices & Payments" },
+      docs: { main: "My Documents" },
+      account: {
+        profile: "Profile & Settings",
+        insurance: "Insurance / Mutuality",
+        privacy: "Privacy & Security",
+        help: "Help & Support",
+      },
+    },
   },
   fr: {
     // Error & status messages
@@ -1045,6 +1096,29 @@ Comment puis-je vous aider aujourd'hui ?`,
     topSearch: "Rechercher",
     topClinic: "Clinique",
     topProfile: "Profil",
+    // Patient portal navigation (pnav.*)
+    pnav: {
+      group: {
+        care: "Soins",
+        billing: "Facturation",
+        documents: "Documents",
+        account: "Compte",
+      },
+      care: {
+        home: "Accueil",
+        appointments: "Rendez-vous",
+        prescriptions: "Prescriptions",
+        history: "Historique des soins",
+      },
+      billing: { main: "Factures & Paiements" },
+      docs: { main: "Mes Documents" },
+      account: {
+        profile: "Profil & Paramètres",
+        insurance: "Assurance / Mutualité",
+        privacy: "Confidentialité & Sécurité",
+        help: "Aide & Support",
+      },
+    },
   },
   nl: {
     // Error & status messages
@@ -1405,6 +1479,29 @@ Hoe kan ik u vandaag helpen?`,
     topSearch: "Zoeken",
     topClinic: "Kliniek",
     topProfile: "Profiel",
+    // Patient portal navigation (pnav.*)
+    pnav: {
+      group: {
+        care: "Zorg",
+        billing: "Facturen",
+        documents: "Documenten",
+        account: "Account",
+      },
+      care: {
+        home: "Home",
+        appointments: "Afspraken",
+        prescriptions: "Voorschriften",
+        history: "Behandelgeschiedenis",
+      },
+      billing: { main: "Facturen & Betalingen" },
+      docs: { main: "Mijn Documenten" },
+      account: {
+        profile: "Profiel & Instellingen",
+        insurance: "Verzekering / Mutualiteit",
+        privacy: "Privacy & Beveiliging",
+        help: "Hulp & Support",
+      },
+    },
   },
 };
 

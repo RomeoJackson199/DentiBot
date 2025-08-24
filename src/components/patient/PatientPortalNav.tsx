@@ -1,0 +1,238 @@
+import React, { useEffect, useMemo, useState } from "react";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupAction, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuBadge, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarRail, SidebarSeparator, SidebarTrigger } from "@/components/ui/sidebar";
+import { Drawer, DrawerContent } from "@/components/ui/drawer";
+import { Button } from "@/components/ui/button";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { useLanguage } from "@/hooks/useLanguage";
+import { Home, Calendar, Pill, FileText, CreditCard, Folder, User, IdCard, Shield, HelpCircle, ChevronDown, MoreHorizontal } from "lucide-react";
+import { usePatientBadgeCounts } from "@/hooks/usePatientBadges";
+import { cn } from "@/lib/utils";
+import { emitAnalyticsEvent } from "@/lib/analyticsEvents";
+
+type NavItem = {
+  id: string;
+  label: string;
+  icon: React.ReactNode;
+  to: string;
+  badge?: number;
+  tooltip?: string;
+};
+
+type NavGroup = {
+  id: string;
+  label: string;
+  items: NavItem[];
+};
+
+const STORAGE_KEYS = {
+  sidebarState: 'pnav:state',
+  lastVisited: 'pnav:last',
+  lastGroup: 'pnav:group',
+};
+
+function readSidebarCookie(): boolean {
+  try {
+    const match = document.cookie.match(/(?:^|; )sidebar:state=([^;]+)/);
+    if (match) {
+      return match[1] === 'true';
+    }
+  } catch {}
+  return true;
+}
+
+export function PatientPortalNav({ children }: { children: React.ReactNode }) {
+  const isMobile = useIsMobile();
+  const { t } = useLanguage();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { counts } = usePatientBadgeCounts();
+  const [openGroupId, setOpenGroupId] = useState<string | null>(() => localStorage.getItem(STORAGE_KEYS.lastGroup));
+  const [moreOpen, setMoreOpen] = useState(false);
+  const [defaultOpen, setDefaultOpen] = useState(true);
+
+  useEffect(() => {
+    setDefaultOpen(readSidebarCookie());
+  }, []);
+
+  useEffect(() => {
+    if (openGroupId) localStorage.setItem(STORAGE_KEYS.lastGroup, openGroupId);
+  }, [openGroupId]);
+
+  // Groups and items per IA
+  const groups: NavGroup[] = useMemo(() => [
+    {
+      id: 'care',
+      label: t.pnav.group.care,
+      items: [
+        { id: 'care-home', label: t.pnav.care.home, icon: <Home className="h-4 w-4" />, to: '/care' },
+        { id: 'care-appointments', label: t.pnav.care.appointments, icon: <Calendar className="h-4 w-4" />, to: '/care/appointments', badge: counts.upcoming7d },
+        { id: 'care-prescriptions', label: t.pnav.care.prescriptions, icon: <Pill className="h-4 w-4" />, to: '/care/prescriptions' },
+        { id: 'care-history', label: t.pnav.care.history, icon: <FileText className="h-4 w-4" />, to: '/care/history' },
+      ],
+    },
+    {
+      id: 'billing',
+      label: t.pnav.group.billing,
+      items: [
+        { id: 'billing-main', label: t.pnav.billing.main, icon: <CreditCard className="h-4 w-4" />, to: '/billing', badge: counts.unpaid },
+      ],
+    },
+    {
+      id: 'documents',
+      label: t.pnav.group.documents,
+      items: [
+        { id: 'docs-main', label: t.pnav.docs.main, icon: <Folder className="h-4 w-4" />, to: '/docs' },
+      ],
+    },
+    {
+      id: 'account',
+      label: t.pnav.group.account,
+      items: [
+        { id: 'account-profile', label: t.pnav.account.profile, icon: <User className="h-4 w-4" />, to: '/account/profile' },
+        { id: 'account-insurance', label: t.pnav.account.insurance, icon: <IdCard className="h-4 w-4" />, to: '/account/insurance' },
+        { id: 'account-privacy', label: t.pnav.account.privacy, icon: <Shield className="h-4 w-4" />, to: '/account/privacy' },
+        { id: 'account-help', label: t.pnav.account.help, icon: <HelpCircle className="h-4 w-4" />, to: '/account/help' },
+      ],
+    },
+  ], [t, counts.upcoming7d, counts.unpaid]);
+
+  // Deep link behavior: /billing?status=unpaid expands Billing
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const status = params.get('status');
+    if (location.pathname.startsWith('/billing') && status) {
+      setOpenGroupId('billing');
+    }
+  }, [location.pathname, location.search]);
+
+  const isActive = (to: string) => {
+    const full = location.pathname + location.search + location.hash;
+    return full.startsWith(to);
+  };
+
+  const handleNav = (groupId: string, item: NavItem) => {
+    try { localStorage.setItem(STORAGE_KEYS.lastVisited, item.to); } catch {}
+    navigate(item.to);
+    try { emitAnalyticsEvent('pnav_click', '', { role: 'patient', group: groupId, item: item.id, path: item.to }); } catch {}
+    if (isMobile) setMoreOpen(false);
+  };
+
+  // Restore last item on mount
+  useEffect(() => {
+    const last = localStorage.getItem(STORAGE_KEYS.lastVisited);
+    if (last && location.pathname === '/dashboard') {
+      navigate(last);
+    }
+  }, []);
+
+  const navContent = (
+    <>
+      <SidebarHeader className="px-3 py-3">
+        <div className="flex items-center gap-2 px-1">
+          <span className="inline-flex h-7 w-7 items-center justify-center rounded-[var(--radius-pill)] bg-[hsl(var(--brand-100))] text-[hsl(var(--brand-600))] font-semibold">P</span>
+          <span className="font-semibold">Patient</span>
+        </div>
+      </SidebarHeader>
+      <SidebarContent>
+        {groups.map((group) => (
+          <SidebarGroup key={group.id}>
+            <SidebarGroupLabel className="flex items-center justify-between pr-8" aria-label={group.label}>
+              <span>{group.label}</span>
+              <SidebarGroupAction aria-label="Collapse group" onClick={() => setOpenGroupId(prev => prev === group.id ? null : group.id)}>
+                <ChevronDown className={cn("h-4 w-4 transition-transform", openGroupId === group.id ? "rotate-0" : "-rotate-90")} />
+              </SidebarGroupAction>
+            </SidebarGroupLabel>
+            {openGroupId === group.id && (
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {group.items.map((item) => (
+                    <SidebarMenuItem key={item.id}>
+                      <SidebarMenuButton tooltip={item.label} isActive={isActive(item.to)} onClick={() => handleNav(group.id, item)} aria-label={item.label}>
+                        {item.icon}
+                        <span>{item.label}</span>
+                      </SidebarMenuButton>
+                      {typeof item.badge !== 'undefined' && item.badge > 0 && (
+                        <SidebarMenuBadge aria-label={`${item.badge} pending`}>{item.badge}</SidebarMenuBadge>
+                      )}
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            )}
+          </SidebarGroup>
+        ))}
+      </SidebarContent>
+      <SidebarSeparator />
+      <SidebarFooter />
+      <SidebarRail />
+    </>
+  );
+
+  // Mobile: bottom tabs with More opening full-height drawer showing same content
+  if (isMobile) {
+    const homeActive = location.pathname === '/care';
+    const apptActive = location.pathname.startsWith('/care/appointments');
+    const billActive = location.pathname.startsWith('/billing');
+    const haptic = () => { try { (navigator as any)?.vibrate?.(10); } catch {} };
+    return (
+      <div className="min-h-screen flex flex-col">
+        <div className="flex-1">{children ?? <Outlet />}</div>
+        <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur border-t">
+          <div className="grid grid-cols-4">
+            <button className={cn("py-2 flex flex-col items-center", homeActive ? 'text-primary' : 'text-muted-foreground')} onClick={() => { haptic(); navigate('/care'); }} aria-label="Home">
+              <Home className="h-5 w-5" />
+              <span className="text-xs">{t.pnav.care.home}</span>
+            </button>
+            <button className={cn("py-2 flex flex-col items-center relative", apptActive ? 'text-primary' : 'text-muted-foreground')} onClick={() => { haptic(); navigate('/care/appointments'); }} aria-label="Appointments">
+              <div className="relative">
+                <Calendar className="h-5 w-5" />
+                {counts.upcoming7d > 0 && <span className="absolute -top-1 -right-1 h-2.5 w-2.5 bg-red-500 rounded-full" />}
+              </div>
+              <span className="text-xs">{t.pnav.care.appointments}</span>
+            </button>
+            <button className={cn("py-2 flex flex-col items-center relative", billActive ? 'text-primary' : 'text-muted-foreground')} onClick={() => { haptic(); navigate('/billing'); }} aria-label="Billing">
+              <div className="relative">
+                <CreditCard className="h-5 w-5" />
+                {counts.unpaid > 0 && <span className="absolute -top-1 -right-1 h-2.5 w-2.5 bg-red-500 rounded-full" />}
+              </div>
+              <span className="text-xs">{t.pnav.group.billing}</span>
+            </button>
+            <button className="py-2 flex flex-col items-center text-muted-foreground" onClick={() => { haptic(); setMoreOpen(true); }} aria-label="More">
+              <MoreHorizontal className="h-5 w-5" />
+              <span className="text-xs">More</span>
+            </button>
+          </div>
+        </nav>
+        <Drawer shouldScaleBackground={true} open={moreOpen} onOpenChange={setMoreOpen}>
+          <DrawerContent>
+            <div className="max-h-[90vh] overflow-auto p-2">
+              <SidebarProvider defaultOpen style={{ ['--sidebar-width' as any]: '17.5rem', ['--sidebar-width-icon' as any]: '4.5rem' }}>
+                <div className="md:hidden">{navContent}</div>
+              </SidebarProvider>
+            </div>
+          </DrawerContent>
+        </Drawer>
+      </div>
+    );
+  }
+
+  // Desktop collapsible sidebar
+  return (
+    <SidebarProvider defaultOpen={defaultOpen} style={{ ['--sidebar-width' as any]: '17.5rem', ['--sidebar-width-icon' as any]: '4.5rem' }}>
+      <div className="flex">
+        <Sidebar collapsible="icon">
+          {navContent}
+        </Sidebar>
+        <div className="flex-1">
+          <div className="sticky top-0 z-40 bg-background/80 backdrop-blur border-b px-3 py-2 flex items-center justify-between">
+            <SidebarTrigger />
+            {/* Primary CTA per spec: on Home header show Book appointment, CTA placement handled in page components */}
+          </div>
+          <div className="p-3 md:p-4">{children ?? <Outlet />}</div>
+        </div>
+      </div>
+    </SidebarProvider>
+  );
+}
+
