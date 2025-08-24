@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,7 +17,11 @@ import {
   Share2,
   Download,
   Filter,
-  UserX
+  UserX,
+  Info,
+  Settings2,
+  Send,
+  CalendarDays
 } from "lucide-react";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -27,6 +31,11 @@ import type { DateRange } from "react-day-picker";
 import { format, subMonths, startOfWeek, endOfWeek, startOfMonth, endOfMonth, getHours, getDay, eachDayOfInterval } from "date-fns";
 import { ResponsiveContainer, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Bar, LineChart, Line, PieChart, Pie, Legend, Cell } from "recharts";
 import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from "@/components/ui/carousel";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Tooltip as UiTooltip, TooltipContent as UiTooltipContent, TooltipProvider as UiTooltipProvider, TooltipTrigger as UiTooltipTrigger } from "@/components/ui/tooltip";
 
 interface DentistAnalyticsProps {
   dentistId: string;
@@ -68,6 +77,32 @@ export const DentistAnalytics = ({ dentistId, onOpenPatientsTab, onOpenClinicalT
   const [highNoShowPatients, setHighNoShowPatients] = useState<Array<{ id: string; name: string; count: number }>>([]);
   const [followUpsCount, setFollowUpsCount] = useState<number>(0);
   const [revenueOpportunities, setRevenueOpportunities] = useState<Array<{ id: string; name: string; reason: string }>>([]);
+
+  // KPI data
+  const [collectionRatePct, setCollectionRatePct] = useState<number>(0);
+  const [noShowWindowDays, setNoShowWindowDays] = useState<7 | 30 | 90>(30);
+  const [noShowRatePct, setNoShowRatePct] = useState<number>(0);
+  const [chairUtilizationPct, setChairUtilizationPct] = useState<number>(0);
+  const [payorSplit, setPayorSplit] = useState<{ mutualityCents: number; patientCents: number }>({ mutualityCents: 0, patientCents: 0 });
+  const [agingBuckets, setAgingBuckets] = useState<{ "0-30": number; "31-60": number; "61-90": number; "90+": number }>({ "0-30": 0, "31-60": 0, "61-90": 0, "90+": 0 });
+
+  // Follow-ups pipeline
+  const [followUps, setFollowUps] = useState<Array<{ id: string; planId: string; patientId: string; patientName: string; patientUserId?: string; dueDate: Date }>>([]);
+  const [selectedFollowUps, setSelectedFollowUps] = useState<Record<string, boolean>>({});
+  const [autoScheduleEnabled, setAutoScheduleEnabled] = useState<boolean>(() => {
+    try { return localStorage.getItem('analytics.autoScheduleEnabled') === 'true'; } catch { return false; }
+  });
+
+  // Deposit policy map for high-risk patients
+  const [requireDepositMap, setRequireDepositMap] = useState<Record<string, boolean>>({});
+
+  // Reminder dialog state
+  const [reminderOpen, setReminderOpen] = useState(false);
+  const [reminderPatient, setReminderPatient] = useState<{ id: string; userId?: string; name: string } | null>(null);
+  const [reminderMessage, setReminderMessage] = useState<string>("Hi, just a gentle reminder to please confirm your upcoming appointment to avoid no-shows. Reply if you need to reschedule.");
+
+  // Print ref for PDF export header
+  const printRef = useRef<HTMLDivElement>(null);
 
   // Helpers
   const formatCurrencyEuro = (cents: number) => `€${(cents / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -155,10 +190,66 @@ export const DentistAnalytics = ({ dentistId, onOpenPatientsTab, onOpenClinicalT
           .select('id, patient_id, status, estimated_cost, title, start_date, end_date')
           .eq('dentist_id', dentistId);
 
+        // Invoices in range for payor split
+        const { data: inv } = await supabase
+          .from('invoices')
+          .select('id, mutuality_amount_cents, patient_amount_cents, created_at, patient_id')
+          .eq('dentist_id', dentistId)
+          .gte('created_at', start.toISOString())
+          .lte('created_at', end.toISOString());
+
+        // Dentist availability and vacations for utilization
+        const [{ data: avail }, { data: vacations }] = await Promise.all([
+          supabase.from('dentist_availability').select('*').eq('dentist_id', dentistId),
+          supabase.from('dentist_vacation_days').select('*').eq('dentist_id', dentistId)
+        ]);
+
         setAppointments(appts || []);
         setPayments(pay || []);
         setTreatmentPlans(plans || []);
 
+        // Collection rate (% of requests created in range paid within 30 days)
+        const createdInWindow = (pay || []);
+        const paidWithin30 = createdInWindow.filter(p => p.status === 'paid' && p.paid_at && (new Date(p.paid_at).getTime() - new Date(p.created_at).getTime()) <= 30 * 24 * 60 * 60 * 1000);
+        setCollectionRatePct(createdInWindow.length ? Math.round((paidWithin30.length / createdInWindow.length) * 1000) / 10 : 0);
+
+        // Payor split from invoices
+        const mutualityCents = (inv || []).reduce((s, i) => s + (i.mutuality_amount_cents || 0), 0);
+        const patientCents = (inv || []).reduce((s, i) => s + (i.patient_amount_cents || 0), 0);
+        setPayorSplit({ mutualityCents, patientCents });
+
+        // Compute chair utilization across range
+        const dayMinutes: Record<number, number> = {};
+        (avail || []).forEach(a => {
+          if (!a.is_available) return;
+          const [sh, sm] = (a.start_time || '09:00').split(':').map(Number);
+          const [eh, em] = (a.end_time || '17:00').split(':').map(Number);
+          let minutes = (eh * 60 + em) - (sh * 60 + sm);
+          if (a.break_start_time && a.break_end_time) {
+            const [bsH, bsM] = a.break_start_time.split(':').map(Number);
+            const [beH, beM] = a.break_end_time.split(':').map(Number);
+            minutes -= Math.max(0, (beH * 60 + beM) - (bsH * 60 + bsM));
+          }
+          dayMinutes[a.day_of_week] = Math.max(0, minutes);
+        });
+        const days = eachDayOfInterval({ start, end });
+        const vacationDates = new Set((vacations || []).flatMap(v => {
+          const s = new Date(v.start_date);
+          const e = new Date(v.end_date);
+          return eachDayOfInterval({ start: s, end: e }).map(d => d.toDateString());
+        }));
+        const availableTotalMinutes = days.reduce((sum, d) => {
+          if (vacationDates.has(d.toDateString())) return sum;
+          const dow = d.getDay();
+          return sum + (dayMinutes[dow] || 0);
+        }, 0);
+        const usedMinutes = (appts || []).filter(a => ['completed', 'confirmed'].includes(a.status || '')).reduce((sum, a) => {
+          const duration = (a as any).duration_minutes ?? 60;
+          return sum + Number(duration || 60);
+        }, 0);
+        setChairUtilizationPct(availableTotalMinutes ? Math.round((usedMinutes / availableTotalMinutes) * 1000) / 10 : 0);
+
+        // Build insights and supporting datasets (existing logic below uses appts, pay, plans)
         // Build insights (respect treatment filter)
         const apptsBase = (appts || []);
         const apptsFiltered = selectedTreatment === 'all' ? apptsBase : apptsBase.filter(a => (a.reason || 'Other').trim() === selectedTreatment);
@@ -185,11 +276,19 @@ export const DentistAnalytics = ({ dentistId, onOpenPatientsTab, onOpenClinicalT
 
         // Enrich patient names for high no-show list
         const ids = highNoShowEntries.map(([id]) => id);
-        let enriched: Array<{ id: string; name: string; count: number }> = [];
+        let enriched: Array<{ id: string; name: string; count: number; user_id?: string }> = [];
         if (ids.length) {
-          const { data: profs } = await supabase.from('profiles').select('id, first_name, last_name').in('id', ids);
+          const { data: profs } = await supabase.from('profiles').select('id, first_name, last_name, user_id').in('id', ids);
           const nameMap = new Map((profs || []).map(p => [p.id, `${p.first_name} ${p.last_name}`.trim()]));
-          enriched = highNoShowEntries.map(([id, count]) => ({ id, name: nameMap.get(id) || id, count: count as number }));
+          const userIdMap = new Map((profs || []).map(p => [p.id, p.user_id || undefined]));
+          enriched = highNoShowEntries.map(([id, count]) => ({ id, name: nameMap.get(id) || id, count: count as number, user_id: userIdMap.get(id) }));
+          // Read deposit flags from notes content
+          const { data: notes } = await supabase.from('notes').select('id, patient_id, content').in('patient_id', ids).eq('dentist_id', dentistId);
+          const flags: Record<string, boolean> = {};
+          (notes || []).forEach(n => {
+            if ((n.content || '').toLowerCase().includes('require_deposit')) flags[n.patient_id || ''] = true;
+          });
+          setRequireDepositMap(flags);
         }
 
         const followUps = (plans || []).filter(p => (p.status || '').toLowerCase() !== 'completed').length;
@@ -201,9 +300,40 @@ export const DentistAnalytics = ({ dentistId, onOpenPatientsTab, onOpenClinicalT
         if (followUps > 0) newInsights.push(`${followUps} patients are due for follow-ups.`);
         if (unpaid > 0) newInsights.push(`${unpaid} unpaid invoices — follow up to capture revenue.`);
         setInsights(newInsights);
-        setHighNoShowPatients(enriched.slice(0, 5));
+        setHighNoShowPatients(enriched.slice(0, 5).map(e => ({ id: e.id, name: e.name, count: e.count })));
         setFollowUpsCount(followUps);
         setRevenueOpportunities((plans || []).filter(p => (p.status || '').toLowerCase() !== 'completed').slice(0, 5).map(p => ({ id: p.id, name: p.patient_id, reason: p.title || 'Treatment plan' })));
+
+        // Build follow-ups pipeline with due dates
+        const followUpList: Array<{ id: string; planId: string; patientId: string; patientName: string; patientUserId?: string; dueDate: Date }> = [];
+        const patientIdToName = new Map<string, string>();
+        if (plans && plans.length) {
+          const planPatientIds = Array.from(new Set(plans.map(p => p.patient_id)));
+          if (planPatientIds.length) {
+            const { data: profs2 } = await supabase.from('profiles').select('id, first_name, last_name, user_id').in('id', planPatientIds);
+            (profs2 || []).forEach(p => patientIdToName.set(p.id, `${p.first_name} ${p.last_name}`.trim()));
+          }
+          (plans || []).filter(p => (p.status || '').toLowerCase() !== 'completed').forEach(p => {
+            const startDate = p.start_date ? new Date(p.start_date) : new Date(p.created_at as any);
+            const due = p.end_date ? new Date(p.end_date) : new Date(startDate.getTime() + ((p.estimated_duration_weeks || 4) * 7 * 24 * 60 * 60 * 1000));
+            followUpList.push({ id: `${p.id}:${p.patient_id}`, planId: p.id, patientId: p.patient_id, patientName: patientIdToName.get(p.patient_id) || p.patient_id, dueDate: due });
+          });
+        }
+        setFollowUps(followUpList.sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime()));
+
+        // Aging buckets for outstanding payment requests (all-time for this dentist)
+        const { data: allOutstanding } = await supabase
+          .from('payment_requests')
+          .select('id, created_at, status')
+          .eq('dentist_id', dentistId)
+          .neq('status', 'paid');
+        const now = Date.now();
+        const buckets = { "0-30": 0, "31-60": 0, "61-90": 0, "90+": 0 } as { [k: string]: number };
+        (allOutstanding || []).forEach(r => {
+          const days = Math.floor((now - new Date(r.created_at).getTime()) / (1000 * 60 * 60 * 24));
+          if (days <= 30) buckets["0-30"] += 1; else if (days <= 60) buckets["31-60"] += 1; else if (days <= 90) buckets["61-90"] += 1; else buckets["90+"] += 1;
+        });
+        setAgingBuckets(buckets as any);
       } finally {
         setLoading(false);
       }
@@ -329,6 +459,42 @@ export const DentistAnalytics = ({ dentistId, onOpenPatientsTab, onOpenClinicalT
     return { grid, max };
   }, [cancelledAppointments.length]);
 
+  // No-show KPI (7/30/90 within current displayed range window)
+  useEffect(() => {
+    const now = end;
+    const startWindow = new Date(now.getTime() - noShowWindowDays * 24 * 60 * 60 * 1000);
+    const inWin = appointments.filter(a => {
+      const d = new Date(a.appointment_date);
+      return d >= startWindow && d <= now;
+    });
+    const canc = inWin.filter(a => a.status === 'cancelled').length;
+    const done = inWin.filter(a => a.status === 'completed').length;
+    const denom = canc + done;
+    setNoShowRatePct(denom ? Math.round((canc / denom) * 1000) / 10 : 0);
+  }, [appointments, end.getTime(), noShowWindowDays]);
+
+  // Persist filters
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('dentistAnalyticsFilters');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.range) setRange(parsed.range);
+        if (parsed.selectedTreatment) setSelectedTreatment(parsed.selectedTreatment);
+        if (parsed.customRange && parsed.customRange.from) {
+          setCustomRange({ from: new Date(parsed.customRange.from), to: parsed.customRange.to ? new Date(parsed.customRange.to) : undefined });
+        }
+      }
+    } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useEffect(() => {
+    try {
+      localStorage.setItem('dentistAnalyticsFilters', JSON.stringify({ range, selectedTreatment, customRange }));
+      localStorage.setItem('analytics.autoScheduleEnabled', String(autoScheduleEnabled));
+    } catch {}
+  }, [range, selectedTreatment, customRange?.from, customRange?.to, autoScheduleEnabled]);
+
   // Deltas vs previous period
   const [deltaRevenuePct, setDeltaRevenuePct] = useState<number>(0);
   const [deltaApptsPct, setDeltaApptsPct] = useState<number>(0);
@@ -389,8 +555,23 @@ export const DentistAnalytics = ({ dentistId, onOpenPatientsTab, onOpenClinicalT
   }, [dentistId, start.getTime(), end.getTime(), revenueCents, completedAppointments.length, outstanding.totalCents, retentionRate]);
 
   // Export & share
-  const onExportPDF = () => window.print();
+  const onExportPDF = () => {
+    // Ensure print header is included
+    window.print();
+  };
   const onExportCSV = () => {
+    // Summary with header info
+    const summaryRows = [
+      { metric: 'Clinic', value: dentistId },
+      { metric: 'Range', value: `${format(start, 'yyyy-MM-dd')} to ${format(end, 'yyyy-MM-dd')}` },
+      { metric: 'Revenue (EUR)', value: (revenueCents / 100).toFixed(2) },
+      { metric: 'Collection Rate (%)', value: collectionRatePct.toFixed(1) },
+      { metric: 'No-Show Rate (%)', value: noShowRatePct.toFixed(1) },
+      { metric: 'Chair Utilization (%)', value: chairUtilizationPct.toFixed(1) },
+      { metric: 'Follow-ups Due', value: String(followUpsCount) }
+    ];
+    downloadCSV('summary', summaryRows as any);
+
     downloadCSV('appointments', filteredAppointments.map(a => ({
       id: a.id,
       date: a.appointment_date,
@@ -438,6 +619,20 @@ export const DentistAnalytics = ({ dentistId, onOpenPatientsTab, onOpenClinicalT
 
   return (
     <div className="p-4 sm:p-6">
+      {/* Print header (visible only when printing) */}
+      <div ref={printRef} className="hidden print:block mb-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <img src="/placeholder.svg" alt="Clinic Logo" className="h-8 w-8" />
+            <div>
+              <div className="font-bold">Clinic Report</div>
+              <div className="text-xs">Dentist: {dentistId}</div>
+            </div>
+          </div>
+          <div className="text-xs text-muted-foreground">{format(new Date(), 'PPpp')}</div>
+        </div>
+        <div className="text-xs mt-1">Range: {format(start, 'PP')} – {format(end, 'PP')}</div>
+      </div>
       {/* Sticky header & filters */}
       <div className="sticky top-16 z-40 bg-background/95 backdrop-blur border-b mb-4">
         <div className="flex flex-wrap items-center justify-between gap-3 px-1 py-3">
@@ -489,7 +684,100 @@ export const DentistAnalytics = ({ dentistId, onOpenPatientsTab, onOpenClinicalT
         </div>
       </div>
 
-      {/* Metric cards */}
+      {/* KPI Row */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4 mb-4">
+        {/* Revenue with sparkline */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-1">
+              Revenue
+              <UiTooltipProvider>
+                <UiTooltip>
+                  <UiTooltipTrigger asChild>
+                    <Info className="h-3.5 w-3.5 text-muted-foreground" />
+                  </UiTooltipTrigger>
+                  <UiTooltipContent>Gross paid amount in selected range</UiTooltipContent>
+                </UiTooltip>
+              </UiTooltipProvider>
+            </CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-xl sm:text-2xl font-bold">{formatCurrencyEuro(revenueCents)}</div>
+            <div className="h-10 mt-2">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={revenueTrend}>
+                  <Line type="monotone" dataKey="value" stroke="#2563eb" strokeWidth={2} dot={false} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Collection rate */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-1">
+              Collection rate
+              <UiTooltipProvider>
+                <UiTooltip>
+                  <UiTooltipTrigger asChild>
+                    <Info className="h-3.5 w-3.5 text-muted-foreground" />
+                  </UiTooltipTrigger>
+                  <UiTooltipContent>% of requests paid within 30 days</UiTooltipContent>
+                </UiTooltip>
+              </UiTooltipProvider>
+            </CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-xl sm:text-2xl font-bold">{collectionRatePct.toFixed(1)}%</div>
+            <p className="text-xs text-muted-foreground">within 30 days</p>
+          </CardContent>
+        </Card>
+
+        {/* No-show rate with window toggle */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-1">No-show rate</CardTitle>
+            <AlertTriangle className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div className={`text-xl sm:text-2xl font-bold ${noShowRatePct > 5 ? 'text-red-600' : 'text-green-600'}`}>{noShowRatePct.toFixed(1)}%</div>
+              <div className="flex gap-1">
+                {[7,30,90].map(d => (
+                  <Button key={d} size="sm" variant={noShowWindowDays === d ? 'default' : 'outline'} onClick={() => setNoShowWindowDays(d as 7|30|90)}>{d}d</Button>
+                ))}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Chair utilization */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-1">Chair utilization</CardTitle>
+            <Clock className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-xl sm:text-2xl font-bold">{chairUtilizationPct.toFixed(1)}%</div>
+            <p className="text-xs text-muted-foreground">based on availability</p>
+          </CardContent>
+        </Card>
+
+        {/* Follow-ups due */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-1">Follow-ups due</CardTitle>
+            <CalendarDays className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-xl sm:text-2xl font-bold">{followUps.filter(f => (f.dueDate.getTime() - Date.now()) <= 14*24*60*60*1000).length}</div>
+            <p className="text-xs text-muted-foreground">due in next 14 days</p>
+          </CardContent>
+        </Card>
+      </div>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 mb-4">
         <Card onClick={() => onOpenPaymentsTab?.()} className="cursor-pointer">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -643,6 +931,283 @@ export const DentistAnalytics = ({ dentistId, onOpenPatientsTab, onOpenClinicalT
           </Carousel>
         </CardContent>
       </Card>
+
+      {/* No-Shows & Late Cancels */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle>No-Shows & Late Cancels</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Heatmap by day/time */}
+            <div>
+              <div className="text-sm font-medium mb-2">By Day/Time</div>
+              <div className="h-48">
+                <div className="grid grid-cols-11 gap-1 text-[10px]">
+                  <div></div>
+                  {Array.from({ length: 11 }).map((_, i) => <div key={i} className="text-center">{8 + i}:00</div>)}
+                  {Array.from({ length: 7 }).map((_, day) => (
+                    <div key={day} className="contents">
+                      <div className="text-right pr-1">{['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][day]}</div>
+                      {Array.from({ length: 11 }).map((_, i) => {
+                        const hour = 8 + i;
+                        const cell = noShowHeatmap.grid.find(g => g.day === day && g.hour === hour);
+                        const intensity = cell ? (cell.value / noShowHeatmap.max) : 0;
+                        const bg = intensity === 0 ? 'bg-muted' : intensity < 0.34 ? 'bg-orange-100' : intensity < 0.67 ? 'bg-orange-300' : 'bg-orange-500';
+                        return <div key={i} className={`h-6 rounded ${bg}`} />
+                      })}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Reason codes (by appointment reason) */}
+            <div>
+              <div className="text-sm font-medium mb-2">By Reason</div>
+              <div className="space-y-2">
+                {Object.entries(appointments.filter(a => a.status === 'cancelled').reduce((acc: Record<string, number>, a) => {
+                  const key = (a.reason || 'Other').trim();
+                  acc[key] = (acc[key] || 0) + 1;
+                  return acc;
+                }, {})).sort((a,b) => b[1]-a[1]).slice(0,6).map(([reason, count]) => (
+                  <div key={reason} className="flex items-center justify-between text-sm">
+                    <span className="truncate mr-2">{reason}</span>
+                    <Badge variant="secondary">{count}</Badge>
+                  </div>
+                ))}
+                {appointments.filter(a => a.status === 'cancelled').length === 0 && (
+                  <p className="text-sm text-muted-foreground">No late cancels or no-shows in this range.</p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* High-risk patients actions */}
+          {highNoShowPatients.length > 0 && (
+            <div className="mt-4">
+              <div className="text-sm font-medium mb-2">High-risk patients</div>
+              <div className="space-y-2">
+                {highNoShowPatients.map(p => (
+                  <div key={p.id} className="flex items-center justify-between text-sm p-2 rounded border" role="listitem" tabIndex={0}>
+                    <span>{p.name} — {p.count} no-shows</span>
+                    <div className="flex items-center gap-3">
+                      <Button size="sm" variant="outline" onClick={() => { setReminderPatient({ id: p.id, name: p.name }); setReminderOpen(true); }}>
+                        <Mail className="w-4 h-4 mr-1" /> Send gentle reminder
+                      </Button>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-muted-foreground">Require deposit</span>
+                        <Switch checked={!!requireDepositMap[p.id]} onCheckedChange={async (val) => {
+                          setRequireDepositMap(prev => ({ ...prev, [p.id]: val }));
+                          try {
+                            if (val) {
+                              await supabase.from('notes').insert({ dentist_id: dentistId, patient_id: p.id, content: 'require_deposit' });
+                            } else {
+                              // No delete API by flag; add a clearing note for audit
+                              await supabase.from('notes').insert({ dentist_id: dentistId, patient_id: p.id, content: 'require_deposit_removed' });
+                            }
+                          } catch {}
+                        }} />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Follow-ups pipeline */}
+      <Card className="mb-6" id="followups">
+        <CardHeader className="flex items-center justify-between">
+          <CardTitle>Follow-ups</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-sm text-muted-foreground">Pipeline of patients needing a check</div>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 text-xs">
+                <Settings2 className="w-4 h-4" /> Auto-schedule
+                <Switch checked={autoScheduleEnabled} onCheckedChange={setAutoScheduleEnabled} />
+              </div>
+              <Button size="sm" variant="outline" onClick={async () => {
+                const selected = followUps.filter(f => selectedFollowUps[f.id]);
+                for (const f of selected) {
+                  try {
+                    // Find patient userId
+                    const { data: prof } = await supabase.from('profiles').select('user_id').eq('id', f.patientId).maybeSingle();
+                    const userId = prof?.user_id;
+                    if (userId) {
+                      // Send follow-up link (placeholder to schedule page)
+                      const link = `${window.location.origin}/schedule`;
+                      await NotificationService.createNotification(
+                        userId,
+                        'Follow-up Due',
+                        `A follow-up is due by ${format(f.dueDate, 'PP')}. Please use this link to schedule: ${link}`,
+                        'system' as any,
+                        'info' as any,
+                        link,
+                        { patient_id: f.patientId }
+                      );
+                    }
+                  } catch {}
+                }
+              }}><Send className="w-4 h-4 mr-1" />Send follow-up link</Button>
+              <Button size="sm" disabled={!autoScheduleEnabled} onClick={async () => {
+                if (!autoScheduleEnabled) return;
+                const selected = followUps.filter(f => selectedFollowUps[f.id]);
+                for (const f of selected) {
+                  try {
+                    const targetStart = new Date(f.dueDate.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+                    const targetEnd = new Date(f.dueDate.getTime() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+                    const { data: slots } = await supabase
+                      .from('appointment_slots')
+                      .select('id, slot_date, slot_time')
+                      .eq('dentist_id', dentistId)
+                      .eq('is_available', true)
+                      .gte('slot_date', targetStart)
+                      .lte('slot_date', targetEnd)
+                      .order('slot_date', { ascending: true });
+                    const first = (slots || [])[0];
+                    if (first) {
+                      const dt = new Date(`${first.slot_date}T${first.slot_time}:00`);
+                      const { data: appt, error: apptErr } = await supabase
+                        .from('appointments')
+                        .insert({
+                          dentist_id: dentistId,
+                          patient_id: f.patientId,
+                          appointment_date: dt.toISOString(),
+                          status: 'pending'
+                        })
+                        .select('id')
+                        .single();
+                      if (!apptErr && appt?.id) {
+                        await supabase.from('appointment_slots').update({ is_available: false, appointment_id: appt.id }).eq('id', first.id);
+                      }
+                    }
+                  } catch {}
+                }
+              }}>Auto-schedule slots</Button>
+            </div>
+          </div>
+          <div className="space-y-2" role="listbox">
+            {followUps.length === 0 && (
+              <p className="text-sm text-muted-foreground">No follow-ups due. Enable reminders to track collection rate improvements.</p>
+            )}
+            {followUps.map(f => (
+              <div key={f.id} className="flex items-center justify-between p-2 rounded border" tabIndex={0}>
+                <div className="flex items-center gap-3">
+                  <Checkbox checked={!!selectedFollowUps[f.id]} onCheckedChange={(v) => setSelectedFollowUps(prev => ({ ...prev, [f.id]: Boolean(v) }))} />
+                  <div className="text-sm">
+                    <div className="font-medium">{f.patientName}</div>
+                    <div className="text-xs text-muted-foreground">Due: {format(f.dueDate, 'PP')}</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button size="sm" variant="outline" onClick={() => { setReminderPatient({ id: f.patientId, name: f.patientName }); setReminderOpen(true); }}>Message</Button>
+                  <Button size="sm" variant="outline" onClick={() => onOpenClinicalTab?.()}>Book</Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Revenue details */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle>Revenue</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {/* Product/service mix (treatment popularity already computed) */}
+            <div>
+              <div className="text-sm font-medium mb-2">Service Mix</div>
+              <ResponsiveContainer width="100%" height={220}>
+                <PieChart>
+                  <Pie data={treatmentPopularity} dataKey="value" nameKey="name" outerRadius={80}>
+                    {treatmentPopularity.map((entry, index) => (
+                      <Cell key={`cell-pop-${index}`} fill={pieColors[index % pieColors.length]} />
+                    ))}
+                  </Pie>
+                  <Legend />
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Payor split */}
+            <div>
+              <div className="text-sm font-medium mb-2">Payor Split</div>
+              <ResponsiveContainer width="100%" height={220}>
+                <PieChart>
+                  <Pie data={[{ name: 'Mutuality', value: Math.round(payorSplit.mutualityCents / 100) }, { name: 'Self-pay', value: Math.round(payorSplit.patientCents / 100) }]} dataKey="value" nameKey="name" outerRadius={80}>
+                    <Cell fill="#0ea5e9" />
+                    <Cell fill="#10b981" />
+                  </Pie>
+                  <Legend />
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Collections aging buckets */}
+            <div>
+              <div className="text-sm font-medium mb-2">Collections Aging</div>
+              <ResponsiveContainer width="100%" height={220}>
+                <BarChart data={[
+                  { name: '0-30', value: agingBuckets['0-30'] },
+                  { name: '31-60', value: agingBuckets['31-60'] },
+                  { name: '61-90', value: agingBuckets['61-90'] },
+                  { name: '90+', value: agingBuckets['90+'] },
+                ]}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                  <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
+                  <Tooltip />
+                  <Bar dataKey="value" fill="#f59e0b" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Reminder dialog */}
+      <Dialog open={reminderOpen} onOpenChange={setReminderOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Send reminder{reminderPatient ? ` to ${reminderPatient.name}` : ''}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Input value={"Gentle attendance reminder"} readOnly />
+            <textarea className="w-full border rounded p-2 text-sm" rows={4} value={reminderMessage} onChange={e => setReminderMessage(e.target.value)} />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setReminderOpen(false)}>Cancel</Button>
+            <Button onClick={async () => {
+              if (!reminderPatient) return;
+              try {
+                const { data: prof } = await supabase.from('profiles').select('user_id, email').eq('id', reminderPatient.id).maybeSingle();
+                const userId = prof?.user_id;
+                if (userId) {
+                  await NotificationService.createNotification(
+                    userId,
+                    'Gentle reminder',
+                    reminderMessage,
+                    'system' as any,
+                    'info' as any,
+                    undefined,
+                    { patient_id: reminderPatient.id, email: prof?.email }
+                  );
+                }
+              } catch {}
+              setReminderOpen(false);
+            }}>Send</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Actionable insights */}
       <Card className="mb-6">
