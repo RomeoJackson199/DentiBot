@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupAction, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuBadge, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarRail, SidebarSeparator, SidebarTrigger } from "@/components/ui/sidebar";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
@@ -52,7 +52,10 @@ export function PatientPortalNav({ children }: { children: React.ReactNode }) {
   const [defaultOpen, setDefaultOpen] = useState(true);
 
   useEffect(() => {
-    setDefaultOpen(readSidebarCookie());
+    const cookieOpen = readSidebarCookie();
+    const w = window.innerWidth;
+    const computed = w >= 1024 ? true : w >= 768 ? false : false;
+    setDefaultOpen(typeof cookieOpen === 'boolean' ? cookieOpen : computed);
   }, []);
 
   useEffect(() => {
@@ -126,6 +129,40 @@ export function PatientPortalNav({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  // Keyboard navigation within nav (up/down to move, left/right to collapse/expand)
+  const navRef = useRef<HTMLDivElement | null>(null);
+  const onKeyDownNav = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    const container = navRef.current;
+    if (!container) return;
+    const buttons = Array.from(container.querySelectorAll<HTMLButtonElement>("[data-sidebar='menu-button']"));
+    const activeEl = document.activeElement as HTMLElement | null;
+    const index = buttons.findIndex((b) => b === activeEl);
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      const next = buttons[Math.min(buttons.length - 1, index + 1)] || buttons[0];
+      next?.focus();
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      const prev = buttons[Math.max(0, index - 1)] || buttons[buttons.length - 1];
+      prev?.focus();
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+      const gid = activeEl?.getAttribute('data-group-id') || '';
+      if (gid) {
+        e.preventDefault();
+        const wantExpand = e.key === 'ArrowRight';
+        const isExpanded = openGroupId === gid;
+        if ((wantExpand && !isExpanded) || (!wantExpand && isExpanded)) {
+          setOpenGroupId((prev) => (prev === gid ? null : gid));
+        }
+      }
+    } else if (e.key === 'Enter' || e.key === ' ') {
+      if (activeEl && activeEl.getAttribute('data-sidebar') === 'menu-button') {
+        e.preventDefault();
+        (activeEl as HTMLButtonElement).click();
+      }
+    }
+  };
+
   const navContent = (
     <>
       <SidebarHeader className="px-3 py-3">
@@ -135,36 +172,60 @@ export function PatientPortalNav({ children }: { children: React.ReactNode }) {
         </div>
       </SidebarHeader>
       <SidebarContent>
-        {groups.map((group) => (
-          <SidebarGroup key={group.id}>
-            <SidebarGroupLabel className="flex items-center justify-between pr-8" aria-label={group.label}>
-              <span>{group.label}</span>
-              <SidebarGroupAction aria-label="Collapse group" onClick={() => setOpenGroupId(prev => prev === group.id ? null : group.id)}>
-                <ChevronDown className={cn("h-4 w-4 transition-transform", openGroupId === group.id ? "rotate-0" : "-rotate-90")} />
-              </SidebarGroupAction>
-            </SidebarGroupLabel>
-            {openGroupId === group.id && (
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {group.items.map((item) => (
-                    <SidebarMenuItem key={item.id}>
-                      <SidebarMenuButton tooltip={item.label} isActive={isActive(item.to)} onClick={() => handleNav(group.id, item)} aria-label={item.label}>
-                        {item.icon}
-                        <span>{item.label}</span>
-                      </SidebarMenuButton>
-                      {typeof item.badge !== 'undefined' && item.badge > 0 && (
-                        <SidebarMenuBadge aria-label={`${item.badge} pending`}>{item.badge}</SidebarMenuBadge>
-                      )}
-                    </SidebarMenuItem>
-                  ))}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            )}
-          </SidebarGroup>
-        ))}
+        <nav aria-label="Primary" onKeyDown={onKeyDownNav} ref={navRef}>
+          {groups.map((group) => (
+            <section key={group.id} aria-labelledby={`group-${group.id}`}>
+              <SidebarGroup>
+                <SidebarGroupLabel
+                  className="flex items-center justify-between pr-8"
+                  role="button"
+                  tabIndex={0}
+                  aria-expanded={openGroupId === group.id}
+                  aria-controls={`group-content-${group.id}`}
+                  onClick={() => setOpenGroupId(prev => prev === group.id ? null : group.id)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOpenGroupId(prev => prev === group.id ? null : group.id); } }}
+                >
+                  <span id={`group-${group.id}`}>{group.label}</span>
+                  <SidebarGroupAction aria-hidden="true">
+                    <ChevronDown className={cn("h-4 w-4 transition-transform", openGroupId === group.id ? "rotate-0" : "-rotate-90")} />
+                  </SidebarGroupAction>
+                </SidebarGroupLabel>
+                <div
+                  id={`group-content-${group.id}`}
+                  role="region"
+                  aria-labelledby={`group-${group.id}`}
+                  className={cn("overflow-hidden transition-all duration-200 ease-in-out", openGroupId === group.id ? "max-h-96 opacity-100" : "max-h-0 opacity-0")}
+                >
+                  {openGroupId === group.id && (
+                    <SidebarGroupContent>
+                      <SidebarMenu>
+                        {group.items.map((item) => (
+                          <SidebarMenuItem key={item.id}>
+                            <SidebarMenuButton data-group-id={group.id} tooltip={item.label} isActive={isActive(item.to)} onClick={() => handleNav(group.id, item)} aria-label={item.label}>
+                              {item.icon}
+                              <span>{item.label}</span>
+                            </SidebarMenuButton>
+                            {typeof item.badge !== 'undefined' && item.badge > 0 && (
+                              <SidebarMenuBadge aria-label={`${item.label}, ${item.badge} pending`}>{item.badge}</SidebarMenuBadge>
+                            )}
+                          </SidebarMenuItem>
+                        ))}
+                      </SidebarMenu>
+                    </SidebarGroupContent>
+                  )}
+                </div>
+              </SidebarGroup>
+            </section>
+          ))}
+        </nav>
       </SidebarContent>
       <SidebarSeparator />
-      <SidebarFooter />
+      <SidebarFooter>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" className="flex-1 justify-start">EN/FR/NL</Button>
+          <SidebarTrigger className="h-8 w-8" aria-label="Collapse or expand sidebar" title="Collapse/Expand" />
+        </div>
+      </SidebarFooter>
       <SidebarRail />
     </>
   );

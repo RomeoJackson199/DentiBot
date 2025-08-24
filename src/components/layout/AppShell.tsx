@@ -205,7 +205,7 @@ export function AppShell() {
     const cookieOpen = readSidebarCookie();
     const w = window.innerWidth;
     const computed = w >= 1024 ? true : w >= 768 ? false : false;
-    setDefaultOpen(cookieOpen ?? computed);
+    setDefaultOpen(typeof cookieOpen === 'boolean' ? cookieOpen : computed);
     try { emitAnalyticsEvent('nav_state_persisted', '', { collapsed: !cookieOpen }); } catch {}
   }, []);
 
@@ -267,7 +267,7 @@ export function AppShell() {
       items: [
         { id: 'business-payments', label: t.navPayments, icon: <Wallet className="h-4 w-4" />, to: "/business/payments", badge: paymentsOverdue || undefined },
         { id: 'business-analytics', label: t.navAnalytics, icon: <BarChart3 className="h-4 w-4" />, to: "/business/analytics" },
-        { id: 'business-reports', label: 'Reports', icon: <FileBarChart className="h-4 w-4" />, to: "/business/reports" },
+        { id: 'business-reports', label: t.navReports, icon: <FileBarChart className="h-4 w-4" />, to: "/business/reports" },
       ],
     },
     {
@@ -283,8 +283,8 @@ export function AppShell() {
       label: t.navAdmin,
       items: [
         { id: 'admin-schedule', label: t.navSchedule + " Settings", icon: <CalendarCog className="h-4 w-4" />, to: "/admin/schedule" },
-        { id: 'admin-branding', label: 'Branding & Localization', icon: <Globe className="h-4 w-4" />, to: "/admin/branding" },
-        { id: 'admin-security', label: 'Security', icon: <Shield className="h-4 w-4" />, to: "/admin/security" },
+        { id: 'admin-branding', label: t.navBrandingLoc ?? 'Branding & Localization', icon: <Globe className="h-4 w-4" />, to: "/admin/branding" },
+        { id: 'admin-security', label: t.navSecurity ?? 'Security', icon: <Shield className="h-4 w-4" />, to: "/admin/security" },
       ],
     },
   ], [t, paymentsOverdue, inventoryLow]);
@@ -318,6 +318,19 @@ export function AppShell() {
       setOpenGroups(prev => ({ ...prev, business: true }));
     }
   }, [location.pathname, location.search]);
+
+  // Restore last visited on initial mount when landing on dashboard root
+  useEffect(() => {
+    try {
+      const last = localStorage.getItem(STORAGE.lastItem);
+      const isRootDashboard = location.pathname === '/dashboard' || location.pathname === '/';
+      if (last && isRootDashboard) {
+        navigate(last, { replace: true });
+      }
+    } catch {}
+    // run only on first mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Keyboard navigation within nav
   const navRef = useRef<HTMLDivElement | null>(null);
@@ -374,13 +387,22 @@ export function AppShell() {
                       <ChevronDown className={cn("h-4 w-4 transition-transform", openGroups[group.id] ? "rotate-0" : "-rotate-90")} />
                     </SidebarGroupAction>
                   </SidebarGroupLabel>
-                  {openGroups[group.id] && (
-                    <SidebarGroupContent id={`group-content-${group.id}`}>
-                      <SidebarMenu>
-                        {group.items.map((item) => {
+                  <div
+                    id={`group-content-${group.id}`}
+                    role="region"
+                    aria-labelledby={`group-${group.id}`}
+                    className={cn(
+                      "overflow-hidden transition-all duration-200 ease-in-out",
+                      openGroups[group.id] ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+                    )}
+                  >
+                    {openGroups[group.id] && (
+                      <SidebarGroupContent>
+                        <SidebarMenu>
+                          {group.items.map((item) => {
                           const active = (location.pathname + location.search + location.hash).startsWith(item.to);
                           const ariaLabel = typeof item.badge === 'number' && item.badge > 0
-                            ? `Group: ${group.label}, item: ${item.label}, ${item.badge} overdue.`
+                            ? `Group: ${group.label}, item: ${item.label}, ${item.badge} due.`
                             : `Group: ${group.label}, item: ${item.label}.`;
                           return (
                             <SidebarMenuItem key={item.id}>
@@ -389,14 +411,15 @@ export function AppShell() {
                                 <span>{item.label}</span>
                               </SidebarMenuButton>
                               {typeof item.badge === 'number' && item.badge > 0 && (
-                                <SidebarMenuBadge aria-label={`${item.badge}`}>{item.badge}</SidebarMenuBadge>
+                                <SidebarMenuBadge aria-label={`${item.label}, ${item.badge} due`}>{item.badge}</SidebarMenuBadge>
                               )}
                             </SidebarMenuItem>
                           );
                         })}
-                      </SidebarMenu>
-                    </SidebarGroupContent>
-                  )}
+                        </SidebarMenu>
+                      </SidebarGroupContent>
+                    )}
+                  </div>
                 </SidebarGroup>
               </section>
             ))}
@@ -404,7 +427,20 @@ export function AppShell() {
         </SidebarContent>
         <SidebarSeparator />
         <SidebarFooter>
-          <Button variant="outline" size="sm" className="w-full justify-start"><Languages className="h-4 w-4 mr-2" />EN/FR/NL</Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1 justify-start"
+            >
+              <Languages className="h-4 w-4 mr-2" />EN/FR/NL
+            </Button>
+            <SidebarTrigger
+              className="h-8 w-8"
+              aria-label="Collapse or expand sidebar"
+              title="Collapse/Expand"
+            />
+          </div>
         </SidebarFooter>
         <SidebarRail />
       </Sidebar>
