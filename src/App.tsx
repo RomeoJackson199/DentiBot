@@ -18,6 +18,7 @@ import { LazyLoadingWrapper } from "./components/optimized/LazyLoadingWrapper";
 import AuthCallbackHandler from "./components/AuthCallbackHandler";
 import { ModernLoadingSpinner } from "@/components/enhanced/ModernLoadingSpinner";
 import { AppShell } from "@/components/layout/AppShell";
+import { PatientPortalNav } from "@/components/patient/PatientPortalNav";
 
 const Invite = lazy(() => import("./pages/Invite"));
 
@@ -40,6 +41,16 @@ const UnifiedDashboard = lazy(() => import("./components/UnifiedDashboard"));
 const LanguageTest = lazy(() => import("./components/LanguageTest").then(module => ({ default: module.LanguageTest })));
 const About = lazy(() => import("./pages/About"));
 const Claim = lazy(() => import("./pages/Claim"));
+const PatientCareHome = lazy(() => import("./pages/PatientCareHome"));
+const PatientAppointmentsPage = lazy(() => import("./pages/PatientAppointmentsPage"));
+const PatientPrescriptionsPage = lazy(() => import("./pages/PatientPrescriptionsPage"));
+const PatientTreatmentHistoryPage = lazy(() => import("./pages/PatientTreatmentHistoryPage"));
+const PatientBillingPage = lazy(() => import("./pages/PatientBillingPage"));
+const PatientDocumentsPage = lazy(() => import("./pages/PatientDocumentsPage"));
+const PatientAccountProfilePage = lazy(() => import("./pages/PatientAccountProfilePage"));
+const PatientAccountInsurancePage = lazy(() => import("./pages/PatientAccountInsurancePage"));
+const PatientAccountPrivacyPage = lazy(() => import("./pages/PatientAccountPrivacyPage"));
+const PatientAccountHelpPage = lazy(() => import("./pages/PatientAccountHelpPage"));
 
 // Dashboard component that handles authentication with lazy loading
 const Dashboard = () => {
@@ -137,6 +148,19 @@ const App = () => (
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/schedule" element={<Schedule />} />
                   <Route path="/analytics" element={<Analytics />} />
+                </Route>
+                {/* Patient portal routes with patient nav */}
+                <Route element={<PatientPortalNav><></></PatientPortalNav>}>
+                  <Route path="/care" element={<PatientCareHome />} />
+                  <Route path="/care/appointments" element={<PatientAppointmentsPage />} />
+                  <Route path="/care/prescriptions" element={<PatientPrescriptionsPage />} />
+                  <Route path="/care/history" element={<PatientTreatmentHistoryPage />} />
+                  <Route path="/billing" element={<PatientBillingPage />} />
+                  <Route path="/docs" element={<PatientDocumentsPage />} />
+                  <Route path="/account/profile" element={<PatientAccountProfilePage />} />
+                  <Route path="/account/insurance" element={<PatientAccountInsurancePage />} />
+                  <Route path="/account/privacy" element={<PatientAccountPrivacyPage />} />
+                  <Route path="/account/help" element={<PatientAccountHelpPage />} />
                 </Route>
                 {/* Public routes */}
                 <Route path="/emergency-triage" element={<EmergencyTriage />} />
