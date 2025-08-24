@@ -57,6 +57,9 @@ export function InventoryManager({ dentistId, userId }: InventoryManagerProps) {
 
   const lowStockCount = useMemo(() => items.filter(i => i.quantity < i.min_threshold).length, [items]);
 
+  // Optional: highlight item from ?item= query
+  const highlightItemId = typeof window !== 'undefined' ? new URLSearchParams(window.location.hash.split('?')[1] || '').get('item') : null;
+
   useEffect(() => {
     (async () => {
       try {
@@ -312,8 +315,9 @@ export function InventoryManager({ dentistId, userId }: InventoryManagerProps) {
               <TableBody>
                 {itemsSorted.map(item => {
                   const low = item.quantity < item.min_threshold;
+                  const isHighlighted = highlightItemId === item.id;
                   return (
-                    <TableRow key={item.id} className={low ? 'bg-red-50' : ''}>
+                    <TableRow key={item.id} className={`${low ? 'bg-red-50' : ''} ${isHighlighted ? 'ring-2 ring-primary/50' : ''}`}>
                       <TableCell className="font-medium">{item.name}</TableCell>
                       <TableCell className="capitalize">{item.category}</TableCell>
                       <TableCell>{item.quantity}</TableCell>
@@ -392,7 +396,13 @@ export function InventoryManager({ dentistId, userId }: InventoryManagerProps) {
       {/* 3. Treatment-to-Inventory Mapping */}
       <Card>
         <CardHeader>
-          <CardTitle>Treatment Mappings</CardTitle>
+          <CardTitle className="flex items-center justify-between">
+            <span>Treatment Mappings</span>
+            <Button variant="outline" size="sm" onClick={() => {
+              // Placeholder: simulate inventory impact could open a modal using current selections
+              toast({ title: 'Simulation', description: 'Simulate inventory impact coming soon.' });
+            }}>Simulate inventory impact</Button>
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-center">

@@ -404,7 +404,14 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 		// 3) Apply deductions
 		for (const d of deductions) {
 			try {
-				// Log adjustment
+				// Fetch before qty, then log with before/after and update
+				const { data: item } = await sb
+					.from('inventory_items')
+					.select('quantity, min_threshold, name')
+					.eq('id', d.item_id)
+					.single();
+				const beforeQty = item?.quantity || 0;
+				const newQty = Math.max(0, beforeQty - Math.abs(d.quantity));
 				await sb.from('inventory_adjustments').insert({
 					item_id: d.item_id,
 					dentist_id: dentistId,
@@ -412,17 +419,26 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 					change: -Math.abs(d.quantity),
 					adjustment_type: 'usage',
 					reason: `Appointment ${appointment.id}`,
+					notes: JSON.stringify({ before: beforeQty, after: newQty }),
 					created_by: currentProfileId
 				});
-				// Update item quantity
-				const { data: item } = await sb.from('inventory_items').select('quantity, min_threshold, name').eq('id', d.item_id).single();
-				const newQty = Math.max(0, (item?.quantity || 0) - Math.abs(d.quantity));
-				await sb.from('inventory_items').update({ quantity: newQty }).eq('id', d.item_id);
+				await sb
+					.from('inventory_items')
+					.update({ quantity: newQty })
+					.eq('id', d.item_id);
 				// Low stock notify
 				if (item && newQty < item.min_threshold) {
-					const { data: dent } = await sb.from('dentists').select('profile_id').eq('id', dentistId).single();
+					const { data: dent } = await sb
+						.from('dentists')
+						.select('profile_id')
+						.eq('id', dentistId)
+						.single();
 					if (dent) {
-						const { data: prof } = await sb.from('profiles').select('user_id').eq('id', dent.profile_id).single();
+						const { data: prof } = await sb
+							.from('profiles')
+							.select('user_id')
+							.eq('id', dent.profile_id)
+							.single();
 						if (prof?.user_id) {
 							await sb.from('notifications').insert({
 								user_id: prof.user_id,
@@ -432,7 +448,8 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 								message: `${item.name} is below threshold (${newQty} remaining)`,
 								priority: 'high',
 								action_label: 'Open Inventory',
-								action_url: '/dashboard#inventory'
+								action_url: `/dashboard#inventory?item=${d.item_id}`,
+								metadata: { item_id: d.item_id }
 							});
 						}
 					}

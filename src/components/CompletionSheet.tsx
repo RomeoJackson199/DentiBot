@@ -395,16 +395,17 @@ export function CompletionSheet({ open, onOpenChange, appointment, dentistId, on
 				const { data: prof } = await sb.from('profiles').select('id').eq('user_id', (await sb.auth.getUser()).data.user?.id).single();
 				for (const s of supplies) {
 					try {
-						await sb.from('inventory_adjustments').insert({ item_id: s.item_id, dentist_id: dentistId, appointment_id: appointment.id, change: -Math.abs(s.quantity), adjustment_type: 'usage', reason: `Appointment ${appointment.id}`, created_by: prof?.id });
 						const { data: it } = await sb.from('inventory_items').select('quantity, min_threshold, name').eq('id', s.item_id).single();
-						const newQty = Math.max(0, (it?.quantity || 0) - Math.abs(s.quantity));
+						const beforeQty = it?.quantity || 0;
+						const newQty = Math.max(0, beforeQty - Math.abs(s.quantity));
+						await sb.from('inventory_adjustments').insert({ item_id: s.item_id, dentist_id: dentistId, appointment_id: appointment.id, change: -Math.abs(s.quantity), adjustment_type: 'usage', reason: `Appointment ${appointment.id}`, notes: JSON.stringify({ before: beforeQty, after: newQty }), created_by: prof?.id });
 						await sb.from('inventory_items').update({ quantity: newQty }).eq('id', s.item_id);
 						if (it && newQty < it.min_threshold) {
 							const { data: dent } = await sb.from('dentists').select('profile_id').eq('id', dentistId).single();
 							if (dent) {
 								const { data: dprof } = await sb.from('profiles').select('user_id').eq('id', dent.profile_id).single();
 								if (dprof?.user_id) {
-									await sb.from('notifications').insert({ user_id: dprof.user_id, dentist_id: dentistId, type: 'inventory', title: 'Low Stock Alert', message: `${it.name} is below threshold (${newQty} remaining)`, priority: 'high', action_label: 'Open Inventory', action_url: '/dashboard#inventory' });
+									await sb.from('notifications').insert({ user_id: dprof.user_id, dentist_id: dentistId, type: 'inventory', title: 'Low Stock Alert', message: `${it.name} is below threshold (${newQty} remaining)`, priority: 'high', action_label: 'Open Inventory', action_url: `/dashboard#inventory?item=${s.item_id}`, metadata: { item_id: s.item_id } });
 								}
 							}
 						}
