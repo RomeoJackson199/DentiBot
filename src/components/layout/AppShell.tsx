@@ -54,6 +54,7 @@ import {
   ChevronDown,
   Home,
   PanelLeft,
+  LogOut,
 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
@@ -102,7 +103,7 @@ function TopBar() {
   return (
     <div className="sticky top-0 z-40 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
       <div className="flex items-center gap-2 px-3 md:px-4 py-2">
-        <SidebarTrigger className="md:hidden" />
+        <SidebarTrigger />
         <Button
           variant="outline"
           size="sm"
@@ -447,6 +448,9 @@ export function AppShell() {
               className="flex-1 justify-start"
             >
               <Languages className="h-4 w-4 mr-2" />EN/FR/NL
+            </Button>
+            <Button variant="ghost" size="icon" onClick={() => supabase.auth.signOut()} aria-label="Sign out" title="Sign out">
+              <LogOut className="h-4 w-4" />
             </Button>
             <SidebarTrigger
               className="h-8 w-8"
