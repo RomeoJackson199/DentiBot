@@ -321,6 +321,9 @@ interface Translations {
   navImport: string;
   navSchedule: string;
   navSettings: string;
+  navReports?: string;
+  navBrandingLoc?: string;
+  navSecurity?: string;
   topSearch: string;
   topClinic: string;
   topProfile: string;
@@ -702,10 +705,14 @@ How can I help you today?`,
     navPatients: "Patients",
     navPayments: "Payments",
     navAnalytics: "Analytics",
+    // Added missing labels
+    navReports: "Reports",
     navInventory: "Inventory",
     navImport: "Import",
     navSchedule: "Schedule",
     navSettings: "Settings",
+    navBrandingLoc: "Branding & Localization",
+    navSecurity: "Privacy & Security",
     topSearch: "Search",
     topClinic: "Clinic",
     topProfile: "Profile",
@@ -1089,10 +1096,13 @@ Comment puis-je vous aider aujourd'hui ?`,
     navPatients: "Patients",
     navPayments: "Paiements",
     navAnalytics: "Analytique",
+    navReports: "Rapports",
     navInventory: "Inventaire",
     navImport: "Import",
     navSchedule: "Planning",
     navSettings: "Paramètres",
+    navBrandingLoc: "Image de marque & Localisation",
+    navSecurity: "Confidentialité & Sécurité",
     topSearch: "Rechercher",
     topClinic: "Clinique",
     topProfile: "Profil",
@@ -1472,10 +1482,13 @@ Hoe kan ik u vandaag helpen?`,
     navPatients: "Patiënten",
     navPayments: "Betalingen",
     navAnalytics: "Analytics",
+    navReports: "Rapporten",
     navInventory: "Voorraad",
     navImport: "Import",
     navSchedule: "Schema",
     navSettings: "Instellingen",
+    navBrandingLoc: "Branding & Lokalisatie",
+    navSecurity: "Privacy & Beveiliging",
     topSearch: "Zoeken",
     topClinic: "Kliniek",
     topProfile: "Profiel",
