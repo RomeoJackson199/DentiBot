@@ -1,11 +1,11 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
-import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupAction, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuBadge, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarRail, SidebarSeparator, SidebarTrigger } from "@/components/ui/sidebar";
+import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupAction, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuBadge, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarRail, SidebarSeparator, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useLanguage } from "@/hooks/useLanguage";
-import { Home, Calendar, Pill, FileText, CreditCard, Folder, User, IdCard, Shield, HelpCircle, ChevronDown, MoreHorizontal } from "lucide-react";
+import { Home, Calendar, Pill, FileText, CreditCard, Folder, User, IdCard, Shield, HelpCircle, ChevronDown, MoreHorizontal, PanelLeft } from "lucide-react";
 import { usePatientBadgeCounts } from "@/hooks/usePatientBadges";
 import { cn } from "@/lib/utils";
 import { emitAnalyticsEvent } from "@/lib/analyticsEvents";
@@ -46,6 +46,7 @@ export function PatientPortalNav({ children }: { children: React.ReactNode }) {
   const { t } = useLanguage();
   const location = useLocation();
   const navigate = useNavigate();
+  const { state, toggleSidebar } = useSidebar();
   const { counts } = usePatientBadgeCounts();
   const [openGroupId, setOpenGroupId] = useState<string | null>(() => localStorage.getItem(STORAGE_KEYS.lastGroup));
   const [moreOpen, setMoreOpen] = useState(false);
@@ -287,7 +288,20 @@ export function PatientPortalNav({ children }: { children: React.ReactNode }) {
         </Sidebar>
         <div className="flex-1">
           <div className="sticky top-0 z-40 bg-background/80 backdrop-blur border-b px-3 py-2 flex items-center justify-between">
-            <SidebarTrigger />
+            <div className="flex items-center gap-2">
+              <SidebarTrigger className="md:hidden" />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={toggleSidebar}
+                className="hidden md:inline-flex gap-2"
+                aria-label={state === 'expanded' ? 'Collapse sidebar' : 'Expand sidebar'}
+                title={state === 'expanded' ? 'Collapse sidebar' : 'Expand sidebar'}
+              >
+                <PanelLeft className="h-4 w-4" />
+                <span>{state === 'expanded' ? 'Collapse' : 'Expand'}</span>
+              </Button>
+            </div>
             {/* Primary CTA per spec: on Home header show Book appointment, CTA placement handled in page components */}
           </div>
           <div className="p-3 md:p-4">{children ?? <Outlet />}</div>
