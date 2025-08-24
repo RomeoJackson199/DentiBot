@@ -436,7 +436,8 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
         .select('amount,status')
         .eq('patient_id', profileId);
       if (error) throw error;
-      const total = (data || []).filter(r => r.status === 'pending').reduce((sum, r: any) => sum + (r.amount || 0), 0);
+      const openStatuses = new Set(['pending','overdue']);
+      const total = (data || []).filter(r => openStatuses.has(r.status)).reduce((sum, r: any) => sum + (r.amount || 0), 0);
       setTotalDueCents(total);
     } catch (e) {
       console.error('Failed to load payment totals', e);

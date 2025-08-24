@@ -50,23 +50,18 @@ export const PatientPaymentHistory: React.FC<PatientPaymentHistoryProps> = ({ pa
         return <CheckCircle className="h-4 w-4 text-green-500" />;
       case 'cancelled':
         return <XCircle className="h-4 w-4 text-red-500" />;
+      case 'overdue':
+        return <Clock className="h-4 w-4 text-red-500" />;
+      case 'failed':
+        return <XCircle className="h-4 w-4 text-red-500" />;
       default:
         return <Clock className="h-4 w-4 text-yellow-500" />;
     }
   };
 
   const getStatusBadge = (status: string) => {
-    const variants = {
-      pending: 'default',
-      paid: 'secondary',
-      cancelled: 'destructive',
-    } as const;
-
-    const colors = {
-      pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-      paid: 'bg-green-100 text-green-800 border-green-200',
-      cancelled: 'bg-red-100 text-red-800 border-red-200',
-    } as const;
+    const variants = { pending: 'default', paid: 'secondary', cancelled: 'destructive', overdue: 'destructive', failed: 'destructive', sent: 'default', draft: 'outline' } as const;
+    const colors = { pending: 'bg-yellow-100 text-yellow-800 border-yellow-200', paid: 'bg-green-100 text-green-800 border-green-200', cancelled: 'bg-red-100 text-red-800 border-red-200', overdue: 'bg-red-100 text-red-800 border-red-200', failed: 'bg-red-100 text-red-800 border-red-200', sent: 'bg-blue-100 text-blue-800 border-blue-200', draft: 'bg-gray-100 text-gray-800 border-gray-200' } as const;
 
     return (
       <Badge 

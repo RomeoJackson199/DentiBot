@@ -54,7 +54,21 @@ serve(async (req) => {
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
 
-    const { patient_id, dentist_id, amount, description, patient_email, patient_name, payment_request_id } = await req.json();
+    const {
+      patient_id,
+      dentist_id,
+      amount: amountFromBody,
+      description,
+      patient_email,
+      patient_name,
+      payment_request_id,
+      appointment_id,
+      items,
+      terms_due_in_days,
+      reminder_cadence_days,
+      channels,
+      send_now
+    } = await req.json();
 
     // Authorization check: Only dentists can create payment requests
     if (dentist_id) {
@@ -106,6 +120,18 @@ serve(async (req) => {
         throw new Error('Unauthorized: You can only access your own payment requests');
       }
 
+      // Determine amount either from record or from items
+      let existingAmount = paymentRequest.amount;
+      if ((!existingAmount || existingAmount <= 0) && items && Array.isArray(items)) {
+        const computed = items.reduce((sum: number, it: any) => {
+          const qty = Math.max(1, Number(it.quantity || 1));
+          const unit = Math.max(0, Number(it.unit_price_cents || 0));
+          const tax = Math.max(0, Number(it.tax_cents || 0));
+          return sum + qty * unit + tax;
+        }, 0);
+        existingAmount = computed;
+      }
+
       // Create new Stripe session for existing payment request
       const session = await stripe.checkout.sessions.create({
         payment_method_types: ["card"],
@@ -116,7 +142,7 @@ serve(async (req) => {
               product_data: {
                 name: paymentRequest.description,
               },
-              unit_amount: paymentRequest.amount,
+              unit_amount: existingAmount,
             },
             quantity: 1,
           },
@@ -152,8 +178,81 @@ serve(async (req) => {
       );
     }
 
-    if (!patient_id || !dentist_id || !amount || !description || !patient_email) {
+    if (!patient_id || !dentist_id || !description || !patient_email) {
       throw new Error("Missing required fields");
+    }
+
+    // If items provided, compute amount from items; otherwise use provided amount
+    let totalAmount = 0;
+    if (items && Array.isArray(items) && items.length > 0) {
+      totalAmount = items.reduce((sum: number, it: any) => {
+        const qty = Math.max(1, Number(it.quantity || 1));
+        const unit = Math.max(0, Number(it.unit_price_cents || 0));
+        const tax = Math.max(0, Number(it.tax_cents || 0));
+        return sum + qty * unit + tax;
+      }, 0);
+    } else {
+      totalAmount = Math.max(0, Number(amountFromBody || 0));
+    }
+    if (totalAmount <= 0) {
+      throw new Error('Invalid amount');
+    }
+
+    // Compute terms/due date
+    const dueInDays: number = Number(terms_due_in_days ?? 14);
+    const dueDate = new Date();
+    dueDate.setDate(dueDate.getDate() + dueInDays);
+
+    // Resolve actor profile for created_by
+    const { data: actorProfile } = await supabaseClient
+      .from('profiles')
+      .select('id')
+      .eq('user_id', user.id)
+      .single();
+
+    // Create base payment request in draft state
+    const { data: insertedRequest, error: insertBaseError } = await supabaseClient
+      .from("payment_requests")
+      .insert({
+        patient_id,
+        dentist_id,
+        amount: totalAmount,
+        description,
+        stripe_session_id: null,
+        patient_email,
+        status: "draft",
+        due_date: dueDate.toISOString(),
+        terms_due_in_days: dueInDays,
+        reminder_cadence_days: reminder_cadence_days ?? [3,7,14],
+        channels: channels ?? ["email"],
+        appointment_id,
+        created_by: actorProfile?.id || null,
+      })
+      .select('id')
+      .single();
+
+    if (insertBaseError) {
+      throw insertBaseError;
+    }
+
+    const newPaymentRequestId = insertedRequest?.id;
+
+    // Insert items if provided
+    if (newPaymentRequestId && items && Array.isArray(items) && items.length > 0) {
+      const itemsToInsert = items.map((it: any) => ({
+        payment_request_id: newPaymentRequestId,
+        code: it.code ?? null,
+        description: it.description,
+        quantity: Math.max(1, Number(it.quantity || 1)),
+        unit_price_cents: Math.max(0, Number(it.unit_price_cents || 0)),
+        tax_cents: Math.max(0, Number(it.tax_cents || 0)),
+      }));
+      const { error: itemsError } = await supabaseClient
+        .from('payment_items')
+        .insert(itemsToInsert);
+      if (itemsError) {
+        throw itemsError;
+      }
     }
 
     // Create a Stripe checkout session
@@ -166,7 +265,7 @@ serve(async (req) => {
             product_data: {
               name: description,
             },
-            unit_amount: amount, // Amount in cents
+            unit_amount: totalAmount, // Amount in cents
           },
           quantity: 1,
         },
@@ -182,30 +281,76 @@ serve(async (req) => {
       },
     });
 
-    // Save payment request to database for tracking and return its id
-    const { data: inserted, error: insertError } = await supabaseClient
-      .from("payment_requests")
-      .insert({
-        patient_id,
-        dentist_id,
-        amount,
-        description,
-        stripe_session_id: session.id,
-        patient_email,
-        status: "pending",
-      })
-      .select('id')
-      .single();
+    // Attach session id to payment request
+    await supabaseClient
+      .from('payment_requests')
+      .update({ stripe_session_id: session.id })
+      .eq('id', newPaymentRequestId);
 
-    if (insertError) {
-      throw insertError;
+    // Transition: draft -> sent if sending now (email or copy link)
+    const shouldSend = send_now === true || (Array.isArray(channels) && channels.includes('email'));
+    if (shouldSend) {
+      await supabaseClient
+        .from('payment_requests')
+        .update({ status: 'sent' })
+        .eq('id', newPaymentRequestId);
+
+      // Send email via system notification if email channel selected
+      if (!channels || channels.includes('email')) {
+        try {
+          const fnUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/send-email-notification`;
+          const payload = {
+            to: patient_email,
+            subject: `Payment request from your dentist`,
+            message: `Thanks for your visit. Your secure payment link is below.\n\nAmount: €${(totalAmount/100).toFixed(2)}\nDescription: ${description}\n\nPay here: ${session.url}`,
+            messageType: 'system',
+            isSystemNotification: true,
+            patientId: patient_id,
+            dentistId: dentist_id,
+          };
+          await fetch(fnUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`
+            },
+            body: JSON.stringify(payload)
+          });
+
+          // Log reminder
+          await supabaseClient
+            .from('payment_reminders')
+            .insert({
+              payment_request_id: newPaymentRequestId,
+              template_key: 'friendly',
+              channel: 'email',
+              status: 'sent',
+              sent_at: new Date().toISOString(),
+              metadata: { totalAmount, description }
+            });
+
+          await supabaseClient
+            .from('payment_requests')
+            .update({ last_reminder_at: new Date().toISOString() })
+            .eq('id', newPaymentRequestId);
+        } catch (e) {
+          // Email failure should not block creation
+          console.error('Failed to send payment email:', e);
+        }
+      }
+
+      // Move to pending for day 0 lifecycle
+      await supabaseClient
+        .from('payment_requests')
+        .update({ status: 'pending' })
+        .eq('id', newPaymentRequestId);
     }
 
     return new Response(
       JSON.stringify({ 
         payment_url: session.url,
         session_id: session.id,
-        payment_request_id: inserted?.id,
+        payment_request_id: newPaymentRequestId,
         message: "Payment request created successfully"
       }),
       {

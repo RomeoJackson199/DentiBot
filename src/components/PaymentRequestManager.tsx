@@ -3,9 +3,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Plus, DollarSign, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { Plus, DollarSign, Clock, CheckCircle, XCircle, Search, Filter, MoreHorizontal, Send, FileDown, Check } from 'lucide-react';
 import { PaymentRequestForm } from '@/components/PaymentRequestForm';
 import { useToast } from '@/hooks/use-toast';
+import PaymentWizard from '@/components/payments/PaymentWizard';
+import { Input } from '@/components/ui/input';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 interface PaymentRequest {
   id: string;
@@ -26,30 +30,95 @@ export const PaymentRequestManager: React.FC<PaymentRequestManagerProps> = ({ de
   const [paymentRequests, setPaymentRequests] = useState<PaymentRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [showWizard, setShowWizard] = useState(false);
   const [selectedPatient, setSelectedPatient] = useState<any>(null);
   const { toast } = useToast();
+  const [query, setQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('');
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [amountMin, setAmountMin] = useState<string>('');
+  const [amountMax, setAmountMax] = useState<string>('');
+  const [dateStart, setDateStart] = useState<string>('');
+  const [dateEnd, setDateEnd] = useState<string>('');
+  const [patientTerm, setPatientTerm] = useState<string>('');
+  const [creatorScope, setCreatorScope] = useState<'any' | 'me'>('any');
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [itemsById, setItemsById] = useState<Record<string, any[]>>({});
+  const [remindersById, setRemindersById] = useState<Record<string, any[]>>({});
+  const [myProfileId, setMyProfileId] = useState<string | null>(null);
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Initialize filters from query params
+    const params = new URLSearchParams(location.search);
+    setStatusFilter(params.get('status') || '');
+    setQuery(params.get('q') || '');
+    setAmountMin(params.get('min') || '');
+    setAmountMax(params.get('max') || '');
+    setDateStart(params.get('start') || '');
+    setDateEnd(params.get('end') || '');
+    setPatientTerm(params.get('patient') || '');
+    setCreatorScope((params.get('creator') as 'any' | 'me') || 'any');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    const fetchCurrentProfile = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        const { data: profile } = await (supabase as any)
+          .from('profiles')
+          .select('id')
+          .eq('user_id', user.id)
+          .single();
+        if (profile?.id) setMyProfileId(profile.id);
+      } catch (e) { /* noop */ }
+    };
+    fetchCurrentProfile();
+  }, []);
 
   useEffect(() => {
     fetchPaymentRequests();
-  }, [dentistId]);
+    // Update query params without reload
+    const params = new URLSearchParams();
+    if (statusFilter) params.set('status', statusFilter);
+    if (query) params.set('q', query);
+    if (amountMin) params.set('min', amountMin);
+    if (amountMax) params.set('max', amountMax);
+    if (dateStart) params.set('start', dateStart);
+    if (dateEnd) params.set('end', dateEnd);
+    if (patientTerm) params.set('patient', patientTerm);
+    if (creatorScope && creatorScope !== 'any') params.set('creator', creatorScope);
+    navigate({ search: params.toString() }, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dentistId, statusFilter, query, amountMin, amountMax, dateStart, dateEnd, patientTerm, creatorScope, myProfileId]);
 
   const fetchPaymentRequests = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      let q: any = (supabase as any)
         .from('payment_requests')
         .select('*')
-        .eq('dentist_id', dentistId)
-        .order('created_at', { ascending: false });
-
+        .eq('dentist_id', dentistId);
+      if (statusFilter) q = q.eq('status', statusFilter);
+      if (query) q = q.ilike('description', `%${query}%`);
+      if (patientTerm) q = q.ilike('patient_email', `%${patientTerm}%`);
+      if (amountMin) q = q.gte('amount', Math.round(Number(amountMin) * 100));
+      if (amountMax) q = q.lte('amount', Math.round(Number(amountMax) * 100));
+      if (dateStart) q = q.gte('created_at', new Date(dateStart).toISOString());
+      if (dateEnd) {
+        const end = new Date(dateEnd);
+        end.setHours(23, 59, 59, 999);
+        q = q.lte('created_at', end.toISOString());
+      }
+      if (creatorScope === 'me' && myProfileId) q = q.eq('created_by', myProfileId);
+      const { data, error } = await q.order('created_at', { ascending: false });
       if (error) throw error;
       setPaymentRequests(data || []);
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: "Failed to load payment requests",
-        variant: "destructive",
-      });
+      toast({ title: 'Error', description: 'Failed to load payment requests', variant: 'destructive' });
     } finally {
       setLoading(false);
     }
@@ -59,6 +128,10 @@ export const PaymentRequestManager: React.FC<PaymentRequestManagerProps> = ({ de
     switch (status) {
       case 'paid':
         return <CheckCircle className="h-4 w-4 text-green-500" />;
+      case 'overdue':
+        return <Clock className="h-4 w-4 text-red-500" />;
+      case 'failed':
+        return <XCircle className="h-4 w-4 text-red-500" />;
       case 'cancelled':
         return <XCircle className="h-4 w-4 text-red-500" />;
       default:
@@ -67,17 +140,8 @@ export const PaymentRequestManager: React.FC<PaymentRequestManagerProps> = ({ de
   };
 
   const getStatusBadge = (status: string) => {
-    const variants = {
-      pending: 'default',
-      paid: 'secondary',
-      cancelled: 'destructive',
-    } as const;
-
-    const colors = {
-      pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-      paid: 'bg-green-100 text-green-800 border-green-200',
-      cancelled: 'bg-red-100 text-red-800 border-red-200',
-    } as const;
+    const variants = { pending: 'default', paid: 'secondary', cancelled: 'destructive', overdue: 'destructive', failed: 'destructive', sent: 'default', draft: 'outline' } as const;
+    const colors = { pending: 'bg-yellow-100 text-yellow-800 border-yellow-200', paid: 'bg-green-100 text-green-800 border-green-200', cancelled: 'bg-red-100 text-red-800 border-red-200', overdue: 'bg-red-100 text-red-800 border-red-200', failed: 'bg-red-100 text-red-800 border-red-200', sent: 'bg-blue-100 text-blue-800 border-blue-200', draft: 'bg-gray-100 text-gray-800 border-gray-200' } as const;
 
     return (
       <Badge 
@@ -91,6 +155,59 @@ export const PaymentRequestManager: React.FC<PaymentRequestManagerProps> = ({ de
 
   const formatAmount = (amount: number) => {
     return `€${(amount / 100).toFixed(2)}`;
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const copy = new Set(prev);
+      if (copy.has(id)) copy.delete(id); else copy.add(id);
+      return copy;
+    });
+  };
+
+  const sendReminders = async () => {
+    if (selectedIds.size === 0) return;
+    const ids = Array.from(selectedIds);
+    try {
+      const { data, error } = await supabase.functions.invoke('send-payment-reminder', {
+        body: { payment_request_ids: ids, template_key: 'friendly' }
+      });
+      if (error) throw error;
+      toast({ title: 'Reminders queued', description: 'Emails are being sent.' });
+      setSelectedIds(new Set());
+      // Refresh
+      fetchPaymentRequests();
+    } catch (e) {
+      toast({ title: 'Error', description: 'Failed to send reminders', variant: 'destructive' });
+    }
+  };
+
+  const markPaid = async () => {
+    if (selectedIds.size === 0) return;
+    const ids = Array.from(selectedIds);
+    try {
+      const { error } = await supabase
+        .from('payment_requests')
+        .update({ status: 'paid', paid_at: new Date().toISOString() })
+        .in('id', ids);
+      if (error) throw error;
+      toast({ title: 'Marked as paid' });
+      setSelectedIds(new Set());
+      fetchPaymentRequests();
+    } catch (e) {
+      toast({ title: 'Error', description: 'Failed to mark paid', variant: 'destructive' });
+    }
+  };
+
+  const exportCsv = () => {
+    const rows = paymentRequests.map((r) => ({ id: r.id, patient_email: r.patient_email, amount: (r.amount/100).toFixed(2), status: r.status, created_at: r.created_at }));
+    const header = Object.keys(rows[0] || { id: '', patient_email: '', amount: '', status: '', created_at: '' });
+    const csv = [header.join(','), ...rows.map((r) => header.map((k) => (r as any)[k]).join(','))].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'payments.csv'; a.click();
+    URL.revokeObjectURL(url);
   };
 
   if (loading) {
@@ -110,14 +227,48 @@ export const PaymentRequestManager: React.FC<PaymentRequestManagerProps> = ({ de
           <h2 className="text-2xl sm:text-3xl font-bold text-dental-primary mb-2">Payment Requests</h2>
           <p className="text-sm sm:text-base text-dental-text/70">Manage and track patient payment requests</p>
         </div>
-        <Button 
-          onClick={() => setShowForm(true)}
-          size="lg"
-          className="h-12 px-6 rounded-xl bg-gradient-to-r from-dental-accent to-dental-accent/80 hover:from-dental-accent/90 hover:to-dental-accent/70 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-        >
-          <Plus className="h-5 w-5 mr-2" />
-          New Payment Request
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={() => setShowWizard(true)} size="lg" className="h-12 px-6 rounded-xl bg-gradient-to-r from-dental-accent to-dental-accent/80 hover:from-dental-accent/90 hover:to-dental-accent/70 text-white font-semibold shadow-lg hover:shadow-xl transition-all"> 
+            <Plus className="h-5 w-5 mr-2" /> New Payment
+          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="lg" className="h-12"><MoreHorizontal className="h-5 w-5" /></Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={sendReminders}><Send className="h-4 w-4 mr-2" />Send reminders</DropdownMenuItem>
+              <DropdownMenuItem onClick={markPaid}><Check className="h-4 w-4 mr-2" />Mark paid</DropdownMenuItem>
+              <DropdownMenuItem onClick={exportCsv}><FileDown className="h-4 w-4 mr-2" />Export CSV</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-col sm:flex-row gap-3 items-center">
+          <div className="relative w-full sm:w-64">
+            <Input placeholder="Search description" value={query} onChange={(e) => setQuery(e.target.value)} />
+            <Search className="h-4 w-4 absolute right-2 top-3 text-muted-foreground" />
+          </div>
+          <select className="border rounded-md p-2" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+            <option value="">All statuses</option>
+            {['draft','sent','pending','paid','overdue','failed','cancelled'].map((s) => <option key={s} value={s}>{s}</option>)}
+          </select>
+          <div className="relative w-full sm:w-64">
+            <Input placeholder="Patient email" value={patientTerm} onChange={(e) => setPatientTerm(e.target.value)} />
+          </div>
+          <select className="border rounded-md p-2" value={creatorScope} onChange={(e) => setCreatorScope(e.target.value as any)}>
+            <option value="any">Any creator</option>
+            <option value="me">Created by me</option>
+          </select>
+        </div>
+        <div className="flex flex-col sm:flex-row gap-3 items-center">
+          <Input className="w-full sm:w-40" placeholder="Min €" type="number" min={0} step="0.01" value={amountMin} onChange={(e) => setAmountMin(e.target.value)} />
+          <Input className="w-full sm:w-40" placeholder="Max €" type="number" min={0} step="0.01" value={amountMax} onChange={(e) => setAmountMax(e.target.value)} />
+          <Input className="w-full sm:w-48" type="date" value={dateStart} onChange={(e) => setDateStart(e.target.value)} />
+          <Input className="w-full sm:w-48" type="date" value={dateEnd} onChange={(e) => setDateEnd(e.target.value)} />
+        </div>
       </div>
 
       {showForm && (
@@ -130,6 +281,10 @@ export const PaymentRequestManager: React.FC<PaymentRequestManagerProps> = ({ de
             }}
           />
         </div>
+      )}
+
+      {showWizard && (
+        <PaymentWizard dentistId={dentistId} isOpen={showWizard} onClose={() => { setShowWizard(false); fetchPaymentRequests(); }} />
       )}
 
       <div className="grid gap-6">
@@ -171,12 +326,63 @@ export const PaymentRequestManager: React.FC<PaymentRequestManagerProps> = ({ de
                     </div>
                   </div>
                   <div className="flex items-center space-x-4">
+                    <input type="checkbox" checked={selectedIds.has(request.id)} onChange={() => toggleSelect(request.id)} />
                     <div className="text-right">
                       <p className="font-bold text-2xl text-dental-primary mb-3">{formatAmount(request.amount)}</p>
                       {getStatusBadge(request.status)}
+                      <div className="mt-2 flex gap-2 opacity-80">
+                        <Button variant="outline" size="sm" onClick={async () => {
+                          const willExpand = !expanded[request.id];
+                          setExpanded((prev) => ({ ...prev, [request.id]: willExpand }));
+                          if (willExpand) {
+                            const [itemsRes, remRes] = await Promise.all([
+                              (supabase as any).from('payment_items').select('*').eq('payment_request_id', request.id),
+                              (supabase as any).from('payment_reminders').select('*').eq('payment_request_id', request.id).order('created_at', { ascending: false })
+                            ]);
+                            if (!itemsRes.error) setItemsById((m) => ({ ...m, [request.id]: itemsRes.data || [] }));
+                            if (!remRes.error) setRemindersById((m) => ({ ...m, [request.id]: remRes.data || [] }));
+                          }
+                        }}>View</Button>
+                        <Button variant="outline" size="sm" onClick={() => {
+                          supabase.functions.invoke('send-payment-reminder', { body: { payment_request_ids: [request.id], template_key: 'friendly' } }).then(() => toast({ title: 'Reminder sent' })).catch(() => toast({ title: 'Error', description: 'Failed to send reminder', variant: 'destructive' }));
+                        }}>Resend</Button>
+                        <Button variant="outline" size="sm" onClick={() => {
+                          supabase.from('payment_requests').update({ status: 'cancelled' }).eq('id', request.id).then(({ error }) => {
+                            if (error) throw error; toast({ title: 'Cancelled' }); fetchPaymentRequests();
+                          }).catch(() => toast({ title: 'Error', description: 'Failed to cancel', variant: 'destructive' }));
+                        }}>Cancel</Button>
+                      </div>
                     </div>
                   </div>
                 </div>
+                {expanded[request.id] && (
+                  <div className="mt-4 border-t pt-4 text-sm">
+                    <div className="mb-2 font-medium">Items</div>
+                    <div className="space-y-1">
+                      {(itemsById[request.id] || []).map((it) => (
+                        <div key={it.id} className="flex justify-between">
+                          <div>{it.code ? `[${it.code}] ` : ''}{it.description} × {it.quantity}</div>
+                          <div>€{((it.quantity * it.unit_price_cents + it.tax_cents)/100).toFixed(2)}</div>
+                        </div>
+                      ))}
+                      {(!itemsById[request.id] || itemsById[request.id].length === 0) && (
+                        <div className="text-muted-foreground">No items added</div>
+                      )}
+                    </div>
+                    <div className="mt-4 mb-2 font-medium">Reminder log</div>
+                    <div className="space-y-1">
+                      {(remindersById[request.id] || []).map((r) => (
+                        <div key={r.id} className="flex justify-between">
+                          <div>{r.template_key} via {r.channel}</div>
+                          <div>{r.status} · {new Date(r.created_at).toLocaleString()}</div>
+                        </div>
+                      ))}
+                      {(!remindersById[request.id] || remindersById[request.id].length === 0) && (
+                        <div className="text-muted-foreground">No reminders yet</div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           ))
