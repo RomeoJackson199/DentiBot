@@ -174,8 +174,8 @@ const Claim = () => {
       // Telemetry after sign-in
       await emitAnalyticsEvent('CLAIM_PASSWORD_CREATED', 'unknown', {});
 
-      // Navigate to dashboard; ProfileCompletionDialog will handle missing fields
-      navigate("/dashboard", { replace: true });
+      // Navigate to Clinical dashboard; ProfileCompletionDialog will handle missing fields
+      navigate("/clinical", { replace: true });
     } catch (_err) {
       setErrorMessage("Unable to complete account claim. Please try again.");
       setStep("error");

@@ -21,7 +21,7 @@ export function RecallBanner({ recall }: RecallBannerProps) {
 				</div>
 				<div className="flex gap-2">
 					<Button onClick={() => navigate(`/recalls/${recall.id}`)}>Book suggested slot</Button>
-					<Button variant="outline" onClick={() => navigate('/dashboard#appointments')}>See other times</Button>
+					<Button variant="outline" onClick={() => navigate('/clinical/appointments')}>See other times</Button>
 					<Button variant="ghost" onClick={() => navigate(`/recalls/${recall.id}`)}>Remind me later</Button>
 				</div>
 			</CardContent>

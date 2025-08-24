@@ -140,7 +140,7 @@ export function DentistDashboard({ user, asPage }: DentistDashboardProps & { asP
           <PageHeader
             title="Denti Dashboard"
             subtitle="Dentist Portal"
-            breadcrumbs={[{ label: "Clinical", href: "/dashboard" }, { label: "Dashboard" }]}
+            breadcrumbs={[{ label: "Clinical", href: "/clinical" }, { label: "Dashboard" }]}
           />
         </div>
       )}

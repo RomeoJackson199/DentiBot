@@ -238,7 +238,7 @@ const Analytics = () => {
       <PageHeader
         title="Analytics"
         subtitle="Key performance and actions at a glance"
-        breadcrumbs={[{ label: "Business", href: "/dashboard" }, { label: "Analytics" }]}
+        breadcrumbs={[{ label: "Business", href: "/business/analytics" }, { label: "Analytics" }]}
       />
       <div className="flex items-center justify-end gap-3 mb-3">
           <Select value={timeRange} onValueChange={(v) => setTimeRange(v as typeof timeRange)}>

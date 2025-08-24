@@ -91,7 +91,7 @@ const Schedule = () => {
       <PageHeader
         title="Schedule"
         subtitle="Manage your appointments and availability"
-        breadcrumbs={[{ label: "Admin", href: "/dashboard" }, { label: "Schedule" }]}
+        breadcrumbs={[{ label: "Clinical", href: "/clinical" }, { label: "Schedule" }]}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

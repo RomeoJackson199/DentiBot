@@ -93,7 +93,7 @@ export const Header = ({
               </>
             ) : (
               <AppButton variant="outline" size="desktop" className="bg-white/10 backdrop-blur-sm border-white/20 text-dental-primary hover:bg-white/20" asChild>
-                <a href="/dashboard">
+                <a href="/clinical">
                   <Settings className="w-4 h-4 mr-2" />
                   {language === 'fr' ? 'Tableau de bord' : 'Dashboard'}
                 </a>

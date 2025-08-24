@@ -20,17 +20,53 @@ const seoMap: Record<string, { title: string; description: string; structuredDat
     title: "Find Dentists — Reviews, Expertise & Availability",
     description: "Browse dentist profiles with ratings and availability. Book the right expert for your dental needs.",
   },
-  "/dashboard": {
-    title: "Dashboard — Appointments, Tasks & Insights",
-    description: "Manage appointments, patients, and tasks with real-time insights and secure records.",
+  "/clinical": {
+    title: "Clinical Dashboard — Today’s Patients & Tasks",
+    description: "Daily clinical overview with patients, schedule, and appointments.",
   },
-  "/analytics": {
+  "/clinical/schedule": {
+    title: "Schedule — Smart Calendar & Availability",
+    description: "Plan efficiently with smart scheduling, slots, and availability management.",
+  },
+  "/clinical/patients": {
+    title: "Patients — Profiles & Care",
+    description: "Manage patient data, histories, and care tasks.",
+  },
+  "/clinical/appointments": {
+    title: "Appointments — Manage & Complete",
+    description: "View, manage, and complete today’s appointments.",
+  },
+  "/business/analytics": {
     title: "Analytics — Practice Performance & Trends",
     description: "Track practice KPIs, patient trends, and revenue insights in one place.",
   },
-  "/schedule": {
-    title: "Schedule — Smart Calendar & Availability",
-    description: "Plan efficiently with smart scheduling, slots, and availability management.",
+  "/business/payments": {
+    title: "Payments — Requests & Overdues",
+    description: "Create, track, and reconcile patient payment requests.",
+  },
+  "/business/reports": {
+    title: "Reports — Operational & Financial",
+    description: "Generate and view business and operational reports.",
+  },
+  "/ops/inventory": {
+    title: "Inventory — Stock & Alerts",
+    description: "Monitor stock levels, thresholds, and low-stock alerts.",
+  },
+  "/ops/imports": {
+    title: "Imports — Data Uploads",
+    description: "Import patients, appointments, or inventory via CSV.",
+  },
+  "/admin/schedule": {
+    title: "Schedule Settings — Availability & Vacations",
+    description: "Configure clinic hours, breaks, and vacation days.",
+  },
+  "/admin/branding": {
+    title: "Branding & Localization — Clinic Identity",
+    description: "Manage clinic branding, languages, and localization.",
+  },
+  "/admin/security": {
+    title: "Security — Access & Auditing",
+    description: "Security diagnostics and access controls.",
   },
   "/support": {
     title: "Support — Help & Documentation",

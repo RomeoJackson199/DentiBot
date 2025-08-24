@@ -107,7 +107,7 @@ export const PaymentRequestForm: React.FC<PaymentRequestFormProps> = ({
             title: 'Payment Request',
             message: `You have a payment request for €${amount} - ${description}`,
             priority: 'high',
-            action_url: data.payment_url || '/dashboard?tab=payments',
+            action_url: data.payment_url || '/business/payments',
             action_label: 'Pay Now',
             metadata: {
               payment_url: data.payment_url,
