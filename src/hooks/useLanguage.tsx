@@ -5,6 +5,7 @@ import {
   useEffect,
   ReactNode,
 } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 type Language = "en" | "fr" | "nl";
 
@@ -940,7 +941,7 @@ Comment puis-je vous aider aujourd'hui ?`,
     termsPrivacy:
       "Nous traitons vos données conformément à notre politique de confidentialité.",
     termsMedical:
-      "Consultez toujours un professionnel pour les problèmes médicaux sérieux.",
+      "Consultez toujours un professional pour les problèmes médicaux sérieux.",
 
     // Language selection
     selectPreferredLanguage: "Sélectionnez Votre Langue Préférée",
@@ -1018,7 +1019,7 @@ Comment puis-je vous aider aujourd'hui ?`,
     today: "Aujourd'hui",
     calendar: "Calendrier",
     list: "Liste",
-    history: "Historique",
+    history: "Geschiedenis",
     cancelled: "Annulé",
 
     // Dentist Dashboard
@@ -1434,6 +1435,25 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
     ) as Language;
     if (savedLanguage && ["en", "fr", "nl"].includes(savedLanguage)) {
       setLanguage(savedLanguage);
+    }
+    // Fallback to profile language_preference
+    if (!savedLanguage) {
+      (async () => {
+        try {
+          const { data: user } = await supabase.auth.getUser();
+          const uid = user.data.user?.id;
+          if (!uid) return;
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('language_preference')
+            .eq('user_id', uid)
+            .maybeSingle();
+          const pref = (profile?.language_preference || 'en') as Language;
+          if (["en","fr","nl"].includes(pref)) {
+            setLanguage(pref);
+          }
+        } catch {}
+      })();
     }
   }, []);
 
