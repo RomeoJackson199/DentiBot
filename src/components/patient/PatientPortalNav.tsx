@@ -5,7 +5,8 @@ import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useLanguage } from "@/hooks/useLanguage";
-import { Home, Calendar, Pill, FileText, CreditCard, Folder, User, IdCard, Shield, HelpCircle, ChevronDown, MoreHorizontal, PanelLeft } from "lucide-react";
+import { Home, Calendar, Pill, FileText, CreditCard, Folder, User, IdCard, Shield, HelpCircle, ChevronDown, MoreHorizontal, PanelLeft, LogOut } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { usePatientBadgeCounts } from "@/hooks/usePatientBadges";
 import { cn } from "@/lib/utils";
 import { emitAnalyticsEvent } from "@/lib/analyticsEvents";
@@ -51,6 +52,13 @@ export function PatientPortalNav({ children }: { children: React.ReactNode }) {
   const [openGroupId, setOpenGroupId] = useState<string | null>(() => localStorage.getItem(STORAGE_KEYS.lastGroup));
   const [moreOpen, setMoreOpen] = useState(false);
   const [defaultOpen, setDefaultOpen] = useState(true);
+
+  const handleSignOut = async () => {
+    try {
+      await supabase.auth.signOut();
+      navigate("/");
+    } catch {}
+  };
 
   useEffect(() => {
     const cookieOpen = readSidebarCookie();
@@ -224,6 +232,9 @@ export function PatientPortalNav({ children }: { children: React.ReactNode }) {
       <SidebarFooter>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" className="flex-1 justify-start">EN/FR/NL</Button>
+          <Button variant="ghost" size="icon" onClick={handleSignOut} aria-label={t.signOut} title={t.signOut}>
+            <LogOut className="h-4 w-4" />
+          </Button>
           <SidebarTrigger className="h-8 w-8" aria-label="Collapse or expand sidebar" title="Collapse/Expand" />
         </div>
       </SidebarFooter>
@@ -289,7 +300,7 @@ export function PatientPortalNav({ children }: { children: React.ReactNode }) {
         <div className="flex-1">
           <div className="sticky top-0 z-40 bg-background/80 backdrop-blur border-b px-3 py-2 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <SidebarTrigger className="md:hidden" />
+              <SidebarTrigger />
               <Button
                 variant="outline"
                 size="sm"

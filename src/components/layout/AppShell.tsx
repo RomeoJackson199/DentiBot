@@ -460,6 +460,9 @@ export function AppShell() {
             >
               <Languages className="h-4 w-4 mr-2" />EN/FR/NL
             </Button>
+            <Button variant="ghost" size="icon" onClick={() => supabase.auth.signOut()} aria-label="Sign out" title="Sign out">
+              <LogOut className="h-4 w-4" />
+            </Button>
             <SidebarTrigger
               className="h-8 w-8"
               aria-label="Collapse or expand sidebar"
