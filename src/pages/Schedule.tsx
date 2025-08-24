@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Badge } from "@/components/ui/badge";
 import { CalendarDays, Clock, User, MapPin } from "lucide-react";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { format, addDays, startOfWeek, endOfWeek, eachDayOfInterval } from "date-fns";
 
 interface TimeSlot {
@@ -86,13 +87,12 @@ const Schedule = () => {
   };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Schedule Management</h1>
-        <p className="text-muted-foreground">
-          Manage your appointments and availability
-        </p>
-      </div>
+    <div className="p-3 md:p-4 max-w-7xl mx-auto">
+      <PageHeader
+        title="Schedule"
+        subtitle="Manage your appointments and availability"
+        breadcrumbs={[{ label: "Admin", href: "/dashboard" }, { label: "Schedule" }]}
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Calendar */}

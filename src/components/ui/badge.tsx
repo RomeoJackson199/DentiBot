@@ -42,3 +42,5 @@ function Badge({ className, variant, size, ...props }: BadgeProps) {
 }
 
 export { Badge, badgeVariants }
+
+// Tokens already define badge colors; keeping component as-is.

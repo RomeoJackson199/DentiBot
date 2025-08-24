@@ -17,6 +17,7 @@ import { SeoManager } from "./lib/seo";
 import { LazyLoadingWrapper } from "./components/optimized/LazyLoadingWrapper";
 import AuthCallbackHandler from "./components/AuthCallbackHandler";
 import { ModernLoadingSpinner } from "@/components/enhanced/ModernLoadingSpinner";
+import { AppShell } from "@/components/layout/AppShell";
 
 const Invite = lazy(() => import("./pages/Invite"));
 
@@ -131,7 +132,13 @@ const App = () => (
               <Suspense fallback={<ModernLoadingSpinner variant="overlay" message="Loading..." /> }>
               <Routes>
                 <Route path="/" element={<Index />} />
-                <Route path="/dashboard" element={<Dashboard />} />
+                {/* Authenticated app routes inside AppShell */}
+                <Route element={<AppShell />}>
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/schedule" element={<Schedule />} />
+                  <Route path="/analytics" element={<Analytics />} />
+                </Route>
+                {/* Public routes */}
                 <Route path="/emergency-triage" element={<EmergencyTriage />} />
                 <Route path="/dentists" element={<DentistProfiles />} />
                 <Route path="/terms" element={<Terms />} />
@@ -139,9 +146,6 @@ const App = () => (
                 <Route path="/about" element={<About />} />
                 <Route path="/payment-success" element={<PaymentSuccess />} />
                 <Route path="/payment-cancelled" element={<PaymentCancelled />} />
-                <Route path="/schedule" element={<Schedule />} />
-                {/* RecallDeepLink route removed - component doesn't exist */}
-                <Route path="/analytics" element={<Analytics />} />
                 <Route path="/support" element={<Support />} />
                 <Route path="/features/:id" element={<FeatureDetail />} />
                 <Route path="/language-test" element={<LanguageTest />} />

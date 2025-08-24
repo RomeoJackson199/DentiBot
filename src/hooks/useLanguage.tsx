@@ -306,6 +306,23 @@ interface Translations {
   dentiDashboard: string;
   dentistPortal: string;
   loadingDentistProfile: string;
+  // AppShell & Navigation
+  navClinical: string;
+  navBusiness: string;
+  navOperations: string;
+  navAdmin: string;
+  navDashboard: string;
+  navAppointments: string;
+  navPatients: string;
+  navPayments: string;
+  navAnalytics: string;
+  navInventory: string;
+  navImport: string;
+  navSchedule: string;
+  navSettings: string;
+  topSearch: string;
+  topClinic: string;
+  topProfile: string;
 }
 
 const translations: Record<Language, Translations> = {
@@ -646,6 +663,23 @@ How can I help you today?`,
     dentiDashboard: "Denti Dashboard",
     dentistPortal: "Dentist Portal",
     loadingDentistProfile: "Loading dentist profile...",
+    // AppShell & Navigation
+    navClinical: "Clinical",
+    navBusiness: "Business",
+    navOperations: "Operations",
+    navAdmin: "Admin",
+    navDashboard: "Dashboard",
+    navAppointments: "Appointments",
+    navPatients: "Patients",
+    navPayments: "Payments",
+    navAnalytics: "Analytics",
+    navInventory: "Inventory",
+    navImport: "Import",
+    navSchedule: "Schedule",
+    navSettings: "Settings",
+    topSearch: "Search",
+    topClinic: "Clinic",
+    topProfile: "Profile",
   },
   fr: {
     // Error & status messages
@@ -993,6 +1027,23 @@ Comment puis-je vous aider aujourd'hui ?`,
     dentiDashboard: "Tableau de Bord Denti",
     dentistPortal: "Portail Dentiste",
     loadingDentistProfile: "Chargement du profil dentiste...",
+    // AppShell & Navigation
+    navClinical: "Clinique",
+    navBusiness: "Business",
+    navOperations: "Opérations",
+    navAdmin: "Admin",
+    navDashboard: "Tableau de bord",
+    navAppointments: "Rendez-vous",
+    navPatients: "Patients",
+    navPayments: "Paiements",
+    navAnalytics: "Analytique",
+    navInventory: "Inventaire",
+    navImport: "Import",
+    navSchedule: "Planning",
+    navSettings: "Paramètres",
+    topSearch: "Rechercher",
+    topClinic: "Clinique",
+    topProfile: "Profil",
   },
   nl: {
     // Error & status messages
@@ -1336,6 +1387,23 @@ Hoe kan ik u vandaag helpen?`,
     dentiDashboard: "Denti Dashboard",
     dentistPortal: "Tandarts Portaal",
     loadingDentistProfile: "Tandartsprofiel laden...",
+    // AppShell & Navigation
+    navClinical: "Klinisch",
+    navBusiness: "Zakelijk",
+    navOperations: "Operaties",
+    navAdmin: "Beheer",
+    navDashboard: "Dashboard",
+    navAppointments: "Afspraken",
+    navPatients: "Patiënten",
+    navPayments: "Betalingen",
+    navAnalytics: "Analytics",
+    navInventory: "Voorraad",
+    navImport: "Import",
+    navSchedule: "Schema",
+    navSettings: "Instellingen",
+    topSearch: "Zoeken",
+    topClinic: "Kliniek",
+    topProfile: "Profiel",
   },
 };
 

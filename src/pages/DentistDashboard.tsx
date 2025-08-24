@@ -15,6 +15,7 @@ import { InventoryManager } from "@/components/inventory/InventoryManager";
 import { LogOut, Settings as SettingsIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { useToast } from "@/hooks/use-toast";
 import { ClinicalToday } from "@/components/ClinicalToday";
 // Messaging functionality removed
@@ -29,7 +30,7 @@ interface DentistDashboardProps {
   user: User;
 }
 
-export function DentistDashboard({ user }: DentistDashboardProps) {
+export function DentistDashboard({ user, asPage }: DentistDashboardProps & { asPage?: boolean }) {
   const [activeTab, setActiveTab] = useState<'clinical' | 'patients' | 'payments' | 'analytics' | 'availability' | 'manage' | 'debug' | 'inventory' | 'recalls' | 'import'>('clinical');
   const [dentistId, setDentistId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -134,62 +135,15 @@ export function DentistDashboard({ user }: DentistDashboardProps) {
     <>
       <MobileOptimizations />
       <ChangelogPopup isOpen={showChangelog} onClose={() => setShowChangelog(false)} />
-      
-      <header className="hidden lg:block sticky top-0 z-50 bg-background/95 backdrop-blur-lg border-b">
-        <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <div className="relative">
-              <div className="p-3 rounded-xl bg-gradient-primary shadow-lg">
-                <SettingsIcon className="h-6 w-6 text-white" />
-              </div>
-            </div>
-            <div>
-              <h1 className="text-xl font-bold">Denti Dashboard</h1>
-              <p className="text-sm text-muted-foreground">Dentist Portal</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <ModernNotificationCenter userId={user.id} />
-            <Button
-              variant="outline"
-              onClick={handleSignOut}
-              className="border-destructive/20 text-destructive hover:bg-destructive/10"
-            >
-              <LogOut className="h-4 w-4 mr-2" />
-              Sign Out
-            </Button>
-          </div>
+      {asPage && (
+        <div className="p-3 md:p-4">
+          <PageHeader
+            title="Denti Dashboard"
+            subtitle="Dentist Portal"
+            breadcrumbs={[{ label: "Clinical", href: "/dashboard" }, { label: "Dashboard" }]}
+          />
         </div>
-      </header>
-
-      {/* Mobile-optimized header */}
-      <header className="lg:hidden sticky top-0 z-50 bg-background/95 backdrop-blur-lg border-b">
-        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="relative">
-              <div className="p-2 rounded-xl bg-gradient-primary shadow-lg">
-                <SettingsIcon className="h-5 w-5 text-white" />
-              </div>
-            </div>
-            <div>
-              <h1 className="text-lg font-bold gradient-text">Denti Dashboard</h1>
-              <p className="text-xs text-muted-foreground">Dentist Portal</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <ModernNotificationCenter userId={user.id} className="h-8 w-8" />
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleSignOut}
-              className="border-destructive/20 text-destructive hover:bg-destructive/10"
-            >
-              <LogOut className="h-4 w-4 mr-1" />
-              <span className="hidden sm:inline">Sign Out</span>
-            </Button>
-          </div>
-        </div>
-      </header>
+      )}
 
       <MobileDentistTabs
         activeTab={activeTab}
