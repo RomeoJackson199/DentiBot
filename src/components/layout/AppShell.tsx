@@ -9,6 +9,7 @@ import {
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarHeader,
+  SidebarInput,
   SidebarInset,
   SidebarMenu,
   SidebarMenuAction,
@@ -54,6 +55,8 @@ import {
   ChevronDown,
   Home,
   PanelLeft,
+  Tooth,
+  Plus,
   LogOut,
 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -394,20 +397,56 @@ export function AppShell() {
 
   return (
     <SidebarProvider defaultOpen={defaultOpen}>
-      <Sidebar collapsible={isMobile ? "offcanvas" : "icon"}>
-        <SidebarHeader className="px-2 py-3">
+      <Sidebar variant="floating" collapsible={isMobile ? "offcanvas" : "icon"}>
+        <SidebarHeader className="px-3 py-3">
           <div className="flex items-center gap-2 px-1">
-            <span className="inline-flex h-7 w-7 items-center justify-center rounded-[var(--radius-pill)] bg-[hsl(var(--brand-100))] text-[hsl(var(--brand-600))] font-semibold">D</span>
-            <span className="font-semibold">Dentibot</span>
+            <div className="h-8 w-8 rounded-lg bg-[hsl(var(--brand-600))] text-white flex items-center justify-center font-semibold shadow-sm">D</div>
+            <div className="leading-tight">
+              <div className="font-semibold">Dentist</div>
+              <div className="text-xs text-muted-foreground">Dashboard</div>
+            </div>
+          </div>
+          <div className="mt-2">
+            <SidebarInput placeholder="Search…" aria-label="Search" />
           </div>
         </SidebarHeader>
         <SidebarContent>
+          {/* Quick Actions */}
+          <SidebarGroup className="px-2">
+            <div className="grid grid-cols-2 gap-2">
+              <SidebarMenuButton
+                size="sm"
+                variant="outline"
+                onClick={() => handleNav("/clinical/schedule")}
+                aria-label={t.navSchedule}
+              >
+                <Calendar className="h-4 w-4" />
+                <span>{t.navSchedule}</span>
+              </SidebarMenuButton>
+              <SidebarMenuButton
+                size="sm"
+                variant="outline"
+                onClick={() => handleNav("/clinical/patients")}
+                aria-label={t.navPatients}
+              >
+                <Users className="h-4 w-4" />
+                <span>{t.navPatients}</span>
+              </SidebarMenuButton>
+            </div>
+          </SidebarGroup>
+          <SidebarSeparator />
           <nav aria-label="Primary" onKeyDown={onKeyDownNav} ref={navRef}>
             {groups.map((group) => (
               <section key={group.id} aria-labelledby={`group-${group.id}`}>
                 <SidebarGroup>
                   <SidebarGroupLabel className="flex items-center justify-between pr-8" role="button" tabIndex={0} aria-expanded={!!openGroups[group.id]} aria-controls={`group-content-${group.id}`} onClick={() => toggleGroup(group.id)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleGroup(group.id); } }}>
-                    <span id={`group-${group.id}`}>{group.label}</span>
+                    <span className="flex items-center gap-2" id={`group-${group.id}`}>
+                      {group.id === "clinical" && <Stethoscope className="h-4 w-4" />}
+                      {group.id === "business" && <BarChart3 className="h-4 w-4" />}
+                      {group.id === "operations" && <Boxes className="h-4 w-4" />}
+                      {group.id === "admin" && <Shield className="h-4 w-4" />}
+                      <span>{group.label}</span>
+                    </span>
                     <SidebarGroupAction aria-hidden="true">
                       <ChevronDown className={cn("h-4 w-4 transition-transform", openGroups[group.id] ? "rotate-0" : "-rotate-90")} />
                     </SidebarGroupAction>
@@ -431,7 +470,7 @@ export function AppShell() {
                             : `Group: ${group.label}, item: ${item.label}.`;
                           return (
                             <SidebarMenuItem key={item.id}>
-                              <SidebarMenuButton data-group-id={group.id} tooltip={item.label} isActive={active} aria-label={ariaLabel} onClick={() => handleNav(item.to)}>
+                              <SidebarMenuButton data-group-id={group.id} tooltip={item.label} isActive={active} aria-label={ariaLabel} onClick={() => handleNav(item.to)} className="rounded-md">
                                 {item.icon}
                                 <span>{item.label}</span>
                               </SidebarMenuButton>
