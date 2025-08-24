@@ -1,13 +1,17 @@
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 /**
  * Processes Supabase auth callback parameters then cleans the URL.
  * - Handles PKCE code exchange (?code=...)
  * - Handles implicit hash fragments (#access_token=...)
+ * - Links Google OAuth users to existing imported profiles
  * - Removes query/hash from the URL after processing
  */
 export const AuthCallbackHandler = () => {
+  const { toast } = useToast();
+
   useEffect(() => {
     const processAuthCallback = async () => {
       const currentUrl = new URL(window.location.href);
@@ -28,12 +32,14 @@ export const AuthCallbackHandler = () => {
       };
 
       try {
+        let authProcessed = false;
+
         if (hasPkceCode) {
           // PKCE callback: exchange code for a session
           await supabase.auth.exchangeCodeForSession(window.location.href);
+          authProcessed = true;
           // Remove the code and other params from the URL entirely
           cleanupUrl(true);
-          return;
         }
 
         if (hasImplicitHash) {
@@ -44,6 +50,7 @@ export const AuthCallbackHandler = () => {
 
           if (access_token && refresh_token) {
             await supabase.auth.setSession({ access_token, refresh_token });
+            authProcessed = true;
           } else {
             // Fallback: trigger internal detection if available
             await supabase.auth.getSession();
@@ -51,6 +58,54 @@ export const AuthCallbackHandler = () => {
 
           // Remove the hash portion from the URL (keep any non-auth search params)
           cleanupUrl(false);
+        }
+
+        // If we processed authentication, check for profile linking
+        if (authProcessed) {
+          setTimeout(async () => {
+            try {
+              const { data: { session } } = await supabase.auth.getSession();
+              
+              if (session?.user?.email) {
+                const email = session.user.email;
+                
+                // Check if this user has an imported profile to claim
+                const { data: existingProfile } = await supabase
+                  .from('profiles')
+                  .select('*')
+                  .eq('email', email)
+                  .is('user_id', null)
+                  .maybeSingle();
+
+                if (existingProfile) {
+                  // Link the auth user to the existing imported profile
+                  const { error: linkError } = await supabase
+                    .from('profiles')
+                    .update({ 
+                      user_id: session.user.id,
+                      profile_completion_status: 'incomplete'
+                    })
+                    .eq('id', existingProfile.id);
+
+                  if (!linkError) {
+                    // Remove any auto-created profile to avoid duplicates
+                    await supabase
+                      .from('profiles')
+                      .delete()
+                      .eq('user_id', session.user.id)
+                      .neq('id', existingProfile.id);
+
+                    toast({
+                      title: "Profile Linked",
+                      description: "Your imported clinic profile has been linked to your account.",
+                    });
+                  }
+                }
+              }
+            } catch (error) {
+              console.error("Profile linking error:", error);
+            }
+          }, 1000); // Small delay to ensure session is fully established
         }
       } catch (error) {
         console.error("Auth callback processing failed:", error);
@@ -62,7 +117,7 @@ export const AuthCallbackHandler = () => {
     };
 
     processAuthCallback();
-  }, []);
+  }, [toast]);
 
   return null;
 };

@@ -178,6 +178,22 @@ export const AuthForm = ({ compact = false }: AuthFormProps) => {
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
     try {
+      // If we have an email in the form, check for existing profile first
+      if (formData.email) {
+        const existingProfile = await checkExistingProfile(formData.email);
+        if (existingProfile) {
+          toast({
+            title: "Profile Found",
+            description: `We found your profile from clinic records. Please use the claim flow instead.`,
+            variant: "default",
+          });
+          setExistingProfile(existingProfile);
+          setShowClaimFlow(true);
+          setIsLoading(false);
+          return;
+        }
+      }
+
       const redirectUrl = `${window.location.origin}/`;
       
       const { error } = await supabase.auth.signInWithOAuth({
