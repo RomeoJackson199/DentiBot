@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate, Outlet } from "react-router-dom";
 import {
   Sidebar,
@@ -35,17 +35,19 @@ import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { useTheme } from "next-themes";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  Activity,
+  Stethoscope,
   Calendar,
   Users,
-  CreditCard,
+  Clock,
+  Wallet,
   BarChart3,
+  FileBarChart,
   Boxes,
   Upload,
-  Settings,
-  Paintbrush,
-  Languages,
+  CalendarCog,
+  Globe,
   Shield,
+  Languages,
   Search,
   Building2,
   Bell,
@@ -54,8 +56,21 @@ import {
 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { emitAnalyticsEvent } from "@/lib/analyticsEvents";
+import { useCurrentDentist } from "@/hooks/useCurrentDentist";
 
-const LAST_GROUP_KEY = "sidebar:last-group";
+const STORAGE = {
+  lastItem: "dnav:last-item",
+  openGroups: "dnav:open-groups",
+};
+
+function readSidebarCookie(): boolean {
+  try {
+    const match = document.cookie.match(/(?:^|; )sidebar:state=([^;]+)/);
+    if (match) return match[1] === "true";
+  } catch {}
+  return true;
+}
 
 type NavItem = {
   label: string;
@@ -63,6 +78,7 @@ type NavItem = {
   to: string;
   badge?: string | number;
   isActive?: (path: string) => boolean;
+  id: string;
 };
 
 type NavGroup = {
@@ -179,57 +195,167 @@ export function AppShell() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const { t } = useLanguage();
+  const { dentistId, userId } = useCurrentDentist();
 
   useScrollRestoration();
 
-  const [openGroupId, setOpenGroupId] = useState<string | null>(() => localStorage.getItem(LAST_GROUP_KEY));
-
+  // Default open: expanded on >=1024px, collapsed on 768–1023px, drawer on <768px handled by component
+  const [defaultOpen, setDefaultOpen] = useState(true);
   useEffect(() => {
-    if (openGroupId) localStorage.setItem(LAST_GROUP_KEY, openGroupId);
-  }, [openGroupId]);
+    const cookieOpen = readSidebarCookie();
+    const w = window.innerWidth;
+    const computed = w >= 1024 ? true : w >= 768 ? false : false;
+    setDefaultOpen(cookieOpen ?? computed);
+    try { emitAnalyticsEvent('nav_state_persisted', '', { collapsed: !cookieOpen }); } catch {}
+  }, []);
+
+  // Persisted open groups (multi-expand)
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE.openGroups);
+      return raw ? JSON.parse(raw) : { clinical: true };
+    } catch {
+      return { clinical: true };
+    }
+  });
+  useEffect(() => {
+    try { localStorage.setItem(STORAGE.openGroups, JSON.stringify(openGroups)); } catch {}
+  }, [openGroups]);
+
+  // Critical badges
+  const [paymentsOverdue, setPaymentsOverdue] = useState<number>(0);
+  const [inventoryLow, setInventoryLow] = useState<number>(0);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        if (!dentistId) return;
+        const { data: overdue } = await (supabase as any)
+          .from('payment_requests')
+          .select('id, status')
+          .eq('dentist_id', dentistId)
+          .eq('status', 'overdue');
+        const overdueCount = (overdue || []).length;
+        const { data: items } = await (supabase as any)
+          .from('inventory_items')
+          .select('quantity, min_threshold')
+          .eq('dentist_id', dentistId);
+        const lowCount = (items || []).filter((i: any) => (i.quantity ?? 0) < (i.min_threshold ?? 0)).length;
+        if (!cancelled) {
+          setPaymentsOverdue(overdueCount);
+          setInventoryLow(lowCount);
+        }
+      } catch {}
+    })();
+    return () => { cancelled = true; };
+  }, [dentistId]);
 
   const groups: NavGroup[] = useMemo(() => [
     {
       id: "clinical",
       label: t.navClinical,
       items: [
-        { label: t.navDashboard, icon: <Activity className="h-4 w-4" />, to: "/dashboard", isActive: p => p.startsWith("/dashboard") && !p.includes("#appointments") },
-        { label: t.navAppointments, icon: <Calendar className="h-4 w-4" />, to: "/schedule" },
-        { label: t.navPatients, icon: <Users className="h-4 w-4" />, to: "/dashboard#patients" },
+        { id: 'clinical-dashboard', label: t.navDashboard, icon: <Stethoscope className="h-4 w-4" />, to: "/clinical" },
+        { id: 'clinical-schedule', label: t.navSchedule, icon: <Calendar className="h-4 w-4" />, to: "/clinical/schedule" },
+        { id: 'clinical-patients', label: t.navPatients, icon: <Users className="h-4 w-4" />, to: "/clinical/patients" },
+        { id: 'clinical-appointments', label: t.navAppointments, icon: <Clock className="h-4 w-4" />, to: "/clinical/appointments" },
       ],
     },
     {
       id: "business",
       label: t.navBusiness,
       items: [
-        { label: t.navPayments, icon: <CreditCard className="h-4 w-4" />, to: "/dashboard#payments" },
-        { label: t.navAnalytics, icon: <BarChart3 className="h-4 w-4" />, to: "/analytics" },
+        { id: 'business-payments', label: t.navPayments, icon: <Wallet className="h-4 w-4" />, to: "/business/payments", badge: paymentsOverdue || undefined },
+        { id: 'business-analytics', label: t.navAnalytics, icon: <BarChart3 className="h-4 w-4" />, to: "/business/analytics" },
+        { id: 'business-reports', label: 'Reports', icon: <FileBarChart className="h-4 w-4" />, to: "/business/reports" },
       ],
     },
     {
       id: "operations",
       label: t.navOperations,
       items: [
-        { label: t.navInventory, icon: <Boxes className="h-4 w-4" />, to: "/dashboard#inventory" },
-        { label: t.navImport, icon: <Upload className="h-4 w-4" />, to: "/dashboard#import" },
+        { id: 'ops-inventory', label: t.navInventory, icon: <Boxes className="h-4 w-4" />, to: "/ops/inventory", badge: inventoryLow || undefined },
+        { id: 'ops-imports', label: t.navImport, icon: <Upload className="h-4 w-4" />, to: "/ops/imports" },
       ],
     },
     {
       id: "admin",
       label: t.navAdmin,
       items: [
-        { label: t.navSchedule, icon: <Calendar className="h-4 w-4" />, to: "/schedule" },
-        { label: t.navSettings, icon: <Settings className="h-4 w-4" />, to: "/settings?section=branding" },
+        { id: 'admin-schedule', label: t.navSchedule + " Settings", icon: <CalendarCog className="h-4 w-4" />, to: "/admin/schedule" },
+        { id: 'admin-branding', label: 'Branding & Localization', icon: <Globe className="h-4 w-4" />, to: "/admin/branding" },
+        { id: 'admin-security', label: 'Security', icon: <Shield className="h-4 w-4" />, to: "/admin/security" },
       ],
     },
-  ], []);
+  ], [t, paymentsOverdue, inventoryLow]);
 
   const handleNav = (to: string) => {
+    try { localStorage.setItem(STORAGE.lastItem, to); } catch {}
+    try { emitAnalyticsEvent('nav_click', '', { role: 'dentist', path: to, group: groups.find(g => g.items.some(i => i.to === to))?.id }); } catch {}
     navigate(to);
   };
 
+  const toggleGroup = (groupId: string) => {
+    setOpenGroups(prev => {
+      const next = { ...prev, [groupId]: !prev[groupId] };
+      try { localStorage.setItem(STORAGE.openGroups, JSON.stringify(next)); } catch {}
+      try { emitAnalyticsEvent('nav_toggle_group', '', { group: groupId, expanded: !!next[groupId] }); } catch {}
+      return next;
+    });
+  };
+
+  // Deep-linking auto-expand
+  useEffect(() => {
+    const full = location.pathname + location.search + location.hash;
+    for (const g of groups) {
+      if (g.items.some(i => full.startsWith(i.to))) {
+        setOpenGroups(prev => ({ ...prev, [g.id]: true }));
+      }
+    }
+    // Special case: overdue payments query
+    const params = new URLSearchParams(location.search);
+    if (location.pathname.startsWith('/business/payments') && params.get('status') === 'overdue') {
+      setOpenGroups(prev => ({ ...prev, business: true }));
+    }
+  }, [location.pathname, location.search]);
+
+  // Keyboard navigation within nav
+  const navRef = useRef<HTMLDivElement | null>(null);
+  const onKeyDownNav = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    const container = navRef.current;
+    if (!container) return;
+    const buttons = Array.from(container.querySelectorAll<HTMLButtonElement>("[data-sidebar='menu-button']"));
+    const activeEl = document.activeElement as HTMLElement | null;
+    const index = buttons.findIndex(b => b === activeEl);
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      const next = buttons[Math.min(buttons.length - 1, index + 1)] || buttons[0];
+      next?.focus();
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      const prev = buttons[Math.max(0, index - 1)] || buttons[buttons.length - 1];
+      prev?.focus();
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+      // Collapse/expand groups
+      const groupId = activeEl?.getAttribute('data-group-id') || '';
+      if (groupId) {
+        e.preventDefault();
+        const wantExpand = e.key === 'ArrowRight';
+        const isExpanded = !!openGroups[groupId];
+        if ((wantExpand && !isExpanded) || (!wantExpand && isExpanded)) {
+          toggleGroup(groupId);
+        }
+      }
+    } else if (e.key === 'Enter' || e.key === ' ') {
+      if (activeEl && activeEl.getAttribute('data-sidebar') === 'menu-button') {
+        e.preventDefault();
+        (activeEl as HTMLButtonElement).click();
+      }
+    }
+  };
+
   return (
-    <SidebarProvider defaultOpen={!isMobile}>
+    <SidebarProvider defaultOpen={defaultOpen}>
       <Sidebar collapsible={isMobile ? "offcanvas" : "icon"}>
         <SidebarHeader className="px-2 py-3">
           <div className="flex items-center gap-2 px-1">
@@ -238,33 +364,43 @@ export function AppShell() {
           </div>
         </SidebarHeader>
         <SidebarContent>
-          {groups.map((group) => (
-            <SidebarGroup key={group.id}>
-              <SidebarGroupLabel className="flex items-center justify-between pr-8">
-                <span>{group.label}</span>
-                <SidebarGroupAction aria-label="Collapse group" onClick={() => setOpenGroupId(prev => prev === group.id ? null : group.id)}>
-                  <ChevronDown className={cn("h-4 w-4 transition-transform", openGroupId === group.id ? "rotate-0" : "-rotate-90")} />
-                </SidebarGroupAction>
-              </SidebarGroupLabel>
-              {openGroupId === group.id && (
-                <SidebarGroupContent>
-                  <SidebarMenu>
-                    {group.items.map((item) => (
-                      <SidebarMenuItem key={item.label}>
-                        <SidebarMenuButton isActive={item.isActive ? item.isActive(location.pathname + location.hash) : (location.pathname + location.hash).startsWith(item.to)} onClick={() => handleNav(item.to)}>
-                          {item.icon}
-                          <span>{item.label}</span>
-                        </SidebarMenuButton>
-                        {typeof item.badge !== 'undefined' && (
-                          <SidebarMenuBadge>{item.badge}</SidebarMenuBadge>
-                        )}
-                      </SidebarMenuItem>
-                    ))}
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              )}
-            </SidebarGroup>
-          ))}
+          <nav aria-label="Primary" onKeyDown={onKeyDownNav} ref={navRef}>
+            {groups.map((group) => (
+              <section key={group.id} aria-labelledby={`group-${group.id}`}>
+                <SidebarGroup>
+                  <SidebarGroupLabel className="flex items-center justify-between pr-8" role="button" tabIndex={0} aria-expanded={!!openGroups[group.id]} aria-controls={`group-content-${group.id}`} onClick={() => toggleGroup(group.id)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleGroup(group.id); } }}>
+                    <span id={`group-${group.id}`}>{group.label}</span>
+                    <SidebarGroupAction aria-hidden="true">
+                      <ChevronDown className={cn("h-4 w-4 transition-transform", openGroups[group.id] ? "rotate-0" : "-rotate-90")} />
+                    </SidebarGroupAction>
+                  </SidebarGroupLabel>
+                  {openGroups[group.id] && (
+                    <SidebarGroupContent id={`group-content-${group.id}`}>
+                      <SidebarMenu>
+                        {group.items.map((item) => {
+                          const active = (location.pathname + location.search + location.hash).startsWith(item.to);
+                          const ariaLabel = typeof item.badge === 'number' && item.badge > 0
+                            ? `Group: ${group.label}, item: ${item.label}, ${item.badge} overdue.`
+                            : `Group: ${group.label}, item: ${item.label}.`;
+                          return (
+                            <SidebarMenuItem key={item.id}>
+                              <SidebarMenuButton data-group-id={group.id} tooltip={item.label} isActive={active} aria-label={ariaLabel} onClick={() => handleNav(item.to)}>
+                                {item.icon}
+                                <span>{item.label}</span>
+                              </SidebarMenuButton>
+                              {typeof item.badge === 'number' && item.badge > 0 && (
+                                <SidebarMenuBadge aria-label={`${item.badge}`}>{item.badge}</SidebarMenuBadge>
+                              )}
+                            </SidebarMenuItem>
+                          );
+                        })}
+                      </SidebarMenu>
+                    </SidebarGroupContent>
+                  )}
+                </SidebarGroup>
+              </section>
+            ))}
+          </nav>
         </SidebarContent>
         <SidebarSeparator />
         <SidebarFooter>

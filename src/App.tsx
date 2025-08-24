@@ -35,6 +35,18 @@ const Chat = lazy(() => import("./pages/Chat"));
 const Schedule = lazy(() => import("./pages/Schedule"));
 // RecallDeepLink removed - file doesn't exist
 const Analytics = lazy(() => import("./pages/Analytics"));
+const DentistClinicalDashboard = lazy(() => import("./pages/DentistClinicalDashboard"));
+const DentistClinicalSchedule = lazy(() => import("./pages/DentistClinicalSchedule"));
+const DentistClinicalPatients = lazy(() => import("./pages/DentistClinicalPatients"));
+const DentistClinicalAppointments = lazy(() => import("./pages/DentistClinicalAppointments"));
+const DentistBusinessPayments = lazy(() => import("./pages/DentistBusinessPayments"));
+const DentistBusinessAnalytics = lazy(() => import("./pages/DentistBusinessAnalytics"));
+const DentistBusinessReports = lazy(() => import("./pages/DentistBusinessReports"));
+const DentistOpsInventory = lazy(() => import("./pages/DentistOpsInventory"));
+const DentistOpsImports = lazy(() => import("./pages/DentistOpsImports"));
+const DentistAdminSchedule = lazy(() => import("./pages/DentistAdminSchedule"));
+const DentistAdminBranding = lazy(() => import("./pages/DentistAdminBranding"));
+const DentistAdminSecurity = lazy(() => import("./pages/DentistAdminSecurity"));
 const Support = lazy(() => import("./pages/Support"));
 const FeatureDetail = lazy(() => import("./pages/FeatureDetail"));
 const UnifiedDashboard = lazy(() => import("./components/UnifiedDashboard"));
@@ -145,9 +157,25 @@ const App = () => (
                 <Route path="/" element={<Index />} />
                 {/* Authenticated app routes inside AppShell */}
                 <Route element={<AppShell />}>
+                  {/* Back-compat entry to dentist home */}
                   <Route path="/dashboard" element={<Dashboard />} />
-                  <Route path="/schedule" element={<Schedule />} />
-                  <Route path="/analytics" element={<Analytics />} />
+                  {/* New IA routes */
+                  }
+                  <Route path="/clinical" element={<DentistClinicalDashboard />} />
+                  <Route path="/clinical/schedule" element={<DentistClinicalSchedule />} />
+                  <Route path="/clinical/patients" element={<DentistClinicalPatients />} />
+                  <Route path="/clinical/appointments" element={<DentistClinicalAppointments />} />
+
+                  <Route path="/business/payments" element={<DentistBusinessPayments />} />
+                  <Route path="/business/analytics" element={<DentistBusinessAnalytics />} />
+                  <Route path="/business/reports" element={<DentistBusinessReports />} />
+
+                  <Route path="/ops/inventory" element={<DentistOpsInventory />} />
+                  <Route path="/ops/imports" element={<DentistOpsImports />} />
+
+                  <Route path="/admin/schedule" element={<DentistAdminSchedule />} />
+                  <Route path="/admin/branding" element={<DentistAdminBranding />} />
+                  <Route path="/admin/security" element={<DentistAdminSecurity />} />
                 </Route>
                 {/* Patient portal routes with patient nav */}
                 <Route element={<PatientPortalNav><></></PatientPortalNav>}>
