@@ -99,11 +99,8 @@ export function DentistDashboard({ user, asPage }: DentistDashboardProps & { asP
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
-      
-      toast({
-        title: "Signed Out",
-        description: "You have been signed out successfully",
-      });
+      // Redirect to landing page after sign out
+      window.location.href = '/';
     } catch (error: unknown) {
       toast({
         title: "Error",
@@ -150,6 +147,7 @@ export function DentistDashboard({ user, asPage }: DentistDashboardProps & { asP
         setActiveTab={setActiveTab}
         dentistId={dentistId || ''}
         inventoryBadgeCount={inventoryLowCount}
+        onSignOut={handleSignOut}
       >
         {dentistId && (
           <>
