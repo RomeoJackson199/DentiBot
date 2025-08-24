@@ -12,7 +12,8 @@ import {
   Settings, 
   Database,
   Stethoscope,
-  Package
+  Package,
+  LogOut
 } from "lucide-react";
 
 type TabType = 'clinical' | 'patients' | 'payments' | 'analytics' | 'availability' | 'manage' | 'debug' | 'inventory' | 'import' | 'recalls';
@@ -23,9 +24,10 @@ interface MobileDentistTabsProps {
   dentistId: string;
   children: React.ReactNode;
   inventoryBadgeCount?: number;
+  onSignOut?: () => void;
 }
 
-export function MobileDentistTabs({ activeTab, setActiveTab, dentistId, children, inventoryBadgeCount = 0 }: MobileDentistTabsProps) {
+export function MobileDentistTabs({ activeTab, setActiveTab, dentistId, children, inventoryBadgeCount = 0, onSignOut }: MobileDentistTabsProps) {
   const { isMobile, cardClass } = useMobileOptimizations();
 
   const tabGroups = [
@@ -95,16 +97,30 @@ export function MobileDentistTabs({ activeTab, setActiveTab, dentistId, children
           {/* Current Section Header */}
           <Card className="border-0 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-xl">
             <CardContent className="p-5">
-              <div className="flex items-center space-x-3">
-                <div className="p-3 bg-white/20 rounded-lg">
-                  <currentGroup.icon className="h-6 w-6" />
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="p-3 bg-white/20 rounded-lg">
+                    <currentGroup.icon className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold">{currentGroup.title}</h2>
+                    <p className="text-primary-foreground/80 text-sm">
+                      {currentGroup.tabs.find(t => t.id === activeTab)?.label || 'Dashboard'}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h2 className="text-xl font-bold">{currentGroup.title}</h2>
-                  <p className="text-primary-foreground/80 text-sm">
-                    {currentGroup.tabs.find(t => t.id === activeTab)?.label || 'Dashboard'}
-                  </p>
-                </div>
+                {onSignOut && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={onSignOut}
+                    aria-label="Sign out"
+                    title="Sign out"
+                    className="text-primary-foreground hover:bg-white/10"
+                  >
+                    <LogOut className="h-5 w-5" />
+                  </Button>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -188,14 +204,27 @@ export function MobileDentistTabs({ activeTab, setActiveTab, dentistId, children
       {/* Desktop Sidebar */}
       <div className="fixed left-0 top-20 bottom-0 w-72 bg-card/80 backdrop-blur-lg border-r border-border/50 z-header">
         {/* Sidebar Header */}
-        <div className="flex items-center space-x-3 p-6 border-b border-border/50">
-          <div className="h-10 w-10 rounded-xl bg-gradient-primary flex items-center justify-center shadow-lg">
-            <span className="text-white font-bold text-lg">D</span>
+        <div className="flex items-center justify-between p-6 border-b border-border/50">
+          <div className="flex items-center space-x-3">
+            <div className="h-10 w-10 rounded-xl bg-gradient-primary flex items-center justify-center shadow-lg">
+              <span className="text-white font-bold text-lg">D</span>
+            </div>
+            <div>
+              <h1 className="font-semibold text-lg">Denti Dashboard</h1>
+              <p className="text-sm text-muted-foreground">Dentist Portal</p>
+            </div>
           </div>
-          <div>
-            <h1 className="font-semibold text-lg">Denti Dashboard</h1>
-            <p className="text-sm text-muted-foreground">Dentist Portal</p>
-          </div>
+          {onSignOut && (
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={onSignOut}
+              aria-label="Sign out"
+              title="Sign out"
+            >
+              <LogOut className="h-4 w-4" />
+            </Button>
+          )}
         </div>
 
         {/* Navigation Groups */}
