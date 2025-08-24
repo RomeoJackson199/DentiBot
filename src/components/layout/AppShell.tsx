@@ -100,7 +100,7 @@ function TopBar() {
   return (
     <div className="sticky top-0 z-40 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
       <div className="flex items-center gap-2 px-3 md:px-4 py-2">
-        <SidebarTrigger className="md:hidden" />
+        <SidebarTrigger />
         <div className="flex items-center gap-2 text-muted-foreground">
           <Home className="h-4 w-4" />
           <Separator orientation="vertical" className="h-4" />
