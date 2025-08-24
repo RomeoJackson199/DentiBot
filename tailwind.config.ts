@@ -151,9 +151,9 @@ export default {
 				'large': 'var(--shadow-large)',
 			},
 			borderRadius: {
-				lg: 'var(--radius)',
-				md: 'calc(var(--radius) - 2px)',
-				sm: 'calc(var(--radius) - 4px)',
+				lg: 'var(--radius-card)',
+				md: 'calc(var(--radius-card) - 2px)',
+				sm: 'calc(var(--radius-card) - 4px)',
 				'4xl': '2rem',
 				'5xl': '2.5rem',
 			},

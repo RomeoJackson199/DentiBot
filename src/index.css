@@ -35,9 +35,57 @@
 
     --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
-    --ring: 199 89% 48%;
+    --ring: 165 63% 33%; /* brand-600 */
 
     --radius: 1rem;
+    /* Design System Radii */
+    --radius-card: 8px;
+    --radius-modal: 12px;
+    --radius-pill: 999px;
+    
+    /* Spacing tokens (px) */
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-6: 24px;
+    --space-8: 32px;
+    
+    /* Typography tokens */
+    --title-size: 24px;
+    --title-line: 32px;
+    --subtitle-size: 16px;
+    --subtitle-line: 24px;
+    --subtitle-weight: 500;
+    --body-size: 14px;
+    --body-line: 20px;
+    --caption-size: 12px;
+    --caption-line: 16px;
+    
+    /* Brand color tokens */
+    --brand-600: 165 63% 33%; /* #1F8A70 */
+    --brand-100: 168 43% 93%; /* #E6F5F2 */
+    
+    /* Status color tokens with shades */
+    --success-100: 140 84% 92%;
+    --success-300: 142 76% 70%;
+    --success-600: 142 71% 45%; /* #16A34A */
+    --success-800: 142 72% 29%;
+    
+    --warning-100: 48 96% 89%;
+    --warning-300: 45 96% 56%;
+    --warning-600: 38 92% 50%; /* #F59E0B */
+    --warning-800: 32 75% 40%;
+    
+    --danger-100: 0 93% 94%;
+    --danger-300: 0 94% 82%;
+    --danger-600: 0 72% 51%; /* #DC2626 */
+    --danger-800: 0 74% 31%;
+    
+    --info-100: 214 95% 93%;
+    --info-300: 214 95% 77%;
+    --info-600: 217 91% 60%; /* #2563EB */
+    --info-800: 226 57% 28%;
     
     /* Enhanced Dental theme colors */
     --dental-primary: 199 89% 48%;
@@ -73,10 +121,10 @@
     --gradient-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
     
     /* Enhanced shadows with modern depth */
-    --shadow-elegant: 0 20px 50px -12px hsl(var(--dental-primary) / 0.3), 0 0 0 1px hsl(var(--dental-primary) / 0.05);
-    --shadow-glow: 0 0 60px hsl(var(--dental-primary) / 0.15), 0 0 100px hsl(var(--dental-primary) / 0.1);
-    --shadow-card: 0 12px 40px -8px hsl(240 10% 3.9% / 0.8), 0 0 0 1px hsl(240 10% 3.9% / 0.1);
-    --shadow-float: 0 8px 25px -8px hsl(var(--dental-primary) / 0.2), 0 20px 40px -12px hsl(var(--dental-primary) / 0.1);
+    --shadow-elegant: 0 20px 50px -12px hsl(var(--brand-600) / 0.3), 0 0 0 1px hsl(var(--brand-600) / 0.05);
+    --shadow-glow: 0 0 60px hsl(var(--brand-600) / 0.15), 0 0 100px hsl(var(--brand-600) / 0.1);
+    --shadow-card: 0 12px 40px -8px hsl(240 10% 3.9% / 0.08), 0 0 0 1px hsl(240 10% 3.9% / 0.08);
+    --shadow-float: 0 8px 25px -8px hsl(var(--brand-600) / 0.2), 0 20px 40px -12px hsl(var(--brand-600) / 0.1);
     --shadow-inner: inset 0 2px 4px 0 hsl(240 10% 3.9% / 0.3);
     --shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
     --shadow-soft: 0 2px 8px 0 hsl(var(--dental-primary) / 0.08);
@@ -120,7 +168,52 @@
 
     --border: 240 5.9% 90%;
     --input: 240 5.9% 90%;
-    --ring: 199 89% 48%;
+    --ring: 165 63% 33%;
+    /* Design System Radii */
+    --radius-card: 8px;
+    --radius-modal: 12px;
+    --radius-pill: 999px;
+    
+    /* Spacing tokens (px) */
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-6: 24px;
+    --space-8: 32px;
+    
+    /* Typography tokens */
+    --title-size: 24px;
+    --title-line: 32px;
+    --subtitle-size: 16px;
+    --subtitle-line: 24px;
+    --subtitle-weight: 500;
+    --body-size: 14px;
+    --body-line: 20px;
+    --caption-size: 12px;
+    --caption-line: 16px;
+    
+    /* Brand color tokens */
+    --brand-600: 165 63% 33%;
+    --brand-100: 168 43% 93%;
+    
+    /* Status shades */
+    --success-100: 140 84% 92%;
+    --success-300: 142 76% 70%;
+    --success-600: 142 71% 45%;
+    --success-800: 142 72% 29%;
+    --warning-100: 48 96% 89%;
+    --warning-300: 45 96% 56%;
+    --warning-600: 38 92% 50%;
+    --warning-800: 32 75% 40%;
+    --danger-100: 0 93% 94%;
+    --danger-300: 0 94% 82%;
+    --danger-600: 0 72% 51%;
+    --danger-800: 0 74% 31%;
+    --info-100: 214 95% 93%;
+    --info-300: 214 95% 77%;
+    --info-600: 217 91% 60%;
+    --info-800: 226 57% 28%;
     
     --dental-primary: 199 89% 48%;
     --dental-primary-foreground: 0 0% 100%;
@@ -152,10 +245,10 @@
       radial-gradient(ellipse at bottom right, hsl(217 91% 60% / 0.04) 0%, transparent 50%);
     --gradient-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.25), rgba(255, 255, 255, 0.1));
     
-    --shadow-elegant: 0 20px 50px -12px hsl(var(--dental-primary) / 0.15), 0 0 0 1px hsl(var(--dental-primary) / 0.05);
-    --shadow-glow: 0 0 60px hsl(var(--dental-primary) / 0.08), 0 0 100px hsl(var(--dental-primary) / 0.05);
-    --shadow-card: 0 12px 40px -8px hsl(240 10% 3.9% / 0.1), 0 0 0 1px hsl(240 10% 3.9% / 0.05);
-    --shadow-float: 0 8px 25px -8px hsl(var(--dental-primary) / 0.1), 0 20px 40px -12px hsl(var(--dental-primary) / 0.05);
+    --shadow-elegant: 0 20px 50px -12px hsl(var(--brand-600) / 0.15), 0 0 0 1px hsl(var(--brand-600) / 0.05);
+    --shadow-glow: 0 0 60px hsl(var(--brand-600) / 0.08), 0 0 100px hsl(var(--brand-600) / 0.05);
+    --shadow-card: 0 12px 40px -8px hsl(240 10% 3.9% / 0.1), 0 0 0 1px hsl(240 10% 3.9% / 0.06);
+    --shadow-float: 0 8px 25px -8px hsl(var(--brand-600) / 0.1), 0 20px 40px -12px hsl(var(--brand-600) / 0.05);
     --shadow-inner: inset 0 2px 4px 0 hsl(240 10% 3.9% / 0.1);
     --shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
     --shadow-soft: 0 2px 8px 0 hsl(var(--dental-primary) / 0.06);
@@ -190,9 +283,9 @@
     scroll-behavior: smooth;
   }
 
-  /* Better focus styles */
+  /* Better focus styles - 2px brand-600 with 2px offset */
   *:focus-visible {
-    @apply outline-none ring-2 ring-dental-primary ring-offset-2 ring-offset-background;
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
   }
 }
 

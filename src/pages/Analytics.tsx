@@ -27,6 +27,7 @@ import {
   FileWarning
 } from "lucide-react";
 import { getAnalytics } from "@/lib/mockApi";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { format, subDays } from "date-fns";
 import type { DateRange } from "react-day-picker";
@@ -233,13 +234,13 @@ const Analytics = () => {
   const noShowStatus = calculateStatusColor(data.noShow.percent, data.noShow.target, true);
 
   return (
-    <div className="p-4 sm:p-6 max-w-7xl mx-auto">
-      <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold">Analytics</h1>
-          <p className="text-muted-foreground text-sm">Key performance and actions at a glance</p>
-        </div>
-        <div className="flex items-center gap-3">
+    <div className="p-3 md:p-4 max-w-7xl mx-auto">
+      <PageHeader
+        title="Analytics"
+        subtitle="Key performance and actions at a glance"
+        breadcrumbs={[{ label: "Business", href: "/dashboard" }, { label: "Analytics" }]}
+      />
+      <div className="flex items-center justify-end gap-3 mb-3">
           <Select value={timeRange} onValueChange={(v) => setTimeRange(v as typeof timeRange)}>
             <SelectTrigger className="w-40">
               <SelectValue placeholder="Time range" />
@@ -278,7 +279,6 @@ const Analytics = () => {
             Export
           </Button>
         </div>
-      </div>
 
       {/* Top Priority KPIs */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 mb-4">

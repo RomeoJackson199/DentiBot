@@ -4,7 +4,7 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const cardVariants = cva(
-  "rounded-lg text-card-foreground transition-all duration-300",
+  "rounded-[var(--radius-card)] text-card-foreground transition-all duration-300",
   {
     variants: {
       variant: {
@@ -26,11 +26,11 @@ const cardVariants = cva(
       },
       rounded: {
         none: "rounded-none",
-        sm: "rounded-sm",
-        default: "rounded-lg",
-        lg: "rounded-xl",
-        xl: "rounded-2xl",
-        "2xl": "rounded-3xl",
+        sm: "rounded-[calc(var(--radius-card)-2px)]",
+        default: "rounded-[var(--radius-card)]",
+        lg: "rounded-[calc(var(--radius-card)+4px)]",
+        xl: "rounded-[calc(var(--radius-card)+8px)]",
+        "2xl": "rounded-[calc(var(--radius-card)+12px)]",
       },
     },
     defaultVariants: {
@@ -75,7 +75,7 @@ const CardHeader = React.forwardRef<
     ref={ref}
     className={cn(
       "flex flex-col space-y-1.5 p-6",
-      gradient && "bg-gradient-primary text-white rounded-t-lg -m-6 mb-6 p-6",
+      gradient && "bg-gradient-primary text-white rounded-t-[var(--radius-card)] -m-6 mb-6 p-6",
       className
     )}
     {...props}
@@ -180,7 +180,7 @@ const CardFooter = React.forwardRef<
       ref={ref}
       className={cn(
         paddingClasses[padding],
-        gradient && "bg-gradient-secondary text-white rounded-b-lg -m-6 mt-6 p-6",
+        gradient && "bg-gradient-secondary text-white rounded-b-[var(--radius-card)] -m-6 mt-6 p-6",
         className
       )}
       {...props}
