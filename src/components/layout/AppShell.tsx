@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate, Outlet } from "react-router-dom";
 import {
   Sidebar,
@@ -35,17 +35,20 @@ import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { useTheme } from "next-themes";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  Activity,
+  Stethoscope,
   Calendar,
   Users,
-  CreditCard,
+  Clock,
+  Wallet,
   BarChart3,
+  FileBarChart,
   Boxes,
   Upload,
   Settings,
-  Paintbrush,
-  Languages,
+  Globe,
   Shield,
+  CalendarCog,
+  Languages,
   Search,
   Building2,
   Bell,
@@ -55,7 +58,9 @@ import {
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 
-const LAST_GROUP_KEY = "sidebar:last-group";
+const OPEN_GROUPS_KEY = "nav:open-groups";
+const LAST_ITEM_KEY = "nav:last-item";
+const COLLAPSED_KEY = "nav:collapsed";
 
 type NavItem = {
   label: string;
@@ -163,11 +168,11 @@ function GlobalSearch({ open, onOpenChange }: { open: boolean; onOpenChange: (v:
       <CommandList>
         <CommandEmpty>No results found.</CommandEmpty>
         <CommandGroup heading="Navigate">
-          <CommandItem onSelect={() => { onOpenChange(false); navigate("/dashboard"); }}>Dashboard</CommandItem>
-          <CommandItem onSelect={() => { onOpenChange(false); navigate("/analytics"); }}>Analytics</CommandItem>
-          <CommandItem onSelect={() => { onOpenChange(false); navigate("/schedule"); }}>Schedule</CommandItem>
-          <CommandItem onSelect={() => { onOpenChange(false); navigate("/dashboard#inventory"); }}>Inventory</CommandItem>
-          <CommandItem onSelect={() => { onOpenChange(false); navigate("/dashboard#payments"); }}>Payments</CommandItem>
+          <CommandItem onSelect={() => { onOpenChange(false); navigate("/clinical"); }}>Dashboard</CommandItem>
+          <CommandItem onSelect={() => { onOpenChange(false); navigate("/business/analytics"); }}>Analytics</CommandItem>
+          <CommandItem onSelect={() => { onOpenChange(false); navigate("/clinical/schedule"); }}>Schedule</CommandItem>
+          <CommandItem onSelect={() => { onOpenChange(false); navigate("/ops/inventory"); }}>Inventory</CommandItem>
+          <CommandItem onSelect={() => { onOpenChange(false); navigate("/business/payments"); }}>Payments</CommandItem>
         </CommandGroup>
       </CommandList>
     </CommandDialog>
@@ -179,58 +184,191 @@ export function AppShell() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const { t } = useLanguage();
+  const navRef = useRef<HTMLDivElement | null>(null);
 
   useScrollRestoration();
 
-  const [openGroupId, setOpenGroupId] = useState<string | null>(() => localStorage.getItem(LAST_GROUP_KEY));
+  const isTablet = typeof window !== 'undefined' && window.innerWidth >= 768 && window.innerWidth < 1024;
+
+  const [openGroups, setOpenGroups] = useState<string[]>(() => {
+    try {
+      const raw = localStorage.getItem(OPEN_GROUPS_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch {
+      return [];
+    }
+  });
 
   useEffect(() => {
-    if (openGroupId) localStorage.setItem(LAST_GROUP_KEY, openGroupId);
-  }, [openGroupId]);
+    localStorage.setItem(OPEN_GROUPS_KEY, JSON.stringify(openGroups));
+  }, [openGroups]);
+
+  const [sidebarOpen, setSidebarOpen] = useState<boolean>(() => {
+    try {
+      const persisted = localStorage.getItem(COLLAPSED_KEY);
+      if (persisted !== null) return persisted !== 'true';
+    } catch { /* ignore */ }
+    // Defaults: >=1024 expanded; 768–1023 collapsed; <768 handled by offcanvas
+    if (typeof window !== 'undefined') {
+      if (window.innerWidth >= 1024) return true;
+      if (window.innerWidth >= 768 && window.innerWidth < 1024) return false;
+    }
+    return true;
+  });
+
+  const setCollapsed = useCallback((collapsed: boolean) => {
+    setSidebarOpen(!collapsed);
+    try { localStorage.setItem(COLLAPSED_KEY, String(collapsed)); } catch { /* noop */ }
+    // Optional analytics
+    try { console.debug('nav_state_persisted', { collapsed }); } catch { /* noop */ }
+  }, []);
+
+  useEffect(() => {
+    // Fire analytics on load
+    try { console.debug('nav_state_persisted', { collapsed: !sidebarOpen ? true : false }); } catch { /* noop */ }
+  }, []);
+
+  const [paymentOverdue, setPaymentOverdue] = useState<number>(0);
+  const [inventoryLow, setInventoryLow] = useState<number>(0);
+  const [dentistId, setDentistId] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        setUserId(user.id);
+        const { data: profile } = await (supabase as any)
+          .from('profiles')
+          .select('id')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        if (!profile?.id) return;
+        const { data: dentist } = await (supabase as any)
+          .from('dentists')
+          .select('id')
+          .eq('profile_id', profile.id)
+          .maybeSingle();
+        if (dentist?.id) setDentistId(dentist.id);
+      } catch { /* noop */ }
+    })();
+  }, []);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        if (!dentistId) return;
+        // Overdue payments count
+        const { count: overdueCount } = await (supabase as any)
+          .from('payment_requests')
+          .select('id', { count: 'exact', head: false })
+          .eq('dentist_id', dentistId)
+          .eq('status', 'overdue');
+        setPaymentOverdue(overdueCount || 0);
+        // Inventory low stock count
+        const { data: items } = await (supabase as any)
+          .from('inventory_items')
+          .select('quantity, min_threshold')
+          .eq('dentist_id', dentistId);
+        const low = (items || []).filter((i: any) => i.quantity < i.min_threshold).length;
+        setInventoryLow(low);
+      } catch { /* noop */ }
+    })();
+  }, [dentistId]);
 
   const groups: NavGroup[] = useMemo(() => [
     {
       id: "clinical",
-      label: t.navClinical,
+      label: "Clinical",
       items: [
-        { label: t.navDashboard, icon: <Activity className="h-4 w-4" />, to: "/dashboard", isActive: p => p.startsWith("/dashboard") && !p.includes("#appointments") },
-        { label: t.navAppointments, icon: <Calendar className="h-4 w-4" />, to: "/schedule" },
-        { label: t.navPatients, icon: <Users className="h-4 w-4" />, to: "/dashboard#patients" },
+        { label: "Dashboard", icon: <Stethoscope className="h-4 w-4" />, to: "/clinical", isActive: p => p.startsWith("/clinical") && (p === "/clinical" || p === "/clinical/") },
+        { label: "Schedule", icon: <Calendar className="h-4 w-4" />, to: "/clinical/schedule" },
+        { label: "Patients", icon: <Users className="h-4 w-4" />, to: "/clinical/patients" },
+        { label: "Appointments", icon: <Clock className="h-4 w-4" />, to: "/clinical/appointments" },
       ],
     },
     {
       id: "business",
-      label: t.navBusiness,
+      label: "Business",
       items: [
-        { label: t.navPayments, icon: <CreditCard className="h-4 w-4" />, to: "/dashboard#payments" },
-        { label: t.navAnalytics, icon: <BarChart3 className="h-4 w-4" />, to: "/analytics" },
+        { label: "Payments", icon: <Wallet className="h-4 w-4" />, to: "/business/payments", badge: paymentOverdue > 0 ? paymentOverdue : undefined, isActive: p => p.startsWith("/business/payments") },
+        { label: "Analytics", icon: <BarChart3 className="h-4 w-4" />, to: "/business/analytics" },
+        { label: "Reports", icon: <FileBarChart className="h-4 w-4" />, to: "/business/reports" },
       ],
     },
     {
       id: "operations",
-      label: t.navOperations,
+      label: "Operations",
       items: [
-        { label: t.navInventory, icon: <Boxes className="h-4 w-4" />, to: "/dashboard#inventory" },
-        { label: t.navImport, icon: <Upload className="h-4 w-4" />, to: "/dashboard#import" },
+        { label: "Inventory", icon: <Boxes className="h-4 w-4" />, to: "/ops/inventory", badge: inventoryLow > 0 ? inventoryLow : undefined },
+        { label: "Imports", icon: <Upload className="h-4 w-4" />, to: "/ops/imports" },
       ],
     },
     {
       id: "admin",
-      label: t.navAdmin,
+      label: "Admin",
       items: [
-        { label: t.navSchedule, icon: <Calendar className="h-4 w-4" />, to: "/schedule" },
-        { label: t.navSettings, icon: <Settings className="h-4 w-4" />, to: "/settings?section=branding" },
+        { label: "Schedule Settings", icon: <CalendarCog className="h-4 w-4" />, to: "/admin/schedule" },
+        { label: "Branding & Localization", icon: <Globe className="h-4 w-4" />, to: "/admin/branding" },
+        { label: "Security", icon: <Shield className="h-4 w-4" />, to: "/admin/security" },
       ],
     },
-  ], []);
+  ], [paymentOverdue, inventoryLow]);
 
-  const handleNav = (to: string) => {
+  const handleNav = (to: string, meta: { group: string; item: string }) => {
+    try { localStorage.setItem(LAST_ITEM_KEY, to); } catch { /* noop */ }
+    try { console.debug('nav_click', { role: 'dentist', group: meta.group, item: meta.item, path: to }); } catch { /* noop */ }
     navigate(to);
   };
 
+  // Expand the correct group for deep-linked routes
+  useEffect(() => {
+    const path = location.pathname;
+    const groupId = path.startsWith('/clinical') ? 'clinical' : path.startsWith('/business') ? 'business' : path.startsWith('/ops') ? 'operations' : path.startsWith('/admin') ? 'admin' : null;
+    if (groupId && !openGroups.includes(groupId)) {
+      setOpenGroups((prev) => [...prev, groupId]);
+    }
+  }, [location.pathname]);
+
+  // Keyboard navigation within nav
+  const onKeyDown = useCallback((e: React.KeyboardEvent) => {
+    const root = navRef.current;
+    if (!root) return;
+    const focusable = Array.from(root.querySelectorAll<HTMLButtonElement>('button[data-nav-item],button[data-group-toggle]'));
+    const currentIndex = focusable.findIndex((el) => el === document.activeElement);
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      const next = focusable[(currentIndex + 1) % focusable.length] || focusable[0];
+      next?.focus();
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      const prev = focusable[(currentIndex - 1 + focusable.length) % focusable.length] || focusable[focusable.length - 1];
+      prev?.focus();
+    } else if (e.key === 'ArrowRight') {
+      const el = document.activeElement as HTMLElement | null;
+      if (el?.dataset.groupId) {
+        const id = el.dataset.groupId;
+        if (!openGroups.includes(id)) setOpenGroups((p) => [...p, id]);
+      }
+    } else if (e.key === 'ArrowLeft') {
+      const el = document.activeElement as HTMLElement | null;
+      if (el?.dataset.groupId) {
+        const id = el.dataset.groupId;
+        if (openGroups.includes(id)) setOpenGroups((p) => p.filter((g) => g !== id));
+      }
+    } else if (e.key === 'Enter' || e.key === ' ') {
+      const el = document.activeElement as HTMLButtonElement | null;
+      if (el?.dataset.href) {
+        e.preventDefault();
+        navigate(el.dataset.href);
+      }
+    }
+  }, [openGroups, navigate]);
+
   return (
-    <SidebarProvider defaultOpen={!isMobile}>
-      <Sidebar collapsible={isMobile ? "offcanvas" : "icon"}>
+    <SidebarProvider open={sidebarOpen} onOpenChange={(open) => setCollapsed(!open)}>
+      <Sidebar collapsible={isMobile ? "offcanvas" : "icon"} onMouseEnter={() => { if (!isMobile && isTablet && !sidebarOpen) setCollapsed(false); }} onMouseLeave={() => { if (!isMobile && isTablet) setCollapsed(true); }}>
         <SidebarHeader className="px-2 py-3">
           <div className="flex items-center gap-2 px-1">
             <span className="inline-flex h-7 w-7 items-center justify-center rounded-[var(--radius-pill)] bg-[hsl(var(--brand-100))] text-[hsl(var(--brand-600))] font-semibold">D</span>
@@ -238,33 +376,91 @@ export function AppShell() {
           </div>
         </SidebarHeader>
         <SidebarContent>
-          {groups.map((group) => (
-            <SidebarGroup key={group.id}>
-              <SidebarGroupLabel className="flex items-center justify-between pr-8">
-                <span>{group.label}</span>
-                <SidebarGroupAction aria-label="Collapse group" onClick={() => setOpenGroupId(prev => prev === group.id ? null : group.id)}>
-                  <ChevronDown className={cn("h-4 w-4 transition-transform", openGroupId === group.id ? "rotate-0" : "-rotate-90")} />
-                </SidebarGroupAction>
-              </SidebarGroupLabel>
-              {openGroupId === group.id && (
-                <SidebarGroupContent>
-                  <SidebarMenu>
-                    {group.items.map((item) => (
-                      <SidebarMenuItem key={item.label}>
-                        <SidebarMenuButton isActive={item.isActive ? item.isActive(location.pathname + location.hash) : (location.pathname + location.hash).startsWith(item.to)} onClick={() => handleNav(item.to)}>
-                          {item.icon}
-                          <span>{item.label}</span>
-                        </SidebarMenuButton>
-                        {typeof item.badge !== 'undefined' && (
-                          <SidebarMenuBadge>{item.badge}</SidebarMenuBadge>
-                        )}
-                      </SidebarMenuItem>
-                    ))}
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              )}
-            </SidebarGroup>
-          ))}
+          <nav aria-label="Primary" role="navigation" ref={navRef as any} onKeyDown={onKeyDown}>
+            {groups.map((group) => {
+              const isOpen = openGroups.includes(group.id);
+              const groupLabelId = `group-${group.id}`;
+              const contentId = `group-content-${group.id}`;
+              return (
+                <section key={group.id} aria-labelledby={groupLabelId}>
+                  <SidebarGroup>
+                    <SidebarGroupLabel asChild>
+                      <button
+                        id={groupLabelId}
+                        type="button"
+                        aria-expanded={isOpen}
+                        aria-controls={contentId}
+                        data-group-toggle
+                        data-group-id={group.id}
+                        className="flex items-center justify-between pr-8 focus-visible:ring-2 focus-visible:ring-[hsl(var(--brand-600))]"
+                        onClick={() => {
+                          setOpenGroups((prev) => {
+                            const open = prev.includes(group.id) ? prev.filter((g) => g !== group.id) : [...prev, group.id];
+                            try { console.debug('nav_toggle_group', { group: group.label, expanded: open.includes(group.id) }); } catch { /* noop */ }
+                            return open;
+                          });
+                        }}
+                      >
+                        <span data-i18n-key={
+                          group.id === 'clinical' ? 'nav.group.clinical' :
+                          group.id === 'business' ? 'nav.group.business' :
+                          group.id === 'operations' ? 'nav.group.operations' :
+                          'nav.group.admin'
+                        }>{group.label}</span>
+                        <ChevronDown className={cn("h-4 w-4 transition-transform", isOpen ? "rotate-0" : "-rotate-90")} />
+                      </button>
+                    </SidebarGroupLabel>
+                    {isOpen && (
+                      <SidebarGroupContent id={contentId} role="group">
+                        <SidebarMenu>
+                          {group.items.map((item) => {
+                            const active = item.isActive ? item.isActive(location.pathname + location.hash) : (location.pathname + location.hash).startsWith(item.to);
+                            const aria = `Group: ${group.label}, item: ${item.label}${typeof item.badge !== 'undefined' ? `, ${item.badge} ${group.id === 'business' ? 'overdue' : 'low stock'}` : ''}`;
+                            return (
+                              <SidebarMenuItem key={item.label}>
+                                <SidebarMenuButton
+                                  tooltip={item.label}
+                                  isActive={active}
+                                  data-nav-item
+                                  data-href={item.to}
+                                  className={cn("focus-visible:ring-[hsl(var(--brand-600))] hover:bg-[hsl(var(--brand-100))] relative pl-2", active && "bg-transparent")}
+                                  onClick={() => handleNav(item.to, { group: group.label, item: item.label })}
+                                  aria-label={aria}
+                                  aria-current={active ? 'page' : undefined}
+                                >
+                                  {/* Left active indicator */}
+                                  <span aria-hidden className={cn("absolute left-0 top-1 bottom-1 w-1 rounded-r bg-[hsl(var(--brand-600))] transition-opacity", active ? "opacity-100" : "opacity-0")}></span>
+                                  {item.icon}
+                                  <span data-i18n-key={
+                                    group.id === 'clinical' && item.label === 'Dashboard' ? 'nav.clinical.dashboard' :
+                                    group.id === 'clinical' && item.label === 'Schedule' ? 'nav.clinical.schedule' :
+                                    group.id === 'clinical' && item.label === 'Patients' ? 'nav.clinical.patients' :
+                                    group.id === 'clinical' && item.label === 'Appointments' ? 'nav.clinical.appointments' :
+                                    group.id === 'business' && item.label === 'Payments' ? 'nav.business.payments' :
+                                    group.id === 'business' && item.label === 'Analytics' ? 'nav.business.analytics' :
+                                    group.id === 'business' && item.label === 'Reports' ? 'nav.business.reports' :
+                                    group.id === 'operations' && item.label === 'Inventory' ? 'nav.ops.inventory' :
+                                    group.id === 'operations' && item.label === 'Imports' ? 'nav.ops.imports' :
+                                    group.id === 'admin' && item.label === 'Schedule Settings' ? 'nav.admin.schedule' :
+                                    group.id === 'admin' && item.label === 'Branding & Localization' ? 'nav.admin.branding' :
+                                    group.id === 'admin' && item.label === 'Security' ? 'nav.admin.security' :
+                                    undefined
+                                  }>{item.label}</span>
+                                </SidebarMenuButton>
+                                {typeof item.badge !== 'undefined' && (
+                                  <SidebarMenuBadge className="bg-red-100 text-red-800 border border-red-200">{item.badge}</SidebarMenuBadge>
+                                )}
+                              </SidebarMenuItem>
+                            );
+                          })}
+                        </SidebarMenu>
+                      </SidebarGroupContent>
+                    )}
+                  </SidebarGroup>
+                </section>
+              );
+            })}
+          </nav>
         </SidebarContent>
         <SidebarSeparator />
         <SidebarFooter>

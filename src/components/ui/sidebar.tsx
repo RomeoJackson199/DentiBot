@@ -20,9 +20,10 @@ import {
 const SIDEBAR_COOKIE_NAME = "sidebar:state"
 const SIDEBAR_GROUP_KEY = "sidebar:last-group"
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
-const SIDEBAR_WIDTH = "16rem"
-const SIDEBAR_WIDTH_MOBILE = "18rem"
-const SIDEBAR_WIDTH_ICON = "3rem"
+// Expanded width 280px, collapsed 72px to match spec
+const SIDEBAR_WIDTH = "17.5rem"
+const SIDEBAR_WIDTH_MOBILE = "17.5rem"
+const SIDEBAR_WIDTH_ICON = "4.5rem"
 const SIDEBAR_KEYBOARD_SHORTCUT = "b"
 
 type SidebarContext = {
@@ -130,7 +131,7 @@ const SidebarProvider = React.forwardRef<
 
     return (
       <SidebarContext.Provider value={contextValue}>
-        <TooltipProvider delayDuration={0}>
+        <TooltipProvider delayDuration={150}>
           <div
             style={
               {
@@ -175,6 +176,34 @@ const Sidebar = React.forwardRef<
     ref
   ) => {
     const { isMobile, state, openMobile, setOpenMobile } = useSidebar()
+    const didPushRef = React.useRef(false)
+
+    // Handle browser back to close the mobile drawer
+    React.useEffect(() => {
+      if (!isMobile) return
+      const onPop = () => {
+        if (openMobile) {
+          setOpenMobile(false)
+        }
+      }
+      window.addEventListener("popstate", onPop)
+      return () => window.removeEventListener("popstate", onPop)
+    }, [isMobile, openMobile, setOpenMobile])
+
+    React.useEffect(() => {
+      if (!isMobile) return
+      if (openMobile && !didPushRef.current) {
+        try {
+          history.pushState({ __sidebar: true }, "")
+          didPushRef.current = true
+        } catch { /* noop */ }
+      } else if (!openMobile && didPushRef.current) {
+        try {
+          didPushRef.current = false
+          history.back()
+        } catch { /* noop */ }
+      }
+    }, [isMobile, openMobile])
 
     if (collapsible === "none") {
       return (

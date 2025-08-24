@@ -18,6 +18,14 @@ import { LazyLoadingWrapper } from "./components/optimized/LazyLoadingWrapper";
 import AuthCallbackHandler from "./components/AuthCallbackHandler";
 import { ModernLoadingSpinner } from "@/components/enhanced/ModernLoadingSpinner";
 import { AppShell } from "@/components/layout/AppShell";
+import ClinicalPatients from "@/pages/ClinicalPatients";
+import BusinessPayments from "@/pages/BusinessPayments";
+import BusinessReports from "@/pages/BusinessReports";
+import OpsInventory from "@/pages/OpsInventory";
+import OpsImports from "@/pages/OpsImports";
+import AdminSchedule from "@/pages/AdminSchedule";
+import AdminBranding from "@/pages/AdminBranding";
+import AdminSecurity from "@/pages/AdminSecurity";
 
 const Invite = lazy(() => import("./pages/Invite"));
 
@@ -134,9 +142,22 @@ const App = () => (
                 <Route path="/" element={<Index />} />
                 {/* Authenticated app routes inside AppShell */}
                 <Route element={<AppShell />}>
-                  <Route path="/dashboard" element={<Dashboard />} />
-                  <Route path="/schedule" element={<Schedule />} />
-                  <Route path="/analytics" element={<Analytics />} />
+                  {/* Clinical */}
+                  <Route path="/clinical" element={<Dashboard />} />
+                  <Route path="/clinical/schedule" element={<Schedule />} />
+                  <Route path="/clinical/patients" element={<ClinicalPatients />} />
+                  <Route path="/clinical/appointments" element={<Schedule />} />
+                  {/* Business */}
+                  <Route path="/business/analytics" element={<Analytics />} />
+                  <Route path="/business/payments" element={<BusinessPayments />} />
+                  <Route path="/business/reports" element={<BusinessReports />} />
+                  {/* Operations */}
+                  <Route path="/ops/inventory" element={<OpsInventory />} />
+                  <Route path="/ops/imports" element={<OpsImports />} />
+                  {/* Admin */}
+                  <Route path="/admin/schedule" element={<AdminSchedule />} />
+                  <Route path="/admin/branding" element={<AdminBranding />} />
+                  <Route path="/admin/security" element={<AdminSecurity />} />
                 </Route>
                 {/* Public routes */}
                 <Route path="/emergency-triage" element={<EmergencyTriage />} />
