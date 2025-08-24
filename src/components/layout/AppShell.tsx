@@ -222,7 +222,7 @@ export function AppShell() {
         { label: t.navSettings, icon: <Settings className="h-4 w-4" />, to: "/settings?section=branding" },
       ],
     },
-  ], []);
+  ], [t]);
 
   const handleNav = (to: string) => {
     navigate(to);
