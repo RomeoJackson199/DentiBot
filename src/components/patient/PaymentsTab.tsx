@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { PatientPaymentHistory } from "@/components/PatientPaymentHistory";
-import { DollarSign, PieChart, CreditCard, AlertCircle, CheckCircle } from "lucide-react";
+import { DollarSign, PieChart, CreditCard, AlertCircle, CheckCircle, Send } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -17,6 +17,7 @@ export const PaymentsTab: React.FC<PaymentsTabProps> = ({ patientId, totalDueCen
   const due = useMemo(() => totalDueCents > 0, [totalDueCents]);
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
+  const [sendingStatement, setSendingStatement] = useState(false);
 
   const handlePayAll = async () => {
     try {
@@ -27,7 +28,7 @@ export const PaymentsTab: React.FC<PaymentsTabProps> = ({ patientId, totalDueCen
         .from('payment_requests')
         .select('*')
         .eq('patient_id', patientId)
-        .eq('status', 'pending');
+        .in('status', ['pending','overdue']);
       
       if (fetchError) throw fetchError;
       
@@ -129,6 +130,26 @@ export const PaymentsTab: React.FC<PaymentsTabProps> = ({ patientId, totalDueCen
                 <p className="text-sm text-green-700 dark:text-green-200 mt-1">
                   You don't have any outstanding payments. Great job staying on top of your bills!
                 </p>
+                <div className="mt-3">
+                  <Button size="sm" variant="outline" disabled={sendingStatement}
+                    onClick={async () => {
+                      try {
+                        setSendingStatement(true);
+                        const { data, error } = await supabase.functions.invoke('send-payment-reminder', {
+                          body: { payment_request_ids: [], template_key: 'statement' }
+                        });
+                        if (error) throw error;
+                        toast({ title: 'Statement sent', description: 'A statement has been emailed to you.' });
+                      } catch (e) {
+                        toast({ title: 'Error', description: 'Failed to send statement', variant: 'destructive' });
+                      } finally {
+                        setSendingStatement(false);
+                      }
+                    }}
+                  >
+                    <Send className="h-4 w-4 mr-2" /> Send statement
+                  </Button>
+                </div>
               </div>
             </div>
           </CardContent>

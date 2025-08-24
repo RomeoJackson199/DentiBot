@@ -41,11 +41,12 @@ serve(async (req) => {
         }
       );
 
-      // Update payment request status
+      // Update payment request status and paid_at
       const { error } = await supabaseService
         .from('payment_requests')
         .update({ 
           status: 'paid',
+          paid_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         })
         .eq('stripe_session_id', session_id);
@@ -64,6 +65,27 @@ serve(async (req) => {
         {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 200,
+        }
+      );
+    } else if (session.payment_status === 'unpaid' || session.status === 'expired') {
+      // Optionally mark failed
+      const supabaseService = createClient(
+        Deno.env.get('SUPABASE_URL') ?? '',
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      );
+      await supabaseService
+        .from('payment_requests')
+        .update({ status: 'failed', updated_at: new Date().toISOString() })
+        .eq('stripe_session_id', session_id);
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          payment_status: session.payment_status,
+          message: 'Payment not completed'
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400,
         }
       );
     } else {
