@@ -1550,8 +1550,8 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
     if (!savedLanguage) {
       (async () => {
         try {
-          const { data: user } = await supabase.auth.getUser();
-          const uid = user.data.user?.id;
+          const { data } = await supabase.auth.getUser();
+          const uid = data.user?.id;
           if (!uid) return;
           const { data: profile } = await supabase
             .from('profiles')
