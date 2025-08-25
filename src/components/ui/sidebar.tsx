@@ -2,6 +2,7 @@ import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { VariantProps, cva } from "class-variance-authority"
 import { PanelLeft } from "lucide-react"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
@@ -34,7 +35,26 @@ const SidebarProvider = React.forwardRef<
   }
 >(({ defaultOpen = true, className, style, children, ...props }, ref) => {
   const isMobile = useIsMobile()
-  const [open, setOpen] = React.useState(defaultOpen)
+  const [open, setOpen] = React.useState<boolean>(() => {
+    try {
+      const match = document.cookie.match(/(?:^|; )sidebar:state=([^;]+)/)
+      if (match) {
+        const value = decodeURIComponent(match[1])
+        if (value === "expanded") return true
+        if (value === "collapsed") return false
+        if (value === "true") return true
+        if (value === "false") return false
+      }
+    } catch {}
+    return defaultOpen
+  })
+
+  React.useEffect(() => {
+    try {
+      const value = open ? "expanded" : "collapsed"
+      document.cookie = `sidebar:state=${value}; Path=/; Max-Age=604800; SameSite=Lax`
+    } catch {}
+  }, [open])
 
   const toggleSidebar = React.useCallback(() => {
     setOpen((v) => !v)
@@ -288,18 +308,40 @@ const SidebarMenuButton = React.forwardRef<
     isActive?: boolean
     tooltip?: string
   } & VariantProps<typeof sidebarMenuButtonVariants>
->(({ asChild = false, isActive = false, variant = "default", size = "default", className, ...props }, ref) => {
+>(({ asChild = false, isActive = false, variant = "default", size = "default", className, tooltip, ...props }, ref) => {
   const Comp = asChild ? Slot : "button"
-  return (
+  const { state } = useSidebar()
+  const collapsed = state === "collapsed"
+
+  const buttonEl = (
     <Comp
       ref={ref}
       data-sidebar="menu-button"
       data-size={size}
       data-active={isActive}
+      aria-current={isActive ? "page" : undefined}
+      title={collapsed ? ((props as any)["aria-label"] || tooltip) : undefined}
       className={cn(sidebarMenuButtonVariants({ variant, size }), className)}
       {...props}
     />
   )
+
+  if (collapsed && tooltip) {
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            {buttonEl}
+          </TooltipTrigger>
+          <TooltipContent side="right" aria-label={tooltip}>
+            {tooltip}
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    )
+  }
+
+  return buttonEl
 })
 SidebarMenuButton.displayName = "SidebarMenuButton"
 

@@ -72,7 +72,13 @@ const STORAGE = {
 function readSidebarCookie(): boolean {
   try {
     const match = document.cookie.match(/(?:^|; )sidebar:state=([^;]+)/);
-    if (match) return match[1] === "true";
+    if (match) {
+      const val = decodeURIComponent(match[1]);
+      if (val === 'expanded') return true;
+      if (val === 'collapsed') return false;
+      if (val === 'true') return true;
+      if (val === 'false') return false;
+    }
   } catch {}
   return true;
 }
@@ -98,26 +104,31 @@ function TopBar() {
   const { setTheme, theme } = useTheme();
   const { language, setLanguage, t } = useLanguage();
   const { state, toggleSidebar } = useSidebar();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setUserId(data.session?.user?.id ?? null));
   }, []);
 
   return (
-    <div className="sticky top-0 z-40 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+    <div role="banner" className="sticky top-0 z-50 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
       <div className="flex items-center gap-2 px-3 md:px-4 py-2">
-        <SidebarTrigger className="md:hidden h-8 w-8" aria-label="Collapse or expand sidebar" title="Collapse/Expand" />
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={toggleSidebar}
-          className="hidden md:inline-flex gap-2"
-          aria-label={state === 'expanded' ? 'Collapse sidebar' : 'Expand sidebar'}
-          title={state === 'expanded' ? 'Collapse sidebar' : 'Expand sidebar'}
-        >
-          <PanelLeft className="h-4 w-4" />
-          <span>{state === 'expanded' ? 'Collapse' : 'Expand'}</span>
-        </Button>
+        {isMobile && (
+          <SidebarTrigger className="h-8 w-8" aria-label="Toggle sidebar" title="Toggle sidebar" />
+        )}
+        {!isMobile && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={toggleSidebar}
+            className="gap-2"
+            aria-label={state === 'expanded' ? 'Collapse sidebar' : 'Expand sidebar'}
+            title={state === 'expanded' ? 'Collapse sidebar' : 'Expand sidebar'}
+          >
+            <PanelLeft className="h-4 w-4" />
+            <span>{state === 'expanded' ? 'Collapse' : 'Expand'}</span>
+          </Button>
+        )}
         <div className="flex items-center gap-2 text-muted-foreground">
           <Home className="h-4 w-4" />
           <Separator orientation="vertical" className="h-4" />
@@ -501,8 +512,8 @@ export function AppShell() {
             </Button>
             <SidebarTrigger
               className="h-8 w-8"
-              aria-label="Collapse or expand sidebar"
-              title="Collapse/Expand"
+              aria-label="Toggle sidebar"
+              title="Toggle sidebar"
             />
           </div>
         </SidebarFooter>
