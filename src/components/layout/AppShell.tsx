@@ -55,7 +55,7 @@ import {
   ChevronDown,
   Home,
   PanelLeft,
-  Tooth,
+  Stethoscope as ToothIcon,
   Plus,
   LogOut,
 } from "lucide-react";

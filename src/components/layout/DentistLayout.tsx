@@ -1,28 +1,27 @@
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import React, { useState, useEffect } from "react";
+import { Outlet, useLocation } from "react-router-dom";
 import { User } from "@supabase/supabase-js";
-import { ClinicalToday } from "@/components/ClinicalToday";
-import { Card, CardContent } from "@/components/ui/card";
+import { supabase } from "@/integrations/supabase/client";
+import { DentistSidebar } from "./DentistSidebar";
 import { useToast } from "@/hooks/use-toast";
+import { Card, CardContent } from "@/components/ui/card";
 
-interface DentistClinicalDashboardProps {
-  user?: User;
+interface DentistLayoutProps {
+  user: User;
+  children?: React.ReactNode;
 }
 
-export function DentistClinicalDashboard({ user }: DentistClinicalDashboardProps) {
+export function DentistLayout({ user, children }: DentistLayoutProps) {
   const [dentistId, setDentistId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const location = useLocation();
 
   useEffect(() => {
-    if (user) {
-      fetchDentistProfile();
-    }
+    fetchDentistProfile();
   }, [user]);
 
   const fetchDentistProfile = async () => {
-    if (!user) return;
-
     try {
       // Get the dentist profile for this user
       const { data: profile, error: profileError } = await supabase
@@ -55,13 +54,22 @@ export function DentistClinicalDashboard({ user }: DentistClinicalDashboardProps
     }
   };
 
+  const handleTabChange = (tab: string) => {
+    // Handle any tab change logic here
+    console.log('Tab changed to:', tab);
+  };
+
   if (loading) {
-    return <div className="flex justify-center p-8">Loading dentist dashboard...</div>;
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
   }
 
   if (!dentistId) {
     return (
-      <div className="flex justify-center p-8">
+      <div className="flex justify-center items-center min-h-screen">
         <Card>
           <CardContent className="pt-6">
             <p className="text-center text-muted-foreground">
@@ -74,14 +82,8 @@ export function DentistClinicalDashboard({ user }: DentistClinicalDashboardProps
   }
 
   return (
-    <div className="p-6">
-      <ClinicalToday 
-        dentistId={dentistId} 
-        user={user!} 
-        onOpenPatientsTab={() => {}} 
-      />
-    </div>
+    <DentistSidebar dentistId={dentistId} onTabChange={handleTabChange}>
+      {children || <Outlet context={{ user, dentistId }} />}
+    </DentistSidebar>
   );
 }
-
-export default DentistClinicalDashboard;
