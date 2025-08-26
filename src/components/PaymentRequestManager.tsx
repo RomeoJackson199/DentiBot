@@ -347,9 +347,16 @@ export const PaymentRequestManager: React.FC<PaymentRequestManagerProps> = ({ de
                           supabase.functions.invoke('send-payment-reminder', { body: { payment_request_ids: [request.id], template_key: 'friendly' } }).then(() => toast({ title: 'Reminder sent' })).catch(() => toast({ title: 'Error', description: 'Failed to send reminder', variant: 'destructive' }));
                         }}>Resend</Button>
                         <Button variant="outline" size="sm" onClick={() => {
-                          supabase.from('payment_requests').update({ status: 'cancelled' }).eq('id', request.id).then(({ error }) => {
-                            if (error) throw error; toast({ title: 'Cancelled' }); fetchPaymentRequests();
-                          }).catch(() => toast({ title: 'Error', description: 'Failed to cancel', variant: 'destructive' }));
+                          (async () => {
+                            try {
+                              const { error } = await supabase.from('payment_requests').update({ status: 'cancelled' }).eq('id', request.id);
+                              if (error) throw error; 
+                              toast({ title: 'Cancelled' }); 
+                              fetchPaymentRequests();
+                            } catch {
+                              toast({ title: 'Error', description: 'Failed to cancel', variant: 'destructive' });
+                            }
+                          })();
                         }}>Cancel</Button>
                       </div>
                     </div>

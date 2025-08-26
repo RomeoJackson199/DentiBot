@@ -98,7 +98,7 @@ export const PaymentWizard: React.FC<PaymentWizardProps> = ({ dentistId, isOpen,
       .eq('dentist_id', dentistId)
       .eq('patient_id', patientId)
       .order('appointment_date', { ascending: false });
-    if (!error) setAppointments((data || []) as AppointmentRef[]);
+    if (!error && data) setAppointments(data as unknown as AppointmentRef[]);
   };
 
   const subtotalCents = useMemo(() => {

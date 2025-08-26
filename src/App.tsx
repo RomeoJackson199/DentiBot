@@ -18,6 +18,8 @@ import { LazyLoadingWrapper } from "./components/optimized/LazyLoadingWrapper";
 import AuthCallbackHandler from "./components/AuthCallbackHandler";
 import { ModernLoadingSpinner } from "@/components/enhanced/ModernLoadingSpinner";
 import { AppShell } from "@/components/layout/AppShell";
+import { DentistLayout } from "@/components/layout/DentistLayout";
+import { DentistRoutesWrapper } from "@/components/layout/DentistRoutesWrapper";
 import { PatientPortalNav } from "@/components/patient/PatientPortalNav";
 
 const Invite = lazy(() => import("./pages/Invite"));
@@ -159,24 +161,9 @@ const App = () => (
                 <Route element={<AppShell />}>
                   {/* Back-compat entry to dentist home */}
                   <Route path="/dashboard" element={<Dashboard />} />
-                  {/* New IA routes */
-                  }
-                  <Route path="/clinical" element={<DentistClinicalDashboard />} />
-                  <Route path="/clinical/schedule" element={<DentistClinicalSchedule />} />
-                  <Route path="/clinical/patients" element={<DentistClinicalPatients />} />
-                  <Route path="/clinical/appointments" element={<DentistClinicalAppointments />} />
-
-                  <Route path="/business/payments" element={<DentistBusinessPayments />} />
-                  <Route path="/business/analytics" element={<DentistBusinessAnalytics />} />
-                  <Route path="/business/reports" element={<DentistBusinessReports />} />
-
-                  <Route path="/ops/inventory" element={<DentistOpsInventory />} />
-                  <Route path="/ops/imports" element={<DentistOpsImports />} />
-
-                  <Route path="/admin/schedule" element={<DentistAdminSchedule />} />
-                  <Route path="/admin/branding" element={<DentistAdminBranding />} />
-                  <Route path="/admin/security" element={<DentistAdminSecurity />} />
                 </Route>
+                {/* Dentist routes with new sidebar - dynamically get user */}
+                <Route path="/dentist/*" element={<DentistRoutesWrapper />} />
                 {/* Patient portal routes with patient nav */}
                 <Route element={<PatientPortalNav><></></PatientPortalNav>}>
                   <Route path="/care" element={<PatientCareHome />} />

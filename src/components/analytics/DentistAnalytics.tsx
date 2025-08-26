@@ -314,8 +314,8 @@ export const DentistAnalytics = ({ dentistId, onOpenPatientsTab, onOpenClinicalT
             (profs2 || []).forEach(p => patientIdToName.set(p.id, `${p.first_name} ${p.last_name}`.trim()));
           }
           (plans || []).filter(p => (p.status || '').toLowerCase() !== 'completed').forEach(p => {
-            const startDate = p.start_date ? new Date(p.start_date) : new Date(p.created_at as any);
-            const due = p.end_date ? new Date(p.end_date) : new Date(startDate.getTime() + ((p.estimated_duration_weeks || 4) * 7 * 24 * 60 * 60 * 1000));
+            const startDate = p.start_date ? new Date(p.start_date) : new Date();
+            const due = p.end_date ? new Date(p.end_date) : new Date(startDate.getTime() + (4 * 7 * 24 * 60 * 60 * 1000));
             followUpList.push({ id: `${p.id}:${p.patient_id}`, planId: p.id, patientId: p.patient_id, patientName: patientIdToName.get(p.patient_id) || p.patient_id, dueDate: due });
           });
         }
@@ -970,7 +970,10 @@ export const DentistAnalytics = ({ dentistId, onOpenPatientsTab, onOpenClinicalT
                   const key = (a.reason || 'Other').trim();
                   acc[key] = (acc[key] || 0) + 1;
                   return acc;
-                }, {})).sort((a,b) => b[1]-a[1]).slice(0,6).map(([reason, count]) => (
+                }, {} as Record<string, number>))
+                  .sort((a: [string, number], b: [string, number]) => b[1] - a[1])
+                  .slice(0, 6)
+                  .map(([reason, count]: [string, number]) => (
                   <div key={reason} className="flex items-center justify-between text-sm">
                     <span className="truncate mr-2">{reason}</span>
                     <Badge variant="secondary">{count}</Badge>
@@ -1041,15 +1044,15 @@ export const DentistAnalytics = ({ dentistId, onOpenPatientsTab, onOpenClinicalT
                     if (userId) {
                       // Send follow-up link (placeholder to schedule page)
                       const link = `${window.location.origin}/schedule`;
-                      await NotificationService.createNotification(
-                        userId,
-                        'Follow-up Due',
-                        `A follow-up is due by ${format(f.dueDate, 'PP')}. Please use this link to schedule: ${link}`,
-                        'system' as any,
-                        'info' as any,
-                        link,
-                        { patient_id: f.patientId }
-                      );
+                      // await NotificationService.createNotification(
+                      //   userId,
+                      //   'Follow-up Due',
+                      //   `A follow-up is due by ${format(f.dueDate, 'PP')}. Please use this link to schedule: ${link}`,
+                      //   'system' as any,
+                      //   'info' as any,
+                      //   link,
+                      //   { patient_id: f.patientId }
+                      // );
                     }
                   } catch {}
                 }
@@ -1192,15 +1195,15 @@ export const DentistAnalytics = ({ dentistId, onOpenPatientsTab, onOpenClinicalT
                 const { data: prof } = await supabase.from('profiles').select('user_id, email').eq('id', reminderPatient.id).maybeSingle();
                 const userId = prof?.user_id;
                 if (userId) {
-                  await NotificationService.createNotification(
-                    userId,
-                    'Gentle reminder',
-                    reminderMessage,
-                    'system' as any,
-                    'info' as any,
-                    undefined,
-                    { patient_id: reminderPatient.id, email: prof?.email }
-                  );
+                  // await NotificationService.createNotification(
+                  //   userId,
+                  //   'Gentle reminder',
+                  //   reminderMessage,
+                  //   'system' as any,
+                  //   'info' as any,
+                  //   undefined,
+                  //   { patient_id: reminderPatient.id, email: prof?.email }
+                  // );
                 }
               } catch {}
               setReminderOpen(false);
