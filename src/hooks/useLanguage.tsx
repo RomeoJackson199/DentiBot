@@ -355,6 +355,35 @@ interface Translations {
       help: string;
     };
   };
+
+  // Dentist: Clinical appointment UI additions
+  completeAppointment: string;
+  nextAppointmentShort: string;
+  recommendedFollowUp: string;
+  quickActions: string;
+  bookNext: string;
+  createPaymentRequest: string;
+  addNote: string;
+  printSendPrescription: string;
+  criticalContext: string;
+  alerts: string;
+  treatmentPlanPhase: string;
+  balanceShort: string;
+  latestDocument: string;
+  timeline: string;
+  filter: string;
+  filters: string;
+  show: string;
+  hide: string;
+  appointmentsShort: string;
+  notesShort: string;
+  prescriptionsShort: string;
+  paymentsShort: string;
+  viewAll: string;
+  collapse: string;
+  expand: string;
+  srAlertNew: string;
+  srQuickActions: string;
 }
 
 const translations: Record<Language, Translations> = {
@@ -739,6 +768,35 @@ How can I help you today?`,
         help: "Help & Support",
       },
     },
+
+    // Dentist: Clinical appointment UI additions
+    completeAppointment: "Complete Appointment",
+    nextAppointmentShort: "Next Appointment",
+    recommendedFollowUp: "Recommended Follow-up",
+    quickActions: "Quick Actions",
+    bookNext: "Book Next",
+    createPaymentRequest: "Create Payment Request",
+    addNote: "Add Note",
+    printSendPrescription: "Print/Send Prescription",
+    criticalContext: "Critical Context",
+    alerts: "Alerts",
+    treatmentPlanPhase: "Treatment Plan Phase",
+    balanceShort: "Balance",
+    latestDocument: "Latest Document",
+    timeline: "Timeline",
+    filter: "Filter",
+    filters: "Filters",
+    show: "Show",
+    hide: "Hide",
+    appointmentsShort: "Appointments",
+    notesShort: "Notes",
+    prescriptionsShort: "Prescriptions",
+    paymentsShort: "Payments",
+    viewAll: "View all",
+    collapse: "Collapse",
+    expand: "Expand",
+    srAlertNew: "New critical alert",
+    srQuickActions: "Quick actions toolbar",
   },
   fr: {
     // Error & status messages
@@ -1112,7 +1170,7 @@ Comment puis-je vous aider aujourd'hui ?`,
         care: "Soins",
         billing: "Facturation",
         documents: "Documents",
-        account: "Compte",
+        account: "Account",
       },
       care: {
         home: "Accueil",
@@ -1123,12 +1181,41 @@ Comment puis-je vous aider aujourd'hui ?`,
       billing: { main: "Factures & Paiements" },
       docs: { main: "Mes Documents" },
       account: {
-        profile: "Profil & Paramètres",
-        insurance: "Assurance / Mutualité",
+        profile: "Profiel & Instellingen",
+        insurance: "Verzekering / Mutualiteit",
         privacy: "Confidentialité & Sécurité",
         help: "Aide & Support",
       },
     },
+
+    // Dentist: Clinical appointment UI additions
+    completeAppointment: "Terminer le Rendez-vous",
+    nextAppointmentShort: "Prochain Rendez-vous",
+    recommendedFollowUp: "Suivi Recommandé",
+    quickActions: "Actions Rapides",
+    bookNext: "Réserver le Suivant",
+    createPaymentRequest: "Créer une Demande de Paiement",
+    addNote: "Ajouter une Note",
+    printSendPrescription: "Imprimer/Envoyer l'Ordonnance",
+    criticalContext: "Contexte Critique",
+    alerts: "Alertes",
+    treatmentPlanPhase: "Phase du Plan de Traitement",
+    balanceShort: "Solde",
+    latestDocument: "Dernier Document",
+    timeline: "Chronologie",
+    filter: "Filtrer",
+    filters: "Filtres",
+    show: "Afficher",
+    hide: "Masquer",
+    appointmentsShort: "Rdv",
+    notesShort: "Notes",
+    prescriptionsShort: "Ordonnances",
+    paymentsShort: "Paiements",
+    viewAll: "Tout voir",
+    collapse: "Réduire",
+    expand: "Développer",
+    srAlertNew: "Nouvelle alerte critique",
+    srQuickActions: "Barre d'actions rapides",
   },
   nl: {
     // Error & status messages
@@ -1216,48 +1303,8 @@ Comment puis-je vous aider aujourd'hui ?`,
     typeMessage: "Typ uw bericht...",
     send: "Versturen",
     welcomeMessage: "Hallo! Ik ben DentiBot. Hoe kan ik u vandaag helpen? 🦷",
-    detailedWelcomeMessage: `Welkom bij First Smile AI! 🦷✨
-
-Ik ben uw AI tandheelkundige assistent, 24/7 beschikbaar om u te helpen met:
-
-🤖 **AI Chat** - Krijg directe antwoorden op uw tandheelkundige vragen
-📅 **Slimme Boekingen** - Boek afspraken intelligent met duurduurinformatie
-📸 **Foto Analyse** - Upload foto's voor AI-aangedreven tandheelkundige analyse
-👨‍👩‍👧‍👦 **Familiezorg** - Boek afspraken voor uzelf of familieleden
-
-💡 **Pro Tip**: Vertel me gewoon wat u dwarszit, en ik zal u door alles heen begeleiden!
-
-Hoe kan ik u vandaag helpen?`,
-    detailedWelcomeMessageWithName: (
-      name: string,
-    ) => `Welkom bij First Smile AI! 🦷✨
-
-Hallo ${name}! Ik ben uw AI tandheelkundige assistent, 24/7 beschikbaar om u te helpen met:
-
-🤖 **AI Chat** - Krijg directe antwoorden op uw tandheelkundige vragen
-📅 **Slimme Boekingen** - Boek afspraken intelligent met duurduurinformatie
-📸 **Foto Analyse** - Upload foto's voor AI-aangedreven tandheelkundige analyse
-👨‍👩‍👧‍👦 **Familiezorg** - Boek afspraken voor uzelf of familieleden
-
-💡 **Pro Tip**: Vertel me gewoon wat u dwarszit, en ik zal u door alles heen begeleiden!
-
-Hoe kan ik u vandaag helpen?`,
-
-    // Landing page
-    intelligentDentalAssistant:
-      "Uw Intelligente Tandheelkundige Assistent 24/7",
-    experienceFuture:
-      "Ervaar de toekomst van tandheelkundige zorg met AI-consultaties, slimme afspraakplanning en gepersonaliseerde behandelingsaanbevelingen. 24/7 beschikbaar om u te helpen uw perfecte glimlach te behouden.",
-    viewOurDentists: "Bekijk Onze Tandartsen",
-    aiDiagnosis: "AI Diagnose",
-    aiDiagnosisDesc: "Krijg direct AI-ondersteunde beoordelingen",
-    smartBooking: "Slimme Boekingen",
-    smartBookingDesc: "Boek afspraken intelligent",
-    support24_7: "24/7 Ondersteuning",
-    support24_7Desc: "Hulp rond de klok",
-    initializingExperience: "Uw ervaring wordt geïnitialiseerd",
-    preparingAssistant:
-      "Uw gepersonaliseerde tandheelkundige assistent wordt voorbereid met geavanceerde AI-technologie",
+    detailedWelcomeMessage: "Welkom bij First Smile AI! 🦷✨\n\nIk ben uw AI tandheelkundige assistent, 24/7 beschikbaar om u te helpen met:\n\n🤖 **AI Chat** - Krijg directe antwoorden op uw tandheelkundige vragen\n📅 **Slimme Boekingen** - Boek afspraken intelligent met duurduurinformatie\n📸 **Foto Analyse** - Upload foto's voor AI-aangedreven tandheelkundige analyse\n👨‍👩‍👧‍👦 **Familiezorg** - Boek afspraken voor uzelf of familieleden\n\n💡 **Pro Tip**: Vertel me gewoon wat u dwarszit, en ik zal u door alles heen begeleiden!\n\nHoe kan ik u vandaag helpen?",
+    detailedWelcomeMessageWithName: (name: string) => `Welkom bij First Smile AI! 🦷✨\n\nHallo ${name}! Ik ben uw AI tandheelkundige assistent, 24/7 beschikbaar om u te helpen met:\n\n🤖 **AI Chat** - Krijg directe antwoorden op uw tandheelkundige vragen\n📅 **Slimme Boekingen** - Boek afspraken intelligent met duurduurinformatie\n📸 **Foto Analyse** - Upload foto's voor AI-aangedreven tandheelkundige analyse\n👨‍👩‍👧‍👦 **Familiezorg** - Boek afspraken voor uzelf of familieleden\n\n💡 **Pro Tip**: Vertel me gewoon wat u dwarszit, en ik zal u door alles heen begeleiden!\n\nHoe kan ik u vandaag helpen?`,
 
     // Navigation
     chat: "Chat",
@@ -1327,7 +1374,8 @@ Hoe kan ik u vandaag helpen?`,
     cameraError: "Camera Fout",
     mediaAccessDenied:
       "Media toegang is geweigerd. Controleer uw browserinstellingen.",
-    mediaNotSupported: "Mediafuncties worden niet ondersteund op dit apparaat.",
+    mediaNotSupported:
+      "Mediafuncties worden niet ondersteund op dit apparaat.",
     tryAgain: "Probeer Opnieuw",
 
     // Privacy & validation
@@ -1341,7 +1389,7 @@ Hoe kan ik u vandaag helpen?`,
     childConsentNote: "Als u gegevens invoert voor een patiënt jonger dan 16 jaar, bevestigt u dat u hun ouder of wettelijke voogd bent en toestemt met de verwerking van hun gegevens.",
     downloadMyData: "Mijn Gegevens Downloaden",
     deleteAccount: "Mijn Account en Gegevens Verwijderen",
-    deleteAccountConfirm: "Het verwijderen van uw account verwijdert al uw persoonlijke- en gezondheidsgegevens permanent uit de systemen van DentiBot. Dette kan niet ongedaan worden gemaakt. Weet u het zeker?",
+    deleteAccountConfirm: "Het verwijderen van uw account verwijdert al uw persoonlijke- en gezondheidsgegevens permanent uit de systemen van DentiBot. Dit kan niet ongedaan worden gemaakt. Weet u het zeker?",
     aiAdviceDisclaimer: "⚠️ AI-suggesties zijn alleen voor informatiedoeleinden en vervangen geen professioneel tandheelkundig advies.",
 
     // Onboarding
@@ -1382,8 +1430,10 @@ Hoe kan ik u vandaag helpen?`,
     termsTitle: "Algemene Voorwaarden",
     termsIntro:
       "Lees deze voorwaarden zorgvuldig door voordat u First Smile AI gebruikt.",
-    termsUse: "Gebruik deze dienst verantwoordelijk en respecteer anderen.",
-    termsPrivacy: "Wij behandelen uw gegevens volgens ons privacybeleid.",
+    termsUse:
+      "Utilisez deze dienst verantwoordelijk en respecteer anderen.",
+    termsPrivacy:
+      "Wij behandelen uw gegevens volgens ons privacybeleid.",
     termsMedical:
       "Raadpleeg altijd een professional voor serieuze medische vragen.",
 
@@ -1437,7 +1487,7 @@ Hoe kan ik u vandaag helpen?`,
     bookingAppointments: "Afspraken maken",
     dentalQuestions: "Tandheelkundige vragen",
     emergencyTriage: "Spoed triage",
-    startChat: "Start Chat",
+    startChat: "Commencer le Chat",
     dailyTipsReminders: "Dagelijkse Tips & Herinneringen",
     morningReminder: "Ochtend Herinnering",
     dontForgetToBrush: "Vergeet niet om 2 minuten te poetsen",
@@ -1477,7 +1527,7 @@ Hoe kan ik u vandaag helpen?`,
     navBusiness: "Zakelijk",
     navOperations: "Operaties",
     navAdmin: "Beheer",
-    navDashboard: "Dashboard",
+    navDashboard: "Tableau de bord",
     navAppointments: "Afspraken",
     navPatients: "Patiënten",
     navPayments: "Betalingen",
@@ -1488,10 +1538,10 @@ Hoe kan ik u vandaag helpen?`,
     navSchedule: "Schema",
     navSettings: "Instellingen",
     navBrandingLoc: "Branding & Lokalisatie",
-    navSecurity: "Privacy & Beveiliging",
+    navSecurity: "Confidentialité & Beveiliging",
     topSearch: "Zoeken",
     topClinic: "Kliniek",
-    topProfile: "Profiel",
+    topProfile: "Profil",
     // Patient portal navigation (pnav.*)
     pnav: {
       group: {
@@ -1511,10 +1561,39 @@ Hoe kan ik u vandaag helpen?`,
       account: {
         profile: "Profiel & Instellingen",
         insurance: "Verzekering / Mutualiteit",
-        privacy: "Privacy & Beveiliging",
+        privacy: "Confidentialité & Beveiliging",
         help: "Hulp & Support",
       },
     },
+
+    // Dentist: Clinical appointment UI additions
+    completeAppointment: "Afspraak Voltooien",
+    nextAppointmentShort: "Volgende Afspraak",
+    recommendedFollowUp: "Aanbevolen Vervolg",
+    quickActions: "Snelle Acties",
+    bookNext: "Volgende Boeken",
+    createPaymentRequest: "Betalingsverzoek Aanmaken",
+    addNote: "Notitie Toevoegen",
+    printSendPrescription: "Recept Afdrukken/Verzenden",
+    criticalContext: "Kritieke Context",
+    alerts: "Meldingen",
+    treatmentPlanPhase: "Behandelplan Fase",
+    balanceShort: "Solde",
+    latestDocument: "Laatste Document",
+    timeline: "Tijdlijn",
+    filter: "Filter",
+    filters: "Filters",
+    show: "Tonen",
+    hide: "Verbergen",
+    appointmentsShort: "Afspr.",
+    notesShort: "Notities",
+    prescriptionsShort: "Voorschr.",
+    paymentsShort: "Betalingen",
+    viewAll: "Alles bekijken",
+    collapse: "Inklappen",
+    expand: "Uitklappen",
+    srAlertNew: "Nieuwe kritieke melding",
+    srQuickActions: "Werkbalk snelle acties",
   },
 };
 

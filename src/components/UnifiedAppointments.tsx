@@ -22,10 +22,17 @@ import {
   XCircle, 
   RefreshCw,
   MoreVertical,
-  AlertCircle
+  AlertCircle,
+  DollarSign,
+  FileText,
+  Pill
 } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/hooks/useLanguage";
+import PaymentWizard from "@/components/payments/PaymentWizard";
+import { PrescriptionManager } from "@/components/PrescriptionManager";
+import { Sheet as UISheet, SheetContent as UISheetContent } from "@/components/ui/sheet";
 
 interface UnifiedAppointment {
   id: string;
@@ -77,6 +84,7 @@ export function UnifiedAppointments({
   const [rescheduleDate, setRescheduleDate] = useState("");
   const [rescheduleTime, setRescheduleTime] = useState("");
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   // Quick booking state
   const [quickPatients, setQuickPatients] = useState<Array<{ id: string; first_name: string; last_name: string; email?: string }>>([]);
@@ -89,6 +97,50 @@ export function UnifiedAppointments({
   const [quickReason, setQuickReason] = useState<string>("Routine Checkup");
   const [quickUrgency, setQuickUrgency] = useState<'low' | 'medium' | 'high'>('medium');
   const [quickDuration, setQuickDuration] = useState<number>(30);
+
+  // UI state for quick actions
+  const [showPaymentWizard, setShowPaymentWizard] = useState(false);
+  const [showPrescription, setShowPrescription] = useState(false);
+  const [noteText, setNoteText] = useState("");
+  const [addingNoteForPatientId, setAddingNoteForPatientId] = useState<string | null>(null);
+
+  // Derive next appointment (upcoming earliest)
+  const nextAppointment = useMemo(() => {
+    const upcoming = appointments
+      .filter(a => ['confirmed','pending','in_progress','scheduled'].includes(a.status))
+      .filter(a => new Date(a.appointment_date).getTime() >= Date.now())
+      .sort((a,b) => new Date(a.appointment_date).getTime() - new Date(b.appointment_date).getTime());
+    return upcoming[0] || null;
+  }, [appointments]);
+
+  // Derive current in-progress appointment ("current visit open")
+  const currentInProgress = useMemo(() => {
+    const now = Date.now();
+    return appointments.find(a => (a.status === 'in_progress' || a.status === 'confirmed') && new Date(a.appointment_date).getTime() <= now && (a.duration_minutes ? new Date(a.appointment_date).getTime() + a.duration_minutes * 60000 > now : true)) || null;
+  }, [appointments]);
+
+  const createPaymentRequest = () => setShowPaymentWizard(true);
+  const openPrescription = () => setShowPrescription(true);
+  const addQuickNote = async () => {
+    try {
+      if (!addingNoteForPatientId || !noteText.trim()) return;
+      const { error } = await supabase
+        .from('notes')
+        .insert({
+          patient_id: addingNoteForPatientId,
+          title: 'Quick Note',
+          content: noteText.trim(),
+          note_type: 'general',
+          created_by: dentistId
+        });
+      if (error) throw error;
+      setNoteText("");
+      setAddingNoteForPatientId(null);
+      toast({ title: t.success, description: t.changesSaved });
+    } catch (e) {
+      toast({ title: t.error, description: t.somethingWentWrong, variant: 'destructive' });
+    }
+  };
 
   // Fetch appointments
   const fetchAppointments = useCallback(async () => {
@@ -341,13 +393,95 @@ export function UnifiedAppointments({
 
   return (
     <div className="space-y-4">
+      {/* Top Section: Next Appointment + Critical Context */}
+      <Card className="glass-card sticky top-0 z-20 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <CardHeader>
+          <div className="flex flex-col gap-4">
+            {/* Next Appointment and Alerts */}
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+              <CardTitle className="flex items-center gap-2">
+                <Clock className="h-5 w-5 text-dental-primary" aria-hidden="true" />
+                <span>{t.nextAppointmentShort}</span>
+                {nextAppointment ? (
+                  <Badge variant="outline" className="ml-2">
+                    {format(new Date(nextAppointment.appointment_date), 'PPP p')}
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className="ml-2">—</Badge>
+                )}
+              </CardTitle>
+              <div className="flex items-center gap-2" aria-live="polite" aria-atomic="true">
+                <AlertCircle className="h-4 w-4 text-amber-600" aria-hidden="true" />
+                <span className="text-sm" role="status" aria-label={t.srAlertNew}>{t.alerts}</span>
+              </div>
+            </div>
+
+            {/* Critical Context */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
+              <div className="p-2 rounded border">
+                <div className="text-xs text-muted-foreground">{t.treatmentPlanPhase}</div>
+                <div>—</div>
+              </div>
+              <div className="p-2 rounded border">
+                <div className="text-xs text-muted-foreground">{t.balanceShort}</div>
+                <div>—</div>
+              </div>
+              <div className="p-2 rounded border">
+                <div className="text-xs text-muted-foreground">{t.latestDocument}</div>
+                <div>—</div>
+              </div>
+              <div className="p-2 rounded border">
+                <div className="text-xs text-muted-foreground">{t.recommendedFollowUp}</div>
+                <div>—</div>
+              </div>
+            </div>
+
+            {/* Sticky Quick Actions */}
+            <div className="flex flex-wrap gap-2" role="toolbar" aria-label={t.srQuickActions}>
+              {currentInProgress && (
+                <Button size="sm" onClick={() => handleComplete(currentInProgress)} className="bg-green-600 hover:bg-green-700">
+                  <CheckCircle2 className="h-4 w-4 mr-1" /> {t.completeAppointment}
+                </Button>
+              )}
+              <Button size="sm" variant="outline" onClick={() => setShowBooking(true)}>
+                <Calendar className="h-4 w-4 mr-1" /> {t.bookNext}
+              </Button>
+              <Button size="sm" variant="outline" onClick={createPaymentRequest}>
+                <DollarSign className="h-4 w-4 mr-1" /> {t.createPaymentRequest}
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => { setAddingNoteForPatientId(currentInProgress?.patient_id || nextAppointment?.patient_id || ""); }}>
+                <FileText className="h-4 w-4 mr-1" /> {t.addNote}
+              </Button>
+              <Button size="sm" variant="outline" onClick={openPrescription}>
+                <Pill className="h-4 w-4 mr-1" /> {t.printSendPrescription}
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+      </Card>
+
+      {/* Quick Note Inline (appears when addingNoteForPatientId) */}
+      {addingNoteForPatientId && (
+        <Card>
+          <CardContent className="p-3">
+            <div className="flex gap-2 items-start">
+              <Textarea aria-label={t.addNote} value={noteText} onChange={(e) => setNoteText(e.target.value)} placeholder={t.addNote} className="flex-1" />
+              <div className="flex gap-2">
+                <Button size="sm" onClick={addQuickNote}>{t.save}</Button>
+                <Button size="sm" variant="outline" onClick={() => { setAddingNoteForPatientId(null); setNoteText(""); }}>{t.cancel}</Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Header with filters */}
       <Card className="glass-card">
         <CardHeader>
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <CardTitle className="flex items-center space-x-2">
               <Calendar className="h-5 w-5 text-dental-primary" />
-              <span>Appointments</span>
+              <span>{t.appointments}</span>
               <Badge variant="outline">{filteredAppointments.length}</Badge>
             </CardTitle>
             <Button
@@ -355,7 +489,7 @@ export function UnifiedAppointments({
               className="bg-primary hover:bg-primary/90"
             >
               <Plus className="h-4 w-4 mr-2" />
-              Book Appointment
+              {t.bookAppointment}
             </Button>
           </div>
         </CardHeader>
@@ -367,28 +501,28 @@ export function UnifiedAppointments({
               size="sm"
               onClick={() => setFilterStatus('all')}
             >
-              All
+              {t.show}
             </Button>
             <Button
               variant={filterStatus === 'upcoming' ? 'default' : 'outline'}
               size="sm"
               onClick={() => setFilterStatus('upcoming')}
             >
-              Upcoming
+              {t.upcoming}
             </Button>
             <Button
               variant={filterStatus === 'completed' ? 'default' : 'outline'}
               size="sm"
               onClick={() => setFilterStatus('completed')}
             >
-              Completed
+              {t.completed}
             </Button>
             <Button
               variant={filterStatus === 'cancelled' ? 'default' : 'outline'}
               size="sm"
               onClick={() => setFilterStatus('cancelled')}
             >
-              Cancelled
+              {t.cancelled}
             </Button>
           </div>
         </CardContent>
@@ -635,6 +769,20 @@ export function UnifiedAppointments({
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Payment Wizard Dialog */}
+      {showPaymentWizard && (
+        <PaymentWizard dentistId={dentistId} isOpen={showPaymentWizard} onClose={() => setShowPaymentWizard(false)} />
+      )}
+
+      {/* Prescription Manager in a side sheet */}
+      <UISheet open={showPrescription} onOpenChange={setShowPrescription}>
+        <UISheetContent side="right" className="w-full sm:w-[540px]">
+          <div className="p-2">
+            <PrescriptionManager dentistId={dentistId} />
+          </div>
+        </UISheetContent>
+      </UISheet>
 
       {/* Modern Completion Dialog */}
       {selectedAppointment && (
