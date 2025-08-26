@@ -136,16 +136,19 @@ export function DentistSidebar({ dentistId, children, onTabChange }: DentistSide
     <SidebarProvider>
       <div className="flex min-h-screen w-full">
         <Sidebar className="w-72 border-r">
-          {/* Header */}
+          {/* Header with visible trigger */}
           <SidebarHeader className="border-b p-4">
-            <div className="flex items-center gap-3">
-              <div className="h-8 w-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center font-semibold">
-                D
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="h-8 w-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center font-semibold">
+                  D
+                </div>
+                <div>
+                  <h2 className="font-semibold text-sm">Dentist Portal</h2>
+                  <p className="text-xs text-muted-foreground">Dashboard</p>
+                </div>
               </div>
-              <div>
-                <h2 className="font-semibold text-sm">Dentist Portal</h2>
-                <p className="text-xs text-muted-foreground">Dashboard</p>
-              </div>
+              <SidebarTrigger className="h-6 w-6" />
             </div>
           </SidebarHeader>
 
@@ -200,11 +203,13 @@ export function DentistSidebar({ dentistId, children, onTabChange }: DentistSide
         </Sidebar>
 
         {/* Main Content */}
-        <main className="flex-1">
+        <main className="flex-1 min-h-screen">
           <div className="sticky top-0 z-40 bg-background border-b p-2 md:hidden">
             <SidebarTrigger />
           </div>
-          {children}
+          <div className="p-6">
+            {children}
+          </div>
         </main>
       </div>
     </SidebarProvider>

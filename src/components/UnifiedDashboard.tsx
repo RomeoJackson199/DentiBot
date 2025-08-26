@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback, memo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
+import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { PatientDashboard } from "./PatientDashboard";
-import { DentistDashboard } from "../pages/DentistDashboard";
 import { AiOptOutPrompt } from "./AiOptOutPrompt";
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
@@ -16,6 +16,7 @@ export const UnifiedDashboard = memo(({ user }: UnifiedDashboardProps) => {
   const [userRole, setUserRole] = useState<'patient' | 'dentist' | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const fetchUserRole = useCallback(async () => {
     try {
@@ -43,6 +44,9 @@ export const UnifiedDashboard = memo(({ user }: UnifiedDashboardProps) => {
 
         if (!dentistError && dentist?.is_active) {
           setUserRole('dentist');
+          // Redirect dentists to new sidebar layout
+          navigate('/dentist/clinical/dashboard', { replace: true });
+          return;
         } else {
           setUserRole('patient');
         }
@@ -60,7 +64,7 @@ export const UnifiedDashboard = memo(({ user }: UnifiedDashboardProps) => {
     } finally {
       setLoading(false);
     }
-  }, [user.id, toast]);
+  }, [user.id, toast, navigate]);
 
   useEffect(() => {
     fetchUserRole();
@@ -87,11 +91,8 @@ export const UnifiedDashboard = memo(({ user }: UnifiedDashboardProps) => {
 
   return (
     <>
-      {userRole === 'dentist' ? (
-        <DentistDashboard user={user} />
-      ) : (
-        <PatientDashboard user={user} />
-      )}
+      {/* Only show patient dashboard since dentists get redirected */}
+      <PatientDashboard user={user} />
       <AiOptOutPrompt user={user} />
     </>
   );

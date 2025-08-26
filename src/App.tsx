@@ -157,10 +157,15 @@ const App = () => (
               <Suspense fallback={<ModernLoadingSpinner variant="overlay" message="Loading..." /> }>
               <Routes>
                 <Route path="/" element={<Index />} />
-                {/* Authenticated app routes inside AppShell */}
+                {/* Old routes for backward compatibility */}
                 <Route element={<AppShell />}>
                   {/* Back-compat entry to dentist home */}
                   <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/clinical" element={<Navigate to="/dentist/clinical/dashboard" replace />} />
+                  <Route path="/clinical/*" element={<Navigate to="/dentist/clinical/dashboard" replace />} />
+                  <Route path="/business/*" element={<Navigate to="/dentist/business/payments" replace />} />
+                  <Route path="/ops/*" element={<Navigate to="/dentist/ops/inventory" replace />} />
+                  <Route path="/admin/*" element={<Navigate to="/dentist/admin/branding" replace />} />
                 </Route>
                 {/* Dentist routes with new sidebar - dynamically get user */}
                 <Route path="/dentist/*" element={<DentistRoutesWrapper />} />
