@@ -39,30 +39,32 @@ export function ModernHeroSectionMobile({ onBookAppointment, onStartTriage, mini
 						</p>
 					</div>
 
-					<div className="space-y-3">
-						<AppButton
-							variant="gradient"
-							size="mobile"
-							onClick={onBookAppointment}
-							aria-label="Book a dental appointment"
-							className="w-full btn-elevated"
-						>
-							<Calendar className="h-5 w-5 mr-2" />
-							{t.bookAppointment}
-							<ArrowRight className="h-4 w-4 ml-2" />
-						</AppButton>
+					{!minimal && (
+						<div className="space-y-3">
+							<AppButton
+								variant="gradient"
+								size="mobile"
+								onClick={onBookAppointment}
+								aria-label="Book a dental appointment"
+								className="w-full btn-elevated"
+							>
+								<Calendar className="h-5 w-5 mr-2" />
+								{t.bookAppointment}
+								<ArrowRight className="h-4 w-4 ml-2" />
+							</AppButton>
 
-						<AppButton
-							variant="outline"
-							size="mobile"
-							onClick={onStartTriage}
-							aria-label="Start emergency dental triage"
-							className="w-full border-dental-primary/30 hover:bg-dental-primary/5"
-						>
-							<Shield className="h-5 w-5 mr-2" />
-							{t['triage.title']}
-						</AppButton>
-					</div>
+							<AppButton
+								variant="outline"
+								size="mobile"
+								onClick={onStartTriage}
+								aria-label="Start emergency dental triage"
+								className="w-full border-dental-primary/30 hover:bg-dental-primary/5"
+							>
+								<Shield className="h-5 w-5 mr-2" />
+								{t['triage.title']}
+							</AppButton>
+						</div>
+					)}
 
 					{!minimal && (
 						<div className="grid grid-cols-2 gap-3 pt-4">

@@ -114,43 +114,45 @@ export function ModernHeroSection({ onBookAppointment, onStartTriage, onOpenAICh
           )}
 
           {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-slide-up" style={{ animationDelay: "0.8s" }}>
-            <AppButton
-              variant="gradient"
-              size="desktop"
-              onClick={onBookAppointment}
-              aria-label="Book a dental appointment"
-              className="group min-w-[200px]"
-            >
-              <Calendar className="h-5 w-5 mr-2 group-hover:scale-110 transition-transform" />
-              {t.bookAppointment}
-              <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
-            </AppButton>
-            
-            <AppButton
-              variant="outline"
-              size="desktop"
-              onClick={onStartTriage}
-              aria-label="Start emergency dental triage"
-              className="group min-w-[200px] border-dental-primary/30 hover:bg-dental-primary/5"
-            >
-              <Shield className="h-5 w-5 mr-2 group-hover:scale-110 transition-transform" />
-              {t['triage.title']}
-            </AppButton>
-
-            {onOpenAIChat && (
+          {!minimal && (
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-slide-up" style={{ animationDelay: "0.8s" }}>
+              <AppButton
+                variant="gradient"
+                size="desktop"
+                onClick={onBookAppointment}
+                aria-label="Book a dental appointment"
+                className="group min-w-[200px]"
+              >
+                <Calendar className="h-5 w-5 mr-2 group-hover:scale-110 transition-transform" />
+                {t.bookAppointment}
+                <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
+              </AppButton>
+              
               <AppButton
                 variant="outline"
                 size="desktop"
-                onClick={onOpenAIChat}
-                aria-label="Talk to AI assistant"
+                onClick={onStartTriage}
+                aria-label="Start emergency dental triage"
                 className="group min-w-[200px] border-dental-primary/30 hover:bg-dental-primary/5"
               >
-                <Brain className="h-5 w-5 mr-2 group-hover:scale-110 transition-transform" />
-                {language === 'fr' ? "Parler à l'IA" : language === 'nl' ? 'Praat met AI' : 'Talk to AI'}
+                <Shield className="h-5 w-5 mr-2 group-hover:scale-110 transition-transform" />
+                {t['triage.title']}
               </AppButton>
-            )}
-          </div>
+
+              {onOpenAIChat && (
+                <AppButton
+                  variant="outline"
+                  size="desktop"
+                  onClick={onOpenAIChat}
+                  aria-label="Talk to AI assistant"
+                  className="group min-w-[200px] border-dental-primary/30 hover:bg-dental-primary/5"
+                >
+                  <Brain className="h-5 w-5 mr-2 group-hover:scale-110 transition-transform" />
+                  {language === 'fr' ? "Parler à l'IA" : language === 'nl' ? 'Praat met AI' : 'Talk to AI'}
+                </AppButton>
+              )}
+            </div>
+          )}
 
           {/* Stats Section */}
           {!minimal && (
