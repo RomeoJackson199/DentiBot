@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
-import { DentistSidebar } from "./DentistSidebar";
+import { DentistAppShell } from "./DentistAppShell";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -82,8 +82,8 @@ export function DentistLayout({ user, children }: DentistLayoutProps) {
   }
 
   return (
-    <DentistSidebar dentistId={dentistId} onTabChange={handleTabChange}>
+    <div className="min-h-screen">
       {children || <Outlet context={{ user, dentistId }} />}
-    </DentistSidebar>
+    </div>
   );
 }

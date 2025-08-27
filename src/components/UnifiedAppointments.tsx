@@ -116,7 +116,7 @@ export function UnifiedAppointments({
   // Derive current in-progress appointment ("current visit open")
   const currentInProgress = useMemo(() => {
     const now = Date.now();
-    return appointments.find(a => (a.status === 'in_progress' || a.status === 'confirmed') && new Date(a.appointment_date).getTime() <= now && (a.duration_minutes ? new Date(a.appointment_date).getTime() + a.duration_minutes * 60000 > now : true)) || null;
+    return appointments.find(a => a.status === 'confirmed' && new Date(a.appointment_date).getTime() <= now && (a.duration_minutes ? new Date(a.appointment_date).getTime() + a.duration_minutes * 60000 > now : true)) || null;
   }, [appointments]);
 
   const createPaymentRequest = () => setShowPaymentWizard(true);
@@ -138,7 +138,7 @@ export function UnifiedAppointments({
       setAddingNoteForPatientId(null);
       toast({ title: t.success, description: t.changesSaved });
     } catch (e) {
-      toast({ title: t.error, description: t.somethingWentWrong, variant: 'destructive' });
+      toast({ title: t.error, description: "Something went wrong", variant: 'destructive' });
     }
   };
 

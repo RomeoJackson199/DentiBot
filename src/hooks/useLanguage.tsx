@@ -21,6 +21,8 @@ interface Translations {
   general: string;
   theme: string;
   personal: string;
+  startConsultation: string;
+  emergencyAssistance: string;
   language: string;
   light: string;
   dark: string;
@@ -398,10 +400,17 @@ const translations: Record<Language, Translations> = {
     voiceProcessingError: "Error processing voice message. Please try again.",
 
     // General
-    settings: "Settings",
-    general: "General",
-    theme: "Theme",
-    personal: "Personal",
+  settings: "Settings",
+  general: "General",
+  theme: "Theme",
+  personal: "Personal",
+  intelligentDentalAssistant: "Intelligent Dental Assistant",
+  experienceFuture: "Experience the Future",
+  viewOurDentists: "View Our Dentists",
+  aiDiagnosis: "AI Diagnosis",
+  startConsultation: "Start Consultation",
+  bookAppointment: "Book Appointment",
+  emergencyAssistance: "Emergency Assistance",
     language: "Preferred Language",
     light: "Light",
     dark: "Dark",
@@ -500,11 +509,6 @@ Hello ${name}! I'm your AI dental assistant, available 24/7 to help you with:
 How can I help you today?`,
 
     // Landing page
-    intelligentDentalAssistant: "Your Intelligent Dental Assistant 24/7",
-    experienceFuture:
-      "Experience the future of dental care with AI-powered consultations, smart appointment booking, and personalized treatment recommendations. Available 24/7 to help you maintain your perfect smile.",
-    viewOurDentists: "View Our Dentists",
-    aiDiagnosis: "AI Diagnosis",
     aiDiagnosisDesc: "Get instant AI-powered assessments",
     smartBooking: "Smart Booking",
     smartBookingDesc: "Book appointments intelligently",
@@ -519,7 +523,6 @@ How can I help you today?`,
     appointments: "Appointments",
 
     // Appointment booking
-    bookAppointment: "Book Appointment",
     bookConsultationDescription:
       "Book your dental consultation in just a few clicks",
     chooseDentist: "Choose Dentist",
@@ -814,6 +817,8 @@ How can I help you today?`,
     general: "Général",
     theme: "Thème",
     personal: "Personnel",
+    startConsultation: "Commencer la consultation",
+    emergencyAssistance: "Assistance d'urgence",
     language: "Langue préférée",
     light: "Clair",
     dark: "Sombre",
@@ -1233,6 +1238,20 @@ Comment puis-je vous aider aujourd'hui ?`,
     general: "Algemeen",
     theme: "Thema",
     personal: "Persoonlijk",
+    startConsultation: "Start consultatie",
+    emergencyAssistance: "Noodhulp",
+    intelligentDentalAssistant: "Intelligente tandheelkundige assistent",
+    experienceFuture: "Ervaar de toekomst",
+    viewOurDentists: "Bekijk onze tandartsen",
+    aiDiagnosis: "AI Diagnose",
+    aiDiagnosisDesc: "Krijg directe AI-beoordelingen",
+    smartBooking: "Slim boeken",
+    smartBookingDesc: "Boek afspraken intelligent",
+    support24_7: "24/7 ondersteuning",
+    support24_7Desc: "Hulp de klok rond",
+    initializingExperience: "Ervaring initialiseren",
+    preparingAssistant: "Assistent voorbereiden",
+    bookAppointment: "Afspraak boeken",
     language: "Voorkeurstaal",
     light: "Licht",
     dark: "Donker",
