@@ -78,7 +78,7 @@ export const PerformanceMonitor: React.FC = () => {
       cls: Math.random() * 0.2, // 0-0.2
       fcp: fcp || Math.random() * 2000 + 800, // 0.8-2.8s
       ttfb: navigation?.responseStart - navigation?.requestStart || Math.random() * 800 + 200,
-      pageLoadTime: navigation?.loadEventEnd - navigation?.navigationStart || 0,
+      pageLoadTime: navigation?.loadEventEnd || 0,
       memoryUsage: (performance as any).memory?.usedJSHeapSize || 0,
       networkSpeed: getNetworkSpeed(),
     };
