@@ -1,5 +1,6 @@
 // Timezone utilities for Europe/Brussels with DST handling
-import { format, parseISO, fromZonedTime, toZonedTime } from 'date-fns-tz';
+import { format, fromZonedTime, toZonedTime } from 'date-fns-tz';
+import { parseISO } from 'date-fns';
 import { addDays, isValid, startOfDay } from 'date-fns';
 
 const CLINIC_TIMEZONE = 'Europe/Brussels';

@@ -53,7 +53,7 @@ export const AppointmentDialog: React.FC<AppointmentDialogProps> = ({
     selectedTime: '',
     duration_minutes: 60,
     reason: '',
-    urgency: 'medium' as 'low' | 'medium' | 'high',
+    urgency: 'medium' as 'low' | 'medium' | 'high' | 'emergency',
     notes: '',
     consultation_notes: '',
   });

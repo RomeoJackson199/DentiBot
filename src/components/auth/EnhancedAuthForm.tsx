@@ -586,7 +586,7 @@ export const EnhancedAuthForm: React.FC<EnhancedAuthFormProps> = ({
                       id="signup-phone"
                       name="phone"
                       type="tel"
-                      placeholder={t.enterPhone}
+                      placeholder="Enter phone number"
                       value={formData.phone}
                       onChange={handleInputChange}
                       className="pl-10 h-12"
@@ -600,7 +600,7 @@ export const EnhancedAuthForm: React.FC<EnhancedAuthFormProps> = ({
                     <Checkbox
                       id="terms"
                       checked={acceptTerms}
-                      onCheckedChange={setAcceptTerms}
+                      onCheckedChange={(checked) => setAcceptTerms(checked === true)}
                       className="mt-1"
                     />
                     <div className="grid gap-1.5 leading-none">
@@ -628,7 +628,7 @@ export const EnhancedAuthForm: React.FC<EnhancedAuthFormProps> = ({
                     <Checkbox
                       id="health-consent"
                       checked={healthConsent}
-                      onCheckedChange={setHealthConsent}
+                      onCheckedChange={(checked) => setHealthConsent(checked === true)}
                       className="mt-1"
                     />
                     <div className="grid gap-1.5 leading-none">

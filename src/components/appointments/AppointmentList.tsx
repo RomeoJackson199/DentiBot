@@ -154,7 +154,9 @@ export const AppointmentList: React.FC<AppointmentListProps> = ({
                   <Checkbox
                     checked={allSelected}
                     ref={(el) => {
-                      if (el) el.indeterminate = someSelected;
+                      if (el && 'indeterminate' in el) {
+                        (el as any).indeterminate = someSelected;
+                      }
                     }}
                     onCheckedChange={onSelectAll}
                     aria-label="Select all appointments"
