@@ -71,30 +71,19 @@ export function EnhancedClinicalAppointments({
     return upcoming[0] || null;
   }, [appointments]);
 
-  // Get today's appointments - incomplete first, then completed
+  // Get today's appointments
   const todayAppointments = useMemo(() => {
     const today = new Date();
     const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
     const endOfDay = new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000);
     
-    const filtered = appointments
+    return appointments
       .filter(a => {
         const aptDate = new Date(a.appointment_date);
         return aptDate >= startOfDay && aptDate < endOfDay;
       })
-      .filter(a => a.status !== 'cancelled');
-
-    // Sort incomplete appointments first, then completed ones
-    return filtered.sort((a, b) => {
-      const aCompleted = ['completed', 'no_show'].includes(a.status);
-      const bCompleted = ['completed', 'no_show'].includes(b.status);
-      
-      if (aCompleted && !bCompleted) return 1;
-      if (!aCompleted && bCompleted) return -1;
-      
-      // Within same group, sort by time
-      return new Date(a.appointment_date).getTime() - new Date(b.appointment_date).getTime();
-    });
+      .filter(a => a.status !== 'cancelled')
+      .sort((a, b) => new Date(a.appointment_date).getTime() - new Date(b.appointment_date).getTime());
   }, [appointments]);
 
   // Fetch appointments
@@ -143,7 +132,7 @@ export function EnhancedClinicalAppointments({
       const updateData: any = {
         status: completionStatus,
         consultation_notes: completionNotes,
-        treatment_completed_at: completionStatus === 'completed' ? new Date().toISOString() : null,
+        treatment_completed_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       };
 
@@ -402,33 +391,17 @@ export function EnhancedClinicalAppointments({
                     <Badge variant={appointment.status === 'completed' ? 'default' : 'secondary'}>
                       {appointment.status}
                     </Badge>
-                    {!['completed', 'no_show'].includes(appointment.status) ? (
+                    {appointment.status !== 'completed' && (
                       <Button 
                         size="sm" 
                         variant="outline"
                         onClick={() => {
                           setSelectedAppointment(appointment);
-                          setCompletionNotes("");
-                          setCompletionStatus('completed');
                           setShowCompleteDialog(true);
                         }}
                       >
                         <CheckCircle2 className="h-4 w-4 mr-1" />
                         Complete
-                      </Button>
-                    ) : (
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        onClick={() => {
-                          setSelectedAppointment(appointment);
-                          setCompletionNotes(appointment.consultation_notes || "");
-                          setCompletionStatus(appointment.status as 'completed' | 'no_show' | 'cancelled');
-                          setShowCompleteDialog(true);
-                        }}
-                      >
-                        <FileText className="h-4 w-4 mr-1" />
-                        Edit
                       </Button>
                     )}
                   </div>
@@ -443,11 +416,7 @@ export function EnhancedClinicalAppointments({
       <Dialog open={showCompleteDialog} onOpenChange={setShowCompleteDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>
-              {selectedAppointment && ['completed', 'no_show'].includes(selectedAppointment.status) 
-                ? 'Edit Appointment' 
-                : 'Complete Appointment'}
-            </DialogTitle>
+            <DialogTitle>Complete Appointment</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             {selectedAppointment && (
@@ -503,9 +472,7 @@ export function EnhancedClinicalAppointments({
               </Button>
               <Button onClick={handleCompleteAppointment}>
                 <CheckCircle2 className="h-4 w-4 mr-2" />
-                {selectedAppointment && ['completed', 'no_show'].includes(selectedAppointment.status) 
-                  ? 'Update Appointment' 
-                  : 'Complete Appointment'}
+                Complete Appointment
               </Button>
             </div>
           </div>
