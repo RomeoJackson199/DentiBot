@@ -59,6 +59,127 @@ interface UseAppointmentsReturn {
   updateAppointment: (id: string, updates: Partial<Appointment>) => Promise<void>;
 }
 
+// Enhanced appointment creation with email notifications
+export async function createAppointmentWithNotification(appointmentData: {
+  patient_id: string;
+  dentist_id: string;
+  appointment_date: string;
+  reason: string;
+  notes?: string;
+  status?: 'pending' | 'confirmed' | 'cancelled' | 'completed';
+  urgency?: 'low' | 'medium' | 'high';
+  patient_name?: string;
+  duration_minutes?: number;
+}): Promise<Appointment> {
+  
+  // Create the appointment
+  const { data: appointment, error } = await supabase
+    .from('appointments')
+    .insert({
+      ...appointmentData,
+      status: appointmentData.status || 'confirmed',
+      urgency: appointmentData.urgency || 'medium'
+    })
+    .select(`
+      *,
+      patient:profiles!appointments_patient_id_fkey(
+        first_name,
+        last_name,
+        email,
+        phone
+      ),
+      dentist:dentists!appointments_dentist_id_fkey(
+        profiles(
+          first_name,
+          last_name
+        )
+      )
+    `)
+    .single();
+
+  if (error) throw error;
+
+  // Send confirmation email
+  try {
+    const patient = appointment.patient;
+    const dentist = appointment.dentist;
+    
+    if (patient?.email && dentist?.profiles) {
+      const appointmentDate = new Date(appointment.appointment_date);
+      const formattedDate = appointmentDate.toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+      const formattedTime = appointmentDate.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      });
+
+      const emailSubject = `Appointment Confirmation - ${formattedDate} at ${formattedTime}`;
+      const emailMessage = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #2D5D7B; margin-bottom: 24px;">Your Appointment is Confirmed!</h2>
+          
+          <div style="background: #f8fafc; padding: 24px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="color: #1e293b; margin: 0 0 16px 0;">Appointment Details:</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+              <tr>
+                <td style="padding: 8px 0; font-weight: bold; color: #475569;">Date:</td>
+                <td style="padding: 8px 0; color: #1e293b;">${formattedDate}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; font-weight: bold; color: #475569;">Time:</td>
+                <td style="padding: 8px 0; color: #1e293b;">${formattedTime}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; font-weight: bold; color: #475569;">Dentist:</td>
+                <td style="padding: 8px 0; color: #1e293b;">Dr. ${dentist.profiles.first_name} ${dentist.profiles.last_name}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; font-weight: bold; color: #475569;">Reason:</td>
+                <td style="padding: 8px 0; color: #1e293b;">${appointment.reason}</td>
+              </tr>
+            </table>
+          </div>
+
+          <div style="background: #dbeafe; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h4 style="color: #1e40af; margin: 0 0 12px 0;">📍 Important Notes:</h4>
+            <ul style="color: #1e40af; margin: 0; padding-left: 20px;">
+              <li>Please arrive 10 minutes early for check-in</li>
+              <li>Bring a valid ID and insurance card</li>
+              <li>If you need to reschedule, please call us at least 24 hours in advance</li>
+            </ul>
+          </div>
+
+          <p style="color: #64748b; font-size: 14px; margin-top: 24px;">
+            Thank you for choosing our dental practice. We look forward to seeing you soon!
+          </p>
+        </div>
+      `;
+
+      await supabase.functions.invoke('send-email-notification', {
+        body: {
+          to: patient.email,
+          subject: emailSubject,
+          message: emailMessage,
+          messageType: 'appointment_confirmation',
+          patientId: appointment.patient_id,
+          dentistId: appointment.dentist_id,
+          isSystemNotification: true
+        }
+      });
+    }
+  } catch (emailError) {
+    console.error('Failed to send appointment confirmation email:', emailError);
+    // Don't fail the appointment creation if email fails
+  }
+
+  return appointment as Appointment;
+}
+
 export function useAppointments(params: UseAppointmentsParams): UseAppointmentsReturn {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [counts, setCounts] = useState<AppointmentCounts>({

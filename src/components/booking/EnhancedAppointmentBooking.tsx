@@ -248,10 +248,91 @@ export const EnhancedAppointmentBooking = ({
       });
 
       const clinicDateTime = utcToClinicTime(new Date(appointmentData.appointment_date));
+
+      // Send appointment confirmation email
+      try {
+        const { data: dentistProfile } = await supabase
+          .from('dentists')
+          .select(`
+            profiles(first_name, last_name)
+          `)
+          .eq('id', selectedDentist)
+          .single();
+
+        const dentistName = dentistProfile?.profiles 
+          ? `Dr. ${dentistProfile.profiles.first_name} ${dentistProfile.profiles.last_name}`
+          : 'Your dentist';
+
+        const appointmentDetails = {
+          date: formatClinicTime(clinicDateTime, 'EEEE, MMMM d, yyyy'),
+          time: formatClinicTime(clinicDateTime, 'HH:mm'),
+          reason: reason || "General consultation",
+          dentist: dentistName
+        };
+
+        const emailSubject = `Appointment Confirmation - ${appointmentDetails.date} at ${appointmentDetails.time}`;
+        const emailMessage = `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #2D5D7B; margin-bottom: 24px;">Your Appointment is Confirmed!</h2>
+            
+            <div style="background: #f8fafc; padding: 24px; border-radius: 8px; margin: 20px 0;">
+              <h3 style="color: #1e293b; margin: 0 0 16px 0;">Appointment Details:</h3>
+              <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                  <td style="padding: 8px 0; font-weight: bold; color: #475569;">Date:</td>
+                  <td style="padding: 8px 0; color: #1e293b;">${appointmentDetails.date}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; font-weight: bold; color: #475569;">Time:</td>
+                  <td style="padding: 8px 0; color: #1e293b;">${appointmentDetails.time}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; font-weight: bold; color: #475569;">Dentist:</td>
+                  <td style="padding: 8px 0; color: #1e293b;">${appointmentDetails.dentist}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; font-weight: bold; color: #475569;">Reason:</td>
+                  <td style="padding: 8px 0; color: #1e293b;">${appointmentDetails.reason}</td>
+                </tr>
+              </table>
+            </div>
+
+            <div style="background: #dbeafe; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <h4 style="color: #1e40af; margin: 0 0 12px 0;">📍 Important Notes:</h4>
+              <ul style="color: #1e40af; margin: 0; padding-left: 20px;">
+                <li>Please arrive 10 minutes early for check-in</li>
+                <li>Bring a valid ID and insurance card</li>
+                <li>If you need to reschedule, please call us at least 24 hours in advance</li>
+              </ul>
+            </div>
+
+            <p style="color: #64748b; font-size: 14px; margin-top: 24px;">
+              Thank you for choosing our dental practice. We look forward to seeing you soon!
+            </p>
+          </div>
+        `;
+
+        await supabase.functions.invoke('send-email-notification', {
+          body: {
+            to: profile.email,
+            subject: emailSubject,
+            message: emailMessage,
+            messageType: 'appointment_confirmation',
+            patientId: profile.id,
+            dentistId: selectedDentist,
+            isSystemNotification: true
+          }
+        });
+
+        console.log('✅ Appointment confirmation email sent successfully');
+      } catch (emailError) {
+        console.error('Failed to send confirmation email:', emailError);
+        // Don't fail the booking if email fails
+      }
       
       toast({
         title: "Appointment Confirmed!",
-        description: `Your appointment is scheduled for ${formatClinicTime(clinicDateTime, 'PPP')} at ${formatClinicTime(clinicDateTime, 'HH:mm')}`,
+        description: `Your appointment is scheduled for ${formatClinicTime(clinicDateTime, 'PPP')} at ${formatClinicTime(clinicDateTime, 'HH:mm')}. Check your email for confirmation details.`,
       });
 
       onComplete({
