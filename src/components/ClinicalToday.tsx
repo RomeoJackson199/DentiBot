@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { UnifiedAppointments } from "@/components/UnifiedAppointments";
-import { EnhancedClinicalAppointments } from "@/components/EnhancedClinicalAppointments";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, Activity, TrendingUp, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -140,14 +139,15 @@ export function ClinicalToday({ user, dentistId, onOpenPatientsTab }: ClinicalTo
 				</Card>
 			</div>
 
-			{/* Enhanced Appointments Component with Complete Button */}
+			{/* Unified Appointments Component */}
 			<div className="px-4">
-				<EnhancedClinicalAppointments 
+				<UnifiedAppointments 
 					dentistId={dentistId}
 					onOpenPatientProfile={(patientId) => {
 						sessionStorage.setItem('requestedPatientId', patientId);
 						onOpenPatientsTab?.();
 					}}
+					viewMode="clinical"
 				/>
 			</div>
 		</div>
