@@ -3,6 +3,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { useToast } from "@/hooks/use-toast";
 import { 
   Calendar, 
   Clock, 
@@ -11,7 +16,9 @@ import {
   Mail, 
   AlertTriangle,
   MapPin,
-  FileText
+  FileText,
+  CheckCircle2,
+  Eye
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -40,6 +47,11 @@ interface NextAppointmentWidgetProps {
 export function NextAppointmentWidget({ dentistId }: NextAppointmentWidgetProps) {
   const [nextAppointment, setNextAppointment] = useState<NextAppointment | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showCompleteDialog, setShowCompleteDialog] = useState(false);
+  const [showDetailsDialog, setShowDetailsDialog] = useState(false);
+  const [consultationNotes, setConsultationNotes] = useState("");
+  const [completing, setCompleting] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     const fetchNextAppointment = async () => {
@@ -68,7 +80,7 @@ export function NextAppointmentWidget({ dentistId }: NextAppointmentWidgetProps)
           .neq('status', 'cancelled')
           .order('appointment_date', { ascending: true })
           .limit(1)
-          .single();
+          .maybeSingle();
 
         if (error && error.code !== 'PGRST116') {
           console.error('Error fetching next appointment:', error);
@@ -85,6 +97,89 @@ export function NextAppointmentWidget({ dentistId }: NextAppointmentWidgetProps)
 
     fetchNextAppointment();
   }, [dentistId]);
+
+  const handleCompleteAppointment = async () => {
+    if (!nextAppointment) return;
+    
+    setCompleting(true);
+    try {
+      // Update appointment status to completed
+      const { error: updateError } = await supabase
+        .from('appointments')
+        .update({
+          status: 'completed',
+          consultation_notes: consultationNotes || nextAppointment.consultation_notes,
+          treatment_completed_at: new Date().toISOString()
+        })
+        .eq('id', nextAppointment.id);
+
+      if (updateError) throw updateError;
+
+      // Send completion email
+      await supabase.functions.invoke('send-email-notification', {
+        body: {
+          eventType: 'appointment_completed',
+          patientId: nextAppointment.patient_id,
+          appointmentId: nextAppointment.id,
+          metadata: {
+            patient_name: nextAppointment.patient?.first_name && nextAppointment.patient?.last_name 
+              ? `${nextAppointment.patient.first_name} ${nextAppointment.patient.last_name}`
+              : nextAppointment.patient_name || 'Patient',
+            appointment_date: format(new Date(nextAppointment.appointment_date), 'MMM dd, yyyy HH:mm'),
+            reason: nextAppointment.reason || 'General consultation',
+            consultation_notes: consultationNotes || 'Appointment completed successfully.'
+          }
+        }
+      });
+
+      toast({
+        title: "Appointment Completed",
+        description: "The appointment has been marked as completed and the patient has been notified.",
+      });
+
+      setShowCompleteDialog(false);
+      setConsultationNotes("");
+      
+      // Refresh the appointment data
+      const { data } = await supabase
+        .from('appointments')
+        .select(`
+          id,
+          patient_id,
+          appointment_date,
+          duration_minutes,
+          status,
+          reason,
+          urgency,
+          consultation_notes,
+          patient_name,
+          patient:profiles!appointments_patient_id_fkey (
+            first_name,
+            last_name,
+            email,
+            phone
+          )
+        `)
+        .eq('dentist_id', dentistId)
+        .gte('appointment_date', new Date().toISOString())
+        .neq('status', 'cancelled')
+        .order('appointment_date', { ascending: true })
+        .limit(1)
+        .maybeSingle();
+
+      setNextAppointment(data);
+      
+    } catch (error) {
+      console.error('Error completing appointment:', error);
+      toast({
+        title: "Error",
+        description: "Failed to complete appointment. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setCompleting(false);
+    }
+  };
 
   const getUrgencyColor = (urgency: string | null) => {
     switch (urgency) {
@@ -250,13 +345,156 @@ export function NextAppointmentWidget({ dentistId }: NextAppointmentWidgetProps)
 
         {/* Quick Actions */}
         <div className="flex gap-2 pt-2">
-          <Button size="sm" className="flex-1">
+          <Button size="sm" className="flex-1" onClick={() => setShowDetailsDialog(true)}>
+            <Eye className="h-4 w-4 mr-1" />
             View Details
           </Button>
-          <Button size="sm" variant="outline" className="flex-1">
-            Contact Patient
-          </Button>
+          {nextAppointment.status !== 'completed' && (
+            <Button size="sm" variant="outline" className="flex-1" onClick={() => setShowCompleteDialog(true)}>
+              <CheckCircle2 className="h-4 w-4 mr-1" />
+              Complete
+            </Button>
+          )}
         </div>
+
+        {/* Complete Appointment Dialog */}
+        <Dialog open={showCompleteDialog} onOpenChange={setShowCompleteDialog}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Complete Appointment</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="notes">Consultation Notes</Label>
+                <Textarea
+                  id="notes"
+                  placeholder="Add consultation notes..."
+                  value={consultationNotes}
+                  onChange={(e) => setConsultationNotes(e.target.value)}
+                  className="mt-1"
+                  rows={4}
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button 
+                  onClick={handleCompleteAppointment} 
+                  disabled={completing}
+                  className="flex-1"
+                >
+                  {completing ? "Completing..." : "Complete Appointment"}
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowCompleteDialog(false)}
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Details Dialog */}
+        <Dialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Appointment Details</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-6">
+              {/* Patient Information */}
+              <div>
+                <h3 className="font-semibold mb-3">Patient Information</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex items-center gap-2">
+                    <User className="h-4 w-4 text-muted-foreground" />
+                    <span>{patientName}</span>
+                  </div>
+                  {nextAppointment.patient?.email && (
+                    <div className="flex items-center gap-2">
+                      <Mail className="h-4 w-4 text-muted-foreground" />
+                      <span>{nextAppointment.patient.email}</span>
+                    </div>
+                  )}
+                  {nextAppointment.patient?.phone && (
+                    <div className="flex items-center gap-2">
+                      <Phone className="h-4 w-4 text-muted-foreground" />
+                      <span>{nextAppointment.patient.phone}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Appointment Information */}
+              <div>
+                <h3 className="font-semibold mb-3">Appointment Information</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <span>{format(appointmentDate, 'EEEE, MMM dd, yyyy')}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-muted-foreground" />
+                    <span>
+                      {format(appointmentDate, 'HH:mm')}
+                      {nextAppointment.duration_minutes && (
+                        <span className="text-muted-foreground">
+                          {' '}({nextAppointment.duration_minutes} minutes)
+                        </span>
+                      )}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge className={getStatusColor(nextAppointment.status)}>
+                      {nextAppointment.status}
+                    </Badge>
+                  </div>
+                  {nextAppointment.urgency && (
+                    <div className="flex items-center gap-2">
+                      <Badge className={getUrgencyColor(nextAppointment.urgency)}>
+                        <AlertTriangle className="h-3 w-3 mr-1" />
+                        {nextAppointment.urgency} priority
+                      </Badge>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Reason and Notes */}
+              {(nextAppointment.reason || nextAppointment.consultation_notes) && (
+                <>
+                  <Separator />
+                  <div className="space-y-4">
+                    {nextAppointment.reason && (
+                      <div>
+                        <h4 className="font-medium mb-2">Reason for Visit</h4>
+                        <p className="text-sm text-muted-foreground bg-muted p-3 rounded-md">
+                          {nextAppointment.reason}
+                        </p>
+                      </div>
+                    )}
+                    {nextAppointment.consultation_notes && (
+                      <div>
+                        <h4 className="font-medium mb-2">Consultation Notes</h4>
+                        <p className="text-sm text-muted-foreground bg-muted p-3 rounded-md">
+                          {nextAppointment.consultation_notes}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+
+              <div className="flex justify-end">
+                <Button onClick={() => setShowDetailsDialog(false)}>
+                  Close
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </CardContent>
     </Card>
   );
