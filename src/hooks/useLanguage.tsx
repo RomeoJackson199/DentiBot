@@ -358,27 +358,8 @@ interface Translations {
     };
   };
 
-  // Dentist: Clinical appointment UI additions
+  // Dentist: Clinical appointment UI
   completeAppointment: string;
-  nextAppointmentShort: string;
-  recommendedFollowUp: string;
-  quickActions: string;
-  bookNext: string;
-  createPaymentRequest: string;
-  addNote: string;
-  printSendPrescription: string;
-  criticalContext: string;
-  alerts: string;
-  treatmentPlanPhase: string;
-  balanceShort: string;
-  latestDocument: string;
-  timeline: string;
-  filter: string;
-  filters: string;
-  show: string;
-  hide: string;
-  appointmentsShort: string;
-  notesShort: string;
   prescriptionsShort: string;
   paymentsShort: string;
   viewAll: string;
@@ -772,27 +753,8 @@ How can I help you today?`,
       },
     },
 
-    // Dentist: Clinical appointment UI additions
+    // Dentist: Clinical appointment UI
     completeAppointment: "Complete Appointment",
-    nextAppointmentShort: "Next Appointment",
-    recommendedFollowUp: "Recommended Follow-up",
-    quickActions: "Quick Actions",
-    bookNext: "Book Next",
-    createPaymentRequest: "Create Payment Request",
-    addNote: "Add Note",
-    printSendPrescription: "Print/Send Prescription",
-    criticalContext: "Critical Context",
-    alerts: "Alerts",
-    treatmentPlanPhase: "Treatment Plan Phase",
-    balanceShort: "Balance",
-    latestDocument: "Latest Document",
-    timeline: "Timeline",
-    filter: "Filter",
-    filters: "Filters",
-    show: "Show",
-    hide: "Hide",
-    appointmentsShort: "Appointments",
-    notesShort: "Notes",
     prescriptionsShort: "Prescriptions",
     paymentsShort: "Payments",
     viewAll: "View all",
@@ -1193,27 +1155,8 @@ Comment puis-je vous aider aujourd'hui ?`,
       },
     },
 
-    // Dentist: Clinical appointment UI additions
+    // Dentist: Clinical appointment UI
     completeAppointment: "Terminer le Rendez-vous",
-    nextAppointmentShort: "Prochain Rendez-vous",
-    recommendedFollowUp: "Suivi Recommandé",
-    quickActions: "Actions Rapides",
-    bookNext: "Réserver le Suivant",
-    createPaymentRequest: "Créer une Demande de Paiement",
-    addNote: "Ajouter une Note",
-    printSendPrescription: "Imprimer/Envoyer l'Ordonnance",
-    criticalContext: "Contexte Critique",
-    alerts: "Alertes",
-    treatmentPlanPhase: "Phase du Plan de Traitement",
-    balanceShort: "Solde",
-    latestDocument: "Dernier Document",
-    timeline: "Chronologie",
-    filter: "Filtrer",
-    filters: "Filtres",
-    show: "Afficher",
-    hide: "Masquer",
-    appointmentsShort: "Rdv",
-    notesShort: "Notes",
     prescriptionsShort: "Ordonnances",
     paymentsShort: "Paiements",
     viewAll: "Tout voir",
@@ -1584,27 +1527,8 @@ Comment puis-je vous aider aujourd'hui ?`,
       },
     },
 
-    // Dentist: Clinical appointment UI additions
+    // Dentist: Clinical appointment UI
     completeAppointment: "Afspraak Voltooien",
-    nextAppointmentShort: "Volgende Afspraak",
-    recommendedFollowUp: "Aanbevolen Vervolg",
-    quickActions: "Snelle Acties",
-    bookNext: "Volgende Boeken",
-    createPaymentRequest: "Betalingsverzoek Aanmaken",
-    addNote: "Notitie Toevoegen",
-    printSendPrescription: "Recept Afdrukken/Verzenden",
-    criticalContext: "Kritieke Context",
-    alerts: "Meldingen",
-    treatmentPlanPhase: "Behandelplan Fase",
-    balanceShort: "Solde",
-    latestDocument: "Laatste Document",
-    timeline: "Tijdlijn",
-    filter: "Filter",
-    filters: "Filters",
-    show: "Tonen",
-    hide: "Verbergen",
-    appointmentsShort: "Afspr.",
-    notesShort: "Notities",
     prescriptionsShort: "Voorschr.",
     paymentsShort: "Betalingen",
     viewAll: "Alles bekijken",

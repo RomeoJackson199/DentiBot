@@ -393,88 +393,6 @@ export function UnifiedAppointments({
 
   return (
     <div className="space-y-4">
-      {/* Top Section: Next Appointment + Critical Context */}
-      <Card className="glass-card sticky top-0 z-20 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <CardHeader>
-          <div className="flex flex-col gap-4">
-            {/* Next Appointment and Alerts */}
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-              <CardTitle className="flex items-center gap-2">
-                <Clock className="h-5 w-5 text-dental-primary" aria-hidden="true" />
-                <span>{t.nextAppointmentShort}</span>
-                {nextAppointment ? (
-                  <Badge variant="outline" className="ml-2">
-                    {format(new Date(nextAppointment.appointment_date), 'PPP p')}
-                  </Badge>
-                ) : (
-                  <Badge variant="outline" className="ml-2">—</Badge>
-                )}
-              </CardTitle>
-              <div className="flex items-center gap-2" aria-live="polite" aria-atomic="true">
-                <AlertCircle className="h-4 w-4 text-amber-600" aria-hidden="true" />
-                <span className="text-sm" role="status" aria-label={t.srAlertNew}>{t.alerts}</span>
-              </div>
-            </div>
-
-            {/* Critical Context */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
-              <div className="p-2 rounded border">
-                <div className="text-xs text-muted-foreground">{t.treatmentPlanPhase}</div>
-                <div>—</div>
-              </div>
-              <div className="p-2 rounded border">
-                <div className="text-xs text-muted-foreground">{t.balanceShort}</div>
-                <div>—</div>
-              </div>
-              <div className="p-2 rounded border">
-                <div className="text-xs text-muted-foreground">{t.latestDocument}</div>
-                <div>—</div>
-              </div>
-              <div className="p-2 rounded border">
-                <div className="text-xs text-muted-foreground">{t.recommendedFollowUp}</div>
-                <div>—</div>
-              </div>
-            </div>
-
-            {/* Sticky Quick Actions */}
-            <div className="flex flex-wrap gap-2" role="toolbar" aria-label={t.srQuickActions}>
-              {currentInProgress && (
-                <Button size="sm" onClick={() => handleComplete(currentInProgress)} className="bg-green-600 hover:bg-green-700">
-                  <CheckCircle2 className="h-4 w-4 mr-1" /> {t.completeAppointment}
-                </Button>
-              )}
-              <Button size="sm" variant="outline" onClick={() => setShowBooking(true)}>
-                <Calendar className="h-4 w-4 mr-1" /> {t.bookNext}
-              </Button>
-              <Button size="sm" variant="outline" onClick={createPaymentRequest}>
-                <DollarSign className="h-4 w-4 mr-1" /> {t.createPaymentRequest}
-              </Button>
-              <Button size="sm" variant="outline" onClick={() => { setAddingNoteForPatientId(currentInProgress?.patient_id || nextAppointment?.patient_id || ""); }}>
-                <FileText className="h-4 w-4 mr-1" /> {t.addNote}
-              </Button>
-              <Button size="sm" variant="outline" onClick={openPrescription}>
-                <Pill className="h-4 w-4 mr-1" /> {t.printSendPrescription}
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
-      </Card>
-
-      {/* Quick Note Inline (appears when addingNoteForPatientId) */}
-      {addingNoteForPatientId && (
-        <Card>
-          <CardContent className="p-3">
-            <div className="flex gap-2 items-start">
-              <Textarea aria-label={t.addNote} value={noteText} onChange={(e) => setNoteText(e.target.value)} placeholder={t.addNote} className="flex-1" />
-              <div className="flex gap-2">
-                <Button size="sm" onClick={addQuickNote}>{t.save}</Button>
-                <Button size="sm" variant="outline" onClick={() => { setAddingNoteForPatientId(null); setNoteText(""); }}>{t.cancel}</Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       {/* Header with filters */}
       <Card className="glass-card">
         <CardHeader>
@@ -501,7 +419,7 @@ export function UnifiedAppointments({
               size="sm"
               onClick={() => setFilterStatus('all')}
             >
-              {t.show}
+              All
             </Button>
             <Button
               variant={filterStatus === 'upcoming' ? 'default' : 'outline'}
