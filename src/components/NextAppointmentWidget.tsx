@@ -21,6 +21,7 @@ import {
   Eye
 } from "lucide-react";
 import { format } from "date-fns";
+import { utcToClinicTime, formatClinicTime } from "@/lib/timezone";
 
 interface NextAppointment {
   id: string;
@@ -96,6 +97,28 @@ export function NextAppointmentWidget({ dentistId }: NextAppointmentWidgetProps)
     };
 
     fetchNextAppointment();
+
+    // Set up real-time subscription for appointment changes
+    const channel = supabase
+      .channel('appointment-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'appointments',
+          filter: `dentist_id=eq.${dentistId}`,
+        },
+        () => {
+          console.log('Appointment changed, refetching...');
+          fetchNextAppointment();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [dentistId]);
 
   const handleCompleteAppointment = async () => {
@@ -125,7 +148,7 @@ export function NextAppointmentWidget({ dentistId }: NextAppointmentWidgetProps)
             patient_name: nextAppointment.patient?.first_name && nextAppointment.patient?.last_name 
               ? `${nextAppointment.patient.first_name} ${nextAppointment.patient.last_name}`
               : nextAppointment.patient_name || 'Patient',
-            appointment_date: format(new Date(nextAppointment.appointment_date), 'MMM dd, yyyy HH:mm'),
+            appointment_date: formatClinicTime(nextAppointment.appointment_date, 'MMM dd, yyyy HH:mm'),
             reason: nextAppointment.reason || 'General consultation',
             consultation_notes: consultationNotes || 'Appointment completed successfully.'
           }
@@ -184,26 +207,26 @@ export function NextAppointmentWidget({ dentistId }: NextAppointmentWidgetProps)
   const getUrgencyColor = (urgency: string | null) => {
     switch (urgency) {
       case 'high':
-        return 'bg-red-500/20 text-red-700 border-red-200';
+        return 'bg-danger-100 text-danger-800 border-danger-300';
       case 'medium':
-        return 'bg-yellow-500/20 text-yellow-700 border-yellow-200';
+        return 'bg-warning-100 text-warning-800 border-warning-300';
       case 'low':
-        return 'bg-green-500/20 text-green-700 border-green-200';
+        return 'bg-success-100 text-success-800 border-success-300';
       default:
-        return 'bg-gray-500/20 text-gray-700 border-gray-200';
+        return 'bg-muted text-muted-foreground border-border';
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'confirmed':
-        return 'bg-green-500/20 text-green-700 border-green-200';
+        return 'bg-success-100 text-success-800 border-success-300';
       case 'pending':
-        return 'bg-yellow-500/20 text-yellow-700 border-yellow-200';
+        return 'bg-warning-100 text-warning-800 border-warning-300';
       case 'completed':
-        return 'bg-blue-500/20 text-blue-700 border-blue-200';
+        return 'bg-info-100 text-info-800 border-info-300';
       default:
-        return 'bg-gray-500/20 text-gray-700 border-gray-200';
+        return 'bg-muted text-muted-foreground border-border';
     }
   };
 
@@ -246,7 +269,7 @@ export function NextAppointmentWidget({ dentistId }: NextAppointmentWidgetProps)
     );
   }
 
-  const appointmentDate = new Date(nextAppointment.appointment_date);
+  const appointmentDate = utcToClinicTime(nextAppointment.appointment_date);
   const patientName = nextAppointment.patient?.first_name && nextAppointment.patient?.last_name 
     ? `${nextAppointment.patient.first_name} ${nextAppointment.patient.last_name}`
     : nextAppointment.patient_name || 'Unknown Patient';

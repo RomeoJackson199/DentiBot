@@ -128,6 +128,31 @@ export default {
 					warning: 'hsl(var(--dental-warning))',
 					error: 'hsl(var(--dental-error))',
 					info: 'hsl(var(--dental-info))',
+				},
+				// Status colors with semantic tokens
+				success: {
+					100: 'hsl(var(--success-100))',
+					300: 'hsl(var(--success-300))',
+					600: 'hsl(var(--success-600))',
+					800: 'hsl(var(--success-800))',
+				},
+				warning: {
+					100: 'hsl(var(--warning-100))',
+					300: 'hsl(var(--warning-300))',
+					600: 'hsl(var(--warning-600))',
+					800: 'hsl(var(--warning-800))',
+				},
+				danger: {
+					100: 'hsl(var(--danger-100))',
+					300: 'hsl(var(--danger-300))',
+					600: 'hsl(var(--danger-600))',
+					800: 'hsl(var(--danger-800))',
+				},
+				info: {
+					100: 'hsl(var(--info-100))',
+					300: 'hsl(var(--info-300))',
+					600: 'hsl(var(--info-600))',
+					800: 'hsl(var(--info-800))',
 				}
 			},
 			backgroundImage: {

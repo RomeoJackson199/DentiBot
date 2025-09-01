@@ -164,8 +164,8 @@ export interface Appointment {
   appointment_date: string;
   duration: number;
   duration_minutes: number;
-  status: 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'scheduled' | 'in_progress' | 'no_show';
-  urgency: string;
+  status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
+  urgency: 'low' | 'medium' | 'high';
   urgency_level: string;
   reason?: string;
   notes?: string;
