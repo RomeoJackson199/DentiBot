@@ -22,6 +22,13 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { utcToClinicTime, formatClinicTime } from "@/lib/timezone";
+import { 
+  getStatusClasses, 
+  getUrgencyClasses, 
+  canCompleteAppointment,
+  formatAppointmentDate,
+  getAppointmentDate
+} from "@/lib/appointmentUtils";
 
 interface NextAppointment {
   id: string;
@@ -148,7 +155,7 @@ export function NextAppointmentWidget({ dentistId }: NextAppointmentWidgetProps)
             patient_name: nextAppointment.patient?.first_name && nextAppointment.patient?.last_name 
               ? `${nextAppointment.patient.first_name} ${nextAppointment.patient.last_name}`
               : nextAppointment.patient_name || 'Patient',
-            appointment_date: formatClinicTime(nextAppointment.appointment_date, 'MMM dd, yyyy HH:mm'),
+            appointment_date: formatAppointmentDate(nextAppointment.appointment_date, 'MMM dd, yyyy HH:mm'),
             reason: nextAppointment.reason || 'General consultation',
             consultation_notes: consultationNotes || 'Appointment completed successfully.'
           }
@@ -204,31 +211,6 @@ export function NextAppointmentWidget({ dentistId }: NextAppointmentWidgetProps)
     }
   };
 
-  const getUrgencyColor = (urgency: string | null) => {
-    switch (urgency) {
-      case 'high':
-        return 'bg-danger-100 text-danger-800 border-danger-300';
-      case 'medium':
-        return 'bg-warning-100 text-warning-800 border-warning-300';
-      case 'low':
-        return 'bg-success-100 text-success-800 border-success-300';
-      default:
-        return 'bg-muted text-muted-foreground border-border';
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'confirmed':
-        return 'bg-success-100 text-success-800 border-success-300';
-      case 'pending':
-        return 'bg-warning-100 text-warning-800 border-warning-300';
-      case 'completed':
-        return 'bg-info-100 text-info-800 border-info-300';
-      default:
-        return 'bg-muted text-muted-foreground border-border';
-    }
-  };
 
   if (loading) {
     return (
@@ -269,7 +251,7 @@ export function NextAppointmentWidget({ dentistId }: NextAppointmentWidgetProps)
     );
   }
 
-  const appointmentDate = utcToClinicTime(nextAppointment.appointment_date);
+  const appointmentDate = getAppointmentDate(nextAppointment.appointment_date);
   const patientName = nextAppointment.patient?.first_name && nextAppointment.patient?.last_name 
     ? `${nextAppointment.patient.first_name} ${nextAppointment.patient.last_name}`
     : nextAppointment.patient_name || 'Unknown Patient';
@@ -283,11 +265,11 @@ export function NextAppointmentWidget({ dentistId }: NextAppointmentWidgetProps)
             Next Appointment
           </CardTitle>
           <div className="flex gap-2">
-            <Badge className={getStatusColor(nextAppointment.status)}>
+            <Badge className={getStatusClasses(nextAppointment.status)}>
               {nextAppointment.status}
             </Badge>
             {nextAppointment.urgency && (
-              <Badge className={getUrgencyColor(nextAppointment.urgency)}>
+              <Badge className={getUrgencyClasses(nextAppointment.urgency)}>
                 <AlertTriangle className="h-3 w-3 mr-1" />
                 {nextAppointment.urgency}
               </Badge>
@@ -372,7 +354,7 @@ export function NextAppointmentWidget({ dentistId }: NextAppointmentWidgetProps)
             <Eye className="h-4 w-4 mr-1" />
             View Details
           </Button>
-          {nextAppointment.status !== 'completed' && (
+          {canCompleteAppointment(nextAppointment.status) && (
             <Button size="sm" variant="outline" className="flex-1" onClick={() => setShowCompleteDialog(true)}>
               <CheckCircle2 className="h-4 w-4 mr-1" />
               Complete
@@ -470,13 +452,13 @@ export function NextAppointmentWidget({ dentistId }: NextAppointmentWidgetProps)
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Badge className={getStatusColor(nextAppointment.status)}>
+                    <Badge className={getStatusClasses(nextAppointment.status)}>
                       {nextAppointment.status}
                     </Badge>
                   </div>
                   {nextAppointment.urgency && (
                     <div className="flex items-center gap-2">
-                      <Badge className={getUrgencyColor(nextAppointment.urgency)}>
+                      <Badge className={getUrgencyClasses(nextAppointment.urgency)}>
                         <AlertTriangle className="h-3 w-3 mr-1" />
                         {nextAppointment.urgency} priority
                       </Badge>
