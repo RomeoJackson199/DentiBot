@@ -200,6 +200,12 @@ export function NextAppointmentWidget({ dentistId }: NextAppointmentWidgetProps)
       setNextAppointment(data);
       
     } catch (error) {
+      const errorContext = {
+        action: 'complete_appointment',
+        component: 'NextAppointmentWidget',
+        additionalData: { appointmentId: nextAppointment.id }
+      };
+      
       console.error('Error completing appointment:', error);
       toast({
         title: "Error",
