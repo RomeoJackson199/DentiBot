@@ -33,39 +33,19 @@ export default function Invite() {
     }
 
     try {
-      const { data: tokenData, error: tokenError } = await supabase
-        .from('invitation_tokens')
-        .select('*')
-        .eq('token', token)
-        .gt('expires_at', new Date().toISOString())
-        .eq('used', false)
-        .maybeSingle();
+      // Use the secure RPC function instead of direct database access
+      const { data, error } = await supabase.rpc('validate_invitation_token', { 
+        invitation_token: token 
+      });
 
-      if (tokenError || !tokenData) {
+      if (error || !data || data.length === 0) {
         setError("This invitation link is invalid or has expired");
         setIsLoading(false);
         return;
       }
 
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', tokenData.profile_id)
-        .single();
-
-      if (profileError || !profileData) {
-        setError("Profile not found");
-        setIsLoading(false);
-        return;
-      }
-
-      setInvitation({
-        ...tokenData,
-        first_name: profileData.first_name,
-        last_name: profileData.last_name,
-        email: profileData.email,
-        phone: profileData.phone
-      });
+      const invitationData = data[0];
+      setInvitation(invitationData);
       setIsLoading(false);
     } catch (error) {
       console.error("Error validating invitation:", error);
