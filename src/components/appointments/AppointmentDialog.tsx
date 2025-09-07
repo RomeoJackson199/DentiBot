@@ -169,11 +169,18 @@ export const AppointmentDialog: React.FC<AppointmentDialogProps> = ({
           changes: Object.keys(appointmentData),
         });
       } else {
-        const { error } = await supabase
-          .from('appointments')
-          .insert(appointmentData);
-
-        if (error) throw error;
+        // Use the email-enabled appointment creation function
+        const { createAppointmentWithNotification } = await import('@/hooks/useAppointments');
+        await createAppointmentWithNotification({
+          patient_id: appointmentData.patient_id,
+          dentist_id: appointmentData.dentist_id,
+          appointment_date: appointmentData.appointment_date,
+          reason: appointmentData.reason,
+          notes: appointmentData.notes,
+          status: appointmentData.status,
+          urgency: appointmentData.urgency,
+          duration_minutes: appointmentData.duration_minutes
+        });
         
         await emitAnalyticsEvent('appointment_created', dentistId, {
           urgency: formData.urgency,

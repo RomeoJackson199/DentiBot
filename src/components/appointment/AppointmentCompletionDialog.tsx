@@ -220,9 +220,10 @@ export function AppointmentCompletionDialog({
         })
         .eq('id', appointment.id);
 
-      // 5. Schedule follow-up if needed
+      // 5. Schedule follow-up if needed with email notification
       if (followUpNeeded && followUpDate) {
-        await supabase.from('appointments').insert({
+        const { createAppointmentWithNotification } = await import('@/hooks/useAppointments');
+        await createAppointmentWithNotification({
           patient_id: appointment.patient_id,
           dentist_id: appointment.dentist_id,
           appointment_date: new Date(followUpDate).toISOString(),
