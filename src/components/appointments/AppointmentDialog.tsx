@@ -178,7 +178,7 @@ export const AppointmentDialog: React.FC<AppointmentDialogProps> = ({
           reason: appointmentData.reason,
           notes: appointmentData.notes,
           status: appointmentData.status,
-          urgency: formData.urgency as 'low' | 'medium' | 'high',
+          urgency: formData.urgency === 'emergency' ? 'high' : formData.urgency as 'low' | 'medium' | 'high',
           duration_minutes: appointmentData.duration_minutes
         });
         
