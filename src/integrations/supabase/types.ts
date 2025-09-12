@@ -2709,6 +2709,10 @@ export type Database = {
         }
         Returns: string
       }
+      current_user_is_dentist_for: {
+        Args: { p_dentist_id: string }
+        Returns: boolean
+      }
       generate_daily_slots: {
         Args: { p_date: string; p_dentist_id: string }
         Returns: undefined
@@ -2761,6 +2765,10 @@ export type Database = {
           reason: string
           urgency: Database["public"]["Enums"]["urgency_level"]
         }[]
+      }
+      is_current_user_dentist_owner: {
+        Args: { p_dentist_id: string }
+        Returns: boolean
       }
       is_dentist_for_patient: {
         Args: { patient_profile_id: string }
