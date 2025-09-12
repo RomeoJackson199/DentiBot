@@ -2666,6 +2666,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      can_current_dentist_view_patient: {
+        Args: { p_patient_profile_id: string }
+        Returns: boolean
+      }
       cancel_appointment: {
         Args: { appointment_id: string; user_id: string }
         Returns: boolean
