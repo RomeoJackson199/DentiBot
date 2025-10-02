@@ -38,3 +38,6 @@ verify_jwt = false
 
 [functions.claim-profile]
 verify_jwt = false
+
+[functions.send-appointment-reminders]
+verify_jwt = false

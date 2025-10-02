@@ -1,71 +1,31 @@
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { ClinicalToday } from "@/components/ClinicalToday";
 import { Card, CardContent } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
+import { useCurrentDentist } from "@/hooks/useCurrentDentist";
+import { Loader2 } from "lucide-react";
 
 interface DentistClinicalDashboardProps {
   user?: User;
 }
 
 export function DentistClinicalDashboard({ user }: DentistClinicalDashboardProps) {
-  const [dentistId, setDentistId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
-
-  useEffect(() => {
-    if (user) {
-      fetchDentistProfile();
-    }
-  }, [user]);
-
-  const fetchDentistProfile = async () => {
-    if (!user) return;
-
-    try {
-      // Get the dentist profile for this user
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
-
-      if (profileError) throw profileError;
-
-      const { data: dentist, error: dentistError } = await supabase
-        .from('dentists')
-        .select('id')
-        .eq('profile_id', profile.id)
-        .single();
-
-      if (dentistError) {
-        throw new Error('You are not registered as a dentist');
-      }
-
-      setDentistId(dentist.id);
-    } catch (error: unknown) {
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Unknown error",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { dentistId, loading, error } = useCurrentDentist();
 
   if (loading) {
-    return <div className="flex justify-center p-8">Loading dentist dashboard...</div>;
+    return (
+      <div className="flex justify-center items-center p-8">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
   }
 
-  if (!dentistId) {
+  if (error || !dentistId) {
     return (
       <div className="flex justify-center p-8">
         <Card>
           <CardContent className="pt-6">
             <p className="text-center text-muted-foreground">
-              You are not registered as a dentist. Please contact support.
+              {error || "You are not registered as a dentist. Please contact support."}
             </p>
           </CardContent>
         </Card>
