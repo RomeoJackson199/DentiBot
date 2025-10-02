@@ -213,18 +213,44 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
     try {
       console.log('Generating AI response for:', userMessage);
       
-      // Call the AI edge function
+      // Get patient context if user is logged in
+      let patientContext = null;
+      if (user) {
+        try {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('user_id', user.id)
+            .single();
+          
+          if (profile) {
+            const { data, error } = await supabase.rpc('get_patient_context_for_ai', {
+              p_patient_id: profile.id
+            });
+            
+            if (!error && data) {
+              patientContext = data;
+              console.log('Loaded patient context for AI:', patientContext);
+            }
+          }
+        } catch (contextError) {
+          console.error('Error loading patient context:', contextError);
+        }
+      }
+      
+      // Call the AI edge function with patient context
       const { data, error } = await supabase.functions.invoke('dental-ai-chat', {
         body: {
           message: userMessage,
-          conversation_history: messages.slice(-10), // Last 10 messages for context
+          conversation_history: messages.slice(-10),
           user_profile: userProfile || (user ? {
             name: user.email?.split('@')[0] || 'Patient',
             email: user.email
           } : {
             name: 'Guest',
             email: null
-          })
+          }),
+          patient_context: patientContext // Add patient context here
         }
       });
 

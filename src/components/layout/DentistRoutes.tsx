@@ -11,6 +11,7 @@ import { DentistAnalytics } from "@/components/analytics/DentistAnalytics";
 import { InventoryManager } from "@/components/inventory/InventoryManager";
 import DataImportManager from "@/components/DataImportManager";
 import { ModernSettings } from "@/components/ModernSettings";
+import DentistAdminSecurity from "@/pages/DentistAdminSecurity";
 
 interface DentistRoutesProps {
   user: User;
@@ -62,7 +63,7 @@ export function DentistRoutes({ user, dentistId }: DentistRoutesProps) {
         {/* Admin Routes */}
         <Route path="admin">
           <Route path="branding" element={<ModernSettings user={user} />} />
-          <Route path="security" element={<div className="p-6">Security settings coming soon...</div>} />
+          <Route path="security" element={<DentistAdminSecurity />} />
         </Route>
       </Route>
     </Routes>

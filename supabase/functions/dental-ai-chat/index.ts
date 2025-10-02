@@ -485,12 +485,32 @@ Always maintain professional medical standards and suggest only appropriate trea
     } else {
       const content = getLanguageContent(detectedLanguage);
 
+      // Build patient context string if available
+      let patientContextString = '';
+      if (patient_context) {
+        patientContextString = `\n\nPATIENT INFORMATION:
+${patient_context.next_appointment ? `Next Appointment: ${new Date(patient_context.next_appointment.date).toLocaleString()} with ${patient_context.next_appointment.dentist_name}
+Reason: ${patient_context.next_appointment.reason}` : 'No upcoming appointments'}
+
+${patient_context.balance ? `Outstanding Balance: €${patient_context.balance.outstanding}
+Total Billed: €${patient_context.balance.total_billed}
+Total Paid: €${patient_context.balance.total_paid}` : ''}
+
+${patient_context.active_prescriptions && patient_context.active_prescriptions.length > 0 ? `Active Medications:
+${patient_context.active_prescriptions.map((p: any) => `- ${p.medication}: ${p.dosage}, ${p.instructions}`).join('\n')}` : 'No active prescriptions'}
+
+${patient_context.recent_payments && patient_context.recent_payments.length > 0 ? `Recent Payments:
+${patient_context.recent_payments.slice(0, 3).map((p: any) => `- €${p.amount} on ${new Date(p.date).toLocaleDateString()} (${p.method})`).join('\n')}` : ''}
+`;
+      }
+
       systemPrompt = [
         content.persona,
         content.guidelines,
         content.dentists,
         content.examples,
         `Patient Information: ${JSON.stringify(user_profile)}`,
+        patientContextString,
         `Conversation History:\n${conversation_history.map((msg: any) => (msg.is_bot ? 'Assistant' : 'Patient') + ': ' + msg.message).join('\n')}`
       ].join('\n\n');
     }

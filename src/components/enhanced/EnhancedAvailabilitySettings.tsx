@@ -35,18 +35,18 @@ interface EnhancedAvailabilitySettingsProps {
 }
 
 const DAYS_OF_WEEK = [
-  { value: 1, label: 'Lundi', short: 'L' },
-  { value: 2, label: 'Mardi', short: 'M' },
-  { value: 3, label: 'Mercredi', short: 'M' },
-  { value: 4, label: 'Jeudi', short: 'J' },
-  { value: 5, label: 'Vendredi', short: 'V' },
-  { value: 6, label: 'Samedi', short: 'S' },
-  { value: 0, label: 'Dimanche', short: 'D' },
+  { value: 1, label: 'Monday', short: 'M' },
+  { value: 2, label: 'Tuesday', short: 'T' },
+  { value: 3, label: 'Wednesday', short: 'W' },
+  { value: 4, label: 'Thursday', short: 'T' },
+  { value: 5, label: 'Friday', short: 'F' },
+  { value: 6, label: 'Saturday', short: 'S' },
+  { value: 0, label: 'Sunday', short: 'S' },
 ];
 
 const VACATION_TYPES = [
-  { value: 'vacation', label: 'Vacances', color: 'bg-blue-100 text-blue-800' },
-  { value: 'sick', label: 'Congé maladie', color: 'bg-red-100 text-red-800' },
+  { value: 'vacation', label: 'Vacation', color: 'bg-blue-100 text-blue-800' },
+  { value: 'sick', label: 'Sick Leave', color: 'bg-red-100 text-red-800' },
   { value: 'personal', label: 'Congé personnel', color: 'bg-green-100 text-green-800' },
 ];
 

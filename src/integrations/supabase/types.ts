@@ -430,6 +430,50 @@ export type Database = {
         }
         Relationships: []
       }
+      clinic_settings: {
+        Row: {
+          business_hours_end: string
+          business_hours_start: string
+          created_at: string
+          currency: string
+          dentist_id: string
+          id: string
+          language: string
+          timezone: string
+          updated_at: string
+        }
+        Insert: {
+          business_hours_end?: string
+          business_hours_start?: string
+          created_at?: string
+          currency?: string
+          dentist_id: string
+          id?: string
+          language?: string
+          timezone?: string
+          updated_at?: string
+        }
+        Update: {
+          business_hours_end?: string
+          business_hours_start?: string
+          created_at?: string
+          currency?: string
+          dentist_id?: string
+          id?: string
+          language?: string
+          timezone?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clinic_settings_dentist_id_fkey"
+            columns: ["dentist_id"]
+            isOneToOne: true
+            referencedRelation: "dentists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       communications: {
         Row: {
           communication_type: string
@@ -1651,6 +1695,68 @@ export type Database = {
             columns: ["dentist_id"]
             isOneToOne: false
             referencedRelation: "dentists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inventory_usage: {
+        Row: {
+          appointment_id: string | null
+          created_at: string
+          id: string
+          item_id: string
+          notes: string | null
+          quantity_used: number
+          treatment_plan_id: string | null
+          used_by: string | null
+        }
+        Insert: {
+          appointment_id?: string | null
+          created_at?: string
+          id?: string
+          item_id: string
+          notes?: string | null
+          quantity_used: number
+          treatment_plan_id?: string | null
+          used_by?: string | null
+        }
+        Update: {
+          appointment_id?: string | null
+          created_at?: string
+          id?: string
+          item_id?: string
+          notes?: string | null
+          quantity_used?: number
+          treatment_plan_id?: string | null
+          used_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_usage_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_usage_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_usage_treatment_plan_id_fkey"
+            columns: ["treatment_plan_id"]
+            isOneToOne: false
+            referencedRelation: "treatment_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_usage_used_by_fkey"
+            columns: ["used_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
