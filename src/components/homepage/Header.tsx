@@ -3,8 +3,12 @@ import { AppButton } from "@/components/ui/AppButton";
 import { ProgressiveAuthForm } from "@/components/ProgressiveAuthForm";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { User } from "@supabase/supabase-js";
-import { Stethoscope, Menu, X, Calendar, Activity, BarChart3, Settings, Phone } from "lucide-react";
+import { Stethoscope, Menu, X, Calendar, Activity, BarChart3, Settings, Phone, LogOut, User as UserIcon } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 interface HeaderProps {
   user: User | null;
@@ -17,6 +21,24 @@ export const Header = ({
 }: HeaderProps) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { language, t } = useLanguage();
+  const { toast } = useToast();
+
+  const handleSignOut = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast({
+        title: "Signed out successfully",
+        description: "You have been logged out of your account",
+      });
+      window.location.href = "/";
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to sign out",
+        variant: "destructive",
+      });
+    }
+  };
 
   const navigation = [{
     name: language === 'fr' ? "Triage d'urgence" : language === 'nl' ? 'Spoed Triage' : 'Emergency Triage',
@@ -82,22 +104,54 @@ export const Header = ({
             
             {!user ? (
               <>
-                <div className="hidden sm:block">
-                  <ProgressiveAuthForm compact />
+                <div className="hidden sm:flex items-center gap-2">
+                  <AppButton variant="ghost" asChild>
+                    <a href="/login">Sign In</a>
+                  </AppButton>
+                  <AppButton asChild>
+                    <a href="/signup">Get Started</a>
+                  </AppButton>
                 </div>
                 <div className="block sm:hidden">
-                  <AppButton size="mobile" variant="outline" className="bg-white/10 backdrop-blur-sm border-white/20 text-dental-primary">
-                    {t.signIn}
+                  <AppButton size="mobile" variant="outline" className="bg-white/10 backdrop-blur-sm border-white/20 text-dental-primary" asChild>
+                    <a href="/login">{t.signIn}</a>
                   </AppButton>
                 </div>
               </>
             ) : (
-              <AppButton variant="outline" size="desktop" className="bg-white/10 backdrop-blur-sm border-white/20 text-dental-primary hover:bg-white/20" asChild>
-                <a href="/dashboard">
-                  <Settings className="w-4 h-4 mr-2" />
-                  {language === 'fr' ? 'Tableau de bord' : 'Dashboard'}
-                </a>
-              </AppButton>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="flex items-center gap-2 p-2 rounded-lg hover:bg-white/10 transition-colors">
+                    <Avatar className="h-8 w-8">
+                      <AvatarFallback className="bg-gradient-primary text-white">
+                        {user.email?.charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="hidden sm:inline text-sm font-medium">{user.email?.split('@')[0]}</span>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <a href="/dashboard" className="flex items-center cursor-pointer">
+                      <Settings className="w-4 h-4 mr-2" />
+                      Dashboard
+                    </a>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <a href="/account/profile" className="flex items-center cursor-pointer">
+                      <UserIcon className="w-4 h-4 mr-2" />
+                      Profile
+                    </a>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut} className="text-red-600 cursor-pointer">
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
 
             {/* Mobile Menu Button */}

@@ -21,6 +21,7 @@ import { ChatSettingsManager } from "@/components/chat/ChatSettingsManager";
 import { generateSymptomSummary } from "@/lib/symptoms";
 import { generateMedicalRecordFromChat, createMedicalRecord } from "@/lib/medicalRecords";
 import { AiDisclaimer } from "@/components/AiDisclaimer";
+import { MarkdownRenderer } from "@/components/chat/MarkdownRenderer";
 
 interface DentalChatbotProps {
   user: User | null;
@@ -785,9 +786,13 @@ Type your request...`;
                   </div>
                 )}
                 <div className="flex-1">
-                  <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                    {message.message}
-                  </p>
+                  {message.is_bot ? (
+                    <MarkdownRenderer content={message.message} />
+                  ) : (
+                    <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                      {message.message}
+                    </p>
+                  )}
                   {message.metadata?.ai_generated && (
                     <div className="mt-2 text-xs opacity-70">
                       AI Assistant

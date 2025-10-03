@@ -23,6 +23,8 @@ import { DentistRoutesWrapper } from "@/components/layout/DentistRoutesWrapper";
 import { PatientPortalNav } from "@/components/patient/PatientPortalNav";
 
 const Invite = lazy(() => import("./pages/Invite"));
+const Login = lazy(() => import("./pages/Login"));
+const Signup = lazy(() => import("./pages/Signup"));
 
 // Lazy load pages for better performance
 const Index = lazy(() => import("./pages/Index"));
@@ -182,6 +184,9 @@ const App = () => (
                   <Route path="/account/privacy" element={<PatientAccountPrivacyPage />} />
                   <Route path="/account/help" element={<PatientAccountHelpPage />} />
                 </Route>
+                {/* Auth routes */}
+                <Route path="/login" element={<Login />} />
+                <Route path="/signup" element={<Signup />} />
                 {/* Public routes */}
                 <Route path="/emergency-triage" element={<EmergencyTriage />} />
                 <Route path="/dentists" element={<DentistProfiles />} />
