@@ -60,6 +60,21 @@ const NAV_GROUPS = [
       { id: 'payments' as DentistSection, label: 'Payments', icon: Wallet, color: 'text-emerald-600 bg-emerald-100 dark:bg-emerald-900/30' },
       { id: 'analytics' as DentistSection, label: 'Analytics', icon: BarChart3, color: 'text-indigo-600 bg-indigo-100 dark:bg-indigo-900/30' },
       { id: 'reports' as DentistSection, label: 'Reports', icon: FileBarChart, color: 'text-cyan-600 bg-cyan-100 dark:bg-cyan-900/30' },
+    ],
+  },
+  {
+    id: 'operations',
+    label: 'Operations',
+    items: [
+      { id: 'inventory' as DentistSection, label: 'Inventory', icon: Boxes, color: 'text-amber-600 bg-amber-100 dark:bg-amber-900/30' },
+      { id: 'imports' as DentistSection, label: 'Data Imports', icon: Upload, color: 'text-rose-600 bg-rose-100 dark:bg-rose-900/30' },
+    ],
+  },
+  {
+    id: 'admin',
+    label: 'Admin',
+    items: [
+      { id: 'branding' as DentistSection, label: 'Branding', icon: Palette, color: 'text-pink-600 bg-pink-100 dark:bg-pink-900/30' },
       { id: 'security' as DentistSection, label: 'Security', icon: Shield, color: 'text-red-600 bg-red-100 dark:bg-red-900/30' },
     ],
   },
