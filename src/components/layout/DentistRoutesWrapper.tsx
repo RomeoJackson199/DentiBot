@@ -2,47 +2,24 @@ import React, { useState, useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
-import { DentistRoutes } from "./DentistRoutes";
+import { DentistPortal } from "@/pages/DentistPortal";
 
 export function DentistRoutesWrapper() {
   const [user, setUser] = useState<User | null>(null);
-  const [dentistId, setDentistId] = useState<string>("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const initAuth = async () => {
+    const getUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        setUser(user);
-        // Fetch dentist ID
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('user_id', user.id)
-          .single();
-        
-        if (profile) {
-          const { data: dentist } = await supabase
-            .from('dentists')
-            .select('id')
-            .eq('profile_id', profile.id)
-            .single();
-          
-          if (dentist) {
-            setDentistId(dentist.id);
-          }
-        }
-      }
+      setUser(user);
       setLoading(false);
     };
 
-    initAuth();
+    getUser();
     
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null);
-      if (!session?.user) {
-        setDentistId("");
-      }
+      setLoading(false);
     });
 
     return () => subscription.unsubscribe();
@@ -54,9 +31,9 @@ export function DentistRoutesWrapper() {
     </div>;
   }
 
-  if (!user || !dentistId) {
-    return <Navigate to="/login" replace />;
+  if (!user) {
+    return <Navigate to="/" replace />;
   }
 
-  return <DentistRoutes user={user} dentistId={dentistId} />;
+  return <DentistPortal user={user} />;
 }
