@@ -18,6 +18,8 @@ import { RecallBanner } from "@/components/patient/RecallBanner";
 import { getPatientActiveRecall, RecallRecord } from "@/lib/recalls";
 import { AppointmentDetailsDialog } from "@/components/AppointmentDetailsDialog";
 import { useLanguage } from "@/hooks/useLanguage";
+import { TimelineAppointmentCard } from "@/components/patient/TimelineAppointmentCard";
+import { AppointmentStatusBadge } from "@/components/patient/AppointmentStatusBadge";
 export interface AppointmentsTabProps {
   user: User;
   onOpenAssistant?: () => void;
@@ -118,121 +120,7 @@ const CalendarView = ({
       </CardContent>
     </Card>;
 };
-const AppointmentCard = ({
-  appointment,
-  onReschedule,
-  onCancel,
-  onClick
-}: {
-  appointment: Appointment;
-  onReschedule: () => void;
-  onCancel: () => void;
-  onClick?: () => void;
-}) => {
-  const {
-    t
-  } = useLanguage();
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'confirmed':
-        return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400';
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400';
-      case 'cancelled':
-        return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400';
-      case 'completed':
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400';
-      default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400';
-    }
-  };
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'confirmed':
-        return CheckCircle;
-      case 'pending':
-        return Clock;
-      case 'cancelled':
-        return XCircle;
-      case 'completed':
-        return CheckCircle;
-      default:
-        return AlertCircle;
-    }
-  };
-  const StatusIcon = getStatusIcon(appointment.status);
-  return <motion.div initial={{
-    opacity: 0,
-    y: 20
-  }} animate={{
-    opacity: 1,
-    y: 0
-  }} exit={{
-    opacity: 0,
-    y: -20
-  }} whileHover={{
-    scale: 1.01
-  }} className="group cursor-pointer" onClick={onClick}>
-      <Card className="overflow-hidden hover:shadow-lg transition-all">
-        <div className={cn("h-1 w-full", appointment.status === 'confirmed' && "bg-green-500", appointment.status === 'pending' && "bg-yellow-500", appointment.status === 'cancelled' && "bg-red-500", appointment.status === 'completed' && "bg-blue-500")} />
-        <CardContent className="p-4 md:p-6">
-          <div className="flex items-start justify-between mb-3">
-            <div className="flex items-center space-x-3">
-              <div className={cn("p-2 rounded-lg", appointment.status === 'confirmed' && "bg-green-100 dark:bg-green-900/30", appointment.status === 'pending' && "bg-yellow-100 dark:bg-yellow-900/30", appointment.status === 'cancelled' && "bg-red-100 dark:bg-red-900/30", appointment.status === 'completed' && "bg-blue-100 dark:bg-blue-900/30")}>
-                <StatusIcon className="h-4 w-4 md:h-5 md:w-5" />
-              </div>
-              <div>
-                <p className="font-semibold text-sm md:text-base">
-                  {appointment.treatment_type || t.generalCheckup}
-                </p>
-                <p className="text-xs md:text-sm text-muted-foreground">
-                  {format(new Date(appointment.appointment_date), 'EEEE, MMMM d, yyyy')}
-                </p>
-              </div>
-            </div>
-            <Badge className={getStatusColor(appointment.status)}>
-              {appointment.status}
-            </Badge>
-          </div>
-
-          <div className="space-y-2 mb-4">
-            <div className="flex items-center space-x-2 text-sm">
-              <Clock className="h-3 w-3 text-muted-foreground" />
-              <span>{format(new Date(appointment.appointment_date), 'HH:mm')}</span>
-            </div>
-            {appointment.dentist && <div className="flex items-center space-x-2 text-sm">
-                <UserIcon className="h-3 w-3 text-muted-foreground" />
-                <span>Dr. {appointment.dentist.first_name} {appointment.dentist.last_name}</span>
-                {appointment.dentist.specialization && <Badge variant="outline" className="text-xs">
-                    {appointment.dentist.specialization}
-                  </Badge>}
-              </div>}
-            <div className="flex items-center space-x-2 text-sm">
-              <Building className="h-3 w-3 text-muted-foreground" />
-              <span>{t.mainClinic}</span>
-            </div>
-          </div>
-
-          {appointment.notes && <div className="p-3 bg-muted/50 rounded-lg mb-4">
-              <p className="text-xs md:text-sm text-muted-foreground">
-                {appointment.notes}
-              </p>
-            </div>}
-
-          {appointment.status === 'confirmed' && <div className="flex gap-3 mt-4">
-              <Button variant="outline" size="default" onClick={onReschedule} className="flex-1 h-10">
-                <RefreshCw className="h-4 w-4 mr-2" />
-                {t.reschedule}
-              </Button>
-              <Button variant="outline" size="default" onClick={onCancel} className="flex-1 h-10 text-destructive hover:bg-destructive hover:text-destructive-foreground">
-                <XCircle className="h-4 w-4 mr-2" />
-                {t.cancel}
-              </Button>
-            </div>}
-        </CardContent>
-      </Card>
-    </motion.div>;
-};
+// Removed - using TimelineAppointmentCard instead
 export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({
   user,
   onOpenAssistant
@@ -420,10 +308,17 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({
                       <ScrollArea className="h-[400px]">
                         <AnimatePresence mode="wait">
                           {selectedDateAppointments.length > 0 ? <div className="space-y-3">
-                              {selectedDateAppointments.map(apt => <AppointmentCard key={apt.id} appointment={apt} onReschedule={() => setShowBooking(true)} onCancel={() => {}} onClick={() => {
-                            setSelectedAppointmentId(apt.id);
-                            setDetailsDialogOpen(true);
-                          }} />)}
+                              {selectedDateAppointments.map((apt, index) => <TimelineAppointmentCard 
+                                key={apt.id} 
+                                appointment={apt} 
+                                index={index}
+                                onReschedule={() => setShowBooking(true)} 
+                                onCancel={() => {}} 
+                                onClick={() => {
+                                  setSelectedAppointmentId(apt.id);
+                                  setDetailsDialogOpen(true);
+                                }} 
+                              />)}
                             </div> : <motion.div initial={{
                           opacity: 0
                         }} animate={{
@@ -449,10 +344,17 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({
             <TabsContent value="upcoming" className="mt-0">
               <div className="space-y-3">
                 <AnimatePresence>
-                  {upcomingAppointments.length > 0 ? upcomingAppointments.map(apt => <AppointmentCard key={apt.id} appointment={apt} onReschedule={onOpenAssistant || (() => setShowBooking(true))} onCancel={() => {}} onClick={() => {
-                  setSelectedAppointmentId(apt.id);
-                  setDetailsDialogOpen(true);
-                }} />) : <Card>
+                  {upcomingAppointments.length > 0 ? upcomingAppointments.map((apt, index) => <TimelineAppointmentCard 
+                    key={apt.id} 
+                    appointment={apt} 
+                    index={index}
+                    onReschedule={onOpenAssistant || (() => setShowBooking(true))} 
+                    onCancel={() => {}} 
+                    onClick={() => {
+                      setSelectedAppointmentId(apt.id);
+                      setDetailsDialogOpen(true);
+                    }} 
+                  />) : <Card>
                       <CardContent className="py-12 text-center">
                         <Calendar className="h-16 w-16 text-muted-foreground/30 mx-auto mb-4" />
                         <h3 className="text-lg font-medium mb-2">No upcoming appointments</h3>
@@ -472,10 +374,17 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({
             <TabsContent value="past" className="mt-0">
               <div className="space-y-3">
                 <AnimatePresence>
-                  {pastAppointments.length > 0 ? pastAppointments.map(apt => <AppointmentCard key={apt.id} appointment={apt} onReschedule={() => {}} onCancel={() => {}} onClick={() => {
-                  setSelectedAppointmentId(apt.id);
-                  setDetailsDialogOpen(true);
-                }} />) : <Card>
+                  {pastAppointments.length > 0 ? pastAppointments.map((apt, index) => <TimelineAppointmentCard 
+                    key={apt.id} 
+                    appointment={apt} 
+                    index={index}
+                    onReschedule={() => {}} 
+                    onCancel={() => {}} 
+                    onClick={() => {
+                      setSelectedAppointmentId(apt.id);
+                      setDetailsDialogOpen(true);
+                    }} 
+                  />) : <Card>
                       <CardContent className="py-12 text-center">
                         <Clock className="h-16 w-16 text-muted-foreground/30 mx-auto mb-4" />
                         <h3 className="text-lg font-medium mb-2">No past appointments</h3>

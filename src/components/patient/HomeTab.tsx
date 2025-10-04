@@ -36,6 +36,8 @@ import { RecallBanner } from "@/components/patient/RecallBanner";
 import { supabase } from "@/integrations/supabase/client";
 import { getPatientActiveRecall, RecallRecord } from "@/lib/recalls";
 import { useLanguage } from "@/hooks/useLanguage";
+import { useCurrency } from "@/hooks/useCurrency";
+import { useCurrentDentist } from "@/hooks/useCurrentDentist";
 
 export interface HomeTabProps {
   userId: string;
@@ -71,15 +73,30 @@ export const HomeTab: React.FC<HomeTabProps> = ({
   const [greeting, setGreeting] = useState("");
   const unpaid = totalDueCents > 0;
   const [activeRecall, setActiveRecall] = useState<RecallRecord | null>(null);
+  const [dentistId, setDentistId] = useState<string | null>(null);
   const { t } = useLanguage();
+  const { settings: currencySettings } = useCurrency(dentistId || undefined);
 
   useEffect(() => {
     (async () => {
-      // Load patient profile id and active recall
+      // Load patient profile id, active recall, and dentist
       const { data: profile } = await supabase.from('profiles').select('id').eq('user_id', userId).single();
       if (profile?.id) {
         const rec = await getPatientActiveRecall(profile.id);
         setActiveRecall(rec);
+        
+        // Get patient's dentist from most recent appointment
+        const { data: recentAppointment } = await supabase
+          .from('appointments')
+          .select('dentist_id')
+          .eq('patient_id', profile.id)
+          .order('appointment_date', { ascending: false })
+          .limit(1)
+          .single();
+        
+        if (recentAppointment?.dentist_id) {
+          setDentistId(recentAppointment.dentist_id);
+        }
       }
     })();
   }, [userId]);
@@ -248,8 +265,8 @@ export const HomeTab: React.FC<HomeTabProps> = ({
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                <p className={cn("text-2xl font-bold", unpaid ? "text-red-600" : "text-green-600")}>
-                  €{(totalDueCents/100).toFixed(2)}
+                <p className={cn("text-2xl font-bold font-heading", unpaid ? "text-error" : "text-success")}>
+                  {currencySettings.format(totalDueCents / 100)}
                 </p>
                 <p className="text-sm text-muted-foreground">
                   {unpaid ? t.amountDue : t.allPaid}
@@ -257,7 +274,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                 {unpaid && (
                   <Button 
                     onClick={() => onNavigateTo('payments')}
-                    className="w-full bg-red-600 hover:bg-red-700"
+                    className="w-full bg-error hover:bg-error/90 text-error-foreground"
                     size="sm"
                   >
                     {t.payNow}
