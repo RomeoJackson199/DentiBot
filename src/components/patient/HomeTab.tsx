@@ -115,7 +115,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
   const healthImprovement = 12;
 
   return (
-    <div className="px-4 md:px-6 py-4 space-y-6 max-w-7xl mx-auto">
+    <div className="h-full overflow-y-auto px-4 md:px-6 py-4 space-y-6 max-w-7xl mx-auto">
       {/* Welcome Header */}
       <motion.div 
         initial={{ opacity: 0, y: -20 }}

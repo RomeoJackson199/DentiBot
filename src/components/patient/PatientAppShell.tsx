@@ -88,7 +88,7 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
 
   if (isMobile) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 overflow-x-hidden">
         {/* Mobile Header */}
         <div className="fixed top-0 left-0 right-0 z-header bg-background/95 backdrop-blur-sm border-b" role="banner">
           <div className="flex items-center justify-between px-4 py-3">
@@ -210,7 +210,7 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex" role="main">
       {/* Desktop Sidebar */}
       <div className={cn(
-        "fixed left-0 top-0 bottom-0 bg-card/80 backdrop-blur-lg border-r border-border/50 z-header transition-[width] duration-200 ease-linear",
+        "fixed left-0 top-0 bottom-0 bg-card/80 backdrop-blur-lg border-r border-border/50 z-sidebar transition-[width] duration-200 ease-linear overflow-hidden",
         collapsed ? "w-16" : "w-64"
       )}>
         {/* Sidebar Header */}
@@ -249,13 +249,13 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
               return (
                 <Tooltip key={item.id}>
                   <TooltipTrigger asChild>
-                    <button
+                     <button
                       onClick={() => onChangeSection(item.id)}
                       className={cn(
                         "w-full flex items-center px-3 py-3 rounded-xl transition-all relative group touch-target min-h-[40px] focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
                         active
-                          ? "bg-primary text-primary-foreground shadow-md"
-                          : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
+                          ? "bg-primary text-primary-foreground shadow-md scale-[1.02]"
+                          : "text-muted-foreground hover:text-foreground hover:bg-muted/50 hover:scale-[1.01]",
                         collapsed ? "justify-center" : "gap-3"
                       )}
                       aria-current={active ? 'page' : undefined}
@@ -340,7 +340,7 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
             transition={{ duration: 0.3 }}
-            className="min-h-screen p-6"
+            className="min-h-screen h-screen overflow-y-auto p-6"
           >
             {children}
           </motion.div>

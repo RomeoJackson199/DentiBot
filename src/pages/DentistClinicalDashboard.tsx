@@ -3,6 +3,7 @@ import { ClinicalToday } from "@/components/ClinicalToday";
 import { Card, CardContent } from "@/components/ui/card";
 import { useCurrentDentist } from "@/hooks/useCurrentDentist";
 import { Loader2 } from "lucide-react";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 interface DentistClinicalDashboardProps {
   user?: User;
@@ -34,7 +35,15 @@ export function DentistClinicalDashboard({ user }: DentistClinicalDashboardProps
   }
 
   return (
-    <div className="p-6">
+    <div>
+      <PageHeader 
+        title="Clinical Dashboard"
+        subtitle="Today's schedule and urgent cases"
+        breadcrumbs={[
+          { label: 'Home', href: '/dentist' },
+          { label: 'Clinical' }
+        ]}
+      />
       <ClinicalToday 
         dentistId={dentistId} 
         user={user!} 

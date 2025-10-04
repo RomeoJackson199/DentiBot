@@ -233,6 +233,7 @@
   .z-modal { @apply z-[90]; }
   .z-overlay { @apply z-[80]; }
   .z-header { @apply z-[70]; }
+  .z-sidebar { @apply z-[65]; }
   .z-sticky { @apply z-[60]; }
   .z-floating { @apply z-[50]; }
   
