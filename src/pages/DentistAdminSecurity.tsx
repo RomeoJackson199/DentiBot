@@ -7,8 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, Shield, Key, Clock, AlertTriangle } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Loader2, Shield, Key, Clock, AlertTriangle, Users, UserPlus } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 export default function DentistAdminSecurity() {
   const { dentistId, loading: dentistLoading } = useCurrentDentist();
@@ -17,6 +20,8 @@ export default function DentistAdminSecurity() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [sessions, setSessions] = useState<any[]>([]);
+  const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
+  const [staffMembers, setStaffMembers] = useState<any[]>([]);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -117,13 +122,18 @@ export default function DentistAdminSecurity() {
   }
 
   return (
-    <div className="p-6 max-w-4xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold mb-2">Security Settings</h1>
-        <p className="text-muted-foreground">
-          Manage your account security and authentication settings
-        </p>
-      </div>
+    <div>
+      <PageHeader 
+        title="Security & Access"
+        subtitle="Manage security settings and team access"
+        breadcrumbs={[
+          { label: 'Home', href: '/dentist' },
+          { label: 'Admin' },
+          { label: 'Security' }
+        ]}
+      />
+
+      <div className="space-y-6 max-w-4xl">
 
       <Card>
         <CardHeader>
@@ -199,15 +209,82 @@ export default function DentistAdminSecurity() {
             Add an extra layer of security to your account
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <Alert className="mb-4">
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between p-4 border rounded-lg">
+            <div className="space-y-1">
+              <p className="font-medium">Enable 2FA</p>
+              <p className="text-sm text-muted-foreground">
+                Require a verification code in addition to your password
+              </p>
+            </div>
+            <Switch
+              checked={twoFactorEnabled}
+              onCheckedChange={setTwoFactorEnabled}
+              disabled
+            />
+          </div>
+          {twoFactorEnabled && (
+            <Alert>
+              <AlertDescription>
+                Two-factor authentication setup will be available soon. You'll be able to use authenticator apps like Google Authenticator or Authy.
+              </AlertDescription>
+            </Alert>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Users className="h-5 w-5" />
+            Staff & Roles
+          </CardTitle>
+          <CardDescription>
+            Manage team members and their access levels
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {staffMembers.length === 0 ? (
+            <div className="text-center py-8 border-2 border-dashed rounded-lg">
+              <Users className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
+              <p className="text-sm text-muted-foreground mb-4">
+                No staff members added yet
+              </p>
+              <Button variant="outline" disabled>
+                <UserPlus className="mr-2 h-4 w-4" />
+                Invite Staff Member
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {staffMembers.map((member: any) => (
+                <div
+                  key={member.id}
+                  className="flex items-center justify-between p-4 border rounded-lg"
+                >
+                  <div>
+                    <p className="font-medium">{member.name}</p>
+                    <p className="text-sm text-muted-foreground">{member.email}</p>
+                  </div>
+                  <Select defaultValue={member.role}>
+                    <SelectTrigger className="w-40">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="dentist">Dentist</SelectItem>
+                      <SelectItem value="admin">Admin</SelectItem>
+                      <SelectItem value="assistant">Assistant</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              ))}
+            </div>
+          )}
+          <Alert>
             <AlertDescription>
-              Two-factor authentication is not yet enabled. This feature will be available soon.
+              Staff management features are coming soon. You'll be able to invite team members and assign roles.
             </AlertDescription>
           </Alert>
-          <Button variant="outline" disabled>
-            Enable 2FA (Coming Soon)
-          </Button>
         </CardContent>
       </Card>
 
@@ -284,7 +361,7 @@ export default function DentistAdminSecurity() {
           </div>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }
-
