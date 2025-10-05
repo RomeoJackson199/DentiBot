@@ -5,8 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { PatientDashboard } from "./PatientDashboard";
 import { AiOptOutPrompt } from "./AiOptOutPrompt";
-import { Card, CardContent } from "@/components/ui/card";
-import { Loader2 } from "lucide-react";
+import { ModernLoadingSpinner } from "@/components/enhanced/ModernLoadingSpinner";
 
 interface UnifiedDashboardProps {
   user: User;
@@ -72,20 +71,12 @@ export const UnifiedDashboard = memo(({ user }: UnifiedDashboardProps) => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center mesh-bg">
-        <Card className="w-full max-w-md">
-          <CardContent className="flex flex-col items-center justify-center p-8">
-            <div className="relative">
-              <div className="animate-spin rounded-full h-12 w-12 border-4 border-dental-primary/20 border-t-dental-primary"></div>
-              <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-dental-accent animate-pulse"></div>
-            </div>
-            <div className="mt-6 text-center space-y-2">
-              <h3 className="text-lg font-semibold text-dental-foreground">Loading Dashboard</h3>
-              <p className="text-sm text-dental-muted-foreground">Setting up your personalized experience...</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <ModernLoadingSpinner 
+        variant="overlay" 
+        size="lg"
+        message="Loading Dashboard" 
+        description="Setting up your personalized experience..." 
+      />
     );
   }
 

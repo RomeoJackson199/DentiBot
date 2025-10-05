@@ -12,7 +12,7 @@ import { PaymentRequestManager } from "@/components/PaymentRequestManager";
 import { DentistAnalytics } from "@/components/analytics/DentistAnalytics";
 import { InventoryManager } from "@/components/inventory/InventoryManager";
 import DataImportManager from "@/components/DataImportManager";
-import { Card, CardContent } from "@/components/ui/card";
+import { ModernLoadingSpinner } from "@/components/enhanced/ModernLoadingSpinner";
 
 interface DentistPortalProps {
   user: User;
@@ -83,25 +83,11 @@ export function DentistPortal({ user }: DentistPortalProps) {
   };
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
+    return <ModernLoadingSpinner variant="overlay" message="Loading dentist portal..." />;
   }
 
   if (!dentistId) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <Card>
-          <CardContent className="pt-6">
-            <p className="text-center text-muted-foreground">
-              You are not registered as a dentist. Please contact support.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    );
+    return <ModernLoadingSpinner variant="card" message="Access Denied" description="You are not registered as a dentist. Please contact support." />;
   }
 
   const renderContent = () => {

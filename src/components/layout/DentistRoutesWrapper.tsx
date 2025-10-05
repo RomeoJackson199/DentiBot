@@ -3,6 +3,7 @@ import { Navigate } from "react-router-dom";
 import { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { DentistPortal } from "@/pages/DentistPortal";
+import { ModernLoadingSpinner } from "@/components/enhanced/ModernLoadingSpinner";
 
 export function DentistRoutesWrapper() {
   const [user, setUser] = useState<User | null>(null);
@@ -26,9 +27,7 @@ export function DentistRoutesWrapper() {
   }, []);
 
   if (loading) {
-    return <div className="flex justify-center items-center min-h-screen">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-    </div>;
+    return <ModernLoadingSpinner variant="overlay" message="Loading..." />;
   }
 
   if (!user) {
