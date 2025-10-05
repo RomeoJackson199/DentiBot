@@ -12,6 +12,8 @@ import { PaymentRequestManager } from "@/components/PaymentRequestManager";
 import { DentistAnalytics } from "@/components/analytics/DentistAnalytics";
 import { InventoryManager } from "@/components/inventory/InventoryManager";
 import DataImportManager from "@/components/DataImportManager";
+import DentistAdminBranding from "./DentistAdminBranding";
+import DentistAdminSecurity from "./DentistAdminSecurity";
 import { ModernLoadingSpinner } from "@/components/enhanced/ModernLoadingSpinner";
 
 interface DentistPortalProps {
@@ -118,9 +120,9 @@ export function DentistPortal({ user }: DentistPortalProps) {
       case 'imports':
         return <DataImportManager />;
       case 'branding':
-        return <div className="p-4">Branding Settings (Coming Soon)</div>;
+        return <DentistAdminBranding />;
       case 'security':
-        return <div className="p-4">Security Settings (Coming Soon)</div>;
+        return <DentistAdminSecurity />;
       default:
         return <div className="p-4">Section not found</div>;
     }
