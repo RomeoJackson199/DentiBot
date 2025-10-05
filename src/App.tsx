@@ -57,6 +57,7 @@ const UnifiedDashboard = lazy(() => import("./components/UnifiedDashboard"));
 const LanguageTest = lazy(() => import("./components/LanguageTest").then(module => ({ default: module.LanguageTest })));
 const About = lazy(() => import("./pages/About"));
 const Claim = lazy(() => import("./pages/Claim"));
+const PublicBooking = lazy(() => import("./pages/PublicBooking"));
 const PatientCareHome = lazy(() => import("./pages/PatientCareHome"));
 const PatientAppointmentsPage = lazy(() => import("./pages/PatientAppointmentsPage"));
 const PatientPrescriptionsPage = lazy(() => import("./pages/PatientPrescriptionsPage"));
@@ -187,6 +188,7 @@ const App = () => (
               <Suspense fallback={<ModernLoadingSpinner variant="overlay" message="Loading..." /> }>
               <Routes>
                 <Route path="/" element={<Index />} />
+                <Route path="/book" element={<PublicBooking />} />
                 {/* Old routes for backward compatibility */}
                 <Route element={<AppShell />}>
                   {/* Back-compat entry to dentist home */}

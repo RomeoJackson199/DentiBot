@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface HeaderProps {
   user: User | null;
@@ -60,6 +61,7 @@ export const Header = ({
 
   return (
     <header className="glass-card sticky top-0 z-50 border-0 border-b border-white/10">
+      <TooltipProvider>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between py-4 lg:py-6">
           {/* Logo */}
@@ -85,10 +87,17 @@ export const Header = ({
           {!minimal && (
             <nav className="hidden lg:flex items-center space-x-8">
               {navigation.map(item => (
-                <a key={item.name} href={item.href} className="flex items-center space-x-2 text-dental-muted-foreground hover:text-dental-primary transition-colors duration-300 font-medium">
-                  <item.icon className="w-4 h-4" />
-                  <span>{item.name}</span>
-                </a>
+                <Tooltip key={item.name}>
+                  <TooltipTrigger asChild>
+                    <a href={item.href} className="flex items-center space-x-2 text-dental-muted-foreground hover:text-dental-primary transition-colors duration-300 font-medium">
+                      <item.icon className="w-4 h-4" />
+                      <span>{item.name}</span>
+                    </a>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{item.name}</p>
+                  </TooltipContent>
+                </Tooltip>
               ))}
             </nav>
           )}
@@ -188,6 +197,7 @@ export const Header = ({
           </div>
         )}
       </div>
+      </TooltipProvider>
     </header>
   );
 };

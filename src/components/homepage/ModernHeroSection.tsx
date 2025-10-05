@@ -119,13 +119,15 @@ export function ModernHeroSection({ onBookAppointment, onStartTriage, onOpenAICh
               <AppButton
                 variant="gradient"
                 size="desktop"
-                onClick={onBookAppointment}
+                asChild
                 aria-label="Book a dental appointment"
                 className="group min-w-[200px]"
               >
-                <Calendar className="h-5 w-5 mr-2 group-hover:scale-110 transition-transform" />
-                {t.bookAppointment}
-                <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                <a href="/book" className="flex items-center">
+                  <Calendar className="h-5 w-5 mr-2 group-hover:scale-110 transition-transform" />
+                  {t.bookAppointment}
+                  <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                </a>
               </AppButton>
               
               <AppButton
