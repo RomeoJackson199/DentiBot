@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { useToast } from "@/hooks/use-toast";
@@ -17,21 +18,48 @@ import DentistAdminSecurity from "./DentistAdminSecurity";
 import { ModernLoadingSpinner } from "@/components/enhanced/ModernLoadingSpinner";
 
 interface DentistPortalProps {
-  user: User;
+  user?: User | null;
 }
 
-export function DentistPortal({ user }: DentistPortalProps) {
+export function DentistPortal({ user: userProp }: DentistPortalProps) {
   const [activeSection, setActiveSection] = useState<DentistSection>('clinical');
   const [dentistId, setDentistId] = useState<string | null>(null);
+  const [user, setUser] = useState<User | null>(userProp || null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const [badges, setBadges] = useState<Partial<Record<DentistSection, number>>>({});
 
   useEffect(() => {
-    fetchDentistProfile();
+    const getUser = async () => {
+      if (userProp) {
+        setUser(userProp);
+        return;
+      }
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+    };
+
+    getUser();
+    
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, [userProp]);
+
+  useEffect(() => {
+    if (user) {
+      fetchDentistProfile();
+    }
   }, [user]);
 
   const fetchDentistProfile = async () => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+    
     try {
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
@@ -86,6 +114,10 @@ export function DentistPortal({ user }: DentistPortalProps) {
 
   if (loading) {
     return <ModernLoadingSpinner variant="overlay" message="Loading dentist portal..." />;
+  }
+
+  if (!user) {
+    return <Navigate to="/" replace />;
   }
 
   if (!dentistId) {

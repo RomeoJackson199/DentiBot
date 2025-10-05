@@ -18,8 +18,7 @@ import { LazyLoadingWrapper } from "./components/optimized/LazyLoadingWrapper";
 import AuthCallbackHandler from "./components/AuthCallbackHandler";
 import { ModernLoadingSpinner } from "@/components/enhanced/ModernLoadingSpinner";
 import { AppShell } from "@/components/layout/AppShell";
-import { DentistLayout } from "@/components/layout/DentistLayout";
-import { DentistRoutesWrapper } from "@/components/layout/DentistRoutesWrapper";
+import { DentistPortal } from "@/pages/DentistPortal";
 import { PatientPortalNav } from "@/components/patient/PatientPortalNav";
 
 const Invite = lazy(() => import("./pages/Invite"));
@@ -39,18 +38,6 @@ const Chat = lazy(() => import("./pages/Chat"));
 const Schedule = lazy(() => import("./pages/Schedule"));
 // RecallDeepLink removed - file doesn't exist
 const Analytics = lazy(() => import("./pages/Analytics"));
-const DentistClinicalDashboard = lazy(() => import("./pages/DentistClinicalDashboard"));
-const DentistClinicalSchedule = lazy(() => import("./pages/DentistClinicalSchedule"));
-const DentistClinicalPatients = lazy(() => import("./pages/DentistClinicalPatients"));
-const DentistClinicalAppointments = lazy(() => import("./pages/DentistClinicalAppointments"));
-const DentistBusinessPayments = lazy(() => import("./pages/DentistBusinessPayments"));
-const DentistBusinessAnalytics = lazy(() => import("./pages/DentistBusinessAnalytics"));
-const DentistBusinessReports = lazy(() => import("./pages/DentistBusinessReports"));
-const DentistOpsInventory = lazy(() => import("./pages/DentistOpsInventory"));
-const DentistOpsImports = lazy(() => import("./pages/DentistOpsImports"));
-const DentistAdminSchedule = lazy(() => import("./pages/DentistAdminSchedule"));
-const DentistAdminBranding = lazy(() => import("./pages/DentistAdminBranding"));
-const DentistAdminSecurity = lazy(() => import("./pages/DentistAdminSecurity"));
 const Support = lazy(() => import("./pages/Support"));
 const FeatureDetail = lazy(() => import("./pages/FeatureDetail"));
 const UnifiedDashboard = lazy(() => import("./components/UnifiedDashboard"));
@@ -199,8 +186,8 @@ const App = () => (
                   <Route path="/ops/*" element={<Navigate to="/dentist/ops/inventory" replace />} />
                   <Route path="/admin/*" element={<Navigate to="/dentist/admin/branding" replace />} />
                 </Route>
-                {/* Dentist routes with new sidebar - dynamically get user */}
-                <Route path="/dentist/*" element={<DentistRoutesWrapper />} />
+                {/* Dentist routes with tab-based navigation */}
+                <Route path="/dentist/*" element={<DentistPortal />} />
                 {/* Patient portal routes with patient nav */}
                 <Route element={<PatientPortalNav><></></PatientPortalNav>}>
                   <Route path="/care" element={<PatientCareHome />} />
