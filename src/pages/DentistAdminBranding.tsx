@@ -26,18 +26,27 @@ export default function DentistAdminBranding() {
 
   const loadBrandingSettings = async () => {
     try {
-      // Load existing branding settings from dentists table or clinic_settings
-      const { data: dentist } = await supabase
-        .from('dentists')
+      const { data: settings, error } = await supabase
+        .from('clinic_settings')
         .select('*')
-        .eq('id', dentistId)
-        .single();
+        .eq('dentist_id', dentistId)
+        .maybeSingle();
 
-      if (dentist) {
-        setClinicName(dentist.clinic_address || "");
+      if (error) throw error;
+
+      if (settings) {
+        setClinicName(settings.clinic_name || "");
+        setPrimaryColor(settings.primary_color || "#2D5D7B");
+        setSecondaryColor(settings.secondary_color || "#8B5CF6");
+        setLogoUrl(settings.logo_url || "");
       }
     } catch (error) {
       console.error('Error loading branding:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load branding settings",
+        variant: "destructive",
+      });
     }
   };
 
@@ -100,14 +109,28 @@ export default function DentistAdminBranding() {
   };
 
   const handleSaveBranding = async () => {
+    if (!dentistId) return;
+    
     setLoading(true);
 
     try {
-      // Save branding settings
-      // This would ideally save to a branding_settings table
+      const { error } = await supabase
+        .from('clinic_settings')
+        .upsert({
+          dentist_id: dentistId,
+          clinic_name: clinicName,
+          logo_url: logoUrl,
+          primary_color: primaryColor,
+          secondary_color: secondaryColor,
+        }, {
+          onConflict: 'dentist_id'
+        });
+
+      if (error) throw error;
+
       toast({
         title: "Settings Saved",
-        description: "Your branding settings have been saved",
+        description: "Your branding settings have been saved successfully",
       });
     } catch (error: any) {
       console.error('Error saving branding:', error);

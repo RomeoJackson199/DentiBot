@@ -434,33 +434,45 @@ export type Database = {
         Row: {
           business_hours_end: string
           business_hours_start: string
+          clinic_name: string | null
           created_at: string
           currency: string
           dentist_id: string
           id: string
           language: string
+          logo_url: string | null
+          primary_color: string | null
+          secondary_color: string | null
           timezone: string
           updated_at: string
         }
         Insert: {
           business_hours_end?: string
           business_hours_start?: string
+          clinic_name?: string | null
           created_at?: string
           currency?: string
           dentist_id: string
           id?: string
           language?: string
+          logo_url?: string | null
+          primary_color?: string | null
+          secondary_color?: string | null
           timezone?: string
           updated_at?: string
         }
         Update: {
           business_hours_end?: string
           business_hours_start?: string
+          clinic_name?: string | null
           created_at?: string
           currency?: string
           dentist_id?: string
           id?: string
           language?: string
+          logo_url?: string | null
+          primary_color?: string | null
+          secondary_color?: string | null
           timezone?: string
           updated_at?: string
         }
