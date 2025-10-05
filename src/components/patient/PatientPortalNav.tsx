@@ -11,6 +11,7 @@ import { usePatientBadgeCounts } from "@/hooks/usePatientBadges";
 import { cn } from "@/lib/utils";
 import { emitAnalyticsEvent } from "@/lib/analyticsEvents";
 import { supabase } from "@/integrations/supabase/client";
+import { LanguageToggle } from "@/components/LanguageToggle";
 
 type NavItem = {
   id: string;
@@ -234,7 +235,7 @@ export function PatientPortalNav({ children }: { children: React.ReactNode }) {
       <SidebarSeparator />
       <SidebarFooter>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" className="flex-1 justify-start">EN/FR/NL</Button>
+          <LanguageToggle />
           <SidebarTrigger className="h-8 w-8" aria-label="Collapse or expand sidebar" title="Collapse/Expand" />
         </div>
       </SidebarFooter>
@@ -314,6 +315,7 @@ export function PatientPortalNav({ children }: { children: React.ReactNode }) {
               </Button>
             </div>
             <div className="flex items-center gap-2">
+              <LanguageToggle />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm" className="gap-2" aria-label="Open menu" title="Menu">

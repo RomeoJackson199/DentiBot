@@ -31,6 +31,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useMobileOptimizations } from "@/components/mobile/MobileOptimizations";
+import { LanguageToggle } from "@/components/LanguageToggle";
 
 export type DentistSection = 'clinical' | 'patients' | 'appointments' | 'schedule' | 'payments' | 'analytics' | 'reports' | 'inventory' | 'imports' | 'branding' | 'security';
 
@@ -141,21 +142,24 @@ export const DentistAppShell: React.FC<DentistAppShellProps> = ({
               <span className="font-semibold text-lg">Dentist Portal</span>
             </div>
 
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="touch-target">
-                  <SettingsIcon className="h-5 w-5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuLabel>Menu</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleSignOut} className="text-red-600">
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Sign Out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <div className="flex items-center gap-1">
+              <LanguageToggle />
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="touch-target">
+                    <SettingsIcon className="h-5 w-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuLabel>Menu</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut} className="text-red-600">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
         </div>
 
@@ -313,24 +317,27 @@ export const DentistAppShell: React.FC<DentistAppShellProps> = ({
 
         {/* Sidebar Footer */}
         <div className={cn("absolute bottom-0 left-0 right-0 border-t border-border/50", collapsed ? "p-2" : "p-4")}>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size={collapsed ? "icon" : "sm"}
-                className={cn("w-full", collapsed ? "h-8" : "justify-start")}
-              >
-                <SettingsIcon className="h-4 w-4" />
-                {!collapsed && <span className="ml-2">Menu</span>}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48 mb-2">
-              <DropdownMenuItem onClick={handleSignOut} className="text-red-600">
-                <LogOut className="mr-2 h-4 w-4" />
-                Sign Out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className={cn("flex items-center gap-2", collapsed && "flex-col")}>
+            {!collapsed && <LanguageToggle />}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size={collapsed ? "icon" : "sm"}
+                  className={cn("w-full", collapsed ? "h-8" : "justify-start")}
+                >
+                  <SettingsIcon className="h-4 w-4" />
+                  {!collapsed && <span className="ml-2">Menu</span>}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48 mb-2">
+                <DropdownMenuItem onClick={handleSignOut} className="text-red-600">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Sign Out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
       </div>
 
