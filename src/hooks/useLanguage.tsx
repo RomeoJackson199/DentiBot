@@ -332,6 +332,7 @@ interface Translations {
   list: string;
   history: string;
   cancelled: string;
+  scheduled: string;
 
   // Dentist Dashboard
   loadingDentistDashboard: string;
@@ -761,6 +762,7 @@ How can I help you today?`,
     list: "List", 
     history: "History",
     cancelled: "Cancelled",
+    scheduled: "Scheduled",
 
     // Dentist Dashboard
     loadingDentistDashboard: "Loading dentist dashboard...",
@@ -1194,6 +1196,7 @@ Comment puis-je vous aider aujourd'hui ?`,
     list: "Liste",
     history: "Geschiedenis",
     cancelled: "Annulé",
+    scheduled: "Programmé",
 
     // Dentist Dashboard
     loadingDentistDashboard: "Chargement du tableau de bord dentiste...",
@@ -1596,6 +1599,7 @@ Comment puis-je vous aider aujourd'hui ?`,
     list: "Lijst",
     history: "Geschiedenis",
     cancelled: "Geannuleerd",
+    scheduled: "Gepland",
 
     // Dentist Dashboard
     loadingDentistDashboard: "Tandarts dashboard laden...",
