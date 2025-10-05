@@ -31,6 +31,36 @@ interface Translations {
   cancel: string;
   close: string;
   retry: string;
+  
+  // Booking & schedule additions
+  selectDentist: string;
+  selectAppointmentType: string;
+  appointmentType: string;
+  confirmBooking: string;
+  booking: string;
+  bookAppointmentDescription: string;
+  describeSymptoms: string;
+  noSlotsAvailable: string;
+  unableToLoadSlots: string;
+  unableToBookAppointment: string;
+  pleaseCompleteAllFields: string;
+  incompleteProfile: string;
+  pleaseCompleteProfileFirst: string;
+  appointmentBooked: string;
+  weeklyAvailability: string;
+  workingHours: string;
+  breakTime: string;
+  saveAvailability: string;
+  availabilityUpdated: string;
+  failedToLoadAvailability: string;
+  failedToSaveAvailability: string;
+  monday: string;
+  tuesday: string;
+  wednesday: string;
+  thursday: string;
+  friday: string;
+  saturday: string;
+  sunday: string;
 
   // Personal Info
   firstName: string;

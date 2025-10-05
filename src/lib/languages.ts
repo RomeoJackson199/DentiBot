@@ -7,22 +7,16 @@ export const SUPPORTED_LANGUAGES: Record<string, LanguageConfig> = {
     flag: '🇺🇸',
     direction: 'ltr'
   },
-  es: {
-    code: 'es',
-    name: 'Español',
-    flag: '🇪🇸',
-    direction: 'ltr'
-  },
   fr: {
     code: 'fr',
     name: 'Français',
     flag: '🇫🇷',
     direction: 'ltr'
   },
-  de: {
-    code: 'de',
-    name: 'Deutsch',
-    flag: '🇩🇪',
+  nl: {
+    code: 'nl',
+    name: 'Nederlands',
+    flag: '🇳🇱',
     direction: 'ltr'
   }
 };
@@ -53,6 +47,7 @@ export const TRANSLATIONS = {
     back: 'Back',
     next: 'Next',
     previous: 'Previous',
+    optional: 'Optional',
     
     // Appointment related
     bookAppointment: 'Book Appointment',
@@ -61,8 +56,31 @@ export const TRANSLATIONS = {
     appointmentType: 'Appointment Type',
     appointmentStatus: 'Appointment Status',
     appointmentNotes: 'Appointment Notes',
+    appointmentConfirmed: 'Appointment Confirmed!',
     emergencyBooking: 'Emergency Booking',
     urgentCare: 'Urgent Care',
+    selectDentist: 'Select Dentist',
+    chooseDentist: 'Choose a dentist',
+    selectDate: 'Select Date',
+    selectTime: 'Select Time',
+    selectAppointmentType: 'Select appointment type',
+    confirmBooking: 'Confirm Booking',
+    booking: 'Booking...',
+    bookAppointmentDescription: 'Book your dental consultation in a few clicks',
+    additionalNotes: 'Additional Notes (optional)',
+    describeSymptoms: 'Describe your symptoms or concerns...',
+    noSlotsAvailable: 'No slots available for this date',
+    unableToLoadSlots: 'Unable to load available slots',
+    unableToBookAppointment: 'Unable to book appointment',
+    missingInformation: 'Missing Information',
+    pleaseCompleteAllFields: 'Please complete all required fields',
+    incompleteProfile: 'Incomplete Profile',
+    pleaseCompleteProfileFirst: 'Please complete your profile in settings before booking an appointment',
+    generalConsultation: 'General Consultation',
+    cleaning: 'Cleaning',
+    checkup: 'Checkup',
+    emergency: 'Emergency',
+    followUp: 'Follow-up',
     
     // Patient related
     patientName: 'Patient Name',
@@ -72,6 +90,22 @@ export const TRANSLATIONS = {
     medicalRecords: 'Medical Records',
     treatmentPlans: 'Treatment Plans',
     prescriptions: 'Prescriptions',
+    
+    // Schedule Management
+    weeklyAvailability: 'Weekly Availability',
+    workingHours: 'Working Hours',
+    breakTime: 'Break Time',
+    saveAvailability: 'Save Availability',
+    availabilityUpdated: 'Availability updated successfully',
+    failedToLoadAvailability: 'Failed to load availability',
+    failedToSaveAvailability: 'Failed to save availability',
+    monday: 'Monday',
+    tuesday: 'Tuesday',
+    wednesday: 'Wednesday',
+    thursday: 'Thursday',
+    friday: 'Friday',
+    saturday: 'Saturday',
+    sunday: 'Sunday',
     
     // AI and Chat
     aiAssistant: 'AI Assistant',
@@ -163,143 +197,32 @@ export const TRANSLATIONS = {
     appInstalled: 'App installed successfully',
     appUpdateAvailable: 'App update available',
     offlineMode: 'Offline mode',
-    syncData: 'Sync data'
-  },
-  
-  es: {
-    // Navigation
-    dashboard: 'Panel de Control',
-    appointments: 'Citas',
-    patients: 'Pacientes',
-    settings: 'Configuración',
-    profile: 'Perfil',
-    logout: 'Cerrar Sesión',
+    syncData: 'Sync data',
     
-    // Common actions
-    save: 'Guardar',
-    cancel: 'Cancelar',
-    delete: 'Eliminar',
-    edit: 'Editar',
-    view: 'Ver',
-    add: 'Agregar',
-    search: 'Buscar',
-    filter: 'Filtrar',
-    clear: 'Limpiar',
-    confirm: 'Confirmar',
-    back: 'Atrás',
-    next: 'Siguiente',
-    previous: 'Anterior',
-    
-    // Appointment related
-    bookAppointment: 'Reservar Cita',
-    appointmentDate: 'Fecha de Cita',
-    appointmentTime: 'Hora de Cita',
-    appointmentType: 'Tipo de Cita',
-    appointmentStatus: 'Estado de Cita',
-    appointmentNotes: 'Notas de Cita',
-    emergencyBooking: 'Reserva de Emergencia',
-    urgentCare: 'Atención Urgente',
-    
-    // Patient related
-    patientName: 'Nombre del Paciente',
-    patientEmail: 'Email del Paciente',
-    patientPhone: 'Teléfono del Paciente',
-    patientHistory: 'Historial del Paciente',
-    medicalRecords: 'Expedientes Médicos',
-    treatmentPlans: 'Planes de Tratamiento',
-    prescriptions: 'Recetas',
-    
-    // AI and Chat
-    aiAssistant: 'Asistente IA',
-    chatWithAI: 'Chatear con IA',
-    aiSuggestions: 'Sugerencias de IA',
-    aiWriting: 'Asistente de Escritura IA',
-    triageAssessment: 'Evaluación de Triaje',
-    
-    // Status messages
-    loading: 'Cargando...',
-    error: 'Error',
-    success: 'Éxito',
-    warning: 'Advertencia',
-    info: 'Información',
-    
-    // Form labels
-    firstName: 'Nombre',
-    lastName: 'Apellido',
-    email: 'Correo Electrónico',
-    phone: 'Teléfono',
-    dateOfBirth: 'Fecha de Nacimiento',
-    address: 'Dirección',
-    reason: 'Motivo',
-    symptoms: 'Síntomas',
-    urgency: 'Nivel de Urgencia',
-    
-    // Time and dates
-    today: 'Hoy',
-    tomorrow: 'Mañana',
-    thisWeek: 'Esta Semana',
-    nextWeek: 'Próxima Semana',
-    thisMonth: 'Este Mes',
-    nextMonth: 'Próximo Mes',
-    
-    // Urgency levels
-    low: 'Bajo',
-    normal: 'Normal',
-    high: 'Alto',
-    urgent: 'Urgente',
-    
-    // Appointment status
-    scheduled: 'Programada',
-    confirmed: 'Confirmada',
-    inProgress: 'En Progreso',
-    completed: 'Completada',
-    cancelled: 'Cancelada',
-    noShow: 'No Presentó',
-    
-    // Messages
-    noDataAvailable: 'No hay datos disponibles',
-    noResultsFound: 'No se encontraron resultados',
-    somethingWentWrong: 'Algo salió mal',
-    tryAgainLater: 'Por favor intente más tarde',
-    connectionError: 'Error de conexión',
-    sessionExpired: 'Sesión expirada',
-    
-    // Success messages
-    appointmentBooked: 'Cita reservada exitosamente',
-    appointmentUpdated: 'Cita actualizada exitosamente',
-    appointmentCancelled: 'Cita cancelada exitosamente',
-    patientAdded: 'Paciente agregado exitosamente',
-    patientUpdated: 'Paciente actualizado exitosamente',
-    settingsSaved: 'Configuración guardada exitosamente',
-    
-    // Error messages
-    requiredField: 'Este campo es obligatorio',
-    invalidEmail: 'Por favor ingrese un email válido',
-    invalidPhone: 'Por favor ingrese un teléfono válido',
-    invalidDate: 'Por favor ingrese una fecha válida',
-    appointmentConflict: 'Este horario no está disponible',
-    networkError: 'Error de red. Por favor verifique su conexión',
-    
-    // AI Messages
-    aiThinking: 'IA está pensando...',
-    aiProcessing: 'Procesando su solicitud...',
-    aiSuggestion: 'Sugerencia de IA',
-    aiApproved: 'Sugerencia de IA aprobada',
-    aiRejected: 'Sugerencia de IA rechazada',
-    
-    // Accessibility
-    closeDialog: 'Cerrar diálogo',
-    openMenu: 'Abrir menú',
-    closeMenu: 'Cerrar menú',
-    expandSection: 'Expandir sección',
-    collapseSection: 'Colapsar sección',
-    
-    // PWA
-    installApp: 'Instalar App',
-    appInstalled: 'App instalada exitosamente',
-    appUpdateAvailable: 'Actualización de app disponible',
-    offlineMode: 'Modo sin conexión',
-    syncData: 'Sincronizar datos'
+    // Patient navigation context
+    pnav: {
+      home: { label: 'Home', title: 'Home' },
+      care: {
+        label: 'Care',
+        title: 'Care',
+        health: 'Health',
+        appointments: 'Appointments',
+        prescriptions: 'Prescriptions',
+        documents: 'Documents'
+      },
+      billing: {
+        label: 'Billing',
+        title: 'Billing'
+      },
+      account: {
+        label: 'Account',
+        title: 'Account',
+        profile: 'Profile',
+        insurance: 'Insurance',
+        privacy: 'Privacy',
+        help: 'Help'
+      }
+    }
   },
   
   fr: {
@@ -325,6 +248,7 @@ export const TRANSLATIONS = {
     back: 'Retour',
     next: 'Suivant',
     previous: 'Précédent',
+    optional: 'Optionnel',
     
     // Appointment related
     bookAppointment: 'Prendre Rendez-vous',
@@ -333,8 +257,31 @@ export const TRANSLATIONS = {
     appointmentType: 'Type de Rendez-vous',
     appointmentStatus: 'Statut du Rendez-vous',
     appointmentNotes: 'Notes du Rendez-vous',
+    appointmentConfirmed: 'Rendez-vous Confirmé!',
     emergencyBooking: 'Réservation d\'Urgence',
     urgentCare: 'Soins d\'Urgence',
+    selectDentist: 'Sélectionner un Dentiste',
+    chooseDentist: 'Choisir un dentiste',
+    selectDate: 'Sélectionner une Date',
+    selectTime: 'Sélectionner une Heure',
+    selectAppointmentType: 'Sélectionner le type de rendez-vous',
+    confirmBooking: 'Confirmer la Réservation',
+    booking: 'Réservation en cours...',
+    bookAppointmentDescription: 'Réservez votre consultation dentaire en quelques clics',
+    additionalNotes: 'Notes Supplémentaires (optionnel)',
+    describeSymptoms: 'Décrivez vos symptômes ou préoccupations...',
+    noSlotsAvailable: 'Aucun créneau disponible pour cette date',
+    unableToLoadSlots: 'Impossible de charger les créneaux disponibles',
+    unableToBookAppointment: 'Impossible de réserver le rendez-vous',
+    missingInformation: 'Informations Manquantes',
+    pleaseCompleteAllFields: 'Veuillez remplir tous les champs obligatoires',
+    incompleteProfile: 'Profil Incomplet',
+    pleaseCompleteProfileFirst: 'Veuillez compléter votre profil dans les paramètres avant de prendre rendez-vous',
+    generalConsultation: 'Consultation Générale',
+    cleaning: 'Nettoyage',
+    checkup: 'Contrôle',
+    emergency: 'Urgence',
+    followUp: 'Suivi',
     
     // Patient related
     patientName: 'Nom du Patient',
@@ -344,6 +291,22 @@ export const TRANSLATIONS = {
     medicalRecords: 'Dossiers Médicaux',
     treatmentPlans: 'Plans de Traitement',
     prescriptions: 'Ordonnances',
+    
+    // Schedule Management
+    weeklyAvailability: 'Disponibilité Hebdomadaire',
+    workingHours: 'Heures de Travail',
+    breakTime: 'Pause',
+    saveAvailability: 'Enregistrer la Disponibilité',
+    availabilityUpdated: 'Disponibilité mise à jour avec succès',
+    failedToLoadAvailability: 'Échec du chargement de la disponibilité',
+    failedToSaveAvailability: 'Échec de l\'enregistrement de la disponibilité',
+    monday: 'Lundi',
+    tuesday: 'Mardi',
+    wednesday: 'Mercredi',
+    thursday: 'Jeudi',
+    friday: 'Vendredi',
+    saturday: 'Samedi',
+    sunday: 'Dimanche',
     
     // AI and Chat
     aiAssistant: 'Assistant IA',
@@ -414,10 +377,10 @@ export const TRANSLATIONS = {
     invalidPhone: 'Veuillez entrer un numéro de téléphone valide',
     invalidDate: 'Veuillez entrer une date valide',
     appointmentConflict: 'Ce créneau n\'est pas disponible',
-    networkError: 'Erreur réseau. Veuillez vérifier votre connexion',
+    networkError: 'Erreur de réseau. Veuillez vérifier votre connexion',
     
     // AI Messages
-    aiThinking: 'IA réfléchit...',
+    aiThinking: 'L\'IA réfléchit...',
     aiProcessing: 'Traitement de votre demande...',
     aiSuggestion: 'Suggestion IA',
     aiApproved: 'Suggestion IA approuvée',
@@ -431,156 +394,243 @@ export const TRANSLATIONS = {
     collapseSection: 'Réduire la section',
     
     // PWA
-    installApp: 'Installer l\'App',
-    appInstalled: 'App installée avec succès',
-    appUpdateAvailable: 'Mise à jour de l\'app disponible',
+    installApp: 'Installer l\'Application',
+    appInstalled: 'Application installée avec succès',
+    appUpdateAvailable: 'Mise à jour disponible',
     offlineMode: 'Mode hors ligne',
-    syncData: 'Synchroniser les données'
+    syncData: 'Synchroniser les données',
+    
+    // Patient navigation context
+    pnav: {
+      home: { label: 'Accueil', title: 'Accueil' },
+      care: {
+        label: 'Soins',
+        title: 'Soins',
+        health: 'Santé',
+        appointments: 'Rendez-vous',
+        prescriptions: 'Ordonnances',
+        documents: 'Documents'
+      },
+      billing: {
+        label: 'Facturation',
+        title: 'Facturation'
+      },
+      account: {
+        label: 'Compte',
+        title: 'Compte',
+        profile: 'Profil',
+        insurance: 'Assurance',
+        privacy: 'Confidentialité',
+        help: 'Aide'
+      }
+    }
   },
   
-  de: {
+  nl: {
     // Navigation
     dashboard: 'Dashboard',
-    appointments: 'Termine',
-    patients: 'Patienten',
-    settings: 'Einstellungen',
-    profile: 'Profil',
-    logout: 'Abmelden',
+    appointments: 'Afspraken',
+    patients: 'Patiënten',
+    settings: 'Instellingen',
+    profile: 'Profiel',
+    logout: 'Uitloggen',
     
     // Common actions
-    save: 'Speichern',
-    cancel: 'Abbrechen',
-    delete: 'Löschen',
-    edit: 'Bearbeiten',
-    view: 'Anzeigen',
-    add: 'Hinzufügen',
-    search: 'Suchen',
-    filter: 'Filtern',
-    clear: 'Löschen',
-    confirm: 'Bestätigen',
-    back: 'Zurück',
-    next: 'Weiter',
-    previous: 'Zurück',
+    save: 'Opslaan',
+    cancel: 'Annuleren',
+    delete: 'Verwijderen',
+    edit: 'Bewerken',
+    view: 'Bekijken',
+    add: 'Toevoegen',
+    search: 'Zoeken',
+    filter: 'Filteren',
+    clear: 'Wissen',
+    confirm: 'Bevestigen',
+    back: 'Terug',
+    next: 'Volgende',
+    previous: 'Vorige',
+    optional: 'Optioneel',
     
     // Appointment related
-    bookAppointment: 'Termin Buchen',
-    appointmentDate: 'Termindatum',
-    appointmentTime: 'Terminzeit',
-    appointmentType: 'Termintyp',
-    appointmentStatus: 'Terminstatus',
-    appointmentNotes: 'Terminnotizen',
-    emergencyBooking: 'Notfalltermin',
-    urgentCare: 'Notfallversorgung',
+    bookAppointment: 'Afspraak Maken',
+    appointmentDate: 'Afspraakdatum',
+    appointmentTime: 'Afspraaktijd',
+    appointmentType: 'Type Afspraak',
+    appointmentStatus: 'Afspraak Status',
+    appointmentNotes: 'Afspraak Notities',
+    appointmentConfirmed: 'Afspraak Bevestigd!',
+    emergencyBooking: 'Spoedboeking',
+    urgentCare: 'Spoedzorg',
+    selectDentist: 'Selecteer Tandarts',
+    chooseDentist: 'Kies een tandarts',
+    selectDate: 'Selecteer Datum',
+    selectTime: 'Selecteer Tijd',
+    selectAppointmentType: 'Selecteer type afspraak',
+    confirmBooking: 'Boeking Bevestigen',
+    booking: 'Boeken...',
+    bookAppointmentDescription: 'Boek uw tandheelkundige consultatie in een paar klikken',
+    additionalNotes: 'Extra Notities (optioneel)',
+    describeSymptoms: 'Beschrijf uw symptomen of zorgen...',
+    noSlotsAvailable: 'Geen tijdsloten beschikbaar voor deze datum',
+    unableToLoadSlots: 'Kan beschikbare tijdsloten niet laden',
+    unableToBookAppointment: 'Kan afspraak niet boeken',
+    missingInformation: 'Ontbrekende Informatie',
+    pleaseCompleteAllFields: 'Vul alle verplichte velden in',
+    incompleteProfile: 'Onvolledig Profiel',
+    pleaseCompleteProfileFirst: 'Voltooi eerst uw profiel in de instellingen voordat u een afspraak maakt',
+    generalConsultation: 'Algemene Consultatie',
+    cleaning: 'Reiniging',
+    checkup: 'Controle',
+    emergency: 'Noodgeval',
+    followUp: 'Vervolgafspraak',
     
     // Patient related
-    patientName: 'Patientenname',
-    patientEmail: 'Patienten-E-Mail',
-    patientPhone: 'Patiententelefon',
-    patientHistory: 'Patientenhistorie',
-    medicalRecords: 'Medizinische Unterlagen',
-    treatmentPlans: 'Behandlungspläne',
-    prescriptions: 'Rezepte',
+    patientName: 'Patiëntnaam',
+    patientEmail: 'Patiënt E-mail',
+    patientPhone: 'Patiënt Telefoon',
+    patientHistory: 'Patiëntgeschiedenis',
+    medicalRecords: 'Medische Dossiers',
+    treatmentPlans: 'Behandelingsplannen',
+    prescriptions: 'Recepten',
+    
+    // Schedule Management
+    weeklyAvailability: 'Wekelijkse Beschikbaarheid',
+    workingHours: 'Werktijden',
+    breakTime: 'Pauze',
+    saveAvailability: 'Beschikbaarheid Opslaan',
+    availabilityUpdated: 'Beschikbaarheid succesvol bijgewerkt',
+    failedToLoadAvailability: 'Kan beschikbaarheid niet laden',
+    failedToSaveAvailability: 'Kan beschikbaarheid niet opslaan',
+    monday: 'Maandag',
+    tuesday: 'Dinsdag',
+    wednesday: 'Woensdag',
+    thursday: 'Donderdag',
+    friday: 'Vrijdag',
+    saturday: 'Zaterdag',
+    sunday: 'Zondag',
     
     // AI and Chat
-    aiAssistant: 'KI-Assistent',
-    chatWithAI: 'Mit KI chatten',
-    aiSuggestions: 'KI-Vorschläge',
-    aiWriting: 'KI-Schreibassistent',
-    triageAssessment: 'Triage-Bewertung',
+    aiAssistant: 'AI Assistent',
+    chatWithAI: 'Chat met AI',
+    aiSuggestions: 'AI Suggesties',
+    aiWriting: 'AI Schrijfassistent',
+    triageAssessment: 'Triage Beoordeling',
     
     // Status messages
     loading: 'Laden...',
-    error: 'Fehler',
-    success: 'Erfolg',
-    warning: 'Warnung',
-    info: 'Information',
+    error: 'Fout',
+    success: 'Succes',
+    warning: 'Waarschuwing',
+    info: 'Informatie',
     
     // Form labels
-    firstName: 'Vorname',
-    lastName: 'Nachname',
-    email: 'E-Mail',
-    phone: 'Telefon',
-    dateOfBirth: 'Geburtsdatum',
-    address: 'Adresse',
-    reason: 'Grund',
-    symptoms: 'Symptome',
-    urgency: 'Dringlichkeitsstufe',
+    firstName: 'Voornaam',
+    lastName: 'Achternaam',
+    email: 'E-mail',
+    phone: 'Telefoon',
+    dateOfBirth: 'Geboortedatum',
+    address: 'Adres',
+    reason: 'Reden',
+    symptoms: 'Symptomen',
+    urgency: 'Urgentieniveau',
     
     // Time and dates
-    today: 'Heute',
+    today: 'Vandaag',
     tomorrow: 'Morgen',
-    thisWeek: 'Diese Woche',
-    nextWeek: 'Nächste Woche',
-    thisMonth: 'Dieser Monat',
-    nextMonth: 'Nächster Monat',
+    thisWeek: 'Deze Week',
+    nextWeek: 'Volgende Week',
+    thisMonth: 'Deze Maand',
+    nextMonth: 'Volgende Maand',
     
     // Urgency levels
-    low: 'Niedrig',
-    normal: 'Normal',
-    high: 'Hoch',
+    low: 'Laag',
+    normal: 'Normaal',
+    high: 'Hoog',
     urgent: 'Dringend',
     
     // Appointment status
-    scheduled: 'Geplant',
-    confirmed: 'Bestätigt',
-    inProgress: 'In Bearbeitung',
-    completed: 'Abgeschlossen',
-    cancelled: 'Storniert',
-    noShow: 'Nicht erschienen',
+    scheduled: 'Gepland',
+    confirmed: 'Bevestigd',
+    inProgress: 'In Behandeling',
+    completed: 'Voltooid',
+    cancelled: 'Geannuleerd',
+    noShow: 'Niet Verschenen',
     
     // Messages
-    noDataAvailable: 'Keine Daten verfügbar',
-    noResultsFound: 'Keine Ergebnisse gefunden',
-    somethingWentWrong: 'Etwas ist schiefgelaufen',
-    tryAgainLater: 'Bitte versuchen Sie es später erneut',
-    connectionError: 'Verbindungsfehler',
-    sessionExpired: 'Sitzung abgelaufen',
+    noDataAvailable: 'Geen gegevens beschikbaar',
+    noResultsFound: 'Geen resultaten gevonden',
+    somethingWentWrong: 'Er is iets misgegaan',
+    tryAgainLater: 'Probeer het later opnieuw',
+    connectionError: 'Verbindingsfout',
+    sessionExpired: 'Sessie verlopen',
     
     // Success messages
-    appointmentBooked: 'Termin erfolgreich gebucht',
-    appointmentUpdated: 'Termin erfolgreich aktualisiert',
-    appointmentCancelled: 'Termin erfolgreich storniert',
-    patientAdded: 'Patient erfolgreich hinzugefügt',
-    patientUpdated: 'Patient erfolgreich aktualisiert',
-    settingsSaved: 'Einstellungen erfolgreich gespeichert',
+    appointmentBooked: 'Afspraak succesvol geboekt',
+    appointmentUpdated: 'Afspraak succesvol bijgewerkt',
+    appointmentCancelled: 'Afspraak succesvol geannuleerd',
+    patientAdded: 'Patiënt succesvol toegevoegd',
+    patientUpdated: 'Patiënt succesvol bijgewerkt',
+    settingsSaved: 'Instellingen succesvol opgeslagen',
     
     // Error messages
-    requiredField: 'Dieses Feld ist erforderlich',
-    invalidEmail: 'Bitte geben Sie eine gültige E-Mail-Adresse ein',
-    invalidPhone: 'Bitte geben Sie eine gültige Telefonnummer ein',
-    invalidDate: 'Bitte geben Sie ein gültiges Datum ein',
-    appointmentConflict: 'Dieser Zeitraum ist nicht verfügbar',
-    networkError: 'Netzwerkfehler. Bitte überprüfen Sie Ihre Verbindung',
+    requiredField: 'Dit veld is verplicht',
+    invalidEmail: 'Voer een geldig e-mailadres in',
+    invalidPhone: 'Voer een geldig telefoonnummer in',
+    invalidDate: 'Voer een geldige datum in',
+    appointmentConflict: 'Dit tijdslot is niet beschikbaar',
+    networkError: 'Netwerkfout. Controleer uw verbinding',
     
     // AI Messages
-    aiThinking: 'KI denkt nach...',
-    aiProcessing: 'Verarbeitung Ihrer Anfrage...',
-    aiSuggestion: 'KI-Vorschlag',
-    aiApproved: 'KI-Vorschlag genehmigt',
-    aiRejected: 'KI-Vorschlag abgelehnt',
+    aiThinking: 'AI denkt na...',
+    aiProcessing: 'Uw verzoek wordt verwerkt...',
+    aiSuggestion: 'AI Suggestie',
+    aiApproved: 'AI suggestie goedgekeurd',
+    aiRejected: 'AI suggestie afgewezen',
     
     // Accessibility
-    closeDialog: 'Dialog schließen',
-    openMenu: 'Menü öffnen',
-    closeMenu: 'Menü schließen',
-    expandSection: 'Abschnitt erweitern',
-    collapseSection: 'Abschnitt reduzieren',
+    closeDialog: 'Dialoogvenster sluiten',
+    openMenu: 'Menu openen',
+    closeMenu: 'Menu sluiten',
+    expandSection: 'Sectie uitvouwen',
+    collapseSection: 'Sectie invouwen',
     
     // PWA
-    installApp: 'App installieren',
-    appInstalled: 'App erfolgreich installiert',
-    appUpdateAvailable: 'App-Update verfügbar',
-    offlineMode: 'Offline-Modus',
-    syncData: 'Daten synchronisieren'
+    installApp: 'App Installeren',
+    appInstalled: 'App succesvol geïnstalleerd',
+    appUpdateAvailable: 'App-update beschikbaar',
+    offlineMode: 'Offline modus',
+    syncData: 'Gegevens synchroniseren',
+    
+    // Patient navigation context
+    pnav: {
+      home: { label: 'Home', title: 'Home' },
+      care: {
+        label: 'Zorg',
+        title: 'Zorg',
+        health: 'Gezondheid',
+        appointments: 'Afspraken',
+        prescriptions: 'Recepten',
+        documents: 'Documenten'
+      },
+      billing: {
+        label: 'Facturering',
+        title: 'Facturering'
+      },
+      account: {
+        label: 'Account',
+        title: 'Account',
+        profile: 'Profiel',
+        insurance: 'Verzekering',
+        privacy: 'Privacy',
+        help: 'Hulp'
+      }
+    }
   }
 };
 
 export function getTranslation(key: string, language: string = DEFAULT_LANGUAGE): string {
-  const translations = TRANSLATIONS[language as keyof typeof TRANSLATIONS];
-  if (!translations) {
-    return TRANSLATIONS[DEFAULT_LANGUAGE][key as keyof typeof TRANSLATIONS[typeof DEFAULT_LANGUAGE]] || key;
-  }
-  return translations[key as keyof typeof translations] || key;
+  const lang = TRANSLATIONS[language] || TRANSLATIONS[DEFAULT_LANGUAGE];
+  return (lang as any)[key] || key;
 }
 
 export function getSupportedLanguages(): LanguageConfig[] {
