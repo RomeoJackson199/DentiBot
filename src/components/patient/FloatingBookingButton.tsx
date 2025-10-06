@@ -32,7 +32,7 @@ export const FloatingBookingButton = ({
         onClick={onBookAppointment}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        size="icon-lg"
+        size="icon"
         className="touch-target bg-primary hover:bg-primary/90 text-primary-foreground shadow-elegant hover:shadow-glow hover:scale-105 active:scale-95 rounded-full h-14 w-14"
         aria-label="Book appointment"
       >

@@ -30,11 +30,12 @@ export default {
 			}
 		},
 		extend: {
-			fontFamily: {
-				sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
-				heading: ['"Plus Jakarta Sans"', 'system-ui', '-apple-system', 'sans-serif'],
-				mono: ['"SF Mono"', '"Roboto Mono"', 'Consolas', 'monospace'],
-			},
+		fontFamily: {
+			sans: ['Poppins', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
+			heading: ['"DM Sans"', 'Poppins', 'system-ui', '-apple-system', 'sans-serif'],
+			body: ['Poppins', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
+			mono: ['"SF Mono"', '"Roboto Mono"', 'Consolas', 'monospace'],
+		},
 			screens: {
 				'xs': '475px',
 				'3xl': '1600px',

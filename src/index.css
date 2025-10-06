@@ -23,23 +23,23 @@
     --popover: 240 10% 3.9%;
     --popover-foreground: 0 0% 98%;
 
-    /* Primary Brand Color - Dental Blue */
-    --primary: 199 89% 48%;
+    /* Primary Brand Color - Deep Blue */
+    --primary: 213 73% 31%;
     --primary-foreground: 0 0% 100%;
-    --primary-light: 199 89% 60%;
-    --primary-dark: 199 89% 38%;
+    --primary-light: 213 73% 41%;
+    --primary-dark: 213 73% 21%;
 
-    /* Secondary Color - Dental Green */
-    --secondary: 142 71% 45%;
-    --secondary-foreground: 0 0% 100%;
-    --secondary-light: 142 71% 55%;
-    --secondary-dark: 142 71% 35%;
+    /* Secondary Color - Aqua */
+    --secondary: 185 64% 63%;
+    --secondary-foreground: 213 73% 31%;
+    --secondary-light: 185 64% 73%;
+    --secondary-dark: 185 64% 53%;
 
-    /* Accent Color - Purple */
-    --accent: 279 70% 52%;
-    --accent-foreground: 0 0% 100%;
-    --accent-light: 279 70% 62%;
-    --accent-dark: 279 70% 42%;
+    /* Accent Color - Soft Lilac */
+    --accent: 268 42% 79%;
+    --accent-foreground: 213 73% 31%;
+    --accent-light: 268 42% 89%;
+    --accent-dark: 268 42% 69%;
 
     /* Neutral Colors */
     --muted: 240 5% 18%;
@@ -117,23 +117,23 @@
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
 
-    /* Primary Brand Color - Dental Blue */
-    --primary: 199 89% 48%;
+    /* Primary Brand Color - Deep Blue */
+    --primary: 213 73% 31%;
     --primary-foreground: 0 0% 100%;
-    --primary-light: 199 89% 60%;
-    --primary-dark: 199 89% 38%;
+    --primary-light: 213 73% 41%;
+    --primary-dark: 213 73% 21%;
 
-    /* Secondary Color - Dental Green */
-    --secondary: 142 71% 45%;
-    --secondary-foreground: 0 0% 100%;
-    --secondary-light: 142 71% 55%;
-    --secondary-dark: 142 71% 35%;
+    /* Secondary Color - Aqua */
+    --secondary: 185 64% 63%;
+    --secondary-foreground: 213 73% 31%;
+    --secondary-light: 185 64% 73%;
+    --secondary-dark: 185 64% 53%;
 
-    /* Accent Color - Purple */
-    --accent: 279 70% 52%;
-    --accent-foreground: 0 0% 100%;
-    --accent-light: 279 70% 62%;
-    --accent-dark: 279 70% 42%;
+    /* Accent Color - Soft Lilac */
+    --accent: 268 42% 79%;
+    --accent-foreground: 213 73% 31%;
+    --accent-light: 268 42% 89%;
+    --accent-dark: 268 42% 69%;
 
     /* Neutral Colors */
     --muted: 240 5% 96%;
@@ -206,14 +206,14 @@
     @apply bg-background text-foreground antialiased;
     background-image: var(--gradient-mesh);
     background-attachment: fixed;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: 'Poppins', 'Inter', system-ui, -apple-system, sans-serif;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    font-family: 'DM Sans', 'Poppins', system-ui, -apple-system, sans-serif;
     font-weight: 700;
   }
 

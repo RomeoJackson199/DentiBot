@@ -136,7 +136,7 @@ export const HeroSection = ({
             </Button>
 
             <Button 
-              variant="glass-strong"
+              variant="glass"
               size="lg" 
               className="w-full sm:w-auto px-8 sm:px-10 py-3 sm:py-4 text-base sm:text-lg font-semibold border-dental-primary/30 hover:border-dental-primary/60 touch-target"
               onClick={onStartTriage}
