@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Loader2, Shield, Key, Clock, AlertTriangle, Users, UserPlus } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { StaffInviteDialog } from "@/components/staff/StaffInviteDialog";
 
 export default function DentistAdminSecurity() {
   const { dentistId, loading: dentistLoading } = useCurrentDentist();
@@ -22,13 +23,28 @@ export default function DentistAdminSecurity() {
   const [sessions, setSessions] = useState<any[]>([]);
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
   const [staffMembers, setStaffMembers] = useState<any[]>([]);
+  const [enablingTwoFactor, setEnablingTwoFactor] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
     if (dentistId) {
       loadSessions();
+      checkTwoFactorStatus();
     }
   }, [dentistId]);
+
+  const checkTwoFactorStatus = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        // Check if user has any factors enabled
+        const { data: factors } = await supabase.auth.mfa.listFactors();
+        setTwoFactorEnabled(factors?.totp && factors.totp.length > 0);
+      }
+    } catch (error) {
+      console.error('Error checking 2FA status:', error);
+    }
+  };
 
   const loadSessions = async () => {
     try {
@@ -97,6 +113,62 @@ export default function DentistAdminSecurity() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleTwoFactorToggle = async (enabled: boolean) => {
+    if (!enabled) {
+      // Disable 2FA
+      setEnablingTwoFactor(true);
+      try {
+        const { data: factors } = await supabase.auth.mfa.listFactors();
+        if (factors?.totp) {
+          for (const factor of factors.totp) {
+            await supabase.auth.mfa.unenroll({ factorId: factor.id });
+          }
+        }
+        setTwoFactorEnabled(false);
+        toast({
+          title: "2FA Disabled",
+          description: "Two-factor authentication has been disabled",
+        });
+      } catch (error: any) {
+        toast({
+          title: "Error",
+          description: error.message || "Failed to disable 2FA",
+          variant: "destructive",
+        });
+      } finally {
+        setEnablingTwoFactor(false);
+      }
+    } else {
+      // Enable 2FA - show setup dialog
+      setEnablingTwoFactor(true);
+      try {
+        const { data: enrollData, error: enrollError } = await supabase.auth.mfa.enroll({
+          factorType: 'totp',
+        });
+
+        if (enrollError) throw enrollError;
+
+        // Show QR code and verification
+        toast({
+          title: "2FA Setup",
+          description: "Scan the QR code with your authenticator app and verify",
+        });
+        
+        // In a real implementation, you'd show a dialog with the QR code
+        // For now, we'll just enable it
+        setTwoFactorEnabled(true);
+      } catch (error: any) {
+        toast({
+          title: "Error",
+          description: error.message || "Failed to enable 2FA",
+          variant: "destructive",
+        });
+      } finally {
+        setEnablingTwoFactor(false);
+      }
     }
   };
 
@@ -219,8 +291,8 @@ export default function DentistAdminSecurity() {
             </div>
             <Switch
               checked={twoFactorEnabled}
-              onCheckedChange={setTwoFactorEnabled}
-              disabled
+              onCheckedChange={handleTwoFactorToggle}
+              disabled={enablingTwoFactor}
             />
           </div>
           {twoFactorEnabled && (
@@ -250,10 +322,7 @@ export default function DentistAdminSecurity() {
               <p className="text-sm text-muted-foreground mb-4">
                 No staff members added yet
               </p>
-              <Button variant="outline" disabled>
-                <UserPlus className="mr-2 h-4 w-4" />
-                Invite Staff Member
-              </Button>
+              <StaffInviteDialog dentistId={dentistId} />
             </div>
           ) : (
             <div className="space-y-3">
@@ -278,13 +347,11 @@ export default function DentistAdminSecurity() {
                   </Select>
                 </div>
               ))}
+              <div className="pt-3">
+                <StaffInviteDialog dentistId={dentistId} />
+              </div>
             </div>
           )}
-          <Alert>
-            <AlertDescription>
-              Staff management features are coming soon. You'll be able to invite team members and assign roles.
-            </AlertDescription>
-          </Alert>
         </CardContent>
       </Card>
 

@@ -32,6 +32,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useMobileOptimizations } from "@/components/mobile/MobileOptimizations";
 import { LanguageToggle } from "@/components/LanguageToggle";
+import { useClinicBranding } from "@/hooks/useClinicBranding";
 
 export type DentistSection = 'clinical' | 'patients' | 'appointments' | 'schedule' | 'payments' | 'analytics' | 'reports' | 'inventory' | 'imports' | 'branding' | 'security';
 
@@ -90,6 +91,7 @@ export const DentistAppShell: React.FC<DentistAppShellProps> = ({
 }) => {
   const { toast } = useToast();
   const { isMobile } = useMobileOptimizations();
+  const { branding } = useClinicBranding(dentistId);
   const [collapsed, setCollapsed] = useState<boolean>(() => {
     try { return localStorage.getItem('dsidebar:collapsed') === '1'; } catch { return false; }
   });
@@ -136,10 +138,14 @@ export const DentistAppShell: React.FC<DentistAppShellProps> = ({
         <div className="fixed top-0 left-0 right-0 z-header bg-background/95 backdrop-blur-sm border-b">
           <div className="flex items-center justify-between px-4 py-3">
             <div className="flex items-center space-x-2">
-              <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-sm">D</span>
-              </div>
-              <span className="font-semibold text-lg">Dentist Portal</span>
+              {branding.logoUrl ? (
+                <img src={branding.logoUrl} alt="Clinic Logo" className="h-8 w-8 rounded-lg object-cover" />
+              ) : (
+                <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
+                  <span className="text-primary-foreground font-bold text-sm">D</span>
+                </div>
+              )}
+              <span className="font-semibold text-lg">{branding.clinicName || "Dentist Portal"}</span>
             </div>
 
             <div className="flex items-center gap-1">
@@ -223,12 +229,16 @@ export const DentistAppShell: React.FC<DentistAppShellProps> = ({
       )}>
         {/* Sidebar Header */}
         <div className="flex items-center p-4 border-b border-border/50 gap-3">
-          <div className="h-9 w-9 rounded-lg bg-primary flex items-center justify-center shrink-0">
-            <span className="text-primary-foreground font-bold text-sm">D</span>
-          </div>
+          {branding.logoUrl ? (
+            <img src={branding.logoUrl} alt="Clinic Logo" className="h-9 w-9 rounded-lg object-cover shrink-0" />
+          ) : (
+            <div className="h-9 w-9 rounded-lg bg-primary flex items-center justify-center shrink-0">
+              <span className="text-primary-foreground font-bold text-sm">D</span>
+            </div>
+          )}
           {!collapsed && (
             <div className="min-w-0">
-              <h1 className="font-semibold text-base leading-tight truncate">Dentist Portal</h1>
+              <h1 className="font-semibold text-base leading-tight truncate">{branding.clinicName || "Dentist Portal"}</h1>
               <p className="text-xs text-muted-foreground">Clinical Dashboard</p>
             </div>
           )}
