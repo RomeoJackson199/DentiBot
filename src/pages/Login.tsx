@@ -2,11 +2,13 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { AuthForm } from "@/components/AuthForm";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Stethoscope } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useClinicBranding } from "@/hooks/useClinicBranding";
 
 const Login = () => {
   const navigate = useNavigate();
+  const { branding } = useClinicBranding();
 
   useEffect(() => {
     // Check if user is already logged in
@@ -42,11 +44,26 @@ const Login = () => {
       <div className="flex-1 flex items-center justify-center p-4">
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
+            {branding.logoUrl ? (
+              <div className="flex justify-center mb-4">
+                <img 
+                  src={branding.logoUrl} 
+                  alt={branding.clinicName || "Clinic Logo"} 
+                  className="w-20 h-20 rounded-2xl object-cover shadow-lg"
+                />
+              </div>
+            ) : (
+              <div className="flex justify-center mb-4">
+                <div className="p-4 rounded-2xl bg-primary/10">
+                  <Stethoscope className="h-12 w-12 text-primary" />
+                </div>
+              </div>
+            )}
             <h1 className="text-4xl font-bold gradient-text mb-2">
               Welcome Back
             </h1>
             <p className="text-muted-foreground">
-              Sign in to access your DentiBot account
+              Sign in to access {branding.clinicName || "your DentiBot account"}
             </p>
           </div>
           

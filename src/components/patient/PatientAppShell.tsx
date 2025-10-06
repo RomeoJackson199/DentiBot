@@ -28,6 +28,7 @@ import { FloatingBookingButton } from "@/components/patient/FloatingBookingButto
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useMobileOptimizations } from "@/components/mobile/MobileOptimizations";
+import { useClinicBranding } from "@/hooks/useClinicBranding";
 
 export type PatientSection = 'home' | 'assistant' | 'care' | 'appointments' | 'payments' | 'settings';
 
@@ -59,6 +60,7 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
   const { toast } = useToast();
   const navigate = useNavigate();
   const { isMobile } = useMobileOptimizations();
+  const { branding } = useClinicBranding();
   const [collapsed, setCollapsed] = React.useState<boolean>(() => {
     try { return localStorage.getItem('psidebar:collapsed') === '1'; } catch { return false; }
   });
@@ -93,10 +95,18 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
         <div className="fixed top-0 left-0 right-0 z-header bg-background/95 backdrop-blur-sm border-b" role="banner">
           <div className="flex items-center justify-between px-4 py-3">
             <div className="flex items-center space-x-2">
-              <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-sm">P</span>
-              </div>
-              <span className="font-semibold text-lg">Patient Portal</span>
+              {branding.logoUrl ? (
+                <img 
+                  src={branding.logoUrl} 
+                  alt={branding.clinicName || "Clinic Logo"} 
+                  className="h-8 w-8 rounded-lg object-cover"
+                />
+              ) : (
+                <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
+                  <span className="text-primary-foreground font-bold text-sm">P</span>
+                </div>
+              )}
+              <span className="font-semibold text-lg">{branding.clinicName || "Patient Portal"}</span>
             </div>
 
             <div className="flex items-center space-x-2">
@@ -215,12 +225,20 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
       )}>
         {/* Sidebar Header */}
         <div className={cn("flex items-center p-4 border-b border-border/50 gap-3")}> 
-          <div className="h-9 w-9 rounded-lg bg-primary flex items-center justify-center shrink-0">
-            <span className="text-primary-foreground font-bold text-sm">P</span>
-          </div>
+          {branding.logoUrl ? (
+            <img 
+              src={branding.logoUrl} 
+              alt={branding.clinicName || "Clinic Logo"} 
+              className="h-9 w-9 rounded-lg object-cover shrink-0"
+            />
+          ) : (
+            <div className="h-9 w-9 rounded-lg bg-primary flex items-center justify-center shrink-0">
+              <span className="text-primary-foreground font-bold text-sm">P</span>
+            </div>
+          )}
           {!collapsed && (
             <div className="min-w-0">
-              <h1 className="font-semibold text-base leading-tight truncate">Patient Portal</h1>
+              <h1 className="font-semibold text-base leading-tight truncate">{branding.clinicName || "Patient Portal"}</h1>
               <p className="text-xs text-muted-foreground">Healthcare Dashboard</p>
             </div>
           )}

@@ -13,6 +13,7 @@ import { Loader2, Shield, Key, Clock, AlertTriangle, Users, UserPlus } from "luc
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { StaffInviteDialog } from "@/components/staff/StaffInviteDialog";
+import { TwoFactorVerificationDialog } from "@/components/auth/TwoFactorVerificationDialog";
 
 export default function DentistAdminSecurity() {
   const { dentistId, loading: dentistLoading } = useCurrentDentist();
@@ -24,22 +25,36 @@ export default function DentistAdminSecurity() {
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
   const [staffMembers, setStaffMembers] = useState<any[]>([]);
   const [enablingTwoFactor, setEnablingTwoFactor] = useState(false);
+  const [show2FADialog, setShow2FADialog] = useState(false);
+  const [userEmail, setUserEmail] = useState("");
   const { toast } = useToast();
 
   useEffect(() => {
     if (dentistId) {
       loadSessions();
       checkTwoFactorStatus();
+      loadUserEmail();
     }
   }, [dentistId]);
+
+  const loadUserEmail = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user?.email) {
+        setUserEmail(user.email);
+      }
+    } catch (error) {
+      console.error('Error loading user email:', error);
+    }
+  };
 
   const checkTwoFactorStatus = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        // Check if user has any factors enabled
-        const { data: factors } = await supabase.auth.mfa.listFactors();
-        setTwoFactorEnabled(factors?.totp && factors.totp.length > 0);
+        // Check if user has 2FA enabled in metadata
+        const enabled = user.user_metadata?.two_factor_enabled === true;
+        setTwoFactorEnabled(enabled);
       }
     } catch (error) {
       console.error('Error checking 2FA status:', error);
@@ -121,12 +136,13 @@ export default function DentistAdminSecurity() {
       // Disable 2FA
       setEnablingTwoFactor(true);
       try {
-        const { data: factors } = await supabase.auth.mfa.listFactors();
-        if (factors?.totp) {
-          for (const factor of factors.totp) {
-            await supabase.auth.mfa.unenroll({ factorId: factor.id });
-          }
-        }
+        // Remove 2FA settings from user metadata
+        const { error } = await supabase.auth.updateUser({
+          data: { two_factor_enabled: false }
+        });
+
+        if (error) throw error;
+
         setTwoFactorEnabled(false);
         toast({
           title: "2FA Disabled",
@@ -142,33 +158,28 @@ export default function DentistAdminSecurity() {
         setEnablingTwoFactor(false);
       }
     } else {
-      // Enable 2FA - show setup dialog
-      setEnablingTwoFactor(true);
-      try {
-        const { data: enrollData, error: enrollError } = await supabase.auth.mfa.enroll({
-          factorType: 'totp',
-        });
+      // Enable 2FA - show email verification dialog
+      setShow2FADialog(true);
+    }
+  };
 
-        if (enrollError) throw enrollError;
+  const handle2FASuccess = async () => {
+    try {
+      // Save 2FA enabled status to user metadata
+      const { error } = await supabase.auth.updateUser({
+        data: { two_factor_enabled: true }
+      });
 
-        // Show QR code and verification
-        toast({
-          title: "2FA Setup",
-          description: "Scan the QR code with your authenticator app and verify",
-        });
-        
-        // In a real implementation, you'd show a dialog with the QR code
-        // For now, we'll just enable it
-        setTwoFactorEnabled(true);
-      } catch (error: any) {
-        toast({
-          title: "Error",
-          description: error.message || "Failed to enable 2FA",
-          variant: "destructive",
-        });
-      } finally {
-        setEnablingTwoFactor(false);
-      }
+      if (error) throw error;
+
+      setTwoFactorEnabled(true);
+      checkTwoFactorStatus();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to enable 2FA",
+        variant: "destructive",
+      });
     }
   };
 
@@ -298,12 +309,19 @@ export default function DentistAdminSecurity() {
           {twoFactorEnabled && (
             <Alert>
               <AlertDescription>
-                Two-factor authentication setup will be available soon. You'll be able to use authenticator apps like Google Authenticator or Authy.
+                Two-factor authentication is enabled. You will receive a verification code via email when logging in.
               </AlertDescription>
             </Alert>
           )}
         </CardContent>
       </Card>
+
+      <TwoFactorVerificationDialog 
+        open={show2FADialog} 
+        onOpenChange={setShow2FADialog}
+        email={userEmail}
+        onSuccess={handle2FASuccess}
+      />
 
       <Card>
         <CardHeader>

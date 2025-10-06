@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useClinicBranding } from "@/hooks/useClinicBranding";
 
 interface HeaderProps {
   user: User | null;
@@ -23,6 +24,7 @@ export const Header = ({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { language, t } = useLanguage();
   const { toast } = useToast();
+  const { branding } = useClinicBranding();
 
   const handleSignOut = async () => {
     try {
@@ -67,15 +69,25 @@ export const Header = ({
           {/* Logo */}
           <div className="flex items-center space-x-4">
             <div className="relative">
-              <div className="pulse-ring w-12 h-12 -top-3 -left-3 lg:w-16 lg:h-16 lg:-top-4 lg:-left-4"></div>
-              <div className="relative p-2 lg:p-3 rounded-2xl shadow-glow animate-glow bg-white">
-                <Stethoscope className="h-5 w-5 lg:h-7 lg:w-7 text-dental-primary" />
-              </div>
-              <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-secondary rounded-full animate-pulse shadow-float"></div>
+              {branding.logoUrl ? (
+                <img 
+                  src={branding.logoUrl} 
+                  alt={branding.clinicName || "Clinic Logo"} 
+                  className="w-12 h-12 lg:w-16 lg:h-16 rounded-2xl object-cover shadow-glow"
+                />
+              ) : (
+                <>
+                  <div className="pulse-ring w-12 h-12 -top-3 -left-3 lg:w-16 lg:h-16 lg:-top-4 lg:-left-4"></div>
+                  <div className="relative p-2 lg:p-3 rounded-2xl shadow-glow animate-glow bg-white">
+                    <Stethoscope className="h-5 w-5 lg:h-7 lg:w-7 text-dental-primary" />
+                  </div>
+                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-secondary rounded-full animate-pulse shadow-float"></div>
+                </>
+              )}
             </div>
             <div className="hidden sm:block">
               <h1 className="text-xl lg:text-2xl font-bold gradient-text">
-                Denti Bot Unified
+                {branding.clinicName || "Denti Bot Unified"}
               </h1>
               <p className="text-xs lg:text-sm text-dental-muted-foreground">
                 {language === 'fr' ? "Plateforme de soins dentaires propulsée par l'IA" : language === 'nl' ? "Door AI aangedreven tandheelkundig platform" : 'AI-Powered Dental Care Platform'}
