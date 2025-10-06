@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AppButton } from "@/components/ui/AppButton";
 import { ProgressiveAuthForm } from "@/components/ProgressiveAuthForm";
 import { LanguageSelector } from "@/components/LanguageSelector";
@@ -28,7 +28,7 @@ export const Header = ({
   const { branding } = useClinicBranding(dentistId);
 
   // Fetch dentist ID if user is a dentist
-  useState(() => {
+  useEffect(() => {
     if (user) {
       const fetchDentistId = async () => {
         const { data: profile } = await supabase
@@ -51,7 +51,7 @@ export const Header = ({
       };
       fetchDentistId();
     }
-  });
+  }, [user]);
 
   const handleSignOut = async () => {
     try {

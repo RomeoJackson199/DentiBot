@@ -18,18 +18,20 @@ export function useClinicBranding(dentistId?: string | null) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!dentistId) {
-      setLoading(false);
-      return;
-    }
-
     const loadBranding = async () => {
       try {
-        const { data, error } = await supabase
+        let query = supabase
           .from('clinic_settings')
-          .select('logo_url, clinic_name, primary_color, secondary_color')
-          .eq('dentist_id', dentistId)
-          .maybeSingle();
+          .select('logo_url, clinic_name, primary_color, secondary_color, dentist_id');
+
+        // If dentistId is provided, use it; otherwise get the first clinic
+        if (dentistId) {
+          query = query.eq('dentist_id', dentistId);
+        } else {
+          query = query.limit(1);
+        }
+
+        const { data, error } = await query.maybeSingle();
 
         if (error) throw error;
 
@@ -59,17 +61,20 @@ export function useClinicBranding(dentistId?: string | null) {
           event: '*',
           schema: 'public',
           table: 'clinic_settings',
-          filter: `dentist_id=eq.${dentistId}`,
+          ...(dentistId && { filter: `dentist_id=eq.${dentistId}` }),
         },
         (payload) => {
           if (payload.new) {
             const newData = payload.new as any;
-            setBranding({
-              logoUrl: newData.logo_url,
-              clinicName: newData.clinic_name,
-              primaryColor: newData.primary_color || "#0F3D91",
-              secondaryColor: newData.secondary_color || "#66D2D6",
-            });
+            // Only update if it matches our dentistId or if we don't have a specific dentist
+            if (!dentistId || newData.dentist_id === dentistId) {
+              setBranding({
+                logoUrl: newData.logo_url,
+                clinicName: newData.clinic_name,
+                primaryColor: newData.primary_color || "#0F3D91",
+                secondaryColor: newData.secondary_color || "#66D2D6",
+              });
+            }
           }
         }
       )
