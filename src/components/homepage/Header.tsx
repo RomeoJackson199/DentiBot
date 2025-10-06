@@ -22,9 +22,36 @@ export const Header = ({
   minimal = false
 }: HeaderProps) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [dentistId, setDentistId] = useState<string | null>(null);
   const { language, t } = useLanguage();
   const { toast } = useToast();
-  const { branding } = useClinicBranding();
+  const { branding } = useClinicBranding(dentistId);
+
+  // Fetch dentist ID if user is a dentist
+  useState(() => {
+    if (user) {
+      const fetchDentistId = async () => {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('id, role')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (profile?.role === 'dentist') {
+          const { data: dentist } = await supabase
+            .from('dentists')
+            .select('id')
+            .eq('profile_id', profile.id)
+            .maybeSingle();
+          
+          if (dentist?.id) {
+            setDentistId(dentist.id);
+          }
+        }
+      };
+      fetchDentistId();
+    }
+  });
 
   const handleSignOut = async () => {
     try {
