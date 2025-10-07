@@ -347,50 +347,49 @@ export function AppointmentCompletionDialog({
     switch (steps[currentStep].id) {
       case 'overview':
         return (
-          <Card>
-            <CardContent className="p-6 space-y-4">
-              <div className="flex items-center space-x-3">
-                <User className="h-5 w-5 text-primary" />
-                <div>
-                  <p className="font-semibold">
+          <div className="space-y-6">
+            <div className="space-y-4">
+              <div className="flex items-center gap-4 p-6 bg-muted/50 rounded-lg">
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                  <User className="h-6 w-6 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-lg font-semibold">
                     {appointment.patient?.first_name} {appointment.patient?.last_name}
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {appointment.patient?.email}
+                    {appointment.patient?.email || 'No email provided'}
                   </p>
                 </div>
               </div>
-              
-              <Separator />
-              
-              <div className="flex items-center space-x-3">
-                <Calendar className="h-5 w-5 text-primary" />
-                <div>
-                  <p className="font-semibold">
-                    {format(new Date(appointment.appointment_date), 'PPP')}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {format(new Date(appointment.appointment_date), 'p')}
-                  </p>
+
+              <div className="grid gap-4">
+                <div className="flex items-start gap-4 p-4 border rounded-lg">
+                  <Calendar className="h-5 w-5 text-primary mt-0.5" />
+                  <div>
+                    <p className="font-semibold text-base">
+                      {format(new Date(appointment.appointment_date), 'EEEE, MMMM do, yyyy')}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {format(new Date(appointment.appointment_date), 'h:mm a')}
+                    </p>
+                  </div>
                 </div>
-              </div>
-              
-              {appointment.reason && (
-                <>
-                  <Separator />
-                  <div className="flex items-start space-x-3">
+
+                {appointment.reason && (
+                  <div className="flex items-start gap-4 p-4 border rounded-lg">
                     <FileText className="h-5 w-5 text-primary mt-0.5" />
                     <div>
-                      <p className="font-semibold">Reason for visit</p>
+                      <p className="font-semibold text-base">Reason for visit</p>
                       <p className="text-sm text-muted-foreground">
                         {appointment.reason}
                       </p>
                     </div>
                   </div>
-                </>
-              )}
-            </CardContent>
-          </Card>
+                )}
+              </div>
+            </div>
+          </div>
         );
 
       case 'treatments':
@@ -623,21 +622,21 @@ export function AppointmentCompletionDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center space-x-2">
-            <currentStepData.icon className="h-5 w-5 text-primary" />
+          <DialogTitle className="flex items-center gap-2">
+            <User className="h-5 w-5" />
             <span>Complete Appointment - {currentStepData.title}</span>
           </DialogTitle>
         </DialogHeader>
 
         {/* Progress indicator */}
-        <div className="space-y-2">
-          <Progress value={progress} className="h-2" />
-          <div className="flex justify-between text-xs text-muted-foreground">
-            <span>Step {currentStep + 1} of {steps.length}</span>
-            <span>{Math.round(progress)}% Complete</span>
+        <div className="space-y-2 mb-4">
+          <div className="flex justify-between text-sm mb-1">
+            <span className="text-muted-foreground font-medium">Step {currentStep + 1} of {steps.length}</span>
+            <span className="font-medium text-primary">{Math.round(progress)}% Complete</span>
           </div>
+          <Progress value={progress} className="h-2.5" />
         </div>
 
         {/* Step content */}

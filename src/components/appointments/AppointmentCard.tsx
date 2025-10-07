@@ -4,15 +4,16 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import { AppointmentEditDialog } from "./AppointmentEditDialog";
+import { AppointmentCompletionDialog } from "../appointment/AppointmentCompletionDialog";
 
 interface AppointmentCardProps {
   appointment: any;
   compact?: boolean;
+  onRefresh?: () => void;
 }
 
-export function AppointmentCard({ appointment, compact = false }: AppointmentCardProps) {
-  const [editOpen, setEditOpen] = useState(false);
+export function AppointmentCard({ appointment, compact = false, onRefresh }: AppointmentCardProps) {
+  const [completionOpen, setCompletionOpen] = useState(false);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -27,22 +28,26 @@ export function AppointmentCard({ appointment, compact = false }: AppointmentCar
     return (
       <div 
         className="text-xs p-2 bg-primary/10 rounded cursor-pointer hover:bg-primary/20 transition-colors"
-        onClick={() => setEditOpen(true)}
+        onClick={() => setCompletionOpen(true)}
       >
         <div className="font-medium truncate">
           {format(new Date(appointment.appointment_date), "HH:mm")} - {appointment.patient?.first_name}
         </div>
-        <AppointmentEditDialog
+        <AppointmentCompletionDialog
           appointment={appointment}
-          open={editOpen}
-          onOpenChange={setEditOpen}
+          open={completionOpen}
+          onOpenChange={setCompletionOpen}
+          onCompleted={() => {
+            setCompletionOpen(false);
+            onRefresh?.();
+          }}
         />
       </div>
     );
   }
 
   return (
-    <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setEditOpen(true)}>
+    <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setCompletionOpen(true)}>
       <CardContent className="p-4">
         <div className="flex items-start justify-between">
           <div className="space-y-2 flex-1">
@@ -75,15 +80,22 @@ export function AppointmentCard({ appointment, compact = false }: AppointmentCar
             )}
           </div>
 
-          <Button variant="outline" size="sm">
-            Edit
+          <Button variant="outline" size="sm" onClick={(e) => {
+            e.stopPropagation();
+            setCompletionOpen(true);
+          }}>
+            Complete
           </Button>
         </div>
 
-        <AppointmentEditDialog
+        <AppointmentCompletionDialog
           appointment={appointment}
-          open={editOpen}
-          onOpenChange={setEditOpen}
+          open={completionOpen}
+          onOpenChange={setCompletionOpen}
+          onCompleted={() => {
+            setCompletionOpen(false);
+            onRefresh?.();
+          }}
         />
       </CardContent>
     </Card>
