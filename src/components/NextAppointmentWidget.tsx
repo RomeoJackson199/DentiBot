@@ -4,10 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
+import { AppointmentCompletionDialog } from "@/components/appointment/AppointmentCompletionDialog";
 import { 
   Calendar, 
   Clock, 
@@ -57,8 +56,6 @@ export function NextAppointmentWidget({ dentistId }: NextAppointmentWidgetProps)
   const [loading, setLoading] = useState(true);
   const [showCompleteDialog, setShowCompleteDialog] = useState(false);
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
-  const [consultationNotes, setConsultationNotes] = useState("");
-  const [completing, setCompleting] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -128,93 +125,36 @@ export function NextAppointmentWidget({ dentistId }: NextAppointmentWidgetProps)
     };
   }, [dentistId]);
 
-  const handleCompleteAppointment = async () => {
-    if (!nextAppointment) return;
-    
-    setCompleting(true);
-    try {
-      // Update appointment status to completed
-      const { error: updateError } = await supabase
-        .from('appointments')
-        .update({
-          status: 'completed',
-          consultation_notes: consultationNotes || nextAppointment.consultation_notes,
-          treatment_completed_at: new Date().toISOString()
-        })
-        .eq('id', nextAppointment.id);
+  const handleCompletionSuccess = async () => {
+    // Refresh the appointment data to get the next one
+    const { data } = await supabase
+      .from('appointments')
+      .select(`
+        id,
+        patient_id,
+        appointment_date,
+        duration_minutes,
+        status,
+        reason,
+        urgency,
+        consultation_notes,
+        patient_name,
+        patient:profiles!appointments_patient_id_fkey (
+          first_name,
+          last_name,
+          email,
+          phone
+        )
+      `)
+      .eq('dentist_id', dentistId)
+      .gte('appointment_date', new Date().toISOString())
+      .neq('status', 'cancelled')
+      .order('appointment_date', { ascending: true })
+      .limit(1)
+      .maybeSingle();
 
-      if (updateError) throw updateError;
-
-      // Send completion email
-      await supabase.functions.invoke('send-email-notification', {
-        body: {
-          eventType: 'appointment_completed',
-          patientId: nextAppointment.patient_id,
-          appointmentId: nextAppointment.id,
-          metadata: {
-            patient_name: nextAppointment.patient?.first_name && nextAppointment.patient?.last_name 
-              ? `${nextAppointment.patient.first_name} ${nextAppointment.patient.last_name}`
-              : nextAppointment.patient_name || 'Patient',
-            appointment_date: formatAppointmentDate(nextAppointment.appointment_date, 'MMM dd, yyyy HH:mm'),
-            reason: nextAppointment.reason || 'General consultation',
-            consultation_notes: consultationNotes || 'Appointment completed successfully.'
-          }
-        }
-      });
-
-      toast({
-        title: "Appointment Completed",
-        description: "The appointment has been marked as completed and the patient has been notified.",
-      });
-
-      setShowCompleteDialog(false);
-      setConsultationNotes("");
-      
-      // Refresh the appointment data
-      const { data } = await supabase
-        .from('appointments')
-        .select(`
-          id,
-          patient_id,
-          appointment_date,
-          duration_minutes,
-          status,
-          reason,
-          urgency,
-          consultation_notes,
-          patient_name,
-          patient:profiles!appointments_patient_id_fkey (
-            first_name,
-            last_name,
-            email,
-            phone
-          )
-        `)
-        .eq('dentist_id', dentistId)
-        .gte('appointment_date', new Date().toISOString())
-        .neq('status', 'cancelled')
-        .order('appointment_date', { ascending: true })
-        .limit(1)
-        .maybeSingle();
-
-      setNextAppointment(data);
-      
-    } catch (error) {
-      const errorContext = {
-        action: 'complete_appointment',
-        component: 'NextAppointmentWidget',
-        additionalData: { appointmentId: nextAppointment.id }
-      };
-      
-      console.error('Error completing appointment:', error);
-      toast({
-        title: "Error",
-        description: "Failed to complete appointment. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setCompleting(false);
-    }
+    setNextAppointment(data);
+    setShowCompleteDialog(false);
   };
 
 
@@ -369,42 +309,22 @@ export function NextAppointmentWidget({ dentistId }: NextAppointmentWidgetProps)
         </div>
 
         {/* Complete Appointment Dialog */}
-        <Dialog open={showCompleteDialog} onOpenChange={setShowCompleteDialog}>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>Complete Appointment</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="notes">Consultation Notes</Label>
-                <Textarea
-                  id="notes"
-                  placeholder="Add consultation notes..."
-                  value={consultationNotes}
-                  onChange={(e) => setConsultationNotes(e.target.value)}
-                  className="mt-1"
-                  rows={4}
-                />
-              </div>
-              <div className="flex gap-2">
-                <Button 
-                  onClick={handleCompleteAppointment} 
-                  disabled={completing}
-                  className="flex-1"
-                >
-                  {completing ? "Completing..." : "Complete Appointment"}
-                </Button>
-                <Button 
-                  variant="outline" 
-                  onClick={() => setShowCompleteDialog(false)}
-                  className="flex-1"
-                >
-                  Cancel
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
+        {nextAppointment && (
+          <AppointmentCompletionDialog
+            open={showCompleteDialog}
+            onOpenChange={setShowCompleteDialog}
+            appointment={{
+              ...nextAppointment,
+              dentist_id: dentistId,
+              patient: nextAppointment.patient ? {
+                first_name: nextAppointment.patient.first_name,
+                last_name: nextAppointment.patient.last_name,
+                email: nextAppointment.patient.email
+              } : undefined
+            }}
+            onCompleted={handleCompletionSuccess}
+          />
+        )}
 
         {/* Details Dialog */}
         <Dialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog}>
