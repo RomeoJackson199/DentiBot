@@ -7,7 +7,7 @@ import { DentistAppShell, DentistSection } from "@/components/layout/DentistAppS
 
 // Import components
 import { ClinicalToday } from "@/components/ClinicalToday";
-import { PatientManagement } from "@/components/PatientManagement";
+import { ModernPatientManagement } from "@/components/enhanced/ModernPatientManagement";
 import { EnhancedAvailabilitySettings } from "@/components/enhanced/EnhancedAvailabilitySettings";
 import { PaymentRequestManager } from "@/components/PaymentRequestManager";
 import { DentistAnalytics } from "@/components/analytics/DentistAnalytics";
@@ -129,7 +129,7 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
       case 'clinical':
         return <ClinicalToday dentistId={dentistId} user={user} onOpenPatientsTab={() => setActiveSection('patients')} />;
       case 'patients':
-        return <PatientManagement dentistId={dentistId} />;
+        return <ModernPatientManagement dentistId={dentistId} />;
       case 'appointments':
         return <div className="p-4">Appointments Management (Coming Soon)</div>;
       case 'schedule':
