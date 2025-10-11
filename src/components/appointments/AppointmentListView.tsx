@@ -1,7 +1,9 @@
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AppointmentCard } from "./AppointmentCard";
+import { Button } from "@/components/ui/button";
 
 interface AppointmentListViewProps {
   dentistId: string;
@@ -19,7 +21,7 @@ export function AppointmentListView({ dentistId, filters }: AppointmentListViewP
           patient:profiles!appointments_patient_id_fkey(first_name, last_name, email)
         `)
         .eq("dentist_id", dentistId)
-        .order("appointment_date", { ascending: true });
+        .order("appointment_date", { ascending: false });
 
       if (filters.status !== "all") {
         query = query.eq("status", filters.status);
@@ -40,19 +42,32 @@ export function AppointmentListView({ dentistId, filters }: AppointmentListViewP
     }
   });
 
+  const [showAll, setShowAll] = useState(false);
+  const displayed = useMemo(() => {
+    const list = appointments || [];
+    return showAll ? list : list.slice(0, 10);
+  }, [appointments, showAll]);
+
   if (isLoading) {
     return <Skeleton className="h-[400px] w-full" />;
   }
 
   return (
     <div className="space-y-4">
-      {appointments?.map((apt) => (
+      {displayed?.map((apt) => (
         <AppointmentCard key={apt.id} appointment={apt} />
       ))}
       {(!appointments || appointments.length === 0) && (
         <p className="text-center text-muted-foreground py-8">
           No appointments found
         </p>
+      )}
+      {appointments && appointments.length > 10 && (
+        <div className="flex justify-center pt-2">
+          <Button variant="outline" onClick={() => setShowAll(!showAll)}>
+            {showAll ? 'Show Less' : `View More (${appointments.length - 10} more)`}
+          </Button>
+        </div>
       )}
     </div>
   );
