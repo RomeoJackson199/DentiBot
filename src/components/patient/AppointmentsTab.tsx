@@ -130,6 +130,8 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [showBooking, setShowBooking] = useState(false);
+  const [showAllUpcoming, setShowAllUpcoming] = useState(false);
+  const [showAllPast, setShowAllPast] = useState(false);
   const [stats, setStats] = useState({
     total: 0,
     upcoming: 0,
@@ -216,10 +218,15 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({
     const now = new Date();
     return appointments.filter(apt => new Date(apt.appointment_date) > now && apt.status !== 'cancelled').sort((a, b) => new Date(a.appointment_date).getTime() - new Date(b.appointment_date).getTime());
   }, [appointments]);
+  
   const pastAppointments = useMemo(() => {
     const now = new Date();
     return appointments.filter(apt => new Date(apt.appointment_date) <= now || apt.status === 'completed').sort((a, b) => new Date(b.appointment_date).getTime() - new Date(a.appointment_date).getTime());
   }, [appointments]);
+
+  // Limit display to 10 appointments unless "View More" is clicked
+  const displayedUpcoming = showAllUpcoming ? upcomingAppointments : upcomingAppointments.slice(0, 10);
+  const displayedPast = showAllPast ? pastAppointments : pastAppointments.slice(0, 10);
   return <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
       <div className="px-4 md:px-6 py-4 md:py-6">
         {/* Header */}
@@ -344,17 +351,40 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({
             <TabsContent value="upcoming" className="mt-0">
               <div className="space-y-3">
                 <AnimatePresence>
-                  {upcomingAppointments.length > 0 ? upcomingAppointments.map((apt, index) => <TimelineAppointmentCard 
-                    key={apt.id} 
-                    appointment={apt} 
-                    index={index}
-                    onReschedule={onOpenAssistant || (() => setShowBooking(true))} 
-                    onCancel={() => {}} 
-                    onClick={() => {
-                      setSelectedAppointmentId(apt.id);
-                      setDetailsDialogOpen(true);
-                    }} 
-                  />) : <Card>
+                  {upcomingAppointments.length > 0 ? (
+                    <>
+                      {displayedUpcoming.map((apt, index) => (
+                        <TimelineAppointmentCard 
+                          key={apt.id} 
+                          appointment={apt} 
+                          index={index}
+                          onReschedule={onOpenAssistant || (() => setShowBooking(true))} 
+                          onCancel={() => {}} 
+                          onClick={() => {
+                            setSelectedAppointmentId(apt.id);
+                            setDetailsDialogOpen(true);
+                          }} 
+                        />
+                      ))}
+                      
+                      {/* View More / Show Less Button */}
+                      {upcomingAppointments.length > 10 && (
+                        <div className="flex justify-center pt-2">
+                          <Button 
+                            variant="outline" 
+                            onClick={() => setShowAllUpcoming(!showAllUpcoming)}
+                            className="w-full sm:w-auto"
+                          >
+                            {showAllUpcoming 
+                              ? 'Show Less' 
+                              : `View More (${upcomingAppointments.length - 10} more)`
+                            }
+                          </Button>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <Card>
                       <CardContent className="py-12 text-center">
                         <Calendar className="h-16 w-16 text-muted-foreground/30 mx-auto mb-4" />
                         <h3 className="text-lg font-medium mb-2">No upcoming appointments</h3>
@@ -366,7 +396,8 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({
                           Book with AI Assistant
                         </Button>
                       </CardContent>
-                    </Card>}
+                    </Card>
+                  )}
                 </AnimatePresence>
               </div>
             </TabsContent>
@@ -374,17 +405,40 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({
             <TabsContent value="past" className="mt-0">
               <div className="space-y-3">
                 <AnimatePresence>
-                  {pastAppointments.length > 0 ? pastAppointments.map((apt, index) => <TimelineAppointmentCard 
-                    key={apt.id} 
-                    appointment={apt} 
-                    index={index}
-                    onReschedule={() => {}} 
-                    onCancel={() => {}} 
-                    onClick={() => {
-                      setSelectedAppointmentId(apt.id);
-                      setDetailsDialogOpen(true);
-                    }} 
-                  />) : <Card>
+                  {pastAppointments.length > 0 ? (
+                    <>
+                      {displayedPast.map((apt, index) => (
+                        <TimelineAppointmentCard 
+                          key={apt.id} 
+                          appointment={apt} 
+                          index={index}
+                          onReschedule={() => {}} 
+                          onCancel={() => {}} 
+                          onClick={() => {
+                            setSelectedAppointmentId(apt.id);
+                            setDetailsDialogOpen(true);
+                          }} 
+                        />
+                      ))}
+                      
+                      {/* View More / Show Less Button */}
+                      {pastAppointments.length > 10 && (
+                        <div className="flex justify-center pt-2">
+                          <Button 
+                            variant="outline" 
+                            onClick={() => setShowAllPast(!showAllPast)}
+                            className="w-full sm:w-auto"
+                          >
+                            {showAllPast 
+                              ? 'Show Less' 
+                              : `View More (${pastAppointments.length - 10} more)`
+                            }
+                          </Button>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <Card>
                       <CardContent className="py-12 text-center">
                         <Clock className="h-16 w-16 text-muted-foreground/30 mx-auto mb-4" />
                         <h3 className="text-lg font-medium mb-2">No past appointments</h3>
@@ -392,7 +446,8 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({
                           Your appointment history will appear here
                         </p>
                       </CardContent>
-                    </Card>}
+                    </Card>
+                  )}
                 </AnimatePresence>
               </div>
             </TabsContent>
