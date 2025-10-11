@@ -344,8 +344,8 @@ export const PaymentRequestManager: React.FC<PaymentRequestManagerProps> = ({ de
                           }
                         }}>View</Button>
                         <Button variant="outline" size="sm" onClick={() => {
-                          supabase.functions.invoke('send-payment-reminder', { body: { payment_request_ids: [request.id], template_key: 'friendly' } }).then(() => toast({ title: 'Reminder sent' })).catch(() => toast({ title: 'Error', description: 'Failed to send reminder', variant: 'destructive' }));
-                        }}>Resend</Button>
+                          supabase.functions.invoke('send-payment-reminder', { body: { payment_request_ids: [request.id], template_key: 'friendly' } }).then(() => toast({ title: 'Reminder sent to patient' })).catch(() => toast({ title: 'Error', description: 'Failed to send reminder', variant: 'destructive' }));
+                        }}><Send className="h-4 w-4 mr-1" />Remind Patient</Button>
                         <Button variant="outline" size="sm" onClick={() => {
                           (async () => {
                             try {

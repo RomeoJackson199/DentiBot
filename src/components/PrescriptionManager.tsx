@@ -38,6 +38,7 @@ export function PrescriptionManager({ dentistId }: PrescriptionManagerProps) {
   const { toast } = useToast();
   const { isMobile, cardClass } = useMobileOptimizations();
 
+  const [patients, setPatients] = useState<Array<{id: string, first_name: string, last_name: string}>>([]);
   const [newPrescription, setNewPrescription] = useState({
     patient_id: '',
     medication_name: '',
@@ -50,13 +51,51 @@ export function PrescriptionManager({ dentistId }: PrescriptionManagerProps) {
 
   useEffect(() => {
     fetchPrescriptions();
+    fetchPatients();
   }, [dentistId]);
+
+  const fetchPatients = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('appointments')
+        .select('patient_id, patient:profiles!appointments_patient_id_fkey(id, first_name, last_name)')
+        .eq('dentist_id', dentistId);
+      
+      if (error) throw error;
+      
+      const uniquePatients = Array.from(
+        new Map(data?.map((item: any) => [
+          item.patient?.id,
+          { id: item.patient?.id, first_name: item.patient?.first_name, last_name: item.patient?.last_name }
+        ])).values()
+      ).filter(p => p.id);
+      
+      setPatients(uniquePatients as any);
+    } catch (error) {
+      console.error('Error fetching patients:', error);
+    }
+  };
 
   const fetchPrescriptions = async () => {
     try {
-      // For now, we'll just create a simple placeholder since the table structure may not exist
-      // In a real implementation, this would fetch from a prescriptions table
-      setPrescriptions([]);
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('prescriptions')
+        .select(`
+          *,
+          patient:profiles!prescriptions_patient_id_fkey(first_name, last_name)
+        `)
+        .eq('dentist_id', dentistId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      
+      const mappedPrescriptions = data?.map((p: any) => ({
+        ...p,
+        patient_name: p.patient ? `${p.patient.first_name} ${p.patient.last_name}` : 'Unknown'
+      })) || [];
+      
+      setPrescriptions(mappedPrescriptions);
       setLoading(false);
     } catch (error: unknown) {
       toast({
@@ -70,11 +109,59 @@ export function PrescriptionManager({ dentistId }: PrescriptionManagerProps) {
 
   const handleCreatePrescription = async () => {
     try {
-      // Placeholder for creating prescription
-      // In a real implementation, this would insert into database
+      if (!newPrescription.patient_id || !newPrescription.medication_name) {
+        toast({
+          title: "Validation Error",
+          description: "Please select a patient and enter medication name",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('prescriptions')
+        .insert({
+          patient_id: newPrescription.patient_id,
+          dentist_id: dentistId,
+          medication_name: newPrescription.medication_name,
+          dosage: newPrescription.dosage,
+          frequency: newPrescription.frequency,
+          duration: newPrescription.duration,
+          instructions: newPrescription.instructions,
+          status: newPrescription.status,
+          prescribed_date: new Date().toISOString()
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Send notification to patient
+      const { data: patientProfile } = await supabase
+        .from('profiles')
+        .select('user_id')
+        .eq('id', newPrescription.patient_id)
+        .single();
+
+      if (patientProfile?.user_id) {
+        await supabase
+          .from('notifications')
+          .insert({
+            user_id: patientProfile.user_id,
+            patient_id: newPrescription.patient_id,
+            dentist_id: dentistId,
+            type: 'prescription',
+            title: 'New Prescription Available',
+            message: `Your dentist has prescribed ${newPrescription.medication_name}. ${newPrescription.dosage} ${newPrescription.frequency}`,
+            priority: 'high',
+            action_url: '/dashboard?tab=health',
+            action_label: 'View Prescription'
+          });
+      }
+
       toast({
         title: "Success",
-        description: "Prescription created successfully",
+        description: "Prescription created and patient notified",
       });
 
       setIsDialogOpen(false);
@@ -160,6 +247,22 @@ export function PrescriptionManager({ dentistId }: PrescriptionManagerProps) {
                     <DialogTitle>Create New Prescription</DialogTitle>
                   </DialogHeader>
                   <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="patient">Patient</Label>
+                      <select
+                        id="patient"
+                        className="w-full border rounded-md p-2"
+                        value={newPrescription.patient_id}
+                        onChange={(e) => setNewPrescription({...newPrescription, patient_id: e.target.value})}
+                      >
+                        <option value="">Select a patient</option>
+                        {patients.map((patient) => (
+                          <option key={patient.id} value={patient.id}>
+                            {patient.first_name} {patient.last_name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                     <div>
                       <Label htmlFor="medication">Medication Name</Label>
                       <Input

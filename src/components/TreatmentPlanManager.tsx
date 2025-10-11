@@ -158,7 +158,7 @@ export function TreatmentPlanManager({ patientId, dentistId }: TreatmentPlanMana
 
   const handleCreateTreatmentPlan = async () => {
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('treatment_plans')
         .insert({
           patient_id: patientId,
@@ -166,16 +166,41 @@ export function TreatmentPlanManager({ patientId, dentistId }: TreatmentPlanMana
           ...formData,
           start_date: new Date().toISOString(),
           status: 'draft'
-        });
+        })
+        .select()
+        .single();
 
       if (error) {
         console.error('Error creating treatment plan:', error);
         throw error;
       }
 
+      // Send notification to patient
+      const { data: patientProfile } = await supabase
+        .from('profiles')
+        .select('user_id')
+        .eq('id', patientId)
+        .single();
+
+      if (patientProfile?.user_id) {
+        await supabase
+          .from('notifications')
+          .insert({
+            user_id: patientProfile.user_id,
+            patient_id: patientId,
+            dentist_id: dentistId,
+            type: 'treatment_plan',
+            title: 'New Treatment Plan Created',
+            message: `Your dentist has created a new treatment plan: ${formData.title}. ${formData.description || ''}`,
+            priority: 'high',
+            action_url: '/dashboard?tab=health',
+            action_label: 'View Treatment Plan'
+          });
+      }
+
       toast({
         title: "Success",
-        description: "Treatment plan created successfully.",
+        description: "Treatment plan created and patient notified.",
       });
 
       setIsDialogOpen(false);

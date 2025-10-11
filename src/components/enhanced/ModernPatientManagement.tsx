@@ -26,6 +26,9 @@ import { format } from "date-fns";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SimpleAppointmentBooking } from "@/components/SimpleAppointmentBooking";
 import { PatientPaymentHistory } from "@/components/PatientPaymentHistory";
+import { PrescriptionManager } from "@/components/PrescriptionManager";
+import { TreatmentPlanManager } from "@/components/TreatmentPlanManager";
+import { PaymentRequestManager } from "@/components/PaymentRequestManager";
 
 interface Patient {
   id: string;
@@ -621,23 +624,18 @@ export function ModernPatientManagement({ dentistId }: ModernPatientManagementPr
                     </TabsContent>
 
                     <TabsContent value="treatments" className="mt-0">
-                      <div className="p-4 text-center text-muted-foreground">
-                        <ClipboardList className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                        <p>Treatment plans coming soon</p>
-                      </div>
+                      <TreatmentPlanManager 
+                        patientId={selectedPatient.id} 
+                        dentistId={dentistId}
+                      />
                     </TabsContent>
 
                     <TabsContent value="prescriptions" className="mt-0">
-                      <div className="p-4 text-center text-muted-foreground">
-                        <Pill className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                        <p>Prescriptions coming soon</p>
-                      </div>
+                      <PrescriptionManager dentistId={dentistId} />
                     </TabsContent>
 
                     <TabsContent value="payments" className="mt-0">
-                      <div className="space-y-4">
-                        <PatientPaymentHistory patientId={selectedPatient.id} />
-                      </div>
+                      <PaymentRequestManager dentistId={dentistId} />
                     </TabsContent>
                   </CardContent>
                 </Tabs>
