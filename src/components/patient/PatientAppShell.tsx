@@ -92,7 +92,7 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 overflow-x-hidden">
         {/* Mobile Header */}
-        <div className="fixed top-0 left-0 right-0 z-header bg-background/95 backdrop-blur-sm border-b" role="banner">
+        <div className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b" role="banner">
           <div className="flex items-center justify-between px-4 py-3">
             <div className="flex items-center space-x-2">
               {branding.logoUrl ? (
@@ -179,7 +179,7 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
         {onBookAppointment && <FloatingBookingButton onBookAppointment={onBookAppointment} />}
 
         {/* Bottom Navigation Bar */}
-        <div className="fixed bottom-0 left-0 right-0 z-header bg-background/95 backdrop-blur-sm border-t safe-bottom">
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-t safe-bottom">
           <nav className="flex items-center justify-around py-2" role="navigation" aria-label="Primary">
             {NAV_ITEMS.map((item) => {
               const Icon = item.icon;
@@ -220,7 +220,7 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex" role="main">
       {/* Desktop Sidebar */}
       <div className={cn(
-        "fixed left-0 top-0 bottom-0 bg-card/80 backdrop-blur-lg border-r border-border/50 z-sidebar transition-[width] duration-200 ease-linear overflow-hidden",
+        "fixed left-0 top-0 bottom-0 bg-card/80 backdrop-blur-lg border-r border-border/50 z-40 transition-[width] duration-200 ease-linear overflow-hidden",
         collapsed ? "w-16" : "w-64"
       )}>
         {/* Sidebar Header */}

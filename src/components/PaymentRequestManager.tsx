@@ -3,7 +3,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Plus, DollarSign, Clock, CheckCircle, XCircle, Search, Filter, MoreHorizontal, Send, FileDown, Check } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Plus, DollarSign, Clock, CheckCircle, XCircle, Search, Filter, MoreHorizontal, Send, FileDown, Check, Edit } from 'lucide-react';
 import { PaymentRequestForm } from '@/components/PaymentRequestForm';
 import { useToast } from '@/hooks/use-toast';
 import PaymentWizard from '@/components/payments/PaymentWizard';
@@ -46,6 +48,8 @@ export const PaymentRequestManager: React.FC<PaymentRequestManagerProps> = ({ de
   const [itemsById, setItemsById] = useState<Record<string, any[]>>({});
   const [remindersById, setRemindersById] = useState<Record<string, any[]>>({});
   const [myProfileId, setMyProfileId] = useState<string | null>(null);
+  const [editingRequest, setEditingRequest] = useState<PaymentRequest | null>(null);
+  const [editForm, setEditForm] = useState({ amount: '', description: '' });
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -210,6 +214,26 @@ export const PaymentRequestManager: React.FC<PaymentRequestManagerProps> = ({ de
     URL.revokeObjectURL(url);
   };
 
+  const handleEditPayment = async () => {
+    if (!editingRequest) return;
+    try {
+      const { error } = await supabase
+        .from('payment_requests')
+        .update({
+          amount: Math.round(Number(editForm.amount) * 100),
+          description: editForm.description
+        })
+        .eq('id', editingRequest.id);
+      
+      if (error) throw error;
+      toast({ title: 'Payment request updated' });
+      setEditingRequest(null);
+      fetchPaymentRequests();
+    } catch (e) {
+      toast({ title: 'Error', description: 'Failed to update payment request', variant: 'destructive' });
+    }
+  };
+
   if (loading) {
     return (
       <Card>
@@ -344,6 +368,10 @@ export const PaymentRequestManager: React.FC<PaymentRequestManagerProps> = ({ de
                           }
                         }}>View</Button>
                         <Button variant="outline" size="sm" onClick={() => {
+                          setEditingRequest(request);
+                          setEditForm({ amount: (request.amount / 100).toFixed(2), description: request.description });
+                        }}><Edit className="h-4 w-4 mr-1" />Edit</Button>
+                        <Button variant="outline" size="sm" onClick={() => {
                           supabase.functions.invoke('send-payment-reminder', { body: { payment_request_ids: [request.id], template_key: 'friendly' } }).then(() => toast({ title: 'Reminder sent to patient' })).catch(() => toast({ title: 'Error', description: 'Failed to send reminder', variant: 'destructive' }));
                         }}><Send className="h-4 w-4 mr-1" />Remind Patient</Button>
                         <Button variant="outline" size="sm" onClick={() => {
@@ -395,6 +423,34 @@ export const PaymentRequestManager: React.FC<PaymentRequestManagerProps> = ({ de
           ))
         )}
       </div>
+
+      {/* Edit Payment Request Dialog */}
+      <Dialog open={!!editingRequest} onOpenChange={(open) => !open && setEditingRequest(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Payment Request</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Amount (€)</Label>
+              <Input 
+                type="number" 
+                step="0.01"
+                value={editForm.amount}
+                onChange={(e) => setEditForm({...editForm, amount: e.target.value})}
+              />
+            </div>
+            <div>
+              <Label>Description</Label>
+              <Input 
+                value={editForm.description}
+                onChange={(e) => setEditForm({...editForm, description: e.target.value})}
+              />
+            </div>
+            <Button onClick={handleEditPayment} className="w-full">Save Changes</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

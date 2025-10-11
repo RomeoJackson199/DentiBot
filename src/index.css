@@ -97,6 +97,14 @@
     --sidebar-primary: 199 89% 48%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 240 5% 18%;
+    
+    /* Z-index hierarchy */
+    --z-sidebar: 40;
+    --z-header: 50;
+    --z-dropdown: 1000;
+    --z-modal: 10000;
+    --z-notification: 10001;
+    --z-tooltip: 10002;
     --sidebar-accent-foreground: 0 0% 98%;
     --sidebar-border: 240 5% 26%;
     --sidebar-ring: 199 89% 48%;
