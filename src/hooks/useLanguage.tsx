@@ -193,6 +193,35 @@ interface Translations {
   yesCancelAppointment: string;
   appointmentCancelled: string;
   failedToCancelAppointment: string;
+  
+  // Appointments Management
+  appointmentsManagement: string;
+  manageViewAppointments: string;
+  refresh: string;
+  searchByPatient: string;
+  todayPlus7Days: string;
+  nextWeek: string;
+  nextMonth: string;
+  allTime: string;
+  thisWeek: string;
+  thisMonth: string;
+  allStatus: string;
+  pending: string;
+  time: string;
+  patient: string;
+  status: string;
+  actions: string;
+  view: string;
+  notRegisteredDentist: string;
+  contactSupport: string;
+  todaysAppointments: string;
+  urgentCases: string;
+  completionRate: string;
+  highPriority: string;
+  estimatedRevenue: string;
+  avg: string;
+  statusOverview: string;
+  generalConsultationLower: string;
 
   // Chat commands & integration
   showMyAppointments: string;
@@ -615,6 +644,35 @@ How can I help you today?`,
     yesCancelAppointment: "Yes, Cancel",
     appointmentCancelled: "Appointment cancelled successfully",
     failedToCancelAppointment: "Failed to cancel appointment",
+    
+    // Appointments Management
+    appointmentsManagement: "Appointments Management",
+    manageViewAppointments: "Manage and view all your patient appointments",
+    refresh: "Refresh",
+    searchByPatient: "Search by patient name, reason, or notes...",
+    todayPlus7Days: "Today + 7 days",
+    nextWeek: "Next Week",
+    nextMonth: "Next Month",
+    allTime: "All Time",
+    thisWeek: "This Week",
+    thisMonth: "This Month",
+    allStatus: "All Status",
+    pending: "Pending",
+    time: "Time",
+    patient: "Patient",
+    status: "Status",
+    actions: "Actions",
+    view: "View",
+    notRegisteredDentist: "You are not registered as a dentist. Please contact support.",
+    contactSupport: "Contact Support",
+    todaysAppointments: "Today's Appointments",
+    urgentCases: "Urgent Cases",
+    completionRate: "Completion Rate",
+    highPriority: "High priority appointments",
+    estimatedRevenue: "Revenue (Estimated)",
+    avg: "Avg",
+    statusOverview: "Status Overview",
+    generalConsultationLower: "General consultation",
 
     // Chat commands & integration
     showMyAppointments: "Here are your appointments:",
@@ -1042,11 +1100,40 @@ Comment puis-je vous aider aujourd'hui ?`,
     cancelAppointment: "Annuler",
     confirmCancellation: "Annuler le Rendez-vous",
     confirmCancellationMessage:
-      "Êtes-vous sûr de vouloir annuler ce rendez-vous ? Cette action ne peut pas être annulée.",
-    keepAppointment: "Garder le Rendez-vous",
+      "Êtes-vous sûr de vouloir annuler ce rendez-vous? Cette action est irréversible.",
+    keepAppointment: "Conserver le Rendez-vous",
     yesCancelAppointment: "Oui, Annuler",
     appointmentCancelled: "Rendez-vous annulé avec succès",
     failedToCancelAppointment: "Échec de l'annulation du rendez-vous",
+    
+    // Appointments Management
+    appointmentsManagement: "Gestion des Rendez-vous",
+    manageViewAppointments: "Gérez et consultez tous les rendez-vous de vos patients",
+    refresh: "Actualiser",
+    searchByPatient: "Rechercher par nom de patient, motif ou notes...",
+    todayPlus7Days: "Aujourd'hui + 7 jours",
+    nextWeek: "Semaine Prochaine",
+    nextMonth: "Mois Prochain",
+    allTime: "Tout",
+    thisWeek: "Cette Semaine",
+    thisMonth: "Ce Mois",
+    allStatus: "Tous les Statuts",
+    pending: "En Attente",
+    time: "Heure",
+    patient: "Patient",
+    status: "Statut",
+    actions: "Actions",
+    view: "Voir",
+    notRegisteredDentist: "Vous n'êtes pas enregistré en tant que dentiste. Veuillez contacter le support.",
+    contactSupport: "Contacter le Support",
+    todaysAppointments: "Rendez-vous d'Aujourd'hui",
+    urgentCases: "Cas Urgents",
+    completionRate: "Taux de Complétion",
+    highPriority: "Rendez-vous haute priorité",
+    estimatedRevenue: "Revenu (Estimé)",
+    avg: "Moy",
+    statusOverview: "Aperçu des Statuts",
+    generalConsultationLower: "Consultation générale",
 
     // Chat commands & integration
     showMyAppointments: "Voici vos rendez-vous :",
@@ -1453,7 +1540,36 @@ Comment puis-je vous aider aujourd'hui ?`,
     keepAppointment: "Afspraak Behouden",
     yesCancelAppointment: "Ja, Annuleren",
     appointmentCancelled: "Afspraak succesvol geannuleerd",
-    failedToCancelAppointment: "Fout bij het annuleren van de afspraak",
+    failedToCancelAppointment: "Kan afspraak niet annuleren",
+    
+    // Appointments Management
+    appointmentsManagement: "Afspraken Beheer",
+    manageViewAppointments: "Beheer en bekijk alle afspraken van uw patiënten",
+    refresh: "Vernieuwen",
+    searchByPatient: "Zoeken op patiëntnaam, reden of notities...",
+    todayPlus7Days: "Vandaag + 7 dagen",
+    nextWeek: "Volgende Week",
+    nextMonth: "Volgende Maand",
+    allTime: "Alle Tijd",
+    thisWeek: "Deze Week",
+    thisMonth: "Deze Maand",
+    allStatus: "Alle Statussen",
+    pending: "In Behandeling",
+    time: "Tijd",
+    patient: "Patiënt",
+    status: "Status",
+    actions: "Acties",
+    view: "Bekijken",
+    notRegisteredDentist: "U bent niet geregistreerd als tandarts. Neem contact op met de ondersteuning.",
+    contactSupport: "Contact Opnemen",
+    todaysAppointments: "Afspraken van Vandaag",
+    urgentCases: "Urgente Gevallen",
+    completionRate: "Voltooiingspercentage",
+    highPriority: "Hoge prioriteit afspraken",
+    estimatedRevenue: "Inkomsten (Geschat)",
+    avg: "Gem",
+    statusOverview: "Statusoverzicht",
+    generalConsultationLower: "Algemene consultatie",
 
     // Chat commands & integration
     showMyAppointments: "Hier zijn uw afspraken:",

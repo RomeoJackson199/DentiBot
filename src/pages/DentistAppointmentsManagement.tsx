@@ -10,6 +10,7 @@ import { Calendar, Clock, User, Search, Filter, CheckCircle, XCircle, Eye } from
 import { formatClinicTime, utcToClinicTime } from "@/lib/timezone";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/hooks/useLanguage";
 
 export default function DentistAppointmentsManagement() {
   const { dentistId, loading: dentistLoading } = useCurrentDentist();
@@ -17,6 +18,7 @@ export default function DentistAppointmentsManagement() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [dateRange, setDateRange] = useState<string>("today_7");
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   // Calculate date range
   const { fromDate, toDate } = useMemo(() => {
@@ -133,7 +135,7 @@ export default function DentistAppointmentsManagement() {
         <Card>
           <CardContent className="pt-6">
             <p className="text-center text-muted-foreground">
-              You are not registered as a dentist. Please contact support.
+              {t.notRegisteredDentist}
             </p>
           </CardContent>
         </Card>
@@ -146,12 +148,12 @@ export default function DentistAppointmentsManagement() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Appointments Management</h1>
-          <p className="text-gray-600 mt-1">Manage and view all your patient appointments</p>
+          <h1 className="text-3xl font-bold text-gray-900">{t.appointmentsManagement}</h1>
+          <p className="text-gray-600 mt-1">{t.manageViewAppointments}</p>
         </div>
         <Button onClick={refetch} variant="outline" className="gap-2">
           <Calendar className="h-4 w-4" />
-          Refresh
+          {t.refresh}
         </Button>
       </div>
 
@@ -159,7 +161,7 @@ export default function DentistAppointmentsManagement() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Today</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-600">{t.today}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-600">{counts.today}</div>
@@ -167,7 +169,7 @@ export default function DentistAppointmentsManagement() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Upcoming</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-600">{t.upcoming}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">{counts.upcoming}</div>
@@ -175,7 +177,7 @@ export default function DentistAppointmentsManagement() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Completed</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-600">{t.completed}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-purple-600">{counts.completed}</div>
@@ -183,7 +185,7 @@ export default function DentistAppointmentsManagement() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Total</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-600">{t.total}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-gray-900">{counts.total}</div>
@@ -199,7 +201,7 @@ export default function DentistAppointmentsManagement() {
               <div className="relative">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <Input
-                  placeholder="Search by patient name, reason, or notes..."
+                  placeholder={t.searchByPatient}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -211,10 +213,10 @@ export default function DentistAppointmentsManagement() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="today">Today</SelectItem>
-                <SelectItem value="today_7">Today + 7 days</SelectItem>
-                <SelectItem value="week">Next Week</SelectItem>
-                <SelectItem value="month">Next Month</SelectItem>
+                <SelectItem value="today">{t.today}</SelectItem>
+                <SelectItem value="today_7">{t.todayPlus7Days}</SelectItem>
+                <SelectItem value="week">{t.nextWeek}</SelectItem>
+                <SelectItem value="month">{t.nextMonth}</SelectItem>
               </SelectContent>
             </Select>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -222,11 +224,11 @@ export default function DentistAppointmentsManagement() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="confirmed">Confirmed</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
-                <SelectItem value="cancelled">Cancelled</SelectItem>
+                <SelectItem value="all">{t.allStatus}</SelectItem>
+                <SelectItem value="pending">{t.pending}</SelectItem>
+                <SelectItem value="confirmed">{t.confirmed}</SelectItem>
+                <SelectItem value="completed">{t.completed}</SelectItem>
+                <SelectItem value="cancelled">{t.cancelled}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -238,7 +240,7 @@ export default function DentistAppointmentsManagement() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Calendar className="h-5 w-5" />
-            Appointments ({filteredAppointments.length})
+            {t.appointments} ({filteredAppointments.length})
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -248,26 +250,26 @@ export default function DentistAppointmentsManagement() {
             </div>
           ) : error ? (
             <div className="text-center py-8">
-              <p className="text-red-600">Error: {error}</p>
+              <p className="text-red-600">{t.error}: {error}</p>
               <Button onClick={refetch} variant="outline" className="mt-2">
-                Try Again
+                {t.tryAgain}
               </Button>
             </div>
           ) : filteredAppointments.length === 0 ? (
             <div className="text-center py-8">
               <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600">No appointments found for the selected criteria.</p>
+              <p className="text-gray-600">{t.noAppointmentsFound}</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className="border-b text-left">
-                    <th className="pb-3 font-medium text-gray-600">Time</th>
-                    <th className="pb-3 font-medium text-gray-600">Patient</th>
-                    <th className="pb-3 font-medium text-gray-600">Reason</th>
-                    <th className="pb-3 font-medium text-gray-600">Status</th>
-                    <th className="pb-3 font-medium text-gray-600">Actions</th>
+                    <th className="pb-3 font-medium text-gray-600">{t.time}</th>
+                    <th className="pb-3 font-medium text-gray-600">{t.patient}</th>
+                    <th className="pb-3 font-medium text-gray-600">{t.reason}</th>
+                    <th className="pb-3 font-medium text-gray-600">{t.status}</th>
+                    <th className="pb-3 font-medium text-gray-600">{t.actions}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -308,7 +310,7 @@ export default function DentistAppointmentsManagement() {
                         <td className="py-4">
                           <div className="max-w-xs">
                             <div className="font-medium text-gray-900">
-                              {appointment.reason || 'General consultation'}
+                              {appointment.reason || t.generalConsultationLower}
                             </div>
                             {appointment.notes && (
                               <div className="text-sm text-gray-500 truncate">
@@ -327,15 +329,14 @@ export default function DentistAppointmentsManagement() {
                               variant="outline"
                               className="gap-1"
                               onClick={() => {
-                                // TODO: Open appointment details dialog
                                 toast({
-                                  title: "Appointment Details",
-                                  description: `Viewing details for ${patientName}`,
+                                  title: t.appointmentDetails,
+                                  description: `${t.view} ${patientName}`,
                                 });
                               }}
                             >
                               <Eye className="h-3 w-3" />
-                              View
+                              {t.view}
                             </Button>
                             {appointment.status === 'pending' && (
                               <Button 
@@ -344,7 +345,7 @@ export default function DentistAppointmentsManagement() {
                                 onClick={() => handleStatusChange(appointment.id, 'confirmed')}
                               >
                                 <CheckCircle className="h-3 w-3" />
-                                Confirm
+                                {t.confirm}
                               </Button>
                             )}
                             {(appointment.status === 'pending' || appointment.status === 'confirmed') && (
@@ -355,7 +356,7 @@ export default function DentistAppointmentsManagement() {
                                 onClick={() => handleStatusChange(appointment.id, 'cancelled')}
                               >
                                 <XCircle className="h-3 w-3" />
-                                Cancel
+                                {t.cancel}
                               </Button>
                             )}
                           </div>
