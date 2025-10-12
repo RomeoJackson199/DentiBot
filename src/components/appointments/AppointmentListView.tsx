@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AppointmentCard } from "./AppointmentCard";
 import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/hooks/useLanguage";
 
 interface AppointmentListViewProps {
   dentistId: string;
@@ -11,6 +12,7 @@ interface AppointmentListViewProps {
 }
 
 export function AppointmentListView({ dentistId, filters }: AppointmentListViewProps) {
+  const { t } = useLanguage();
   const { data: appointments, isLoading } = useQuery({
     queryKey: ["appointments-list", dentistId, filters],
     queryFn: async () => {
@@ -59,13 +61,13 @@ export function AppointmentListView({ dentistId, filters }: AppointmentListViewP
       ))}
       {(!appointments || appointments.length === 0) && (
         <p className="text-center text-muted-foreground py-8">
-          No appointments found
+          {t.noAppointmentsFound}
         </p>
       )}
       {appointments && appointments.length > 10 && (
         <div className="flex justify-center pt-2">
           <Button variant="outline" onClick={() => setShowAll(!showAll)}>
-            {showAll ? 'Show Less' : `View More (${appointments.length - 10} more)`}
+            {showAll ? t.showLess : `${t.viewMore} (${appointments.length - 10} ${t.more})`}
           </Button>
         </div>
       )}

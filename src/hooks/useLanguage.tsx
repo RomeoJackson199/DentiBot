@@ -181,6 +181,10 @@ interface Translations {
   loading: string;
   noUpcomingAppointments: string;
   noPastAppointments: string;
+  noAppointmentsFound: string;
+  viewMore: string;
+  showLess: string;
+  more: string;
   reschedule: string;
   cancelAppointment: string;
   confirmCancellation: string;
@@ -598,6 +602,10 @@ How can I help you today?`,
     loading: "Loading...",
     noUpcomingAppointments: "No upcoming appointments",
     noPastAppointments: "No past appointments",
+    noAppointmentsFound: "No appointments found",
+    viewMore: "View More",
+    showLess: "Show Less",
+    more: "more",
     reschedule: "Reschedule",
     cancelAppointment: "Cancel",
     confirmCancellation: "Cancel Appointment",
@@ -1026,6 +1034,10 @@ Comment puis-je vous aider aujourd'hui ?`,
     loading: "Chargement...",
     noUpcomingAppointments: "Aucun rendez-vous à venir",
     noPastAppointments: "Aucun rendez-vous passé",
+    noAppointmentsFound: "Aucun rendez-vous trouvé",
+    viewMore: "Voir Plus",
+    showLess: "Voir Moins",
+    more: "plus",
     reschedule: "Reprogrammer",
     cancelAppointment: "Annuler",
     confirmCancellation: "Annuler le Rendez-vous",
@@ -1429,6 +1441,10 @@ Comment puis-je vous aider aujourd'hui ?`,
     loading: "Laden...",
     noUpcomingAppointments: "Geen komende afspraken",
     noPastAppointments: "Geen vorige afspraken",
+    noAppointmentsFound: "Geen afspraken gevonden",
+    viewMore: "Meer Bekijken",
+    showLess: "Minder Bekijken",
+    more: "meer",
     reschedule: "Herplannen",
     cancelAppointment: "Annuleren",
     confirmCancellation: "Afspraak Annuleren",
