@@ -54,6 +54,7 @@ interface Translations {
   availabilityUpdated: string;
   failedToLoadAvailability: string;
   failedToSaveAvailability: string;
+  saving: string;
   monday: string;
   tuesday: string;
   wednesday: string;
@@ -61,6 +62,33 @@ interface Translations {
   friday: string;
   saturday: string;
   sunday: string;
+
+  // Vacation & Schedule Management
+  availabilityManagement: string;
+  weeklySchedule: string;
+  vacationsAbsences: string;
+  weeklyPlanning: string;
+  quickPresets: string;
+  presetMonFri: string;
+  presetMonSat: string;
+  startTime: string;
+  endTime: string;
+  breakStart: string;
+  breakEnd: string;
+  addVacation: string;
+  startDate: string;
+  endDate: string;
+  vacationType: string;
+  scheduledVacations: string;
+  loadingSettings: string;
+  vacationsTypeVacation: string;
+  vacationsTypeSick: string;
+  vacationsTypePersonal: string;
+  addButton: string;
+  noVacationsScheduled: string;
+  deleteVacation: string;
+  day: string;
+  days: string;
 
   // Personal Info
   firstName: string;
@@ -487,6 +515,7 @@ const translations: Record<Language, Translations> = {
     availabilityUpdated: "Availability updated successfully",
     failedToLoadAvailability: "Failed to load availability",
     failedToSaveAvailability: "Failed to save availability",
+    saving: "Saving...",
     monday: "Monday",
     tuesday: "Tuesday",
     wednesday: "Wednesday",
@@ -494,6 +523,33 @@ const translations: Record<Language, Translations> = {
     friday: "Friday",
     saturday: "Saturday",
     sunday: "Sunday",
+
+    // Vacation & Schedule Management
+    availabilityManagement: "Availability Management",
+    weeklySchedule: "Weekly Schedule",
+    vacationsAbsences: "Vacations & Absences",
+    weeklyPlanning: "Weekly Planning",
+    quickPresets: "Quick presets:",
+    presetMonFri: "Mon-Fri 9am-5pm",
+    presetMonSat: "Mon-Sat 8am-6pm",
+    startTime: "Start",
+    endTime: "End",
+    breakStart: "Break start",
+    breakEnd: "Break end",
+    addVacation: "Add Vacation",
+    startDate: "Start date",
+    endDate: "End date",
+    vacationType: "Vacation type",
+    scheduledVacations: "Scheduled vacations",
+    loadingSettings: "Loading settings...",
+    vacationsTypeVacation: "Vacation",
+    vacationsTypeSick: "Sick Leave",
+    vacationsTypePersonal: "Personal Leave",
+    addButton: "Add",
+    noVacationsScheduled: "No vacations scheduled",
+    deleteVacation: "Delete",
+    day: "day",
+    days: "days",
 
     // Personal Info
     firstName: "First Name",
@@ -940,6 +996,7 @@ How can I help you today?`,
     availabilityUpdated: "Disponibilité mise à jour avec succès",
     failedToLoadAvailability: "Échec du chargement de la disponibilité",
     failedToSaveAvailability: "Échec de l'enregistrement de la disponibilité",
+    saving: "Sauvegarde...",
     monday: "Lundi",
     tuesday: "Mardi",
     wednesday: "Mercredi",
@@ -947,6 +1004,33 @@ How can I help you today?`,
     friday: "Vendredi",
     saturday: "Samedi",
     sunday: "Dimanche",
+
+    // Vacation & Schedule Management
+    availabilityManagement: "Gestion des Disponibilités",
+    weeklySchedule: "Horaires hebdomadaires",
+    vacationsAbsences: "Congés & Absences",
+    weeklyPlanning: "Planification hebdomadaire",
+    quickPresets: "Presets rapides:",
+    presetMonFri: "Lun-Ven 9h-17h",
+    presetMonSat: "Lun-Sam 8h-18h",
+    startTime: "Début",
+    endTime: "Fin",
+    breakStart: "Pause début",
+    breakEnd: "Pause fin",
+    addVacation: "Ajouter un congé",
+    startDate: "Date de début",
+    endDate: "Date de fin",
+    vacationType: "Type de congé",
+    scheduledVacations: "Congés programmés",
+    loadingSettings: "Chargement des paramètres...",
+    vacationsTypeVacation: "Vacances",
+    vacationsTypeSick: "Congé maladie",
+    vacationsTypePersonal: "Congé personnel",
+    addButton: "Ajouter",
+    noVacationsScheduled: "Aucun congé programmé",
+    deleteVacation: "Supprimer",
+    day: "jour",
+    days: "jours",
 
     // Personal Info
     firstName: "Prénom",
@@ -1417,6 +1501,7 @@ Comment puis-je vous aider aujourd'hui ?`,
     availabilityUpdated: "Beschikbaarheid succesvol bijgewerkt",
     failedToLoadAvailability: "Kan beschikbaarheid niet laden",
     failedToSaveAvailability: "Kan beschikbaarheid niet opslaan",
+    saving: "Opslaan...",
     monday: "Maandag",
     tuesday: "Dinsdag",
     wednesday: "Woensdag",
@@ -1424,6 +1509,33 @@ Comment puis-je vous aider aujourd'hui ?`,
     friday: "Vrijdag",
     saturday: "Zaterdag",
     sunday: "Zondag",
+
+    // Vacation & Schedule Management
+    availabilityManagement: "Beschikbaarheid Beheren",
+    weeklySchedule: "Wekelijkse planning",
+    vacationsAbsences: "Verlof & Afwezigheid",
+    weeklyPlanning: "Wekelijkse planning",
+    quickPresets: "Snelle presets:",
+    presetMonFri: "Ma-Vr 9u-17u",
+    presetMonSat: "Ma-Za 8u-18u",
+    startTime: "Start",
+    endTime: "Einde",
+    breakStart: "Pauze start",
+    breakEnd: "Pauze einde",
+    addVacation: "Verlof toevoegen",
+    startDate: "Startdatum",
+    endDate: "Einddatum",
+    vacationType: "Type verlof",
+    scheduledVacations: "Geplande verloven",
+    loadingSettings: "Instellingen laden...",
+    vacationsTypeVacation: "Vakantie",
+    vacationsTypeSick: "Ziekteverlof",
+    vacationsTypePersonal: "Persoonlijk verlof",
+    addButton: "Toevoegen",
+    noVacationsScheduled: "Geen verlof gepland",
+    deleteVacation: "Verwijderen",
+    day: "dag",
+    days: "dagen",
 
     // Personal Info
     firstName: "Voornaam",

@@ -63,13 +63,23 @@ export function EnhancedAvailabilitySettings({ dentistId }: EnhancedAvailability
     is_approved: true
   });
   const { toast } = useToast();
-  const { t, language } = useLanguage();
-  const L = {
-    en: { title: 'Availability Management', saving: 'Saving...', save: t.saveAvailability || 'Save', weeklySchedule: t.weeklyAvailability || 'Weekly Schedule', vacationsAbsences: 'Vacations & Absences', weeklyPlanning: 'Weekly Planning', quickPresets: 'Quick presets:', preset1: 'Mon–Fri 9am–5pm', preset2: 'Mon–Sat 8am–6pm', start: 'Start', end: 'End', breakStart: 'Break start', breakEnd: 'Break end', addVacation: 'Add Vacation', startDate: 'Start date', endDate: 'End date', vacationType: 'Vacation type', scheduledVacations: 'Scheduled vacations', loadingSettings: 'Loading settings...' },
-    fr: { title: 'Gestion des Disponibilités', saving: 'Sauvegarde...', save: 'Sauvegarder', weeklySchedule: 'Horaires hebdomadaires', vacationsAbsences: 'Congés & Absences', weeklyPlanning: 'Planification hebdomadaire', quickPresets: 'Presets rapides:', preset1: 'Lun–Ven 9h–17h', preset2: 'Lun–Sam 8h–18h', start: 'Début', end: 'Fin', breakStart: 'Pause début', breakEnd: 'Pause fin', addVacation: 'Ajouter un congé', startDate: 'Date de début', endDate: 'Date de fin', vacationType: 'Type de congé', scheduledVacations: 'Congés programmés', loadingSettings: 'Chargement des paramètres...' },
-    nl: { title: 'Beschikbaarheid Beheren', saving: 'Opslaan...', save: 'Opslaan', weeklySchedule: 'Wekelijkse planning', vacationsAbsences: 'Verlof & Afwezigheid', weeklyPlanning: 'Wekelijkse planning', quickPresets: 'Snelle presets:', preset1: 'Ma–Vr 9u–17u', preset2: 'Ma–Za 8u–18u', start: 'Start', end: 'Einde', breakStart: 'Pauze start', breakEnd: 'Pauze einde', addVacation: 'Verlof toevoegen', startDate: 'Startdatum', endDate: 'Einddatum', vacationType: 'Type verlof', scheduledVacations: 'Geplande verloven', loadingSettings: 'Instellingen laden...' }
-  } as const;
-  const labels = L[language as 'en'|'fr'|'nl'];
+  const { t } = useLanguage();
+
+  const DAYS_OF_WEEK = [
+    { value: 1, label: t.monday, short: t.monday.charAt(0) },
+    { value: 2, label: t.tuesday, short: t.tuesday.charAt(0) },
+    { value: 3, label: t.wednesday, short: t.wednesday.charAt(0) },
+    { value: 4, label: t.thursday, short: t.thursday.charAt(0) },
+    { value: 5, label: t.friday, short: t.friday.charAt(0) },
+    { value: 6, label: t.saturday, short: t.saturday.charAt(0) },
+    { value: 0, label: t.sunday, short: t.sunday.charAt(0) },
+  ];
+
+  const VACATION_TYPES = [
+    { value: 'vacation', label: t.vacationsTypeVacation, color: 'bg-blue-100 text-blue-800' },
+    { value: 'sick', label: t.vacationsTypeSick, color: 'bg-red-100 text-red-800' },
+    { value: 'personal', label: t.vacationsTypePersonal, color: 'bg-green-100 text-green-800' },
+  ];
   useEffect(() => {
     Promise.all([fetchAvailability(), fetchVacationDays()]);
   }, [dentistId]);
@@ -249,7 +259,7 @@ export function EnhancedAvailabilitySettings({ dentistId }: EnhancedAvailability
   };
 
   if (loading) {
-    return <div className="flex justify-center p-8">Chargement des paramètres...</div>;
+    return <div className="flex justify-center p-8">{t.loadingSettings}</div>;
   }
 
   return (
@@ -257,7 +267,7 @@ export function EnhancedAvailabilitySettings({ dentistId }: EnhancedAvailability
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-4">
           <Clock className="h-6 w-6 text-primary" />
-          <h2 className="text-xl sm:text-2xl font-bold">Gestion des Disponibilités</h2>
+          <h2 className="text-xl sm:text-2xl font-bold">{t.availabilityManagement}</h2>
         </div>
         <Button 
           onClick={saveAvailability} 
@@ -266,14 +276,14 @@ export function EnhancedAvailabilitySettings({ dentistId }: EnhancedAvailability
           className="h-12 px-6 rounded-xl bg-gradient-primary"
         >
           <Save className="h-5 w-5 mr-2" />
-          {saving ? "Sauvegarde..." : "Sauvegarder"}
+          {saving ? t.saving : t.saveAvailability}
         </Button>
       </div>
 
       <Tabs defaultValue="schedule" className="space-y-6">
         <TabsList className="grid w-full grid-cols-2 h-12">
-          <TabsTrigger value="schedule" className="text-sm sm:text-base">Horaires hebdomadaires</TabsTrigger>
-          <TabsTrigger value="vacation" className="text-sm sm:text-base">Congés & Absences</TabsTrigger>
+          <TabsTrigger value="schedule" className="text-sm sm:text-base">{t.weeklySchedule}</TabsTrigger>
+          <TabsTrigger value="vacation" className="text-sm sm:text-base">{t.vacationsAbsences}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="schedule">
@@ -281,13 +291,13 @@ export function EnhancedAvailabilitySettings({ dentistId }: EnhancedAvailability
             <CardHeader>
               <CardTitle className="flex items-center text-lg sm:text-xl">
                 <Calendar className="h-5 w-5 mr-2" />
-                Planification hebdomadaire
+                {t.weeklyPlanning}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Quick Preset Buttons - Improved layout */}
               <div className="p-4 bg-gray-50 rounded-xl space-y-3">
-                <span className="text-sm font-medium text-gray-700 block">Presets rapides:</span>
+                <span className="text-sm font-medium text-gray-700 block">{t.quickPresets}</span>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <Button
                     variant="outline"
@@ -305,7 +315,7 @@ export function EnhancedAvailabilitySettings({ dentistId }: EnhancedAvailability
                     }}
                   >
                     <Clock className="h-4 w-4 mr-2" />
-                    Lun-Ven 9h-17h
+                    {t.presetMonFri}
                   </Button>
                   <Button
                     variant="outline"
@@ -323,7 +333,7 @@ export function EnhancedAvailabilitySettings({ dentistId }: EnhancedAvailability
                     }}
                   >
                     <Clock className="h-4 w-4 mr-2" />
-                    Lun-Sam 8h-18h
+                    {t.presetMonSat}
                   </Button>
                 </div>
               </div>
@@ -358,7 +368,7 @@ export function EnhancedAvailabilitySettings({ dentistId }: EnhancedAvailability
                           {dayAvailability.is_available && (
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                               <div>
-                                <Label htmlFor={`start-${day.value}`} className="text-sm font-medium">Début</Label>
+                                <Label htmlFor={`start-${day.value}`} className="text-sm font-medium">{t.startTime}</Label>
                                 <Input
                                   id={`start-${day.value}`}
                                   type="time"
@@ -370,7 +380,7 @@ export function EnhancedAvailabilitySettings({ dentistId }: EnhancedAvailability
                                 />
                               </div>
                               <div>
-                                <Label htmlFor={`end-${day.value}`} className="text-sm font-medium">Fin</Label>
+                                <Label htmlFor={`end-${day.value}`} className="text-sm font-medium">{t.endTime}</Label>
                                 <Input
                                   id={`end-${day.value}`}
                                   type="time"
@@ -384,7 +394,7 @@ export function EnhancedAvailabilitySettings({ dentistId }: EnhancedAvailability
                               <div>
                                 <Label htmlFor={`break-start-${day.value}`} className="text-sm font-medium">
                                   <Coffee className="h-3 w-3 inline mr-1" />
-                                  Pause début
+                                  {t.breakStart}
                                 </Label>
                                 <Input
                                   id={`break-start-${day.value}`}
@@ -399,7 +409,7 @@ export function EnhancedAvailabilitySettings({ dentistId }: EnhancedAvailability
                               <div>
                                 <Label htmlFor={`break-end-${day.value}`} className="text-sm font-medium">
                                   <Coffee className="h-3 w-3 inline mr-1" />
-                                  Pause fin
+                                  {t.breakEnd}
                                 </Label>
                                 <Input
                                   id={`break-end-${day.value}`}
@@ -430,13 +440,13 @@ export function EnhancedAvailabilitySettings({ dentistId }: EnhancedAvailability
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Plus className="h-5 w-5 mr-2" />
-                  Ajouter un congé
+                  {t.addVacation}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   <div>
-                    <Label htmlFor="start-date">Date de début</Label>
+                    <Label htmlFor="start-date">{t.startDate}</Label>
                     <Input
                       id="start-date"
                       type="date"
@@ -445,7 +455,7 @@ export function EnhancedAvailabilitySettings({ dentistId }: EnhancedAvailability
                     />
                   </div>
                   <div>
-                    <Label htmlFor="end-date">Date de fin</Label>
+                    <Label htmlFor="end-date">{t.endDate}</Label>
                     <Input
                       id="end-date"
                       type="date"
@@ -454,7 +464,7 @@ export function EnhancedAvailabilitySettings({ dentistId }: EnhancedAvailability
                     />
                   </div>
                   <div>
-                    <Label>Type de congé</Label>
+                    <Label>{t.vacationType}</Label>
                     <Select 
                       value={newVacation.vacation_type} 
                       onValueChange={(value: 'vacation' | 'sick' | 'personal') => 
@@ -476,16 +486,16 @@ export function EnhancedAvailabilitySettings({ dentistId }: EnhancedAvailability
                   <div className="flex items-end">
                     <Button onClick={addVacationDay} className="w-full">
                       <Plus className="h-4 w-4 mr-2" />
-                      Ajouter
+                      {t.addButton}
                     </Button>
                   </div>
                 </div>
                 
                 <div>
-                  <Label htmlFor="vacation-reason">Raison (optionnel)</Label>
+                  <Label htmlFor="vacation-reason">{t.reason} ({t.optional})</Label>
                   <Textarea
                     id="vacation-reason"
-                    placeholder="Précisez la raison du congé..."
+                    placeholder={t.reason}
                     value={newVacation.reason || ''}
                     onChange={(e) => setNewVacation(prev => ({ ...prev, reason: e.target.value }))}
                     rows={2}
@@ -497,13 +507,13 @@ export function EnhancedAvailabilitySettings({ dentistId }: EnhancedAvailability
             {/* Vacation List */}
             <Card className="glass-card">
               <CardHeader>
-                <CardTitle>Congés programmés</CardTitle>
+                <CardTitle>{t.scheduledVacations}</CardTitle>
               </CardHeader>
               <CardContent>
                 {vacationDays.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
                     <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>Aucun congé programmé</p>
+                    <p>{t.noVacationsScheduled}</p>
                   </div>
                 ) : (
                   <div className="space-y-3">
@@ -523,25 +533,27 @@ export function EnhancedAvailabilitySettings({ dentistId }: EnhancedAvailability
                                     {typeConfig.label}
                                   </span>
                                   <span className="text-sm text-muted-foreground">
-                                    {duration} jour{duration > 1 ? 's' : ''}
+                                    {duration} {duration > 1 ? t.days : t.day}
                                   </span>
                                 </div>
                                 <div className="flex items-center space-x-2 text-sm">
-                                  <span>Du {startDate.toLocaleDateString('fr-FR')}</span>
-                                  <span>au {endDate.toLocaleDateString('fr-FR')}</span>
+                                  <span>{startDate.toLocaleDateString()}</span>
+                                  <span>-</span>
+                                  <span>{endDate.toLocaleDateString()}</span>
                                 </div>
                                 {vacation.reason && (
                                   <p className="text-sm text-muted-foreground">{vacation.reason}</p>
                                 )}
                               </div>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => vacation.id && deleteVacationDay(vacation.id)}
-                                className="text-red-600 hover:text-red-700"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => vacation.id && deleteVacationDay(vacation.id)}
+                                  className="text-red-600 hover:text-red-700"
+                                  aria-label={t.deleteVacation}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
                             </div>
                           </CardContent>
                         </Card>
