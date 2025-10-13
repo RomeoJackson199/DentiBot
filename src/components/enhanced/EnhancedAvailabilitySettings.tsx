@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-
+import { useLanguage } from "@/hooks/useLanguage";
 interface DentistAvailability {
   id?: string;
   day_of_week: number;
@@ -63,7 +63,13 @@ export function EnhancedAvailabilitySettings({ dentistId }: EnhancedAvailability
     is_approved: true
   });
   const { toast } = useToast();
-
+  const { t, language } = useLanguage();
+  const L = {
+    en: { title: 'Availability Management', saving: 'Saving...', save: t.saveAvailability || 'Save', weeklySchedule: t.weeklyAvailability || 'Weekly Schedule', vacationsAbsences: 'Vacations & Absences', weeklyPlanning: 'Weekly Planning', quickPresets: 'Quick presets:', preset1: 'Mon–Fri 9am–5pm', preset2: 'Mon–Sat 8am–6pm', start: 'Start', end: 'End', breakStart: 'Break start', breakEnd: 'Break end', addVacation: 'Add Vacation', startDate: 'Start date', endDate: 'End date', vacationType: 'Vacation type', scheduledVacations: 'Scheduled vacations', loadingSettings: 'Loading settings...' },
+    fr: { title: 'Gestion des Disponibilités', saving: 'Sauvegarde...', save: 'Sauvegarder', weeklySchedule: 'Horaires hebdomadaires', vacationsAbsences: 'Congés & Absences', weeklyPlanning: 'Planification hebdomadaire', quickPresets: 'Presets rapides:', preset1: 'Lun–Ven 9h–17h', preset2: 'Lun–Sam 8h–18h', start: 'Début', end: 'Fin', breakStart: 'Pause début', breakEnd: 'Pause fin', addVacation: 'Ajouter un congé', startDate: 'Date de début', endDate: 'Date de fin', vacationType: 'Type de congé', scheduledVacations: 'Congés programmés', loadingSettings: 'Chargement des paramètres...' },
+    nl: { title: 'Beschikbaarheid Beheren', saving: 'Opslaan...', save: 'Opslaan', weeklySchedule: 'Wekelijkse planning', vacationsAbsences: 'Verlof & Afwezigheid', weeklyPlanning: 'Wekelijkse planning', quickPresets: 'Snelle presets:', preset1: 'Ma–Vr 9u–17u', preset2: 'Ma–Za 8u–18u', start: 'Start', end: 'Einde', breakStart: 'Pauze start', breakEnd: 'Pauze einde', addVacation: 'Verlof toevoegen', startDate: 'Startdatum', endDate: 'Einddatum', vacationType: 'Type verlof', scheduledVacations: 'Geplande verloven', loadingSettings: 'Instellingen laden...' }
+  } as const;
+  const labels = L[language as 'en'|'fr'|'nl'];
   useEffect(() => {
     Promise.all([fetchAvailability(), fetchVacationDays()]);
   }, [dentistId]);
@@ -94,8 +100,8 @@ export function EnhancedAvailabilitySettings({ dentistId }: EnhancedAvailability
       setAvailability(defaultAvailability);
     } catch (error) {
       toast({
-        title: "Erreur",
-        description: "Impossible de charger les horaires",
+        title: t.error,
+        description: t.failedToLoadAvailability,
         variant: "destructive",
       });
     } finally {
@@ -157,13 +163,13 @@ export function EnhancedAvailabilitySettings({ dentistId }: EnhancedAvailability
       }
 
       toast({
-        title: "Succès",
-        description: "Horaires sauvegardés avec succès",
+        title: t.success,
+        description: t.availabilityUpdated,
       });
     } catch (error) {
       toast({
-        title: "Erreur",
-        description: "Impossible de sauvegarder les horaires",
+        title: t.error,
+        description: t.failedToSaveAvailability,
         variant: "destructive",
       });
     } finally {
@@ -174,8 +180,8 @@ export function EnhancedAvailabilitySettings({ dentistId }: EnhancedAvailability
   const addVacationDay = async () => {
     if (!newVacation.start_date || !newVacation.end_date) {
       toast({
-        title: "Erreur",
-        description: "Veuillez remplir toutes les dates",
+        title: t.error,
+        description: t.pleaseCompleteAllFields,
         variant: "destructive",
       });
       return;
@@ -203,13 +209,13 @@ export function EnhancedAvailabilitySettings({ dentistId }: EnhancedAvailability
       });
 
       toast({
-        title: "Succès",
-        description: "Congé ajouté avec succès",
+        title: t.success,
+        description: t.changesSaved,
       });
     } catch (error) {
       toast({
-        title: "Erreur",
-        description: "Impossible d'ajouter le congé",
+        title: t.error,
+        description: t.error,
         variant: "destructive",
       });
     }
@@ -226,13 +232,13 @@ export function EnhancedAvailabilitySettings({ dentistId }: EnhancedAvailability
 
       setVacationDays(prev => prev.filter(v => v.id !== id));
       toast({
-        title: "Succès",
-        description: "Congé supprimé",
+        title: t.success,
+        description: t.changesSaved,
       });
     } catch (error) {
       toast({
-        title: "Erreur",
-        description: "Impossible de supprimer le congé",
+        title: t.error,
+        description: t.error,
         variant: "destructive",
       });
     }
