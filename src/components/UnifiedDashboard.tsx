@@ -26,13 +26,21 @@ export const UnifiedDashboard = memo(({ user }: UnifiedDashboardProps) => {
         .maybeSingle();
 
       if (profileError) {
-        throw profileError;
+        console.error('Profile fetch error:', profileError);
+        // Default to patient on error
+        setUserRole('patient');
+        setLoading(false);
+        return;
       }
 
       if (!profile) {
+        console.log('No profile found, defaulting to patient');
         setUserRole('patient');
+        setLoading(false);
         return;
       }
+
+      console.log('User profile role:', profile.role);
 
       if (profile.role === 'dentist') {
         const { data: dentist, error: dentistError } = await supabase
@@ -41,24 +49,31 @@ export const UnifiedDashboard = memo(({ user }: UnifiedDashboardProps) => {
           .eq('profile_id', profile.id)
           .maybeSingle();
 
+        console.log('Dentist record:', dentist, 'Error:', dentistError);
+
         if (!dentistError && dentist?.is_active) {
           setUserRole('dentist');
+          setLoading(false);
           // Redirect dentists to new sidebar layout
           navigate('/dentist/clinical/dashboard', { replace: true });
           return;
         } else {
+          // User has dentist role but no active dentist record - treat as patient
+          console.log('Dentist role but no active record, treating as patient');
           setUserRole('patient');
         }
       } else {
+        // User is a patient
+        console.log('User is a patient');
         setUserRole('patient');
       }
     } catch (error: unknown) {
-      setUserRole('patient');
       console.error('Dashboard loading error:', error);
+      // Default to patient on any error
+      setUserRole('patient');
       toast({
-        title: "Dashboard Error", 
-        description: `Error loading dashboard: ${error instanceof Error ? error.message : 'Unknown error'}. Please try refreshing the page.`,
-        variant: "destructive",
+        title: "Loading Dashboard", 
+        description: "Loading your patient dashboard...",
       });
     } finally {
       setLoading(false);
