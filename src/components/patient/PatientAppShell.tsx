@@ -29,6 +29,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useMobileOptimizations } from "@/components/mobile/MobileOptimizations";
 import { useClinicBranding } from "@/hooks/useClinicBranding";
+import { LanguageSelector } from "@/components/LanguageSelector";
 
 export type PatientSection = 'home' | 'assistant' | 'care' | 'appointments' | 'payments' | 'settings';
 
@@ -110,6 +111,7 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
             </div>
 
             <div className="flex items-center space-x-2">
+              <LanguageSelector />
               <ModernNotificationCenter userId={userId} />
               {onBookAppointment && (
                 <Button
@@ -302,8 +304,13 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
         {/* Sidebar Footer */}
         <div className={cn("absolute bottom-0 left-0 right-0 border-t border-border/50", collapsed ? "p-2" : "p-4")}> 
           <div className="flex items-center justify-between">
-            {!collapsed && <ModernNotificationCenter userId={userId} />}
-            <div className={cn("flex items-center", collapsed ? "gap-1" : "space-x-2")}> 
+            {!collapsed && (
+              <div className="flex items-center gap-2">
+                <LanguageSelector />
+                <ModernNotificationCenter userId={userId} />
+              </div>
+            )}
+            <div className={cn("flex items-center", collapsed ? "gap-1" : "space-x-2")}>
               {onBookAppointment && (
                 <Button
                   variant="gradient"

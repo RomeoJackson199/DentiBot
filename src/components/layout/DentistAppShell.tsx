@@ -31,7 +31,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useMobileOptimizations } from "@/components/mobile/MobileOptimizations";
-import { LanguageToggle } from "@/components/LanguageToggle";
+import { LanguageSelector } from "@/components/LanguageSelector";
 import { useClinicBranding } from "@/hooks/useClinicBranding";
 
 export type DentistSection = 'clinical' | 'patients' | 'appointments' | 'schedule' | 'payments' | 'analytics' | 'reports' | 'inventory' | 'imports' | 'branding' | 'security';
@@ -149,7 +149,7 @@ export const DentistAppShell: React.FC<DentistAppShellProps> = ({
             </div>
 
             <div className="flex items-center gap-1">
-              <LanguageToggle />
+              <LanguageSelector />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" className="touch-target">
@@ -328,7 +328,7 @@ export const DentistAppShell: React.FC<DentistAppShellProps> = ({
         {/* Sidebar Footer */}
         <div className={cn("absolute bottom-0 left-0 right-0 border-t border-border/50", collapsed ? "p-2" : "p-4")}>
           <div className={cn("flex items-center gap-2", collapsed && "flex-col")}>
-            {!collapsed && <LanguageToggle />}
+            {!collapsed && <LanguageSelector />}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
