@@ -143,12 +143,10 @@ export const Header = ({
 
           {/* Auth Section */}
           <div className="flex items-center space-x-4">
-            {/* Language Selector */}
-            {!minimal && (
-              <div className="hidden sm:block">
-                <LanguageSelector />
-              </div>
-            )}
+            {/* Language Selector - Always visible */}
+            <div className="hidden sm:block">
+              <LanguageSelector />
+            </div>
             
             {!user ? (
               <>
@@ -221,8 +219,7 @@ export const Header = ({
                   <span>{item.name}</span>
                 </a>
               ))}
-              
-              {/* Mobile Language Selector */}
+              {/* Mobile Language Selector - Always visible */}
               <div className="pt-4 border-t border-white/10">
                 <LanguageSelector />
               </div>
