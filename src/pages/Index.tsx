@@ -38,25 +38,18 @@ const Index = () => {
     toast
   } = useToast();
 
-  // Auto-detect language based on browser locale
+  // Force English as default language (clear any French auto-detection)
   useEffect(() => {
-    const detectLanguage = () => {
-      const savedLanguage = localStorage.getItem('preferred-language');
-      if (!savedLanguage) {
-        const browserLang = navigator.language.toLowerCase();
-        if (browserLang.startsWith('fr')) {
-          setLanguage('fr');
-          localStorage.setItem('preferred-language', 'fr');
-        } else if (browserLang.startsWith('nl')) {
-          setLanguage('nl');
-          localStorage.setItem('preferred-language', 'nl');
-        } else {
-          setLanguage('en');
-          localStorage.setItem('preferred-language', 'en');
-        }
+    const savedLanguage = localStorage.getItem('preferred-language');
+    // If language is not English, reset to English
+    if (savedLanguage !== 'en') {
+      localStorage.setItem('preferred-language', 'en');
+      setLanguage('en');
+      // Force reload to apply language change
+      if (savedLanguage) {
+        window.location.reload();
       }
-    };
-    detectLanguage();
+    }
   }, [setLanguage]);
   useEffect(() => {
     // Set up auth state listener
