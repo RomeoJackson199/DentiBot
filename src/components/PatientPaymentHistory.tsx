@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { DollarSign, Clock, CheckCircle, XCircle, ExternalLink } from 'lucide-react';
+import { DollarSign, Clock, CheckCircle, XCircle, ExternalLink, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
 
 interface PaymentRequest {
   id: string;
@@ -21,6 +22,8 @@ interface PatientPaymentHistoryProps {
 export const PatientPaymentHistory: React.FC<PatientPaymentHistoryProps> = ({ patientId }) => {
   const [paymentRequests, setPaymentRequests] = useState<PaymentRequest[]>([]);
   const [loading, setLoading] = useState(true);
+  const [processingPayment, setProcessingPayment] = useState<string | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchPaymentHistory();
@@ -79,6 +82,7 @@ export const PatientPaymentHistory: React.FC<PatientPaymentHistoryProps> = ({ pa
 
   const handlePayNow = async (paymentRequestId: string) => {
     try {
+      setProcessingPayment(paymentRequestId);
       console.log('Processing payment for request:', paymentRequestId);
       
       // Call the edge function to create a new payment session for existing request
@@ -98,12 +102,22 @@ export const PatientPaymentHistory: React.FC<PatientPaymentHistoryProps> = ({ pa
       if (data?.payment_url) {
         // Open payment URL in new tab
         window.open(data.payment_url, '_blank');
+        toast({
+          title: "Payment page opened",
+          description: "Complete your payment in the new window",
+        });
       } else {
         throw new Error('No payment URL received');
       }
     } catch (error) {
       console.error('Error processing payment:', error);
-      // You might want to show a toast notification here
+      toast({
+        title: "Payment error",
+        description: "Failed to process payment. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setProcessingPayment(null);
     }
   };
 
@@ -169,10 +183,20 @@ export const PatientPaymentHistory: React.FC<PatientPaymentHistoryProps> = ({ pa
                     <Button
                       size="lg"
                       onClick={() => handlePayNow(request.id)}
-                      className="bg-gradient-to-r from-dental-accent to-dental-accent/80 hover:from-dental-accent/90 hover:to-dental-accent/70 text-white font-semibold px-6 py-3 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                      disabled={processingPayment === request.id}
+                      className="bg-gradient-to-r from-dental-accent to-dental-accent/80 hover:from-dental-accent/90 hover:to-dental-accent/70 text-white font-semibold px-6 py-3 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100"
                     >
-                      <ExternalLink className="h-5 w-5 mr-2" />
-                      Pay Now
+                      {processingPayment === request.id ? (
+                        <>
+                          <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                          Processing...
+                        </>
+                      ) : (
+                        <>
+                          <ExternalLink className="h-5 w-5 mr-2" />
+                          Pay Now
+                        </>
+                      )}
                     </Button>
                   )}
                 </div>

@@ -38,7 +38,8 @@ import {
   Camera as CameraIcon,
   FileImage,
   AlertTriangle,
-  Info
+  Info,
+  Loader2
 } from "lucide-react";
 import { format, startOfDay } from "date-fns";
 
@@ -646,6 +647,17 @@ const PayNowWidget = ({
   onPay: () => void;
   onCancel: () => void;
 }) => {
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const handlePay = async () => {
+    setIsProcessing(true);
+    try {
+      await onPay();
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   return (
     <Card className="max-w-md mx-auto my-4 border-primary/20 shadow-lg">
       <CardHeader className="text-center">
@@ -671,11 +683,27 @@ const PayNowWidget = ({
         </div>
         
         <div className="flex gap-2">
-          <Button variant="outline" onClick={onCancel} className="flex-1">
+          <Button 
+            variant="outline" 
+            onClick={onCancel} 
+            className="flex-1"
+            disabled={isProcessing}
+          >
             Not Now
           </Button>
-          <Button onClick={onPay} className="flex-1 bg-green-600 hover:bg-green-700">
-            Pay Now
+          <Button 
+            onClick={handlePay} 
+            className="flex-1 bg-green-600 hover:bg-green-700 disabled:opacity-70"
+            disabled={isProcessing}
+          >
+            {isProcessing ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Processing...
+              </>
+            ) : (
+              'Pay Now'
+            )}
           </Button>
         </div>
       </CardContent>
