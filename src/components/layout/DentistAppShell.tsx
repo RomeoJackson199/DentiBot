@@ -200,16 +200,18 @@ export const DentistAppShell: React.FC<DentistAppShellProps> = ({
                   onClick={() => onChangeSection(mainItem.id)}
                   className={cn(
                     "flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-all relative touch-target",
-                    active ? "text-primary bg-primary/10" : "text-muted-foreground hover:text-foreground"
+                    active ? "text-primary bg-primary/15 font-semibold" : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
                   )}
+                  aria-current={active ? 'page' : undefined}
+                  aria-pressed={active}
                 >
                   <div className="relative">
-                    <Icon className={cn("h-5 w-5", active && "scale-110")} />
+                    <Icon className={cn("h-5 w-5 transition-transform", active && "scale-110")} />
                     {badgeCount > 0 && (
-                      <span className="absolute -top-1 -right-1 h-2 w-2 bg-red-500 rounded-full animate-pulse" />
+                      <span className="absolute -top-1 -right-1 h-2 w-2 bg-destructive rounded-full animate-pulse border border-background" />
                     )}
                   </div>
-                  <span className="text-xs mt-1">{group.label}</span>
+                  <span className={cn("text-xs mt-1", active && "font-semibold")}>{group.label}</span>
                 </button>
               );
             })}
@@ -290,22 +292,23 @@ export const DentistAppShell: React.FC<DentistAppShellProps> = ({
                             className={cn(
                               "w-full flex items-center px-3 py-3 rounded-xl transition-all relative group focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
                               active
-                                ? "bg-primary text-primary-foreground shadow-md scale-[1.02]"
-                                : "text-muted-foreground hover:text-foreground hover:bg-muted/50 hover:scale-[1.01]",
+                                ? "bg-primary text-primary-foreground shadow-lg font-semibold"
+                                : "text-muted-foreground hover:text-foreground hover:bg-accent/50",
                               collapsed ? "justify-center" : "gap-3"
                             )}
                             aria-current={active ? 'page' : undefined}
                             aria-label={item.label}
+                            aria-pressed={active}
                           >
                             <div className="relative shrink-0">
-                              <Icon className="h-5 w-5" />
+                              <Icon className={cn("h-5 w-5", active && "drop-shadow-sm")} />
                               {badgeCount > 0 && (
-                                <span className="absolute -top-1 -right-1 h-2.5 w-2.5 bg-red-500 rounded-full animate-pulse" />
+                                <span className="absolute -top-1 -right-1 h-2.5 w-2.5 bg-destructive rounded-full animate-pulse border border-background" />
                               )}
                             </div>
-                            {!collapsed && <span className="font-medium truncate">{item.label}</span>}
+                            {!collapsed && <span className="truncate">{item.label}</span>}
                             {!collapsed && badgeCount > 0 && (
-                              <span className="ml-auto bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                              <span className="ml-auto bg-destructive text-destructive-foreground text-xs rounded-full h-5 min-w-[1.25rem] px-1 flex items-center justify-center font-medium">
                                 {badgeCount}
                               </span>
                             )}

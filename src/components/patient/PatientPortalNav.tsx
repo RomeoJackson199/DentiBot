@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupAction, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuBadge, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarRail, SidebarSeparator, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
@@ -122,14 +122,8 @@ export function PatientPortalNav({ children }: { children: React.ReactNode }) {
     }
   }, [location.pathname, location.search]);
 
-  const isActive = (to: string) => {
-    const full = location.pathname + location.search + location.hash;
-    return full.startsWith(to);
-  };
-
-  const handleNav = (groupId: string, item: NavItem) => {
+  const handleNav = (groupId: string, item: NavItem, e: React.MouseEvent) => {
     try { localStorage.setItem(STORAGE_KEYS.lastVisited, item.to); } catch {}
-    navigate(item.to);
     try { emitAnalyticsEvent('pnav_click', '', { role: 'patient', group: groupId, item: item.id, path: item.to }); } catch {}
     if (isMobile) setMoreOpen(false);
   };
@@ -214,9 +208,17 @@ export function PatientPortalNav({ children }: { children: React.ReactNode }) {
                       <SidebarMenu>
                         {group.items.map((item) => (
                           <SidebarMenuItem key={item.id}>
-                            <SidebarMenuButton data-group-id={group.id} tooltip={item.label} isActive={isActive(item.to)} onClick={() => handleNav(group.id, item)} aria-label={item.label}>
-                              {item.icon}
-                              <span>{item.label}</span>
+                            <SidebarMenuButton asChild data-group-id={group.id} tooltip={item.label}>
+                              <NavLink
+                                to={item.to}
+                                end={item.to === '/care'}
+                                onClick={(e) => handleNav(group.id, item, e)}
+                                aria-label={item.label}
+                                className={({ isActive }) => cn(isActive && "bg-sidebar-accent text-sidebar-accent-foreground")}
+                              >
+                                {item.icon}
+                                <span>{item.label}</span>
+                              </NavLink>
                             </SidebarMenuButton>
                             {typeof item.badge !== 'undefined' && item.badge > 0 && (
                               <SidebarMenuBadge aria-label={`${item.label}, ${item.badge} pending`}>{item.badge}</SidebarMenuBadge>
@@ -245,33 +247,30 @@ export function PatientPortalNav({ children }: { children: React.ReactNode }) {
 
   // Mobile: bottom tabs with More opening full-height drawer showing same content
   if (isMobile) {
-    const homeActive = location.pathname === '/care';
-    const apptActive = location.pathname.startsWith('/care/appointments');
-    const billActive = location.pathname.startsWith('/billing');
     const haptic = () => { try { (navigator as any)?.vibrate?.(10); } catch {} };
     return (
       <div className="min-h-screen flex flex-col">
         <div className="flex-1">{children ?? <Outlet />}</div>
         <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur border-t">
           <div className="grid grid-cols-4">
-            <button className={cn("py-2 flex flex-col items-center", homeActive ? 'text-primary' : 'text-muted-foreground')} onClick={() => { haptic(); navigate('/care'); }} aria-label="Home">
+            <NavLink to="/care" end onClick={haptic} className={({ isActive }) => cn("py-2 flex flex-col items-center", isActive ? 'text-primary' : 'text-muted-foreground')} aria-label="Home">
               <Home className="h-5 w-5" />
               <span className="text-xs">{t.pnav.care.home}</span>
-            </button>
-            <button className={cn("py-2 flex flex-col items-center relative", apptActive ? 'text-primary' : 'text-muted-foreground')} onClick={() => { haptic(); navigate('/care/appointments'); }} aria-label="Appointments">
+            </NavLink>
+            <NavLink to="/care/appointments" onClick={haptic} className={({ isActive }) => cn("py-2 flex flex-col items-center relative", isActive ? 'text-primary' : 'text-muted-foreground')} aria-label="Appointments">
               <div className="relative">
                 <Calendar className="h-5 w-5" />
                 {counts.upcoming7d > 0 && <span className="absolute -top-1 -right-1 h-2.5 w-2.5 bg-red-500 rounded-full" />}
               </div>
               <span className="text-xs">{t.pnav.care.appointments}</span>
-            </button>
-            <button className={cn("py-2 flex flex-col items-center relative", billActive ? 'text-primary' : 'text-muted-foreground')} onClick={() => { haptic(); navigate('/billing'); }} aria-label="Billing">
+            </NavLink>
+            <NavLink to="/billing" onClick={haptic} className={({ isActive }) => cn("py-2 flex flex-col items-center relative", isActive ? 'text-primary' : 'text-muted-foreground')} aria-label="Billing">
               <div className="relative">
                 <CreditCard className="h-5 w-5" />
                 {counts.unpaid > 0 && <span className="absolute -top-1 -right-1 h-2.5 w-2.5 bg-red-500 rounded-full" />}
               </div>
               <span className="text-xs">{t.pnav.group.billing}</span>
-            </button>
+            </NavLink>
             <button className="py-2 flex flex-col items-center text-muted-foreground" onClick={() => { haptic(); setMoreOpen(true); }} aria-label="More">
               <MoreHorizontal className="h-5 w-5" />
               <span className="text-xs">More</span>
