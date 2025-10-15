@@ -270,7 +270,7 @@ export function useAppointments(params: UseAppointmentsParams): UseAppointmentsR
     } finally {
       setLoading(false);
     }
-  }, [params]);
+  }, [params.role, params.patientId, params.dentistId, params.status, params.fromDate, params.toDate]);
 
   const updateAppointment = async (id: string, updates: Partial<Appointment>) => {
     try {

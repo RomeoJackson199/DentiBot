@@ -27,11 +27,70 @@ import {
   CancelAppointmentWidget,
   PrescriptionRefillWidget
 } from "./InteractiveChatWidgets";
+import { AIChatOnboardingDialog } from "./AIChatOnboardingDialog";
+
+interface UserProfile {
+  id: string;
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+  phone?: string;
+  [key: string]: unknown;
+}
+
+interface DentistWithProfile {
+  id: string;
+  profiles: {
+    first_name: string;
+    last_name: string;
+  };
+}
+
+interface TimeSlot {
+  time: string;
+  available: boolean;
+}
+
+interface AppointmentData {
+  id?: string;
+  date?: Date;
+  time?: string;
+  dentist?: DentistWithProfile;
+  reason?: string;
+  [key: string]: unknown;
+}
+
+interface PrescriptionData {
+  id: string;
+  [key: string]: unknown;
+}
 
 interface InteractiveDentalChatProps {
   user: User | null;
   triggerBooking?: 'low' | 'medium' | 'high' | 'emergency' | false;
   onBookingTriggered?: () => void;
+}
+
+interface WidgetData {
+  dentists?: DentistWithProfile[];
+  recommendedDentists?: string[];
+  availableTimeSlots?: TimeSlot[];
+  slots?: TimeSlot[];
+  selectedDentist?: DentistWithProfile;
+  urgency?: number;
+  outstandingAmount?: number;
+  appointment?: AppointmentData;
+  prescriptions?: PrescriptionData[];
+  [key: string]: unknown;
+}
+
+interface BookingFlowState {
+  reason: string;
+  selectedDentist: DentistWithProfile | null;
+  selectedDate: Date | null;
+  selectedTime: string;
+  urgency: number;
+  step: string;
 }
 
 export const InteractiveDentalChat = ({ 
@@ -46,17 +105,18 @@ export const InteractiveDentalChat = ({
   const [hasConsented, setHasConsented] = useState(true);
   const [showConsentWidget, setShowConsentWidget] = useState(!user);
   const [activeWidget, setActiveWidget] = useState<string | null>(null);
-  const [widgetData, setWidgetData] = useState<any>({});
-  const [userProfile, setUserProfile] = useState<any>(null);
+  const [widgetData, setWidgetData] = useState<WidgetData>({});
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   
   // Booking flow state
-  const [bookingFlow, setBookingFlow] = useState({
+  const [bookingFlow, setBookingFlow] = useState<BookingFlowState>({
     reason: '',
     selectedDentist: null,
-    selectedDate: null as Date | null,
+    selectedDate: null,
     selectedTime: '',
     urgency: 1,
-    step: 'dentist' // dentist -> date -> time -> confirm
+    step: 'dentist'
   });
 
   const { t } = useLanguage();
@@ -74,6 +134,13 @@ export const InteractiveDentalChat = ({
       setShowConsentWidget(false);
       loadUserProfile();
       initializeChat();
+      
+      // Check if onboarding has been seen
+      const hasSeenOnboarding = localStorage.getItem('ai-chat-onboarding-seen');
+      if (!hasSeenOnboarding) {
+        // Show onboarding after a short delay
+        setTimeout(() => setShowOnboarding(true), 500);
+      }
     } else {
       setShowConsentWidget(true);
     }
@@ -1317,6 +1384,12 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
 
   return (
     <div className="flex flex-col h-full">
+      {/* AI Chat Onboarding Dialog */}
+      <AIChatOnboardingDialog 
+        isOpen={showOnboarding} 
+        onClose={() => setShowOnboarding(false)} 
+      />
+      
       <ScrollArea className="flex-1 p-4">
         <div className="space-y-4 max-w-4xl mx-auto">
           {messages.map((message) => (

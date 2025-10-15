@@ -119,7 +119,7 @@ export const useNotifications = (userId: string): UseNotificationsReturn => {
     return () => {
       NotificationService.unsubscribeFromNotifications(userId);
     };
-  }, [userId, unreadCount, debouncedSetUnreadCount]);
+  }, [userId, debouncedSetUnreadCount]);
 
   // Initial fetch
   useEffect(() => {
