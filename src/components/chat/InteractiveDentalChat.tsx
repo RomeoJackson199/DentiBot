@@ -620,32 +620,34 @@ Just type what you need! 😊
     addBotMessage("Loading available times... ⏳");
     
     try {
-      // Generate slots for the date
-      await supabase.rpc('generate_daily_slots', {
-        p_dentist_id: bookingFlow.selectedDentist.id,
-        p_date: date.toISOString().split('T')[0]
-      });
+      // Import the availability function
+      const { fetchDentistAvailability } = await import('@/lib/appointmentAvailability');
+      
+      // Get real availability data including appointments, vacation, and working hours
+      const availabilitySlots = await fetchDentistAvailability(
+        bookingFlow.selectedDentist.id,
+        date
+      );
 
-      const { data, error } = await supabase
-        .from('appointment_slots')
-        .select('slot_time, is_available, emergency_only')
-        .eq('dentist_id', bookingFlow.selectedDentist.id)
-        .eq('slot_date', date.toISOString().split('T')[0])
-        .order('slot_time');
-
-      if (error) throw error;
-
-       const slots = (data || []).map(slot => ({
-        time: slot.slot_time.substring(0, 5),
-        available: slot.is_available && (bookingFlow.urgency >= 4 ? true : !slot.emergency_only),
-        emergency_only: slot.emergency_only
+      // Map to the widget format
+      const slots = availabilitySlots.map(slot => ({
+        time: slot.time.substring(0, 5), // Format: "HH:mm"
+        available: slot.available && (bookingFlow.urgency >= 4 ? true : slot.reason !== 'emergency_only'),
+        reason: slot.reason
       }));
 
       setWidgetData({ slots });
       
       const availableCount = slots.filter(s => s.available).length;
+      
       if (availableCount === 0) {
-        addBotMessage(`No available slots for ${format(date, "EEEE, MMMM d")}. Please select a different date.`);
+        // Check if dentist is on vacation
+        const vacationSlot = slots.find(s => s.reason === 'vacation');
+        if (vacationSlot) {
+          addBotMessage(`⚠️ Dr. ${bookingFlow.selectedDentist.profiles?.first_name} is on vacation on ${format(date, "EEEE, MMMM d")}. Please select a different date.`);
+        } else {
+          addBotMessage(`No available slots for ${format(date, "EEEE, MMMM d")}. Please select a different date.`);
+        }
         setTimeout(() => setActiveWidget('calendar'), 1000);
       } else {
         setActiveWidget('time-slots');
@@ -1230,6 +1232,7 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
           <InlineCalendarWidget
             selectedDate={bookingFlow.selectedDate || undefined}
             onDateSelect={handleDateSelection}
+            dentistId={bookingFlow.selectedDentist?.id}
             dentistName={bookingFlow.selectedDentist ? 
               `Dr. ${bookingFlow.selectedDentist.profiles?.first_name} ${bookingFlow.selectedDentist.profiles?.last_name}` : 
               undefined

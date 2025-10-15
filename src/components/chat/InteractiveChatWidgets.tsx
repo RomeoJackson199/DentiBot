@@ -41,7 +41,7 @@ import {
   Info,
   Loader2
 } from "lucide-react";
-import { format, startOfDay } from "date-fns";
+import { format, startOfDay, isSameDay } from "date-fns";
 
 type Dentist = any;
 type Appointment = any;
@@ -80,19 +80,91 @@ const PrivacyConsentWidget = ({ onAccept, onDecline }: { onAccept: () => void; o
   );
 };
 
-// Inline Calendar Widget
+// Inline Calendar Widget with Vacation Detection
 const InlineCalendarWidget = ({ 
   selectedDate, 
   onDateSelect, 
-  dentistName 
+  dentistName,
+  dentistId
 }: { 
   selectedDate?: Date; 
   onDateSelect: (date: Date) => void;
   dentistName?: string;
+  dentistId?: string;
 }) => {
+  const [vacationDates, setVacationDates] = useState<Date[]>([]);
+  const [unavailableDays, setUnavailableDays] = useState<number[]>([]);
+
+  useEffect(() => {
+    if (dentistId) {
+      loadDentistAvailability();
+    }
+  }, [dentistId]);
+
+  const loadDentistAvailability = async () => {
+    if (!dentistId) return;
+
+    try {
+      // Fetch vacation days
+      const { data: vacations } = await supabase
+        .from('dentist_vacation_days')
+        .select('start_date, end_date')
+        .eq('dentist_id', dentistId)
+        .eq('is_approved', true)
+        .gte('end_date', format(new Date(), 'yyyy-MM-dd'));
+
+      if (vacations) {
+        const dates: Date[] = [];
+        vacations.forEach(vacation => {
+          const start = new Date(vacation.start_date);
+          const end = new Date(vacation.end_date);
+          for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+            dates.push(new Date(d));
+          }
+        });
+        setVacationDates(dates);
+      }
+
+      // Fetch unavailable days of week
+      const { data: availability } = await supabase
+        .from('dentist_availability')
+        .select('day_of_week, is_available')
+        .eq('dentist_id', dentistId);
+
+      if (availability) {
+        const unavailable = availability
+          .filter(a => !a.is_available)
+          .map(a => a.day_of_week);
+        setUnavailableDays(unavailable);
+      }
+    } catch (error) {
+      console.error('Error loading dentist availability:', error);
+    }
+  };
+
   const isDateDisabled = (date: Date) => {
     const today = startOfDay(new Date());
-    return date < today || date.getDay() === 0 || date.getDay() === 6;
+    
+    // Can't book in the past
+    if (date < today) return true;
+    
+    // Check if dentist doesn't work on this day of week
+    if (unavailableDays.includes(date.getDay())) return true;
+    
+    // Check if dentist is on vacation
+    const isOnVacation = vacationDates.some(vDate => 
+      isSameDay(vDate, date)
+    );
+    
+    return isOnVacation;
+  };
+
+  const getDateModifiers = (date: Date) => {
+    const isVacation = vacationDates.some(vDate => isSameDay(vDate, date));
+    if (isVacation) {
+      return { className: 'bg-red-100 text-red-500 line-through dark:bg-red-950 dark:text-red-400' };
+    }
+    return {};
   };
 
   return (
@@ -103,6 +175,16 @@ const InlineCalendarWidget = ({
         {dentistName && (
           <p className="text-sm text-muted-foreground">{dentistName}</p>
         )}
+        <div className="flex items-center justify-center gap-3 mt-2 text-xs">
+          <div className="flex items-center gap-1">
+            <div className="w-2 h-2 bg-primary rounded-full"></div>
+            <span>Available</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+            <span>Vacation</span>
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
         <Calendar
@@ -110,6 +192,12 @@ const InlineCalendarWidget = ({
           selected={selectedDate}
           onSelect={(date) => date && onDateSelect(date)}
           disabled={isDateDisabled}
+          modifiers={{
+            vacation: vacationDates
+          }}
+          modifiersClassNames={{
+            vacation: 'bg-red-100 text-red-600 line-through hover:bg-red-100 dark:bg-red-950 dark:text-red-400'
+          }}
           className="rounded-lg border mx-auto"
         />
       </CardContent>
@@ -117,44 +205,122 @@ const InlineCalendarWidget = ({
   );
 };
 
-// Time Slots Widget
+// Time Slots Widget with Visual Indicators
 const TimeSlotsWidget = ({ 
   slots, 
   selectedTime, 
   onTimeSelect, 
   loading = false 
 }: { 
-  slots: Array<{ time: string; available: boolean }>; 
+  slots: Array<{ time: string; available: boolean; reason?: string }>; 
   selectedTime?: string;
   onTimeSelect: (time: string) => void;
   loading?: boolean;
 }) => {
+  const formatTime = (time: string) => {
+    const [hours, minutes] = time.split(':').map(Number);
+    const period = hours >= 12 ? 'PM' : 'AM';
+    const displayHours = hours % 12 || 12;
+    return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
+  };
+
+  const getSlotStyle = (slot: { available: boolean; reason?: string }) => {
+    if (slot.available) {
+      return "bg-green-50 border-green-500 hover:bg-green-100 text-green-700 dark:bg-green-950 dark:border-green-700 dark:text-green-300";
+    }
+    
+    switch (slot.reason) {
+      case 'vacation':
+        return "bg-red-50 border-red-300 text-red-400 cursor-not-allowed dark:bg-red-950 dark:border-red-800";
+      case 'booked':
+        return "bg-gray-50 border-gray-300 text-gray-400 cursor-not-allowed dark:bg-gray-900 dark:border-gray-700";
+      case 'emergency_only':
+        return "bg-orange-50 border-orange-300 text-orange-400 cursor-not-allowed dark:bg-orange-950 dark:border-orange-800";
+      default:
+        return "bg-gray-50 border-gray-300 text-gray-400 cursor-not-allowed dark:bg-gray-900 dark:border-gray-700";
+    }
+  };
+
+  const getReasonLabel = (reason?: string) => {
+    switch (reason) {
+      case 'vacation':
+        return 'On Vacation';
+      case 'booked':
+        return 'Booked';
+      case 'emergency_only':
+        return 'Emergency Only';
+      case 'outside_hours':
+        return 'Closed';
+      default:
+        return 'Unavailable';
+    }
+  };
+
   return (
     <Card className="max-w-md mx-auto my-4 border-primary/20 shadow-lg">
       <CardHeader className="text-center">
         <Clock className="h-8 w-8 mx-auto text-primary mb-2" />
         <CardTitle className="text-lg">Available Times</CardTitle>
+        <div className="flex items-center justify-center gap-4 mt-3 text-xs">
+          <div className="flex items-center gap-1">
+            <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+            <span>Available</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-3 h-3 bg-gray-400 rounded-full"></div>
+            <span>Booked</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+            <span>Vacation</span>
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
         {loading ? (
           <div className="text-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-            <p className="text-sm text-muted-foreground mt-2">Loading times...</p>
+            <Loader2 className="animate-spin h-8 w-8 mx-auto text-primary" />
+            <p className="text-sm text-muted-foreground mt-2">Loading availability...</p>
+          </div>
+        ) : slots.length === 0 ? (
+          <div className="text-center py-8">
+            <AlertTriangle className="h-8 w-8 mx-auto text-orange-500 mb-2" />
+            <p className="text-sm text-muted-foreground">No available time slots</p>
           </div>
         ) : (
-          <div className="grid grid-cols-3 gap-2">
-            {slots.filter(slot => slot.available).map((slot) => (
-              <Button
-                key={slot.time}
-                variant={selectedTime === slot.time ? "default" : "outline"}
-                size="sm"
-                onClick={() => onTimeSelect(slot.time)}
-                className="text-sm"
-              >
-                {slot.time}
-              </Button>
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-3 gap-2 mb-4">
+              {slots.map((slot) => (
+                <Button
+                  key={slot.time}
+                  variant="outline"
+                  size="sm"
+                  disabled={!slot.available}
+                  onClick={() => slot.available && onTimeSelect(slot.time)}
+                  className={`text-xs relative ${
+                    selectedTime === slot.time 
+                      ? "ring-2 ring-primary" 
+                      : getSlotStyle(slot)
+                  }`}
+                  title={!slot.available ? getReasonLabel(slot.reason) : undefined}
+                >
+                  {formatTime(slot.time)}
+                  {!slot.available && (
+                    <X className="absolute top-0 right-0 h-3 w-3 text-red-500" />
+                  )}
+                </Button>
+              ))}
+            </div>
+            
+            {slots.filter(s => s.available).length === 0 && (
+              <div className="text-center py-4 bg-orange-50 dark:bg-orange-950/20 rounded-lg">
+                <Info className="h-5 w-5 mx-auto text-orange-600 dark:text-orange-400 mb-1" />
+                <p className="text-sm text-orange-700 dark:text-orange-300">
+                  No available slots for this date. Try another day.
+                </p>
+              </div>
+            )}
+          </>
         )}
       </CardContent>
     </Card>
