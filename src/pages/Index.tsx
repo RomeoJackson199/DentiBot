@@ -38,17 +38,13 @@ const Index = () => {
     toast
   } = useToast();
 
-  // Force English as default language (clear any French auto-detection)
+  // Ensure a default language preference is seeded without overriding user choice
   useEffect(() => {
     const savedLanguage = localStorage.getItem('preferred-language');
-    // If language is not English, reset to English
-    if (savedLanguage !== 'en') {
+
+    if (!savedLanguage) {
       localStorage.setItem('preferred-language', 'en');
       setLanguage('en');
-      // Force reload to apply language change
-      if (savedLanguage) {
-        window.location.reload();
-      }
     }
   }, [setLanguage]);
   useEffect(() => {
