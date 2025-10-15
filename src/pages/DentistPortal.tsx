@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { useToast } from "@/hooks/use-toast";
 import { DentistAppShell, DentistSection } from "@/components/layout/DentistAppShell";
+import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
+import { KeyboardShortcuts } from "@/components/layout/KeyboardShortcuts";
 
 // Import components
 import { ClinicalToday } from "@/components/ClinicalToday";
@@ -15,6 +17,7 @@ import { InventoryManager } from "@/components/inventory/InventoryManager";
 import DataImportManager from "@/components/DataImportManager";
 import DentistAdminBranding from "./DentistAdminBranding";
 import DentistAdminSecurity from "./DentistAdminSecurity";
+import DentistAdminUsers from "./DentistAdminUsers";
 import { ModernLoadingSpinner } from "@/components/enhanced/ModernLoadingSpinner";
 
 interface DentistPortalProps {
@@ -151,6 +154,8 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
         return <InventoryManager dentistId={dentistId} userId={user.id} />;
       case 'imports':
         return <DataImportManager />;
+      case 'users':
+        return <DentistAdminUsers />;
       case 'branding':
         return <DentistAdminBranding />;
       case 'security':
@@ -167,7 +172,13 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
       badges={badges}
       dentistId={dentistId}
     >
-      {renderContent()}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <Breadcrumbs />
+          <KeyboardShortcuts />
+        </div>
+        {renderContent()}
+      </div>
     </DentistAppShell>
   );
 }
