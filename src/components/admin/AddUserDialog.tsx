@@ -17,9 +17,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, UserPlus } from "lucide-react";
+import { Loader2, UserPlus, Shield } from "lucide-react";
+import { useUserRole } from "@/hooks/useUserRole";
 
 interface AddUserDialogProps {
   onUserAdded?: () => void;
@@ -31,8 +33,18 @@ export function AddUserDialog({ onUserAdded }: AddUserDialogProps) {
   const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [role, setRole] = useState<"patient" | "dentist">("patient");
+  const [role, setRole] = useState<"patient" | "dentist" | "staff" | "admin">("patient");
   const { toast } = useToast();
+  const { isAdmin, loading: roleLoading } = useUserRole();
+
+  // Security check - only admins can add users
+  if (roleLoading) {
+    return null;
+  }
+
+  if (!isAdmin) {
+    return null;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,7 +80,6 @@ export function AddUserDialog({ onUserAdded }: AddUserDialogProps) {
             email,
             first_name: firstName,
             last_name: lastName,
-            role: 'patient',
           })
           .select()
           .single();
@@ -131,17 +142,28 @@ export function AddUserDialog({ onUserAdded }: AddUserDialogProps) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button>
-          <UserPlus className="mr-2 h-4 w-4" />
+          <Shield className="mr-2 h-4 w-4" />
           Add User
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Add New User</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            <Shield className="h-5 w-5 text-primary" />
+            Add New User (Admin Only)
+          </DialogTitle>
           <DialogDescription>
-            Send an invitation to a new user to join the platform.
+            Send an invitation to a new user. They will receive an email with instructions to set up their account.
           </DialogDescription>
         </DialogHeader>
+
+        <Alert>
+          <Shield className="h-4 w-4" />
+          <AlertDescription>
+            This action is logged for security purposes. Only add users you have verified.
+          </AlertDescription>
+        </Alert>
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -190,6 +212,8 @@ export function AddUserDialog({ onUserAdded }: AddUserDialogProps) {
               <SelectContent>
                 <SelectItem value="patient">Patient</SelectItem>
                 <SelectItem value="dentist">Dentist</SelectItem>
+                <SelectItem value="staff">Staff</SelectItem>
+                <SelectItem value="admin">Admin (Full Access)</SelectItem>
               </SelectContent>
             </Select>
           </div>

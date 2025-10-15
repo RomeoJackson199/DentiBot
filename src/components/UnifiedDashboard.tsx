@@ -2,89 +2,53 @@ import React, { useState, useEffect, useCallback, memo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { useNavigate } from "react-router-dom";
-import { useToast } from "@/hooks/use-toast";
 import { PatientDashboard } from "./PatientDashboard";
 import { AiOptOutPrompt } from "./AiOptOutPrompt";
 import { ModernLoadingSpinner } from "@/components/enhanced/ModernLoadingSpinner";
+import { useUserRole } from "@/hooks/useUserRole";
 
 interface UnifiedDashboardProps {
   user: User;
 }
 
 export const UnifiedDashboard = memo(({ user }: UnifiedDashboardProps) => {
-  const [userRole, setUserRole] = useState<'patient' | 'dentist' | null>(null);
-  const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
+  const [shouldRedirect, setShouldRedirect] = useState(false);
   const navigate = useNavigate();
-
-  const fetchUserRole = useCallback(async () => {
-    try {
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('id, role')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (profileError) {
-        console.error('Profile fetch error:', profileError);
-        // Default to patient on error
-        setUserRole('patient');
-        setLoading(false);
-        return;
-      }
-
-      if (!profile) {
-        console.log('No profile found, defaulting to patient');
-        setUserRole('patient');
-        setLoading(false);
-        return;
-      }
-
-      console.log('User profile role:', profile.role);
-
-      if (profile.role === 'dentist') {
-        const { data: dentist, error: dentistError } = await supabase
-          .from('dentists')
-          .select('id, is_active')
-          .eq('profile_id', profile.id)
-          .maybeSingle();
-
-        console.log('Dentist record:', dentist, 'Error:', dentistError);
-
-        if (!dentistError && dentist?.is_active) {
-          setUserRole('dentist');
-          setLoading(false);
-          // Redirect dentists to new sidebar layout
-          navigate('/dentist/clinical/dashboard', { replace: true });
-          return;
-        } else {
-          // User has dentist role but no active dentist record - treat as patient
-          console.log('Dentist role but no active record, treating as patient');
-          setUserRole('patient');
-        }
-      } else {
-        // User is a patient
-        console.log('User is a patient');
-        setUserRole('patient');
-      }
-    } catch (error: unknown) {
-      console.error('Dashboard loading error:', error);
-      // Default to patient on any error
-      setUserRole('patient');
-      toast({
-        title: "Loading Dashboard", 
-        description: "Loading your patient dashboard...",
-      });
-    } finally {
-      setLoading(false);
-    }
-  }, [user.id, toast, navigate]);
+  const { isDentist, isAdmin, loading: roleLoading } = useUserRole();
 
   useEffect(() => {
-    fetchUserRole();
-  }, [fetchUserRole]);
+    const checkDentistRedirect = async () => {
+      if (roleLoading) return;
 
-  if (loading) {
+      // Dentists and admins should be redirected to dentist portal
+      if (isDentist || isAdmin) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (profile) {
+          const { data: dentistData } = await supabase
+            .from('dentists')
+            .select('is_active')
+            .eq('profile_id', profile.id)
+            .maybeSingle();
+
+          if (dentistData?.is_active || isAdmin) {
+            console.log('Active dentist/admin detected, redirecting to dentist portal');
+            setShouldRedirect(true);
+            navigate('/dentist/clinical/dashboard', { replace: true });
+            return;
+          }
+        }
+      }
+    };
+
+    checkDentistRedirect();
+  }, [user.id, navigate, isDentist, isAdmin, roleLoading]);
+
+  if (roleLoading || shouldRedirect) {
     return (
       <ModernLoadingSpinner 
         variant="overlay" 
@@ -95,9 +59,9 @@ export const UnifiedDashboard = memo(({ user }: UnifiedDashboardProps) => {
     );
   }
 
+  // Show patient dashboard for patients and those without dentist role
   return (
     <>
-      {/* Only show patient dashboard since dentists get redirected */}
       <PatientDashboard user={user} />
       <AiOptOutPrompt user={user} />
     </>
