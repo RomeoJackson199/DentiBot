@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Calendar, Plus } from "lucide-react";
+import { Calendar } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
@@ -24,16 +24,16 @@ export const FloatingBookingButton = ({
         </div>
       )}
       
-      {/* Pulse Ring */}
-      <div className="absolute inset-0 bg-primary rounded-full animate-ping opacity-20"></div>
+      {/* Pulse Ring - Blue accent */}
+      <div className="absolute inset-0 bg-blue-500 rounded-full animate-ping opacity-20"></div>
       
-      {/* Main Button */}
+      {/* Main Button - Distinct blue accent */}
       <Button
         onClick={onBookAppointment}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         size="icon"
-        className="touch-target bg-primary hover:bg-primary/90 text-primary-foreground shadow-elegant hover:shadow-glow hover:scale-105 active:scale-95 rounded-full h-14 w-14"
+        className="touch-target bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-blue-500/50 hover:scale-105 active:scale-95 rounded-full h-14 w-14"
         aria-label="Book appointment"
       >
         <Calendar className="h-6 w-6" />

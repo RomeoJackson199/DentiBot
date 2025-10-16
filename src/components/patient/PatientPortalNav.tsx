@@ -4,14 +4,16 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupActio
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useLanguage } from "@/hooks/useLanguage";
-import { Home, Calendar, Pill, FileText, CreditCard, Folder, User, IdCard, Shield, HelpCircle, ChevronDown, MoreHorizontal, PanelLeft, Settings as SettingsIcon, LogOut, Info } from "lucide-react";
+import { Home, Calendar, Pill, FileText, CreditCard, Folder, User, IdCard, Shield, HelpCircle, ChevronDown, MoreHorizontal, PanelLeft, LogOut, Info } from "lucide-react";
 import { usePatientBadgeCounts } from "@/hooks/usePatientBadges";
 import { cn } from "@/lib/utils";
 import { emitAnalyticsEvent } from "@/lib/analyticsEvents";
 import { supabase } from "@/integrations/supabase/client";
 import { LanguageSelector } from "@/components/LanguageSelector";
+import { FloatingBookingButton } from "./FloatingBookingButton";
 
 type NavItem = {
   id: string;
@@ -251,6 +253,10 @@ export function PatientPortalNav({ children }: { children: React.ReactNode }) {
     return (
       <div className="min-h-screen flex flex-col">
         <div className="flex-1">{children ?? <Outlet />}</div>
+        
+        {/* Floating Book Appointment Button */}
+        <FloatingBookingButton onBookAppointment={() => navigate('/book')} />
+        
         <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur border-t">
           <div className="grid grid-cols-4">
             <NavLink to="/care" end onClick={haptic} className={({ isActive }) => cn("py-2 flex flex-col items-center", isActive ? 'text-primary' : 'text-muted-foreground')} aria-label="Home">
@@ -281,7 +287,20 @@ export function PatientPortalNav({ children }: { children: React.ReactNode }) {
           <DrawerContent>
             <div className="max-h-[90vh] overflow-auto p-2">
               <SidebarProvider defaultOpen style={{ ['--sidebar-width' as any]: '17.5rem', ['--sidebar-width-icon' as any]: '4.5rem' }}>
-                <div className="md:hidden">{navContent}</div>
+                <div className="md:hidden">
+                  {navContent}
+                  {/* Sign out button in mobile drawer */}
+                  <div className="p-4 border-t mt-4">
+                    <Button 
+                      variant="outline" 
+                      className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
+                      onClick={handleSignOut}
+                    >
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Sign Out
+                    </Button>
+                  </div>
+                </div>
               </SidebarProvider>
             </div>
           </DrawerContent>
@@ -314,25 +333,39 @@ export function PatientPortalNav({ children }: { children: React.ReactNode }) {
               </Button>
             </div>
             <div className="flex items-center gap-2">
+              {/* Book Appointment Button - Desktop */}
+              <Button 
+                onClick={() => navigate('/book')}
+                className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
+                size="sm"
+              >
+                <Calendar className="h-4 w-4" />
+                <span className="hidden lg:inline">Book Appointment</span>
+              </Button>
+              
               <LanguageSelector />
+              
+              {/* Profile Dropdown */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="gap-2" aria-label="Open menu" title="Menu">
-                    <SettingsIcon className="h-4 w-4" />
-                    <span className="hidden sm:inline">Menu</span>
+                  <Button variant="outline" size="sm" className="gap-2" aria-label="Open profile menu" title="Profile">
+                    <Avatar className="h-5 w-5">
+                      <AvatarFallback className="text-xs">P</AvatarFallback>
+                    </Avatar>
+                    <span className="hidden sm:inline">Profile</span>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuContent align="end" className="w-56 bg-background">
                   <DropdownMenuItem onClick={() => navigate('/account/profile')} aria-label="Profile">
                     <User className="mr-2 h-4 w-4" />
-                    Profile
+                    My Profile
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate('/about')} aria-label="About">
                     <Info className="mr-2 h-4 w-4" />
                     About
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleSignOut} className="text-red-600" aria-label="Logout">
+                  <DropdownMenuItem onClick={handleSignOut} className="text-red-600 focus:text-red-600 focus:bg-red-50" aria-label="Sign out">
                     <LogOut className="mr-2 h-4 w-4" />
                     Sign Out
                   </DropdownMenuItem>
