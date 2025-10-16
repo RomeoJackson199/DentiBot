@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar, Clock, User as UserIcon, CheckCircle, TrendingUp, AlertCircle, Plus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
+import { NextAppointmentWidget } from "@/components/NextAppointmentWidget";
 
 interface ClinicalTodayProps {
 	user: User;
@@ -198,6 +199,9 @@ export function ClinicalToday({ user, dentistId, onOpenPatientsTab, onOpenAppoin
 					</CardContent>
 				</Card>
 			</div>
+
+			{/* Next Appointment Widget */}
+			<NextAppointmentWidget dentistId={dentistId} />
 
 			{/* Today's Schedule */}
 			<Card className="border-none shadow-sm">
