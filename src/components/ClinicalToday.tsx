@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
-import { UnifiedAppointments } from "@/components/UnifiedAppointments";
-import { NextAppointmentWidget } from "@/components/NextAppointmentWidget";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, Activity, TrendingUp, Users } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Calendar, Clock, User as UserIcon, CheckCircle, TrendingUp, AlertCircle, Plus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { format } from "date-fns";
+import { useNavigate } from "react-router-dom";
 
 interface ClinicalTodayProps {
 	user: User;
@@ -13,36 +14,60 @@ interface ClinicalTodayProps {
 	onOpenPatientsTab?: () => void;
 }
 
-export function ClinicalToday({ user, dentistId, onOpenPatientsTab }: ClinicalTodayProps) {
-	const today = new Date();
-	const todayStr = today.toLocaleDateString(undefined, { 
-		weekday: 'long', 
-		month: 'long', 
-		day: 'numeric', 
-		year: 'numeric' 
-	});
+interface TodayAppointment {
+	id: string;
+	appointment_date: string;
+	patient_name: string | null;
+	reason: string | null;
+	status: string;
+	urgency: string | null;
+	patient: {
+		first_name: string;
+		last_name: string;
+	} | null;
+}
 
+export function ClinicalToday({ user, dentistId, onOpenPatientsTab }: ClinicalTodayProps) {
+	const navigate = useNavigate();
+	const today = new Date();
 	const [stats, setStats] = useState({
 		todayCount: 0,
+		urgentCount: 0,
 		weekCompleted: 0,
-		monthRevenue: 0,
 		totalPatients: 0
 	});
+	const [todayAppointments, setTodayAppointments] = useState<TodayAppointment[]>([]);
+	const [loading, setLoading] = useState(true);
 
 	useEffect(() => {
-		const fetchStats = async () => {
+		const fetchDashboardData = async () => {
 			try {
-				// Today's appointments
 				const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
 				const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
 				
+				// Today's appointments with details
 				const { data: todayAppts } = await supabase
 					.from('appointments')
-					.select('id')
+					.select(`
+						id,
+						appointment_date,
+						patient_name,
+						reason,
+						status,
+						urgency,
+						patient:profiles!appointments_patient_id_fkey (
+							first_name,
+							last_name
+						)
+					`)
 					.eq('dentist_id', dentistId)
 					.gte('appointment_date', startOfDay.toISOString())
 					.lt('appointment_date', endOfDay.toISOString())
-					.neq('status', 'cancelled');
+					.neq('status', 'cancelled')
+					.order('appointment_date', { ascending: true });
+
+				// Count urgent cases
+				const urgentCount = todayAppts?.filter(a => a.urgency === 'high').length || 0;
 
 				// This week's completed
 				const startOfWeek = new Date(today);
@@ -65,97 +90,181 @@ export function ClinicalToday({ user, dentistId, onOpenPatientsTab }: ClinicalTo
 
 				setStats({
 					todayCount: todayAppts?.length || 0,
+					urgentCount,
 					weekCompleted: weekCompleted?.length || 0,
-					monthRevenue: 0, // Would need payment data
 					totalPatients: uniquePatients.size
 				});
+				setTodayAppointments(todayAppts || []);
 			} catch (error) {
-				console.error('Error fetching stats:', error);
+				console.error('Error fetching dashboard data:', error);
+			} finally {
+				setLoading(false);
 			}
 		};
 
-		fetchStats();
+		fetchDashboardData();
 	}, [dentistId]);
 
-	return (
-		<div className="space-y-6">
-			{/* Header */}
-			<div className="px-4 pt-4">
-				<h1 className="text-2xl font-bold">Clinical Dashboard</h1>
-				<p className="text-sm text-muted-foreground mt-1">{todayStr}</p>
-			</div>
+	const getPatientName = (appointment: TodayAppointment) => {
+		if (appointment.patient) {
+			return `${appointment.patient.first_name} ${appointment.patient.last_name}`;
+		}
+		return appointment.patient_name || 'Unknown Patient';
+	};
 
-			{/* Next Appointment Widget */}
-			<div className="px-4">
-				<NextAppointmentWidget dentistId={dentistId} />
+	const getStatusColor = (status: string) => {
+		switch (status) {
+			case 'completed': return 'bg-success/10 text-success border-success/20';
+			case 'confirmed': return 'bg-primary/10 text-primary border-primary/20';
+			case 'pending': return 'bg-warning/10 text-warning border-warning/20';
+			default: return 'bg-muted text-muted-foreground border-border';
+		}
+	};
+
+	if (loading) {
+		return (
+			<div className="flex items-center justify-center h-64">
+				<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+			</div>
+		);
+	}
+
+	return (
+		<div className="space-y-6 p-6">
+			{/* Welcome Header */}
+			<div className="space-y-1">
+				<h1 className="text-3xl font-bold tracking-tight">
+					Good {today.getHours() < 12 ? 'morning' : today.getHours() < 18 ? 'afternoon' : 'evening'}
+				</h1>
+				<p className="text-muted-foreground">
+					{format(today, 'EEEE, MMMM d, yyyy')}
+				</p>
 			</div>
 
 			{/* Quick Stats */}
-			<div className="px-4 grid grid-cols-2 lg:grid-cols-4 gap-4">
-				<Card className="glass-card">
-					<CardHeader className="pb-2">
-						<CardTitle className="text-sm font-medium flex items-center justify-between">
-							<span>Today's Appointments</span>
-							<Calendar className="h-4 w-4 text-dental-primary" />
-						</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<div className="text-2xl font-bold">{stats.todayCount}</div>
-						<p className="text-xs text-muted-foreground">Scheduled today</p>
+			<div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+				<Card className="border-none shadow-sm">
+					<CardContent className="pt-6">
+						<div className="flex items-center justify-between">
+							<div className="space-y-1">
+								<p className="text-sm font-medium text-muted-foreground">Today</p>
+								<p className="text-2xl font-bold">{stats.todayCount}</p>
+							</div>
+							<div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+								<Calendar className="h-6 w-6 text-primary" />
+							</div>
+						</div>
 					</CardContent>
 				</Card>
 
-				<Card className="glass-card">
-					<CardHeader className="pb-2">
-						<CardTitle className="text-sm font-medium flex items-center justify-between">
-							<span>Completed</span>
-							<Activity className="h-4 w-4 text-green-600" />
-						</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<div className="text-2xl font-bold">{stats.weekCompleted}</div>
-						<p className="text-xs text-muted-foreground">This week</p>
+				<Card className="border-none shadow-sm">
+					<CardContent className="pt-6">
+						<div className="flex items-center justify-between">
+							<div className="space-y-1">
+								<p className="text-sm font-medium text-muted-foreground">Urgent</p>
+								<p className="text-2xl font-bold">{stats.urgentCount}</p>
+							</div>
+							<div className="h-12 w-12 rounded-full bg-destructive/10 flex items-center justify-center">
+								<AlertCircle className="h-6 w-6 text-destructive" />
+							</div>
+						</div>
 					</CardContent>
 				</Card>
 
-				<Card className="glass-card">
-					<CardHeader className="pb-2">
-						<CardTitle className="text-sm font-medium flex items-center justify-between">
-							<span>Revenue</span>
-							<TrendingUp className="h-4 w-4 text-blue-600" />
-						</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<div className="text-2xl font-bold">${stats.monthRevenue}</div>
-						<p className="text-xs text-muted-foreground">This month</p>
+				<Card className="border-none shadow-sm">
+					<CardContent className="pt-6">
+						<div className="flex items-center justify-between">
+							<div className="space-y-1">
+								<p className="text-sm font-medium text-muted-foreground">Completed</p>
+								<p className="text-2xl font-bold">{stats.weekCompleted}</p>
+							</div>
+							<div className="h-12 w-12 rounded-full bg-success/10 flex items-center justify-center">
+								<CheckCircle className="h-6 w-6 text-success" />
+							</div>
+						</div>
 					</CardContent>
 				</Card>
 
-				<Card className="glass-card">
-					<CardHeader className="pb-2">
-						<CardTitle className="text-sm font-medium flex items-center justify-between">
-							<span>Active Patients</span>
-							<Users className="h-4 w-4 text-purple-600" />
-						</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<div className="text-2xl font-bold">{stats.totalPatients}</div>
-						<p className="text-xs text-muted-foreground">Total patients</p>
+				<Card className="border-none shadow-sm">
+					<CardContent className="pt-6">
+						<div className="flex items-center justify-between">
+							<div className="space-y-1">
+								<p className="text-sm font-medium text-muted-foreground">Patients</p>
+								<p className="text-2xl font-bold">{stats.totalPatients}</p>
+							</div>
+							<div className="h-12 w-12 rounded-full bg-accent/10 flex items-center justify-center">
+								<UserIcon className="h-6 w-6 text-accent-foreground" />
+							</div>
+						</div>
 					</CardContent>
 				</Card>
 			</div>
 
-			{/* Unified Appointments Component */}
-			<div className="px-4">
-				<UnifiedAppointments 
-					dentistId={dentistId}
-					onOpenPatientProfile={(patientId) => {
-						sessionStorage.setItem('requestedPatientId', patientId);
-						onOpenPatientsTab?.();
-					}}
-					viewMode="clinical"
-				/>
-			</div>
+			{/* Today's Schedule */}
+			<Card className="border-none shadow-sm">
+				<CardContent className="pt-6">
+					<div className="flex items-center justify-between mb-4">
+						<h2 className="text-lg font-semibold">Today's Schedule</h2>
+						<Button onClick={() => navigate('/dentist/clinical/appointments')} variant="ghost" size="sm">
+							<Plus className="h-4 w-4 mr-2" />
+							New Appointment
+						</Button>
+					</div>
+
+					{todayAppointments.length === 0 ? (
+						<div className="text-center py-12">
+							<Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-3 opacity-50" />
+							<p className="text-muted-foreground">No appointments scheduled for today</p>
+							<Button onClick={() => navigate('/dentist/clinical/appointments')} variant="outline" size="sm" className="mt-4">
+								View All Appointments
+							</Button>
+						</div>
+					) : (
+						<div className="space-y-3">
+							{todayAppointments.map((appointment) => (
+								<div
+									key={appointment.id}
+									className="flex items-center justify-between p-4 rounded-lg border bg-card hover:shadow-md transition-all cursor-pointer"
+									onClick={() => navigate('/dentist/clinical/appointments')}
+								>
+									<div className="flex items-center gap-4 flex-1">
+										<div className="flex flex-col items-center justify-center min-w-[60px]">
+											<Clock className="h-4 w-4 text-muted-foreground mb-1" />
+											<span className="text-sm font-medium">
+												{format(new Date(appointment.appointment_date), 'HH:mm')}
+											</span>
+										</div>
+										
+										<div className="flex-1 min-w-0">
+											<div className="flex items-center gap-2 mb-1">
+												<p className="font-medium truncate">{getPatientName(appointment)}</p>
+												{appointment.urgency === 'high' && (
+													<Badge variant="destructive" className="text-xs">Urgent</Badge>
+												)}
+											</div>
+											<p className="text-sm text-muted-foreground truncate">
+												{appointment.reason || 'No reason specified'}
+											</p>
+										</div>
+									</div>
+
+									<Badge variant="outline" className={getStatusColor(appointment.status)}>
+										{appointment.status}
+									</Badge>
+								</div>
+							))}
+							
+							<Button 
+								onClick={() => navigate('/dentist/clinical/appointments')} 
+								variant="outline" 
+								className="w-full mt-4"
+							>
+								View All Appointments
+							</Button>
+						</div>
+					)}
+				</CardContent>
+			</Card>
 		</div>
 	);
 }
