@@ -6,12 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Calendar, Clock, User as UserIcon, CheckCircle, TrendingUp, AlertCircle, Plus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
-import { useNavigate } from "react-router-dom";
 
 interface ClinicalTodayProps {
 	user: User;
 	dentistId: string;
 	onOpenPatientsTab?: () => void;
+	onOpenAppointmentsTab?: () => void;
 }
 
 interface TodayAppointment {
@@ -27,8 +27,7 @@ interface TodayAppointment {
 	} | null;
 }
 
-export function ClinicalToday({ user, dentistId, onOpenPatientsTab }: ClinicalTodayProps) {
-	const navigate = useNavigate();
+export function ClinicalToday({ user, dentistId, onOpenPatientsTab, onOpenAppointmentsTab }: ClinicalTodayProps) {
 	const today = new Date();
 	const [stats, setStats] = useState({
 		todayCount: 0,
@@ -205,7 +204,7 @@ export function ClinicalToday({ user, dentistId, onOpenPatientsTab }: ClinicalTo
 				<CardContent className="pt-6">
 					<div className="flex items-center justify-between mb-4">
 						<h2 className="text-lg font-semibold">Today's Schedule</h2>
-						<Button onClick={() => navigate('/dentist/clinical/appointments')} variant="ghost" size="sm">
+						<Button onClick={() => onOpenAppointmentsTab?.()} variant="ghost" size="sm">
 							<Plus className="h-4 w-4 mr-2" />
 							New Appointment
 						</Button>
@@ -215,7 +214,7 @@ export function ClinicalToday({ user, dentistId, onOpenPatientsTab }: ClinicalTo
 						<div className="text-center py-12">
 							<Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-3 opacity-50" />
 							<p className="text-muted-foreground">No appointments scheduled for today</p>
-							<Button onClick={() => navigate('/dentist/clinical/appointments')} variant="outline" size="sm" className="mt-4">
+							<Button onClick={() => onOpenAppointmentsTab?.()} variant="outline" size="sm" className="mt-4">
 								View All Appointments
 							</Button>
 						</div>
@@ -225,7 +224,7 @@ export function ClinicalToday({ user, dentistId, onOpenPatientsTab }: ClinicalTo
 								<div
 									key={appointment.id}
 									className="flex items-center justify-between p-4 rounded-lg border bg-card hover:shadow-md transition-all cursor-pointer"
-									onClick={() => navigate('/dentist/clinical/appointments')}
+									onClick={() => onOpenAppointmentsTab?.()}
 								>
 									<div className="flex items-center gap-4 flex-1">
 										<div className="flex flex-col items-center justify-center min-w-[60px]">
@@ -255,7 +254,7 @@ export function ClinicalToday({ user, dentistId, onOpenPatientsTab }: ClinicalTo
 							))}
 							
 							<Button 
-								onClick={() => navigate('/dentist/clinical/appointments')} 
+								onClick={() => onOpenAppointmentsTab?.()} 
 								variant="outline" 
 								className="w-full mt-4"
 							>

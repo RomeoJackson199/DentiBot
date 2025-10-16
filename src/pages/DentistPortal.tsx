@@ -19,6 +19,7 @@ import DentistAdminBranding from "./DentistAdminBranding";
 import DentistAdminSecurity from "./DentistAdminSecurity";
 import DentistAdminUsers from "./DentistAdminUsers";
 import { ModernLoadingSpinner } from "@/components/enhanced/ModernLoadingSpinner";
+import { UnifiedAppointments } from "@/components/UnifiedAppointments";
 
 interface DentistPortalProps {
   user?: User | null;
@@ -130,11 +131,22 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
   const renderContent = () => {
     switch (activeSection) {
       case 'clinical':
-        return <ClinicalToday dentistId={dentistId} user={user} onOpenPatientsTab={() => setActiveSection('patients')} />;
+        return <ClinicalToday dentistId={dentistId} user={user} onOpenPatientsTab={() => setActiveSection('patients')} onOpenAppointmentsTab={() => setActiveSection('appointments')} />;
       case 'patients':
         return <ModernPatientManagement dentistId={dentistId} />;
       case 'appointments':
-        return <div className="p-4">Appointments Management (Coming Soon)</div>;
+        return (
+          <div className="p-6">
+            <UnifiedAppointments 
+              dentistId={dentistId}
+              onOpenPatientProfile={(patientId) => {
+                sessionStorage.setItem('requestedPatientId', patientId);
+                setActiveSection('patients');
+              }}
+              viewMode="clinical"
+            />
+          </div>
+        );
       case 'schedule':
         return <EnhancedAvailabilitySettings dentistId={dentistId} />;
       case 'payments':
