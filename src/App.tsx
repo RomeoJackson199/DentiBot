@@ -60,49 +60,13 @@ const PatientAccountHelpPage = lazy(() => import("./pages/PatientAccountHelpPage
 const Dashboard = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [checkingRole, setCheckingRole] = useState(false);
 
   useEffect(() => {
-    const checkUserRole = async (currentUser: User) => {
-      // Only check role if we're on dashboard route and not already on dentist route
-      if (!window.location.pathname.startsWith('/dentist') && window.location.pathname === '/dashboard') {
-        setCheckingRole(true);
-        try {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('id, role')
-            .eq('user_id', currentUser.id)
-            .maybeSingle();
-
-          if (profile?.role === 'dentist') {
-            const { data: dentist } = await supabase
-              .from('dentists')
-              .select('id, is_active')
-              .eq('profile_id', profile.id)
-              .maybeSingle();
-
-            if (dentist?.is_active) {
-              window.location.href = '/dentist/clinical/dashboard';
-              return;
-            }
-          }
-        } catch (error) {
-          console.error('Error checking role:', error);
-        }
-        setCheckingRole(false);
-      } else {
-        setCheckingRole(false);
-      }
-    };
-
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       const currentUser = session?.user ?? null;
       setUser(currentUser);
       setLoading(false);
-      if (currentUser) {
-        checkUserRole(currentUser);
-      }
     });
 
     // Check for existing session
@@ -110,9 +74,6 @@ const Dashboard = () => {
       const currentUser = session?.user ?? null;
       setUser(currentUser);
       setLoading(false);
-      if (currentUser) {
-        checkUserRole(currentUser);
-      }
     }).catch(error => {
       console.error('Error getting session:', error);
       setLoading(false);
@@ -121,7 +82,7 @@ const Dashboard = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-  if (loading || checkingRole) {
+  if (loading) {
     return <ModernLoadingSpinner variant="overlay" message="Loading dashboard..." />;
   }
 

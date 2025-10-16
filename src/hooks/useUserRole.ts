@@ -21,7 +21,7 @@ export function useUserRole() {
         }
 
         const { data, error: roleError } = await supabase
-          .from('user_roles' as any)
+          .from('user_roles')
           .select('role')
           .eq('user_id', user.id);
 

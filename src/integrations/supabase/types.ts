@@ -2830,6 +2830,27 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: Database["public"]["Enums"]["user_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["user_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       vendor_registry: {
         Row: {
           contact_email: string | null
@@ -3022,6 +3043,13 @@ export type Database = {
           urgency: Database["public"]["Enums"]["urgency_level"]
         }[]
       }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["user_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       is_current_user_dentist_owner: {
         Args: { p_dentist_id: string }
         Returns: boolean
@@ -3153,7 +3181,7 @@ export type Database = {
         | "cancelled"
         | "expired"
       urgency_level: "low" | "medium" | "high" | "emergency"
-      user_role: "patient" | "dentist" | "admin"
+      user_role: "patient" | "dentist" | "admin" | "staff"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -3355,7 +3383,7 @@ export const Constants = {
         "expired",
       ],
       urgency_level: ["low", "medium", "high", "emergency"],
-      user_role: ["patient", "dentist", "admin"],
+      user_role: ["patient", "dentist", "admin", "staff"],
     },
   },
 } as const
