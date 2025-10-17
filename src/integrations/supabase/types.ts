@@ -129,6 +129,7 @@ export type Database = {
           id: string
           is_for_user: boolean | null
           notes: string | null
+          organization_id: string | null
           patient_age: number | null
           patient_id: string
           patient_name: string | null
@@ -152,6 +153,7 @@ export type Database = {
           id?: string
           is_for_user?: boolean | null
           notes?: string | null
+          organization_id?: string | null
           patient_age?: number | null
           patient_id: string
           patient_name?: string | null
@@ -175,6 +177,7 @@ export type Database = {
           id?: string
           is_for_user?: boolean | null
           notes?: string | null
+          organization_id?: string | null
           patient_age?: number | null
           patient_id?: string
           patient_name?: string | null
@@ -194,6 +197,13 @@ export type Database = {
             columns: ["dentist_id"]
             isOneToOne: false
             referencedRelation: "dentists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
           {
@@ -429,62 +439,6 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
-      }
-      clinic_settings: {
-        Row: {
-          business_hours_end: string
-          business_hours_start: string
-          clinic_name: string | null
-          created_at: string
-          currency: string
-          dentist_id: string
-          id: string
-          language: string
-          logo_url: string | null
-          primary_color: string | null
-          secondary_color: string | null
-          timezone: string
-          updated_at: string
-        }
-        Insert: {
-          business_hours_end?: string
-          business_hours_start?: string
-          clinic_name?: string | null
-          created_at?: string
-          currency?: string
-          dentist_id: string
-          id?: string
-          language?: string
-          logo_url?: string | null
-          primary_color?: string | null
-          secondary_color?: string | null
-          timezone?: string
-          updated_at?: string
-        }
-        Update: {
-          business_hours_end?: string
-          business_hours_start?: string
-          clinic_name?: string | null
-          created_at?: string
-          currency?: string
-          dentist_id?: string
-          id?: string
-          language?: string
-          logo_url?: string | null
-          primary_color?: string | null
-          secondary_color?: string | null
-          timezone?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "clinic_settings_dentist_id_fkey"
-            columns: ["dentist_id"]
-            isOneToOne: true
-            referencedRelation: "dentists"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       communications: {
         Row: {
@@ -2158,6 +2112,174 @@ export type Database = {
           },
         ]
       }
+      organization_members: {
+        Row: {
+          created_at: string
+          id: string
+          invited_at: string
+          joined_at: string | null
+          organization_id: string
+          profile_id: string
+          role: Database["public"]["Enums"]["member_role"]
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          invited_at?: string
+          joined_at?: string | null
+          organization_id: string
+          profile_id: string
+          role?: Database["public"]["Enums"]["member_role"]
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          invited_at?: string
+          joined_at?: string | null
+          organization_id?: string
+          profile_id?: string
+          role?: Database["public"]["Enums"]["member_role"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_members_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "organization_members_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organization_settings: {
+        Row: {
+          business_hours_end: string
+          business_hours_start: string
+          business_name: string | null
+          clinic_name: string | null
+          created_at: string
+          currency: string
+          dentist_id: string
+          id: string
+          industry_type: Database["public"]["Enums"]["industry_type"] | null
+          language: string
+          logo_url: string | null
+          organization_id: string | null
+          primary_color: string | null
+          secondary_color: string | null
+          terminology: Json | null
+          timezone: string
+          updated_at: string
+        }
+        Insert: {
+          business_hours_end?: string
+          business_hours_start?: string
+          business_name?: string | null
+          clinic_name?: string | null
+          created_at?: string
+          currency?: string
+          dentist_id: string
+          id?: string
+          industry_type?: Database["public"]["Enums"]["industry_type"] | null
+          language?: string
+          logo_url?: string | null
+          organization_id?: string | null
+          primary_color?: string | null
+          secondary_color?: string | null
+          terminology?: Json | null
+          timezone?: string
+          updated_at?: string
+        }
+        Update: {
+          business_hours_end?: string
+          business_hours_start?: string
+          business_name?: string | null
+          clinic_name?: string | null
+          created_at?: string
+          currency?: string
+          dentist_id?: string
+          id?: string
+          industry_type?: Database["public"]["Enums"]["industry_type"] | null
+          language?: string
+          logo_url?: string | null
+          organization_id?: string | null
+          primary_color?: string | null
+          secondary_color?: string | null
+          terminology?: Json | null
+          timezone?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clinic_settings_dentist_id_fkey"
+            columns: ["dentist_id"]
+            isOneToOne: true
+            referencedRelation: "dentists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "organization_settings_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organizations: {
+        Row: {
+          created_at: string
+          demo_data_generated: boolean
+          demo_expires_at: string | null
+          id: string
+          industry_type: Database["public"]["Enums"]["industry_type"]
+          is_demo: boolean
+          name: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          subscription_status: Database["public"]["Enums"]["subscription_status"]
+          subscription_tier: Database["public"]["Enums"]["subscription_tier"]
+          trial_ends_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          demo_data_generated?: boolean
+          demo_expires_at?: string | null
+          id?: string
+          industry_type?: Database["public"]["Enums"]["industry_type"]
+          is_demo?: boolean
+          name: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          subscription_status?: Database["public"]["Enums"]["subscription_status"]
+          subscription_tier?: Database["public"]["Enums"]["subscription_tier"]
+          trial_ends_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          demo_data_generated?: boolean
+          demo_expires_at?: string | null
+          id?: string
+          industry_type?: Database["public"]["Enums"]["industry_type"]
+          is_demo?: boolean
+          name?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          subscription_status?: Database["public"]["Enums"]["subscription_status"]
+          subscription_tier?: Database["public"]["Enums"]["subscription_tier"]
+          trial_ends_at?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       patient_documents: {
         Row: {
           created_at: string
@@ -2300,6 +2422,7 @@ export type Database = {
           dentist_id: string
           id: string
           notes: string | null
+          organization_id: string | null
           patient_id: string
           payment_date: string
           payment_method: string
@@ -2314,6 +2437,7 @@ export type Database = {
           dentist_id: string
           id?: string
           notes?: string | null
+          organization_id?: string | null
           patient_id: string
           payment_date?: string
           payment_method?: string
@@ -2328,6 +2452,7 @@ export type Database = {
           dentist_id?: string
           id?: string
           notes?: string | null
+          organization_id?: string | null
           patient_id?: string
           payment_date?: string
           payment_method?: string
@@ -2351,6 +2476,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "payment_records_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "payment_records_patient_id_fkey"
             columns: ["patient_id"]
             isOneToOne: false
@@ -2367,6 +2499,7 @@ export type Database = {
           dentist_id: string
           description: string
           id: string
+          organization_id: string | null
           paid_at: string | null
           patient_email: string
           patient_id: string
@@ -2381,6 +2514,7 @@ export type Database = {
           dentist_id: string
           description: string
           id?: string
+          organization_id?: string | null
           paid_at?: string | null
           patient_email: string
           patient_id: string
@@ -2395,6 +2529,7 @@ export type Database = {
           dentist_id?: string
           description?: string
           id?: string
+          organization_id?: string | null
           paid_at?: string | null
           patient_email?: string
           patient_id?: string
@@ -2402,7 +2537,15 @@ export type Database = {
           stripe_session_id?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "payment_requests_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       prescriptions: {
         Row: {
@@ -2470,6 +2613,7 @@ export type Database = {
           language_preference: string | null
           last_name: string
           medical_history: string | null
+          organization_id: string | null
           phone: string | null
           preferred_language: string | null
           profile_completion_status: string | null
@@ -2491,6 +2635,7 @@ export type Database = {
           language_preference?: string | null
           last_name: string
           medical_history?: string | null
+          organization_id?: string | null
           phone?: string | null
           preferred_language?: string | null
           profile_completion_status?: string | null
@@ -2512,6 +2657,7 @@ export type Database = {
           language_preference?: string | null
           last_name?: string
           medical_history?: string | null
+          organization_id?: string | null
           phone?: string | null
           preferred_language?: string | null
           profile_completion_status?: string | null
@@ -2525,6 +2671,13 @@ export type Database = {
             columns: ["import_session_id"]
             isOneToOne: false
             referencedRelation: "import_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -2682,6 +2835,60 @@ export type Database = {
           sent_at?: string | null
           status?: string | null
           twilio_sid?: string | null
+        }
+        Relationships: []
+      }
+      subscription_plans: {
+        Row: {
+          created_at: string
+          description: string | null
+          display_name: string
+          features: Json
+          id: string
+          is_active: boolean
+          limits: Json
+          name: string
+          price_monthly: number | null
+          price_yearly: number | null
+          sort_order: number
+          stripe_price_id_monthly: string | null
+          stripe_price_id_yearly: string | null
+          stripe_product_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          display_name: string
+          features?: Json
+          id?: string
+          is_active?: boolean
+          limits?: Json
+          name: string
+          price_monthly?: number | null
+          price_yearly?: number | null
+          sort_order?: number
+          stripe_price_id_monthly?: string | null
+          stripe_price_id_yearly?: string | null
+          stripe_product_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          display_name?: string
+          features?: Json
+          id?: string
+          is_active?: boolean
+          limits?: Json
+          name?: string
+          price_monthly?: number | null
+          price_yearly?: number | null
+          sort_order?: number
+          stripe_price_id_monthly?: string | null
+          stripe_price_id_yearly?: string | null
+          stripe_product_id?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -2951,6 +3158,10 @@ export type Database = {
         Args: { appointment_id: string; user_id: string }
         Returns: boolean
       }
+      check_booking_limit: {
+        Args: { org_id: string }
+        Returns: boolean
+      }
       create_invitation_token: {
         Args: {
           p_email: string
@@ -3043,6 +3254,12 @@ export type Database = {
           urgency: Database["public"]["Enums"]["urgency_level"]
         }[]
       }
+      get_user_organizations: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          organization_id: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["user_role"]
@@ -3056,6 +3273,14 @@ export type Database = {
       }
       is_dentist_for_patient: {
         Args: { patient_profile_id: string }
+        Returns: boolean
+      }
+      is_organization_admin: {
+        Args: { org_id: string }
+        Returns: boolean
+      }
+      is_organization_member: {
+        Args: { org_id: string }
         Returns: boolean
       }
       link_profile_to_user: {
@@ -3171,6 +3396,15 @@ export type Database = {
         | "restriction"
         | "portability"
         | "objection"
+      industry_type:
+        | "healthcare"
+        | "beauty"
+        | "fitness"
+        | "consulting"
+        | "education"
+        | "legal"
+        | "other"
+      member_role: "owner" | "admin" | "staff" | "viewer"
       pre_approval_status:
         | "draft"
         | "pending"
@@ -3180,6 +3414,19 @@ export type Database = {
         | "rejected"
         | "cancelled"
         | "expired"
+      subscription_status:
+        | "active"
+        | "inactive"
+        | "trial"
+        | "past_due"
+        | "canceled"
+        | "demo"
+      subscription_tier:
+        | "free_trial"
+        | "basic"
+        | "professional"
+        | "enterprise"
+        | "demo"
       urgency_level: "low" | "medium" | "high" | "emergency"
       user_role: "patient" | "dentist" | "admin" | "staff"
     }
@@ -3372,6 +3619,16 @@ export const Constants = {
         "portability",
         "objection",
       ],
+      industry_type: [
+        "healthcare",
+        "beauty",
+        "fitness",
+        "consulting",
+        "education",
+        "legal",
+        "other",
+      ],
+      member_role: ["owner", "admin", "staff", "viewer"],
       pre_approval_status: [
         "draft",
         "pending",
@@ -3381,6 +3638,21 @@ export const Constants = {
         "rejected",
         "cancelled",
         "expired",
+      ],
+      subscription_status: [
+        "active",
+        "inactive",
+        "trial",
+        "past_due",
+        "canceled",
+        "demo",
+      ],
+      subscription_tier: [
+        "free_trial",
+        "basic",
+        "professional",
+        "enterprise",
+        "demo",
       ],
       urgency_level: ["low", "medium", "high", "emergency"],
       user_role: ["patient", "dentist", "admin", "staff"],

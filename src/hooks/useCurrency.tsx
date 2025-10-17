@@ -33,7 +33,7 @@ export function useCurrency(dentistId?: string) {
 
     try {
       const { data, error } = await supabase
-        .from('clinic_settings')
+        .from('organization_settings')
         .select('currency')
         .eq('dentist_id', dentistId)
         .maybeSingle();
@@ -70,7 +70,7 @@ export function useCurrency(dentistId?: string) {
 
     try {
       const { error } = await supabase
-        .from('clinic_settings')
+        .from('organization_settings')
         .upsert({
           dentist_id: dentistId,
           currency: currency,
