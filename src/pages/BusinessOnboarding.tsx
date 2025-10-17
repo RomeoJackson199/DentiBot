@@ -63,34 +63,61 @@ export default function BusinessOnboarding() {
     setLoading(true);
 
     try {
-      // Create user account
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-        options: {
-          data: {
-            first_name: formData.firstName,
-            last_name: formData.lastName,
-            role: 'dentist'
-          }
+      // First check if user already exists
+      const { data: existingUser } = await supabase
+        .from('profiles')
+        .select('user_id, email')
+        .eq('email', formData.email)
+        .maybeSingle();
+
+      let userId: string;
+      
+      if (existingUser) {
+        // User exists, sign them in instead
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password,
+        });
+
+        if (signInError) {
+          throw new Error('This email is already registered. Please use the correct password or use a different email.');
         }
-      });
+        
+        if (!signInData.user) throw new Error('Failed to sign in');
+        userId = signInData.user.id;
+      } else {
+        // Create new user account
+        const { data: authData, error: authError } = await supabase.auth.signUp({
+          email: formData.email,
+          password: formData.password,
+          options: {
+            data: {
+              first_name: formData.firstName,
+              last_name: formData.lastName,
+              role: 'dentist'
+            }
+          }
+        });
 
-      if (authError) throw authError;
-      if (!authData.user) throw new Error('Failed to create user');
+        if (authError) throw authError;
+        if (!authData.user) {
+          throw new Error('Signup failed. The email may already be registered. Please try signing in instead.');
+        }
+        userId = authData.user.id;
 
-      // Wait a bit for profile to be created by trigger
-      await new Promise(resolve => setTimeout(resolve, 1500));
+        // Wait for profile to be created by trigger
+        await new Promise(resolve => setTimeout(resolve, 1500));
+      }
 
-      // Get the created profile
+      // Get the profile
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('id')
-        .eq('user_id', authData.user.id)
+        .eq('user_id', userId)
         .maybeSingle();
 
       if (profileError) throw profileError;
-      if (!profile) throw new Error('Profile was not created. Please try again.');
+      if (!profile) throw new Error('Profile not found. Please contact support.');
 
       // Update profile with phone
       if (formData.phone) {
