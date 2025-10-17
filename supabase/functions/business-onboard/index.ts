@@ -4,165 +4,173 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.53.0';
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS'
 };
 
-function jsonResponse(body: any, status = 200) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { 'Content-Type': 'application/json', ...corsHeaders },
-  });
-}
-
-function assertString(name: string, value: unknown, opts?: { min?: number; max?: number; pattern?: RegExp }) {
-  if (typeof value !== 'string') throw new Error(`${name} is required`);
-  const v = value.trim();
-  if (opts?.min && v.length < opts.min) throw new Error(`${name} is too short`);
-  if (opts?.max && v.length > opts.max) throw new Error(`${name} is too long`);
-  if (opts?.pattern && !opts.pattern.test(v)) throw new Error(`${name} has invalid characters`);
-  return v;
-}
-
 Deno.serve(async (req) => {
+  // Handle CORS preflight
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  if (req.method !== 'POST') {
-    return jsonResponse({ error: 'Method not allowed' }, 405);
+    return new Response(null, { 
+      status: 204,
+      headers: corsHeaders 
+    });
   }
 
   try {
-    const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
-    const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-    if (!SUPABASE_URL || !SERVICE_ROLE) {
-      return jsonResponse({ error: 'Missing server configuration' }, 500);
+    if (req.method !== 'POST') {
+      return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+        status: 405,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
-    const supabase = createClient(SUPABASE_URL, SERVICE_ROLE);
+    const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
+    const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    
+    if (!SUPABASE_URL || !SERVICE_ROLE) {
+      throw new Error('Server configuration error');
+    }
+
+    const supabase = createClient(SUPABASE_URL, SERVICE_ROLE, {
+      auth: { persistSession: false }
+    });
 
     const body = await req.json();
-    const email = assertString('email', body.email, { max: 255 });
-    const password = assertString('password', body.password, { min: 6, max: 256 });
-    const firstName = assertString('firstName', body.firstName, { max: 100 });
-    const lastName = assertString('lastName', body.lastName, { max: 100 });
-    const specialtyType = assertString('specialtyType', body.specialtyType, { max: 50 });
-    const businessSlug = assertString('businessSlug', body.businessSlug, { min: 3, max: 64, pattern: /^[a-z0-9-_.]+$/i });
-    const phone = typeof body.phone === 'string' ? body.phone.trim() : null;
-
-    // Optional template fields
+    
+    // Validate inputs
+    const email = String(body.email || '').trim().toLowerCase();
+    const password = String(body.password || '');
+    const firstName = String(body.firstName || '').trim();
+    const lastName = String(body.lastName || '').trim();
+    const specialtyType = String(body.specialtyType || '').trim();
+    const businessSlug = String(body.businessSlug || '').trim();
+    const phone = body.phone ? String(body.phone).trim() : null;
     const template = body.template || {};
 
-    // Check name availability (case-insensitive)
-    const { data: existingClinic, error: clinicCheckError } = await supabase
+    if (!email || !password || !firstName || !lastName || !specialtyType || !businessSlug) {
+      throw new Error('Missing required fields');
+    }
+
+    if (password.length < 6) {
+      throw new Error('Password must be at least 6 characters');
+    }
+
+    // Check business name availability
+    const { data: existingClinic } = await supabase
       .from('clinic_settings')
       .select('id')
       .ilike('clinic_name', businessSlug)
       .maybeSingle();
 
-    if (clinicCheckError) throw clinicCheckError;
     if (existingClinic) {
-      return jsonResponse({ error: 'BUSINESS_NAME_TAKEN' }, 409);
-    }
-
-    const normalizedEmail = email.toLowerCase();
-
-    // Get or create user (confirmed)
-    const { data: existingUserRes } = await supabase.auth.admin.getUserByEmail(normalizedEmail);
-
-    let userId: string;
-    if (existingUserRes?.user) {
-      userId = existingUserRes.user.id;
-    } else {
-      const { data: createdUser, error: createUserError } = await supabase.auth.admin.createUser({
-        email: normalizedEmail,
-        password,
-        email_confirm: true,
-        user_metadata: { first_name: firstName, last_name: lastName, role: 'dentist' }
+      return new Response(JSON.stringify({ error: 'BUSINESS_NAME_TAKEN' }), {
+        status: 409,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
-      if (createUserError || !createdUser?.user) {
-        throw createUserError || new Error('Failed to create user');
-      }
-      userId = createdUser.user.id;
     }
 
-    // Ensure profile exists
-    const { data: profile, error: profileErr } = await supabase
+    // Create user (email_confirm: true skips verification)
+    const { data: userData, error: userError } = await supabase.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
+      user_metadata: {
+        first_name: firstName,
+        last_name: lastName,
+        role: 'dentist'
+      }
+    });
+
+    if (userError || !userData?.user) {
+      console.error('User creation error:', userError);
+      throw new Error('Failed to create user account');
+    }
+
+    const userId = userData.user.id;
+
+    // Wait a bit for trigger to create profile
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    // Get or create profile
+    let { data: profile } = await supabase
       .from('profiles')
       .select('id')
       .eq('user_id', userId)
       .maybeSingle();
-    if (profileErr) throw profileErr;
 
-    let profileId: string;
     if (!profile) {
-      const { data: newProfile, error: insertProfileErr } = await supabase
+      const { data: newProfile, error: profileError } = await supabase
         .from('profiles')
         .insert({
           user_id: userId,
-          email: normalizedEmail,
+          email,
           first_name: firstName,
           last_name: lastName,
           role: 'dentist',
-          phone: phone || null
+          phone
         })
         .select('id')
-        .maybeSingle();
-      if (insertProfileErr || !newProfile) throw insertProfileErr || new Error('Failed to create profile');
-      profileId = newProfile.id;
-    } else {
-      profileId = profile.id;
-      if (phone) {
-        await supabase.from('profiles').update({ phone }).eq('id', profileId);
+        .single();
+
+      if (profileError) {
+        console.error('Profile creation error:', profileError);
+        throw new Error('Failed to create profile');
       }
+      profile = newProfile;
+    } else if (phone) {
+      await supabase.from('profiles').update({ phone }).eq('id', profile.id);
     }
 
-    // Ensure dentist exists
-    const { data: dentist, error: dentistErr } = await supabase
+    // Create dentist record
+    const { data: dentist, error: dentistError } = await supabase
       .from('dentists')
+      .insert({
+        profile_id: profile.id,
+        is_active: true
+      })
       .select('id')
-      .eq('profile_id', profileId)
-      .maybeSingle();
-    if (dentistErr) throw dentistErr;
+      .single();
 
-    let dentistId: string;
-    if (!dentist) {
-      const { data: newDentist, error: insertDentistErr } = await supabase
-        .from('dentists')
-        .insert({ profile_id: profileId, is_active: true })
-        .select('id')
-        .maybeSingle();
-      if (insertDentistErr || !newDentist) throw insertDentistErr || new Error('Failed to create dentist');
-      dentistId = newDentist.id;
-    } else {
-      dentistId = dentist.id;
+    if (dentistError) {
+      console.error('Dentist creation error:', dentistError);
+      throw new Error('Failed to create dentist record');
     }
 
     // Create clinic settings
-    const insertPayload: any = {
-      dentist_id: dentistId,
-      clinic_name: businessSlug,
-      specialty_type: specialtyType,
-    };
+    const { error: clinicError } = await supabase
+      .from('clinic_settings')
+      .insert({
+        dentist_id: dentist.id,
+        clinic_name: businessSlug,
+        specialty_type: specialtyType,
+        primary_color: template.primaryColor || '#0F3D91',
+        secondary_color: template.secondaryColor || '#66D2D6',
+        ai_instructions: template.aiInstructions,
+        ai_tone: template.aiTone,
+        welcome_message: template.welcomeMessage,
+        appointment_keywords: template.appointmentKeywords,
+        emergency_keywords: template.emergencyKeywords
+      });
 
-    // Apply template if provided
-    if (template) {
-      if (template.primaryColor) insertPayload.primary_color = template.primaryColor;
-      if (template.secondaryColor) insertPayload.secondary_color = template.secondaryColor;
-      if (template.aiInstructions) insertPayload.ai_instructions = template.aiInstructions;
-      if (template.aiTone) insertPayload.ai_tone = template.aiTone;
-      if (template.welcomeMessage) insertPayload.welcome_message = template.welcomeMessage;
-      if (template.appointmentKeywords) insertPayload.appointment_keywords = template.appointmentKeywords;
-      if (template.emergencyKeywords) insertPayload.emergency_keywords = template.emergencyKeywords;
+    if (clinicError) {
+      console.error('Clinic creation error:', clinicError);
+      throw new Error('Failed to create clinic settings');
     }
 
-    const { error: settingsError } = await supabase.from('clinic_settings').insert(insertPayload);
-    if (settingsError) throw settingsError;
+    return new Response(JSON.stringify({ success: true, userId }), {
+      status: 200,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
 
-    return jsonResponse({ ok: true, userId });
-  } catch (err: any) {
-    console.error('business-onboard error', err);
-    const message = typeof err?.message === 'string' ? err.message : 'Unexpected error';
-    return jsonResponse({ error: message }, 400);
+  } catch (error: any) {
+    console.error('business-onboard error:', error);
+    return new Response(
+      JSON.stringify({ 
+        error: error.message || 'An unexpected error occurred' 
+      }), 
+      {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      }
+    );
   }
 });
