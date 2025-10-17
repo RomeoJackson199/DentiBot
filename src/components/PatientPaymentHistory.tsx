@@ -47,6 +47,21 @@ export const PatientPaymentHistory: React.FC<PatientPaymentHistoryProps> = ({ pa
     }
   };
 
+  const formatPaymentTitle = (request: PaymentRequest) => {
+    // If description looks like an ID (e.g., "appointment-b4143..."), format it better
+    if (request.description.toLowerCase().includes('appointment') || 
+        request.description.match(/^[a-f0-9-]{8,}$/i)) {
+      const date = new Date(request.created_at);
+      const formattedDate = date.toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric', 
+        year: 'numeric' 
+      });
+      return `Dental Service – ${formattedDate}`;
+    }
+    return request.description;
+  };
+
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'paid':
@@ -164,7 +179,7 @@ export const PatientPaymentHistory: React.FC<PatientPaymentHistoryProps> = ({ pa
                     {getStatusIcon(request.status)}
                   </div>
                   <div>
-                    <h4 className="font-semibold text-dental-primary mb-1">{request.description}</h4>
+                    <h4 className="font-semibold text-dental-primary mb-1">{formatPaymentTitle(request)}</h4>
                     <p className="text-sm text-dental-text/70 mb-1">
                       Payment request from dentist
                     </p>
