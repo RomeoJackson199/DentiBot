@@ -47,3 +47,6 @@ verify_jwt = true
 
 [functions.verify-2fa-code]
 verify_jwt = true
+
+[functions.business-onboard]
+verify_jwt = false

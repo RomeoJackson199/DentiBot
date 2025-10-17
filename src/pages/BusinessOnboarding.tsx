@@ -63,130 +63,50 @@ export default function BusinessOnboarding() {
     setLoading(true);
 
     try {
-      // First check if user already exists
-      const { data: existingUser } = await supabase
-        .from('profiles')
-        .select('user_id, email')
-        .eq('email', formData.email)
-        .maybeSingle();
-
-      let userId: string;
-      
-      if (existingUser) {
-        // User exists, sign them in instead
-        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-          email: formData.email,
-          password: formData.password,
-        });
-
-        if (signInError) {
-          throw new Error('This email is already registered. Please use the correct password or use a different email.');
-        }
-        
-        if (!signInData.user) throw new Error('Failed to sign in');
-        userId = signInData.user.id;
-      } else {
-        // Create new user account
-        const { data: authData, error: authError } = await supabase.auth.signUp({
-          email: formData.email,
-          password: formData.password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/`,
-            data: {
-              first_name: formData.firstName,
-              last_name: formData.lastName,
-              role: 'dentist'
-            }
-          }
-        });
-
-        if (authError) throw authError;
-        if (!authData.user) {
-          throw new Error('Signup failed. The email may already be registered. Please try signing in instead.');
-        }
-        userId = authData.user.id;
-
-        // Wait for profile to be created by trigger
-        await new Promise(resolve => setTimeout(resolve, 1500));
-      }
-
-      // Get the profile
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('user_id', userId)
-        .maybeSingle();
-
-      if (profileError) throw profileError;
-      if (!profile) throw new Error('Please verify your email from the confirmation link, then return here and try again.');
-
-      // If not authenticated yet (email confirmation required), stop here with guidance
-      const { data: sessionData } = await supabase.auth.getSession();
-      if (!sessionData.session) {
-        toast.info('Please confirm your email to continue. Then return here and click Create again.');
-        return;
-      }
-
-      // Update profile with phone
-      if (formData.phone) {
-        await supabase
-          .from('profiles')
-          .update({ phone: formData.phone })
-          .eq('id', profile.id);
-      }
-      // Ensure dentist record exists
-      const { data: existingDentist, error: existingDentistError } = await supabase
-        .from('dentists')
-        .select('id')
-        .eq('profile_id', profile.id)
-        .maybeSingle();
-      if (existingDentistError) throw existingDentistError;
-
-      let dentistId: string;
-      if (existingDentist) {
-        dentistId = existingDentist.id;
-      } else {
-        const { data: dentist, error: dentistError } = await supabase
-          .from('dentists')
-          .insert({
-            profile_id: profile.id,
-            is_active: true
-          })
-          .select()
-          .maybeSingle();
-
-        if (dentistError) throw dentistError;
-        if (!dentist) throw new Error('Failed to create dentist record.');
-        dentistId = dentist.id;
-      }
-
-
-      // Get specialty template
       const template = getSpecialtyTemplate(formData.specialtyType);
 
-      // Create clinic settings with branding
-      const { error: settingsError } = await supabase
-        .from('clinic_settings')
-        .insert({
-          dentist_id: dentistId,
-          clinic_name: businessSlug,
-          specialty_type: formData.specialtyType,
-          primary_color: template.primaryColor,
-          secondary_color: template.secondaryColor,
-          ai_instructions: template.aiInstructions,
-          ai_tone: template.aiTone,
-          welcome_message: template.welcomeMessage,
-          appointment_keywords: template.appointmentKeywords,
-          emergency_keywords: template.emergencyKeywords
-        });
+      const { error } = await supabase.functions.invoke('business-onboard', {
+        body: {
+          email: formData.email,
+          password: formData.password,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          phone: formData.phone,
+          businessSlug,
+          specialtyType: formData.specialtyType,
+          template: {
+            primaryColor: template.primaryColor,
+            secondaryColor: template.secondaryColor,
+            aiInstructions: template.aiInstructions,
+            aiTone: template.aiTone,
+            welcomeMessage: template.welcomeMessage,
+            appointmentKeywords: template.appointmentKeywords,
+            emergencyKeywords: template.emergencyKeywords,
+          },
+        },
+      });
 
-      if (settingsError) throw settingsError;
+      if (error) {
+        const msg = (error as any)?.message || 'Failed to create practice';
+        throw new Error(msg);
+      }
+
+      // Sign in immediately (user is created confirmed by the function)
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: formData.password,
+      });
+      if (signInError) throw signInError;
 
       toast.success(`Welcome to your ${template.name} practice portal!`);
       navigate('/dentist/clinical/dashboard');
     } catch (error: any) {
       console.error('Onboarding error:', error);
-      toast.error(error.message || 'Failed to create account');
+      if (error?.message === 'BUSINESS_NAME_TAKEN') {
+        toast.error('This business name is already taken. Please choose another.');
+      } else {
+        toast.error(error.message || 'Failed to create account');
+      }
     } finally {
       setLoading(false);
     }
