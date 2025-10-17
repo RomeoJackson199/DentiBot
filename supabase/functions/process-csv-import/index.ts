@@ -295,7 +295,6 @@ serve(async (req) => {
                     console.error('Error sending invitation email:', emailError);
                   }
                 }
-              }
             } catch (tokenError) {
               console.error('Error creating invitation token:', tokenError);
             }

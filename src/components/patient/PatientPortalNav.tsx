@@ -46,24 +46,7 @@ function readSidebarCookie(): boolean {
   return true;
 }
 
-export function PatientPortalNav({ children }: { children?: React.ReactNode }) {
-  const [defaultOpen, setDefaultOpen] = useState(true);
-
-  useEffect(() => {
-    const cookieOpen = readSidebarCookie();
-    const w = window.innerWidth;
-    const computed = w >= 1024 ? true : w >= 768 ? false : false;
-    setDefaultOpen(typeof cookieOpen === 'boolean' ? cookieOpen : computed);
-  }, []);
-
-  return (
-    <SidebarProvider defaultOpen={defaultOpen} style={{ ['--sidebar-width' as any]: '17.5rem', ['--sidebar-width-icon' as any]: '4.5rem' }}>
-      <PatientPortalNavContent>{children}</PatientPortalNavContent>
-    </SidebarProvider>
-  );
-}
-
-function PatientPortalNavContent({ children }: { children?: React.ReactNode }) {
+export function PatientPortalNav({ children }: { children: React.ReactNode }) {
   const isMobile = useIsMobile();
   const { t } = useLanguage();
   const location = useLocation();
@@ -72,6 +55,7 @@ function PatientPortalNavContent({ children }: { children?: React.ReactNode }) {
   const { counts } = usePatientBadgeCounts();
   const [openGroupId, setOpenGroupId] = useState<string | null>(() => localStorage.getItem(STORAGE_KEYS.lastGroup));
   const [moreOpen, setMoreOpen] = useState(false);
+  const [defaultOpen, setDefaultOpen] = useState(true);
 
   const handleSignOut = async () => {
     try {
@@ -81,6 +65,13 @@ function PatientPortalNavContent({ children }: { children?: React.ReactNode }) {
       console.error('Failed to sign out', error);
     }
   };
+
+  useEffect(() => {
+    const cookieOpen = readSidebarCookie();
+    const w = window.innerWidth;
+    const computed = w >= 1024 ? true : w >= 768 ? false : false;
+    setDefaultOpen(typeof cookieOpen === 'boolean' ? cookieOpen : computed);
+  }, []);
 
   useEffect(() => {
     if (openGroupId) localStorage.setItem(STORAGE_KEYS.lastGroup, openGroupId);
@@ -320,70 +311,72 @@ function PatientPortalNavContent({ children }: { children?: React.ReactNode }) {
 
   // Desktop collapsible sidebar
   return (
-    <div className="flex">
-      <Sidebar collapsible="icon">
-        {navContent}
-      </Sidebar>
-      <div className="flex-1">
-        <div className="sticky top-0 z-40 bg-background/80 backdrop-blur border-b px-3 py-2 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <SidebarTrigger className="md:hidden" />
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={toggleSidebar}
-              className="hidden md:inline-flex gap-2"
-              aria-label={state === 'expanded' ? 'Collapse sidebar' : 'Expand sidebar'}
-              title={state === 'expanded' ? 'Collapse sidebar' : 'Expand sidebar'}
-            >
-              <PanelLeft className="h-4 w-4" />
-              <span>{state === 'expanded' ? 'Collapse' : 'Expand'}</span>
-            </Button>
+    <SidebarProvider defaultOpen={defaultOpen} style={{ ['--sidebar-width' as any]: '17.5rem', ['--sidebar-width-icon' as any]: '4.5rem' }}>
+      <div className="flex">
+        <Sidebar collapsible="icon">
+          {navContent}
+        </Sidebar>
+        <div className="flex-1">
+          <div className="sticky top-0 z-40 bg-background/80 backdrop-blur border-b px-3 py-2 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <SidebarTrigger className="md:hidden" />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={toggleSidebar}
+                className="hidden md:inline-flex gap-2"
+                aria-label={state === 'expanded' ? 'Collapse sidebar' : 'Expand sidebar'}
+                title={state === 'expanded' ? 'Collapse sidebar' : 'Expand sidebar'}
+              >
+                <PanelLeft className="h-4 w-4" />
+                <span>{state === 'expanded' ? 'Collapse' : 'Expand'}</span>
+              </Button>
+            </div>
+            <div className="flex items-center gap-6">
+              {/* Book Appointment Button - Desktop */}
+              <Button 
+                onClick={() => navigate('/book')}
+                className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
+                size="sm"
+              >
+                <Calendar className="h-4 w-4" />
+                <span className="hidden lg:inline">Book Appointment</span>
+              </Button>
+              
+              <LanguageSelector />
+              
+              {/* Profile Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="gap-2" aria-label="Open profile menu" title="Profile">
+                    <Avatar className="h-5 w-5">
+                      <AvatarFallback className="text-xs">P</AvatarFallback>
+                    </Avatar>
+                    <span className="hidden sm:inline">Profile</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56 bg-background">
+                  <DropdownMenuItem onClick={() => navigate('/account/profile')} aria-label="Profile">
+                    <User className="mr-2 h-4 w-4" />
+                    My Profile
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/about')} aria-label="About">
+                    <Info className="mr-2 h-4 w-4" />
+                    About
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut} className="text-red-600 focus:text-red-600 focus:bg-red-50" aria-label="Sign out">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
-          <div className="flex items-center gap-6">
-            {/* Book Appointment Button - Desktop */}
-            <Button 
-              onClick={() => navigate('/book')}
-              className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
-              size="sm"
-            >
-              <Calendar className="h-4 w-4" />
-              <span className="hidden lg:inline">Book Appointment</span>
-            </Button>
-            
-            <LanguageSelector />
-            
-            {/* Profile Dropdown */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-2" aria-label="Open profile menu" title="Profile">
-                  <Avatar className="h-5 w-5">
-                    <AvatarFallback className="text-xs">P</AvatarFallback>
-                  </Avatar>
-                  <span className="hidden sm:inline">Profile</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 bg-background">
-                <DropdownMenuItem onClick={() => navigate('/account/profile')} aria-label="Profile">
-                  <User className="mr-2 h-4 w-4" />
-                  My Profile
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate('/about')} aria-label="About">
-                  <Info className="mr-2 h-4 w-4" />
-                  About
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleSignOut} className="text-red-600 focus:text-red-600 focus:bg-red-50" aria-label="Sign out">
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Sign Out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+          <div className="p-3 md:p-4">{children ?? <Outlet />}</div>
         </div>
-        <div className="p-3 md:p-4">{children ?? <Outlet />}</div>
       </div>
-    </div>
+    </SidebarProvider>
   );
 }
 

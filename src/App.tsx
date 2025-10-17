@@ -20,7 +20,6 @@ import { ModernLoadingSpinner } from "@/components/enhanced/ModernLoadingSpinner
 import { AppShell } from "@/components/layout/AppShell";
 import { DentistPortal } from "@/pages/DentistPortal";
 import { PatientPortalNav } from "@/components/patient/PatientPortalNav";
-import { BrandingProvider } from "@/components/providers/BrandingProvider";
 
 const Invite = lazy(() => import("./pages/Invite"));
 const Login = lazy(() => import("./pages/Login"));
@@ -46,8 +45,6 @@ const LanguageTest = lazy(() => import("./components/LanguageTest").then(module 
 const About = lazy(() => import("./pages/About"));
 const Claim = lazy(() => import("./pages/Claim"));
 const PublicBooking = lazy(() => import("./pages/PublicBooking"));
-const BusinessOnboarding = lazy(() => import("./pages/BusinessOnboarding"));
-const PatientOnboarding = lazy(() => import("./pages/PatientOnboarding"));
 const PatientCareHome = lazy(() => import("./pages/PatientCareHome"));
 const PatientAppointmentsPage = lazy(() => import("./pages/PatientAppointmentsPage"));
 const PatientPrescriptionsPage = lazy(() => import("./pages/PatientPrescriptionsPage"));
@@ -134,7 +131,6 @@ const App = () => (
         disableTransitionOnChange={false}
       >
         <LanguageProvider>
-          <BrandingProvider>
             <AuthCallbackHandler />
             <TooltipProvider>
               <Sonner />
@@ -159,7 +155,7 @@ const App = () => (
                 {/* Dentist routes with tab-based navigation */}
                 <Route path="/dentist/*" element={<DentistPortal />} />
                 {/* Patient portal routes with patient nav */}
-                <Route element={<PatientPortalNav />}>
+                <Route element={<PatientPortalNav><></></PatientPortalNav>}>
                   <Route path="/care" element={<PatientCareHome />} />
                   <Route path="/care/appointments" element={<PatientAppointmentsPage />} />
                   <Route path="/care/prescriptions" element={<PatientPrescriptionsPage />} />
@@ -188,17 +184,12 @@ const App = () => (
                 <Route path="/chat" element={<Chat />} />
                 <Route path="/invite" element={<Invite />} />
                 <Route path="/claim" element={<Claim />} />
-                {/* Business onboarding */}
-                <Route path="/onboard/:businessSlug" element={<BusinessOnboarding />} />
-                {/* Patient landing page - must be before catch-all */}
-                <Route path="/:businessSlug" element={<PatientOnboarding />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
               </Suspense>
             </BrowserRouter>
           </TooltipProvider>
-          </BrandingProvider>
         </LanguageProvider>
       </ThemeProvider>
     </QueryClientProvider>

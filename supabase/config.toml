@@ -1,8 +1,5 @@
 project_id = "gjvxcisbaxhhblhsytar"
 
-[functions.public-clinic-info]
-verify_jwt = false
-
 [functions.google-calendar-integration]
 verify_jwt = false
 
@@ -50,6 +47,3 @@ verify_jwt = true
 
 [functions.verify-2fa-code]
 verify_jwt = true
-
-[functions.business-onboard]
-verify_jwt = false
