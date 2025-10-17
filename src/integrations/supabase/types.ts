@@ -2235,11 +2235,13 @@ export type Database = {
       organizations: {
         Row: {
           created_at: string
+          current_period_end: string | null
           demo_data_generated: boolean
           demo_expires_at: string | null
           id: string
           industry_type: Database["public"]["Enums"]["industry_type"]
           is_demo: boolean
+          last_payment_date: string | null
           name: string
           stripe_customer_id: string | null
           stripe_subscription_id: string | null
@@ -2250,11 +2252,13 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          current_period_end?: string | null
           demo_data_generated?: boolean
           demo_expires_at?: string | null
           id?: string
           industry_type?: Database["public"]["Enums"]["industry_type"]
           is_demo?: boolean
+          last_payment_date?: string | null
           name: string
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
@@ -2265,11 +2269,13 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          current_period_end?: string | null
           demo_data_generated?: boolean
           demo_expires_at?: string | null
           id?: string
           industry_type?: Database["public"]["Enums"]["industry_type"]
           is_demo?: boolean
+          last_payment_date?: string | null
           name?: string
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
