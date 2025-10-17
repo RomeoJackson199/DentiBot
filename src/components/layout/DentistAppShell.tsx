@@ -345,6 +345,17 @@ export const DentistAppShell: React.FC<DentistAppShellProps> = ({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48 mb-2">
+                <DropdownMenuLabel>Quick Links</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => window.location.href = '/organization/settings'}>
+                  <SettingsIcon className="mr-2 h-4 w-4" />
+                  Organization Settings
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => window.location.href = '/subscription'}>
+                  <Wallet className="mr-2 h-4 w-4" />
+                  Subscription
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut} className="text-red-600">
                   <LogOut className="mr-2 h-4 w-4" />
                   Sign Out

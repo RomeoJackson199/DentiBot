@@ -2173,6 +2173,7 @@ export type Database = {
           organization_id: string | null
           primary_color: string | null
           secondary_color: string | null
+          tagline: string | null
           terminology: Json | null
           timezone: string
           updated_at: string
@@ -2192,6 +2193,7 @@ export type Database = {
           organization_id?: string | null
           primary_color?: string | null
           secondary_color?: string | null
+          tagline?: string | null
           terminology?: Json | null
           timezone?: string
           updated_at?: string
@@ -2211,6 +2213,7 @@ export type Database = {
           organization_id?: string | null
           primary_color?: string | null
           secondary_color?: string | null
+          tagline?: string | null
           terminology?: Json | null
           timezone?: string
           updated_at?: string
