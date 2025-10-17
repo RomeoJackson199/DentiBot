@@ -20,6 +20,7 @@ import DentistAdminSecurity from "./DentistAdminSecurity";
 import DentistAdminUsers from "./DentistAdminUsers";
 import { ModernLoadingSpinner } from "@/components/enhanced/ModernLoadingSpinner";
 import { UnifiedAppointments } from "@/components/UnifiedAppointments";
+import { DemoModeBanner } from "@/components/demo/DemoModeBanner";
 
 interface DentistPortalProps {
   user?: User | null;
@@ -185,6 +186,7 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
       dentistId={dentistId}
     >
       <div className="space-y-4">
+        <DemoModeBanner />
         <div className="flex items-center justify-between">
           <Breadcrumbs />
           <KeyboardShortcuts />

@@ -47,3 +47,12 @@ verify_jwt = true
 
 [functions.verify-2fa-code]
 verify_jwt = true
+
+[functions.manage-subscription]
+verify_jwt = true
+
+[functions.stripe-webhook]
+verify_jwt = false
+
+[functions.create-demo-organization]
+verify_jwt = true

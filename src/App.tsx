@@ -56,6 +56,7 @@ const PatientAccountInsurancePage = lazy(() => import("./pages/PatientAccountIns
 const PatientAccountPrivacyPage = lazy(() => import("./pages/PatientAccountPrivacyPage"));
 const PatientAccountHelpPage = lazy(() => import("./pages/PatientAccountHelpPage"));
 const SubscriptionPage = lazy(() => import("./pages/SubscriptionPage"));
+const OnboardingPage = lazy(() => import("./pages/OnboardingPage"));
 
 // Dashboard component that handles authentication with lazy loading
 const Dashboard = () => {
@@ -186,6 +187,7 @@ const App = () => (
                 <Route path="/invite" element={<Invite />} />
                 <Route path="/claim" element={<Claim />} />
                 <Route path="/subscription" element={<SubscriptionPage />} />
+                <Route path="/onboarding" element={<OnboardingPage />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
