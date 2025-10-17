@@ -81,7 +81,7 @@ export const DentistManagement = ({ currentDentistId }: DentistManagementProps) 
       // Check if user already exists in the system
       const { data: existingProfile, error: profileError } = await supabase
         .from('profiles')
-        .select('id, first_name, last_name, role')
+        .select('id, first_name, last_name, role, user_id')
         .eq('email', newDentistEmail)
         .maybeSingle();
 
@@ -111,33 +111,114 @@ export const DentistManagement = ({ currentDentistId }: DentistManagementProps) 
           return;
         }
 
-        // Update existing profile to dentist role and create dentist entry
-        const { error: updateError } = await supabase
-          .from('profiles')
-          .update({ role: 'dentist' })
-          .eq('id', existingProfile.id);
+        // If they have a user_id, they're already signed up - just promote them
+        if (existingProfile.user_id) {
+          // Update existing profile to dentist role and create dentist entry
+          const { error: updateError } = await supabase
+            .from('profiles')
+            .update({ role: 'dentist' })
+            .eq('id', existingProfile.id);
 
-        if (updateError) throw updateError;
+          if (updateError) throw updateError;
 
-        const { error: createDentistError } = await supabase
-          .from('dentists')
-          .insert({
-            profile_id: existingProfile.id,
-            is_active: true
+          const { error: createDentistError } = await supabase
+            .from('dentists')
+            .insert({
+              profile_id: existingProfile.id,
+              is_active: true
+            });
+
+          if (createDentistError) throw createDentistError;
+
+          toast({
+            title: "Dentist Added Successfully",
+            description: `${existingProfile.first_name} ${existingProfile.last_name} (${newDentistEmail}) has been promoted to dentist`,
+          });
+        } else {
+          // Profile exists but no user_id - resend invitation
+          const { data: tokenData, error: tokenError } = await supabase.rpc(
+            'create_invitation_token_with_cleanup',
+            {
+              p_profile_id: existingProfile.id,
+              p_email: newDentistEmail,
+              p_expires_hours: 72,
+            }
+          );
+
+          if (tokenError) throw tokenError;
+
+          // Send invitation email
+          const { error: emailError } = await supabase.functions.invoke('send-import-invitations', {
+            body: {
+              invitations: [{
+                email: newDentistEmail,
+                token: tokenData,
+                firstName: existingProfile.first_name || '',
+                lastName: existingProfile.last_name || '',
+                role: 'dentist',
+              }],
+            },
           });
 
-        if (createDentistError) throw createDentistError;
+          if (emailError) throw emailError;
+
+          toast({
+            title: "Invitation Resent",
+            description: `A new invitation has been sent to ${newDentistEmail}`,
+          });
+        }
+      } else {
+        // User doesn't exist - create profile and send invitation
+        // Extract first and last name from email if not provided
+        const emailName = newDentistEmail.split('@')[0];
+        const nameParts = emailName.split('.');
+        const firstName = nameParts[0]?.charAt(0).toUpperCase() + nameParts[0]?.slice(1) || 'New';
+        const lastName = nameParts[1]?.charAt(0).toUpperCase() + nameParts[1]?.slice(1) || 'Dentist';
+
+        // Create profile
+        const { data: profileData, error: profileCreateError } = await supabase
+          .from('profiles')
+          .insert({
+            email: newDentistEmail,
+            first_name: firstName,
+            last_name: lastName,
+            role: 'dentist',
+          })
+          .select()
+          .single();
+
+        if (profileCreateError) throw profileCreateError;
+
+        // Create invitation token
+        const { data: tokenData, error: tokenError } = await supabase.rpc(
+          'create_invitation_token_with_cleanup',
+          {
+            p_profile_id: profileData.id,
+            p_email: newDentistEmail,
+            p_expires_hours: 72,
+          }
+        );
+
+        if (tokenError) throw tokenError;
+
+        // Send invitation email
+        const { error: emailError } = await supabase.functions.invoke('send-import-invitations', {
+          body: {
+            invitations: [{
+              email: newDentistEmail,
+              token: tokenData,
+              firstName,
+              lastName,
+              role: 'dentist',
+            }],
+          },
+        });
+
+        if (emailError) throw emailError;
 
         toast({
-          title: "Dentist Added Successfully",
-          description: `${existingProfile.first_name} ${existingProfile.last_name} (${newDentistEmail}) has been promoted to dentist`,
-        });
-      } else {
-        // User doesn't exist - they need to sign up first
-        toast({
-          title: "User Not Found",
-          description: `${newDentistEmail} needs to create an account first. Please ask them to sign up on the platform before adding them as a dentist.`,
-          variant: "destructive",
+          title: "Invitation Sent",
+          description: `An invitation has been sent to ${newDentistEmail}. They will receive an email with instructions to set up their account.`,
         });
       }
 
@@ -204,7 +285,7 @@ export const DentistManagement = ({ currentDentistId }: DentistManagementProps) 
               <div>
                 <h4 className="font-medium text-blue-900 dark:text-blue-100">How it works</h4>
                 <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
-                  Enter the email of someone who already has an account. They will be promoted to dentist status and gain access to the dentist dashboard.
+                  Enter the email address of the dentist you want to add. We'll send them an invitation email with instructions to set up their account and access the dentist dashboard.
                 </p>
               </div>
             </div>
@@ -244,13 +325,13 @@ export const DentistManagement = ({ currentDentistId }: DentistManagementProps) 
             </div>
           </div>
 
-          <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
+          <div className="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800 rounded-xl p-4">
             <div className="flex items-start space-x-3">
-              <User className="h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5" />
+              <UserPlus className="h-5 w-5 text-emerald-600 dark:text-emerald-400 mt-0.5" />
               <div>
-                <h4 className="font-medium text-amber-900 dark:text-amber-100">Important Note</h4>
-                <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
-                  The person must already have an account on the platform. If they don't have an account, ask them to sign up first at the main page.
+                <h4 className="font-medium text-emerald-900 dark:text-emerald-100">New User?</h4>
+                <p className="text-sm text-emerald-700 dark:text-emerald-300 mt-1">
+                  No problem! If they don't have an account yet, we'll create one and send them an invitation email. If they already have an account, they'll be promoted to dentist automatically.
                 </p>
               </div>
             </div>
