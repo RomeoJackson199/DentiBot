@@ -159,7 +159,7 @@ const App = () => (
                 {/* Dentist routes with tab-based navigation */}
                 <Route path="/dentist/*" element={<DentistPortal />} />
                 {/* Patient portal routes with patient nav */}
-                <Route element={<PatientPortalNav><></></PatientPortalNav>}>
+                <Route element={<PatientPortalNav />}>
                   <Route path="/care" element={<PatientCareHome />} />
                   <Route path="/care/appointments" element={<PatientAppointmentsPage />} />
                   <Route path="/care/prescriptions" element={<PatientPrescriptionsPage />} />
