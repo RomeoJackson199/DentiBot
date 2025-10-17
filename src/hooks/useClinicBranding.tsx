@@ -21,7 +21,7 @@ export function useClinicBranding(dentistId?: string | null) {
     const loadBranding = async () => {
       try {
         let query = supabase
-          .from('organization_settings')
+          .from('clinic_settings')
           .select('logo_url, clinic_name, primary_color, secondary_color, dentist_id');
 
         // If dentistId is provided, use it; otherwise get the first clinic
@@ -54,13 +54,13 @@ export function useClinicBranding(dentistId?: string | null) {
 
     // Subscribe to real-time updates
     const channel = supabase
-      .channel('organization_settings_changes')
+      .channel('clinic_settings_changes')
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
-          table: 'organization_settings',
+          table: 'clinic_settings',
           ...(dentistId && { filter: `dentist_id=eq.${dentistId}` }),
         },
         (payload) => {

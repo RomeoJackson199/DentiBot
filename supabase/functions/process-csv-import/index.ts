@@ -236,64 +236,67 @@ serve(async (req) => {
             console.log(`Profile created successfully:`, newProfile);
             
           // Generate invitation token for the new profile
-            const { data: tokenData, error: tokenError } = await supabase
-              .rpc('create_invitation_token_with_cleanup', {
-                p_profile_id: newProfile.id,
-                p_email: newProfile.email,
-                p_expires_hours: 72
-              });
+            try {
+              const { data: tokenData, error: tokenError } = await supabase
+                .rpc('create_invitation_token_with_cleanup', {
+                  p_profile_id: newProfile.id,
+                  p_email: newProfile.email,
+                  p_expires_hours: 72
+                });
 
-            if (tokenError) {
-              console.error('Failed to create invitation token:', tokenError);
-            } else {
-              console.log('Invitation token created:', tokenData);
-              
-              // Optionally send invitation email immediately if requested
-              if (sendEmails === true) {
-                try {
-                  const siteUrl = Deno.env.get('SITE_URL') || 'http://localhost:3000';
-                  const invitationLink = `${siteUrl}/invite?token=${tokenData}`;
+              if (tokenError) {
+                console.error('Failed to create invitation token:', tokenError);
+              } else {
+                console.log('Invitation token created:', tokenData);
+                
+                // Optionally send invitation email immediately if requested
+                if (sendEmails === true) {
+                  try {
+                    const siteUrl = Deno.env.get('SITE_URL') || 'http://localhost:3000';
+                    const invitationLink = `${siteUrl}/invite?token=${tokenData}`;
 
-                  const subject = 'Welcome to DentiBot — set your password';
-                  const message = `
+                    const subject = 'Welcome to DentiBot — set your password';
+                    const message = `
   <p>Hi ${newProfile.first_name || ''} ${newProfile.last_name || ''},</p>
   <p>Your profile has been created. Click below to set your password and claim your account.</p>
   <p><a href="${invitationLink}">Set up your password</a></p>
-  <p>If you didn't request this, you can ignore this email.</p>
+  <p>If you didn’t request this, you can ignore this email.</p>
 `;
 
-                  const authHeader = req.headers.get('authorization') || '';
-                  const functionUrl = `${supabaseUrl}/functions/v1/send-email-notification`;
-                  const emailPayload = {
-                    to: newProfile.email,
-                    subject,
-                    message,
-                    messageType: 'system',
-                    isSystemNotification: true,
-                    patientId: newProfile.id ?? null,
-                    dentistId: null
-                  };
+                    const authHeader = req.headers.get('authorization') || '';
+                    const functionUrl = `${supabaseUrl}/functions/v1/send-email-notification`;
+                    const emailPayload = {
+                      to: newProfile.email,
+                      subject,
+                      message,
+                      messageType: 'system',
+                      isSystemNotification: true,
+                      patientId: newProfile.id ?? null,
+                      dentistId: null
+                    };
 
-                  const emailResponse = await fetch(functionUrl, {
-                    method: 'POST',
-                    headers: {
-                      'Authorization': authHeader,
-                      'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(emailPayload)
-                  });
+                    const emailResponse = await fetch(functionUrl, {
+                      method: 'POST',
+                      headers: {
+                        'Authorization': authHeader,
+                        'Content-Type': 'application/json'
+                      },
+                      body: JSON.stringify(emailPayload)
+                    });
 
-                  if (!emailResponse.ok) {
-                    const errorText = await emailResponse.text().catch(() => '');
-                    console.error('Invitation email failed:', emailResponse.status, errorText);
-                  } else {
-                    const mailData = await emailResponse.json().catch(() => ({}));
-                    console.log('Invitation email sent:', mailData);
+                    if (!emailResponse.ok) {
+                      const errorText = await emailResponse.text().catch(() => '');
+                      console.error('Invitation email failed:', emailResponse.status, errorText);
+                    } else {
+                      const mailData = await emailResponse.json().catch(() => ({}));
+                      console.log('Invitation email sent:', mailData);
+                    }
+                  } catch (emailError) {
+                    console.error('Error sending invitation email:', emailError);
                   }
-                } catch (emailError) {
-                  console.error('Error sending invitation email:', emailError);
                 }
-              }
+            } catch (tokenError) {
+              console.error('Error creating invitation token:', tokenError);
             }
             
             successCount++;

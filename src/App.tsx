@@ -27,8 +27,6 @@ const Signup = lazy(() => import("./pages/Signup"));
 
 // Lazy load pages for better performance
 const Index = lazy(() => import("./pages/Index"));
-const MainLanding = lazy(() => import("./pages/MainLanding"));
-const BusinessLanding = lazy(() => import("./pages/BusinessLanding"));
 const DentistProfiles = lazy(() => import("./pages/DentistProfiles"));
 const Terms = lazy(() => import("./pages/Terms"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
@@ -57,10 +55,6 @@ const PatientAccountProfilePage = lazy(() => import("./pages/PatientAccountProfi
 const PatientAccountInsurancePage = lazy(() => import("./pages/PatientAccountInsurancePage"));
 const PatientAccountPrivacyPage = lazy(() => import("./pages/PatientAccountPrivacyPage"));
 const PatientAccountHelpPage = lazy(() => import("./pages/PatientAccountHelpPage"));
-const SubscriptionPage = lazy(() => import("./pages/SubscriptionPage"));
-const OnboardingPage = lazy(() => import("./pages/OnboardingPage"));
-const OrganizationSettingsPage = lazy(() => import("./pages/OrganizationSettingsPage"));
-const TeamManagementPage = lazy(() => import("./pages/TeamManagementPage"));
 
 // Dashboard component that handles authentication with lazy loading
 const Dashboard = () => {
@@ -146,8 +140,7 @@ const App = () => (
                 <SeoManager />
               <Suspense fallback={<ModernLoadingSpinner variant="overlay" message="Loading..." /> }>
               <Routes>
-                <Route path="/" element={<MainLanding />} />
-                <Route path="/home" element={<Index />} />
+                <Route path="/" element={<Index />} />
                 <Route path="/book" element={<PublicBooking />} />
                 {/* Old routes for backward compatibility */}
                 <Route element={<AppShell />}>
@@ -191,12 +184,6 @@ const App = () => (
                 <Route path="/chat" element={<Chat />} />
                 <Route path="/invite" element={<Invite />} />
                 <Route path="/claim" element={<Claim />} />
-                <Route path="/subscription" element={<SubscriptionPage />} />
-                <Route path="/onboarding" element={<OnboardingPage />} />
-                <Route path="/organization/settings" element={<OrganizationSettingsPage />} />
-                <Route path="/team" element={<TeamManagementPage />} />
-                {/* Business landing pages - MUST be last before 404 */}
-                <Route path="/:slug" element={<BusinessLanding />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

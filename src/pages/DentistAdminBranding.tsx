@@ -27,7 +27,7 @@ export default function DentistAdminBranding() {
   const loadBrandingSettings = async () => {
     try {
       const { data: settings, error } = await supabase
-        .from('organization_settings')
+        .from('clinic_settings')
         .select('*')
         .eq('dentist_id', dentistId)
         .maybeSingle();
@@ -115,7 +115,7 @@ export default function DentistAdminBranding() {
 
     try {
       const { error } = await supabase
-        .from('organization_settings')
+        .from('clinic_settings')
         .upsert({
           dentist_id: dentistId,
           clinic_name: clinicName,
