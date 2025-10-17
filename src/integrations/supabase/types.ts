@@ -3230,6 +3230,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_dentist_by_email: {
+        Args: { user_email: string }
+        Returns: string
+      }
       book_appointment_slot: {
         Args: {
           p_appointment_id: string
