@@ -12,12 +12,16 @@ serve(async (req) => {
   }
 
   try {
+    console.log('Create demo organization function invoked');
+    
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
     const { user_id, industry_type, business_name } = await req.json();
+    
+    console.log('Request data:', { user_id, industry_type, business_name });
 
     if (!user_id || !industry_type || !business_name) {
       throw new Error('Missing required fields');
@@ -102,7 +106,10 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Error creating demo organization:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ 
+      error: error.message,
+      details: error.toString()
+    }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 400,
     });
