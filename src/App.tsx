@@ -20,6 +20,7 @@ import { ModernLoadingSpinner } from "@/components/enhanced/ModernLoadingSpinner
 import { AppShell } from "@/components/layout/AppShell";
 import { DentistPortal } from "@/pages/DentistPortal";
 import { PatientPortalNav } from "@/components/patient/PatientPortalNav";
+import { BrandingProvider } from "@/components/providers/BrandingProvider";
 
 const Invite = lazy(() => import("./pages/Invite"));
 const Login = lazy(() => import("./pages/Login"));
@@ -131,6 +132,7 @@ const App = () => (
         disableTransitionOnChange={false}
       >
         <LanguageProvider>
+          <BrandingProvider>
             <AuthCallbackHandler />
             <TooltipProvider>
               <Sonner />
@@ -190,6 +192,7 @@ const App = () => (
               </Suspense>
             </BrowserRouter>
           </TooltipProvider>
+          </BrandingProvider>
         </LanguageProvider>
       </ThemeProvider>
     </QueryClientProvider>
