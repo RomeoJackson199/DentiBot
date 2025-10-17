@@ -33,19 +33,18 @@ export function useClinicBranding(dentistId?: string | null) {
 
   useEffect(() => {
     const loadBranding = async () => {
+      // Only load branding if dentistId is provided
+      if (!dentistId) {
+        setLoading(false);
+        return;
+      }
+
       try {
-        let query = supabase
+        const { data, error } = await supabase
           .from('clinic_settings')
-          .select('logo_url, clinic_name, tagline, primary_color, secondary_color, specialty_type, ai_instructions, ai_tone, ai_response_length, welcome_message, show_logo_in_chat, dentist_id');
-
-        // If dentistId is provided, use it; otherwise get the first clinic
-        if (dentistId) {
-          query = query.eq('dentist_id', dentistId);
-        } else {
-          query = query.limit(1);
-        }
-
-        const { data, error } = await query.maybeSingle();
+          .select('logo_url, clinic_name, tagline, primary_color, secondary_color, specialty_type, ai_instructions, ai_tone, ai_response_length, welcome_message, show_logo_in_chat, dentist_id')
+          .eq('dentist_id', dentistId)
+          .maybeSingle();
 
         if (error) throw error;
 
@@ -73,7 +72,11 @@ export function useClinicBranding(dentistId?: string | null) {
 
     loadBranding();
 
-    // Subscribe to real-time updates
+    // Only subscribe to real-time updates if dentistId is provided
+    if (!dentistId) {
+      return;
+    }
+
     const channel = supabase
       .channel('clinic_settings_changes')
       .on(
@@ -82,7 +85,7 @@ export function useClinicBranding(dentistId?: string | null) {
           event: '*',
           schema: 'public',
           table: 'clinic_settings',
-          ...(dentistId && { filter: `dentist_id=eq.${dentistId}` }),
+          filter: `dentist_id=eq.${dentistId}`,
         },
         (payload) => {
           if (payload.new) {

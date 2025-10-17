@@ -120,7 +120,7 @@ export default function BusinessOnboarding() {
       // Auto-redirect after delay
       setTimeout(() => {
         navigate('/dentist/clinical/dashboard');
-      }, 5000);
+      }, 1500);
 
     } catch (error: any) {
       console.error('Onboarding error:', error);

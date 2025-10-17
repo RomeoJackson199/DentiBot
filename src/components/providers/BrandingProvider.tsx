@@ -42,7 +42,8 @@ export function BrandingProvider({ children, dentistId }: BrandingProviderProps)
   const { branding, loading } = useClinicBranding(dentistId);
 
   useEffect(() => {
-    if (loading) return;
+    // Only apply branding if dentistId is provided (context-specific branding)
+    if (!dentistId || loading) return;
 
     const root = document.documentElement;
     
