@@ -119,7 +119,7 @@ export default function BusinessOnboarding() {
       
       // Auto-redirect after delay
       setTimeout(() => {
-        navigate(`/${businessSlug}/dentist/clinical/dashboard`);
+        navigate('/dentist/clinical/dashboard');
       }, 5000);
 
     } catch (error: any) {
