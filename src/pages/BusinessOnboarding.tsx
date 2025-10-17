@@ -1,77 +1,89 @@
-import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { toast } from 'sonner';
-import { ModernLoadingSpinner } from '@/components/enhanced/ModernLoadingSpinner';
-import { getSpecialtyList, getSpecialtyTemplate } from '@/lib/specialtyTemplates';
-import { useLanguage } from '@/hooks/useLanguage';
+import { useParams, useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { useState, useEffect } from "react";
+import { toast } from "sonner";
+import { Loader2, AlertCircle, CheckCircle, Copy, ExternalLink } from "lucide-react";
+import { businessOnboardingSchema } from "@/lib/validation";
+import { getSpecialtyList, getSpecialtyTemplate } from "@/lib/specialtyTemplates";
 
 export default function BusinessOnboarding() {
-  const { businessSlug } = useParams<{ businessSlug: string }>();
+  const { businessSlug } = useParams();
   const navigate = useNavigate();
-  const { t } = useLanguage();
   const [loading, setLoading] = useState(false);
-  const [checking, setChecking] = useState(true);
-  const [available, setAvailable] = useState(false);
+  const [checkingAvailability, setCheckingAvailability] = useState(true);
+  const [isAvailable, setIsAvailable] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    firstName: '',
-    lastName: '',
-    specialtyType: 'dentist',
-    phone: ''
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+    phone: "",
+    specialtyType: "dentist"
   });
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const specialtyList = getSpecialtyList();
+
+  const checkAvailability = async () => {
+    if (!businessSlug) return;
+    
+    setCheckingAvailability(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('public-clinic-info', {
+        body: { businessSlug }
+      });
+
+      if (error) throw error;
+      
+      setIsAvailable(!data?.exists);
+    } catch (error) {
+      console.error('Error checking availability:', error);
+      toast.error('Failed to check business name availability');
+    } finally {
+      setCheckingAvailability(false);
+    }
+  };
 
   useEffect(() => {
     checkAvailability();
   }, [businessSlug]);
 
-  const checkAvailability = async () => {
-    if (!businessSlug) {
-      setChecking(false);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Validate form
+    const validation = businessOnboardingSchema.safeParse(formData);
+    if (!validation.success) {
+      const fieldErrors: Record<string, string> = {};
+      validation.error.errors.forEach((err) => {
+        if (err.path[0]) {
+          fieldErrors[err.path[0] as string] = err.message;
+        }
+      });
+      setErrors(fieldErrors);
+      toast.error('Please fix the form errors');
       return;
     }
 
-    try {
-      // Check if clinic with this slug already exists
-      const { data, error } = await supabase
-        .from('clinic_settings')
-        .select('id')
-        .ilike('clinic_name', businessSlug)
-        .maybeSingle();
-
-      if (error) throw error;
-      
-      setAvailable(!data);
-    } catch (error) {
-      console.error('Error checking availability:', error);
-      toast.error('Error checking availability');
-    } finally {
-      setChecking(false);
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    setErrors({});
     setLoading(true);
 
     try {
       const template = getSpecialtyTemplate(formData.specialtyType);
 
-      const { error } = await supabase.functions.invoke('business-onboard', {
+      const { data, error } = await supabase.functions.invoke('business-onboard', {
         body: {
           email: formData.email,
           password: formData.password,
           firstName: formData.firstName,
           lastName: formData.lastName,
-          phone: formData.phone,
+          phone: formData.phone || null,
           businessSlug,
           specialtyType: formData.specialtyType,
           template: {
@@ -83,53 +95,93 @@ export default function BusinessOnboarding() {
             appointmentKeywords: template.appointmentKeywords,
             emergencyKeywords: template.emergencyKeywords,
           },
-        },
+        }
       });
 
       if (error) {
-        const msg = (error as any)?.message || 'Failed to create practice';
-        throw new Error(msg);
+        // Check for common errors and provide better messages
+        if (error.message?.includes('already exists') || error.message?.includes('duplicate')) {
+          throw new Error('This email already has an account. Please try signing in.');
+        }
+        throw error;
       }
 
-      // Sign in immediately (user is created confirmed by the function)
+      // Sign in the user
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email: formData.email,
         password: formData.password,
       });
+
       if (signInError) throw signInError;
 
-      toast.success(`Welcome to your ${template.name} practice portal!`);
-      navigate('/dentist/clinical/dashboard');
+      // Show success card
+      setShowSuccess(true);
+      
+      // Auto-redirect after delay
+      setTimeout(() => {
+        navigate(`/${businessSlug}/dentist/clinical/dashboard`);
+      }, 5000);
+
     } catch (error: any) {
       console.error('Onboarding error:', error);
-      if (error?.message === 'BUSINESS_NAME_TAKEN') {
-        toast.error('This business name is already taken. Please choose another.');
-      } else {
-        toast.error(error.message || 'Failed to create account');
-      }
+      toast.error(error.message || 'Failed to create business account');
     } finally {
       setLoading(false);
     }
   };
 
-  if (checking) {
-    return <ModernLoadingSpinner variant="overlay" message="Checking availability..." />;
+  const publicClinicUrl = `${window.location.origin}/${businessSlug}`;
+
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(publicClinicUrl);
+    toast.success('Link copied to clipboard!');
+  };
+
+  if (checkingAvailability) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5 flex items-center justify-center p-4">
+        <div className="flex items-center gap-3">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <span className="text-sm text-muted-foreground">Checking availability...</span>
+        </div>
+      </div>
+    );
   }
 
-  if (!available) {
+  if (showSuccess) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-primary/5 to-secondary/5">
-        <Card className="max-w-md w-full">
+      <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5 flex items-center justify-center p-4">
+        <Card className="w-full max-w-2xl">
           <CardHeader>
-            <CardTitle>Business Name Unavailable</CardTitle>
-            <CardDescription>
-              The business name "{businessSlug}" is already taken.
+            <div className="flex items-center justify-center mb-4">
+              <CheckCircle className="h-16 w-16 text-green-500" />
+            </div>
+            <CardTitle className="text-3xl text-center">Practice Created Successfully!</CardTitle>
+            <CardDescription className="text-center">
+              Your practice is now set up and ready to accept patients
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <Button onClick={() => navigate('/')} className="w-full">
-              Return Home
-            </Button>
+          <CardContent className="space-y-4">
+            <div className="bg-muted p-4 rounded-lg">
+              <Label className="text-sm font-medium mb-2 block">Your Public Clinic Link</Label>
+              <div className="flex items-center gap-2">
+                <Input value={publicClinicUrl} readOnly className="flex-1" />
+                <Button size="sm" variant="outline" onClick={copyToClipboard}>
+                  <Copy className="h-4 w-4" />
+                </Button>
+                <Button size="sm" onClick={() => window.open(publicClinicUrl, '_blank')}>
+                  <ExternalLink className="h-4 w-4 mr-1" />
+                  Open
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                Share this link with your patients so they can sign up and book appointments
+              </p>
+            </div>
+            
+            <p className="text-center text-sm text-muted-foreground">
+              Redirecting to your dashboard in a few seconds...
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -137,97 +189,132 @@ export default function BusinessOnboarding() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-primary/5 to-secondary/5">
-      <Card className="max-w-2xl w-full">
+    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5 flex items-center justify-center p-4">
+      <Card className="w-full max-w-2xl">
         <CardHeader>
-          <CardTitle className="text-3xl">Welcome to {businessSlug}!</CardTitle>
+          <CardTitle className="text-3xl">Create Your Practice</CardTitle>
           <CardDescription>
-            Set up your practice in minutes. Choose your specialty and we'll customize everything for you.
+            Set up your dental practice account for: <strong>{businessSlug}</strong>
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="firstName">First Name</Label>
-                <Input
-                  id="firstName"
-                  required
-                  value={formData.firstName}
-                  onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                />
+          {!isAvailable ? (
+            <div className="text-center py-8">
+              <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
+              <h3 className="text-xl font-semibold mb-2">Business Name Unavailable</h3>
+              <p className="text-muted-foreground">
+                The business name "{businessSlug}" is already taken. Please choose a different name.
+              </p>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="firstName">First Name *</Label>
+                  <Input
+                    id="firstName"
+                    value={formData.firstName}
+                    onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                    aria-invalid={!!errors.firstName}
+                  />
+                  {errors.firstName && (
+                    <p className="text-sm text-destructive">{errors.firstName}</p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="lastName">Last Name *</Label>
+                  <Input
+                    id="lastName"
+                    value={formData.lastName}
+                    onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                    aria-invalid={!!errors.lastName}
+                  />
+                  {errors.lastName && (
+                    <p className="text-sm text-destructive">{errors.lastName}</p>
+                  )}
+                </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="lastName">Last Name</Label>
+                <Label htmlFor="email">Email *</Label>
                 <Input
-                  id="lastName"
-                  required
-                  value={formData.lastName}
-                  onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  aria-invalid={!!errors.email}
                 />
+                {errors.email && (
+                  <p className="text-sm text-destructive">{errors.email}</p>
+                )}
               </div>
-            </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                required
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              />
-            </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">Password *</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  aria-invalid={!!errors.password}
+                />
+                {errors.password && (
+                  <p className="text-sm text-destructive">{errors.password}</p>
+                )}
+                <p className="text-xs text-muted-foreground">At least 8 characters</p>
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                required
-                minLength={6}
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              />
-            </div>
+              <div className="space-y-2">
+                <Label htmlFor="phone">Phone (Optional)</Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  aria-invalid={!!errors.phone}
+                />
+                {errors.phone && (
+                  <p className="text-sm text-destructive">{errors.phone}</p>
+                )}
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="phone">Phone (Optional)</Label>
-              <Input
-                id="phone"
-                type="tel"
-                value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              />
-            </div>
+              <div className="space-y-2">
+                <Label htmlFor="specialtyType">Specialty *</Label>
+                <Select
+                  value={formData.specialtyType}
+                  onValueChange={(value) => setFormData({ ...formData, specialtyType: value })}
+                >
+                  <SelectTrigger aria-invalid={!!errors.specialtyType}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {specialtyList.map((specialty) => (
+                      <SelectItem key={specialty.value} value={specialty.value}>
+                        <span className="flex items-center gap-2">
+                          <span>{specialty.icon}</span>
+                          <span>{specialty.label}</span>
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.specialtyType && (
+                  <p className="text-sm text-destructive">{errors.specialtyType}</p>
+                )}
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="specialty">What field are you in?</Label>
-              <Select
-                value={formData.specialtyType}
-                onValueChange={(value) => setFormData({ ...formData, specialtyType: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {specialtyList.map((specialty) => (
-                    <SelectItem key={specialty.value} value={specialty.value}>
-                      <span className="flex items-center gap-2">
-                        <span>{specialty.icon}</span>
-                        <span>{specialty.label}</span>
-                      </span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <Button type="submit" className="w-full" size="lg" disabled={loading}>
-              {loading ? 'Creating Your Practice...' : 'Create My Practice'}
-            </Button>
-          </form>
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Creating Account...
+                  </>
+                ) : (
+                  'Create Practice Account'
+                )}
+              </Button>
+            </form>
+          )}
         </CardContent>
       </Card>
     </div>
