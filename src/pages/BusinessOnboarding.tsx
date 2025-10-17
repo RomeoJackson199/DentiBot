@@ -99,7 +99,7 @@ export default function BusinessOnboarding() {
       if (signInError) throw signInError;
 
       toast.success(`Welcome to your ${template.name} practice portal!`);
-      navigate(`/${businessSlug}/dentist/clinical/dashboard`);
+      navigate('/dentist/clinical/dashboard');
     } catch (error: any) {
       console.error('Onboarding error:', error);
       if (error?.message === 'BUSINESS_NAME_TAKEN') {
