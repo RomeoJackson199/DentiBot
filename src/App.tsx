@@ -27,6 +27,8 @@ const Signup = lazy(() => import("./pages/Signup"));
 
 // Lazy load pages for better performance
 const Index = lazy(() => import("./pages/Index"));
+const MainLanding = lazy(() => import("./pages/MainLanding"));
+const BusinessLanding = lazy(() => import("./pages/BusinessLanding"));
 const DentistProfiles = lazy(() => import("./pages/DentistProfiles"));
 const Terms = lazy(() => import("./pages/Terms"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
@@ -144,7 +146,8 @@ const App = () => (
                 <SeoManager />
               <Suspense fallback={<ModernLoadingSpinner variant="overlay" message="Loading..." /> }>
               <Routes>
-                <Route path="/" element={<Index />} />
+                <Route path="/" element={<MainLanding />} />
+                <Route path="/home" element={<Index />} />
                 <Route path="/book" element={<PublicBooking />} />
                 {/* Old routes for backward compatibility */}
                 <Route element={<AppShell />}>
@@ -192,6 +195,8 @@ const App = () => (
                 <Route path="/onboarding" element={<OnboardingPage />} />
                 <Route path="/organization/settings" element={<OrganizationSettingsPage />} />
                 <Route path="/team" element={<TeamManagementPage />} />
+                {/* Business landing pages - MUST be last before 404 */}
+                <Route path="/:slug" element={<BusinessLanding />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

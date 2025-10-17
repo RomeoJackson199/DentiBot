@@ -2246,6 +2246,7 @@ export type Database = {
           is_demo: boolean
           last_payment_date: string | null
           name: string
+          slug: string | null
           stripe_customer_id: string | null
           stripe_subscription_id: string | null
           subscription_status: Database["public"]["Enums"]["subscription_status"]
@@ -2263,6 +2264,7 @@ export type Database = {
           is_demo?: boolean
           last_payment_date?: string | null
           name: string
+          slug?: string | null
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
           subscription_status?: Database["public"]["Enums"]["subscription_status"]
@@ -2280,6 +2282,7 @@ export type Database = {
           is_demo?: boolean
           last_payment_date?: string | null
           name?: string
+          slug?: string | null
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
           subscription_status?: Database["public"]["Enums"]["subscription_status"]

@@ -68,7 +68,13 @@ export const IndustrySelectionFlow: React.FC<IndustrySelectionFlowProps> = ({ on
 
       if (error) throw error;
 
-      toast.success('Demo account created! Sample data has been generated.');
+      toast.success(`Demo account created! Your business site: ${data.businessUrl}`);
+      
+      // Show business URL to user
+      setTimeout(() => {
+        toast.info(`Visit your public page at: ${window.location.origin}${data.businessUrl}`);
+      }, 2000);
+      
       onComplete();
       navigate('/dashboard');
     } catch (error: any) {

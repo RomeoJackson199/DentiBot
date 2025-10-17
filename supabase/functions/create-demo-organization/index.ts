@@ -27,6 +27,14 @@ serve(async (req) => {
       throw new Error('Missing required fields');
     }
 
+    // Generate URL-safe slug from business name
+    const slug = business_name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+    
+    console.log('Generated slug:', slug);
+
     // Get user profile
     const { data: profile, error: profileError } = await supabaseClient
       .from('profiles')
@@ -46,6 +54,7 @@ serve(async (req) => {
       .from('organizations')
       .insert({
         name: business_name,
+        slug,
         industry_type,
         subscription_tier: 'free',
         subscription_status: 'trialing',
@@ -98,7 +107,8 @@ serve(async (req) => {
 
     return new Response(JSON.stringify({ 
       success: true, 
-      organization: org 
+      organization: org,
+      businessUrl: `/${slug}`
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
