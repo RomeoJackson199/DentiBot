@@ -68,24 +68,43 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Create user (email_confirm: true skips verification)
-    const { data: userData, error: userError } = await supabase.auth.admin.createUser({
-      email,
-      password,
-      email_confirm: true,
-      user_metadata: {
-        first_name: firstName,
-        last_name: lastName,
-        role: 'dentist'
+    // Check if user already exists
+    let userId: string;
+    const { data: existingUserData } = await supabase.auth.admin.listUsers();
+    const existingUser = existingUserData?.users?.find(u => u.email?.toLowerCase() === email);
+
+    if (existingUser) {
+      console.log('User already exists, using existing account:', existingUser.id);
+      userId = existingUser.id;
+      
+      // Update user metadata to include dentist role
+      await supabase.auth.admin.updateUserById(userId, {
+        user_metadata: {
+          first_name: firstName,
+          last_name: lastName,
+          role: 'dentist'
+        }
+      });
+    } else {
+      // Create new user (email_confirm: true skips verification)
+      const { data: userData, error: userError } = await supabase.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: true,
+        user_metadata: {
+          first_name: firstName,
+          last_name: lastName,
+          role: 'dentist'
+        }
+      });
+
+      if (userError || !userData?.user) {
+        console.error('User creation error:', userError);
+        throw new Error('Failed to create user account');
       }
-    });
 
-    if (userError || !userData?.user) {
-      console.error('User creation error:', userError);
-      throw new Error('Failed to create user account');
+      userId = userData.user.id;
     }
-
-    const userId = userData.user.id;
 
     // Wait a bit for trigger to create profile
     await new Promise(resolve => setTimeout(resolve, 500));
