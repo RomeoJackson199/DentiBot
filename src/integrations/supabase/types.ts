@@ -3326,6 +3326,14 @@ export type Database = {
         }
         Returns: undefined
       }
+      user_is_in_organization: {
+        Args: { org_id: string }
+        Returns: boolean
+      }
+      user_is_org_admin: {
+        Args: { org_id: string }
+        Returns: boolean
+      }
       validate_invitation_token: {
         Args: { invitation_token: string }
         Returns: {
