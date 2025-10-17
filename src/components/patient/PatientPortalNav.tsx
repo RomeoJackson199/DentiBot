@@ -332,7 +332,7 @@ export function PatientPortalNav({ children }: { children: React.ReactNode }) {
                 <span>{state === 'expanded' ? 'Collapse' : 'Expand'}</span>
               </Button>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-6">
               {/* Book Appointment Button - Desktop */}
               <Button 
                 onClick={() => navigate('/book')}
