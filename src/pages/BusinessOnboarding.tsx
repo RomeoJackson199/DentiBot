@@ -80,16 +80,17 @@ export default function BusinessOnboarding() {
       if (!authData.user) throw new Error('Failed to create user');
 
       // Wait a bit for profile to be created by trigger
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 1500));
 
       // Get the created profile
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('id')
         .eq('user_id', authData.user.id)
-        .single();
+        .maybeSingle();
 
       if (profileError) throw profileError;
+      if (!profile) throw new Error('Profile was not created. Please try again.');
 
       // Update profile with phone
       if (formData.phone) {
@@ -107,9 +108,10 @@ export default function BusinessOnboarding() {
           is_active: true
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (dentistError) throw dentistError;
+      if (!dentist) throw new Error('Failed to create dentist record.');
 
       // Get specialty template
       const template = getSpecialtyTemplate(formData.specialtyType);
