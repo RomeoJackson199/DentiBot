@@ -477,6 +477,21 @@ interface Translations {
   expand: string;
   srAlertNew: string;
   srQuickActions: string;
+  
+  // Treatment records
+  searchTreatments: string;
+  filterByType: string;
+  allTypes: string;
+  consultation: string;
+  treatment: string;
+  xray: string;
+  labResult: string;
+  dentist: string;
+  treatmentType: string;
+  date: string;
+  noRecordsFound: string;
+  appointmentRescheduled: string;
+  savedSuccessfully: string;
 }
 
 const translations: Record<Language, Translations> = {
@@ -972,6 +987,20 @@ How can I help you today?`,
         help: "Help & Support",
       },
     },
+    // Treatment records
+    searchTreatments: "Search treatments...",
+    filterByType: "Filter by type",
+    allTypes: "All types",
+    consultation: "Consultation",
+    treatment: "Treatment",
+    xray: "X-Ray",
+    labResult: "Lab Result",
+    dentist: "Dentist",
+    treatmentType: "Treatment Type",
+    date: "Date",
+    noRecordsFound: "No treatment records found",
+    appointmentRescheduled: "Appointment rescheduled",
+    savedSuccessfully: "Saved successfully",
 
     // Dentist: Clinical appointment UI
     completeAppointment: "Complete Appointment",
@@ -1485,6 +1514,21 @@ Comment puis-je vous aider aujourd'hui ?`,
       },
     },
 
+    // Treatment records
+    searchTreatments: "Rechercher des traitements...",
+    filterByType: "Filtrer par type",
+    allTypes: "Tous les types",
+    consultation: "Consultation",
+    treatment: "Traitement",
+    xray: "Radiographie",
+    labResult: "Résultat de Laboratoire",
+    dentist: "Dentiste",
+    treatmentType: "Type de Traitement",
+    date: "Date",
+    noRecordsFound: "Aucun dossier de traitement trouvé",
+    appointmentRescheduled: "Rendez-vous reporté",
+    savedSuccessfully: "Enregistré avec succès",
+
     // Dentist: Clinical appointment UI
     completeAppointment: "Terminer le Rendez-vous",
     prescriptionsShort: "Ordonnances",
@@ -1966,6 +2010,21 @@ Comment puis-je vous aider aujourd'hui ?`,
         help: "Hulp & Support",
       },
     },
+
+    // Treatment records
+    searchTreatments: "Zoek behandelingen...",
+    filterByType: "Filter op type",
+    allTypes: "Alle types",
+    consultation: "Consultatie",
+    treatment: "Behandeling",
+    xray: "Röntgenfoto",
+    labResult: "Laboratoriumresultaat",
+    dentist: "Tandarts",
+    treatmentType: "Behandelingstype",
+    date: "Datum",
+    noRecordsFound: "Geen behandelingsgegevens gevonden",
+    appointmentRescheduled: "Afspraak verzet",
+    savedSuccessfully: "Succesvol opgeslagen",
 
     // Dentist: Clinical appointment UI
     completeAppointment: "Afspraak Voltooien",

@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,9 +8,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Calendar } from "@/components/ui/calendar";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { CalendarDays, Clock, User as UserIcon, CheckCircle, XCircle } from "lucide-react";
+import { CalendarDays, Clock, User as UserIcon, CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createMedicalRecord } from "@/lib/medicalRecords";
+import { showAppointmentConfirmed } from "@/lib/successNotifications";
 
 interface AppointmentBookingProps {
   user: User;
@@ -236,10 +236,9 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
         p_appointment_id: appointmentData.id
       });
 
-      toast({
-        title: "Rendez-vous confirmé !",
-        description: `Votre rendez-vous a été pris pour le ${selectedDate.toLocaleDateString()} à ${selectedTime}`,
-      });
+      showAppointmentConfirmed(
+        `${selectedDate.toLocaleDateString()} at ${selectedTime}`
+      );
 
       // Create a medical record for this appointment
       await createMedicalRecord({
@@ -463,11 +462,14 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
               >
                 {isLoading ? (
                   <div className="flex items-center">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
                     Confirmation...
                   </div>
                 ) : (
-                  "Confirmer le rendez-vous"
+                  <div className="flex items-center">
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                    Confirmer le rendez-vous
+                  </div>
                 )}
               </Button>
               <Button 
