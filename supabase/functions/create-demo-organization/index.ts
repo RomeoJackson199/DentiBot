@@ -27,13 +27,30 @@ serve(async (req) => {
       throw new Error('Missing required fields');
     }
 
-    // Generate URL-safe slug from business name
-    const slug = business_name
+    // Generate URL-safe slug from business name and ensure uniqueness
+    const baseSlug = business_name
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-+|-+$/g, '');
-    
-    console.log('Generated slug:', slug);
+
+    // Ensure unique slug by appending -2, -3, ... if needed
+    let uniqueSlug = baseSlug;
+    let counter = 2;
+    while (true) {
+      const { count, error: slugCheckError } = await supabaseClient
+        .from('organizations')
+        .select('id', { count: 'exact', head: true })
+        .eq('slug', uniqueSlug);
+
+      if (slugCheckError) {
+        console.error('Slug check error:', slugCheckError);
+        break; // fallback to current uniqueSlug
+      }
+      if (!count || count === 0) break;
+      uniqueSlug = `${baseSlug}-${counter++}`;
+    }
+
+    console.log('Using unique slug:', uniqueSlug);
 
     // Get user profile
     const { data: profile, error: profileError } = await supabaseClient
@@ -54,7 +71,7 @@ serve(async (req) => {
       .from('organizations')
       .insert({
         name: business_name,
-        slug,
+        slug: uniqueSlug,
         industry_type,
         subscription_tier: 'free_trial',
         subscription_status: 'trial',
@@ -108,7 +125,7 @@ serve(async (req) => {
     return new Response(JSON.stringify({ 
       success: true, 
       organization: org,
-      businessUrl: `/${slug}`
+      businessUrl: `/${uniqueSlug}`
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
