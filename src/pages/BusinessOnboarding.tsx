@@ -91,6 +91,7 @@ export default function BusinessOnboarding() {
           email: formData.email,
           password: formData.password,
           options: {
+            emailRedirectTo: `${window.location.origin}/`,
             data: {
               first_name: formData.firstName,
               last_name: formData.lastName,
@@ -117,7 +118,14 @@ export default function BusinessOnboarding() {
         .maybeSingle();
 
       if (profileError) throw profileError;
-      if (!profile) throw new Error('Profile not found. Please contact support.');
+      if (!profile) throw new Error('Please verify your email from the confirmation link, then return here and try again.');
+
+      // If not authenticated yet (email confirmation required), stop here with guidance
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) {
+        toast.info('Please confirm your email to continue. Then return here and click Create again.');
+        return;
+      }
 
       // Update profile with phone
       if (formData.phone) {
@@ -126,19 +134,32 @@ export default function BusinessOnboarding() {
           .update({ phone: formData.phone })
           .eq('id', profile.id);
       }
-
-      // Create dentist record
-      const { data: dentist, error: dentistError } = await supabase
+      // Ensure dentist record exists
+      const { data: existingDentist, error: existingDentistError } = await supabase
         .from('dentists')
-        .insert({
-          profile_id: profile.id,
-          is_active: true
-        })
-        .select()
+        .select('id')
+        .eq('profile_id', profile.id)
         .maybeSingle();
+      if (existingDentistError) throw existingDentistError;
 
-      if (dentistError) throw dentistError;
-      if (!dentist) throw new Error('Failed to create dentist record.');
+      let dentistId: string;
+      if (existingDentist) {
+        dentistId = existingDentist.id;
+      } else {
+        const { data: dentist, error: dentistError } = await supabase
+          .from('dentists')
+          .insert({
+            profile_id: profile.id,
+            is_active: true
+          })
+          .select()
+          .maybeSingle();
+
+        if (dentistError) throw dentistError;
+        if (!dentist) throw new Error('Failed to create dentist record.');
+        dentistId = dentist.id;
+      }
+
 
       // Get specialty template
       const template = getSpecialtyTemplate(formData.specialtyType);
@@ -147,7 +168,7 @@ export default function BusinessOnboarding() {
       const { error: settingsError } = await supabase
         .from('clinic_settings')
         .insert({
-          dentist_id: dentist.id,
+          dentist_id: dentistId,
           clinic_name: businessSlug,
           specialty_type: formData.specialtyType,
           primary_color: template.primaryColor,
