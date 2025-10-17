@@ -56,11 +56,32 @@ serve(async (req) => {
   }
 
   try {
-    const { message, conversation_history, user_profile, patient_context, mode } = await req.json();
+    const { message, conversation_history, user_profile, patient_context, mode, dentist_id } = await req.json();
 
     // Log request in development only
     if (Deno.env.get('ENVIRONMENT') === 'development') {
-      console.log('Received request:', { message, user_profile, mode });
+      console.log('Received request:', { message, user_profile, mode, dentist_id });
+    }
+    
+    // Fetch clinic settings for customization
+    let clinicSettings = null;
+    if (dentist_id) {
+      try {
+        const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
+        const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+        const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+        const supabase = createClient(supabaseUrl, supabaseKey);
+        
+        const { data } = await supabase
+          .from('clinic_settings')
+          .select('specialty_type, ai_instructions, ai_tone, ai_response_length, welcome_message, clinic_name, primary_color, secondary_color')
+          .eq('dentist_id', dentist_id)
+          .maybeSingle();
+        
+        clinicSettings = data;
+      } catch (error) {
+        console.error('Error fetching clinic settings:', error);
+      }
     }
     
     // Enhanced input validation
@@ -485,6 +506,56 @@ Always maintain professional medical standards and suggest only appropriate trea
     } else {
       const content = getLanguageContent(detectedLanguage);
 
+      // Customize based on clinic settings
+      let customPersona = content.persona;
+      let customGuidelines = content.guidelines;
+      
+      if (clinicSettings) {
+        const specialty = clinicSettings.specialty_type || 'dentist';
+        const tone = clinicSettings.ai_tone || 'professional';
+        const responseLength = clinicSettings.ai_response_length || 'normal';
+        
+        // Customize persona based on specialty
+        const specialtyNames = {
+          dentist: 'dental',
+          neurologist: 'neurology',
+          cardiologist: 'cardiology',
+          pediatrician: 'pediatric',
+          dermatologist: 'dermatology',
+          orthopedist: 'orthopedic',
+          psychiatrist: 'mental health',
+          general_practitioner: 'general practice'
+        };
+        
+        const specialtyName = specialtyNames[specialty] || 'medical';
+        customPersona = `You are an AI assistant for ${clinicSettings.clinic_name || 'our practice'}, specializing in ${specialtyName} care. You know the patient ${user_profile?.first_name} ${user_profile?.last_name}.`;
+        
+        // Apply custom AI instructions if provided
+        if (clinicSettings.ai_instructions) {
+          customGuidelines = clinicSettings.ai_instructions + '\n\n' + content.guidelines;
+        }
+        
+        // Add tone guidance
+        const toneGuidance = {
+          professional: 'Maintain a professional, respectful tone in all communications.',
+          friendly: 'Be warm, approachable, and conversational while remaining professional.',
+          casual: 'Use a relaxed, informal tone to make patients feel comfortable.',
+          empathetic: 'Show deep understanding and compassion for patient concerns.',
+          formal: 'Use formal, precise language appropriate for medical communications.'
+        };
+        
+        customGuidelines += `\n\nCOMMUNICATION STYLE: ${toneGuidance[tone] || toneGuidance.professional}`;
+        
+        // Add response length guidance
+        const lengthGuidance = {
+          brief: 'Keep responses concise and to the point.',
+          normal: 'Provide balanced, informative responses.',
+          detailed: 'Give comprehensive explanations with thorough detail.'
+        };
+        
+        customGuidelines += `\nRESPONSE LENGTH: ${lengthGuidance[responseLength] || lengthGuidance.normal}`;
+      }
+
       // Build patient context string if available
       let patientContextString = '';
       if (patient_context) {
@@ -505,8 +576,8 @@ ${patient_context.recent_payments.slice(0, 3).map((p: any) => `- €${p.amount} 
       }
 
       systemPrompt = [
-        content.persona,
-        content.guidelines,
+        customPersona,
+        customGuidelines,
         content.dentists,
         content.examples,
         `Patient Information: ${JSON.stringify(user_profile)}`,
