@@ -181,12 +181,12 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                     </div>
                     <div className="flex flex-col gap-2">
                       <Button size="sm" variant="outline" onClick={() => onNavigateTo('appointments')}>
-                        Reschedule
+                        {t.reschedule}
                       </Button>
                       {/* Show Join button for online appointments - would check appointment type */}
                       <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
                         <Video className="h-4 w-4 mr-1" />
-                        Join
+                        {t.join}
                       </Button>
                     </div>
                   </div>
@@ -358,7 +358,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
           onClick={() => onNavigateTo('care')}
         >
           <Heart className="h-5 w-5 text-red-600" />
-          <span className="text-xs">Health Records</span>
+          <span className="text-xs">{t.healthRecords}</span>
         </Button>
 
         <Button 
@@ -367,7 +367,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
           onClick={onOpenAssistant}
         >
           <AlertCircle className="h-5 w-5 text-amber-600" />
-          <span className="text-xs">Emergency</span>
+          <span className="text-xs">{t.emergency}</span>
         </Button>
 
         <Button 
@@ -376,7 +376,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
           onClick={() => onNavigateTo('appointments')}
         >
           <Award className="h-5 w-5 text-purple-600" />
-          <span className="text-xs">Rewards</span>
+          <span className="text-xs">{t.rewards}</span>
         </Button>
       </motion.div>
     </div>

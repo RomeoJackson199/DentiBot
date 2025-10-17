@@ -14,8 +14,8 @@ export default function PatientAccountHelpPage() {
           <CardTitle>{t.pnav.account.help}</CardTitle>
         </CardHeader>
         <CardContent className="space-x-2">
-          <Button asChild><a href="/support">Open Support</a></Button>
-          <Button variant="outline" asChild><a href="/privacy">Privacy Policy</a></Button>
+          <Button asChild><a href="/support">{t.contactSupport}</a></Button>
+          <Button variant="outline" asChild><a href="/privacy">{t.privacyPolicyLink}</a></Button>
         </CardContent>
       </Card>
     </div>

@@ -13,7 +13,7 @@ export default function PatientTreatmentHistoryPage() {
           <CardTitle>{t.pnav.care.history}</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground">Your treatments and visits will appear here.</p>
+          <p className="text-sm text-muted-foreground">{t.yourTreatmentsWillAppear}</p>
         </CardContent>
       </Card>
     </div>

@@ -57,9 +57,9 @@ export default function PatientBillingPage() {
       <h1 className="text-xl font-semibold flex items-center gap-2"><CreditCard className="h-5 w-5" /> {t.pnav.billing.main}</h1>
       <Tabs value={tab} onValueChange={(v) => setTab(v as any)}>
         <TabsList>
-          <TabsTrigger value="unpaid">Unpaid</TabsTrigger>
-          <TabsTrigger value="paid">Paid</TabsTrigger>
-          <TabsTrigger value="statements">Statements</TabsTrigger>
+          <TabsTrigger value="unpaid">{t.unpaid}</TabsTrigger>
+          <TabsTrigger value="paid">{t.paid}</TabsTrigger>
+          <TabsTrigger value="statements">{t.statements}</TabsTrigger>
         </TabsList>
         <div className="mt-4">
           <TabsContent value="unpaid">
@@ -67,18 +67,18 @@ export default function PatientBillingPage() {
           </TabsContent>
           <TabsContent value="paid">
             <Card>
-              <CardHeader><CardTitle>Paid</CardTitle></CardHeader>
+              <CardHeader><CardTitle>{t.paid}</CardTitle></CardHeader>
               <CardContent>
                 {/* Could list paid invoices */}
-                <p className="text-sm text-muted-foreground">Your paid invoices will appear here.</p>
+                <p className="text-sm text-muted-foreground">{t.paidInvoices}</p>
               </CardContent>
             </Card>
           </TabsContent>
           <TabsContent value="statements">
             <Card>
-              <CardHeader><CardTitle>Statements</CardTitle></CardHeader>
+              <CardHeader><CardTitle>{t.statements}</CardTitle></CardHeader>
               <CardContent>
-                <p className="text-sm text-muted-foreground">Download monthly statements.</p>
+                <p className="text-sm text-muted-foreground">{t.downloadStatements}</p>
               </CardContent>
             </Card>
           </TabsContent>

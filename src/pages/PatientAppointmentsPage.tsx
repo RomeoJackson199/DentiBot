@@ -28,9 +28,9 @@ export default function PatientAppointmentsPage() {
       </div>
       <Tabs value={tab} onValueChange={(v) => setTab(v as any)}>
         <TabsList>
-          <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
-          <TabsTrigger value="past">Past</TabsTrigger>
-          <TabsTrigger value="book">Book</TabsTrigger>
+          <TabsTrigger value="upcoming">{t.upcoming}</TabsTrigger>
+          <TabsTrigger value="past">{t.past}</TabsTrigger>
+          <TabsTrigger value="book">{t.book}</TabsTrigger>
         </TabsList>
         <div className="mt-4">
           <TabsContent value="upcoming">

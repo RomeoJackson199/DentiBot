@@ -16,11 +16,11 @@ export default function PatientPrescriptionsPage() {
       <h1 className="text-xl font-semibold flex items-center gap-2"><Pill className="h-5 w-5" /> {t.pnav.care.prescriptions}</h1>
       <Card>
         <CardHeader>
-          <CardTitle>Prescriptions</CardTitle>
+          <CardTitle>{t.prescriptions}</CardTitle>
         </CardHeader>
         <CardContent>
           {/* Reuse PatientDashboard internals would be heavy; keep a simple placeholder list or link */}
-          <p className="text-sm text-muted-foreground">View and manage your medications.</p>
+          <p className="text-sm text-muted-foreground">{t.viewManageMedications}</p>
         </CardContent>
       </Card>
     </div>

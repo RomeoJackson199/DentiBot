@@ -17,10 +17,10 @@ export default function PatientCareHome() {
       </div>
       <Card>
         <CardHeader>
-          <CardTitle>Welcome</CardTitle>
+          <CardTitle>{t.welcome}</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground text-sm">Quickly book, view records, and manage payments.</p>
+          <p className="text-muted-foreground text-sm">{t.quicklyBookViewRecords}</p>
         </CardContent>
       </Card>
     </div>

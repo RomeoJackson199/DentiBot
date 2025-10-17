@@ -372,7 +372,25 @@ interface Translations {
   healthTip: string;
   flossingDaily: string;
   upcoming: string;
+  past: string;
+  book: string;
   dentalCleaningRecommended: string;
+  healthRecords: string;
+  rewards: string;
+  quicklyBookViewRecords: string;
+  yourTreatmentsWillAppear: string;
+  unpaid: string;
+  paid: string;
+  statements: string;
+  paidInvoices: string;
+  downloadStatements: string;
+  viewManageMedications: string;
+  upload: string;
+  shareLink: string;
+  insuranceProvider: string;
+  insuranceProviderPlaceholder: string;
+  policyNumber: string;
+  policyNumberPlaceholder: string;
   healthStats: string;
   healthRating: string;
   excellent: string;
@@ -863,7 +881,25 @@ How can I help you today?`,
     healthTip: "Health Tip",
     flossingDaily: "Flossing daily reduces gum disease by 40%",
     upcoming: "Upcoming",
+    past: "Past",
+    book: "Book",
     dentalCleaningRecommended: "Dental cleaning recommended in 2 months",
+    healthRecords: "Health Records",
+    rewards: "Rewards",
+    quicklyBookViewRecords: "Quickly book, view records, and manage payments.",
+    yourTreatmentsWillAppear: "Your treatments and visits will appear here.",
+    unpaid: "Unpaid",
+    paid: "Paid",
+    statements: "Statements",
+    paidInvoices: "Your paid invoices will appear here.",
+    downloadStatements: "Download monthly statements.",
+    viewManageMedications: "View and manage your medications.",
+    upload: "Upload",
+    shareLink: "Share link",
+    insuranceProvider: "Provider",
+    insuranceProviderPlaceholder: "Mutuality / Insurance name",
+    policyNumber: "Policy / Member ID",
+    policyNumberPlaceholder: "Policy number",
     healthStats: "Health Stats",
     healthRating: "Health Rating",
     excellent: "Excellent",
@@ -1358,7 +1394,25 @@ Comment puis-je vous aider aujourd'hui ?`,
     healthTip: "Conseil Santé",
     flossingDaily: "Utiliser le fil dentaire quotidiennement réduit les maladies des gencives de 40%",
     upcoming: "À venir",
+    past: "Passé",
+    book: "Réserver",
     dentalCleaningRecommended: "Nettoyage dentaire recommandé dans 2 mois",
+    healthRecords: "Dossiers de Santé",
+    rewards: "Récompenses",
+    quicklyBookViewRecords: "Réservez rapidement, consultez les dossiers et gérez les paiements.",
+    yourTreatmentsWillAppear: "Vos traitements et visites apparaîtront ici.",
+    unpaid: "Impayé",
+    paid: "Payé",
+    statements: "Relevés",
+    paidInvoices: "Vos factures payées apparaîtront ici.",
+    downloadStatements: "Téléchargez les relevés mensuels.",
+    viewManageMedications: "Consultez et gérez vos médicaments.",
+    upload: "Téléverser",
+    shareLink: "Partager le lien",
+    insuranceProvider: "Fournisseur",
+    insuranceProviderPlaceholder: "Mutualité / Nom de l'assurance",
+    policyNumber: "Numéro de Police / ID Membre",
+    policyNumberPlaceholder: "Numéro de police",
     healthStats: "Statistiques de Santé",
     healthRating: "Évaluation Santé",
     excellent: "Excellent",
@@ -1822,7 +1876,25 @@ Comment puis-je vous aider aujourd'hui ?`,
     healthTip: "Gezondheids Tip",
     flossingDaily: "Dagelijks flossen vermindert tandvleesaandoeningen met 40%",
     upcoming: "Komend",
+    past: "Vorige",
+    book: "Boeken",
     dentalCleaningRecommended: "Tandreiniging aanbevolen over 2 maanden",
+    healthRecords: "Gezondheidsgegevens",
+    rewards: "Beloningen",
+    quicklyBookViewRecords: "Boek snel, bekijk dossiers en beheer betalingen.",
+    yourTreatmentsWillAppear: "Uw behandelingen en bezoeken verschijnen hier.",
+    unpaid: "Onbetaald",
+    paid: "Betaald",
+    statements: "Overzichten",
+    paidInvoices: "Uw betaalde facturen verschijnen hier.",
+    downloadStatements: "Download maandelijkse overzichten.",
+    viewManageMedications: "Bekijk en beheer uw medicijnen.",
+    upload: "Uploaden",
+    shareLink: "Link delen",
+    insuranceProvider: "Aanbieder",
+    insuranceProviderPlaceholder: "Mutualiteit / Verzekeringsnaam",
+    policyNumber: "Polisnummer / Lidnummer",
+    policyNumberPlaceholder: "Polisnummer",
     healthStats: "Gezondheids Statistieken",
     healthRating: "Gezondheids Beoordeling",
     excellent: "Uitstekend",

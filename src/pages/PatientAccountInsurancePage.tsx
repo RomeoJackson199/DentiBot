@@ -17,14 +17,14 @@ export default function PatientAccountInsurancePage() {
         </CardHeader>
         <CardContent className="space-y-3">
           <div>
-            <Label>Provider</Label>
-            <Input placeholder="Mutuality / Insurance name" />
+            <Label>{t.insuranceProvider}</Label>
+            <Input placeholder={t.insuranceProviderPlaceholder} />
           </div>
           <div>
-            <Label>Policy / Member ID</Label>
-            <Input placeholder="Policy number" />
+            <Label>{t.policyNumber}</Label>
+            <Input placeholder={t.policyNumberPlaceholder} />
           </div>
-          <Button>Save</Button>
+          <Button>{t.save}</Button>
         </CardContent>
       </Card>
     </div>

@@ -14,9 +14,9 @@ export default function PatientDocumentsPage() {
           <CardTitle>{t.pnav.docs.main}</CardTitle>
         </CardHeader>
         <CardContent className="space-x-2">
-          <Button variant="outline">Upload</Button>
-          <Button variant="outline">Download</Button>
-          <Button variant="outline">Share link</Button>
+          <Button variant="outline">{t.upload}</Button>
+          <Button variant="outline">{t.download}</Button>
+          <Button variant="outline">{t.shareLink}</Button>
         </CardContent>
       </Card>
     </div>
