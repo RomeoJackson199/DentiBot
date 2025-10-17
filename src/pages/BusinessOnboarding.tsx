@@ -1,0 +1,265 @@
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { toast } from 'sonner';
+import { ModernLoadingSpinner } from '@/components/enhanced/ModernLoadingSpinner';
+import { getSpecialtyList, getSpecialtyTemplate } from '@/lib/specialtyTemplates';
+import { useLanguage } from '@/hooks/useLanguage';
+
+export default function BusinessOnboarding() {
+  const { businessSlug } = useParams<{ businessSlug: string }>();
+  const navigate = useNavigate();
+  const { t } = useLanguage();
+  const [loading, setLoading] = useState(false);
+  const [checking, setChecking] = useState(true);
+  const [available, setAvailable] = useState(false);
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+    firstName: '',
+    lastName: '',
+    specialtyType: 'dentist',
+    phone: ''
+  });
+
+  const specialtyList = getSpecialtyList();
+
+  useEffect(() => {
+    checkAvailability();
+  }, [businessSlug]);
+
+  const checkAvailability = async () => {
+    if (!businessSlug) {
+      setChecking(false);
+      return;
+    }
+
+    try {
+      // Check if clinic with this slug already exists
+      const { data, error } = await supabase
+        .from('clinic_settings')
+        .select('id')
+        .ilike('clinic_name', businessSlug)
+        .maybeSingle();
+
+      if (error) throw error;
+      
+      setAvailable(!data);
+    } catch (error) {
+      console.error('Error checking availability:', error);
+      toast.error('Error checking availability');
+    } finally {
+      setChecking(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      // Create user account
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: {
+            first_name: formData.firstName,
+            last_name: formData.lastName,
+            role: 'dentist'
+          }
+        }
+      });
+
+      if (authError) throw authError;
+      if (!authData.user) throw new Error('Failed to create user');
+
+      // Wait a bit for profile to be created by trigger
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Get the created profile
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', authData.user.id)
+        .single();
+
+      if (profileError) throw profileError;
+
+      // Update profile with phone
+      if (formData.phone) {
+        await supabase
+          .from('profiles')
+          .update({ phone: formData.phone })
+          .eq('id', profile.id);
+      }
+
+      // Create dentist record
+      const { data: dentist, error: dentistError } = await supabase
+        .from('dentists')
+        .insert({
+          profile_id: profile.id,
+          is_active: true
+        })
+        .select()
+        .single();
+
+      if (dentistError) throw dentistError;
+
+      // Get specialty template
+      const template = getSpecialtyTemplate(formData.specialtyType);
+
+      // Create clinic settings with branding
+      const { error: settingsError } = await supabase
+        .from('clinic_settings')
+        .insert({
+          dentist_id: dentist.id,
+          clinic_name: businessSlug,
+          specialty_type: formData.specialtyType,
+          primary_color: template.primaryColor,
+          secondary_color: template.secondaryColor,
+          ai_instructions: template.aiInstructions,
+          ai_tone: template.aiTone,
+          welcome_message: template.welcomeMessage,
+          appointment_keywords: template.appointmentKeywords,
+          emergency_keywords: template.emergencyKeywords
+        });
+
+      if (settingsError) throw settingsError;
+
+      toast.success(`Welcome to your ${template.name} practice portal!`);
+      navigate('/dentist/clinical/dashboard');
+    } catch (error: any) {
+      console.error('Onboarding error:', error);
+      toast.error(error.message || 'Failed to create account');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (checking) {
+    return <ModernLoadingSpinner variant="overlay" message="Checking availability..." />;
+  }
+
+  if (!available) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-primary/5 to-secondary/5">
+        <Card className="max-w-md w-full">
+          <CardHeader>
+            <CardTitle>Business Name Unavailable</CardTitle>
+            <CardDescription>
+              The business name "{businessSlug}" is already taken.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={() => navigate('/')} className="w-full">
+              Return Home
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-primary/5 to-secondary/5">
+      <Card className="max-w-2xl w-full">
+        <CardHeader>
+          <CardTitle className="text-3xl">Welcome to {businessSlug}!</CardTitle>
+          <CardDescription>
+            Set up your practice in minutes. Choose your specialty and we'll customize everything for you.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="firstName">First Name</Label>
+                <Input
+                  id="firstName"
+                  required
+                  value={formData.firstName}
+                  onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="lastName">Last Name</Label>
+                <Input
+                  id="lastName"
+                  required
+                  value={formData.lastName}
+                  onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                required
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                required
+                minLength={6}
+                value={formData.password}
+                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="phone">Phone (Optional)</Label>
+              <Input
+                id="phone"
+                type="tel"
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="specialty">What field are you in?</Label>
+              <Select
+                value={formData.specialtyType}
+                onValueChange={(value) => setFormData({ ...formData, specialtyType: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {specialtyList.map((specialty) => (
+                    <SelectItem key={specialty.value} value={specialty.value}>
+                      <span className="flex items-center gap-2">
+                        <span>{specialty.icon}</span>
+                        <span>{specialty.label}</span>
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <Button type="submit" className="w-full" size="lg" disabled={loading}>
+              {loading ? 'Creating Your Practice...' : 'Create My Practice'}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
