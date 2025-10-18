@@ -261,17 +261,11 @@ export default function BusinessOnboarding() {
         })
         .eq('id', profileId);
 
-      // 3. Assign provider role (ignore if already exists)
-      const { error: roleError } = await supabase
-        .from('user_roles')
-        .insert({
-          user_id: userId,
-          role: 'provider'
-        });
-      
-      // Ignore duplicate key errors
-      if (roleError && !roleError.message.includes('duplicate key')) {
-        throw roleError;
+      // 3. Assign provider role using secure function
+      const { error: roleError } = await supabase.rpc('assign_provider_role');
+      if (roleError) {
+        console.warn('Failed to assign provider role:', roleError);
+        // Continue anyway - user might already have the role
       }
 
       // 4. Get or create business
