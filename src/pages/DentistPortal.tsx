@@ -91,6 +91,27 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
       }
 
       setDentistId(dentist.id);
+
+      // Ensure user has 'dentist' role for role-based routing elsewhere
+      if (user) {
+        try {
+          const { data: roles } = await supabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', user.id);
+          const hasDentistRole = (roles || []).some((r: any) => r.role === 'dentist');
+          if (!hasDentistRole) {
+            const { error: roleErr } = await supabase
+              .from('user_roles')
+              .insert({ user_id: user.id, role: 'dentist' as any });
+            if (roleErr && roleErr.code !== '23505') {
+              console.warn('Failed to assign dentist role:', roleErr.message);
+            }
+          }
+        } catch (e) {
+          console.warn('Role check skipped:', (e as any)?.message);
+        }
+      }
       
       // Fetch badge counts
       const { data: payments } = await supabase
