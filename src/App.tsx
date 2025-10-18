@@ -45,6 +45,9 @@ const LanguageTest = lazy(() => import("./components/LanguageTest").then(module 
 const About = lazy(() => import("./pages/About"));
 const Claim = lazy(() => import("./pages/Claim"));
 const PublicBooking = lazy(() => import("./pages/PublicBooking"));
+const BusinessOnboarding = lazy(() => import("./pages/BusinessOnboarding"));
+const ClinicLanding = lazy(() => import("./pages/ClinicLanding"));
+const PatientOnboarding = lazy(() => import("./pages/PatientOnboarding"));
 const PatientCareHome = lazy(() => import("./pages/PatientCareHome"));
 const PatientAppointmentsPage = lazy(() => import("./pages/PatientAppointmentsPage"));
 const PatientPrescriptionsPage = lazy(() => import("./pages/PatientPrescriptionsPage"));
@@ -184,6 +187,11 @@ const App = () => (
                 <Route path="/chat" element={<Chat />} />
                 <Route path="/invite" element={<Invite />} />
                 <Route path="/claim" element={<Claim />} />
+                {/* Multi-tenant clinic routes */}
+                <Route path="/start" element={<BusinessOnboarding />} />
+                <Route path="/:businessSlug" element={<ClinicLanding />} />
+                <Route path="/:businessSlug/onboard" element={<PatientOnboarding />} />
+                <Route path="/:businessSlug/signin" element={<PatientOnboarding />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

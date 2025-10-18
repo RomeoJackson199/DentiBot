@@ -1,5 +1,14 @@
 project_id = "gjvxcisbaxhhblhsytar"
 
+[functions.check-slug-availability]
+verify_jwt = false
+
+[functions.get-public-clinic-info]
+verify_jwt = false
+
+[functions.link-patient-to-clinic]
+verify_jwt = true
+
 [functions.google-calendar-integration]
 verify_jwt = false
 

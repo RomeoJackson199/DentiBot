@@ -19,6 +19,7 @@ import {
   PanelLeft,
   Settings as SettingsIcon,
   ChevronDown,
+  Share2,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -34,7 +35,7 @@ import { useMobileOptimizations } from "@/components/mobile/MobileOptimizations"
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { useClinicBranding } from "@/hooks/useClinicBranding";
 
-export type DentistSection = 'clinical' | 'patients' | 'appointments' | 'schedule' | 'payments' | 'analytics' | 'reports' | 'inventory' | 'imports' | 'branding' | 'security' | 'users';
+export type DentistSection = 'clinical' | 'patients' | 'appointments' | 'schedule' | 'payments' | 'analytics' | 'reports' | 'inventory' | 'imports' | 'branding' | 'security' | 'users' | 'marketing';
 
 interface DentistAppShellProps {
   activeSection: DentistSection;
@@ -79,6 +80,7 @@ const NAV_GROUPS = [
       { id: 'users' as DentistSection, label: 'Users', icon: Shield, color: 'text-slate-600 bg-slate-100 dark:bg-slate-900/30' },
       { id: 'branding' as DentistSection, label: 'Branding', icon: Palette, color: 'text-pink-600 bg-pink-100 dark:bg-pink-900/30' },
       { id: 'security' as DentistSection, label: 'Security', icon: Shield, color: 'text-red-600 bg-red-100 dark:bg-red-900/30' },
+      { id: 'marketing' as DentistSection, label: 'Marketing', icon: Share2, color: 'text-teal-600 bg-teal-100 dark:bg-teal-900/30' },
     ],
   },
 ];

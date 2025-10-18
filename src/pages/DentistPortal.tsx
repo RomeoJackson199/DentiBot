@@ -20,6 +20,7 @@ import DentistAdminSecurity from "./DentistAdminSecurity";
 import DentistAdminUsers from "./DentistAdminUsers";
 import { ModernLoadingSpinner } from "@/components/enhanced/ModernLoadingSpinner";
 import { UnifiedAppointments } from "@/components/UnifiedAppointments";
+import MarketingTools from "./dentist/MarketingTools";
 
 interface DentistPortalProps {
   user?: User | null;
@@ -172,6 +173,8 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
         return <DentistAdminBranding />;
       case 'security':
         return <DentistAdminSecurity />;
+      case 'marketing':
+        return <MarketingTools />;
       default:
         return <div className="p-4">Section not found</div>;
     }
