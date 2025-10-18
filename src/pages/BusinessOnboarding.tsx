@@ -113,17 +113,25 @@ export default function BusinessOnboarding() {
       if (authError) throw authError;
       if (!authData.user) throw new Error('User creation failed');
 
-      // 2. Get or create profile
+      // 2. Create or get profile
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
+        .upsert({
+          user_id: authData.user.id,
+          email: formData.email,
+          first_name: formData.firstName,
+          last_name: formData.lastName,
+          role: 'dentist'
+        }, {
+          onConflict: 'user_id'
+        })
         .select('id')
-        .eq('user_id', authData.user.id)
         .single();
 
-      if (profileError && profileError.code !== 'PGRST116') throw profileError;
+      if (profileError) throw profileError;
+      if (!profile?.id) throw new Error('Failed to create profile');
 
-      const profileId = profile?.id;
-      if (!profileId) throw new Error('Profile not found');
+      const profileId = profile.id;
 
       // 3. Create dentist record
       const { data: dentist, error: dentistError } = await supabase
