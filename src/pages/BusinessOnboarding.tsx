@@ -36,9 +36,9 @@ export default function BusinessOnboarding() {
     secondaryColor: '#66D2D6',
   });
 
-  // Load existing clinic data if user already has one
+  // Load existing business data if user already has one
   useEffect(() => {
-    const loadExistingClinic = async () => {
+    const loadExistingBusiness = async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
@@ -46,14 +46,18 @@ export default function BusinessOnboarding() {
         // Get profile
         const { data: profile } = await supabase
           .from('profiles')
-          .select('*, dentists(*, clinic_settings(*))')
+          .select('id, first_name, last_name, phone')
           .eq('user_id', user.id)
           .maybeSingle();
 
-        if (!profile?.dentists?.[0]) return;
+        if (!profile) return;
 
-        const dentist = profile.dentists[0];
-        const clinic = dentist.clinic_settings?.[0];
+        // Check if user owns any business
+        const { data: businesses } = await supabase
+          .from('businesses' as any)
+          .select('*')
+          .eq('owner_profile_id', profile.id)
+          .maybeSingle();
 
         // Pre-fill form with existing data
         setFormData(prev => ({
@@ -61,27 +65,26 @@ export default function BusinessOnboarding() {
           email: user.email || '',
           firstName: profile.first_name || '',
           lastName: profile.last_name || '',
-          clinicName: clinic?.clinic_name || '',
-          specialtyType: clinic?.specialty_type || dentist.specialization || 'dentist',
-          address: dentist.clinic_address || '',
+          clinicName: businesses?.name || '',
+          specialtyType: businesses?.specialty_type || 'dentist',
           phone: profile.phone || '',
-          businessSlug: clinic?.business_slug || '',
-          tagline: clinic?.tagline || '',
-          primaryColor: clinic?.primary_color || '#0F3D91',
-          secondaryColor: clinic?.secondary_color || '#66D2D6',
+          businessSlug: businesses?.slug || '',
+          tagline: businesses?.tagline || '',
+          primaryColor: businesses?.primary_color || '#0F3D91',
+          secondaryColor: businesses?.secondary_color || '#66D2D6',
         }));
 
-        // If clinic exists but missing business slug, skip to that step
-        if (clinic && !clinic.business_slug) {
+        // If business exists but missing slug, skip to that step
+        if (businesses && !businesses.slug) {
           setCurrentStep(2);
           toast.info('Please complete your business URL setup');
         }
       } catch (error) {
-        console.error('Error loading clinic:', error);
+        console.error('Error loading business:', error);
       }
     };
 
-    loadExistingClinic();
+    loadExistingBusiness();
   }, []);
 
   const checkSlugAvailability = async (slug: string) => {
@@ -99,35 +102,43 @@ export default function BusinessOnboarding() {
 
     setCheckingSlug(true);
     try {
-      // Get current user's clinic to allow their own slug
+      // Get current user's business to allow their own slug
       const { data: { user } } = await supabase.auth.getUser();
-      let currentClinicSlug: string | null = null;
+      let currentBusinessSlug: string | null = null;
       
       if (user) {
         const { data: profile } = await supabase
           .from('profiles')
-          .select('dentists(clinic_settings(business_slug))')
+          .select('id')
           .eq('user_id', user.id)
           .maybeSingle();
         
-        currentClinicSlug = profile?.dentists?.[0]?.clinic_settings?.[0]?.business_slug;
+        if (profile) {
+          const { data: business } = await supabase
+            .from('businesses' as any)
+            .select('slug')
+            .eq('owner_profile_id', profile.id)
+            .maybeSingle();
+          
+          currentBusinessSlug = business?.slug;
+        }
       }
 
-      // Check if slug exists
+      // Check if slug exists in businesses table
       const { data, error } = await supabase
-        .from('clinic_settings')
-        .select('business_slug')
-        .eq('business_slug', slug.toLowerCase())
+        .from('businesses' as any)
+        .select('slug')
+        .eq('slug', slug.toLowerCase())
         .maybeSingle();
 
-      if (error) {
+      if (error && error.code !== 'PGRST116') {
         console.error('Error checking slug:', error);
         setSlugAvailable(null);
         return;
       }
 
       // Slug is available if: no data found OR it's the user's own slug
-      setSlugAvailable(!data || data.business_slug === currentClinicSlug);
+      setSlugAvailable(!data || data.slug === currentBusinessSlug);
     } catch (error: any) {
       console.error('Error checking slug:', error);
       setSlugAvailable(null);
@@ -213,123 +224,160 @@ export default function BusinessOnboarding() {
         }
       }
 
-      // 2. Get profile with retries (via RPC to bypass RLS)
-      let profileId: string | null = null;
-      let attempts = 0;
-      const maxAttempts = 10;
+      // 2. Get or create profile
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      let profileId: string;
+      if (profileError || !profile) {
+        // Create profile if it doesn't exist
+        const { data: newProfile, error: createProfileError } = await supabase
+          .from('profiles')
+          .insert({
+            user_id: userId,
+            first_name: formData.firstName,
+            last_name: formData.lastName,
+            email: formData.email,
+            phone: formData.phone
+          })
+          .select('id')
+          .single();
+
+        if (createProfileError) throw createProfileError;
+        profileId = newProfile.id;
+      } else {
+        profileId = profile.id;
+        
+        // Update profile with any new info
+        await supabase
+          .from('profiles')
+          .update({
+            first_name: formData.firstName,
+            last_name: formData.lastName,
+            phone: formData.phone
+          })
+          .eq('id', profileId);
+      }
+
+      // 3. Assign provider role (ignore if already exists)
+      const { error: roleError } = await supabase
+        .from('user_roles')
+        .insert({
+          user_id: userId,
+          role: 'provider'
+        });
       
-      while (!profileId && attempts < maxAttempts) {
-        await new Promise(resolve => setTimeout(resolve, 400 * (attempts + 1)));
-        
-        const { data: profId, error: profErr } = await supabase.rpc('get_current_user_profile_id');
-
-        if (profErr) {
-          attempts++;
-          continue;
-        }
-
-        if (profId) {
-          profileId = String(profId);
-          break;
-        }
-        
-        attempts++;
+      // Ignore duplicate key errors
+      if (roleError && !roleError.message.includes('duplicate key')) {
+        throw roleError;
       }
 
-      if (!profileId) {
-        throw new Error('Unable to access profile. Please confirm your email or sign in, then retry.');
+      // 4. Get or create business
+      const { data: existingBusiness } = await supabase
+        .from('businesses' as any)
+        .select('id')
+        .eq('owner_profile_id', profileId)
+        .maybeSingle();
+
+      let businessId: string;
+      if (existingBusiness) {
+        // Update existing business
+        const { data: updated, error: updateError } = await supabase
+          .from('businesses' as any)
+          .update({
+            name: formData.clinicName,
+            slug: formData.businessSlug,
+            tagline: formData.tagline || null,
+            primary_color: formData.primaryColor,
+            secondary_color: formData.secondaryColor,
+            specialty_type: formData.specialtyType,
+            business_hours: {},
+            currency: 'USD',
+            ai_tone: 'professional',
+            ai_response_length: 'medium',
+            appointment_keywords: ['appointment', 'booking', 'schedule'],
+            emergency_keywords: ['emergency', 'urgent', 'pain'],
+            show_logo_in_chat: true,
+            show_branding_in_emails: true
+          })
+          .eq('id', existingBusiness.id)
+          .select('id')
+          .single();
+        
+        if (updateError) throw updateError;
+        businessId = updated.id;
+      } else {
+        // Create new business
+        const { data: newBusiness, error: businessError } = await supabase
+          .from('businesses' as any)
+          .insert({
+            owner_profile_id: profileId,
+            name: formData.clinicName,
+            slug: formData.businessSlug,
+            tagline: formData.tagline || null,
+            primary_color: formData.primaryColor,
+            secondary_color: formData.secondaryColor,
+            specialty_type: formData.specialtyType,
+            business_hours: {},
+            currency: 'USD',
+            ai_tone: 'professional',
+            ai_response_length: 'medium',
+            appointment_keywords: ['appointment', 'booking', 'schedule'],
+            emergency_keywords: ['emergency', 'urgent', 'pain'],
+            show_logo_in_chat: true,
+            show_branding_in_emails: true
+          })
+          .select('id')
+          .single();
+
+        if (businessError) throw businessError;
+        businessId = newBusiness.id;
       }
 
-      // 3. Get or create dentist record
-      let dentist;
-      const { data: existingDentist } = await supabase
-        .from('dentists')
-        .select('*')
+      // 5. Create provider record
+      const { data: existingProvider } = await supabase
+        .from('providers' as any)
+        .select('id')
         .eq('profile_id', profileId)
         .maybeSingle();
 
-      if (existingDentist) {
-        // Update existing dentist
-        const { data: updated, error: updateError } = await supabase
-          .from('dentists')
-          .update({
-            is_active: true,
-            specialization: formData.specialtyType,
-            clinic_address: formData.address
-          })
-          .eq('id', existingDentist.id)
-          .select()
-          .single();
-        
-        if (updateError) throw updateError;
-        dentist = updated;
-      } else {
-        // Create new dentist
-        const { data: newDentist, error: dentistError } = await supabase
-          .from('dentists')
+      if (!existingProvider) {
+        await supabase
+          .from('providers' as any)
           .insert({
             profile_id: profileId,
-            is_active: true,
             specialization: formData.specialtyType,
-            clinic_address: formData.address
-          })
-          .select()
-          .single();
-
-        if (dentistError) throw dentistError;
-        dentist = newDentist;
-      }
-
-      // 4. Get or create clinic settings with business slug
-      const { data: existingClinic } = await supabase
-        .from('clinic_settings')
-        .select('*')
-        .eq('dentist_id', dentist.id)
-        .maybeSingle();
-
-      if (existingClinic) {
-        // Update existing clinic settings
-        const { error: updateError } = await supabase
-          .from('clinic_settings')
-          .update({
-            clinic_name: formData.clinicName,
-            business_slug: formData.businessSlug,
-            tagline: formData.tagline,
-            primary_color: formData.primaryColor,
-            secondary_color: formData.secondaryColor,
-            specialty_type: formData.specialtyType
-          })
-          .eq('id', existingClinic.id);
-
-        if (updateError) throw updateError;
-      } else {
-        // Create new clinic settings
-        const { error: clinicError } = await supabase
-          .from('clinic_settings')
-          .insert({
-            dentist_id: dentist.id,
-            clinic_name: formData.clinicName,
-            business_slug: formData.businessSlug,
-            tagline: formData.tagline,
-            primary_color: formData.primaryColor,
-            secondary_color: formData.secondaryColor,
-            specialty_type: formData.specialtyType
+            is_active: true,
+            average_rating: 0,
+            total_ratings: 0,
+            expertise_score: 0,
+            communication_score: 0,
+            wait_time_score: 0
           });
-
-        if (clinicError) throw clinicError;
       }
 
-      // 5. Ensure user is registered as dentist with proper role
-      const { error: ensureError } = await supabase.rpc('ensure_current_user_is_dentist');
-      if (ensureError) {
-        console.warn('Failed to ensure dentist status:', ensureError.message);
-      }
-
-      toast.success('Clinic created successfully!');
+      // 6. Link provider to business as owner (ignore if already linked)
+      const { error: linkError } = await supabase
+        .from('provider_business_map' as any)
+        .insert({
+          provider_id: profileId,
+          business_id: businessId,
+          role: 'owner'
+        });
       
-      // Redirect to dentist portal
+      // Ignore duplicate key errors
+      if (linkError && !linkError.message.includes('duplicate key')) {
+        throw linkError;
+      }
+
+      toast.success('Business created successfully!');
+      
+      // Redirect to business page
       setTimeout(() => {
-        navigate('/dentist/clinical/dashboard');
+        navigate(`/${formData.businessSlug}`);
       }, 1500);
     } catch (error: any) {
       console.error('Error creating clinic:', error);

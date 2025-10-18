@@ -14,6 +14,86 @@ export type Database = {
   }
   public: {
     Tables: {
+      businesses: {
+        Row: {
+          ai_instructions: string | null
+          ai_response_length: string
+          ai_tone: string
+          appointment_keywords: string[]
+          business_hours: Json
+          created_at: string
+          currency: string
+          emergency_keywords: string[]
+          id: string
+          logo_url: string | null
+          name: string
+          owner_profile_id: string
+          primary_color: string
+          secondary_color: string
+          show_branding_in_emails: boolean
+          show_logo_in_chat: boolean
+          slug: string
+          specialty_type: string
+          tagline: string | null
+          updated_at: string
+          welcome_message: string | null
+        }
+        Insert: {
+          ai_instructions?: string | null
+          ai_response_length?: string
+          ai_tone?: string
+          appointment_keywords?: string[]
+          business_hours?: Json
+          created_at?: string
+          currency?: string
+          emergency_keywords?: string[]
+          id?: string
+          logo_url?: string | null
+          name: string
+          owner_profile_id: string
+          primary_color?: string
+          secondary_color?: string
+          show_branding_in_emails?: boolean
+          show_logo_in_chat?: boolean
+          slug: string
+          specialty_type?: string
+          tagline?: string | null
+          updated_at?: string
+          welcome_message?: string | null
+        }
+        Update: {
+          ai_instructions?: string | null
+          ai_response_length?: string
+          ai_tone?: string
+          appointment_keywords?: string[]
+          business_hours?: Json
+          created_at?: string
+          currency?: string
+          emergency_keywords?: string[]
+          id?: string
+          logo_url?: string | null
+          name?: string
+          owner_profile_id?: string
+          primary_color?: string
+          secondary_color?: string
+          show_branding_in_emails?: boolean
+          show_logo_in_chat?: boolean
+          slug?: string
+          specialty_type?: string
+          tagline?: string | null
+          updated_at?: string
+          welcome_message?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "businesses_owner_profile_id_fkey"
+            columns: ["owner_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           address: string | null
@@ -52,6 +132,98 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      provider_business_map: {
+        Row: {
+          business_id: string
+          created_at: string
+          id: string
+          provider_id: string
+          role: string
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          id?: string
+          provider_id: string
+          role: string
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          id?: string
+          provider_id?: string
+          role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "provider_business_map_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "provider_business_map_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      providers: {
+        Row: {
+          average_rating: number
+          communication_score: number
+          created_at: string
+          expertise_score: number
+          id: string
+          is_active: boolean
+          license_number: string | null
+          profile_id: string
+          specialization: string | null
+          total_ratings: number
+          updated_at: string
+          wait_time_score: number
+        }
+        Insert: {
+          average_rating?: number
+          communication_score?: number
+          created_at?: string
+          expertise_score?: number
+          id?: string
+          is_active?: boolean
+          license_number?: string | null
+          profile_id: string
+          specialization?: string | null
+          total_ratings?: number
+          updated_at?: string
+          wait_time_score?: number
+        }
+        Update: {
+          average_rating?: number
+          communication_score?: number
+          created_at?: string
+          expertise_score?: number
+          id?: string
+          is_active?: boolean
+          license_number?: string | null
+          profile_id?: string
+          specialization?: string | null
+          total_ratings?: number
+          updated_at?: string
+          wait_time_score?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "providers_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
