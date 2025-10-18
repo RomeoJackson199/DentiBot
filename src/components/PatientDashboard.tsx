@@ -302,7 +302,6 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
             email: user.email || '',
             first_name: user.user_metadata?.first_name || '',
             last_name: user.user_metadata?.last_name || '',
-            role: 'patient'
           })
           .select()
           .single();
