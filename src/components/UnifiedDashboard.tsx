@@ -34,8 +34,8 @@ export const UnifiedDashboard = memo(({ user }: UnifiedDashboardProps) => {
         isAdmin
       });
 
-      // If a clinic was selected, check the access mode
-      if (selectedClinicDentistId && accessMode) {
+      // If a business was selected, check the access mode
+      if (selectedClinicSlug && accessMode) {
         const { data: profile } = await supabase
           .from('profiles')
           .select('id')
@@ -43,36 +43,34 @@ export const UnifiedDashboard = memo(({ user }: UnifiedDashboardProps) => {
           .maybeSingle();
 
         if (profile) {
-          const { data: dentistData } = await supabase
-            .from('dentists')
-            .select('id, is_active')
-            .eq('profile_id', profile.id)
+          const { data: business } = await supabase
+            .from('businesses' as any)
+            .select('id, owner_profile_id')
+            .eq('slug', selectedClinicSlug)
             .maybeSingle();
 
-          // Check if user owns this clinic
-          const ownsClinic = dentistData?.id === selectedClinicDentistId;
+          // Check if user owns this business
+          const ownsBusiness = business?.owner_profile_id === profile.id;
 
-          if (accessMode === 'admin' && ownsClinic && (dentistData?.is_active || isAdmin)) {
-            // Admin access to own clinic - redirect to dentist portal
-            console.log('Redirecting to dentist portal (admin mode)');
+          if (accessMode === 'admin' && ownsBusiness) {
+            // Admin access to own business - redirect to business dashboard
+            console.log('Redirecting to business dashboard (admin mode)');
             sessionStorage.removeItem('selectedClinicDentistId');
             sessionStorage.removeItem('selectedClinicSlug');
             sessionStorage.removeItem('selectedClinicName');
             sessionStorage.removeItem('accessMode');
             setShouldRedirect(true);
-            navigate('/dentist/clinical/dashboard', { replace: true });
+            navigate(`/${selectedClinicSlug}/admin`, { replace: true });
             return;
           } else if (accessMode === 'patient') {
             // Patient access - stay on patient dashboard
-            console.log('Accessing clinic as patient - keeping selectedClinicDentistId for filtering');
-            // Keep dentist ID, slug, and name for filtering
-            // Only remove accessMode to indicate we've processed it
+            console.log('Accessing business as patient - keeping context for filtering');
             sessionStorage.removeItem('accessMode');
           }
         }
       }
 
-      // If no clinic selected, redirect providers/admins to their portal by default
+      // If no business selected, redirect providers/admins to business selector by default
       if (!selectedClinicSlug && !accessMode && (isProvider || isAdmin)) {
         const { data: profile } = await supabase
           .from('profiles')
@@ -81,16 +79,14 @@ export const UnifiedDashboard = memo(({ user }: UnifiedDashboardProps) => {
           .maybeSingle();
 
         if (profile) {
-          const { data: dentistData } = await supabase
-            .from('dentists')
-            .select('id, is_active')
-            .eq('profile_id', profile.id)
-            .maybeSingle();
+          const { data: businesses } = await supabase
+            .from('businesses' as any)
+            .select('id')
+            .eq('owner_profile_id', profile.id);
 
-          if (dentistData?.is_active || isAdmin) {
-            console.log('No clinic selected - redirecting dentist/admin to their portal');
-            setShouldRedirect(true);
-            navigate('/dentist/clinical/dashboard', { replace: true });
+          if (businesses && businesses.length > 0) {
+            console.log('Provider with businesses - showing business selector');
+            // Keep them on the main page which shows BusinessSelector
             return;
           }
         }
