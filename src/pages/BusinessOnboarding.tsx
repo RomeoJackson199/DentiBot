@@ -224,43 +224,42 @@ export default function BusinessOnboarding() {
         }
       }
 
-      // 2. Get or create profile
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('user_id', userId)
-        .maybeSingle();
-
-      let profileId: string;
-      if (profileError || !profile) {
-        // Create profile if it doesn't exist
-        const { data: newProfile, error: createProfileError } = await supabase
+      // 2. Get profile (auto-created by trigger on signup)
+      let profile = null;
+      let attempts = 0;
+      
+      // Retry a few times in case profile creation is still processing
+      while (!profile && attempts < 5) {
+        const { data } = await supabase
           .from('profiles')
-          .insert({
-            user_id: userId,
-            first_name: formData.firstName,
-            last_name: formData.lastName,
-            email: formData.email,
-            phone: formData.phone
-          })
           .select('id')
-          .single();
-
-        if (createProfileError) throw createProfileError;
-        profileId = newProfile.id;
-      } else {
-        profileId = profile.id;
+          .eq('user_id', userId)
+          .maybeSingle();
         
-        // Update profile with any new info
-        await supabase
-          .from('profiles')
-          .update({
-            first_name: formData.firstName,
-            last_name: formData.lastName,
-            phone: formData.phone
-          })
-          .eq('id', profileId);
+        if (data) {
+          profile = data;
+          break;
+        }
+        
+        await new Promise(resolve => setTimeout(resolve, 500));
+        attempts++;
       }
+
+      if (!profile) {
+        throw new Error('Profile not found. Please try again.');
+      }
+
+      const profileId = profile.id;
+
+      // Update profile with user-provided info
+      await supabase
+        .from('profiles')
+        .update({
+          first_name: formData.firstName,
+          last_name: formData.lastName,
+          phone: formData.phone
+        })
+        .eq('id', profileId);
 
       // 3. Assign provider role (ignore if already exists)
       const { error: roleError } = await supabase
