@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { Loader2, Check } from 'lucide-react';
+import { useRef } from 'react';
 
 const STEPS = ['Account', 'Clinic Info', 'Business URL', 'Branding'];
 
@@ -17,6 +18,7 @@ export default function BusinessOnboarding() {
   const [loading, setLoading] = useState(false);
   const [checkingSlug, setCheckingSlug] = useState(false);
   const [slugAvailable, setSlugAvailable] = useState<boolean | null>(null);
+  const slugTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Form data
   const [formData, setFormData] = useState({
@@ -40,23 +42,31 @@ export default function BusinessOnboarding() {
       return;
     }
 
+    // Validate slug format
+    const slugRegex = /^[a-z0-9-]+$/;
+    if (!slugRegex.test(slug)) {
+      setSlugAvailable(false);
+      return;
+    }
+
     setCheckingSlug(true);
     try {
-      const { data, error } = await supabase.functions.invoke('check-slug-availability', {
-        body: { slug: slug.toLowerCase() }
-      });
+      // Direct database check as fallback
+      const { data, error } = await supabase
+        .from('clinic_settings')
+        .select('business_slug')
+        .eq('business_slug', slug.toLowerCase())
+        .maybeSingle();
 
-      if (error) throw error;
-      if (data.error) {
-        toast.error(data.error);
-        setSlugAvailable(false);
+      if (error) {
+        console.error('Error checking slug:', error);
+        setSlugAvailable(null);
         return;
       }
 
-      setSlugAvailable(data.available);
+      setSlugAvailable(!data);
     } catch (error: any) {
       console.error('Error checking slug:', error);
-      toast.error('Error checking availability');
       setSlugAvailable(null);
     } finally {
       setCheckingSlug(false);
@@ -67,11 +77,15 @@ export default function BusinessOnboarding() {
     const cleanSlug = value.toLowerCase().replace(/[^a-z0-9-]/g, '');
     setFormData({ ...formData, businessSlug: cleanSlug });
     
-    const timeoutId = setTimeout(() => {
+    // Clear previous timeout
+    if (slugTimeoutRef.current) {
+      clearTimeout(slugTimeoutRef.current);
+    }
+    
+    // Set new timeout
+    slugTimeoutRef.current = setTimeout(() => {
       checkSlugAvailability(cleanSlug);
     }, 500);
-    
-    return () => clearTimeout(timeoutId);
   };
 
   const handleSubmit = async () => {
