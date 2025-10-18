@@ -25,7 +25,7 @@ export const UnifiedDashboard = memo(({ user }: UnifiedDashboardProps) => {
       const selectedClinicName = sessionStorage.getItem('selectedBusinessName');
       const accessMode = sessionStorage.getItem('accessMode');
 
-      console.log('UnifiedDashboard - Session data:', {
+      console.log('🔍 UnifiedDashboard - Session data:', {
         selectedClinicDentistId,
         selectedClinicSlug,
         selectedClinicName,
@@ -36,11 +36,14 @@ export const UnifiedDashboard = memo(({ user }: UnifiedDashboardProps) => {
 
       // If a business was selected, check the access mode
       if (selectedClinicSlug && accessMode) {
+        console.log('✅ Business selected with access mode:', accessMode);
         const { data: profile } = await supabase
           .from('profiles')
           .select('id')
           .eq('user_id', user.id)
           .maybeSingle();
+
+        console.log('👤 User profile:', profile);
 
         if (profile) {
           const { data: business } = await supabase
@@ -49,12 +52,15 @@ export const UnifiedDashboard = memo(({ user }: UnifiedDashboardProps) => {
             .eq('slug', selectedClinicSlug)
             .maybeSingle();
 
+          console.log('🏢 Business data:', business);
+
           // Check if user owns this business
           const ownsBusiness = business?.owner_profile_id === profile.id;
+          console.log('🔑 Owns business?', ownsBusiness);
 
           if (accessMode === 'admin' && ownsBusiness) {
             // Admin access to own business - redirect to business dashboard
-            console.log('Redirecting to business dashboard (admin mode)');
+            console.log('🚀 Redirecting to business dashboard (admin mode)');
             sessionStorage.removeItem('selectedBusinessId');
             sessionStorage.removeItem('selectedBusinessSlug');
             sessionStorage.removeItem('selectedBusinessName');
@@ -64,7 +70,7 @@ export const UnifiedDashboard = memo(({ user }: UnifiedDashboardProps) => {
             return;
           } else if (accessMode === 'patient') {
             // Patient access - stay on patient dashboard
-            console.log('Accessing business as patient - keeping context for filtering');
+            console.log('👥 Accessing business as patient - keeping context for filtering');
             sessionStorage.removeItem('accessMode');
           }
         }
@@ -72,6 +78,7 @@ export const UnifiedDashboard = memo(({ user }: UnifiedDashboardProps) => {
 
       // If no business selected, redirect providers/admins to business selector by default
       if (!selectedClinicSlug && !accessMode && (isProvider || isAdmin)) {
+        console.log('🔄 No business selected, checking if provider has businesses...');
         const { data: profile } = await supabase
           .from('profiles')
           .select('id')
@@ -84,8 +91,9 @@ export const UnifiedDashboard = memo(({ user }: UnifiedDashboardProps) => {
             .select('id')
             .eq('owner_profile_id', profile.id);
 
+          console.log('🏢 Found businesses:', businesses);
           if (businesses && businesses.length > 0) {
-            console.log('Provider with businesses - showing business selector');
+            console.log('✅ Provider with businesses - showing business selector on main page');
             // Keep them on the main page which shows BusinessSelector
             return;
           }
