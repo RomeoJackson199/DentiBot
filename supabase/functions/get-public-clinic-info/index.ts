@@ -26,62 +26,75 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_ANON_KEY') ?? ''
     );
 
-    // Get clinic settings and dentist info
-    const { data: clinicData, error: clinicError } = await supabase
-      .from('clinic_settings')
+    // Get business info using new multi-business schema
+    const { data: businessData, error: businessError } = await supabase
+      .from('businesses')
       .select(`
         id,
-        clinic_name,
+        name,
+        slug,
         tagline,
         logo_url,
         primary_color,
         secondary_color,
         business_hours,
         specialty_type,
-        dentist_id,
-        dentists!inner (
-          id,
-          specialization,
-          clinic_address,
-          profiles!inner (
-            first_name,
-            last_name
-          )
-        )
+        owner_profile_id
       `)
-      .eq('business_slug', businessSlug)
+      .eq('slug', businessSlug)
       .maybeSingle();
 
-    if (clinicError) {
-      console.error('Database error:', clinicError);
+    if (businessError) {
+      console.error('Database error:', businessError);
       return new Response(
-        JSON.stringify({ error: 'Error fetching clinic info' }),
+        JSON.stringify({ error: 'Error fetching business info' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    if (!clinicData) {
+    if (!businessData) {
       return new Response(
         JSON.stringify({ error: 'Clinic not found' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
+    // Get owner profile and provider info
+    const { data: ownerProfile, error: profileError } = await supabase
+      .from('profiles')
+      .select('id, first_name, last_name')
+      .eq('id', businessData.owner_profile_id)
+      .maybeSingle();
+
+    if (profileError) {
+      console.error('Profile error:', profileError);
+    }
+
+    const { data: provider, error: providerError } = await supabase
+      .from('providers')
+      .select('specialization')
+      .eq('profile_id', businessData.owner_profile_id)
+      .maybeSingle();
+
+    if (providerError) {
+      console.error('Provider error:', providerError);
+    }
+
     // Format response with public info only
     const response = {
-      clinicId: clinicData.id,
-      dentistId: clinicData.dentist_id,
-      name: clinicData.clinic_name,
-      tagline: clinicData.tagline,
-      logoUrl: clinicData.logo_url,
-      primaryColor: clinicData.primary_color,
-      secondaryColor: clinicData.secondary_color,
-      businessHours: clinicData.business_hours,
-      specialtyType: clinicData.specialty_type,
-      doctorName: `Dr. ${clinicData.dentists.profiles.first_name} ${clinicData.dentists.profiles.last_name}`,
-      specialization: clinicData.dentists.specialization,
-      address: clinicData.dentists.clinic_address,
-      businessSlug
+      clinicId: businessData.id,
+      dentistId: businessData.owner_profile_id,
+      name: businessData.name,
+      tagline: businessData.tagline,
+      logoUrl: businessData.logo_url,
+      primaryColor: businessData.primary_color,
+      secondaryColor: businessData.secondary_color,
+      businessHours: businessData.business_hours || {},
+      specialtyType: businessData.specialty_type,
+      doctorName: ownerProfile ? `Dr. ${ownerProfile.first_name} ${ownerProfile.last_name}` : 'Doctor',
+      specialization: provider?.specialization || businessData.specialty_type,
+      address: null, // Address removed from this version
+      businessSlug: businessData.slug
     };
 
     return new Response(
