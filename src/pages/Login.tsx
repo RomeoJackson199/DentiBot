@@ -18,29 +18,21 @@ const Login = () => {
     // Check if user is already logged in
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        // If coming from clinic selection, go to dentist portal
-        if (selectedClinicSlug) {
-          navigate("/dentist/clinical/dashboard");
-        } else {
-          navigate("/");
-        }
+        // Always go to homepage, let UnifiedDashboard handle routing
+        navigate("/");
       }
     });
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
-        // If coming from clinic selection, go to dentist portal
-        if (selectedClinicSlug) {
-          navigate("/dentist/clinical/dashboard");
-        } else {
-          navigate("/");
-        }
+        // Always go to homepage, let UnifiedDashboard handle routing
+        navigate("/");
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate, selectedClinicSlug]);
+  }, [navigate]);
 
   return (
     <div className="min-h-screen flex flex-col mesh-bg">

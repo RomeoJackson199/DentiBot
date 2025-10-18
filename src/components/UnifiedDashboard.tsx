@@ -20,6 +20,10 @@ export const UnifiedDashboard = memo(({ user }: UnifiedDashboardProps) => {
     const checkDentistRedirect = async () => {
       if (roleLoading) return;
 
+      // Check if coming from clinic selector
+      const selectedClinicDentistId = sessionStorage.getItem('selectedClinicDentistId');
+      const selectedClinicSlug = sessionStorage.getItem('selectedClinicSlug');
+
       // Dentists and admins should be redirected to dentist portal
       if (isDentist || isAdmin) {
         const { data: profile } = await supabase
@@ -42,6 +46,13 @@ export const UnifiedDashboard = memo(({ user }: UnifiedDashboardProps) => {
             return;
           }
         }
+      }
+
+      // If patient selected a clinic, store it for appointment booking
+      if (selectedClinicSlug && !isDentist && !isAdmin) {
+        console.log('Patient selected clinic:', selectedClinicSlug);
+        // Keep the clinic selection in sessionStorage for appointment booking
+        // It will be used by appointment booking components
       }
     };
 
