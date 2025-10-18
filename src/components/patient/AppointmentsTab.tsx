@@ -23,7 +23,6 @@ import { AppointmentStatusBadge } from "@/components/patient/AppointmentStatusBa
 export interface AppointmentsTabProps {
   user: User;
   onOpenAssistant?: () => void;
-  clinicDentistId?: string | null;
 }
 interface Appointment {
   id: string;
@@ -124,8 +123,7 @@ const CalendarView = ({
 // Removed - using TimelineAppointmentCard instead
 export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({
   user,
-  onOpenAssistant,
-  clinicDentistId
+  onOpenAssistant
 }) => {
   const [tab, setTab] = useState<'calendar' | 'upcoming' | 'past'>('calendar');
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -147,7 +145,6 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({
     t
   } = useLanguage();
   useEffect(() => {
-    console.log('AppointmentsTab - Fetching with clinicDentistId:', clinicDentistId);
     fetchAppointments();
     (async () => {
       const {
@@ -164,7 +161,7 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({
         }
       }
     })();
-  }, [user.id, clinicDentistId]);
+  }, [user.id]);
   const fetchAppointments = async () => {
     try {
       setLoading(true);
@@ -172,23 +169,15 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({
         data: profile
       } = await supabase.from('profiles').select('id').eq('user_id', user.id).single();
       if (profile) {
-        let query = supabase
-          .from('appointments')
-          .select(`
+        const {
+          data: appointmentsData
+        } = await supabase.from('appointments').select(`
             *,
             dentist:dentist_id(
               specialization,
               profile:profile_id(first_name, last_name)
             )
-          `)
-          .eq('patient_id', profile.id);
-        
-        // Filter by dentist_id if clinic is selected
-        if (clinicDentistId) {
-          query = query.eq('dentist_id', clinicDentistId);
-        }
-        
-        const { data: appointmentsData } = await query.order('appointment_date', {
+          `).eq('patient_id', profile.id).order('appointment_date', {
           ascending: false
         });
         if (appointmentsData) {
@@ -245,11 +234,6 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({
           <div>
             <h2 className="text-xl md:text-2xl font-bold">{t.appointments}</h2>
             <p className="text-sm text-muted-foreground">{t.manageDentalVisits}</p>
-            {clinicDentistId && sessionStorage.getItem('selectedClinicName') && (
-              <Badge variant="secondary" className="mt-2">
-                Filtered to {sessionStorage.getItem('selectedClinicName')}
-              </Badge>
-            )}
           </div>
           
         </div>

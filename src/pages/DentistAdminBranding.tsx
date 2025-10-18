@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useCurrentDentist } from "@/hooks/useCurrentDentist";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,87 +7,52 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, Palette, Upload, Image as ImageIcon } from "lucide-react";
-import { Textarea } from "@/components/ui/textarea";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 export default function DentistAdminBranding() {
-  const [loading, setLoading] = useState(true);
-  const [businessId, setBusinessId] = useState<string | null>(null);
-  const [businessName, setBusinessName] = useState("");
-  const [businessSlug, setBusinessSlug] = useState("");
-  const [tagline, setTagline] = useState("");
-  const [primaryColor, setPrimaryColor] = useState("#0F3D91");
-  const [secondaryColor, setSecondaryColor] = useState("#66D2D6");
+  const { dentistId, loading: dentistLoading } = useCurrentDentist();
+  const [loading, setLoading] = useState(false);
+  const [clinicName, setClinicName] = useState("");
+  const [primaryColor, setPrimaryColor] = useState("#0EA5E9");
+  const [secondaryColor, setSecondaryColor] = useState("#10B981");
   const [logoUrl, setLogoUrl] = useState("");
   const { toast } = useToast();
 
   useEffect(() => {
-    loadBusinessData();
-  }, []);
+    if (dentistId) {
+      loadBrandingSettings();
+    }
+  }, [dentistId]);
 
-  const loadBusinessData = async () => {
+  const loadBrandingSettings = async () => {
     try {
-      setLoading(true);
-      
-      // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast({
-          title: "Error",
-          description: "You must be logged in",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Get profile
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (!profile) {
-        toast({
-          title: "Error",
-          description: "Profile not found",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Get user's business
-      const { data: business, error } = await supabase
-        .from('businesses' as any)
+      const { data: settings, error } = await supabase
+        .from('clinic_settings')
         .select('*')
-        .eq('owner_profile_id', profile.id)
+        .eq('dentist_id', dentistId)
         .maybeSingle();
 
       if (error) throw error;
 
-      if (business) {
-        setBusinessId(business.id);
-        setBusinessName(business.name || "");
-        setBusinessSlug(business.slug || "");
-        setTagline(business.tagline || "");
-        setPrimaryColor(business.primary_color || "#0F3D91");
-        setSecondaryColor(business.secondary_color || "#66D2D6");
-        setLogoUrl(business.logo_url || "");
+      if (settings) {
+        setClinicName(settings.clinic_name || "");
+        setPrimaryColor(settings.primary_color || "#2D5D7B");
+        setSecondaryColor(settings.secondary_color || "#8B5CF6");
+        setLogoUrl(settings.logo_url || "");
       }
-    } catch (error: any) {
-      console.error('Error loading business:', error);
+    } catch (error) {
+      console.error('Error loading branding:', error);
       toast({
         title: "Error",
-        description: "Failed to load business settings",
+        description: "Failed to load branding settings",
         variant: "destructive",
       });
-    } finally {
-      setLoading(false);
     }
   };
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !businessId) return;
+    if (!file) return;
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
@@ -112,9 +78,9 @@ export default function DentistAdminBranding() {
 
     try {
       const fileExt = file.name.split('.').pop();
-      const fileName = `${businessId}-logo-${Date.now()}.${fileExt}`;
+      const fileName = `${dentistId}-logo-${Date.now()}.${fileExt}`;
 
-      const { error: uploadError } = await supabase.storage
+      const { error: uploadError, data } = await supabase.storage
         .from('dental-photos')
         .upload(fileName, file, { upsert: true });
 
@@ -128,7 +94,7 @@ export default function DentistAdminBranding() {
 
       toast({
         title: "Logo Uploaded",
-        description: "Your business logo has been uploaded successfully",
+        description: "Your clinic logo has been uploaded successfully",
       });
     } catch (error: any) {
       console.error('Error uploading logo:', error);
@@ -143,21 +109,22 @@ export default function DentistAdminBranding() {
   };
 
   const handleSaveBranding = async () => {
-    if (!businessId) return;
+    if (!dentistId) return;
     
     setLoading(true);
 
     try {
       const { error } = await supabase
-        .from('businesses' as any)
-        .update({
-          name: businessName,
-          tagline: tagline || null,
-          logo_url: logoUrl || null,
+        .from('clinic_settings')
+        .upsert({
+          dentist_id: dentistId,
+          clinic_name: clinicName,
+          logo_url: logoUrl,
           primary_color: primaryColor,
           secondary_color: secondaryColor,
-        })
-        .eq('id', businessId);
+        }, {
+          onConflict: 'dentist_id'
+        });
 
       if (error) throw error;
 
@@ -177,7 +144,7 @@ export default function DentistAdminBranding() {
     }
   };
 
-  if (loading && !businessId) {
+  if (dentistLoading) {
     return (
       <div className="flex justify-center items-center p-8">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -186,196 +153,203 @@ export default function DentistAdminBranding() {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Branding</h1>
-        <p className="text-muted-foreground mt-2">
-          Customize your business appearance and branding
-        </p>
-      </div>
+    <div>
+      <PageHeader 
+        title="Branding & Customization"
+        subtitle="Customize your clinic's appearance and branding"
+        breadcrumbs={[
+          { label: 'Home', href: '/dentist' },
+          { label: 'Admin' },
+          { label: 'Branding' }
+        ]}
+      />
 
-      {/* Basic Information */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Business Information</CardTitle>
-          <CardDescription>
-            Update your business name and details
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="businessName">Business Name</Label>
-            <Input
-              id="businessName"
-              value={businessName}
-              onChange={(e) => setBusinessName(e.target.value)}
-              placeholder="Your Business Name"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="businessSlug">Business URL</Label>
-            <div className="flex gap-2 items-center">
-              <span className="text-sm text-muted-foreground">yourapp.com/</span>
-              <Input
-                id="businessSlug"
-                value={businessSlug}
-                disabled
-                className="flex-1"
-              />
-            </div>
-            <p className="text-xs text-muted-foreground">
-              URL slug cannot be changed after creation
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="tagline">Tagline</Label>
-            <Textarea
-              id="tagline"
-              value={tagline}
-              onChange={(e) => setTagline(e.target.value)}
-              placeholder="Your business tagline (e.g., 'Your smile, our priority')"
-              rows={2}
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Logo Upload */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <ImageIcon className="h-5 w-5" />
-            Business Logo
-          </CardTitle>
-          <CardDescription>
-            Upload your business logo (max 2MB)
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {logoUrl && (
-            <div className="flex justify-center p-4 bg-muted rounded-lg">
-              <img 
-                src={logoUrl} 
-                alt="Business Logo" 
-                className="max-h-32 object-contain"
-              />
-            </div>
-          )}
-          
-          <div className="flex items-center gap-4">
-            <Input
-              type="file"
-              accept="image/*"
-              onChange={handleLogoUpload}
-              disabled={loading}
-              className="flex-1"
-            />
-            {loading && (
-              <Loader2 className="h-4 w-4 animate-spin text-primary" />
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Color Settings */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Palette className="h-5 w-5" />
-            Brand Colors
-          </CardTitle>
-          <CardDescription>
-            Choose colors that represent your business
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="space-y-3">
-              <Label htmlFor="primaryColor">Primary Color</Label>
-              <div className="flex gap-3 items-center">
-                <Input
-                  id="primaryColor"
-                  type="color"
-                  value={primaryColor}
-                  onChange={(e) => setPrimaryColor(e.target.value)}
-                  className="w-20 h-20 p-1 cursor-pointer"
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <ImageIcon className="h-5 w-5" />
+              Clinic Logo
+            </CardTitle>
+            <CardDescription>
+              Upload your clinic logo (recommended size: 512x512px, max 2MB)
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {logoUrl && (
+              <div className="flex justify-center p-4 bg-muted/30 rounded-lg">
+                <img 
+                  src={logoUrl} 
+                  alt="Clinic Logo" 
+                  className="h-32 w-32 object-contain rounded-lg"
                 />
-                <div className="flex-1">
+              </div>
+            )}
+            
+            <div className="flex items-center gap-3">
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={handleLogoUpload}
+                disabled={loading}
+                className="hidden"
+                id="logo-upload"
+              />
+              <Label htmlFor="logo-upload" className="cursor-pointer">
+                <Button asChild disabled={loading} variant="outline">
+                  <span>
+                    {loading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Uploading...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="mr-2 h-4 w-4" />
+                        Upload Logo
+                      </>
+                    )}
+                  </span>
+                </Button>
+              </Label>
+              {logoUrl && (
+                <Button 
+                  variant="ghost" 
+                  onClick={() => setLogoUrl("")}
+                  disabled={loading}
+                >
+                  Remove
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Palette className="h-5 w-5" />
+              Brand Colors
+            </CardTitle>
+            <CardDescription>
+              Choose colors that represent your clinic's brand
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="primary-color">Primary Color</Label>
+                <div className="flex items-center gap-3">
+                  <Input
+                    id="primary-color"
+                    type="color"
+                    value={primaryColor}
+                    onChange={(e) => setPrimaryColor(e.target.value)}
+                    className="h-12 w-20 cursor-pointer"
+                  />
                   <Input
                     type="text"
                     value={primaryColor}
                     onChange={(e) => setPrimaryColor(e.target.value)}
-                    placeholder="#0F3D91"
+                    placeholder="#0EA5E9"
+                    className="flex-1"
                   />
                 </div>
+                <p className="text-xs text-muted-foreground">
+                  Used for buttons, links, and primary actions
+                </p>
               </div>
-              <p className="text-xs text-muted-foreground">
-                Used for buttons, links, and primary elements
-              </p>
-            </div>
 
-            <div className="space-y-3">
-              <Label htmlFor="secondaryColor">Secondary Color</Label>
-              <div className="flex gap-3 items-center">
-                <Input
-                  id="secondaryColor"
-                  type="color"
-                  value={secondaryColor}
-                  onChange={(e) => setSecondaryColor(e.target.value)}
-                  className="w-20 h-20 p-1 cursor-pointer"
-                />
-                <div className="flex-1">
+              <div className="space-y-2">
+                <Label htmlFor="secondary-color">Secondary Color</Label>
+                <div className="flex items-center gap-3">
+                  <Input
+                    id="secondary-color"
+                    type="color"
+                    value={secondaryColor}
+                    onChange={(e) => setSecondaryColor(e.target.value)}
+                    className="h-12 w-20 cursor-pointer"
+                  />
                   <Input
                     type="text"
                     value={secondaryColor}
                     onChange={(e) => setSecondaryColor(e.target.value)}
-                    placeholder="#66D2D6"
+                    placeholder="#10B981"
+                    className="flex-1"
                   />
                 </div>
+                <p className="text-xs text-muted-foreground">
+                  Used for secondary actions and accents
+                </p>
               </div>
-              <p className="text-xs text-muted-foreground">
-                Used for accents and secondary elements
-              </p>
             </div>
-          </div>
 
-          {/* Preview */}
-          <div className="border rounded-lg p-6 space-y-4">
-            <p className="text-sm font-medium">Preview</p>
-            <div className="flex gap-3">
-              <Button style={{ backgroundColor: primaryColor }} className="text-white">
-                Primary Button
-              </Button>
-              <Button 
-                variant="outline" 
-                style={{ borderColor: secondaryColor, color: secondaryColor }}
-              >
-                Secondary Button
-              </Button>
+            <div className="p-6 rounded-lg border bg-card space-y-3">
+              <h4 className="font-medium">Preview</h4>
+              <div className="flex flex-wrap gap-3">
+                <Button style={{ backgroundColor: primaryColor, color: 'white' }}>
+                  Primary Button
+                </Button>
+                <Button 
+                  variant="outline" 
+                  style={{ 
+                    borderColor: secondaryColor, 
+                    color: secondaryColor 
+                  }}
+                >
+                  Secondary Button
+                </Button>
+                <div 
+                  className="px-4 py-2 rounded-full text-sm font-medium"
+                  style={{ 
+                    backgroundColor: `${primaryColor}20`, 
+                    color: primaryColor 
+                  }}
+                >
+                  Badge
+                </div>
+              </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
-      {/* Save Button */}
-      <div className="flex justify-end">
-        <Button 
-          onClick={handleSaveBranding}
-          disabled={loading}
-          size="lg"
-        >
-          {loading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Saving...
-            </>
-          ) : (
-            'Save Branding Settings'
-          )}
-        </Button>
+        <Card>
+          <CardHeader>
+            <CardTitle>Clinic Information</CardTitle>
+            <CardDescription>
+              Basic information about your clinic
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="clinic-name">Clinic Name</Label>
+              <Input
+                id="clinic-name"
+                value={clinicName}
+                onChange={(e) => setClinicName(e.target.value)}
+                placeholder="Enter your clinic name"
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="flex justify-end gap-3">
+          <Button variant="outline" onClick={loadBrandingSettings}>
+            Reset
+          </Button>
+          <Button onClick={handleSaveBranding} disabled={loading}>
+            {loading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              "Save Changes"
+            )}
+          </Button>
+        </div>
       </div>
     </div>
   );
 }
+

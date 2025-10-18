@@ -18,7 +18,6 @@ import { SimpleDatabaseSaveTest } from "@/components/SimpleDatabaseSaveTest";
 import { EmailTest } from "@/components/EmailTest";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { BusinessSelector } from "@/components/BusinessSelector";
 
 
 const Index = () => {
@@ -38,18 +37,6 @@ const Index = () => {
   const {
     toast
   } = useToast();
-
-  // Clear clinic selection on homepage load for fresh start
-  useEffect(() => {
-    // Only clear if user is not authenticated
-    if (!user) {
-      console.log('Clearing previous clinic selections for fresh homepage experience');
-      sessionStorage.removeItem('selectedBusinessId');
-      sessionStorage.removeItem('selectedBusinessSlug');
-      sessionStorage.removeItem('selectedBusinessName');
-      sessionStorage.removeItem('accessMode');
-    }
-  }, [user]);
 
   // Ensure a default language preference is seeded without overriding user choice
   useEffect(() => {
@@ -259,8 +246,24 @@ const Index = () => {
         onStartTriage={() => setShowEmergencyTriage(true)}
       />
 
-      {/* Business Selection Section */}
-      <BusinessSelector />
+      <section className="py-16">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-md mx-auto space-y-6 text-center">
+            <h2 className="text-3xl font-bold">Get Started</h2>
+            <p className="text-muted-foreground">
+              Sign in to manage your appointments or create a new account
+            </p>
+            <div className="flex flex-col gap-3">
+              <Button size="lg" asChild className="w-full">
+                <a href="/login">Sign In to Your Account</a>
+              </Button>
+              <Button size="lg" variant="outline" asChild className="w-full">
+                <a href="/signup">Create New Account</a>
+              </Button>
+            </div>
+          </div>
+        </div>
+      </section>
 
       <Footer />
 

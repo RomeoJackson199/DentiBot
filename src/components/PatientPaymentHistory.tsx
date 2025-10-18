@@ -17,10 +17,9 @@ interface PaymentRequest {
 
 interface PatientPaymentHistoryProps {
   patientId: string;
-  clinicDentistId?: string | null;
 }
 
-export const PatientPaymentHistory: React.FC<PatientPaymentHistoryProps> = ({ patientId, clinicDentistId }) => {
+export const PatientPaymentHistory: React.FC<PatientPaymentHistoryProps> = ({ patientId }) => {
   const [paymentRequests, setPaymentRequests] = useState<PaymentRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [processingPayment, setProcessingPayment] = useState<string | null>(null);
@@ -28,22 +27,16 @@ export const PatientPaymentHistory: React.FC<PatientPaymentHistoryProps> = ({ pa
 
   useEffect(() => {
     fetchPaymentHistory();
-  }, [patientId, clinicDentistId]);
+  }, [patientId]);
 
   const fetchPaymentHistory = async () => {
     try {
       setLoading(true);
-      let query = supabase
+      const { data, error } = await supabase
         .from('payment_requests')
         .select('*')
-        .eq('patient_id', patientId);
-      
-      // Filter by dentist_id if clinic is selected
-      if (clinicDentistId) {
-        query = query.eq('dentist_id', clinicDentistId);
-      }
-      
-      const { data, error } = await query.order('created_at', { ascending: false });
+        .eq('patient_id', patientId)
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
       setPaymentRequests(data || []);
