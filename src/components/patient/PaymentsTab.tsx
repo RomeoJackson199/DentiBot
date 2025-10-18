@@ -11,9 +11,10 @@ import { useToast } from "@/hooks/use-toast";
 export interface PaymentsTabProps {
   patientId: string;
   totalDueCents: number;
+  clinicDentistId?: string | null;
 }
 
-export const PaymentsTab: React.FC<PaymentsTabProps> = ({ patientId, totalDueCents }) => {
+export const PaymentsTab: React.FC<PaymentsTabProps> = ({ patientId, totalDueCents, clinicDentistId }) => {
   const due = useMemo(() => totalDueCents > 0, [totalDueCents]);
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
@@ -24,11 +25,18 @@ export const PaymentsTab: React.FC<PaymentsTabProps> = ({ patientId, totalDueCen
       setIsProcessing(true);
       
       // Get all pending payment requests
-      const { data: pendingPayments, error: fetchError } = await supabase
+      let query = supabase
         .from('payment_requests')
         .select('*')
         .eq('patient_id', patientId)
         .in('status', ['pending','overdue']);
+      
+      // Filter by dentist_id if clinic is selected
+      if (clinicDentistId) {
+        query = query.eq('dentist_id', clinicDentistId);
+      }
+      
+      const { data: pendingPayments, error: fetchError } = await query;
       
       if (fetchError) throw fetchError;
       
@@ -84,6 +92,11 @@ export const PaymentsTab: React.FC<PaymentsTabProps> = ({ patientId, totalDueCen
             <p className="text-sm text-muted-foreground mt-1">
               Total outstanding: €{(totalDueCents/100).toFixed(2)}
             </p>
+          )}
+          {clinicDentistId && sessionStorage.getItem('selectedClinicName') && (
+            <Badge variant="secondary" className="mt-2">
+              Filtered to {sessionStorage.getItem('selectedClinicName')}
+            </Badge>
           )}
         </div>
         
@@ -169,7 +182,7 @@ export const PaymentsTab: React.FC<PaymentsTabProps> = ({ patientId, totalDueCen
         
         <div className="mt-6">
           <TabsContent value="history" className="mt-0">
-            <PatientPaymentHistory patientId={patientId} />
+            <PatientPaymentHistory patientId={patientId} clinicDentistId={clinicDentistId} />
           </TabsContent>
           
           <TabsContent value="analytics" className="mt-0">

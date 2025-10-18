@@ -64,11 +64,10 @@ export const UnifiedDashboard = memo(({ user }: UnifiedDashboardProps) => {
             return;
           } else if (accessMode === 'patient') {
             // Patient access - stay on patient dashboard
-            console.log('Accessing clinic as patient');
-            // Clear the dentist ID but keep slug for appointment booking
-            sessionStorage.removeItem('selectedClinicDentistId');
+            console.log('Accessing clinic as patient - keeping selectedClinicDentistId for filtering');
+            // Keep dentist ID, slug, and name for filtering
+            // Only remove accessMode to indicate we've processed it
             sessionStorage.removeItem('accessMode');
-            // Keep selectedClinicSlug and selectedClinicName for appointment booking context
           }
         }
       }

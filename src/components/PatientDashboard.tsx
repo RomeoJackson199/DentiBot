@@ -139,6 +139,7 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
   const [selectedClinicDentistId, setSelectedClinicDentistId] = useState<string | null>(() => {
     return sessionStorage.getItem('selectedClinicDentistId');
   });
+  const [selectedClinicName, setSelectedClinicName] = useState<string | null>(null);
 
   type Tab = 'overview' | 'chat' | 'appointments' | 'prescriptions' | 'treatment' | 'records' | 'notes' | 'payments' | 'analytics' | 'emergency' | 'test';
   const [activeTab, setActiveTab] = useState<Tab>(() => {
@@ -244,6 +245,35 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
       void 0;
     }
   }, [activeSection]);
+
+  // Load clinic context from sessionStorage and fetch dentist_id if needed
+  useEffect(() => {
+    const dentistId = sessionStorage.getItem('selectedClinicDentistId');
+    const clinicName = sessionStorage.getItem('selectedClinicName');
+    const clinicSlug = sessionStorage.getItem('selectedClinicSlug');
+    
+    console.log('PatientDashboard - Loading clinic context:', { dentistId, clinicName, clinicSlug });
+    
+    setSelectedClinicDentistId(dentistId);
+    setSelectedClinicName(clinicName);
+    
+    // Fallback: if we have slug but no dentist ID, fetch it
+    if (clinicSlug && !dentistId) {
+      console.log('Fetching dentist_id from clinic_settings by slug:', clinicSlug);
+      supabase
+        .from('clinic_settings')
+        .select('dentist_id')
+        .eq('business_slug', clinicSlug)
+        .maybeSingle()
+        .then(({ data }) => {
+          if (data?.dentist_id) {
+            console.log('Found dentist_id:', data.dentist_id);
+            sessionStorage.setItem('selectedClinicDentistId', data.dentist_id);
+            setSelectedClinicDentistId(data.dentist_id);
+          }
+        });
+    }
+  }, []);
 
   const fetchUserProfile = async () => {
     try {
@@ -475,12 +505,19 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
     }
   };
 
-  const fetchTotalDue = useCallback(async (profileId: string) => {
+  const fetchTotalDue = useCallback(async (profileId: string, clinicDentistId: string | null) => {
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('payment_requests')
         .select('amount,status')
         .eq('patient_id', profileId);
+      
+      // Filter by dentist_id if clinic is selected
+      if (clinicDentistId) {
+        query = query.eq('dentist_id', clinicDentistId);
+      }
+      
+      const { data, error } = await query;
       if (error) throw error;
       const openStatuses = new Set(['pending','overdue']);
       const total = (data || []).filter(r => openStatuses.has(r.status)).reduce((sum, r: any) => sum + (r.amount || 0), 0);
@@ -489,6 +526,14 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
       console.error('Failed to load payment totals', e);
     }
   }, []);
+
+  const handleChangeClinic = () => {
+    sessionStorage.removeItem('selectedClinicDentistId');
+    sessionStorage.removeItem('selectedClinicSlug');
+    sessionStorage.removeItem('selectedClinicName');
+    sessionStorage.removeItem('accessMode');
+    window.location.href = '/';
+  };
 
   // Use useCallback to memoize functions to prevent infinite re-renders
   const fetchUserProfileCallback = useCallback(fetchUserProfile, [user.id]);
@@ -506,7 +551,7 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
       fetchPatientStatsCallback(userProfile.id, selectedClinicDentistId);
       fetchRecentAppointmentsCallback(userProfile.id, selectedClinicDentistId);
       fetchPatientDataCallback(userProfile.id, selectedClinicDentistId);
-      fetchTotalDue(userProfile.id);
+      fetchTotalDue(userProfile.id, selectedClinicDentistId);
     }
   }, [userProfile?.id, selectedClinicDentistId, fetchPatientStatsCallback, fetchRecentAppointmentsCallback, fetchPatientDataCallback, fetchTotalDue]);
 
@@ -629,6 +674,21 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
       userId={user.id}
       onBookAppointment={() => setActiveSection('assistant')}
     >
+      {/* Clinic Context Banner */}
+      {selectedClinicName && (
+        <div className="bg-primary/10 border-b border-primary/20 px-4 py-3">
+          <div className="flex items-center justify-between max-w-7xl mx-auto">
+            <div className="flex items-center space-x-2">
+              <Badge variant="secondary" className="text-sm">Patient Mode</Badge>
+              <span className="text-sm font-medium">Viewing: {selectedClinicName}</span>
+            </div>
+            <Button variant="outline" size="sm" onClick={handleChangeClinic}>
+              Change Clinic
+            </Button>
+          </div>
+        </div>
+      )}
+      
       {activeSection === 'home' && (
         <HomeTab
           userId={user.id}
@@ -682,11 +742,16 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
         <AppointmentsTab 
           user={user} 
           onOpenAssistant={() => setActiveSection('assistant')}
+          clinicDentistId={selectedClinicDentistId}
         />
       )}
 
       {activeSection === 'payments' && userProfile?.id && (
-        <PaymentsTab patientId={userProfile.id} totalDueCents={totalDueCents} />
+        <PaymentsTab 
+          patientId={userProfile.id} 
+          totalDueCents={totalDueCents}
+          clinicDentistId={selectedClinicDentistId}
+        />
       )}
 
       {activeSection === 'settings' && (
