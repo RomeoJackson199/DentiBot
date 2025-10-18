@@ -48,11 +48,39 @@ export function BusinessSelector() {
   const fetchBusinesses = async () => {
     try {
       setLoading(true);
-      // Using type assertion until Supabase types regenerate
-      const { data, error } = await supabase
+      
+      // Try new businesses table first
+      let { data, error } = await supabase
         .from('businesses' as any)
         .select('id, name, slug, logo_url, tagline, primary_color, owner_profile_id')
         .order('name');
+
+      // Fallback to old clinic_settings table if businesses table not available yet
+      if (error && error.message?.includes('Could not find the table')) {
+        console.log('Falling back to clinic_settings table...');
+        const { data: clinicData, error: clinicError } = await supabase
+          .from('clinic_settings')
+          .select('id, clinic_name, business_slug, logo_url, tagline, primary_color, dentist_id')
+          .not('clinic_name', 'is', null)
+          .not('business_slug', 'is', null)
+          .order('clinic_name');
+        
+        if (clinicError) throw clinicError;
+        
+        // Map clinic_settings data to Business interface
+        const mappedData = (clinicData || []).map((clinic: any) => ({
+          id: clinic.id,
+          name: clinic.clinic_name,
+          slug: clinic.business_slug,
+          logo_url: clinic.logo_url,
+          tagline: clinic.tagline,
+          primary_color: clinic.primary_color,
+          owner_profile_id: clinic.dentist_id // Will need to lookup actual profile_id
+        }));
+        
+        setBusinesses(mappedData);
+        return;
+      }
 
       if (error) throw error;
       setBusinesses((data as any) || []);
