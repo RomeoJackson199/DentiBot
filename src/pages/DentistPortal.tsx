@@ -29,7 +29,7 @@ export function DentistPortal() {
     if (path.startsWith('/dentist/business')) return 'business';
     if (path.startsWith('/dentist/ops')) return 'ops';
     if (path.startsWith('/dentist/admin')) return 'admin';
-    return 'clinical';
+    return 'admin';
   };
 
   useEffect(() => {
