@@ -79,6 +79,25 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
         return;
       }
 
+      // Check if user selected a specific clinic and verify access
+      const selectedClinicDentistId = sessionStorage.getItem('selectedClinicDentistId');
+      if (selectedClinicDentistId) {
+        // User came from clinic selector - verify they own this clinic
+        if (dentistIdData !== selectedClinicDentistId) {
+          console.error('Access denied: User is not the dentist for selected clinic');
+          toast({
+            title: 'Access Denied',
+            description: 'You do not have access to this clinic.',
+            variant: 'destructive',
+          });
+          setDentistId(null);
+          setLoading(false);
+          return;
+        }
+        // Clear the selection after verification
+        sessionStorage.removeItem('selectedClinicDentistId');
+      }
+
       setDentistId(dentistIdData);
       
       // Fetch badge counts

@@ -52,15 +52,10 @@ export function ClinicSelector() {
   };
 
   const handleSelectClinic = (clinic: Clinic) => {
-    // Store selected clinic info in localStorage
-    localStorage.setItem('selectedClinic', JSON.stringify({
-      id: clinic.id,
-      dentistId: clinic.dentist_id,
-      name: clinic.clinic_name,
-      slug: clinic.business_slug,
-      logoUrl: clinic.logo_url,
-      primaryColor: clinic.primary_color
-    }));
+    // Store selected clinic info in sessionStorage (more secure than localStorage for session data)
+    sessionStorage.setItem('selectedClinicDentistId', clinic.dentist_id);
+    sessionStorage.setItem('selectedClinicSlug', clinic.business_slug);
+    sessionStorage.setItem('selectedClinicName', clinic.clinic_name);
     
     // Navigate to login
     navigate('/login');

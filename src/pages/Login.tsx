@@ -10,23 +10,37 @@ const Login = () => {
   const navigate = useNavigate();
   const { branding } = useClinicBranding();
 
+  // Get selected clinic info from session storage
+  const selectedClinicSlug = sessionStorage.getItem('selectedClinicSlug');
+  const selectedClinicName = sessionStorage.getItem('selectedClinicName');
+
   useEffect(() => {
     // Check if user is already logged in
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        navigate("/");
+        // If coming from clinic selection, go to dentist portal
+        if (selectedClinicSlug) {
+          navigate("/dentist/clinical/dashboard");
+        } else {
+          navigate("/");
+        }
       }
     });
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
-        navigate("/");
+        // If coming from clinic selection, go to dentist portal
+        if (selectedClinicSlug) {
+          navigate("/dentist/clinical/dashboard");
+        } else {
+          navigate("/");
+        }
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, selectedClinicSlug]);
 
   return (
     <div className="min-h-screen flex flex-col mesh-bg">
@@ -60,10 +74,12 @@ const Login = () => {
               </div>
             )}
             <h1 className="text-4xl font-bold gradient-text mb-2">
-              Welcome Back
+              {selectedClinicName ? `Welcome to ${selectedClinicName}` : 'Welcome Back'}
             </h1>
             <p className="text-muted-foreground">
-              Sign in to access {branding.clinicName || "your DentiBot account"}
+              {selectedClinicName 
+                ? `Sign in to access ${selectedClinicName}` 
+                : `Sign in to access ${branding.clinicName || "your DentiBot account"}`}
             </p>
           </div>
           
