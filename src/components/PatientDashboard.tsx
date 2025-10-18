@@ -134,6 +134,12 @@ const navigationItems = [
 export const PatientDashboard = ({ user }: PatientDashboardProps) => {
   const { t } = useLanguage();
   const { toast } = useToast();
+  
+  // Get selected clinic from sessionStorage for data filtering
+  const [selectedClinicDentistId, setSelectedClinicDentistId] = useState<string | null>(() => {
+    return sessionStorage.getItem('selectedClinicDentistId');
+  });
+
   type Tab = 'overview' | 'chat' | 'appointments' | 'prescriptions' | 'treatment' | 'records' | 'notes' | 'payments' | 'analytics' | 'emergency' | 'test';
   const [activeTab, setActiveTab] = useState<Tab>(() => {
     try {
@@ -289,13 +295,19 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
     }
   };
 
-  const fetchPatientStats = async (profileId: string) => {
+  const fetchPatientStats = async (profileId: string, clinicDentistId: string | null) => {
     try {
-      // Fetch appointments
-      const { data: appointmentsData } = await supabase
+      // Build appointments query with clinic filter if selected
+      let appointmentsQuery = supabase
         .from('appointments')
         .select('*')
         .eq('patient_id', profileId);
+      
+      if (clinicDentistId) {
+        appointmentsQuery = appointmentsQuery.eq('dentist_id', clinicDentistId);
+      }
+
+      const { data: appointmentsData } = await appointmentsQuery;
 
       const upcomingAppointments = appointmentsData?.filter(apt => 
         new Date(apt.appointment_date) > new Date() && apt.status === 'confirmed'
@@ -309,23 +321,35 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
         apt.status === 'completed'
       ).sort((a, b) => new Date(b.appointment_date).getTime() - new Date(a.appointment_date).getTime())[0]?.appointment_date || null;
 
-      // Fetch prescriptions
-      const { data: prescriptionsData } = await supabase
+      // Build prescriptions query with clinic filter if selected
+      let prescriptionsQuery = supabase
         .from('prescriptions')
         .select('*')
         .eq('patient_id', profileId);
+      
+      if (clinicDentistId) {
+        prescriptionsQuery = prescriptionsQuery.eq('dentist_id', clinicDentistId);
+      }
+
+      const { data: prescriptionsData } = await prescriptionsQuery;
 
       const activePrescriptions = prescriptionsData?.filter(p => p.status === 'active').length || 0;
 
-      // Fetch treatment plans
-      const { data: treatmentPlansData } = await supabase
+      // Build treatment plans query with clinic filter if selected
+      let treatmentPlansQuery = supabase
         .from('treatment_plans')
         .select('*')
         .eq('patient_id', profileId);
+      
+      if (clinicDentistId) {
+        treatmentPlansQuery = treatmentPlansQuery.eq('dentist_id', clinicDentistId);
+      }
+
+      const { data: treatmentPlansData } = await treatmentPlansQuery;
 
       const activeTreatmentPlans = treatmentPlansData?.filter(tp => tp.status === 'active').length || 0;
 
-      // Fetch patient notes
+      // Fetch patient notes (these don't have dentist_id, so no filtering)
       const { data: notesData } = await supabase
         .from('patient_notes')
         .select('*')
@@ -345,9 +369,9 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
     }
   };
 
-  const fetchRecentAppointments = async (profileId: string) => {
+  const fetchRecentAppointments = async (profileId: string, clinicDentistId: string | null) => {
     try {
-      const { data: appointmentsData } = await supabase
+      let query = supabase
         .from('appointments')
         .select(`
           *,
@@ -356,7 +380,14 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
             profile:profile_id(first_name, last_name)
           )
         `)
-        .eq('patient_id', profileId)
+        .eq('patient_id', profileId);
+
+      // Filter by clinic if selected
+      if (clinicDentistId) {
+        query = query.eq('dentist_id', clinicDentistId);
+      }
+
+      const { data: appointmentsData } = await query
         .order('appointment_date', { ascending: false })
         .limit(5);
 
@@ -377,26 +408,36 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
     }
   };
 
-  const fetchPatientData = async (profileId: string) => {
+  const fetchPatientData = async (profileId: string, clinicDentistId: string | null) => {
     try {
-      // Fetch prescriptions
-      const { data: prescriptionsData } = await supabase
+      // Build prescriptions query with clinic filter if selected
+      let prescriptionsQuery = supabase
         .from('prescriptions')
         .select('*')
-        .eq('patient_id', profileId)
-        .order('prescribed_date', { ascending: false });
+        .eq('patient_id', profileId);
+      
+      if (clinicDentistId) {
+        prescriptionsQuery = prescriptionsQuery.eq('dentist_id', clinicDentistId);
+      }
+
+      const { data: prescriptionsData } = await prescriptionsQuery.order('prescribed_date', { ascending: false });
 
        setPrescriptions((prescriptionsData || []).map(prescription => ({
          ...prescription,
          duration: prescription.duration_days?.toString() || "7 days"
        })));
 
-      // Fetch treatment plans
-      const { data: treatmentPlansData } = await supabase
+      // Build treatment plans query with clinic filter if selected
+      let treatmentPlansQuery = supabase
         .from('treatment_plans')
         .select('*')
-        .eq('patient_id', profileId)
-        .order('created_at', { ascending: false });
+        .eq('patient_id', profileId);
+      
+      if (clinicDentistId) {
+        treatmentPlansQuery = treatmentPlansQuery.eq('dentist_id', clinicDentistId);
+      }
+
+      const { data: treatmentPlansData } = await treatmentPlansQuery.order('created_at', { ascending: false });
 
        setTreatmentPlans((treatmentPlansData || []).map(plan => ({
          ...plan,
@@ -404,19 +445,24 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
          estimated_duration: plan.estimated_duration_weeks ? `${plan.estimated_duration_weeks} weeks` : "2 weeks"
        })));
 
-      // Fetch medical records
-      const { data: medicalRecordsData } = await supabase
+      // Build medical records query with clinic filter if selected
+      let medicalRecordsQuery = supabase
         .from('medical_records')
         .select('*')
-        .eq('patient_id', profileId)
-        .order('record_date', { ascending: false });
+        .eq('patient_id', profileId);
+      
+      if (clinicDentistId) {
+        medicalRecordsQuery = medicalRecordsQuery.eq('dentist_id', clinicDentistId);
+      }
+
+      const { data: medicalRecordsData } = await medicalRecordsQuery.order('record_date', { ascending: false });
 
        setMedicalRecords((medicalRecordsData || []).map(record => ({
          ...record,
          visit_date: record.record_date
        })));
 
-      // Fetch patient notes
+      // Fetch patient notes (no dentist_id on this table)
       const { data: notesData } = await supabase
         .from('patient_notes')
         .select('*')
@@ -446,9 +492,9 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
 
   // Use useCallback to memoize functions to prevent infinite re-renders
   const fetchUserProfileCallback = useCallback(fetchUserProfile, [user.id]);
-  const fetchPatientStatsCallback = useCallback(fetchPatientStats, []);
-  const fetchRecentAppointmentsCallback = useCallback(fetchRecentAppointments, []);
-  const fetchPatientDataCallback = useCallback(fetchPatientData, []);
+  const fetchPatientStatsCallback = useCallback(fetchPatientStats, [selectedClinicDentistId]);
+  const fetchRecentAppointmentsCallback = useCallback(fetchRecentAppointments, [selectedClinicDentistId]);
+  const fetchPatientDataCallback = useCallback(fetchPatientData, [selectedClinicDentistId]);
 
   useEffect(() => {
     fetchUserProfileCallback();
@@ -456,12 +502,13 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
 
   useEffect(() => {
     if (userProfile?.id) {
-      fetchPatientStatsCallback(userProfile.id);
-      fetchRecentAppointmentsCallback(userProfile.id);
-      fetchPatientDataCallback(userProfile.id);
+      console.log('Fetching patient data for clinic:', selectedClinicDentistId || 'all clinics');
+      fetchPatientStatsCallback(userProfile.id, selectedClinicDentistId);
+      fetchRecentAppointmentsCallback(userProfile.id, selectedClinicDentistId);
+      fetchPatientDataCallback(userProfile.id, selectedClinicDentistId);
       fetchTotalDue(userProfile.id);
     }
-  }, [userProfile?.id, fetchPatientStatsCallback, fetchRecentAppointmentsCallback, fetchPatientDataCallback, fetchTotalDue]);
+  }, [userProfile?.id, selectedClinicDentistId, fetchPatientStatsCallback, fetchRecentAppointmentsCallback, fetchPatientDataCallback, fetchTotalDue]);
 
   const getWelcomeMessage = () => {
     const hour = new Date().getHours();
