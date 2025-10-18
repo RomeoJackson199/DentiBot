@@ -39,6 +39,18 @@ const Index = () => {
     toast
   } = useToast();
 
+  // Clear clinic selection on homepage load for fresh start
+  useEffect(() => {
+    // Only clear if user is not authenticated
+    if (!user) {
+      console.log('Clearing previous clinic selections for fresh homepage experience');
+      sessionStorage.removeItem('selectedClinicDentistId');
+      sessionStorage.removeItem('selectedClinicSlug');
+      sessionStorage.removeItem('selectedClinicName');
+      sessionStorage.removeItem('accessMode');
+    }
+  }, [user]);
+
   // Ensure a default language preference is seeded without overriding user choice
   useEffect(() => {
     const savedLanguage = localStorage.getItem('preferred-language');

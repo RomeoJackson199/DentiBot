@@ -20,12 +20,22 @@ export const UnifiedDashboard = memo(({ user }: UnifiedDashboardProps) => {
     const checkDentistRedirect = async () => {
       if (roleLoading) return;
 
-      // Check if coming from clinic selector
       const selectedClinicDentistId = sessionStorage.getItem('selectedClinicDentistId');
       const selectedClinicSlug = sessionStorage.getItem('selectedClinicSlug');
+      const selectedClinicName = sessionStorage.getItem('selectedClinicName');
+      const accessMode = sessionStorage.getItem('accessMode');
 
-      // If a clinic was selected, check if this user owns it
-      if (selectedClinicDentistId && (isDentist || isAdmin)) {
+      console.log('UnifiedDashboard - Session data:', {
+        selectedClinicDentistId,
+        selectedClinicSlug,
+        selectedClinicName,
+        accessMode,
+        isDentist,
+        isAdmin
+      });
+
+      // If a clinic was selected, check the access mode
+      if (selectedClinicDentistId && accessMode) {
         const { data: profile } = await supabase
           .from('profiles')
           .select('id')
@@ -39,26 +49,32 @@ export const UnifiedDashboard = memo(({ user }: UnifiedDashboardProps) => {
             .eq('profile_id', profile.id)
             .maybeSingle();
 
-          // Only redirect to dentist portal if they OWN the selected clinic
-          if ((dentistData?.is_active || isAdmin) && dentistData?.id === selectedClinicDentistId) {
-            console.log('Dentist accessing their own clinic, redirecting to dentist portal');
+          // Check if user owns this clinic
+          const ownsClinic = dentistData?.id === selectedClinicDentistId;
+
+          if (accessMode === 'admin' && ownsClinic && (dentistData?.is_active || isAdmin)) {
+            // Admin access to own clinic - redirect to dentist portal
+            console.log('Redirecting to dentist portal (admin mode)');
             sessionStorage.removeItem('selectedClinicDentistId');
             sessionStorage.removeItem('selectedClinicSlug');
             sessionStorage.removeItem('selectedClinicName');
+            sessionStorage.removeItem('accessMode');
             setShouldRedirect(true);
             navigate('/dentist/clinical/dashboard', { replace: true });
             return;
-          } else if (selectedClinicDentistId) {
-            // Dentist accessing another clinic as a patient
-            console.log('Dentist accessing another clinic as patient');
+          } else if (accessMode === 'patient') {
+            // Patient access - stay on patient dashboard
+            console.log('Accessing clinic as patient');
+            // Clear the dentist ID but keep slug for appointment booking
             sessionStorage.removeItem('selectedClinicDentistId');
-            // Keep selectedClinicSlug for appointment booking
+            sessionStorage.removeItem('accessMode');
+            // Keep selectedClinicSlug and selectedClinicName for appointment booking context
           }
         }
       }
 
-      // If no clinic selected, redirect dentists/admins to their portal
-      if (!selectedClinicSlug && (isDentist || isAdmin)) {
+      // If no clinic selected, redirect dentists/admins to their portal by default
+      if (!selectedClinicSlug && !accessMode && (isDentist || isAdmin)) {
         const { data: profile } = await supabase
           .from('profiles')
           .select('id')
@@ -68,12 +84,12 @@ export const UnifiedDashboard = memo(({ user }: UnifiedDashboardProps) => {
         if (profile) {
           const { data: dentistData } = await supabase
             .from('dentists')
-            .select('is_active')
+            .select('id, is_active')
             .eq('profile_id', profile.id)
             .maybeSingle();
 
           if (dentistData?.is_active || isAdmin) {
-            console.log('Dentist/admin accessing without clinic selection, redirecting to portal');
+            console.log('No clinic selected - redirecting dentist/admin to their portal');
             setShouldRedirect(true);
             navigate('/dentist/clinical/dashboard', { replace: true });
             return;
