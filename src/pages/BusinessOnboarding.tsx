@@ -96,42 +96,58 @@ export default function BusinessOnboarding() {
 
     setLoading(true);
     try {
-      // 1. Create user account
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-        options: {
-          data: {
-            first_name: formData.firstName,
-            last_name: formData.lastName,
-            role: 'dentist'
-          },
-          emailRedirectTo: `${window.location.origin}/`
+      // 1. Check if user already exists
+      const { data: existingSession } = await supabase.auth.getSession();
+      let userId: string;
+      
+      if (existingSession?.session?.user) {
+        // User is already logged in
+        userId = existingSession.session.user.id;
+      } else {
+        // Try to sign up
+        const { data: authData, error: authError } = await supabase.auth.signUp({
+          email: formData.email,
+          password: formData.password,
+          options: {
+            data: {
+              first_name: formData.firstName,
+              last_name: formData.lastName,
+              role: 'dentist'
+            },
+            emailRedirectTo: `${window.location.origin}/`
+          }
+        });
+
+        // If user already exists, try signing in
+        if (authError?.message?.includes('already registered')) {
+          const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+            email: formData.email,
+            password: formData.password,
+          });
+          
+          if (signInError) throw signInError;
+          if (!signInData.user) throw new Error('Sign in failed');
+          userId = signInData.user.id;
+        } else {
+          if (authError) throw authError;
+          if (!authData.user) throw new Error('User creation failed');
+          userId = authData.user.id;
         }
-      });
+      }
 
-      if (authError) throw authError;
-      if (!authData.user) throw new Error('User creation failed');
-
-      // 2. Wait for trigger to create profile (with retry)
+      // 2. Get profile with retries
       let profileId: string | null = null;
       let attempts = 0;
       const maxAttempts = 5;
       
       while (!profileId && attempts < maxAttempts) {
-        await new Promise(resolve => setTimeout(resolve, 500 * (attempts + 1)));
+        await new Promise(resolve => setTimeout(resolve, 300 * (attempts + 1)));
         
-        const { data: profile, error: profileError } = await supabase
+        const { data: profile } = await supabase
           .from('profiles')
           .select('id')
-          .eq('user_id', authData.user.id)
+          .eq('user_id', userId)
           .maybeSingle();
-
-        if (profileError) {
-          console.error('Error fetching profile:', profileError);
-          attempts++;
-          continue;
-        }
 
         if (profile?.id) {
           profileId = profile.id;
@@ -142,7 +158,7 @@ export default function BusinessOnboarding() {
       }
 
       if (!profileId) {
-        throw new Error('Profile creation timeout. Please try logging in.');
+        throw new Error('Unable to access profile. Please contact support.');
       }
 
       // 3. Create dentist record
