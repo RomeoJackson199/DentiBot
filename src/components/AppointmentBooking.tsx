@@ -1,10 +1,19 @@
 // This component needs to be rebuilt for the new multi-business schema
 // See MIGRATION_TO_MULTI_BUSINESS.md for details
 
+import { User } from "@supabase/supabase-js";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertCircle } from "lucide-react";
 
-export const AppointmentBooking = () => {
+interface AppointmentBookingProps {
+  user: User;
+  selectedDentist?: any;
+  prefilledReason?: string;
+  onComplete: (appointmentData?: Record<string, unknown>) => void;
+  onCancel: () => void;
+}
+
+export const AppointmentBooking = ({ user, onComplete, onCancel }: AppointmentBookingProps) => {
   return (
     <Card>
       <CardHeader>
