@@ -93,8 +93,9 @@ export const UnifiedDashboard = memo(({ user }: UnifiedDashboardProps) => {
 
           console.log('🏢 Found businesses:', businesses);
           if (businesses && businesses.length > 0) {
-            console.log('✅ Provider with businesses - showing business selector on main page');
-            // Keep them on the main page which shows BusinessSelector
+            console.log('✅ Provider with businesses - redirecting to admin dashboard');
+            setShouldRedirect(true);
+            navigate('/dentist/admin/branding', { replace: true });
             return;
           }
         }
