@@ -30,12 +30,32 @@ export function useUserRole() {
           throw roleError;
         }
 
+        let userRoles: AppRole[] = [];
         if (data && Array.isArray(data)) {
-          const userRoles = data.map((r: any) => r.role as AppRole);
-          setRoles(userRoles);
-        } else {
-          setRoles([]);
+          userRoles = data.map((r: any) => r.role as AppRole);
         }
+
+        // Fallback: infer provider role if user owns or belongs to a business
+        if (!userRoles.includes('provider')) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('user_id', user.id)
+            .maybeSingle();
+
+          if (profile) {
+            const [{ data: owned }, { data: member }] = await Promise.all([
+              supabase.from('businesses' as any).select('id').eq('owner_profile_id', profile.id),
+              supabase.from('provider_business_map' as any).select('id').eq('provider_id', profile.id)
+            ]);
+
+            if ((owned && owned.length > 0) || (member && member.length > 0)) {
+              userRoles.push('provider');
+            }
+          }
+        }
+
+        setRoles(userRoles);
       } catch (e: any) {
         setError(e.message);
         console.error('Error in useUserRole:', e);
@@ -65,3 +85,4 @@ export function useUserRole() {
     error
   };
 }
+

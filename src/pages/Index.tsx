@@ -44,9 +44,9 @@ const Index = () => {
     // Only clear if user is not authenticated
     if (!user) {
       console.log('Clearing previous clinic selections for fresh homepage experience');
-      sessionStorage.removeItem('selectedClinicDentistId');
-      sessionStorage.removeItem('selectedClinicSlug');
-      sessionStorage.removeItem('selectedClinicName');
+      sessionStorage.removeItem('selectedBusinessId');
+      sessionStorage.removeItem('selectedBusinessSlug');
+      sessionStorage.removeItem('selectedBusinessName');
       sessionStorage.removeItem('accessMode');
     }
   }, [user]);

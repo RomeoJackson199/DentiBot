@@ -91,7 +91,7 @@ export function BusinessSelector() {
     }
   };
 
-  const handleSelectBusiness = (business: Business, mode: 'admin' | 'customer') => {
+  const handleSelectBusiness = async (business: Business, mode: 'admin' | 'customer') => {
     console.log('Selected business:', business.name, 'Mode:', mode);
     
     sessionStorage.setItem('selectedBusinessId', business.id);
@@ -99,7 +99,8 @@ export function BusinessSelector() {
     sessionStorage.setItem('selectedBusinessName', business.name);
     sessionStorage.setItem('accessMode', mode);
     
-    navigate('/login');
+    const { data: { user } } = await supabase.auth.getUser();
+    navigate(user ? '/dashboard' : '/login');
   };
 
   const isOwnBusiness = (business: Business) => {

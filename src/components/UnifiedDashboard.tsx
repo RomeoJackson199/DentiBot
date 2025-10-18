@@ -20,9 +20,9 @@ export const UnifiedDashboard = memo(({ user }: UnifiedDashboardProps) => {
     const checkDentistRedirect = async () => {
       if (roleLoading) return;
 
-      const selectedClinicDentistId = sessionStorage.getItem('selectedClinicDentistId');
-      const selectedClinicSlug = sessionStorage.getItem('selectedClinicSlug');
-      const selectedClinicName = sessionStorage.getItem('selectedClinicName');
+      const selectedClinicDentistId = sessionStorage.getItem('selectedBusinessId');
+      const selectedClinicSlug = sessionStorage.getItem('selectedBusinessSlug');
+      const selectedClinicName = sessionStorage.getItem('selectedBusinessName');
       const accessMode = sessionStorage.getItem('accessMode');
 
       console.log('UnifiedDashboard - Session data:', {
@@ -55,12 +55,12 @@ export const UnifiedDashboard = memo(({ user }: UnifiedDashboardProps) => {
           if (accessMode === 'admin' && ownsBusiness) {
             // Admin access to own business - redirect to business dashboard
             console.log('Redirecting to business dashboard (admin mode)');
-            sessionStorage.removeItem('selectedClinicDentistId');
-            sessionStorage.removeItem('selectedClinicSlug');
-            sessionStorage.removeItem('selectedClinicName');
+            sessionStorage.removeItem('selectedBusinessId');
+            sessionStorage.removeItem('selectedBusinessSlug');
+            sessionStorage.removeItem('selectedBusinessName');
             sessionStorage.removeItem('accessMode');
             setShouldRedirect(true);
-            navigate(`/${selectedClinicSlug}/admin`, { replace: true });
+            navigate('/dentist/admin/branding', { replace: true });
             return;
           } else if (accessMode === 'patient') {
             // Patient access - stay on patient dashboard
