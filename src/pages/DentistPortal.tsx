@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { useToast } from "@/hooks/use-toast";
@@ -66,22 +66,28 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
     }
     
     try {
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
+      // Get current user's profile id via security-definer function to avoid RLS edge cases
+      const { data: profId, error: profErr } = await supabase.rpc('get_current_user_profile_id');
+      if (profErr || !profId) throw new Error('Could not load your profile');
 
-      if (profileError) throw profileError;
-
+      // Find dentist record for this profile
       const { data: dentist, error: dentistError } = await supabase
         .from('dentists')
         .select('id')
-        .eq('profile_id', profile.id)
-        .single();
+        .eq('profile_id', profId as string)
+        .maybeSingle();
 
-      if (dentistError) {
-        throw new Error('You are not registered as a dentist');
+      if (!dentist || dentistError) {
+        // Guide user to onboarding if no dentist record
+        toast({
+          title: 'Complete setup',
+          description: 'Create your clinic to access the dentist portal.',
+        });
+        // Optionally redirect to onboarding
+        // const nav = useNavigate(); // navigate not used here to avoid hooks in function
+        // navigate('/start');
+        setDentistId(null);
+        return;
       }
 
       setDentistId(dentist.id);
