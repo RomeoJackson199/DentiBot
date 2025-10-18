@@ -3339,9 +3339,17 @@ export type Database = {
         Args: { p_dentist_id: string }
         Returns: boolean
       }
+      ensure_current_user_is_dentist: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       generate_daily_slots: {
         Args: { p_date: string; p_dentist_id: string }
         Returns: undefined
+      }
+      get_current_dentist_id: {
+        Args: Record<PropertyKey, never>
+        Returns: string
       }
       get_current_user_profile_id: {
         Args: Record<PropertyKey, never>

@@ -66,64 +66,32 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
     }
     
     try {
-      // Get current user's profile id via security-definer function to avoid RLS edge cases
-      const { data: profId, error: profErr } = await supabase.rpc('get_current_user_profile_id');
-      if (profErr || !profId) throw new Error('Could not load your profile');
+      // Use RPC to safely get dentist ID
+      const { data: dentistIdData, error: dentistError } = await supabase
+        .rpc('get_current_dentist_id');
 
-      // Find dentist record for this profile
-      const { data: dentist, error: dentistError } = await supabase
-        .from('dentists')
-        .select('id')
-        .eq('profile_id', profId as string)
-        .maybeSingle();
+      if (dentistError) throw dentistError;
 
-      if (!dentist || dentistError) {
-        // Guide user to onboarding if no dentist record
-        toast({
-          title: 'Complete setup',
-          description: 'Create your clinic to access the dentist portal.',
-        });
-        // Optionally redirect to onboarding
-        // const nav = useNavigate(); // navigate not used here to avoid hooks in function
-        // navigate('/start');
+      if (!dentistIdData) {
+        console.warn('No dentist record found for user');
         setDentistId(null);
+        setLoading(false);
         return;
       }
 
-      setDentistId(dentist.id);
-
-      // Ensure user has 'dentist' role for role-based routing elsewhere
-      if (user) {
-        try {
-          const { data: roles } = await supabase
-            .from('user_roles')
-            .select('role')
-            .eq('user_id', user.id);
-          const hasDentistRole = (roles || []).some((r: any) => r.role === 'dentist');
-          if (!hasDentistRole) {
-            const { error: roleErr } = await supabase
-              .from('user_roles')
-              .insert({ user_id: user.id, role: 'dentist' as any });
-            if (roleErr && roleErr.code !== '23505') {
-              console.warn('Failed to assign dentist role:', roleErr.message);
-            }
-          }
-        } catch (e) {
-          console.warn('Role check skipped:', (e as any)?.message);
-        }
-      }
+      setDentistId(dentistIdData);
       
       // Fetch badge counts
       const { data: payments } = await supabase
         .from('payment_requests')
         .select('id')
-        .eq('dentist_id', dentist.id)
+        .eq('dentist_id', dentistIdData)
         .eq('status', 'overdue');
 
       const { data: inventory } = await supabase
         .from('inventory_items')
         .select('quantity, min_threshold')
-        .eq('dentist_id', dentist.id);
+        .eq('dentist_id', dentistIdData);
 
       const lowStockCount = (inventory || []).filter(
         (item: any) => item.quantity <= item.min_threshold
@@ -152,8 +120,49 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
     return <Navigate to="/" replace />;
   }
 
-  if (!dentistId) {
-    return <ModernLoadingSpinner variant="card" message="Access Denied" description="You are not registered as a dentist. Please contact support." />;
+  const handleFixAccess = async () => {
+    try {
+      setLoading(true);
+      const { data: dentistIdData, error } = await supabase.rpc('ensure_current_user_is_dentist');
+      if (error) throw error;
+      setDentistId(dentistIdData);
+      toast({
+        title: 'Success',
+        description: 'Access fixed! Reloading...',
+      });
+      window.location.reload();
+    } catch (error: any) {
+      console.error('Error fixing access:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to fix access: ' + error.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!dentistId && !loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="w-full max-w-md p-8 space-y-6 bg-card rounded-lg shadow-lg border">
+          <div className="text-center space-y-4">
+            <h2 className="text-2xl font-bold text-destructive">Access Denied</h2>
+            <p className="text-muted-foreground">
+              You are not registered as a dentist. Click below to fix your access.
+            </p>
+            <button
+              onClick={handleFixAccess}
+              disabled={loading}
+              className="w-full px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50"
+            >
+              {loading ? 'Fixing...' : 'Fix Access'}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   const renderContent = () => {

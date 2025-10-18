@@ -319,19 +319,10 @@ export default function BusinessOnboarding() {
         if (clinicError) throw clinicError;
       }
 
-      // 5. Ensure your account has dentist role
-      // Update profile.role for legacy checks
-      await supabase
-        .from('profiles')
-        .update({ role: 'dentist' })
-        .eq('id', profileId);
-
-      // Add role to user_roles for RBAC-based checks (ignore if already exists)
-      const { error: roleInsertError } = await supabase
-        .from('user_roles')
-        .insert({ user_id: userId, role: 'dentist' as any });
-      if (roleInsertError && roleInsertError.code !== '23505') {
-        console.warn('user_roles insert skipped:', roleInsertError.message);
+      // 5. Ensure user is registered as dentist with proper role
+      const { error: ensureError } = await supabase.rpc('ensure_current_user_is_dentist');
+      if (ensureError) {
+        console.warn('Failed to ensure dentist status:', ensureError.message);
       }
 
       toast.success('Clinic created successfully!');
