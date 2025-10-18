@@ -132,25 +132,41 @@ export default function BusinessOnboarding() {
           if (authError) throw authError;
           if (!authData.user) throw new Error('User creation failed');
           userId = authData.user.id;
+          // Ensure session exists (if email confirmation disabled)
+          let sessionAttempts = 0;
+          while (sessionAttempts < 5) {
+            const { data: sess } = await supabase.auth.getSession();
+            if (sess?.session) break;
+            // Try password sign-in once if no session yet
+            if (sessionAttempts === 1) {
+              const { error: pwErr } = await supabase.auth.signInWithPassword({ email: formData.email, password: formData.password });
+              if (pwErr && /email/i.test(pwErr.message) && /confirm/i.test(pwErr.message)) {
+                throw new Error('Please confirm your email to continue, then return to create your clinic.');
+              }
+            }
+            await new Promise(r => setTimeout(r, 400));
+            sessionAttempts++;
+          }
         }
       }
 
-      // 2. Get profile with retries
+      // 2. Get profile with retries (via RPC to bypass RLS)
       let profileId: string | null = null;
       let attempts = 0;
-      const maxAttempts = 5;
+      const maxAttempts = 10;
       
       while (!profileId && attempts < maxAttempts) {
-        await new Promise(resolve => setTimeout(resolve, 300 * (attempts + 1)));
+        await new Promise(resolve => setTimeout(resolve, 400 * (attempts + 1)));
         
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('user_id', userId)
-          .maybeSingle();
+        const { data: profId, error: profErr } = await supabase.rpc('get_current_user_profile_id');
 
-        if (profile?.id) {
-          profileId = profile.id;
+        if (profErr) {
+          attempts++;
+          continue;
+        }
+
+        if (profId) {
+          profileId = String(profId);
           break;
         }
         
@@ -158,7 +174,7 @@ export default function BusinessOnboarding() {
       }
 
       if (!profileId) {
-        throw new Error('Unable to access profile. Please contact support.');
+        throw new Error('Unable to access profile. Please confirm your email or sign in, then retry.');
       }
 
       // 3. Create dentist record
