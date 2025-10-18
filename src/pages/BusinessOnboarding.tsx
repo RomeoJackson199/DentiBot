@@ -319,6 +319,21 @@ export default function BusinessOnboarding() {
         if (clinicError) throw clinicError;
       }
 
+      // 5. Ensure your account has dentist role
+      // Update profile.role for legacy checks
+      await supabase
+        .from('profiles')
+        .update({ role: 'dentist' })
+        .eq('id', profileId);
+
+      // Add role to user_roles for RBAC-based checks (ignore if already exists)
+      const { error: roleInsertError } = await supabase
+        .from('user_roles')
+        .insert({ user_id: userId, role: 'dentist' as any });
+      if (roleInsertError && roleInsertError.code !== '23505') {
+        console.warn('user_roles insert skipped:', roleInsertError.message);
+      }
+
       toast.success('Clinic created successfully!');
       
       // Redirect to dentist portal
