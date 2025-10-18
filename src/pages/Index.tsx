@@ -18,7 +18,7 @@ import { SimpleDatabaseSaveTest } from "@/components/SimpleDatabaseSaveTest";
 import { EmailTest } from "@/components/EmailTest";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ClinicSelector } from "@/components/ClinicSelector";
+import { BusinessSelector } from "@/components/BusinessSelector";
 
 
 const Index = () => {
@@ -259,8 +259,8 @@ const Index = () => {
         onStartTriage={() => setShowEmergencyTriage(true)}
       />
 
-      {/* Clinic Selection Section */}
-      <ClinicSelector />
+      {/* Business Selection Section */}
+      <BusinessSelector />
 
       <Footer />
 

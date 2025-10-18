@@ -14,7 +14,7 @@ interface UnifiedDashboardProps {
 export const UnifiedDashboard = memo(({ user }: UnifiedDashboardProps) => {
   const [shouldRedirect, setShouldRedirect] = useState(false);
   const navigate = useNavigate();
-  const { isDentist, isAdmin, loading: roleLoading } = useUserRole();
+  const { isProvider, isAdmin, loading: roleLoading } = useUserRole();
 
   useEffect(() => {
     const checkDentistRedirect = async () => {
@@ -30,7 +30,7 @@ export const UnifiedDashboard = memo(({ user }: UnifiedDashboardProps) => {
         selectedClinicSlug,
         selectedClinicName,
         accessMode,
-        isDentist,
+        isProvider,
         isAdmin
       });
 
@@ -72,8 +72,8 @@ export const UnifiedDashboard = memo(({ user }: UnifiedDashboardProps) => {
         }
       }
 
-      // If no clinic selected, redirect dentists/admins to their portal by default
-      if (!selectedClinicSlug && !accessMode && (isDentist || isAdmin)) {
+      // If no clinic selected, redirect providers/admins to their portal by default
+      if (!selectedClinicSlug && !accessMode && (isProvider || isAdmin)) {
         const { data: profile } = await supabase
           .from('profiles')
           .select('id')
@@ -98,7 +98,7 @@ export const UnifiedDashboard = memo(({ user }: UnifiedDashboardProps) => {
     };
 
     checkDentistRedirect();
-  }, [user.id, navigate, isDentist, isAdmin, roleLoading]);
+  }, [user.id, navigate, isProvider, isAdmin, roleLoading]);
 
   if (roleLoading || shouldRedirect) {
     return (

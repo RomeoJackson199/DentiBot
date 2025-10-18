@@ -22,7 +22,7 @@ export function ClinicSelector() {
   const [loading, setLoading] = useState(true);
   const [userDentistId, setUserDentistId] = useState<string | null>(null);
   const navigate = useNavigate();
-  const { isDentist, isAdmin, loading: roleLoading } = useUserRole();
+  const { isProvider, isAdmin, loading: roleLoading } = useUserRole();
 
   useEffect(() => {
     fetchClinics();
@@ -130,7 +130,7 @@ export function ClinicSelector() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
           {clinics.map((clinic) => {
             const ownClinic = isOwnClinic(clinic);
-            const showAdminOption = (isDentist || isAdmin) && ownClinic;
+            const showAdminOption = (isProvider || isAdmin) && ownClinic;
 
             return (
               <Card 
