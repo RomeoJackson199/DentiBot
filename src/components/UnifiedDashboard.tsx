@@ -24,8 +24,41 @@ export const UnifiedDashboard = memo(({ user }: UnifiedDashboardProps) => {
       const selectedClinicDentistId = sessionStorage.getItem('selectedClinicDentistId');
       const selectedClinicSlug = sessionStorage.getItem('selectedClinicSlug');
 
-      // Dentists and admins should be redirected to dentist portal
-      if (isDentist || isAdmin) {
+      // If a clinic was selected, check if this user owns it
+      if (selectedClinicDentistId && (isDentist || isAdmin)) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (profile) {
+          const { data: dentistData } = await supabase
+            .from('dentists')
+            .select('id, is_active')
+            .eq('profile_id', profile.id)
+            .maybeSingle();
+
+          // Only redirect to dentist portal if they OWN the selected clinic
+          if ((dentistData?.is_active || isAdmin) && dentistData?.id === selectedClinicDentistId) {
+            console.log('Dentist accessing their own clinic, redirecting to dentist portal');
+            sessionStorage.removeItem('selectedClinicDentistId');
+            sessionStorage.removeItem('selectedClinicSlug');
+            sessionStorage.removeItem('selectedClinicName');
+            setShouldRedirect(true);
+            navigate('/dentist/clinical/dashboard', { replace: true });
+            return;
+          } else if (selectedClinicDentistId) {
+            // Dentist accessing another clinic as a patient
+            console.log('Dentist accessing another clinic as patient');
+            sessionStorage.removeItem('selectedClinicDentistId');
+            // Keep selectedClinicSlug for appointment booking
+          }
+        }
+      }
+
+      // If no clinic selected, redirect dentists/admins to their portal
+      if (!selectedClinicSlug && (isDentist || isAdmin)) {
         const { data: profile } = await supabase
           .from('profiles')
           .select('id')
@@ -40,19 +73,12 @@ export const UnifiedDashboard = memo(({ user }: UnifiedDashboardProps) => {
             .maybeSingle();
 
           if (dentistData?.is_active || isAdmin) {
-            console.log('Active dentist/admin detected, redirecting to dentist portal');
+            console.log('Dentist/admin accessing without clinic selection, redirecting to portal');
             setShouldRedirect(true);
             navigate('/dentist/clinical/dashboard', { replace: true });
             return;
           }
         }
-      }
-
-      // If patient selected a clinic, store it for appointment booking
-      if (selectedClinicSlug && !isDentist && !isAdmin) {
-        console.log('Patient selected clinic:', selectedClinicSlug);
-        // Keep the clinic selection in sessionStorage for appointment booking
-        // It will be used by appointment booking components
       }
     };
 
