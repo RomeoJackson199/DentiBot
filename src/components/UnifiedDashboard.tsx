@@ -14,13 +14,13 @@ interface UnifiedDashboardProps {
 export const UnifiedDashboard = memo(({ user }: UnifiedDashboardProps) => {
   const [shouldRedirect, setShouldRedirect] = useState(false);
   const navigate = useNavigate();
-  const { isDentist, isAdmin, loading: roleLoading } = useUserRole();
+  const { isDentist, isAdmin, isPatient, loading: roleLoading } = useUserRole();
 
   useEffect(() => {
-    const checkDentistRedirect = async () => {
+    const checkRoleBasedRedirect = async () => {
       if (roleLoading) return;
 
-      // Dentists and admins should be redirected to dentist portal
+      // Dentists/providers and admins should be redirected to dentist portal
       if (isDentist || isAdmin) {
         const { data: profile } = await supabase
           .from('profiles')
@@ -36,17 +36,23 @@ export const UnifiedDashboard = memo(({ user }: UnifiedDashboardProps) => {
             .maybeSingle();
 
           if (providerData?.is_active || isAdmin) {
-            console.log('Active dentist/admin detected, redirecting to dentist portal');
+            console.log('Active provider/admin detected, redirecting to dentist portal');
             setShouldRedirect(true);
             navigate('/dentist/clinical/dashboard', { replace: true });
             return;
           }
         }
       }
+
+      // Patients should go to patient dashboard
+      if (isPatient) {
+        console.log('Patient detected, showing patient dashboard');
+        setShouldRedirect(false);
+      }
     };
 
-    checkDentistRedirect();
-  }, [user.id, navigate, isDentist, isAdmin, roleLoading]);
+    checkRoleBasedRedirect();
+  }, [user.id, navigate, isDentist, isAdmin, isPatient, roleLoading]);
 
   if (roleLoading || shouldRedirect) {
     return (
@@ -59,7 +65,7 @@ export const UnifiedDashboard = memo(({ user }: UnifiedDashboardProps) => {
     );
   }
 
-  // Show patient dashboard for patients and those without dentist role
+  // Show patient dashboard for patients and those without provider role
   return (
     <>
       <PatientDashboard user={user} />

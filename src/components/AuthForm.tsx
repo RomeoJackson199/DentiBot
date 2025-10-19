@@ -15,9 +15,10 @@ import { AccountClaimFlow } from "./AccountClaimFlow";
 
 interface AuthFormProps {
   compact?: boolean;
+  initialRole?: 'patient' | 'dentist';
 }
 
-export const AuthForm = ({ compact = false }: AuthFormProps) => {
+export const AuthForm = ({ compact = false, initialRole = 'patient' }: AuthFormProps) => {
   const { t } = useLanguage();
   const [isLoading, setIsLoading] = useState(false);
   const [showLoginDialog, setShowLoginDialog] = useState(false);

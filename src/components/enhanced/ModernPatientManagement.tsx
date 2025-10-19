@@ -30,6 +30,7 @@ import { PatientPaymentHistory } from "@/components/PatientPaymentHistory";
 import { PrescriptionManager } from "@/components/PrescriptionManager";
 import { TreatmentPlanManager } from "@/components/TreatmentPlanManager";
 import { PaymentRequestManager } from "@/components/PaymentRequestManager";
+import { NewPatientDialog } from "@/components/patient/NewPatientDialog";
 
 interface Patient {
   id: string;
@@ -76,6 +77,7 @@ export function ModernPatientManagement({ dentistId }: ModernPatientManagementPr
   const [loading, setLoading] = useState(true);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [patientFlags, setPatientFlags] = useState<Record<string, PatientFlags>>({});
+  const [newPatientDialogOpen, setNewPatientDialogOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -266,15 +268,25 @@ export function ModernPatientManagement({ dentistId }: ModernPatientManagementPr
               Manage and track your patient records
             </p>
           </div>
-          <div className="relative w-full lg:w-96">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-            <Input
-              type="text"
-              placeholder="Search by name, email, phone..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-12 h-12 rounded-xl border-border/50 bg-background/50 backdrop-blur-sm"
-            />
+          <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+            <div className="relative flex-1 lg:w-96">
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder="Search by name, email, phone..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-12 h-12 rounded-xl border-border/50 bg-background/50 backdrop-blur-sm"
+              />
+            </div>
+            <Button 
+              onClick={() => setNewPatientDialogOpen(true)}
+              size="lg"
+              className="h-12 px-6 rounded-xl"
+            >
+              <Plus className="h-5 w-5 mr-2" />
+              New Patient
+            </Button>
           </div>
         </div>
 
@@ -645,6 +657,13 @@ export function ModernPatientManagement({ dentistId }: ModernPatientManagementPr
           )}
         </div>
       </div>
+      
+      <NewPatientDialog
+        open={newPatientDialogOpen}
+        onOpenChange={setNewPatientDialogOpen}
+        dentistId={dentistId}
+        onPatientCreated={fetchPatients}
+      />
     </div>
   );
 }

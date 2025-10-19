@@ -142,18 +142,20 @@ const App = () => (
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/book" element={<PublicBooking />} />
-                {/* Old routes for backward compatibility */}
-                <Route element={<AppShell />}>
-                  {/* Back-compat entry to dentist home */}
-                  <Route path="/dashboard" element={<Dashboard />} />
-                  <Route path="/clinical" element={<Navigate to="/dentist/clinical/dashboard" replace />} />
-                  <Route path="/clinical/*" element={<Navigate to="/dentist/clinical/dashboard" replace />} />
-                  <Route path="/business/*" element={<Navigate to="/dentist/business/payments" replace />} />
-                  <Route path="/ops/*" element={<Navigate to="/dentist/ops/inventory" replace />} />
-                  <Route path="/admin/*" element={<Navigate to="/dentist/admin/branding" replace />} />
-                </Route>
+                {/* Auth routes */}
+                <Route path="/login" element={<Login />} />
+                <Route path="/signup" element={<Signup />} />
+                {/* Role-based dashboard routing */}
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/patient" element={<Dashboard />} />
                 {/* Dentist routes with tab-based navigation */}
                 <Route path="/dentist/*" element={<DentistPortal />} />
+                {/* Old routes for backward compatibility */}
+                <Route path="/clinical" element={<Navigate to="/dentist/clinical/dashboard" replace />} />
+                <Route path="/clinical/*" element={<Navigate to="/dentist/clinical/dashboard" replace />} />
+                <Route path="/business/*" element={<Navigate to="/dentist/business/payments" replace />} />
+                <Route path="/ops/*" element={<Navigate to="/dentist/ops/inventory" replace />} />
+                <Route path="/admin/*" element={<Navigate to="/dentist/admin/branding" replace />} />
                 {/* Patient portal routes with patient nav */}
                 <Route element={<PatientPortalNav><></></PatientPortalNav>}>
                   <Route path="/care" element={<PatientCareHome />} />
@@ -167,9 +169,6 @@ const App = () => (
                   <Route path="/account/privacy" element={<PatientAccountPrivacyPage />} />
                   <Route path="/account/help" element={<PatientAccountHelpPage />} />
                 </Route>
-                {/* Auth routes */}
-                <Route path="/login" element={<Login />} />
-                <Route path="/signup" element={<Signup />} />
                 {/* Public routes */}
                 <Route path="/emergency-triage" element={<EmergencyTriage />} />
                 <Route path="/dentists" element={<DentistProfiles />} />

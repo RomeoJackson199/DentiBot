@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { Navigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -6,15 +8,27 @@ import { Badge } from "@/components/ui/badge";
 import { CalendarDays, Clock, User, MapPin } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { format, addDays, startOfWeek, endOfWeek, eachDayOfInterval } from "date-fns";
+import { ModernLoadingSpinner } from "@/components/enhanced/ModernLoadingSpinner";
+import { useToast } from "@/hooks/use-toast";
+
+interface RealAppointment {
+  id: string;
+  appointment_date: string;
+  duration_minutes: number;
+  status: string;
+  reason?: string;
+  patient_id: string;
+  profiles?: {
+    first_name: string;
+    last_name: string;
+  };
+}
 
 interface TimeSlot {
   id: string;
   time: string;
   available: boolean;
-  appointment?: {
-    patientName: string;
-    reason: string;
-  };
+  appointment?: RealAppointment;
 }
 
 interface DaySchedule {
@@ -23,29 +37,106 @@ interface DaySchedule {
 }
 
 const Schedule = () => {
+  const [user, setUser] = useState<any>(null);
+  const [dentistId, setDentistId] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [schedule, setSchedule] = useState<DaySchedule[]>([]);
   const [loading, setLoading] = useState(true);
+  const [appointments, setAppointments] = useState<RealAppointment[]>([]);
+  const { toast } = useToast();
 
-  // Generate time slots for a day
-  const generateTimeSlots = (date: Date): TimeSlot[] => {
+  // Load user and dentist info
+  useEffect(() => {
+    const loadUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      
+      setUser(user);
+      
+      // Get dentist ID
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      
+      if (profile) {
+        const { data: provider } = await supabase
+          .from('providers')
+          .select('id')
+          .eq('profile_id', profile.id)
+          .maybeSingle();
+        
+        if (provider) {
+          setDentistId(provider.id);
+        }
+      }
+    };
+    
+    loadUser();
+  }, []);
+
+  // Fetch real appointments
+  useEffect(() => {
+    if (!dentistId) return;
+    
+    const fetchAppointments = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('appointments')
+          .select(`
+            *,
+            profiles:patient_id (
+              first_name,
+              last_name
+            )
+          `)
+          .eq('dentist_id', dentistId)
+          .gte('appointment_date', format(startOfWeek(selectedDate), 'yyyy-MM-dd'))
+          .lte('appointment_date', format(endOfWeek(selectedDate), 'yyyy-MM-dd'));
+        
+        if (error) throw error;
+        setAppointments(data || []);
+      } catch (error: any) {
+        console.error('Error fetching appointments:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load appointments",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchAppointments();
+  }, [dentistId, selectedDate]);
+
+  // Generate time slots with real appointments
+  const generateTimeSlotsForDate = (date: Date): TimeSlot[] => {
     const slots: TimeSlot[] = [];
-    const startHour = 9; // 9 AM
-    const endHour = 17; // 5 PM
+    const startHour = 9;
+    const endHour = 17;
+    const dateStr = format(date, 'yyyy-MM-dd');
     
     for (let hour = startHour; hour < endHour; hour++) {
       for (let minute = 0; minute < 60; minute += 30) {
         const time = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-        const isAvailable = Math.random() > 0.3; // 70% chance of being available
+        const slotDateTime = `${dateStr}T${time}:00`;
+        
+        // Check if there's an appointment at this time
+        const appointment = appointments.find(apt => {
+          if (!apt.appointment_date) return false;
+          const aptTime = format(new Date(apt.appointment_date), 'HH:mm');
+          const aptDate = format(new Date(apt.appointment_date), 'yyyy-MM-dd');
+          return aptDate === dateStr && aptTime === time;
+        });
         
         slots.push({
-          id: `${date.toISOString()}-${time}`,
+          id: `${dateStr}-${time}`,
           time,
-          available: isAvailable,
-          appointment: isAvailable ? undefined : {
-            patientName: "John Doe",
-            reason: "Regular checkup"
-          }
+          available: !appointment,
+          appointment: appointment
         });
       }
     }
@@ -53,24 +144,21 @@ const Schedule = () => {
     return slots;
   };
 
-  // Generate schedule for the current week
+  // Generate schedule when appointments change
   useEffect(() => {
-    const generateWeekSchedule = () => {
-      const start = startOfWeek(selectedDate);
-      const end = endOfWeek(selectedDate);
-      const days = eachDayOfInterval({ start, end });
-      
-      const weekSchedule = days.map(date => ({
-        date,
-        slots: generateTimeSlots(date)
-      }));
-      
-      setSchedule(weekSchedule);
-      setLoading(false);
-    };
-
-    generateWeekSchedule();
-  }, [selectedDate]);
+    if (!dentistId) return;
+    
+    const start = startOfWeek(selectedDate);
+    const end = endOfWeek(selectedDate);
+    const days = eachDayOfInterval({ start, end });
+    
+    const weekSchedule = days.map(date => ({
+      date,
+      slots: generateTimeSlotsForDate(date)
+    }));
+    
+    setSchedule(weekSchedule);
+  }, [appointments, selectedDate, dentistId]);
 
   const getDayName = (date: Date) => {
     return format(date, 'EEEE');
@@ -85,6 +173,25 @@ const Schedule = () => {
       format(day.date, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd')
     )?.slots || [];
   };
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (!dentistId && !loading) {
+    return (
+      <div className="p-8">
+        <Card>
+          <CardContent className="p-8 text-center">
+            <p className="text-muted-foreground">You need dentist access to view schedules.</p>
+            <Button onClick={() => window.location.href = '/dashboard'} className="mt-4">
+              Go to Dashboard
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="p-3 md:p-4 max-w-7xl mx-auto">
@@ -146,14 +253,14 @@ const Schedule = () => {
                         </Badge>
                         {slot.available ? (
                           <span className="text-sm text-green-700">Available</span>
-                        ) : (
+                        ) : slot.appointment && (
                           <div className="flex items-center gap-2">
                             <User className="w-4 h-4" />
                             <span className="text-sm font-medium">
-                              {slot.appointment?.patientName}
+                              {slot.appointment.profiles?.first_name} {slot.appointment.profiles?.last_name}
                             </span>
                             <span className="text-sm text-muted-foreground">
-                              - {slot.appointment?.reason}
+                              - {slot.appointment.reason || 'Appointment'}
                             </span>
                           </div>
                         )}
