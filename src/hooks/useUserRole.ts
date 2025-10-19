@@ -51,7 +51,8 @@ export function useUserRole() {
   const hasRole = (role: AppRole) => roles.includes(role);
   const isAdmin = hasRole('admin');
   const isDentist = hasRole('dentist') || hasRole('provider');
-  const isPatient = hasRole('patient');
+  // Handle legacy 'customer' role as 'patient' during transition
+  const isPatient = hasRole('patient') || (roles as any).includes('customer');
   const isStaff = hasRole('staff');
 
   return {

@@ -255,9 +255,13 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      check_clinic_registration: {
+        Args: { business_slug: string }
+        Returns: Json
+      }
     }
     Enums: {
-      app_role: "admin" | "provider" | "customer" | "staff"
+      app_role: "admin" | "provider" | "customer" | "staff" | "patient"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -385,7 +389,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "provider", "customer", "staff"],
+      app_role: ["admin", "provider", "customer", "staff", "patient"],
     },
   },
 } as const

@@ -147,7 +147,7 @@ const App = () => (
                 <Route path="/signup" element={<Signup />} />
                 {/* Role-based dashboard routing */}
                 <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/patient" element={<Dashboard />} />
+                <Route path="/patient/*" element={<Dashboard />} />
                 {/* Dentist routes with tab-based navigation */}
                 <Route path="/dentist/*" element={<DentistPortal />} />
                 {/* Old routes for backward compatibility */}

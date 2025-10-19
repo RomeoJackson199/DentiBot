@@ -20,35 +20,24 @@ export const UnifiedDashboard = memo(({ user }: UnifiedDashboardProps) => {
     const checkRoleBasedRedirect = async () => {
       if (roleLoading) return;
 
-      // Dentists/providers and admins should be redirected to dentist portal
+      // Dentists/providers and admins redirect to dentist portal immediately
       if (isDentist || isAdmin) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('user_id', user.id)
-          .maybeSingle();
-
-        if (profile) {
-          const { data: providerData } = await supabase
-            .from('providers')
-            .select('is_active')
-            .eq('profile_id', profile.id)
-            .maybeSingle();
-
-          if (providerData?.is_active || isAdmin) {
-            console.log('Active provider/admin detected, redirecting to dentist portal');
-            setShouldRedirect(true);
-            navigate('/dentist/clinical/dashboard', { replace: true });
-            return;
-          }
-        }
+        console.log('Provider/admin detected, redirecting to dentist portal');
+        setShouldRedirect(true);
+        navigate('/dentist/clinical/dashboard', { replace: true });
+        return;
       }
 
-      // Patients should go to patient dashboard
+      // Patients stay on patient dashboard
       if (isPatient) {
         console.log('Patient detected, showing patient dashboard');
         setShouldRedirect(false);
+        return;
       }
+
+      // If no recognized role, default to patient dashboard
+      console.log('No specific role detected, defaulting to patient dashboard');
+      setShouldRedirect(false);
     };
 
     checkRoleBasedRedirect();
