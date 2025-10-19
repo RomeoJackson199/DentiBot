@@ -29,13 +29,13 @@ export const UnifiedDashboard = memo(({ user }: UnifiedDashboardProps) => {
           .maybeSingle();
 
         if (profile) {
-          const { data: dentistData } = await supabase
-            .from('dentists')
+          const { data: providerData } = await supabase
+            .from('providers')
             .select('is_active')
             .eq('profile_id', profile.id)
             .maybeSingle();
 
-          if (dentistData?.is_active || isAdmin) {
+          if (providerData?.is_active || isAdmin) {
             console.log('Active dentist/admin detected, redirecting to dentist portal');
             setShouldRedirect(true);
             navigate('/dentist/clinical/dashboard', { replace: true });
