@@ -21,12 +21,12 @@ export function useClinicBranding(dentistId?: string | null) {
     const loadBranding = async () => {
       try {
         let query = supabase
-          .from('businesses')
-          .select('logo_url, name, primary_color, secondary_color, owner_profile_id');
+          .from('clinic_settings')
+          .select('logo_url, clinic_name, primary_color, secondary_color, dentist_id');
 
-        // If dentistId is provided, use it; otherwise get the first business
+        // If dentistId is provided, use it; otherwise get the first clinic
         if (dentistId) {
-          query = query.eq('owner_profile_id', dentistId);
+          query = query.eq('dentist_id', dentistId);
         } else {
           query = query.limit(1);
         }
@@ -38,7 +38,7 @@ export function useClinicBranding(dentistId?: string | null) {
         if (data) {
           setBranding({
             logoUrl: data.logo_url,
-            clinicName: data.name,
+            clinicName: data.clinic_name,
             primaryColor: data.primary_color || "#0F3D91",
             secondaryColor: data.secondary_color || "#66D2D6",
           });
@@ -54,23 +54,23 @@ export function useClinicBranding(dentistId?: string | null) {
 
     // Subscribe to real-time updates
     const channel = supabase
-      .channel('businesses_changes')
+      .channel('clinic_settings_changes')
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
-          table: 'businesses',
-          ...(dentistId && { filter: `owner_profile_id=eq.${dentistId}` }),
+          table: 'clinic_settings',
+          ...(dentistId && { filter: `dentist_id=eq.${dentistId}` }),
         },
         (payload) => {
           if (payload.new) {
             const newData = payload.new as any;
             // Only update if it matches our dentistId or if we don't have a specific dentist
-            if (!dentistId || newData.owner_profile_id === dentistId) {
+            if (!dentistId || newData.dentist_id === dentistId) {
               setBranding({
                 logoUrl: newData.logo_url,
-                clinicName: newData.name,
+                clinicName: newData.clinic_name,
                 primaryColor: newData.primary_color || "#0F3D91",
                 secondaryColor: newData.secondary_color || "#66D2D6",
               });

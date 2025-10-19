@@ -94,6 +94,47 @@ export type Database = {
           },
         ]
       }
+      clinic_settings: {
+        Row: {
+          clinic_name: string | null
+          created_at: string
+          dentist_id: string
+          id: string
+          logo_url: string | null
+          primary_color: string
+          secondary_color: string
+          updated_at: string
+        }
+        Insert: {
+          clinic_name?: string | null
+          created_at?: string
+          dentist_id: string
+          id?: string
+          logo_url?: string | null
+          primary_color?: string
+          secondary_color?: string
+          updated_at?: string
+        }
+        Update: {
+          clinic_name?: string | null
+          created_at?: string
+          dentist_id?: string
+          id?: string
+          logo_url?: string | null
+          primary_color?: string
+          secondary_color?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clinic_settings_dentist_id_fkey"
+            columns: ["dentist_id"]
+            isOneToOne: true
+            referencedRelation: "providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           address: string | null
