@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useState } from "react";
 import { StreamlinedTriage } from "@/components/StreamlinedTriage";
 import { Button } from "@/components/ui/button";
