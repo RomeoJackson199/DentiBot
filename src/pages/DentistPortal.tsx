@@ -73,29 +73,29 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
 
       if (profileError) throw profileError;
 
-      const { data: dentist, error: dentistError } = await supabase
-        .from('dentists')
+      const { data: provider, error: providerError } = await supabase
+        .from('providers')
         .select('id')
         .eq('profile_id', profile.id)
         .single();
 
-      if (dentistError) {
-        throw new Error('You are not registered as a dentist');
+      if (providerError) {
+        throw new Error('You are not registered as a provider');
       }
 
-      setDentistId(dentist.id);
+      setDentistId(provider.id);
       
       // Fetch badge counts
       const { data: payments } = await supabase
         .from('payment_requests')
         .select('id')
-        .eq('dentist_id', dentist.id)
+        .eq('dentist_id', provider.id)
         .eq('status', 'overdue');
 
       const { data: inventory } = await supabase
         .from('inventory_items')
         .select('quantity, min_threshold')
-        .eq('dentist_id', dentist.id);
+        .eq('dentist_id', provider.id);
 
       const lowStockCount = (inventory || []).filter(
         (item: any) => item.quantity <= item.min_threshold
@@ -125,7 +125,7 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
   }
 
   if (!dentistId) {
-    return <ModernLoadingSpinner variant="card" message="Access Denied" description="You are not registered as a dentist. Please contact support." />;
+    return <ModernLoadingSpinner variant="card" message="Access Denied" description="You are not registered as a provider. Please contact support." />;
   }
 
   const renderContent = () => {
