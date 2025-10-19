@@ -14,34 +14,32 @@ interface UnifiedDashboardProps {
 export const UnifiedDashboard = memo(({ user }: UnifiedDashboardProps) => {
   const [shouldRedirect, setShouldRedirect] = useState(false);
   const navigate = useNavigate();
-  const { isDentist, isAdmin, isPatient, loading: roleLoading } = useUserRole();
+  const { isDentist, isAdmin, isPatient, roles, loading: roleLoading } = useUserRole();
 
   useEffect(() => {
-    const checkRoleBasedRedirect = async () => {
-      if (roleLoading) return;
+    if (roleLoading) return;
 
-      // Dentists/providers and admins redirect to dentist portal immediately
-      if (isDentist || isAdmin) {
-        console.log('Provider/admin detected, redirecting to dentist portal');
-        setShouldRedirect(true);
-        navigate('/dentist/clinical/dashboard', { replace: true });
-        return;
-      }
+    console.log('UnifiedDashboard: Checking roles', { isDentist, isAdmin, isPatient, roles: JSON.stringify(roles) });
 
-      // Patients stay on patient dashboard
-      if (isPatient) {
-        console.log('Patient detected, showing patient dashboard');
-        setShouldRedirect(false);
-        return;
-      }
+    // Dentists/providers and admins redirect to dentist portal
+    if (isDentist || isAdmin) {
+      console.log('✓ Redirecting to dentist portal');
+      setShouldRedirect(true);
+      navigate('/dentist/clinical/dashboard', { replace: true });
+      return;
+    }
 
-      // If no recognized role, default to patient dashboard
-      console.log('No specific role detected, defaulting to patient dashboard');
+    // Patients stay on patient dashboard
+    if (isPatient) {
+      console.log('✓ Showing patient dashboard');
       setShouldRedirect(false);
-    };
+      return;
+    }
 
-    checkRoleBasedRedirect();
-  }, [user.id, navigate, isDentist, isAdmin, isPatient, roleLoading]);
+    // No role detected - show patient dashboard as fallback
+    console.warn('⚠ No role detected, defaulting to patient dashboard');
+    setShouldRedirect(false);
+  }, [roleLoading, isDentist, isAdmin, isPatient, navigate]);
 
   if (roleLoading || shouldRedirect) {
     return (
