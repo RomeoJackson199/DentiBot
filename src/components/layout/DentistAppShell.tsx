@@ -92,7 +92,7 @@ export const DentistAppShell: React.FC<DentistAppShellProps> = ({
 }) => {
   const { toast } = useToast();
   const { isMobile } = useMobileOptimizations();
-  const { branding } = useClinicBranding(dentistId);
+  const { branding } = useClinicBranding();
   const [collapsed, setCollapsed] = useState<boolean>(() => {
     try { return localStorage.getItem('dsidebar:collapsed') === '1'; } catch { return false; }
   });

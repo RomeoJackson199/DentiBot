@@ -69,19 +69,20 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
         .from('profiles')
         .select('id')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (profileError) throw profileError;
+      if (!profile) throw new Error('Profile not found');
 
       const { data: provider, error: providerError } = await supabase
         .from('providers')
-        .select('id')
+        .select('id, is_active')
         .eq('profile_id', profile.id)
-        .single();
+        .maybeSingle();
 
-      if (providerError) {
-        throw new Error('You are not registered as a provider');
-      }
+      if (providerError) throw providerError;
+      if (!provider) throw new Error('You are not registered as a provider');
+      if (!provider.is_active) throw new Error('Your provider account is not active');
 
       setDentistId(provider.id);
       
