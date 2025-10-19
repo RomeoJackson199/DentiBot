@@ -20,6 +20,7 @@ import { ModernLoadingSpinner } from "@/components/enhanced/ModernLoadingSpinner
 import { AppShell } from "@/components/layout/AppShell";
 import { DentistPortal } from "@/pages/DentistPortal";
 import { PatientPortalNav } from "@/components/patient/PatientPortalNav";
+import { RoleBasedRouter } from "@/components/RoleBasedRouter";
 
 const Invite = lazy(() => import("./pages/Invite"));
 const Login = lazy(() => import("./pages/Login"));
@@ -149,7 +150,7 @@ const App = () => (
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/patient/*" element={<Dashboard />} />
                 {/* Dentist routes with tab-based navigation */}
-                <Route path="/dentist/*" element={<DentistPortal />} />
+                <Route path="/dentist/*" element={<RoleBasedRouter requiredRole='dentist'><DentistPortal /></RoleBasedRouter>} />
                 {/* Old routes for backward compatibility */}
                 <Route path="/clinical" element={<Navigate to="/dentist/clinical/dashboard" replace />} />
                 <Route path="/clinical/*" element={<Navigate to="/dentist/clinical/dashboard" replace />} />

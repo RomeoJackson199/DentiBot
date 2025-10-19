@@ -17,29 +17,42 @@ export const UnifiedDashboard = memo(({ user }: UnifiedDashboardProps) => {
   const { isDentist, isAdmin, isPatient, roles, loading: roleLoading } = useUserRole();
 
   useEffect(() => {
-    if (roleLoading) return;
+    const checkRoleBasedRedirect = async () => {
+      if (roleLoading) return;
 
-    console.log('UnifiedDashboard: Checking roles', { isDentist, isAdmin, isPatient, roles: JSON.stringify(roles) });
+      // Dentists/providers and admins should be redirected to dentist portal
+      if (isDentist || isAdmin) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('user_id', user.id)
+          .maybeSingle();
 
-    // Dentists/providers and admins redirect to dentist portal
-    if (isDentist || isAdmin) {
-      console.log('✓ Redirecting to dentist portal');
-      setShouldRedirect(true);
-      navigate('/dentist/clinical/dashboard', { replace: true });
-      return;
-    }
+        if (profile) {
+          const { data: providerData } = await supabase
+            .from('providers')
+            .select('is_active')
+            .eq('profile_id', profile.id)
+            .maybeSingle();
 
-    // Patients stay on patient dashboard
-    if (isPatient) {
-      console.log('✓ Showing patient dashboard');
-      setShouldRedirect(false);
-      return;
-    }
+          if (providerData?.is_active || isAdmin) {
+            console.log('Active provider/admin detected, redirecting to dentist portal');
+            setShouldRedirect(true);
+            navigate('/dentist/clinical/dashboard', { replace: true });
+            return;
+          }
+        }
+      }
 
-    // No role detected - show patient dashboard as fallback
-    console.warn('⚠ No role detected, defaulting to patient dashboard');
-    setShouldRedirect(false);
-  }, [roleLoading, isDentist, isAdmin, isPatient, navigate]);
+      // Patients should go to patient dashboard
+      if (isPatient) {
+        console.log('Patient detected, showing patient dashboard');
+        setShouldRedirect(false);
+      }
+    };
+
+    checkRoleBasedRedirect();
+  }, [user.id, navigate, isDentist, isAdmin, isPatient, roleLoading]);
 
   if (roleLoading || shouldRedirect) {
     return (
