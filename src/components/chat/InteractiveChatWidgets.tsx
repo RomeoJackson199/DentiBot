@@ -448,7 +448,7 @@ const PersonalInfoFormWidget = ({
         .from('profiles')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
       
       if (data) {
         setFormData({
@@ -465,17 +465,30 @@ const PersonalInfoFormWidget = ({
   }, [user.id]);
 
   const handleSave = async () => {
+    if (!formData.first_name || !formData.last_name) {
+      alert('First name and last name are required');
+      return;
+    }
+    
     setLoading(true);
     try {
       const { error } = await supabase
         .from('profiles')
-        .update(formData)
+        .update({
+          first_name: formData.first_name.trim(),
+          last_name: formData.last_name.trim(),
+          phone: formData.phone?.trim() || null,
+          address: formData.address?.trim() || null,
+          emergency_contact: formData.emergency_contact?.trim() || null,
+          medical_history: formData.medical_history?.trim() || null,
+        })
         .eq('user_id', user.id);
 
       if (error) throw error;
       onSave(formData);
     } catch (error) {
       console.error('Error saving profile:', error);
+      alert('Failed to save profile. Please try again.');
     } finally {
       setLoading(false);
     }

@@ -30,6 +30,7 @@ type Section = typeof SECTIONS[number];
 
 export const SettingsPage: React.FC<SettingsPageProps> = ({ user }) => {
   const { theme, setTheme } = useTheme();
+  const { toast } = useToast();
   const [active, setActive] = useState<Section>('Profile & Personal Info');
   const [saving, setSaving] = useState(false);
   const [profile, setProfile] = useState<ProfileData>({
@@ -47,11 +48,21 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ user }) => {
       }
     })();
   }, [user]);
-
+  
   const handleSave = async () => {
     setSaving(true);
     try {
       await saveProfileData(user, profile);
+      toast({
+        title: "Success",
+        description: "Your profile has been saved successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to save profile",
+        variant: "destructive",
+      });
     } finally {
       setSaving(false);
     }
