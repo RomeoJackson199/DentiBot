@@ -81,7 +81,7 @@ export const EnhancedAppointmentBooking = ({
           id,
           profile_id,
           specialization,
-          profiles (
+          profiles:profile_id (
             first_name,
             last_name
           )
