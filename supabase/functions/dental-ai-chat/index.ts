@@ -119,51 +119,19 @@ serve(async (req) => {
       return patterns.some((p) => p.test(context));
     };
 
-    // Check if OpenAI API key is available
-    const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
-    if (!openAIApiKey) {
-      console.warn('OpenAI API key not found, using fallback responses');
-      
-      // Provide fallback responses based on message content
-      const lowerMessage = sanitizedMessage.toLowerCase(); // Use sanitized message
-      let fallbackResponse = "I'm here to help you with your dental care. How can I assist you today?";
-      let suggestions: string[] = [];
-      const recommendedDentist: string[] = [];
-      
-      // Use the sanitized message for the AI request
-      const context = buildConversationContext(sanitizedMessage, conversation_history);
-      const patientInfoPresent = hasPatientInfo(context);
-      const symptomsPresent = hasSymptomInfo(context);
-
-      if (lowerMessage.includes('douleur') || lowerMessage.includes('pain') || lowerMessage.includes('mal aux dents')) {
-        fallbackResponse = "I understand you're experiencing dental pain. Let me help you find the right dentist for your needs. Can you tell me who the appointment is for and describe the pain (sharp, throbbing, or constant)?";
-      } else if (lowerMessage.includes('appointment') || lowerMessage.includes('rendez-vous') || lowerMessage.includes('booking')) {
-        fallbackResponse = "I can help you book an appointment. First, who is the appointment for? Then tell me about your symptoms so I can recommend the right dentist.";
-      } else if (lowerMessage.includes('dentist') || lowerMessage.includes('dentiste')) {
-        fallbackResponse = "I can recommend a dentist based on your specific needs. Who is this for, and what symptoms are you experiencing?";
-      } else if (lowerMessage.includes('cleaning') || lowerMessage.includes('nettoyage') || lowerMessage.includes('routine')) {
-        fallbackResponse = "For routine cleaning, I can help you find the right dentist. Is this for you or someone else? Any specific concerns?";
-      } else if (lowerMessage.includes('child') || lowerMessage.includes('enfant') || lowerMessage.includes('kid')) {
-        fallbackResponse = "For pediatric care, I can recommend specialists. How old is your child and what symptoms are they experiencing?";
-      } else if (lowerMessage.includes('braces') || lowerMessage.includes('orthodontie') || lowerMessage.includes('align')) {
-        fallbackResponse = "For orthodontic treatment, I can help you find a specialist. Is this for you or someone else, and what are the concerns?";
-      }
-      
-      // Only suggest dentist widget when BOTH patient info and symptoms are present
-      if (patientInfoPresent && symptomsPresent) {
-        suggestions = ['recommend-dentist'];
-      } else if (!symptomsPresent) {
-        suggestions = ['symptom-intake'];
-      }
-      
+    // Check if Lovable API key is available
+    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
+    if (!lovableApiKey) {
+      console.error('LOVABLE_API_KEY not found');
       return new Response(JSON.stringify({ 
-        response: fallbackResponse,
-        suggestions,
+        response: "AI service is currently unavailable. Please try again later.",
+        suggestions: [],
         urgency_detected: false,
         emergency_detected: false,
-        recommended_dentist: recommendedDentist,
+        recommended_dentist: [],
         consultation_reason: "General consultation"
       }), {
+        status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
@@ -336,6 +304,54 @@ EXEMPLES DE LANGAGE PROFESSIONNEL:
           
         default: // English
           return {
+            persona: `You are DentiBot, a friendly and professional dental assistant. You know the patient ${user_profile?.first_name} ${user_profile?.last_name}. You help patients book appointments with the right dentist based on their needs.`,
+            guidelines: `
+CORE RULES:
+- Keep responses SHORT and CONVERSATIONAL (2-3 sentences max)
+- Ask ONE question at a time
+- Never mention specific dentist names - let the system recommend them
+- Never discuss time/availability - focus only on symptoms and needs
+- Be warm, helpful, and natural
+
+BOOKING FLOW:
+1. First ask: "Who is this appointment for?"
+2. Then ask: "What symptoms or concerns bring you in?"
+3. Once you have BOTH answers, suggest booking
+
+WIDGET DECISIONS (you control when to show):
+- Show 'recommend-dentist' ONLY when you have patient info + symptoms
+- Show 'symptom-intake' if missing symptom details
+- Show 'view-appointments' when user asks about existing appointments
+
+RESPONSE STYLE:
+✓ "Got it! Who is this appointment for - yourself or someone else?"
+✓ "Thanks! What brings you in? Any pain or specific concerns?"
+✓ "Perfect! Based on that, I can recommend the right dentist."
+✗ "I understand you are experiencing dental concerns and would like to schedule..."`,
+            
+            dentists: `
+AVAILABLE DENTISTS:
+- Dr. Romeo Jackson - General dentist (routine care, cleanings, fillings, emergencies)
+- Dr. Virginie Pauwels - Pediatric dentist (children under 16)
+- Dr. Emeline Hubin - Pediatric dentist (young children, first visits)
+- Dr. Firdaws Benhsain - General dentist (adult patients, emergencies)
+- Dr. Justine Peters - Orthodontist (braces, alignment, teens/adults)
+- Dr. Anne-Sophie Haas - Orthodontist (adult ortho, Invisalign)`,
+            
+            examples: `
+CONVERSATION EXAMPLES:
+User: "I need an appointment"
+You: "I'd be happy to help! Who is this appointment for?"
+
+User: "For my daughter"
+You: "Great! What symptoms or concerns is she having?"
+
+User: "Her tooth hurts"
+You: "How old is your daughter, and when did the pain start?"
+
+User: "I have a toothache"
+You: "I can help with that. Can you describe the pain - is it sharp, throbbing, or constant?"`
+          };
             persona: `You are DentiBot, a professional English dental virtual assistant. You know the patient ${user_profile?.first_name} ${user_profile?.last_name} and can help them book, reschedule, or cancel appointments.`,
             guidelines: `
 IMPORTANT INSTRUCTIONS:
@@ -524,38 +540,35 @@ ${patient_context.recent_payments.slice(0, 3).map((p: any) => `- €${p.amount} 
       { role: 'user', content: sanitizedMessage } // Use sanitized message
     ];
 
-            // OpenAI request logging for development
+            // Lovable AI (Gemini) request logging for development
         if (Deno.env.get('ENVIRONMENT') === 'development') {
-          console.log('Sending to OpenAI:', { messageCount: messages.length });
+          console.log('Sending to Lovable AI Gateway (Gemini):', { messageCount: messages.length });
         }
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': 'Bearer ' + openAIApiKey,
+        'Authorization': 'Bearer ' + lovableApiKey,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'google/gemini-2.5-flash',
         messages: messages,
-        max_tokens: mode === 'dentist_consultation' ? 1000 : 500,
-        temperature: 0.7,
-        presence_penalty: 0.1,
-        frequency_penalty: 0.1,
+        max_completion_tokens: mode === 'dentist_consultation' ? 1000 : 300,
         ...responseFormat
       }),
     });
 
     if (!response.ok) {
       const errorData = await response.text();
-      console.error('OpenAI API error:', errorData);
-      throw new Error('OpenAI API error: ' + response.status);
+      console.error('Lovable AI Gateway error:', errorData);
+      throw new Error('Lovable AI Gateway error: ' + response.status);
     }
 
     const data = await response.json();
             // Response logging for development
         if (Deno.env.get('ENVIRONMENT') === 'development') {
-          console.log('OpenAI response received');
+          console.log('Lovable AI response received');
         }
 
     const result = data.choices[0].message.content;
