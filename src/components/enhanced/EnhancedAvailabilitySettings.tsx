@@ -109,6 +109,16 @@ export function EnhancedAvailabilitySettings({ dentistId }: EnhancedAvailability
 
       setAvailability(defaultAvailability);
     } catch (error) {
+      // Fallback to sensible defaults if fetch fails
+      const defaultAvailability = DAYS_OF_WEEK.map(day => ({
+        day_of_week: day.value,
+        start_time: '09:00',
+        end_time: '17:00',
+        is_available: day.value >= 1 && day.value <= 5,
+        break_start_time: '12:00',
+        break_end_time: '13:00',
+      }));
+      setAvailability(defaultAvailability);
       toast({
         title: t.error,
         description: t.failedToLoadAvailability,
@@ -341,7 +351,14 @@ export function EnhancedAvailabilitySettings({ dentistId }: EnhancedAvailability
               {/* Day Schedule Grid */}
               <div className="grid gap-4">
                 {DAYS_OF_WEEK.map((day, index) => {
-                  const dayAvailability = availability[index];
+                  const dayAvailability: DentistAvailability = availability[index] ?? {
+                    day_of_week: day.value,
+                    start_time: '09:00',
+                    end_time: '17:00',
+                    is_available: day.value >= 1 && day.value <= 5,
+                    break_start_time: '12:00',
+                    break_end_time: '13:00',
+                  };
                   
                   return (
                     <Card key={day.value} className={`border-2 transition-all ${dayAvailability.is_available ? 'border-green-200 bg-green-50' : 'border-gray-200 bg-gray-50'}`}>
