@@ -617,6 +617,9 @@ Just type what you need! 😊
     setBookingFlow({ ...bookingFlow, selectedDate: date, step: 'time' });
     setActiveWidget(null);
     
+    const dateStr = date.toISOString().split('T')[0];
+    console.log('handleDateSelection called with date:', dateStr, 'dentist:', bookingFlow.selectedDentist);
+    
     addBotMessage(`Date selected: **${format(date, "EEEE, MMMM d, yyyy")}** 📅`);
     addBotMessage("Loading available times... ⏳");
     
@@ -629,6 +632,8 @@ Just type what you need! 😊
         bookingFlow.selectedDentist.id,
         date
       );
+      
+      console.log('Raw availability slots:', availabilitySlots);
 
       // Map to the widget format
       const slots = availabilitySlots.map(slot => ({

@@ -70,15 +70,23 @@ export default function PublicBooking() {
 
     const fetchTimes = async () => {
       setLoadingTimes(true);
+      const dateStr = selectedDate.toISOString().split('T')[0];
+      console.log('Fetching slots for dentist:', selectedDentist, 'date:', dateStr);
+      
       const { data, error } = await supabase
         .from('appointment_slots')
         .select('slot_time, is_available')
         .eq('dentist_id', selectedDentist)
-        .eq('slot_date', selectedDate.toISOString().split('T')[0])
+        .eq('slot_date', dateStr)
         .eq('is_available', true);
 
+      console.log('Slots query result:', { data, error });
       if (!error && data) {
         setAvailableTimes(data.map(s => s.slot_time));
+        console.log('Available times set:', data.map(s => s.slot_time));
+      } else {
+        console.error('Error fetching slots:', error);
+        setAvailableTimes([]);
       }
       setLoadingTimes(false);
     };
