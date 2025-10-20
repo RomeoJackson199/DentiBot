@@ -14,6 +14,50 @@ export type Database = {
   }
   public: {
     Tables: {
+      appointment_slots: {
+        Row: {
+          appointment_id: string | null
+          created_at: string
+          dentist_id: string
+          emergency_only: boolean
+          id: string
+          is_available: boolean
+          slot_date: string
+          slot_time: string
+          updated_at: string
+        }
+        Insert: {
+          appointment_id?: string | null
+          created_at?: string
+          dentist_id: string
+          emergency_only?: boolean
+          id?: string
+          is_available?: boolean
+          slot_date: string
+          slot_time: string
+          updated_at?: string
+        }
+        Update: {
+          appointment_id?: string | null
+          created_at?: string
+          dentist_id?: string
+          emergency_only?: boolean
+          id?: string
+          is_available?: boolean
+          slot_date?: string
+          slot_time?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointment_slots_dentist_id_fkey"
+            columns: ["dentist_id"]
+            isOneToOne: false
+            referencedRelation: "dentists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       businesses: {
         Row: {
           ai_instructions: string | null
@@ -361,6 +405,10 @@ export type Database = {
       check_clinic_registration: {
         Args: { business_slug: string }
         Returns: Json
+      }
+      generate_daily_slots: {
+        Args: { p_date: string; p_dentist_id: string }
+        Returns: undefined
       }
     }
     Enums: {
