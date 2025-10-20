@@ -56,7 +56,7 @@ export async function fetchDentistAvailability(
     // Get existing appointments for this date
     supabase
       .from('appointments')
-      .select('id, appointment_date, duration_minutes, status')
+      .select('id, appointment_date, status')
       .eq('dentist_id', dentistId)
       .gte('appointment_date', `${dateStr}T00:00:00`)
       .lte('appointment_date', `${dateStr}T23:59:59`)
@@ -174,10 +174,10 @@ export async function fetchDentistAvailability(
       };
     }
 
-    // Check if there's an appointment at this time
+    // Check if there's an appointment at this time (assuming 30-min default duration)
     const appointment = appointments.find(apt => {
       const aptTime = parseISO(apt.appointment_date);
-      const aptEndTime = addMinutes(aptTime, apt.duration_minutes || 60);
+      const aptEndTime = addMinutes(aptTime, 30);
       return slotDateTime >= aptTime && slotDateTime < aptEndTime;
     });
 

@@ -624,6 +624,12 @@ Just type what you need! 😊
     addBotMessage("Loading available times... ⏳");
     
     try {
+      // Ensure slots exist for this date and dentist
+      await supabase.rpc('ensure_daily_slots', {
+        p_dentist_id: bookingFlow.selectedDentist.id,
+        p_date: dateStr
+      });
+      
       // Import the availability function
       const { fetchDentistAvailability } = await import('@/lib/appointmentAvailability');
       
@@ -686,15 +692,34 @@ Just type what you need! 😊
     addBotMessage("Booking your appointment... ⏳");
 
     try {
-      const { data: profile } = await supabase
+      let profile;
+      const { data: existingProfile } = await supabase
         .from("profiles")
         .select("id, first_name, last_name, phone, email")
         .eq("user_id", user.id)
-        .single();
+        .maybeSingle();
 
-      if (!profile) throw new Error("Profile not found");
+      if (!existingProfile) {
+        // Create profile if it doesn't exist
+        const { data: newProfile, error: createError } = await supabase
+          .from("profiles")
+          .insert({
+            user_id: user.id,
+            email: user.email,
+            first_name: '',
+            last_name: ''
+          })
+          .select("id, first_name, last_name, phone, email")
+          .single();
+        
+        if (createError) throw createError;
+        profile = newProfile;
+      } else {
+        profile = existingProfile;
+      }
 
-      const requiredFields = ['first_name', 'last_name', 'phone', 'email'];
+      // Only require essential fields for booking (phone is optional)
+      const requiredFields = ['first_name', 'last_name', 'email'];
       const missingFields = requiredFields.filter(field => !profile[field]);
       
       if (missingFields.length > 0) {
@@ -727,7 +752,7 @@ Just type what you need! 😊
       const { error: slotError } = await supabase.rpc('book_appointment_slot', {
         p_dentist_id: bookingFlow.selectedDentist.id,
         p_slot_date: bookingFlow.selectedDate.toISOString().split('T')[0],
-        p_slot_time: bookingFlow.selectedTime + ':00',
+        p_slot_time: bookingFlow.selectedTime,
         p_appointment_id: appointmentData.id
       });
 
