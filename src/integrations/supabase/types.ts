@@ -248,6 +248,105 @@ export type Database = {
           },
         ]
       }
+      notification_preferences: {
+        Row: {
+          appointment_reminders: boolean
+          created_at: string
+          email_enabled: boolean
+          emergency_alerts: boolean
+          id: string
+          in_app_enabled: boolean
+          prescription_updates: boolean
+          push_enabled: boolean
+          quiet_hours_end: string
+          quiet_hours_start: string
+          sms_enabled: boolean
+          system_notifications: boolean
+          treatment_plan_updates: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          appointment_reminders?: boolean
+          created_at?: string
+          email_enabled?: boolean
+          emergency_alerts?: boolean
+          id?: string
+          in_app_enabled?: boolean
+          prescription_updates?: boolean
+          push_enabled?: boolean
+          quiet_hours_end?: string
+          quiet_hours_start?: string
+          sms_enabled?: boolean
+          system_notifications?: boolean
+          treatment_plan_updates?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          appointment_reminders?: boolean
+          created_at?: string
+          email_enabled?: boolean
+          emergency_alerts?: boolean
+          id?: string
+          in_app_enabled?: boolean
+          prescription_updates?: boolean
+          push_enabled?: boolean
+          quiet_hours_end?: string
+          quiet_hours_start?: string
+          sms_enabled?: boolean
+          system_notifications?: boolean
+          treatment_plan_updates?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          action_url: string | null
+          category: string
+          created_at: string
+          expires_at: string | null
+          id: string
+          is_read: boolean
+          message: string
+          metadata: Json | null
+          title: string
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          action_url?: string | null
+          category?: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_read?: boolean
+          message: string
+          metadata?: Json | null
+          title: string
+          type?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          action_url?: string | null
+          category?: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_read?: boolean
+          message?: string
+          metadata?: Json | null
+          title?: string
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           address: string | null
