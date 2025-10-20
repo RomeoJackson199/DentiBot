@@ -56,6 +56,13 @@ export type Database = {
             referencedRelation: "dentists"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "appointment_slots_dentist_id_fkey"
+            columns: ["dentist_id"]
+            isOneToOne: false
+            referencedRelation: "providers"
+            referencedColumns: ["id"]
+          },
         ]
       }
       businesses: {
@@ -174,7 +181,7 @@ export type Database = {
             foreignKeyName: "clinic_settings_dentist_id_fkey"
             columns: ["dentist_id"]
             isOneToOne: true
-            referencedRelation: "providers"
+            referencedRelation: "providers_backup"
             referencedColumns: ["id"]
           },
         ]
@@ -319,7 +326,7 @@ export type Database = {
           },
         ]
       }
-      providers: {
+      providers_backup: {
         Row: {
           average_rating: number
           communication_score: number
@@ -395,7 +402,56 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      providers: {
+        Row: {
+          average_rating: number | null
+          communication_score: number | null
+          created_at: string | null
+          id: string | null
+          is_active: boolean | null
+          license_number: string | null
+          profile_id: string | null
+          specialization: string | null
+          total_ratings: number | null
+          updated_at: string | null
+          wait_time_score: number | null
+        }
+        Insert: {
+          average_rating?: number | null
+          communication_score?: number | null
+          created_at?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          license_number?: string | null
+          profile_id?: string | null
+          specialization?: string | null
+          total_ratings?: number | null
+          updated_at?: string | null
+          wait_time_score?: number | null
+        }
+        Update: {
+          average_rating?: number | null
+          communication_score?: number | null
+          created_at?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          license_number?: string | null
+          profile_id?: string | null
+          specialization?: string | null
+          total_ratings?: number | null
+          updated_at?: string | null
+          wait_time_score?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dentists_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       assign_provider_role: {
