@@ -144,19 +144,8 @@ const InlineCalendarWidget = ({
 
   const isDateDisabled = (date: Date) => {
     const today = startOfDay(new Date());
-    
     // Can't book in the past
-    if (date < today) return true;
-    
-    // Check if dentist doesn't work on this day of week
-    if (unavailableDays.includes(date.getDay())) return true;
-    
-    // Check if dentist is on vacation
-    const isOnVacation = vacationDates.some(vDate => 
-      isSameDay(vDate, date)
-    );
-    
-    return isOnVacation;
+    return date < today;
   };
 
   const getDateModifiers = (date: Date) => {

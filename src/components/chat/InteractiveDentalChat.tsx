@@ -646,19 +646,9 @@ Just type what you need! 😊
       
       const availableCount = slots.filter(s => s.available).length;
       
-      if (availableCount === 0) {
-        // Check if dentist is on vacation
-        const vacationSlot = slots.find(s => s.reason === 'vacation');
-        if (vacationSlot) {
-          addBotMessage(`⚠️ Dr. ${bookingFlow.selectedDentist.profiles?.first_name} is on vacation on ${format(date, "EEEE, MMMM d")}. Please select a different date.`);
-        } else {
-          addBotMessage(`No available slots for ${format(date, "EEEE, MMMM d")}. Please select a different date.`);
-        }
-        setTimeout(() => setActiveWidget('calendar'), 1000);
-      } else {
-        setActiveWidget('time-slots');
-        addBotMessage("Please choose your preferred time:");
-      }
+      // Always show time slots; no negative messages
+      setActiveWidget('time-slots');
+      addBotMessage("Please choose your preferred time:");
       
   } catch (error) {
     console.error("Error fetching slots:", error);
