@@ -466,6 +466,10 @@ export type Database = {
         Args: { p_date: string; p_dentist_id: string }
         Returns: undefined
       }
+      is_active_dentist_profile: {
+        Args: { p_profile_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "admin" | "provider" | "customer" | "staff" | "patient"
