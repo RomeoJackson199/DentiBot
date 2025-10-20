@@ -13,10 +13,14 @@ interface Dentist {
   profile_id: string;
   specialization: string;
   is_active: boolean;
-  profiles: {
-    first_name: string;
-    last_name: string;
-    email: string;
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+  // legacy shape for backward compatibility
+  profiles?: {
+    first_name?: string;
+    last_name?: string;
+    email?: string;
   };
 }
 
@@ -38,12 +42,13 @@ export const DentistSelection = ({ onSelectDentist, selectedDentistId, recommend
         const { data, error } = await supabase
           .from("dentists")
           .select(`
-            *,
-            profiles:profile_id (
-              first_name,
-              last_name,
-              email
-            )
+            id,
+            profile_id,
+            specialization,
+            is_active,
+            first_name,
+            last_name,
+            email
           `)
           .eq("is_active", true);
 
@@ -74,7 +79,9 @@ export const DentistSelection = ({ onSelectDentist, selectedDentistId, recommend
   }, [toast]);
 
   const getDentistInitials = (dentist: Dentist) => {
-    return `${dentist.profiles.first_name[0]}${dentist.profiles.last_name[0]}`;
+    const fn = dentist.first_name || dentist.profiles?.first_name || "";
+    const ln = dentist.last_name || dentist.profiles?.last_name || "";
+    return `${fn.charAt(0) || ""}${ln.charAt(0) || ""}`;
   };
 
   const getSpecialtyInfo = (specialty: string | null) => {
@@ -112,7 +119,7 @@ export const DentistSelection = ({ onSelectDentist, selectedDentistId, recommend
 
   const isRecommended = (dentist: Dentist) => {
     if (!recommendedDentist) return false;
-    const dentistFullName = `${dentist.profiles.first_name} ${dentist.profiles.last_name}`;
+    const dentistFullName = `${dentist.first_name || dentist.profiles?.first_name || ""} ${dentist.last_name || dentist.profiles?.last_name || ""}`.trim();
     
     if (Array.isArray(recommendedDentist)) {
       return recommendedDentist.includes(dentistFullName);
@@ -213,7 +220,7 @@ export const DentistSelection = ({ onSelectDentist, selectedDentistId, recommend
                   </Avatar>
                   <div className="flex-1 min-w-0">
                     <CardTitle className="text-lg font-semibold truncate">
-                      Dr. {dentist.profiles.first_name} {dentist.profiles.last_name}
+                      Dr. {dentist.first_name || dentist.profiles?.first_name} {dentist.last_name || dentist.profiles?.last_name}
                     </CardTitle>
                     <p className="text-sm text-muted-foreground">{specialtyInfo.name}</p>
                   </div>

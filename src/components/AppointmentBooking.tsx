@@ -54,10 +54,8 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
           id,
           profile_id,
           specialization,
-          profiles:profile_id (
-            first_name,
-            last_name
-          )
+          first_name,
+          last_name
         `)
         .eq('is_active', true);
 

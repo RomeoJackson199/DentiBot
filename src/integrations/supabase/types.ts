@@ -140,9 +140,12 @@ export type Database = {
           average_rating: number
           communication_score: number
           created_at: string
+          email: string | null
           expertise_score: number
+          first_name: string | null
           id: string
           is_active: boolean
+          last_name: string | null
           license_number: string | null
           profile_id: string
           specialization: string | null
@@ -154,9 +157,12 @@ export type Database = {
           average_rating?: number
           communication_score?: number
           created_at?: string
+          email?: string | null
           expertise_score?: number
+          first_name?: string | null
           id?: string
           is_active?: boolean
+          last_name?: string | null
           license_number?: string | null
           profile_id: string
           specialization?: string | null
@@ -168,9 +174,12 @@ export type Database = {
           average_rating?: number
           communication_score?: number
           created_at?: string
+          email?: string | null
           expertise_score?: number
+          first_name?: string | null
           id?: string
           is_active?: boolean
+          last_name?: string | null
           license_number?: string | null
           profile_id?: string
           specialization?: string | null
