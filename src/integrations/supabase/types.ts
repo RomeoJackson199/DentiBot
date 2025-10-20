@@ -65,6 +65,67 @@ export type Database = {
           },
         ]
       }
+      appointments: {
+        Row: {
+          appointment_date: string
+          created_at: string
+          dentist_id: string
+          id: string
+          notes: string | null
+          patient_id: string
+          reason: string
+          status: string
+          updated_at: string
+          urgency: string
+        }
+        Insert: {
+          appointment_date: string
+          created_at?: string
+          dentist_id: string
+          id?: string
+          notes?: string | null
+          patient_id: string
+          reason?: string
+          status?: string
+          updated_at?: string
+          urgency?: string
+        }
+        Update: {
+          appointment_date?: string
+          created_at?: string
+          dentist_id?: string
+          id?: string
+          notes?: string | null
+          patient_id?: string
+          reason?: string
+          status?: string
+          updated_at?: string
+          urgency?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_appointments_dentist"
+            columns: ["dentist_id"]
+            isOneToOne: false
+            referencedRelation: "dentists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_appointments_dentist"
+            columns: ["dentist_id"]
+            isOneToOne: false
+            referencedRelation: "providers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_appointments_patient"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       businesses: {
         Row: {
           ai_instructions: string | null
@@ -574,6 +635,15 @@ export type Database = {
       assign_provider_role: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      book_appointment_slot: {
+        Args: {
+          p_appointment_id: string
+          p_dentist_id: string
+          p_slot_date: string
+          p_slot_time: string
+        }
+        Returns: boolean
       }
       check_clinic_registration: {
         Args: { business_slug: string }

@@ -130,20 +130,33 @@ export const ChatBookingFlow = ({
 
     setLoading(true);
     try {
-      const { data: profile } = await supabase
+      let { data: profile, error: profErr } = await supabase
         .from("profiles")
-        .select("id, first_name, last_name, phone, email")
+        .select("id, first_name, last_name, phone, email, user_id")
         .eq("user_id", user.id)
-        .single();
+        .maybeSingle();
 
-      if (!profile) throw new Error("Profile not found");
+      if (profErr) throw profErr;
 
-      // Check required fields
-      const requiredFields = ['first_name', 'last_name', 'phone', 'email'];
-      const missingFields = requiredFields.filter(field => !profile[field]);
-      
-      if (missingFields.length > 0) {
-        onResponse("I need some additional information to complete your booking. Please update your profile with your name, phone, and email address in the settings first.");
+      if (!profile) {
+        const { data: inserted, error: insertErr } = await supabase
+          .from("profiles")
+          .insert({ user_id: user.id, email: user.email ?? null, first_name: '', last_name: '' })
+          .select("id, first_name, last_name, phone, email")
+          .single();
+        if (insertErr) throw insertErr;
+        profile = inserted as any;
+      }
+
+      // Check required fields (allow booking without phone)
+      const email = profile.email || user.email;
+      const missing: string[] = [];
+      if (!profile.first_name) missing.push('first name');
+      if (!profile.last_name) missing.push('last name');
+      if (!email) missing.push('email');
+
+      if (missing.length > 0) {
+        onResponse("I need a few details to finish the booking (name and email). Please update your profile in Settings, then try again.");
         onCancel();
         return;
       }
