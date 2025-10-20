@@ -42,7 +42,7 @@ export function useCurrentDentist(): CurrentDentistState {
       }
 
       const { data: dentistRow, error: dentistErr } = await supabase
-        .from('providers')
+        .from('dentists')
         .select('id')
         .eq('profile_id', profileId)
         .maybeSingle();

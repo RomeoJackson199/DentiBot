@@ -13,7 +13,7 @@ const DentistProfiles = () => {
     queryKey: ["public-dentists"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("providers")
+        .from("dentists")
         .select(`
           *,
           profiles:profile_id (

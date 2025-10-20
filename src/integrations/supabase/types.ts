@@ -135,6 +135,59 @@ export type Database = {
           },
         ]
       }
+      dentists: {
+        Row: {
+          average_rating: number
+          communication_score: number
+          created_at: string
+          expertise_score: number
+          id: string
+          is_active: boolean
+          license_number: string | null
+          profile_id: string
+          specialization: string | null
+          total_ratings: number
+          updated_at: string
+          wait_time_score: number
+        }
+        Insert: {
+          average_rating?: number
+          communication_score?: number
+          created_at?: string
+          expertise_score?: number
+          id?: string
+          is_active?: boolean
+          license_number?: string | null
+          profile_id: string
+          specialization?: string | null
+          total_ratings?: number
+          updated_at?: string
+          wait_time_score?: number
+        }
+        Update: {
+          average_rating?: number
+          communication_score?: number
+          created_at?: string
+          expertise_score?: number
+          id?: string
+          is_active?: boolean
+          license_number?: string | null
+          profile_id?: string
+          specialization?: string | null
+          total_ratings?: number
+          updated_at?: string
+          wait_time_score?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dentists_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           address: string | null
