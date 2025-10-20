@@ -617,7 +617,7 @@ Just type what you need! 😊
     setBookingFlow({ ...bookingFlow, selectedDate: date, step: 'time' });
     setActiveWidget(null);
     
-    const dateStr = date.toISOString().split('T')[0];
+    const dateStr = format(date, 'yyyy-MM-dd');
     console.log('handleDateSelection called with date:', dateStr, 'dentist:', bookingFlow.selectedDentist);
     
     addBotMessage(`Date selected: **${format(date, "EEEE, MMMM d, yyyy")}** 📅`);
@@ -751,7 +751,7 @@ Just type what you need! 😊
 
       const { error: slotError } = await supabase.rpc('book_appointment_slot', {
         p_dentist_id: bookingFlow.selectedDentist.id,
-        p_slot_date: bookingFlow.selectedDate.toISOString().split('T')[0],
+        p_slot_date: format(bookingFlow.selectedDate, 'yyyy-MM-dd'),
         p_slot_time: bookingFlow.selectedTime,
         p_appointment_id: appointmentData.id
       });
