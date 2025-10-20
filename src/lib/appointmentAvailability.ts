@@ -98,6 +98,21 @@ export async function fetchDentistAvailability(
     }));
   }
 
+  // PRIORITY 1: If appointment_slots exist, use them as the primary source
+  if (slots && slots.length > 0) {
+    return slots.map(slot => {
+      // Ensure time format includes seconds (HH:mm:ss)
+      const formattedTime = slot.slot_time.length === 5 ? `${slot.slot_time}:00` : slot.slot_time;
+      return {
+        time: formattedTime,
+        available: slot.is_available && !slot.emergency_only,
+        reason: !slot.is_available ? 'booked' : (slot.emergency_only ? 'emergency_only' : undefined),
+        appointmentId: slot.appointment_id || undefined
+      };
+    });
+  }
+
+  // PRIORITY 2: Fall back to dentist_availability + appointments if no slots
   // If no availability set for this day, dentist doesn't work
   if (!availability || !availability.is_available) {
     return generateTimeSlots(date).map(time => ({
@@ -229,7 +244,19 @@ export async function isDentistAvailableOnDate(
     };
   }
 
-  // Check working hours
+  // PRIORITY 1: Check appointment_slots first
+  const { data: slots } = await supabase
+    .from('appointment_slots')
+    .select('is_available, emergency_only')
+    .eq('dentist_id', dentistId)
+    .eq('slot_date', dateStr);
+
+  if (slots && slots.length > 0) {
+    const hasAvailableSlots = slots.some(s => s.is_available && !s.emergency_only);
+    return { available: hasAvailableSlots };
+  }
+
+  // PRIORITY 2: Fall back to dentist_availability
   const { data: availability } = await supabase
     .from('dentist_availability')
     .select('is_available')
