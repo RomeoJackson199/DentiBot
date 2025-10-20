@@ -71,19 +71,26 @@ export default function PublicBooking() {
     const fetchTimes = async () => {
       setLoadingTimes(true);
       const dateStr = selectedDate.toISOString().split('T')[0];
-      console.log('Fetching slots for dentist:', selectedDentist, 'date:', dateStr);
-      
+      try {
+        // Ensure slots exist for this date (idempotent)
+        await supabase.rpc('ensure_daily_slots', {
+          p_dentist_id: selectedDentist,
+          p_date: dateStr,
+        });
+      } catch (e) {
+        console.warn('ensure_daily_slots failed (continuing):', e);
+      }
+
       const { data, error } = await supabase
         .from('appointment_slots')
         .select('slot_time, is_available')
         .eq('dentist_id', selectedDentist)
         .eq('slot_date', dateStr)
-        .eq('is_available', true);
+        .eq('is_available', true)
+        .order('slot_time');
 
-      console.log('Slots query result:', { data, error });
       if (!error && data) {
-        setAvailableTimes(data.map(s => s.slot_time));
-        console.log('Available times set:', data.map(s => s.slot_time));
+        setAvailableTimes(data.map(s => (s.slot_time.length === 8 ? s.slot_time.slice(0,5) : s.slot_time)));
       } else {
         console.error('Error fetching slots:', error);
         setAvailableTimes([]);

@@ -113,8 +113,18 @@ export async function fetchDentistAvailability(
   }
 
   // PRIORITY 2: Fall back to dentist_availability + appointments if no slots
-  // If no availability set for this day, dentist doesn't work
-  if (!availability || !availability.is_available) {
+  // Compute effective availability with sensible defaults (Mon-Fri 09:00-17:00)
+  const defaultAvailability: DentistAvailability = {
+    day_of_week: dayOfWeek,
+    start_time: '09:00:00',
+    end_time: '17:00:00',
+    is_available: dayOfWeek >= 1 && dayOfWeek <= 5,
+    break_start_time: '12:00:00',
+    break_end_time: '13:00:00',
+  };
+  const effectiveAvailability = availability || defaultAvailability;
+
+  if (!effectiveAvailability.is_available) {
     return generateTimeSlots(date).map(time => ({
       time,
       available: false,
@@ -123,7 +133,7 @@ export async function fetchDentistAvailability(
   }
 
   // Generate all possible time slots for the day
-  const allTimeSlots = generateTimeSlots(date, availability.start_time, availability.end_time);
+  const allTimeSlots = generateTimeSlots(date, effectiveAvailability.start_time, effectiveAvailability.end_time);
 
   // Map slots to availability status
   const timeSlots: TimeSlot[] = allTimeSlots.map(timeStr => {

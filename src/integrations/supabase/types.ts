@@ -462,6 +462,10 @@ export type Database = {
         Args: { business_slug: string }
         Returns: Json
       }
+      ensure_daily_slots: {
+        Args: { p_date: string; p_dentist_id: string }
+        Returns: undefined
+      }
       generate_daily_slots: {
         Args: { p_date: string; p_dentist_id: string }
         Returns: undefined
