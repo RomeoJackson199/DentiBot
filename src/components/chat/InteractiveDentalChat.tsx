@@ -572,7 +572,7 @@ Just type what you need! 😊
   const loadDentistsForBooking = async (autoSelect = false, recommendedDentists?: string[]) => {
     try {
       const { data, error } = await supabase
-        .from("dentists")
+        .from("providers")
         .select(`
           id,
           specialization,
@@ -950,7 +950,7 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
 
       // Create notification for dentist
       const { data: dentistProfile } = await supabase
-        .from('dentists')
+        .from('providers')
         .select('profile_id')
         .eq('id', prescription.dentist_id)
         .single();
