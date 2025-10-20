@@ -350,37 +350,55 @@ export type Database = {
       profiles: {
         Row: {
           address: string | null
+          ai_opt_out: boolean
           created_at: string
           date_of_birth: string | null
           email: string | null
+          emergency_contact: string | null
           first_name: string | null
           id: string
+          import_session_id: string | null
           last_name: string | null
+          medical_history: string | null
           phone: string | null
+          profile_completion_status: string
+          role: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
           address?: string | null
+          ai_opt_out?: boolean
           created_at?: string
           date_of_birth?: string | null
           email?: string | null
+          emergency_contact?: string | null
           first_name?: string | null
           id?: string
+          import_session_id?: string | null
           last_name?: string | null
+          medical_history?: string | null
           phone?: string | null
+          profile_completion_status?: string
+          role?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
           address?: string | null
+          ai_opt_out?: boolean
           created_at?: string
           date_of_birth?: string | null
           email?: string | null
+          emergency_contact?: string | null
           first_name?: string | null
           id?: string
+          import_session_id?: string | null
           last_name?: string | null
+          medical_history?: string | null
           phone?: string | null
+          profile_completion_status?: string
+          role?: string | null
           updated_at?: string
           user_id?: string
         }

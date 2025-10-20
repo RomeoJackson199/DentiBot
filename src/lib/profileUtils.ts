@@ -14,11 +14,11 @@ export interface ProfileData {
 
 export const saveProfileData = async (user: User, profileData: ProfileData) => {
   try {
-    console.log('Saving profile data for user:', user.id);
-    console.log('Profile data to save:', profileData);
+    // Minimal logging to avoid exposing PII
+    console.log('Saving profile for user:', user.id);
 
     // Validate required fields
-    if (!profileData.first_name || !profileData.last_name) {
+    if (!profileData.first_name?.trim() || !profileData.last_name?.trim()) {
       throw new Error('First name and last name are required');
     }
 
@@ -46,26 +46,34 @@ export const saveProfileData = async (user: User, profileData: ProfileData) => {
 
     console.log('Cleaned data to save:', cleanData);
 
-    // Save to database
-    const { data, error } = await supabase
+    // Save to database (update, then insert if missing)
+    const { data: updateData, error: updateError } = await supabase
       .from('profiles')
       .update(cleanData)
       .eq('user_id', user.id)
       .select();
 
-    if (error) {
-      console.error('Database save error:', error);
-      throw error;
+    if (updateError) {
+      console.error('Database update error:', updateError);
+      throw updateError;
     }
 
-    console.log('Database save successful:', data);
+    if (!updateData || updateData.length === 0) {
+      const { error: insertError } = await supabase
+        .from('profiles')
+        .insert({ user_id: user.id, ...cleanData });
+      if (insertError) {
+        console.error('Database insert error:', insertError);
+        throw insertError;
+      }
+    }
 
     // Verify the save by reading back
     const { data: verifyData, error: verifyError } = await supabase
       .from('profiles')
-      .select('*')
+      .select('first_name, last_name, phone, date_of_birth, medical_history, address, emergency_contact, ai_opt_out')
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
 
     if (verifyError) {
       console.error('Verification error:', verifyError);
@@ -92,34 +100,23 @@ export const loadProfileData = async (user: User): Promise<ProfileData> => {
       .from('profiles')
       .select('first_name, last_name, phone, date_of_birth, medical_history, address, emergency_contact, ai_opt_out')
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error('Database load error:', error);
       throw error;
     }
 
-    console.log('Loaded profile data from database:', data);
-
     const profileData: ProfileData = {
-      first_name: data.first_name || '',
-      last_name: data.last_name || '',
-      phone: data.phone || '',
-      date_of_birth: data.date_of_birth || '',
-      medical_history: data.medical_history || '',
-      address: data.address || '',
-      emergency_contact: data.emergency_contact || '',
-      ai_opt_out: data.ai_opt_out || false
+      first_name: data?.first_name || '',
+      last_name: data?.last_name || '',
+      phone: data?.phone || '',
+      date_of_birth: data?.date_of_birth || '',
+      medical_history: data?.medical_history || '',
+      address: data?.address || '',
+      emergency_contact: data?.emergency_contact || '',
+      ai_opt_out: data?.ai_opt_out || false
     };
-
-    console.log('Processed profile data:', profileData);
-
-    // Log specific field values for debugging
-    console.log('Field values:');
-    console.log('- Address:', data.address);
-    console.log('- Emergency contact:', data.emergency_contact);
-    console.log('- Date of birth:', data.date_of_birth);
-    console.log('- Medical history:', data.medical_history);
 
     return profileData;
   } catch (error) {
