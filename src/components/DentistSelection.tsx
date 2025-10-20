@@ -36,7 +36,7 @@ export const DentistSelection = ({ onSelectDentist, selectedDentistId, recommend
     const fetchDentists = async () => {
       try {
         const { data, error } = await supabase
-          .from("dentists")
+          .from("providers")
           .select(`
             *,
             profiles:profile_id (

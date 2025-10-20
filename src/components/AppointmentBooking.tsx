@@ -49,12 +49,12 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
   const fetchDentists = useCallback(async () => {
     try {
       const { data, error } = await supabase
-        .from('dentists')
+        .from('providers')
         .select(`
           id,
           profile_id,
           specialization,
-          profiles (
+          profiles:profile_id (
             first_name,
             last_name
           )
