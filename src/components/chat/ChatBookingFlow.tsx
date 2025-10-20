@@ -183,13 +183,15 @@ export const ChatBookingFlow = ({
       const { error: slotError } = await supabase.rpc('book_appointment_slot', {
         p_dentist_id: currentDentist.id,
         p_slot_date: selectedDate.toISOString().split('T')[0],
-        p_slot_time: selectedTime + ':00',
+        p_slot_time: selectedTime,
         p_appointment_id: appointmentData.id
       });
 
       if (slotError) {
         await supabase.from("appointments").delete().eq("id", appointmentData.id);
-        throw new Error("This time slot is no longer available");
+        onResponse("That time was just taken. Please pick another time.");
+        setStep('time');
+        return;
       }
 
       toast({
