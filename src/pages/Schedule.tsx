@@ -122,14 +122,17 @@ const Schedule = () => {
     for (let hour = startHour; hour < endHour; hour++) {
       for (let minute = 0; minute < 60; minute += 30) {
         const time = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-        const slotDateTime = `${dateStr}T${time}:00`;
         
         // Check if there's an appointment at this time
-        const appointment = appointments.find(apt => {
-          if (!apt.appointment_date) return false;
-          const aptTime = format(new Date(apt.appointment_date), 'HH:mm');
-          const aptDate = format(new Date(apt.appointment_date), 'yyyy-MM-dd');
-          return aptDate === dateStr && aptTime === time;
+        const appointment = (appointments || []).find(apt => {
+          if (!apt?.appointment_date) return false;
+          try {
+            const aptTime = format(new Date(apt.appointment_date), 'HH:mm');
+            const aptDate = format(new Date(apt.appointment_date), 'yyyy-MM-dd');
+            return aptDate === dateStr && aptTime === time;
+          } catch {
+            return false;
+          }
         });
         
         slots.push({
@@ -169,9 +172,10 @@ const Schedule = () => {
   };
 
   const getTimeSlotsForDate = (date: Date) => {
-    return schedule.find(day => 
+    const daySchedule = schedule.find(day => 
       format(day.date, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd')
-    )?.slots || [];
+    );
+    return daySchedule?.slots || [];
   };
 
   if (!user) {
@@ -237,42 +241,48 @@ const Schedule = () => {
               </div>
             ) : (
               <div className="space-y-3">
-                {getTimeSlotsForDate(selectedDate).map((slot) => (
-                  <div
-                    key={slot.id}
-                    className={`p-4 rounded-lg border transition-colors ${
-                      slot.available
-                        ? 'bg-green-50 border-green-200 hover:bg-green-100'
-                        : 'bg-red-50 border-red-200'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <Badge variant={slot.available ? "default" : "secondary"}>
-                          {slot.time}
-                        </Badge>
-                        {slot.available ? (
-                          <span className="text-sm text-green-700">Available</span>
-                        ) : slot.appointment && (
-                          <div className="flex items-center gap-2">
-                            <User className="w-4 h-4" />
-                            <span className="text-sm font-medium">
-                              {slot.appointment.profiles?.first_name} {slot.appointment.profiles?.last_name}
-                            </span>
-                            <span className="text-sm text-muted-foreground">
-                              - {slot.appointment.reason || 'Appointment'}
-                            </span>
-                          </div>
+                {getTimeSlotsForDate(selectedDate).length > 0 ? (
+                  getTimeSlotsForDate(selectedDate).map((slot) => (
+                    <div
+                      key={slot?.id || `slot-${Math.random()}`}
+                      className={`p-4 rounded-lg border transition-colors ${
+                        slot?.available
+                          ? 'bg-green-50 border-green-200 hover:bg-green-100'
+                          : 'bg-red-50 border-red-200'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <Badge variant={slot?.available ? "default" : "secondary"}>
+                            {slot?.time || 'N/A'}
+                          </Badge>
+                          {slot?.available ? (
+                            <span className="text-sm text-green-700">Available</span>
+                          ) : slot?.appointment && (
+                            <div className="flex items-center gap-2">
+                              <User className="w-4 h-4" />
+                              <span className="text-sm font-medium">
+                                {slot.appointment.profiles?.first_name} {slot.appointment.profiles?.last_name}
+                              </span>
+                              <span className="text-sm text-muted-foreground">
+                                - {slot.appointment.reason || 'Appointment'}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                        {slot?.available && (
+                          <Button size="sm" variant="outline">
+                            Book
+                          </Button>
                         )}
                       </div>
-                      {slot.available && (
-                        <Button size="sm" variant="outline">
-                          Book
-                        </Button>
-                      )}
                     </div>
-                  </div>
-                ))}
+                  ))
+                ) : (
+                  <p className="text-sm text-muted-foreground text-center py-8">
+                    No schedule available for this date
+                  </p>
+                )}
               </div>
             )}
           </CardContent>
