@@ -16,7 +16,7 @@ interface WeeklyCalendarViewProps {
 }
 
 const TIME_SLOTS = [
-  "08:00", "09:00", "10:00", "11:00", "12:00", 
+  "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", 
   "13:00", "14:00", "15:00", "16:00", "17:00", "18:00"
 ];
 
@@ -67,8 +67,8 @@ export function WeeklyCalendarView({
   const getAppointmentsForSlot = (day: Date, timeSlot: string) => {
     return appointments.filter((apt) => {
       const aptDate = parseISO(apt.appointment_date);
-      const aptTime = format(aptDate, "HH:mm");
-      return isSameDay(aptDate, day) && aptTime === timeSlot;
+      const aptHour = format(aptDate, "HH:00");
+      return isSameDay(aptDate, day) && aptHour === timeSlot;
     });
   };
 
