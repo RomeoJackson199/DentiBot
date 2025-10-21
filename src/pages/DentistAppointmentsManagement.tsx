@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useCurrentDentist } from "@/hooks/useCurrentDentist";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,14 +10,36 @@ import { AppointmentDetailsSidebar } from "@/components/appointments/Appointment
 import { format, addDays, subDays } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
+import { cn } from "@/lib/utils";
 
 export default function DentistAppointmentsManagement() {
   const { dentistId, loading: dentistLoading } = useCurrentDentist();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
+  const [headerVisible, setHeaderVisible] = useState(true);
+  const lastScrollY = useRef(0);
   const { toast } = useToast();
   const { t } = useLanguage();
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      
+      if (currentScrollY < 10) {
+        setHeaderVisible(true);
+      } else if (currentScrollY > lastScrollY.current) {
+        setHeaderVisible(false);
+      } else {
+        setHeaderVisible(true);
+      }
+      
+      lastScrollY.current = currentScrollY;
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const navigateDate = (direction: "prev" | "next") => {
     setCurrentDate(direction === "next" 
@@ -90,18 +112,21 @@ export default function DentistAppointmentsManagement() {
   return (
     <div className="h-screen flex flex-col bg-background">
       {/* Header */}
-      <div className="border-b bg-card">
-        <div className="flex items-center justify-between p-4">
-          <div className="flex items-center gap-4">
-            <h1 className="text-xl font-semibold">Appointment</h1>
-            <p className="text-sm text-muted-foreground">Manage and track your patient medical appointments.</p>
+      <div className={cn(
+        "border-b bg-card sticky top-0 z-30 transition-transform duration-300",
+        headerVisible ? "translate-y-0" : "-translate-y-full"
+      )}>
+        <div className="flex items-center justify-between p-6">
+          <div>
+            <h1 className="text-2xl font-semibold">Appointment</h1>
+            <p className="text-sm text-muted-foreground mt-1">Manage and track your patient medical appointments.</p>
           </div>
           
-          <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={() => setCurrentDate(new Date())}>
+          <div className="flex items-center gap-3">
+            <Button variant="outline" size="lg" onClick={() => setCurrentDate(new Date())}>
               Today
             </Button>
-            <Button className="gap-2">
+            <Button size="lg" className="gap-2">
               <Plus className="h-4 w-4" />
               Add Appointment
             </Button>
@@ -109,28 +134,28 @@ export default function DentistAppointmentsManagement() {
         </div>
 
         {/* View Controls */}
-        <div className="flex items-center justify-between px-4 pb-4">
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => navigateDate("prev")}
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            
-            <span className="text-sm font-medium min-w-[200px] text-center">
-              {getDateRangeLabel()}
-            </span>
-            
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => navigateDate("next")}
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
+        <div className="flex items-center justify-center px-6 pb-4 gap-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigateDate("prev")}
+            className="h-9 w-9"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </Button>
+          
+          <span className="text-base font-semibold min-w-[240px] text-center">
+            {getDateRangeLabel()}
+          </span>
+          
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigateDate("next")}
+            className="h-9 w-9"
+          >
+            <ChevronRight className="h-5 w-5" />
+          </Button>
         </div>
       </div>
 
@@ -158,7 +183,10 @@ export default function DentistAppointmentsManagement() {
 
         {/* Sidebar */}
         {selectedAppointment && (
-          <div className="w-96 border-l bg-card absolute right-0 top-[140px] bottom-0 shadow-lg">
+          <div className={cn(
+            "w-96 border-l bg-card absolute right-0 bottom-0 shadow-lg transition-all duration-300",
+            headerVisible ? "top-[170px]" : "top-0"
+          )}>
             <AppointmentDetailsSidebar
               appointment={selectedAppointment}
               onClose={() => setSelectedAppointment(null)}

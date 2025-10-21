@@ -192,42 +192,76 @@ export function WeeklyCalendarView({
                                 </div>
                               </Card>
                             </TooltipTrigger>
-                            <TooltipContent side="right" className="w-80">
-                              <div className="space-y-3">
-                                <div className="flex items-center gap-3">
-                                  <Avatar className="h-12 w-12">
-                                    <AvatarFallback>
+                            <TooltipContent side="right" className="w-[320px] p-0 border-l-4 border-l-primary shadow-lg">
+                              <div className="p-4 space-y-4">
+                                <div className="flex items-center gap-3 pb-3 border-b">
+                                  <Avatar className="h-12 w-12 bg-primary text-primary-foreground">
+                                    <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
                                       {getPatientInitials(apt.patient?.first_name, apt.patient?.last_name)}
                                     </AvatarFallback>
                                   </Avatar>
-                                  <div>
-                                    <p className="font-semibold">{patientName}</p>
-                                    <p className="text-sm text-muted-foreground">{apt.reason}</p>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="font-semibold text-base">{patientName}</p>
+                                    <p className="text-sm text-muted-foreground truncate">{apt.patient?.email}</p>
                                   </div>
                                 </div>
-                                <div className="space-y-2 text-sm">
-                                  <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Appointment ID:</span>
-                                    <span className="font-mono text-xs">#{apt.id.slice(0, 8)}</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Status:</span>
-                                    <Badge variant="outline" className="capitalize">{apt.status}</Badge>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Time:</span>
-                                    <span>{format(startTime, "h:mm a")} - {format(endTime, "h:mm a")}</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Urgency:</span>
-                                    <Badge variant="secondary">{URGENCY_LABELS[apt.urgency] || apt.urgency}</Badge>
-                                  </div>
-                                  {apt.notes && (
-                                    <div className="pt-2 border-t">
-                                      <span className="text-muted-foreground font-medium">Notes:</span>
-                                      <p className="mt-1">{apt.notes}</p>
+                                
+                                <div className="space-y-3 text-sm">
+                                  <div className="flex items-start gap-3 py-2">
+                                    <div className="w-8 h-8 rounded flex items-center justify-center bg-muted">
+                                      <svg className="w-4 h-4 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                      </svg>
                                     </div>
-                                  )}
+                                    <div className="flex-1">
+                                      <p className="text-muted-foreground text-xs mb-1">Date</p>
+                                      <p className="font-medium">{format(startTime, "EEEE, MMMM d, yyyy")}</p>
+                                    </div>
+                                  </div>
+                                  
+                                  <div className="flex items-start gap-3 py-2">
+                                    <div className="w-8 h-8 rounded flex items-center justify-center bg-muted">
+                                      <svg className="w-4 h-4 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                      </svg>
+                                    </div>
+                                    <div className="flex-1">
+                                      <p className="text-muted-foreground text-xs mb-1">Time</p>
+                                      <p className="font-medium">{format(startTime, "h:mm a")}</p>
+                                    </div>
+                                  </div>
+                                </div>
+                                
+                                <div className="space-y-2 pt-2 border-t">
+                                  <div>
+                                    <p className="text-muted-foreground text-xs mb-1">Appointment ID</p>
+                                    <p className="font-mono text-xs bg-muted px-2 py-1 rounded inline-block">#{apt.id.slice(0, 8).toUpperCase()}</p>
+                                  </div>
+                                  
+                                  <div>
+                                    <p className="text-muted-foreground text-xs mb-1">Status</p>
+                                    <Badge 
+                                      variant={apt.status === "completed" ? "success" : apt.status === "confirmed" ? "default" : "secondary"} 
+                                      className="capitalize"
+                                    >
+                                      ✓ {apt.status}
+                                    </Badge>
+                                  </div>
+                                  
+                                  <div>
+                                    <p className="text-muted-foreground text-xs mb-1">Urgency</p>
+                                    <Badge 
+                                      variant={apt.urgency === "high" ? "destructive" : "outline"}
+                                      className="uppercase text-xs font-semibold"
+                                    >
+                                      {URGENCY_LABELS[apt.urgency] || apt.urgency}
+                                    </Badge>
+                                  </div>
+                                  
+                                  <div>
+                                    <p className="text-muted-foreground text-xs mb-1">Reason</p>
+                                    <p className="font-medium">{apt.reason || "General consultation"}</p>
+                                  </div>
                                 </div>
                               </div>
                             </TooltipContent>
