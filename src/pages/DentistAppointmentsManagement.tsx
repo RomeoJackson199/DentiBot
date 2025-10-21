@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useCurrentDentist } from "@/hooks/useCurrentDentist";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Calendar, ChevronLeft, ChevronRight, Plus, LayoutGrid, List as ListIcon, Filter } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/hooks/useLanguage";
 import { WeeklyCalendarView } from "@/components/appointments/WeeklyCalendarView";
@@ -13,7 +13,6 @@ import { useQueryClient } from "@tanstack/react-query";
 
 export default function DentistAppointmentsManagement() {
   const { dentistId, loading: dentistLoading } = useCurrentDentist();
-  const [view, setView] = useState<"week" | "day" | "month">("week");
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
   const { toast } = useToast();
@@ -21,10 +20,9 @@ export default function DentistAppointmentsManagement() {
   const queryClient = useQueryClient();
 
   const navigateDate = (direction: "prev" | "next") => {
-    const days = view === "day" ? 1 : view === "week" ? 7 : 30;
     setCurrentDate(direction === "next" 
-      ? addDays(currentDate, days)
-      : subDays(currentDate, days)
+      ? addDays(currentDate, 7)
+      : subDays(currentDate, 7)
     );
   };
 
@@ -63,14 +61,8 @@ export default function DentistAppointmentsManagement() {
   };
 
   const getDateRangeLabel = () => {
-    if (view === "day") {
-      return format(currentDate, "EEEE, MMMM d, yyyy");
-    } else if (view === "week") {
-      const weekEnd = addDays(currentDate, 6);
-      return `${format(currentDate, "MMM d")} - ${format(weekEnd, "MMM d, yyyy")}`;
-    } else {
-      return format(currentDate, "MMMM yyyy");
-    }
+    const weekEnd = addDays(currentDate, 6);
+    return `${format(currentDate, "MMM d")} - ${format(weekEnd, "MMM d, yyyy")}`;
   };
 
   if (dentistLoading) {
@@ -119,44 +111,6 @@ export default function DentistAppointmentsManagement() {
         {/* View Controls */}
         <div className="flex items-center justify-between px-4 pb-4">
           <div className="flex items-center gap-2">
-            {/* Date selector */}
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-2"
-            >
-              <Calendar className="h-4 w-4" />
-              {format(currentDate, "MMMM yyyy")}
-            </Button>
-
-            {/* View toggles */}
-            <div className="flex items-center gap-1 border rounded-md p-1">
-              <Button
-                variant={view === "day" ? "secondary" : "ghost"}
-                size="sm"
-                onClick={() => setView("day")}
-              >
-                Day
-              </Button>
-              <Button
-                variant={view === "week" ? "secondary" : "ghost"}
-                size="sm"
-                onClick={() => setView("week")}
-              >
-                Week
-              </Button>
-              <Button
-                variant={view === "month" ? "secondary" : "ghost"}
-                size="sm"
-                onClick={() => setView("month")}
-              >
-                Month
-              </Button>
-            </div>
-          </div>
-
-          {/* Navigation and filters */}
-          <div className="flex items-center gap-4">
             <Button
               variant="ghost"
               size="icon"
@@ -176,20 +130,6 @@ export default function DentistAppointmentsManagement() {
             >
               <ChevronRight className="h-4 w-4" />
             </Button>
-
-            <Button variant="outline" size="sm" className="gap-2">
-              <Filter className="h-4 w-4" />
-              Filter
-            </Button>
-
-            <div className="flex items-center gap-1 border rounded-md p-1">
-              <Button variant="ghost" size="icon">
-                <LayoutGrid className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="icon">
-                <ListIcon className="h-4 w-4" />
-              </Button>
-            </div>
           </div>
         </div>
       </div>
