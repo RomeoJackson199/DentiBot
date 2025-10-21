@@ -9,6 +9,7 @@ import { WeeklyCalendarView } from "@/components/appointments/WeeklyCalendarView
 import { AppointmentDetailsSidebar } from "@/components/appointments/AppointmentDetailsSidebar";
 import { format, addDays, subDays } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function DentistAppointmentsManagement() {
   const { dentistId, loading: dentistLoading } = useCurrentDentist();
@@ -17,6 +18,7 @@ export default function DentistAppointmentsManagement() {
   const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
   const { toast } = useToast();
   const { t } = useLanguage();
+  const queryClient = useQueryClient();
 
   const navigateDate = (direction: "prev" | "next") => {
     const days = view === "day" ? 1 : view === "week" ? 7 : 30;
@@ -47,6 +49,9 @@ export default function DentistAppointmentsManagement() {
       if (selectedAppointment?.id === appointmentId) {
         setSelectedAppointment({ ...selectedAppointment, status: newStatus });
       }
+
+      // Invalidate calendar queries to refresh agenda colors/status
+      await queryClient.invalidateQueries({ queryKey: ["appointments-calendar"], exact: false });
     } catch (error) {
       console.error('Failed to update appointment status:', error);
       toast({
