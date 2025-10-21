@@ -110,13 +110,13 @@ export default function DentistAppointmentsManagement() {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-background">
+    <div className="h-screen flex flex-col bg-background pt-6">
       {/* Header */}
       <div className={cn(
         "border-b bg-card sticky top-0 z-30 transition-transform duration-300",
         headerVisible ? "translate-y-0" : "-translate-y-full"
       )}>
-        <div className="flex items-center justify-between p-6">
+        <div className="flex items-center justify-between px-6 pt-6 pb-4">
           <div>
             <h1 className="text-2xl font-semibold">Appointment</h1>
             <p className="text-sm text-muted-foreground mt-1">Manage and track your patient medical appointments.</p>

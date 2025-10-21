@@ -5,7 +5,6 @@ import { User } from "@supabase/supabase-js";
 import { useToast } from "@/hooks/use-toast";
 import { DentistAppShell, DentistSection } from "@/components/layout/DentistAppShell";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
-import { KeyboardShortcuts } from "@/components/layout/KeyboardShortcuts";
 
 // Import components
 import { ClinicalToday } from "@/components/ClinicalToday";
@@ -179,7 +178,6 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
       dentistId={dentistId}
     >
       <div className="space-y-4">
-        <KeyboardShortcuts />
         {renderContent()}
       </div>
     </DentistAppShell>
