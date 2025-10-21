@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { format, startOfWeek, addDays, isSameDay, parseISO } from "date-fns";
+import { format, startOfWeek, addDays, addHours, isSameDay, parseISO } from "date-fns";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -98,9 +98,10 @@ export function WeeklyCalendarView({
   }
 
   return (
-    <div className="border rounded-lg bg-background overflow-hidden">
-      {/* Header with days */}
-      <div className="grid grid-cols-[80px_repeat(7,1fr)] border-b bg-muted/30">
+    <TooltipProvider>
+      <div className="border rounded-lg bg-background overflow-hidden">
+        {/* Header with days */}
+        <div className="grid grid-cols-[80px_repeat(7,1fr)] border-b bg-muted/30">
         <div className="p-3 border-r"></div>
         {weekDays.map((day) => (
           <div
@@ -145,102 +146,103 @@ export function WeeklyCalendarView({
                     key={`${day.toISOString()}-${timeSlot}`}
                     className="p-2 border-r border-b last:border-r-0 min-h-[80px] bg-background hover:bg-muted/5 transition-colors"
                   >
-                    <TooltipProvider>
-                      <div className="space-y-1">
-                        {slotAppointments.map((apt) => {
-                          const patientName = `${apt.patient?.first_name || ""} ${apt.patient?.last_name || ""}`.trim() || "Unknown";
-                          const isSelected = apt.id === selectedAppointmentId;
+                    <div className="space-y-1">
+                      {slotAppointments.map((apt) => {
+                        const patientName = `${apt.patient?.first_name || ""} ${apt.patient?.last_name || ""}`.trim() || "Unknown";
+                        const isSelected = apt.id === selectedAppointmentId;
+                        const startTime = parseISO(apt.appointment_date);
+                        const endTime = addHours(startTime, 1);
 
-                          return (
-                            <Tooltip key={apt.id}>
-                              <TooltipTrigger asChild>
-                                <Card
-                                  className={cn(
-                                    "p-2 cursor-pointer hover:shadow-md transition-all border-l-4",
-                                    getStatusColor(apt.status),
-                                    isSelected && "ring-2 ring-primary shadow-lg scale-105"
+                        return (
+                          <Tooltip key={apt.id}>
+                            <TooltipTrigger asChild>
+                              <Card
+                                className={cn(
+                                  "p-2 cursor-pointer hover:shadow-md transition-all border-l-4",
+                                  getStatusColor(apt.status),
+                                  isSelected && "ring-2 ring-primary shadow-lg scale-105"
+                                )}
+                                onClick={() => onAppointmentClick(apt)}
+                              >
+                                <div className="flex items-start gap-2">
+                                  <Avatar className="h-6 w-6 flex-shrink-0">
+                                    <AvatarFallback className="text-xs">
+                                      {getPatientInitials(apt.patient?.first_name, apt.patient?.last_name)}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <div className="flex-1 min-w-0">
+                                    <div className="font-medium text-xs truncate">
+                                      {patientName}
+                                    </div>
+                                    <div className="text-xs text-muted-foreground">
+                                      {format(startTime, "h a")} - {format(endTime, "h a")}
+                                    </div>
+                                  </div>
+                                  {apt.urgency !== "low" && (
+                                    <Badge
+                                      variant="outline"
+                                      className={cn(
+                                        "text-xs px-1 h-5",
+                                        apt.urgency === "high" && "bg-red-100 text-red-700 border-red-300"
+                                      )}
+                                    >
+                                      {URGENCY_LABELS[apt.urgency]}
+                                    </Badge>
                                   )}
-                                  onClick={() => onAppointmentClick(apt)}
-                                >
-                                  <div className="flex items-start gap-2">
-                                    <Avatar className="h-6 w-6 flex-shrink-0">
-                                      <AvatarFallback className="text-xs">
-                                        {getPatientInitials(apt.patient?.first_name, apt.patient?.last_name)}
-                                      </AvatarFallback>
-                                    </Avatar>
-                                    <div className="flex-1 min-w-0">
-                                      <div className="font-medium text-xs truncate">
-                                        {patientName}
-                                      </div>
-                                      <div className="text-xs text-muted-foreground">
-                                        {format(parseISO(apt.appointment_date), "HH:mm")}
-                                      </div>
-                                    </div>
-                                    {apt.urgency !== "low" && (
-                                      <Badge
-                                        variant="outline"
-                                        className={cn(
-                                          "text-xs px-1 h-5",
-                                          apt.urgency === "high" && "bg-red-100 text-red-700 border-red-300"
-                                        )}
-                                      >
-                                        {URGENCY_LABELS[apt.urgency]}
-                                      </Badge>
-                                    )}
-                                  </div>
-                                </Card>
-                              </TooltipTrigger>
-                              <TooltipContent side="right" className="w-80">
-                                <div className="space-y-3">
-                                  <div className="flex items-center gap-3">
-                                    <Avatar className="h-12 w-12">
-                                      <AvatarFallback>
-                                        {getPatientInitials(apt.patient?.first_name, apt.patient?.last_name)}
-                                      </AvatarFallback>
-                                    </Avatar>
-                                    <div>
-                                      <p className="font-semibold">{patientName}</p>
-                                      <p className="text-sm text-muted-foreground">{apt.reason}</p>
-                                    </div>
-                                  </div>
-                                  <div className="space-y-2 text-sm">
-                                    <div className="flex justify-between">
-                                      <span className="text-muted-foreground">Appointment ID:</span>
-                                      <span className="font-mono text-xs">#{apt.id.slice(0, 8)}</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                      <span className="text-muted-foreground">Status:</span>
-                                      <Badge variant="outline" className="capitalize">{apt.status}</Badge>
-                                    </div>
-                                    <div className="flex justify-between">
-                                      <span className="text-muted-foreground">Time:</span>
-                                      <span>{format(parseISO(apt.appointment_date), "h:mm a")}</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                      <span className="text-muted-foreground">Urgency:</span>
-                                      <Badge variant="secondary">{URGENCY_LABELS[apt.urgency] || apt.urgency}</Badge>
-                                    </div>
-                                    {apt.notes && (
-                                      <div className="pt-2 border-t">
-                                        <span className="text-muted-foreground font-medium">Notes:</span>
-                                        <p className="mt-1">{apt.notes}</p>
-                                      </div>
-                                    )}
+                                </div>
+                              </Card>
+                            </TooltipTrigger>
+                            <TooltipContent side="right" className="w-80">
+                              <div className="space-y-3">
+                                <div className="flex items-center gap-3">
+                                  <Avatar className="h-12 w-12">
+                                    <AvatarFallback>
+                                      {getPatientInitials(apt.patient?.first_name, apt.patient?.last_name)}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <div>
+                                    <p className="font-semibold">{patientName}</p>
+                                    <p className="text-sm text-muted-foreground">{apt.reason}</p>
                                   </div>
                                 </div>
-                              </TooltipContent>
-                            </Tooltip>
-                          );
-                        })}
-                      </div>
-                    </TooltipProvider>
+                                <div className="space-y-2 text-sm">
+                                  <div className="flex justify-between">
+                                    <span className="text-muted-foreground">Appointment ID:</span>
+                                    <span className="font-mono text-xs">#{apt.id.slice(0, 8)}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-muted-foreground">Status:</span>
+                                    <Badge variant="outline" className="capitalize">{apt.status}</Badge>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-muted-foreground">Time:</span>
+                                    <span>{format(startTime, "h:mm a")} - {format(endTime, "h:mm a")}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-muted-foreground">Urgency:</span>
+                                    <Badge variant="secondary">{URGENCY_LABELS[apt.urgency] || apt.urgency}</Badge>
+                                  </div>
+                                  {apt.notes && (
+                                    <div className="pt-2 border-t">
+                                      <span className="text-muted-foreground font-medium">Notes:</span>
+                                      <p className="mt-1">{apt.notes}</p>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </TooltipContent>
+                          </Tooltip>
+                        );
+                      })}
+                    </div>
                   </div>
                 );
               })}
             </>
           ))}
         </div>
-      </ScrollArea>
-    </div>
+        </ScrollArea>
+      </div>
+    </TooltipProvider>
   );
 }
