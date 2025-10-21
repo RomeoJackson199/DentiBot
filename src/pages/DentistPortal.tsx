@@ -19,7 +19,7 @@ import DentistAdminBranding from "./DentistAdminBranding";
 import DentistAdminSecurity from "./DentistAdminSecurity";
 import DentistAdminUsers from "./DentistAdminUsers";
 import { ModernLoadingSpinner } from "@/components/enhanced/ModernLoadingSpinner";
-import { UnifiedAppointments } from "@/components/UnifiedAppointments";
+import DentistAppointmentsManagement from "./DentistAppointmentsManagement";
 
 interface DentistPortalProps {
   user?: User | null;
@@ -136,18 +136,7 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
       case 'patients':
         return <ModernPatientManagement dentistId={dentistId} />;
       case 'appointments':
-        return (
-          <div className="p-6">
-            <UnifiedAppointments 
-              dentistId={dentistId}
-              onOpenPatientProfile={(patientId) => {
-                sessionStorage.setItem('requestedPatientId', patientId);
-                setActiveSection('patients');
-              }}
-              viewMode="clinical"
-            />
-          </div>
-        );
+        return <DentistAppointmentsManagement />;
       case 'employees':
         return <DentistAdminUsers />;
       case 'clinical':
