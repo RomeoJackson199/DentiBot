@@ -56,7 +56,9 @@ export const DentistAppShell: React.FC<DentistAppShellProps> = ({
   const { isMobile } = useMobileOptimizations();
   const { branding } = useClinicBranding();
   const [searchQuery, setSearchQuery] = useState("");
-  const [notificationCount] = useState(3);
+  const [notificationCount] = useState(0);
+  const [userName, setUserName] = useState<string>("");
+  const [userInitials, setUserInitials] = useState<string>("?");
 
   const isActive = (section: DentistSection) => activeSection === section;
 
@@ -72,6 +74,25 @@ export const DentistAppShell: React.FC<DentistAppShellProps> = ({
       });
     }
   };
+
+  // Load current user display name
+  React.useEffect(() => {
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data } = await supabase
+        .from('profiles')
+        .select('first_name, last_name, email')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      const full = `${data?.first_name ?? ''} ${data?.last_name ?? ''}`.trim();
+      setUserName(full || data?.email || '');
+      const fi = (data?.first_name?.[0] || '').toUpperCase();
+      const li = (data?.last_name?.[0] || '').toUpperCase();
+      setUserInitials((fi + li || user.email?.[0] || '?').toString().toUpperCase());
+    })();
+  }, []);
+
 
   if (isMobile) {
     return (
@@ -193,7 +214,7 @@ export const DentistAppShell: React.FC<DentistAppShellProps> = ({
             </div>
 
             {/* Notifications */}
-            <Button variant="ghost" size="icon" className="relative h-9 w-9">
+            <Button variant="ghost" size="icon" className="relative h-9 w-9" onClick={() => toast({ title: 'Notifications', description: notificationCount ? `You have ${notificationCount} notifications` : 'No new notifications' })}>
               <Bell className="h-4 w-4" />
               {notificationCount > 0 && (
                 <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-destructive" />
@@ -205,22 +226,22 @@ export const DentistAppShell: React.FC<DentistAppShellProps> = ({
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="h-9 px-2 gap-2">
                   <Avatar className="h-7 w-7">
-                    <AvatarFallback className="text-xs">LM</AvatarFallback>
+                    <AvatarFallback className="text-xs">{userInitials}</AvatarFallback>
                   </Avatar>
                   <div className="flex flex-col items-start text-left">
-                    <span className="text-xs font-medium">Lohman Mabey</span>
-                    <span className="text-[10px] text-muted-foreground">Admin</span>
+                    <span className="text-xs font-medium truncate max-w-[120px]">{userName || 'Account'}</span>
+                    <span className="text-[10px] text-muted-foreground">Dentist</span>
                   </div>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel>My Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onChangeSection('users')}>
                   <User className="mr-2 h-4 w-4" />
                   Profile
                 </DropdownMenuItem>
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onChangeSection('branding')}>
                   <SettingsIcon className="mr-2 h-4 w-4" />
                   Settings
                 </DropdownMenuItem>

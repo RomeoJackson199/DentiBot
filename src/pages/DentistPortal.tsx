@@ -179,10 +179,7 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
       dentistId={dentistId}
     >
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <Breadcrumbs />
-          <KeyboardShortcuts />
-        </div>
+        <KeyboardShortcuts />
         {renderContent()}
       </div>
     </DentistAppShell>

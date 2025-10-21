@@ -57,8 +57,18 @@ export function WeeklyCalendarView({
         .order("appointment_date", { ascending: true });
 
       if (error) throw error;
-      console.info('[Calendar] fetched appointments', { count: (data || []).length, dentistId, weekStart: weekStart.toISOString(), weekEnd: weekEnd.toISOString() });
-      return data || [];
+      const appointments = data || [];
+      const patientIds = Array.from(new Set(appointments.map((a: any) => a.patient_id).filter(Boolean)));
+      if (patientIds.length) {
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("id, first_name, last_name, email")
+          .in("id", patientIds);
+        const map = new Map((profiles || []).map((p: any) => [p.id, p]));
+        const enriched = appointments.map((a: any) => ({ ...a, patient: map.get(a.patient_id) || null }));
+        return enriched;
+      }
+      return appointments;
     }
   });
 
