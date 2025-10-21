@@ -74,29 +74,29 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
       if (profileError) throw profileError;
       if (!profile) throw new Error('Profile not found');
 
-      const { data: provider, error: providerError } = await supabase
-        .from('providers')
+      const { data: dentist, error: dentistError } = await supabase
+        .from('dentists')
         .select('id, is_active')
         .eq('profile_id', profile.id)
         .maybeSingle();
 
-      if (providerError) throw providerError;
-      if (!provider) throw new Error('You are not registered as a provider');
-      if (!provider.is_active) throw new Error('Your provider account is not active');
+      if (dentistError) throw dentistError;
+      if (!dentist) throw new Error('You are not registered as a dentist');
+      if (!dentist.is_active) throw new Error('Your dentist account is not active');
 
-      setDentistId(provider.id);
+      setDentistId(dentist.id);
       
       // Fetch badge counts
       const { data: payments } = await supabase
         .from('payment_requests')
         .select('id')
-        .eq('dentist_id', provider.id)
+        .eq('dentist_id', dentist.id)
         .eq('status', 'overdue');
 
       const { data: inventory } = await supabase
         .from('inventory_items')
         .select('quantity, min_threshold')
-        .eq('dentist_id', provider.id);
+        .eq('dentist_id', dentist.id);
 
       const lowStockCount = (inventory || []).filter(
         (item: any) => item.quantity <= item.min_threshold
@@ -126,7 +126,7 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
   }
 
   if (!dentistId) {
-    return <ModernLoadingSpinner variant="card" message="Access Denied" description="You are not registered as a provider. Please contact support." />;
+    return <ModernLoadingSpinner variant="card" message="Access Denied" description="You are not registered as a dentist. Please contact support." />;
   }
 
   const renderContent = () => {
