@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { format, parseISO } from "date-fns";
 import { X, Calendar, Clock, User, FileText, AlertCircle, CheckCircle, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -7,6 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { AppointmentCompletionDialog } from "@/components/appointment/AppointmentCompletionDialog";
 
 interface AppointmentDetailsSidebarProps {
   appointment: any;
@@ -26,6 +28,7 @@ export function AppointmentDetailsSidebar({
   onClose,
   onStatusChange 
 }: AppointmentDetailsSidebarProps) {
+  const [showCompletionDialog, setShowCompletionDialog] = useState(false);
   const patientName = `${appointment.patient?.first_name || ""} ${appointment.patient?.last_name || ""}`.trim() || "Unknown Patient";
   const appointmentDate = parseISO(appointment.appointment_date);
   const statusConfig = STATUS_CONFIG[appointment.status as keyof typeof STATUS_CONFIG];
@@ -143,7 +146,7 @@ export function AppointmentDetailsSidebar({
             {appointment.status === "confirmed" && (
               <Button
                 className="w-full gap-2"
-                onClick={() => onStatusChange(appointment.id, "completed")}
+                onClick={() => setShowCompletionDialog(true)}
               >
                 <CheckCircle className="h-4 w-4" />
                 Mark as Completed
@@ -168,6 +171,16 @@ export function AppointmentDetailsSidebar({
           </div>
         </CardContent>
       </ScrollArea>
+
+      <AppointmentCompletionDialog
+        open={showCompletionDialog}
+        onOpenChange={setShowCompletionDialog}
+        appointment={appointment}
+        onCompleted={() => {
+          onStatusChange(appointment.id, "completed");
+          setShowCompletionDialog(false);
+        }}
+      />
     </Card>
   );
 }

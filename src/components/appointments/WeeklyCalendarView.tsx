@@ -20,13 +20,11 @@ const TIME_SLOTS = [
   "13:00", "14:00", "15:00", "16:00", "17:00", "18:00"
 ];
 
-const REASON_COLORS: Record<string, string> = {
-  "General consultation": "bg-green-100 text-green-700 border-green-200",
-  "Checkup": "bg-blue-100 text-blue-700 border-blue-200",
-  "Cleaning": "bg-purple-100 text-purple-700 border-purple-200",
-  "Emergency": "bg-red-100 text-red-700 border-red-200",
-  "Root canal": "bg-orange-100 text-orange-700 border-orange-200",
-  "Filling": "bg-yellow-100 text-yellow-700 border-yellow-200",
+const STATUS_COLORS: Record<string, string> = {
+  "completed": "bg-green-50 text-green-900 border-l-green-500",
+  "cancelled": "bg-gray-50 text-gray-600 border-l-gray-400",
+  "confirmed": "bg-blue-50 text-blue-900 border-l-blue-500",
+  "pending": "bg-yellow-50 text-yellow-900 border-l-yellow-500",
 };
 
 const URGENCY_LABELS: Record<string, string> = {
@@ -86,8 +84,8 @@ export function WeeklyCalendarView({
     return (first + last).toUpperCase() || "?";
   };
 
-  const getReasonColor = (reason: string) => {
-    return REASON_COLORS[reason] || "bg-gray-100 text-gray-700 border-gray-200";
+  const getStatusColor = (status: string) => {
+    return STATUS_COLORS[status] || "bg-gray-50 text-gray-900 border-l-gray-400";
   };
 
   if (isLoading) {
@@ -156,7 +154,7 @@ export function WeeklyCalendarView({
                             key={apt.id}
                             className={cn(
                               "p-2 cursor-pointer hover:shadow-md transition-all border-l-4",
-                              getReasonColor(apt.reason),
+                              getStatusColor(apt.status),
                               isSelected && "ring-2 ring-primary shadow-lg scale-105"
                             )}
                             onClick={() => onAppointmentClick(apt)}
