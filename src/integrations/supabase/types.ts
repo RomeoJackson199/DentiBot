@@ -661,6 +661,10 @@ export type Database = {
         Args: { p_profile_id: string }
         Returns: boolean
       }
+      is_dentist_patient: {
+        Args: { patient_profile_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "admin" | "provider" | "customer" | "staff" | "patient"
