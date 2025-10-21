@@ -26,7 +26,7 @@ interface DentistPortalProps {
 }
 
 export function DentistPortal({ user: userProp }: DentistPortalProps) {
-  const [activeSection, setActiveSection] = useState<DentistSection>('clinical');
+  const [activeSection, setActiveSection] = useState<DentistSection>('dashboard');
   const [dentistId, setDentistId] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(userProp || null);
   const [loading, setLoading] = useState(true);
@@ -131,7 +131,7 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
 
   const renderContent = () => {
     switch (activeSection) {
-      case 'clinical':
+      case 'dashboard':
         return <ClinicalToday dentistId={dentistId} user={user} onOpenPatientsTab={() => setActiveSection('patients')} onOpenAppointmentsTab={() => setActiveSection('appointments')} />;
       case 'patients':
         return <ModernPatientManagement dentistId={dentistId} />;
@@ -148,6 +148,10 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
             />
           </div>
         );
+      case 'employees':
+        return <DentistAdminUsers />;
+      case 'clinical':
+        return <ClinicalToday dentistId={dentistId} user={user} onOpenPatientsTab={() => setActiveSection('patients')} onOpenAppointmentsTab={() => setActiveSection('appointments')} />;
       case 'schedule':
         return <EnhancedAvailabilitySettings dentistId={dentistId} />;
       case 'payments':
