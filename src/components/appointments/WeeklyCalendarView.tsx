@@ -50,16 +50,14 @@ export function WeeklyCalendarView({
       const weekEnd = addDays(weekStart, 7);
       const { data, error } = await supabase
         .from("appointments")
-        .select(`
-          *,
-          patient:profiles!appointments_patient_id_fkey(first_name, last_name, email)
-        `)
+        .select("*")
         .eq("dentist_id", dentistId)
         .gte("appointment_date", weekStart.toISOString())
         .lt("appointment_date", weekEnd.toISOString())
         .order("appointment_date", { ascending: true });
 
       if (error) throw error;
+      console.info('[Calendar] fetched appointments', { count: (data || []).length, dentistId, weekStart: weekStart.toISOString(), weekEnd: weekEnd.toISOString() });
       return data || [];
     }
   });
