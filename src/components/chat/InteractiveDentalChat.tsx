@@ -252,9 +252,7 @@ export const InteractiveDentalChat = ({
       const codeRegex = new RegExp(`\\b${code}\\b`, 'g');
       if (codeRegex.test(cleanedText)) {
         detectedWidgets.push(widget);
-        cleanedText = cleanedText.replace(codeRegex, '').trim();
-        // Clean up double spaces
-        cleanedText = cleanedText.replace(/\s{2,}/g, ' ');
+        // Keep the code visible in the chat (do NOT remove)
       }
     });
     

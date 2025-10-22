@@ -790,8 +790,36 @@ ${patient_context.recent_payments.slice(0, 3).map((p: any) => `- €${p.amount} 
     const urgency_detected = false;
     const emergency_detected = false;
 
+    // Enforce widget codes in the assistant response if missing
+    const hasAnyCode = (text: string) => /(89902|77843|66754|55621|44598|33476)\b/.test(text);
+    let finalResponse = botResponse;
+
+    if (!hasAnyCode(finalResponse)) {
+      // Map suggestions to codes
+      if (suggestions.includes('pay-now')) {
+        finalResponse = `77843 ${finalResponse}`;
+      } else if (suggestions.includes('reschedule')) {
+        finalResponse = `66754 ${finalResponse}`;
+      } else if (suggestions.includes('cancel-appointment')) {
+        finalResponse = `55621 ${finalResponse}`;
+      } else if (suggestions.includes('prescription-refill')) {
+        finalResponse = `44598 ${finalResponse}`;
+      } else if (
+        suggestions.includes('appointments') ||
+        suggestions.includes('appointments-list') ||
+        suggestions.includes('show-appointments')
+      ) {
+        finalResponse = `33476 ${finalResponse}`;
+      } else if (
+        suggestions.includes('recommend-dentist') ||
+        /\b(book|appointment|dentist|tooth|teeth|pain|toothache|enfant|kid|child|douleur|mal aux dents|afspraak|tandarts)\b/i.test(lowerMessage)
+      ) {
+        finalResponse = `89902 ${finalResponse}`;
+      }
+    }
+
     return new Response(JSON.stringify({ 
-      response: botResponse,
+      response: finalResponse,
       suggestions,
       urgency_detected,
       emergency_detected,
