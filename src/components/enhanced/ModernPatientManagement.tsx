@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { useSearchParams } from "react-router-dom";
 import { 
   Users, 
   Search, 
@@ -79,10 +80,24 @@ export function ModernPatientManagement({ dentistId }: ModernPatientManagementPr
   const [patientFlags, setPatientFlags] = useState<Record<string, PatientFlags>>({});
   const [newPatientDialogOpen, setNewPatientDialogOpen] = useState(false);
   const { toast } = useToast();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   useEffect(() => {
     fetchPatients();
   }, [dentistId]);
+
+  // Handle URL query parameter for patient selection
+  useEffect(() => {
+    const patientIdFromUrl = searchParams.get('patient');
+    if (patientIdFromUrl && patients.length > 0) {
+      const patientToSelect = patients.find(p => p.id === patientIdFromUrl);
+      if (patientToSelect) {
+        setSelectedPatient(patientToSelect);
+        // Clear the query parameter after selecting
+        setSearchParams({});
+      }
+    }
+  }, [searchParams, patients]);
 
   useEffect(() => {
     if (selectedPatient) {

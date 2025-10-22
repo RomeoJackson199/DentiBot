@@ -13,6 +13,7 @@ import { CheckCircle2, XCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { AppointmentCompletionDialog } from "../appointment/AppointmentCompletionDialog";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useNavigate } from "react-router-dom";
 
 interface WeeklyCalendarViewProps {
   dentistId: string;
@@ -47,6 +48,7 @@ export function WeeklyCalendarView({
 }: WeeklyCalendarViewProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const isMobile = useIsMobile();
   const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
@@ -255,7 +257,7 @@ export function WeeklyCalendarView({
                                   getStatusColor(apt.status),
                                   isSelected && "ring-2 ring-primary shadow-lg scale-105"
                                 )}
-                                onClick={() => onAppointmentClick(apt)}
+                                onClick={() => navigate(`/dentist/patients?patient=${apt.patient_id}`)}
                               >
                                 <div className="flex items-start gap-2">
                                   <Avatar className="h-6 w-6 flex-shrink-0">

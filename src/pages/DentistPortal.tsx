@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { useToast } from "@/hooks/use-toast";
@@ -31,6 +31,25 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const [badges, setBadges] = useState<Partial<Record<DentistSection, number>>>({});
+  const location = useLocation();
+
+  // Handle URL-based section navigation
+  useEffect(() => {
+    const pathParts = location.pathname.split('/').filter(Boolean);
+    if (pathParts.length >= 2) {
+      const sectionFromUrl = pathParts[1]; // Gets 'patients' from '/dentist/patients'
+      
+      const validSections: DentistSection[] = [
+        'dashboard', 'patients', 'appointments', 'employees', 'clinical',
+        'schedule', 'payments', 'analytics', 'reports', 'inventory',
+        'imports', 'users', 'branding', 'security'
+      ];
+      
+      if (validSections.includes(sectionFromUrl as DentistSection)) {
+        setActiveSection(sectionFromUrl as DentistSection);
+      }
+    }
+  }, [location.pathname]);
 
   useEffect(() => {
     const getUser = async () => {
