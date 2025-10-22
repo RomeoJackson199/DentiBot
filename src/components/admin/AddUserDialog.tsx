@@ -58,21 +58,12 @@ export function AddUserDialog({ onUserAdded }: AddUserDialogProps) {
         .eq('email', email)
         .maybeSingle();
 
-      if (existingProfile?.user_id) {
-        toast({
-          title: "User Already Exists",
-          description: "A user with this email already has an account.",
-          variant: "destructive",
-        });
-        setLoading(false);
-        return;
-      }
-
-      // Create or update profile
       let profileId: string;
+      let userId: string | null = null;
       
       if (existingProfile) {
         profileId = existingProfile.id;
+        userId = existingProfile.user_id;
       } else {
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
@@ -86,27 +77,60 @@ export function AddUserDialog({ onUserAdded }: AddUserDialogProps) {
 
         if (profileError) throw profileError;
         profileId = profileData.id;
+        userId = profileData.user_id;
       }
 
-      // If adding as dentist, create dentist record directly
+      // If adding as dentist, create dentist record if it doesn't exist
       if (role === 'dentist') {
-        const { error: dentistError } = await supabase
+        const { data: existingDentist } = await supabase
           .from('dentists')
-          .insert({
-            profile_id: profileId,
-            first_name: firstName,
-            last_name: lastName,
-            email: email,
-            is_active: true,
-          });
+          .select('id')
+          .eq('profile_id', profileId)
+          .maybeSingle();
 
-        if (dentistError) throw dentistError;
+        if (!existingDentist) {
+          const { error: dentistError } = await supabase
+            .from('dentists')
+            .insert({
+              profile_id: profileId,
+              first_name: firstName,
+              last_name: lastName,
+              email: email,
+              is_active: true,
+            });
+
+          if (dentistError) throw dentistError;
+        }
+
+        // If user exists, add provider role
+        if (userId) {
+          const { error: roleError } = await supabase
+            .from('user_roles')
+            .insert({
+              user_id: userId,
+              role: 'provider',
+            })
+            .select()
+            .maybeSingle();
+
+          // Ignore conflict errors (role already exists)
+          if (roleError && !roleError.message.includes('duplicate')) {
+            console.error('Role error:', roleError);
+          }
+        }
+
+        toast({
+          title: "Dentist Added Successfully",
+          description: existingProfile?.user_id 
+            ? `${firstName} ${lastName} can now switch between patient and dentist views`
+            : `${firstName} ${lastName} has been added as dentist`,
+        });
+      } else {
+        toast({
+          title: "User Added Successfully",
+          description: `${firstName} ${lastName} has been added as ${role}`,
+        });
       }
-
-      toast({
-        title: "User Added Successfully",
-        description: `${firstName} ${lastName} has been added as ${role}`,
-      });
 
       setOpen(false);
       setEmail("");

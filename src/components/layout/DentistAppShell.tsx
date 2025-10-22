@@ -27,6 +27,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useMobileOptimizations } from "@/components/mobile/MobileOptimizations";
 import { useClinicBranding } from "@/hooks/useClinicBranding";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { RoleSwitcher } from "@/components/RoleSwitcher";
 
 export type DentistSection = 'dashboard' | 'patients' | 'appointments' | 'employees' | 'clinical' | 'schedule' | 'payments' | 'analytics' | 'reports' | 'inventory' | 'imports' | 'branding' | 'security' | 'users';
 
@@ -198,6 +199,9 @@ export const DentistAppShell: React.FC<DentistAppShellProps> = ({
 
           {/* Right Section: Search, Notifications, User */}
           <div className="ml-auto flex items-center gap-3">
+            {/* Role Switcher */}
+            <RoleSwitcher />
+            
             {/* Search */}
             <div className="relative w-64">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />

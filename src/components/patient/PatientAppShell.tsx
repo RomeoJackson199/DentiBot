@@ -30,6 +30,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useMobileOptimizations } from "@/components/mobile/MobileOptimizations";
 import { useClinicBranding } from "@/hooks/useClinicBranding";
 import { LanguageSelector } from "@/components/LanguageSelector";
+import { RoleSwitcher } from "@/components/RoleSwitcher";
 
 export type PatientSection = 'home' | 'assistant' | 'care' | 'appointments' | 'payments' | 'settings';
 
@@ -111,6 +112,7 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
             </div>
 
             <div className="flex items-center space-x-2">
+              <RoleSwitcher />
               <LanguageSelector />
               <ModernNotificationCenter userId={userId} />
               {onBookAppointment && (
@@ -306,6 +308,7 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
           <div className="flex items-center justify-between">
             {!collapsed && (
               <div className="flex items-center gap-2">
+                <RoleSwitcher />
                 <LanguageSelector />
                 <ModernNotificationCenter userId={userId} />
               </div>
