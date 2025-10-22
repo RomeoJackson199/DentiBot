@@ -19,7 +19,8 @@ import {
   FileText,
   Plus,
   Activity,
-  TrendingUp
+  TrendingUp,
+  Eye
 } from "lucide-react";
 import { format } from "date-fns";
 import { NewPatientDialog } from "@/components/patient/NewPatientDialog";
