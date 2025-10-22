@@ -20,7 +20,7 @@ import {
   Plus,
   Activity,
   TrendingUp,
-  Eye
+  Eye as EyeIcon
 } from "lucide-react";
 import { format } from "date-fns";
 import { NewPatientDialog } from "@/components/patient/NewPatientDialog";
@@ -577,7 +577,7 @@ export function ModernPatientManagement({ dentistId }: ModernPatientManagementPr
                       onSuccess={() => fetchPatientData(selectedPatient.id)} 
                     />
                     <Button variant="outline" className="gap-2">
-                      <Eye className="h-4 w-4" />
+                      <EyeIcon className="h-4 w-4" />
                       View Full History
                     </Button>
                   </div>

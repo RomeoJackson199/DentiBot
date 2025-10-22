@@ -15,7 +15,7 @@ import {
   Plus,
   CheckCircle,
   X,
-  Eye,
+  Eye as EyeIcon,
   AlertCircle
 } from "lucide-react";
 import SimpleAppointmentBooking from "@/components/SimpleAppointmentBooking";
@@ -260,7 +260,7 @@ export function PatientDetailsTabs({ selectedPatient, dentistId, appointments, o
                         size="sm" 
                         variant="ghost"
                       >
-                        <Eye className="h-4 w-4" />
+                        <EyeIcon className="h-4 w-4" />
                       </Button>
                     </div>
                   </Card>
