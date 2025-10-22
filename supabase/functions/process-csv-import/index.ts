@@ -256,15 +256,15 @@ serve(async (req) => {
                     const invitationLink = `${siteUrl}/invite?token=${tokenData}`;
 
                     const subject = 'Welcome to DentiBot — set your password';
-                    const message = `
-  <p>Hi ${newProfile.first_name || ''} ${newProfile.last_name || ''},</p>
-  <p>Your profile has been created. Click below to set your password and claim your account.</p>
-  <p><a href="${invitationLink}">Set up your password</a></p>
-  <p>If you didn’t request this, you can ignore this email.</p>
-`;
-
                     const authHeader = req.headers.get('authorization') || '';
                     const functionUrl = `${supabaseUrl}/functions/v1/send-email-notification`;
+
+                    const message = [
+                      `<p>Hi ${newProfile.first_name || ''} ${newProfile.last_name || ''},</p>`,
+                      `<p>Your profile has been created. Click below to set your password and claim your account.</p>`,
+                      `<p><a href="${invitationLink}">Set up your password</a></p>`,
+                      `<p>If you didn’t request this, you can ignore this email.</p>`
+                    ].join('');
                     const emailPayload = {
                       to: newProfile.email,
                       subject,
