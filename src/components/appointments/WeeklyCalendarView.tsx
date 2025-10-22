@@ -257,7 +257,7 @@ export function WeeklyCalendarView({
                                   getStatusColor(apt.status),
                                   isSelected && "ring-2 ring-primary shadow-lg scale-105"
                                 )}
-                                onClick={() => navigate(`/dentist/patients?patient=${apt.patient_id}`)}
+                                onClick={() => onAppointmentClick(apt)}
                               >
                                 <div className="flex items-start gap-2">
                                   <Avatar className="h-6 w-6 flex-shrink-0">
