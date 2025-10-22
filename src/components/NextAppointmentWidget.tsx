@@ -40,7 +40,7 @@ interface NextAppointment {
   urgency: string | null;
   consultation_notes: string | null;
   patient_name: string | null;
-  patient: {
+  profiles: {
     first_name: string;
     last_name: string;
     email: string;
@@ -77,7 +77,7 @@ export function NextAppointmentWidget({ dentistId }: NextAppointmentWidgetProps)
             urgency,
             consultation_notes,
             patient_name,
-            patient:profiles!appointments_patient_id_fkey (
+            profiles (
               first_name,
               last_name,
               email,
@@ -203,8 +203,8 @@ export function NextAppointmentWidget({ dentistId }: NextAppointmentWidgetProps)
   }
 
   const appointmentDate = getAppointmentDate(nextAppointment.appointment_date);
-  const patientName = nextAppointment.patient?.first_name && nextAppointment.patient?.last_name 
-    ? `${nextAppointment.patient.first_name} ${nextAppointment.patient.last_name}`
+  const patientName = nextAppointment.profiles?.first_name && nextAppointment.profiles?.last_name 
+    ? `${nextAppointment.profiles.first_name} ${nextAppointment.profiles.last_name}`
     : nextAppointment.patient_name || 'Unknown Patient';
 
   return (
@@ -239,16 +239,16 @@ export function NextAppointmentWidget({ dentistId }: NextAppointmentWidgetProps)
           <div className="flex-1">
             <h3 className="font-semibold text-lg">{patientName}</h3>
             <div className="flex items-center gap-4 text-sm text-muted-foreground">
-              {nextAppointment.patient?.email && (
+              {nextAppointment.profiles?.email && (
                 <div className="flex items-center gap-1">
                   <Mail className="h-3 w-3" />
-                  {nextAppointment.patient.email}
+                  {nextAppointment.profiles.email}
                 </div>
               )}
-              {nextAppointment.patient?.phone && (
+              {nextAppointment.profiles?.phone && (
                 <div className="flex items-center gap-1">
                   <Phone className="h-3 w-3" />
-                  {nextAppointment.patient.phone}
+                  {nextAppointment.profiles.phone}
                 </div>
               )}
             </div>
@@ -321,10 +321,10 @@ export function NextAppointmentWidget({ dentistId }: NextAppointmentWidgetProps)
             appointment={{
               ...nextAppointment,
               dentist_id: dentistId,
-              patient: nextAppointment.patient ? {
-                first_name: nextAppointment.patient.first_name,
-                last_name: nextAppointment.patient.last_name,
-                email: nextAppointment.patient.email
+              patient: nextAppointment.profiles ? {
+                first_name: nextAppointment.profiles.first_name,
+                last_name: nextAppointment.profiles.last_name,
+                email: nextAppointment.profiles.email
               } : undefined
             }}
             onCompleted={handleCompletionSuccess}
@@ -346,16 +346,16 @@ export function NextAppointmentWidget({ dentistId }: NextAppointmentWidgetProps)
                     <User className="h-4 w-4 text-muted-foreground" />
                     <span>{patientName}</span>
                   </div>
-                  {nextAppointment.patient?.email && (
+                  {nextAppointment.profiles?.email && (
                     <div className="flex items-center gap-2">
                       <Mail className="h-4 w-4 text-muted-foreground" />
-                      <span>{nextAppointment.patient.email}</span>
+                      <span>{nextAppointment.profiles.email}</span>
                     </div>
                   )}
-                  {nextAppointment.patient?.phone && (
+                  {nextAppointment.profiles?.phone && (
                     <div className="flex items-center gap-2">
                       <Phone className="h-4 w-4 text-muted-foreground" />
-                      <span>{nextAppointment.patient.phone}</span>
+                      <span>{nextAppointment.profiles.phone}</span>
                     </div>
                   )}
                 </div>

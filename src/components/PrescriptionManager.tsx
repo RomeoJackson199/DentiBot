@@ -58,7 +58,7 @@ export function PrescriptionManager({ dentistId }: PrescriptionManagerProps) {
     try {
       const { data, error } = await supabase
         .from('appointments')
-        .select('patient_id, patient:profiles!appointments_patient_id_fkey(id, first_name, last_name)')
+        .select('patient_id, profiles(id, first_name, last_name)')
         .eq('dentist_id', dentistId);
       
       if (error) throw error;

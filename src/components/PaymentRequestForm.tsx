@@ -36,7 +36,7 @@ export const PaymentRequestForm: React.FC<PaymentRequestFormProps> = ({
         .from('appointments')
         .select(`
           patient_id,
-          profiles!appointments_patient_id_fkey(id, first_name, last_name, email)
+          profiles(id, first_name, last_name, email)
         `)
         .eq('dentist_id', dentistId)
         .not('profiles', 'is', null);

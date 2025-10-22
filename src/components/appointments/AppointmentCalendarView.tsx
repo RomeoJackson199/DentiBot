@@ -24,7 +24,7 @@ export function AppointmentCalendarView({
         .from("appointments")
         .select(`
           *,
-          patient:profiles!appointments_patient_id_fkey(first_name, last_name, email)
+          profiles(first_name, last_name, email)
         `)
         .eq("dentist_id", dentistId)
         .order("appointment_date", { ascending: true });

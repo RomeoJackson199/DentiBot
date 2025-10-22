@@ -23,7 +23,7 @@ interface TodayAppointment {
 	reason: string | null;
 	status: string;
 	urgency: string | null;
-	patient: {
+	profiles: {
 		first_name: string;
 		last_name: string;
 	} | null;
@@ -62,7 +62,7 @@ export function ClinicalToday({ user, dentistId, onOpenPatientsTab, onOpenAppoin
 						reason,
 						status,
 						urgency,
-						patient:profiles!appointments_patient_id_fkey (
+						profiles (
 							first_name,
 							last_name
 						)
@@ -119,8 +119,8 @@ export function ClinicalToday({ user, dentistId, onOpenPatientsTab, onOpenAppoin
 	}, [dentistId]);
 
 	const getPatientName = (appointment: TodayAppointment) => {
-		if (appointment.patient) {
-			return `${appointment.patient.first_name} ${appointment.patient.last_name}`;
+		if (appointment.profiles) {
+			return `${appointment.profiles.first_name} ${appointment.profiles.last_name}`;
 		}
 		return appointment.patient_name || 'Unknown Patient';
 	};

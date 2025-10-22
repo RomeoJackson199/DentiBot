@@ -82,13 +82,13 @@ export async function createAppointmentWithNotification(appointmentData: {
     })
     .select(`
       *,
-      patient:profiles!appointments_patient_id_fkey(
+      profiles(
         first_name,
         last_name,
         email,
         phone
       ),
-      dentist:dentists!appointments_dentist_id_fkey(
+      dentists(
         profiles(
           first_name,
           last_name
@@ -220,13 +220,13 @@ export function useAppointments(params: UseAppointmentsParams): UseAppointmentsR
         .from('appointments')
         .select(`
           *,
-          patient:profiles!appointments_patient_id_fkey(
+          profiles(
             first_name,
             last_name,
             email,
             phone
           ),
-          dentist:dentists!appointments_dentist_id_fkey(
+          dentists(
             profiles(
               first_name,
               last_name

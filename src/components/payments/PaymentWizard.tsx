@@ -75,7 +75,7 @@ export const PaymentWizard: React.FC<PaymentWizardProps> = ({ dentistId, isOpen,
       .from('appointments' as any)
       .select(`
         patient_id,
-        profiles:profiles!appointments_patient_id_fkey(id, first_name, last_name, email)
+        profiles(id, first_name, last_name, email)
       `)
       .eq('dentist_id', dentistId)
       .not('profiles', 'is', null);
