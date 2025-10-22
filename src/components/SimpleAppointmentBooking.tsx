@@ -191,3 +191,5 @@ export function SimpleAppointmentBooking({
     </Dialog>
   );
 }
+
+export default SimpleAppointmentBooking;
