@@ -172,7 +172,7 @@ export const ChatBookingFlow = ({
           dentist_id: currentDentist.id,
           appointment_date: appointmentDateTime.toISOString(),
           reason: "General consultation",
-          status: "pending",
+          status: "confirmed",
           urgency: "medium"
         })
         .select()

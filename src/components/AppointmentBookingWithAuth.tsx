@@ -74,8 +74,8 @@ export const AppointmentBookingWithAuth = ({
         reason: formData.reason,
         urgency: formData.urgency,
         symptoms: formData.symptoms,
-        status: "pending",
-        message: "Your appointment request has been submitted! We'll contact you within 24 hours to confirm the details."
+        status: "confirmed",
+        message: "Your appointment has been confirmed! We'll send you a reminder before your scheduled time."
       };
       
       onComplete(appointmentData);

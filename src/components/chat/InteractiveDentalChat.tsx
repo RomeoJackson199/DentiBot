@@ -739,7 +739,7 @@ Just type what you need! 😊
           dentist_id: bookingFlow.selectedDentist.id,
           appointment_date: appointmentDateTime.toISOString(),
           reason: bookingFlow.reason || "General consultation",
-          status: "pending",
+          status: "confirmed",
            urgency: bookingFlow.urgency >= 5 ? "emergency" : 
                    bookingFlow.urgency === 4 ? "high" : 
                    bookingFlow.urgency === 3 ? "medium" : "low"

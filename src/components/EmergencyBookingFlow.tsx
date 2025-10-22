@@ -295,7 +295,7 @@ export const EmergencyBookingFlow = ({ user, onComplete, onCancel }: EmergencyBo
           patient_id: profileData.id,
           dentist_id: selectedDentist.id,
           appointment_date: appointmentDateTime.toISOString(),
-          status: 'pending',
+          status: 'confirmed',
           urgency: urgencyValue,
           reason: `Emergency triage - Pain level: ${triageData.painLevel}/10, Symptoms: ${triageData.symptoms.join(', ')}`
         })

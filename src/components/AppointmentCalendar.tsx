@@ -79,7 +79,7 @@ export const AppointmentCalendar = ({ user, onComplete, onCancel, onBackToDentis
           dentist_id: selectedDentist.id,
           appointment_date: appointmentDateTime.toISOString(),
           reason: reason || "Consultation générale",
-          status: "pending",
+          status: "confirmed",
           urgency: isEmergency ? "emergency" : "medium",
           is_for_user: isForUser,
           patient_name: isForUser ? null : patientInfo?.name,
