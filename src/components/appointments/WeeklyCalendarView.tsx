@@ -9,9 +9,10 @@ import { cn } from "@/lib/utils";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { CheckCircle2, XCircle } from "lucide-react";
+import { CheckCircle2, XCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { AppointmentCompletionDialog } from "../appointment/AppointmentCompletionDialog";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface WeeklyCalendarViewProps {
   dentistId: string;
@@ -46,10 +47,27 @@ export function WeeklyCalendarView({
 }: WeeklyCalendarViewProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const isMobile = useIsMobile();
   const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
   const [completionDialogOpen, setCompletionDialogOpen] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
+  const [mobileCurrentDay, setMobileCurrentDay] = useState(0); // Index of current day (0-6)
+  
+  // On mobile, only show one day
+  const displayDays = isMobile ? [weekDays[mobileCurrentDay]] : weekDays;
+  
+  const handlePreviousDay = () => {
+    if (mobileCurrentDay > 0) {
+      setMobileCurrentDay(mobileCurrentDay - 1);
+    }
+  };
+  
+  const handleNextDay = () => {
+    if (mobileCurrentDay < 6) {
+      setMobileCurrentDay(mobileCurrentDay + 1);
+    }
+  };
 
   const { data: appointments = [], isLoading } = useQuery({
     queryKey: ["appointments-calendar", dentistId, format(weekStart, "yyyy-MM-dd")],
@@ -137,33 +155,71 @@ export function WeeklyCalendarView({
   return (
     <TooltipProvider>
       <div className="border rounded-lg bg-background overflow-hidden">
-        {/* Header with days */}
-        <div className="grid grid-cols-[80px_repeat(7,1fr)] border-b bg-muted/30">
-        <div className="p-3 border-r"></div>
-        {weekDays.map((day) => (
-          <div
-            key={day.toISOString()}
-            className="p-3 text-center border-r last:border-r-0"
-          >
-            <div className="text-xs text-muted-foreground font-medium uppercase">
-              {format(day, "EEE")}
-            </div>
-            <div
-              className={cn(
-                "text-lg font-semibold mt-1",
-                isSameDay(day, new Date()) &&
-                  "bg-primary text-primary-foreground rounded-full w-8 h-8 flex items-center justify-center mx-auto"
-              )}
+        {/* Mobile day navigation */}
+        {isMobile && (
+          <div className="flex items-center justify-between p-3 border-b bg-muted/30">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handlePreviousDay}
+              disabled={mobileCurrentDay === 0}
             >
-              {format(day, "dd")}
+              <ChevronLeft className="h-5 w-5" />
+            </Button>
+            <div className="text-center">
+              <div className="text-xs text-muted-foreground font-medium uppercase">
+                {format(displayDays[0], "EEEE")}
+              </div>
+              <div className={cn(
+                "text-lg font-semibold mt-1",
+                isSameDay(displayDays[0], new Date()) && "text-primary"
+              )}>
+                {format(displayDays[0], "MMMM dd, yyyy")}
+              </div>
             </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleNextDay}
+              disabled={mobileCurrentDay === 6}
+            >
+              <ChevronRight className="h-5 w-5" />
+            </Button>
           </div>
-        ))}
-      </div>
+        )}
+
+        {/* Header with days (desktop only) */}
+        {!isMobile && (
+          <div className="grid grid-cols-[80px_repeat(7,1fr)] border-b bg-muted/30">
+            <div className="p-3 border-r"></div>
+            {weekDays.map((day) => (
+              <div
+                key={day.toISOString()}
+                className="p-3 text-center border-r last:border-r-0"
+              >
+                <div className="text-xs text-muted-foreground font-medium uppercase">
+                  {format(day, "EEE")}
+                </div>
+                <div
+                  className={cn(
+                    "text-lg font-semibold mt-1",
+                    isSameDay(day, new Date()) &&
+                      "bg-primary text-primary-foreground rounded-full w-8 h-8 flex items-center justify-center mx-auto"
+                  )}
+                >
+                  {format(day, "dd")}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
 
       {/* Time slots and appointments */}
       <ScrollArea className="h-[600px]">
-        <div className="grid grid-cols-[80px_repeat(7,1fr)]">
+        <div className={cn(
+          "grid",
+          isMobile ? "grid-cols-[80px_1fr]" : "grid-cols-[80px_repeat(7,1fr)]"
+        )}>
           {TIME_SLOTS.map((timeSlot) => (
             <>
               {/* Time label */}
@@ -175,7 +231,7 @@ export function WeeklyCalendarView({
               </div>
 
               {/* Slots for each day */}
-              {weekDays.map((day) => {
+              {displayDays.map((day) => {
                 const slotAppointments = getAppointmentsForSlot(day, timeSlot);
                 
                 return (
