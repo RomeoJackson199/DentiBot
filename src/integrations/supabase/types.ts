@@ -247,6 +247,111 @@ export type Database = {
           },
         ]
       }
+      dentist_availability: {
+        Row: {
+          break_end_time: string | null
+          break_start_time: string | null
+          created_at: string
+          day_of_week: number
+          dentist_id: string
+          end_time: string
+          id: string
+          is_available: boolean
+          start_time: string
+          updated_at: string
+        }
+        Insert: {
+          break_end_time?: string | null
+          break_start_time?: string | null
+          created_at?: string
+          day_of_week: number
+          dentist_id: string
+          end_time?: string
+          id?: string
+          is_available?: boolean
+          start_time?: string
+          updated_at?: string
+        }
+        Update: {
+          break_end_time?: string | null
+          break_start_time?: string | null
+          created_at?: string
+          day_of_week?: number
+          dentist_id?: string
+          end_time?: string
+          id?: string
+          is_available?: boolean
+          start_time?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dentist_availability_dentist_id_fkey"
+            columns: ["dentist_id"]
+            isOneToOne: false
+            referencedRelation: "dentists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dentist_availability_dentist_id_fkey"
+            columns: ["dentist_id"]
+            isOneToOne: false
+            referencedRelation: "providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dentist_vacation_days: {
+        Row: {
+          created_at: string
+          dentist_id: string
+          end_date: string
+          id: string
+          is_approved: boolean
+          reason: string | null
+          start_date: string
+          updated_at: string
+          vacation_type: string
+        }
+        Insert: {
+          created_at?: string
+          dentist_id: string
+          end_date: string
+          id?: string
+          is_approved?: boolean
+          reason?: string | null
+          start_date: string
+          updated_at?: string
+          vacation_type?: string
+        }
+        Update: {
+          created_at?: string
+          dentist_id?: string
+          end_date?: string
+          id?: string
+          is_approved?: boolean
+          reason?: string | null
+          start_date?: string
+          updated_at?: string
+          vacation_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dentist_vacation_days_dentist_id_fkey"
+            columns: ["dentist_id"]
+            isOneToOne: false
+            referencedRelation: "dentists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dentist_vacation_days_dentist_id_fkey"
+            columns: ["dentist_id"]
+            isOneToOne: false
+            referencedRelation: "providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dentists: {
         Row: {
           average_rating: number
@@ -632,10 +737,7 @@ export type Database = {
       }
     }
     Functions: {
-      assign_provider_role: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      assign_provider_role: { Args: never; Returns: undefined }
       book_appointment_slot: {
         Args: {
           p_appointment_id: string
