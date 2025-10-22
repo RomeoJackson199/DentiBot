@@ -34,6 +34,7 @@ export function AppointmentDetailsSidebar({
   const [showCompletionDialog, setShowCompletionDialog] = useState(false);
   const [summaries, setSummaries] = useState<{ short: string; long: string } | null>(null);
   const [loadingSummaries, setLoadingSummaries] = useState(false);
+  const [nextAppointment, setNextAppointment] = useState<any>(null);
   
   const patientName = `${appointment.patient?.first_name || ""} ${appointment.patient?.last_name || ""}`.trim() || "Unknown Patient";
   const appointmentDate = parseISO(appointment.appointment_date);
@@ -73,8 +74,27 @@ export function AppointmentDetailsSidebar({
       }
     };
 
+    const fetchNextAppointment = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('appointments')
+          .select('appointment_date, reason, status')
+          .eq('patient_id', appointment.patient_id)
+          .gt('appointment_date', appointment.appointment_date)
+          .order('appointment_date', { ascending: true })
+          .limit(1)
+          .maybeSingle();
+
+        if (error) throw error;
+        setNextAppointment(data);
+      } catch (error) {
+        console.error("Error fetching next appointment:", error);
+      }
+    };
+
     generateSummaries();
-  }, [appointment.id]);
+    fetchNextAppointment();
+  }, [appointment.id, appointment.patient_id, appointment.appointment_date]);
 
   return (
     <Card className="h-full border-none shadow-none bg-background">
@@ -237,19 +257,32 @@ export function AppointmentDetailsSidebar({
 
           <Separator />
 
-          {/* Last Appointment */}
-          <div className="space-y-3">
-            <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider">Last Appointment</h3>
-            <div className="flex items-center justify-between">
-              <p className="text-sm">12 Apr 2020</p>
-              <Badge variant="outline" className="gap-1">
-                <Activity className="h-3 w-3" />
-                Follow Up
-              </Badge>
-            </div>
-          </div>
+          {/* Next Appointment */}
+          {nextAppointment && (
+            <>
+              <div className="space-y-3">
+                <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider">Next Appointment</h3>
+                <div className="bg-primary/5 rounded-lg p-4 border border-primary/20">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-sm font-medium">
+                      {format(parseISO(nextAppointment.appointment_date), "dd MMM yyyy 'at' h:mm a")}
+                    </p>
+                    <Badge variant="outline" className={cn(
+                      "gap-1",
+                      nextAppointment.status === "confirmed" && "bg-green-100 text-green-800 border-green-200",
+                      nextAppointment.status === "pending" && "bg-yellow-100 text-yellow-800 border-yellow-200"
+                    )}>
+                      <Activity className="h-3 w-3" />
+                      {nextAppointment.status}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground">{nextAppointment.reason}</p>
+                </div>
+              </div>
+              <Separator />
+            </>
+          )}
 
-          <Separator />
 
           {/* Actions */}
           <div className="space-y-3 pt-2">
