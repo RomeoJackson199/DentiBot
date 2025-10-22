@@ -35,14 +35,14 @@ export function AddUserDialog({ onUserAdded }: AddUserDialogProps) {
   const [lastName, setLastName] = useState("");
   const [role, setRole] = useState<"patient" | "dentist" | "staff" | "admin">("patient");
   const { toast } = useToast();
-  const { isAdmin, loading: roleLoading } = useUserRole();
+  const { isAdmin, isDentist, loading: roleLoading } = useUserRole();
 
-  // Security check - only admins can add users
+  // Security check - admins and dentists can add users
   if (roleLoading) {
     return null;
   }
 
-  if (!isAdmin) {
+  if (!isAdmin && !isDentist) {
     return null;
   }
 
@@ -150,7 +150,7 @@ export function AddUserDialog({ onUserAdded }: AddUserDialogProps) {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Shield className="h-5 w-5 text-primary" />
-            Add New User (Admin Only)
+            Add New User
           </DialogTitle>
           <DialogDescription>
             Send an invitation to a new user. They will receive an email with instructions to set up their account.
