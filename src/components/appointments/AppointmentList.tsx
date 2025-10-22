@@ -101,7 +101,7 @@ export const AppointmentList: React.FC<AppointmentListProps> = ({
       return appointment.patient_name;
     }
     if (appointment.profiles) {
-      return `${appointment.profiles.first_name} ${appointment.profiles.last_name}`.trim();
+      return `${appointment.profiles?.first_name || ''} ${appointment.profiles?.last_name || ''}`.trim() || 'Unknown Patient';
     }
     return 'Unknown Patient';
   };

@@ -293,14 +293,14 @@ export const AppointmentDialog: React.FC<AppointmentDialogProps> = ({
                   <div className="flex items-center gap-2 text-sm">
                     <User className="w-3 h-3 text-muted-foreground" />
                     <span className="font-medium">
-                      {selectedPatient.first_name} {selectedPatient.last_name}
+                      {selectedPatient?.first_name} {selectedPatient?.last_name}
                     </span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <Mail className="w-3 h-3 text-muted-foreground" />
-                    <span>{selectedPatient.email}</span>
+                    <span>{selectedPatient?.email}</span>
                   </div>
-                  {selectedPatient.phone && (
+                  {selectedPatient?.phone && (
                     <div className="flex items-center gap-2 text-sm">
                       <Phone className="w-3 h-3 text-muted-foreground" />
                       <span>{selectedPatient.phone}</span>
