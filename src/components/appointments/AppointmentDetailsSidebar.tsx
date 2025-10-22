@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { format, parseISO } from "date-fns";
-import { X, Calendar, Clock, User, FileText, Phone, Cake, Activity, Shield, ExternalLink, CheckCircle, XCircle } from "lucide-react";
+import { X, Calendar, Clock, User, FileText, Phone, Cake, Activity, Shield, ExternalLink, CheckCircle, XCircle, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,10 +32,49 @@ export function AppointmentDetailsSidebar({
 }: AppointmentDetailsSidebarProps) {
   const navigate = useNavigate();
   const [showCompletionDialog, setShowCompletionDialog] = useState(false);
+  const [summaries, setSummaries] = useState<{ short: string; long: string } | null>(null);
+  const [loadingSummaries, setLoadingSummaries] = useState(false);
+  
   const patientName = `${appointment.patient?.first_name || ""} ${appointment.patient?.last_name || ""}`.trim() || "Unknown Patient";
   const appointmentDate = parseISO(appointment.appointment_date);
   const statusConfig = STATUS_CONFIG[appointment.status as keyof typeof STATUS_CONFIG];
   const StatusIcon = statusConfig?.icon || Clock;
+
+  useEffect(() => {
+    const generateSummaries = async () => {
+      setLoadingSummaries(true);
+      try {
+        const { data, error } = await supabase.functions.invoke('generate-appointment-summary', {
+          body: {
+            appointmentData: {
+              patientName,
+              reason: appointment.reason,
+              urgency: appointment.urgency,
+              notes: appointment.notes,
+              date: format(appointmentDate, "MMMM d, yyyy"),
+              time: format(appointmentDate, "h:mm a"),
+            }
+          }
+        });
+
+        if (error) throw error;
+        setSummaries({
+          short: data.shortSummary,
+          long: data.longSummary
+        });
+      } catch (error) {
+        console.error("Error generating summaries:", error);
+        setSummaries({
+          short: "Unable to generate summary",
+          long: "Unable to generate detailed summary at this time."
+        });
+      } finally {
+        setLoadingSummaries(false);
+      }
+    };
+
+    generateSummaries();
+  }, [appointment.id]);
 
   return (
     <Card className="h-full border-none shadow-none bg-background">
@@ -108,9 +148,39 @@ export function AppointmentDetailsSidebar({
 
           <Separator />
 
+          {/* Summary Section */}
+          <div className="space-y-4">
+            <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider">Summary</h3>
+            
+            {loadingSummaries ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="bg-primary/5 rounded-lg p-4 border border-primary/20">
+                  <p className="text-sm leading-relaxed text-foreground font-medium">
+                    {summaries?.short || "Generating summary..."}
+                  </p>
+                </div>
+
+                <div className="bg-muted/30 rounded-lg p-4">
+                  <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                    Detailed Summary
+                  </h4>
+                  <p className="text-sm leading-relaxed text-foreground">
+                    {summaries?.long || "Generating detailed summary..."}
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <Separator />
+
           {/* Appointment Details */}
           <div className="space-y-4">
-            <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider">Appointment</h3>
+            <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider">Appointment Details</h3>
             
             <div className="bg-muted/30 rounded-lg p-4 space-y-3">
               <div className="flex items-start gap-3">

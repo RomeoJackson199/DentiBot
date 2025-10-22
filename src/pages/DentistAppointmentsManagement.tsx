@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/hooks/useLanguage";
-import { WeeklyCalendarView } from "@/components/appointments/WeeklyCalendarView";
+import { DayCalendarView } from "@/components/appointments/DayCalendarView";
 import { AppointmentDetailsSidebar } from "@/components/appointments/AppointmentDetailsSidebar";
 import { format, addDays, subDays } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
@@ -43,8 +43,8 @@ export default function DentistAppointmentsManagement() {
 
   const navigateDate = (direction: "prev" | "next") => {
     setCurrentDate(direction === "next" 
-      ? addDays(currentDate, 7)
-      : subDays(currentDate, 7)
+      ? addDays(currentDate, 1)
+      : subDays(currentDate, 1)
     );
   };
 
@@ -83,8 +83,7 @@ export default function DentistAppointmentsManagement() {
   };
 
   const getDateRangeLabel = () => {
-    const weekEnd = addDays(currentDate, 6);
-    return `${format(currentDate, "MMM d")} - ${format(weekEnd, "MMM d, yyyy")}`;
+    return format(currentDate, "EEEE, MMMM d, yyyy");
   };
 
   if (dentistLoading) {
@@ -172,7 +171,7 @@ export default function DentistAppointmentsManagement() {
               <p className="text-muted-foreground">{t.notRegisteredDentist}</p>
             </div>
           ) : (
-            <WeeklyCalendarView
+            <DayCalendarView
               dentistId={dentistId}
               currentDate={currentDate}
               onAppointmentClick={setSelectedAppointment}

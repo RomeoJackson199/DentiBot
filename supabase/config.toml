@@ -47,3 +47,6 @@ verify_jwt = true
 
 [functions.verify-2fa-code]
 verify_jwt = true
+
+[functions.generate-appointment-summary]
+verify_jwt = true
