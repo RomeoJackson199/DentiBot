@@ -359,19 +359,21 @@ export const InteractiveDentalChat = ({
   const handleSuggestions = (suggestions: string[], recommendedDentists?: string[]) => {
     console.log('🔧 handleSuggestions called with:', { suggestions, recommendedDentists });
     
-    if (!suggestions || suggestions.length === 0) return;
-    
-    if (suggestions.includes('appointments-list')) {
-      showAppointments();
+    if (!suggestions || suggestions.length === 0) {
+      console.log('⚠️ No suggestions to process');
       return;
     }
     
-    if (suggestions.includes('show-appointments')) {
-      showAppointments();
-      return;
-    }
+    // Show toast for every suggestion
+    toast({
+      title: "🎯 Processing Suggestion",
+      description: `Widget: ${suggestions[0]}`,
+      duration: 2000,
+    });
     
-    if (suggestions.includes('appointments')) {
+    if (suggestions.includes('view-appointments') || suggestions.includes('appointments-list') || 
+        suggestions.includes('show-appointments') || suggestions.includes('appointments')) {
+      console.log('🔧 Triggering appointments list');
       showAppointments();
       return;
     }
@@ -401,6 +403,7 @@ export const InteractiveDentalChat = ({
     }
 
     if (suggestions.includes('recommend-dentist')) {
+      console.log('🔧 Triggering recommend-dentist widget with dentists:', recommendedDentists);
       loadDentistsForBooking(false, recommendedDentists);
       return;
     }
@@ -920,13 +923,32 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
     }
 
     const history = [...messages, userMessage].slice(-10);
+    
+    console.log('📤 Sending to AI:', {
+      message: userMessage.message,
+      historyLength: history.length
+    });
+    
     const { message: botResponse, fallback, suggestions, recommendedDentists } = await generateBotResponse(userMessage.message, history);
+    
+    console.log('📥 AI Response:', {
+      message: botResponse.message,
+      fallback,
+      suggestions,
+      recommendedDentists
+    });
+    
     setMessages(prev => [...prev, botResponse]);
     await saveMessage(botResponse);
 
     setIsLoading(false);
 
-    handleSuggestions(suggestions, recommendedDentists);
+    if (suggestions && suggestions.length > 0) {
+      console.log('🎬 Calling handleSuggestions with:', suggestions, recommendedDentists);
+      handleSuggestions(suggestions, recommendedDentists);
+    } else {
+      console.log('⚠️ No suggestions returned from AI');
+    }
   };
 
   const handleLanguageChange = (lang: string) => {
