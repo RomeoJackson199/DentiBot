@@ -142,7 +142,10 @@ export default function DentistAppointmentsManagement() {
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
         {/* Calendar View */}
-        <div className={`flex-1 p-4 overflow-auto ${selectedAppointment ? 'mr-96' : ''}`}>
+        <div className={cn(
+          "p-4 overflow-auto transition-all duration-300",
+          selectedAppointment ? "w-1/4" : "flex-1"
+        )}>
           {dentistLoading ? <div className="flex justify-center items-center h-full">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div> : !dentistId ? <div className="flex justify-center items-center h-full">
@@ -151,8 +154,8 @@ export default function DentistAppointmentsManagement() {
         </div>
 
         {/* Sidebar */}
-        {selectedAppointment && <div className={cn("w-96 border-l bg-card absolute right-0 bottom-0 shadow-lg transition-all duration-300", headerVisible ? "top-[170px]" : "top-0")}>
-            <AppointmentDetailsSidebar appointment={selectedAppointment} onClose={() => setSelectedAppointment(null)} onStatusChange={handleStatusChange} />
+        {selectedAppointment && <div className={cn("w-3/4 border-l bg-card transition-all duration-300")}>
+            <AppointmentDetailsSidebar appointment={selectedAppointment} onClose={handleBackToWeek} onStatusChange={handleStatusChange} />
           </div>}
       </div>
     </div>;
