@@ -18,7 +18,7 @@ import {
   Eye,
   AlertCircle
 } from "lucide-react";
-import { SimpleAppointmentBooking } from "@/components/SimpleAppointmentBooking";
+import SimpleAppointmentBooking from "@/components/SimpleAppointmentBooking";
 import { PatientPaymentHistory } from "@/components/PatientPaymentHistory";
 import { PrescriptionManager } from "@/components/PrescriptionManager";
 import { TreatmentPlanManager } from "@/components/TreatmentPlanManager";

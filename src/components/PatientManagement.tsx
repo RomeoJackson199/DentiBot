@@ -46,7 +46,7 @@ import { CompletionSheet } from "@/components/CompletionSheet";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { PatientPaymentHistory } from "@/components/PatientPaymentHistory";
 import { PaymentRequestForm } from "@/components/PaymentRequestForm";
-import { SimpleAppointmentBooking } from "@/components/SimpleAppointmentBooking";
+import SimpleAppointmentBooking from "@/components/SimpleAppointmentBooking";
 import { useNavigate } from "react-router-dom";
 
 interface Patient {

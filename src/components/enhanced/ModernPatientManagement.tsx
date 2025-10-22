@@ -24,7 +24,7 @@ import {
 import { format } from "date-fns";
 import { NewPatientDialog } from "@/components/patient/NewPatientDialog";
 import { PatientDetailsTabs } from "./PatientDetailsTabs";
-import { SimpleAppointmentBooking } from "@/components/SimpleAppointmentBooking";
+import SimpleAppointmentBooking from "@/components/SimpleAppointmentBooking";
 
 interface Patient {
   id: string;

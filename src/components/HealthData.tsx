@@ -26,7 +26,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { LoadingSkeleton } from "@/components/ui/loading-skeleton";
 import { PrescriptionManager } from "@/components/PrescriptionManager";
 import { TreatmentPlanManager } from "@/components/TreatmentPlanManager";
-import { SimpleAppointmentBooking } from "@/components/SimpleAppointmentBooking";
+import SimpleAppointmentBooking from "@/components/SimpleAppointmentBooking";
 import { AIConversationDialog } from "@/components/AIConversationDialog";
 
 interface HealthDataProps {
