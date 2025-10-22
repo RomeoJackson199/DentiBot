@@ -300,10 +300,14 @@ export const InteractiveDentalChat = ({
         throw aiResponse.error;
       }
 
-      const responseText = aiResponse.data?.response || aiResponse.data?.fallback_response || "I'm sorry, I couldn't process your request.";
+      // Client-side last-resort code enforcement to ensure widgets trigger
+      let finalText = responseText;
+      if (!/^\d{5}\b/.test(finalText)) {
+        finalText = `89902 ${finalText}`;
+      }
       
-      // Detect and extract hidden widget codes
-      const { cleanedText, detectedWidgets, recommendedDentists } = detectAndExtractCodes(responseText);
+      // Detect and extract widget codes from final text
+      const { cleanedText, detectedWidgets, recommendedDentists } = detectAndExtractCodes(finalText);
       
       // Show visible debug info when codes are detected
       if (detectedWidgets.length > 0) {
