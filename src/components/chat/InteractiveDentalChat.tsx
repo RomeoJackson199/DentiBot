@@ -1560,7 +1560,7 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
                     <div className="text-sm leading-relaxed whitespace-pre-wrap">{message.message}</div>
                     {message.message_type === 'success' && (
                       <Badge variant="secondary" className="mt-2 bg-green-100 text-green-800 border-green-200">
-                        <CheckCircle className="w-3 h-3 mr-1" />
+                        <span aria-hidden="true" className="mr-1">✓</span>
                         Success
                       </Badge>
                     )}
