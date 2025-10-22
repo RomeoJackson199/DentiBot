@@ -144,7 +144,7 @@ export default function DentistAppointmentsManagement() {
         {/* Calendar View */}
         <div className={cn(
           "p-4 overflow-auto transition-all duration-300",
-          selectedAppointment ? "w-1/4" : "flex-1"
+          selectedAppointment ? "w-[22%]" : "flex-1"
         )}>
           {dentistLoading ? <div className="flex justify-center items-center h-full">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -154,7 +154,7 @@ export default function DentistAppointmentsManagement() {
         </div>
 
         {/* Sidebar */}
-        {selectedAppointment && <div className={cn("w-3/4 border-l bg-card transition-all duration-300")}>
+        {selectedAppointment && <div className={cn("w-[78%] border-l bg-card transition-all duration-300")}>
             <AppointmentDetailsSidebar appointment={selectedAppointment} onClose={handleBackToWeek} onStatusChange={handleStatusChange} />
           </div>}
       </div>
