@@ -247,12 +247,13 @@ export const InteractiveDentalChat = ({
     const detectedWidgets: string[] = [];
     const recommendedDentists: string[] = [];
     
-    // Detect all widget codes
+    // Detect and remove widget codes from text
     Object.entries(WIDGET_CODES).forEach(([code, widget]) => {
-      const codeRegex = new RegExp(`\\b${code}\\b`, 'g');
+      const codeRegex = new RegExp(`\\b${code}\\b\\s*`, 'g');
       if (codeRegex.test(cleanedText)) {
         detectedWidgets.push(widget);
-        // Keep the code visible in the chat (do NOT remove)
+        // Remove the code from the displayed text
+        cleanedText = cleanedText.replace(codeRegex, '');
       }
     });
     
@@ -309,14 +310,8 @@ export const InteractiveDentalChat = ({
         throw new Error('Empty AI response');
       }
 
-      // Client-side last-resort code enforcement to ensure widgets trigger
-      let finalText = responseText;
-      if (!/^\d{5}\b/.test(finalText)) {
-        finalText = `89902 ${finalText}`;
-      }
-      
-      // Detect and extract widget codes from final text
-      const { cleanedText, detectedWidgets, recommendedDentists } = detectAndExtractCodes(finalText);
+      // Detect and extract widget codes from AI response (no forced codes)
+      const { cleanedText, detectedWidgets, recommendedDentists } = detectAndExtractCodes(responseText);
       
       // Show visible debug info when codes are detected
       if (detectedWidgets.length > 0) {
