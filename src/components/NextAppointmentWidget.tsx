@@ -62,6 +62,9 @@ export function NextAppointmentWidget({ dentistId }: NextAppointmentWidgetProps)
   useEffect(() => {
     const fetchNextAppointment = async () => {
       try {
+        console.log('🔍 Fetching next appointment for dentistId:', dentistId);
+        console.log('📅 Current time:', new Date().toISOString());
+        
         const { data, error } = await supabase
           .from('appointments')
           .select(`
@@ -89,13 +92,14 @@ export function NextAppointmentWidget({ dentistId }: NextAppointmentWidgetProps)
           .maybeSingle();
 
         if (error && error.code !== 'PGRST116') {
-          console.error('Error fetching next appointment:', error);
+          console.error('❌ Error fetching next appointment:', error);
           return;
         }
 
+        console.log('✅ Next appointment data:', data);
         setNextAppointment(data || null);
       } catch (error) {
-        console.error('Error fetching next appointment:', error);
+        console.error('❌ Caught error fetching next appointment:', error);
       } finally {
         setLoading(false);
       }

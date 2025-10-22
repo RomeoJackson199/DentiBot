@@ -83,14 +83,24 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
     }
     
     try {
+      console.log('🔍 Fetching dentist profile for user:', user.id);
+      
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('id')
         .eq('user_id', user.id)
         .maybeSingle();
 
-      if (profileError) throw profileError;
-      if (!profile) throw new Error('Profile not found');
+      if (profileError) {
+        console.error('❌ Profile error:', profileError);
+        throw profileError;
+      }
+      if (!profile) {
+        console.error('❌ No profile found for user:', user.id);
+        throw new Error('Profile not found');
+      }
+      
+      console.log('✅ Profile found:', profile.id);
 
       const { data: dentist, error: dentistError } = await supabase
         .from('dentists')
@@ -98,10 +108,20 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
         .eq('profile_id', profile.id)
         .maybeSingle();
 
-      if (dentistError) throw dentistError;
-      if (!dentist) throw new Error('You are not registered as a dentist');
-      if (!dentist.is_active) throw new Error('Your dentist account is not active');
+      if (dentistError) {
+        console.error('❌ Dentist error:', dentistError);
+        throw dentistError;
+      }
+      if (!dentist) {
+        console.error('❌ No dentist record found for profile:', profile.id);
+        throw new Error('You are not registered as a dentist');
+      }
+      if (!dentist.is_active) {
+        console.error('❌ Dentist account is inactive');
+        throw new Error('Your dentist account is not active');
+      }
 
+      console.log('✅ Dentist ID:', dentist.id);
       setDentistId(dentist.id);
       
       // Fetch badge counts
