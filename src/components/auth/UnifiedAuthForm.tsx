@@ -124,6 +124,14 @@ export const UnifiedAuthForm = ({ compact = false, onSignInSuccess }: UnifiedAut
         toast({
           title: t.accountCreatedSuccess,
           description: t.checkEmailConfirm,
+          duration: 10000,
+        });
+        
+        // Show additional alert for email confirmation
+        toast({
+          title: "📧 Check Your Email",
+          description: "We sent you a confirmation link. Please check your inbox (and spam folder) to activate your account.",
+          duration: 15000,
         });
         
         if (compact) {

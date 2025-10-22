@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, memo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { PatientDashboard } from "./PatientDashboard";
 import { AiOptOutPrompt } from "./AiOptOutPrompt";
 import { ModernLoadingSpinner } from "@/components/enhanced/ModernLoadingSpinner";
@@ -14,11 +14,19 @@ interface UnifiedDashboardProps {
 export const UnifiedDashboard = memo(({ user }: UnifiedDashboardProps) => {
   const [shouldRedirect, setShouldRedirect] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const { isDentist, isAdmin, isPatient, roles, loading: roleLoading } = useUserRole();
 
   useEffect(() => {
     const checkRoleBasedRedirect = async () => {
       if (roleLoading) return;
+
+      // Don't redirect if user explicitly navigated to /patient
+      if (location.pathname.startsWith('/patient')) {
+        console.log('User on /patient route, respecting their choice');
+        setShouldRedirect(false);
+        return;
+      }
 
       // Dentists/providers and admins should be redirected to dentist portal
       if (isDentist || isAdmin) {
@@ -52,7 +60,7 @@ export const UnifiedDashboard = memo(({ user }: UnifiedDashboardProps) => {
     };
 
     checkRoleBasedRedirect();
-  }, [user.id, navigate, isDentist, isAdmin, isPatient, roleLoading]);
+  }, [user.id, navigate, location.pathname, isDentist, isAdmin, isPatient, roleLoading]);
 
   if (roleLoading || shouldRedirect) {
     return (
