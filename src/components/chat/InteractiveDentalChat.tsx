@@ -297,7 +297,16 @@ export const InteractiveDentalChat = ({
 
       if (aiResponse.error) {
         console.error('AI function error:', aiResponse.error);
-        throw aiResponse.error;
+        // If backend returned a JSON body, try to use it instead of failing hard
+        if (!aiResponse.data) {
+          throw aiResponse.error;
+        }
+      }
+
+      const serverData = (aiResponse as any).data || {};
+      const responseText = serverData.response || serverData.fallback_response || "";
+      if (!responseText) {
+        throw new Error('Empty AI response');
       }
 
       // Client-side last-resort code enforcement to ensure widgets trigger
