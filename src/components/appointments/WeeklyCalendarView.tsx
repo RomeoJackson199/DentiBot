@@ -4,10 +4,14 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { CheckCircle2, XCircle } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { AppointmentCompletionDialog } from "../appointment/AppointmentCompletionDialog";
 
 interface WeeklyCalendarViewProps {
   dentistId: string;
@@ -40,8 +44,12 @@ export function WeeklyCalendarView({
   onAppointmentClick,
   selectedAppointmentId 
 }: WeeklyCalendarViewProps) {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
+  const [completionDialogOpen, setCompletionDialogOpen] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
 
   const { data: appointments = [], isLoading } = useQuery({
     queryKey: ["appointments-calendar", dentistId, format(weekStart, "yyyy-MM-dd")],
@@ -87,6 +95,35 @@ export function WeeklyCalendarView({
 
   const getStatusColor = (status: string) => {
     return STATUS_COLORS[status] || "bg-gray-50 text-gray-900 border-l-gray-400";
+  };
+
+  const handleCancelAppointment = async (appointmentId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      await supabase
+        .from("appointments")
+        .update({ status: "cancelled" })
+        .eq("id", appointmentId);
+      
+      queryClient.invalidateQueries({ queryKey: ["appointments-calendar"] });
+      toast({
+        title: "Appointment cancelled",
+        description: "The appointment has been cancelled successfully.",
+      });
+    } catch (error) {
+      console.error("Error cancelling appointment:", error);
+      toast({
+        title: "Error",
+        description: "Failed to cancel appointment.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleCompleteAppointment = (apt: any, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedAppointment(apt);
+    setCompletionDialogOpen(true);
   };
 
   if (isLoading) {
@@ -234,11 +271,6 @@ export function WeeklyCalendarView({
                                 
                                 <div className="space-y-2 pt-2 border-t">
                                   <div>
-                                    <p className="text-muted-foreground text-xs mb-1">Appointment ID</p>
-                                    <p className="font-mono text-xs bg-muted px-2 py-1 rounded inline-block">#{apt.id.slice(0, 8).toUpperCase()}</p>
-                                  </div>
-                                  
-                                  <div>
                                     <p className="text-muted-foreground text-xs mb-1">Status</p>
                                     <Badge 
                                       variant={apt.status === "completed" ? "success" : apt.status === "confirmed" ? "default" : "secondary"} 
@@ -248,21 +280,47 @@ export function WeeklyCalendarView({
                                     </Badge>
                                   </div>
                                   
-                                  <div>
-                                    <p className="text-muted-foreground text-xs mb-1">Urgency</p>
-                                    <Badge 
-                                      variant={apt.urgency === "high" ? "destructive" : "outline"}
-                                      className="uppercase text-xs font-semibold"
-                                    >
-                                      {URGENCY_LABELS[apt.urgency] || apt.urgency}
-                                    </Badge>
-                                  </div>
+                                  {apt.urgency !== "low" && (
+                                    <div>
+                                      <p className="text-muted-foreground text-xs mb-1">Urgency</p>
+                                      <Badge 
+                                        variant={apt.urgency === "high" ? "destructive" : "outline"}
+                                        className="uppercase text-xs font-semibold"
+                                      >
+                                        {URGENCY_LABELS[apt.urgency] || apt.urgency}
+                                      </Badge>
+                                    </div>
+                                  )}
                                   
-                                  <div>
-                                    <p className="text-muted-foreground text-xs mb-1">Reason</p>
-                                    <p className="font-medium">{apt.reason || "General consultation"}</p>
-                                  </div>
+                                  {apt.reason && (
+                                    <div>
+                                      <p className="text-muted-foreground text-xs mb-1">Reason</p>
+                                      <p className="text-sm">{apt.reason}</p>
+                                    </div>
+                                  )}
                                 </div>
+
+                                {apt.status !== "completed" && apt.status !== "cancelled" && (
+                                  <div className="flex gap-2 pt-3 border-t">
+                                    <Button
+                                      size="sm"
+                                      className="flex-1"
+                                      onClick={(e) => handleCompleteAppointment(apt, e)}
+                                    >
+                                      <CheckCircle2 className="h-4 w-4 mr-1" />
+                                      Complete
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="flex-1"
+                                      onClick={(e) => handleCancelAppointment(apt.id, e)}
+                                    >
+                                      <XCircle className="h-4 w-4 mr-1" />
+                                      Cancel
+                                    </Button>
+                                  </div>
+                                )}
                               </div>
                             </TooltipContent>
                           </Tooltip>
@@ -277,6 +335,19 @@ export function WeeklyCalendarView({
         </div>
         </ScrollArea>
       </div>
+
+      {selectedAppointment && (
+        <AppointmentCompletionDialog
+          appointment={selectedAppointment}
+          open={completionDialogOpen}
+          onOpenChange={setCompletionDialogOpen}
+          onCompleted={() => {
+            setCompletionDialogOpen(false);
+            setSelectedAppointment(null);
+            queryClient.invalidateQueries({ queryKey: ["appointments-calendar"] });
+          }}
+        />
+      )}
     </TooltipProvider>
   );
 }

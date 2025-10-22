@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { format, parseISO } from "date-fns";
-import { X, Calendar, Clock, User, FileText, AlertCircle, CheckCircle, XCircle } from "lucide-react";
+import { X, Calendar, Clock, User, FileText, AlertCircle, CheckCircle, XCircle, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -28,6 +29,7 @@ export function AppointmentDetailsSidebar({
   onClose,
   onStatusChange 
 }: AppointmentDetailsSidebarProps) {
+  const navigate = useNavigate();
   const [showCompletionDialog, setShowCompletionDialog] = useState(false);
   const patientName = `${appointment.patient?.first_name || ""} ${appointment.patient?.last_name || ""}`.trim() || "Unknown Patient";
   const appointmentDate = parseISO(appointment.appointment_date);
@@ -133,40 +135,35 @@ export function AppointmentDetailsSidebar({
           <div className="space-y-2">
             <p className="text-sm font-medium mb-3">Actions</p>
             
-            {appointment.status === "pending" && (
-              <Button
-                className="w-full gap-2"
-                onClick={() => onStatusChange(appointment.id, "confirmed")}
-              >
-                <CheckCircle className="h-4 w-4" />
-                Confirm Appointment
-              </Button>
+            {(appointment.status !== "completed" && appointment.status !== "cancelled") && (
+              <>
+                <Button
+                  className="w-full gap-2"
+                  onClick={() => setShowCompletionDialog(true)}
+                >
+                  <CheckCircle className="h-4 w-4" />
+                  Mark as Completed
+                </Button>
+
+                <Button
+                  variant="outline"
+                  className="w-full gap-2"
+                  onClick={() => onStatusChange(appointment.id, "cancelled")}
+                >
+                  <XCircle className="h-4 w-4" />
+                  Cancel Appointment
+                </Button>
+              </>
             )}
 
-            {appointment.status === "confirmed" && (
-              <Button
-                className="w-full gap-2"
-                onClick={() => setShowCompletionDialog(true)}
-              >
-                <CheckCircle className="h-4 w-4" />
-                Mark as Completed
-              </Button>
-            )}
-
-            {(appointment.status === "pending" || appointment.status === "confirmed") && (
-              <Button
-                variant="destructive"
-                className="w-full gap-2"
-                onClick={() => onStatusChange(appointment.id, "cancelled")}
-              >
-                <XCircle className="h-4 w-4" />
-                Cancel Appointment
-              </Button>
-            )}
-
-            <Button variant="outline" className="w-full gap-2">
+            <Button 
+              variant="outline" 
+              className="w-full gap-2"
+              onClick={() => navigate(`/dentist/patients?patient=${appointment.patient_id}`)}
+            >
               <User className="h-4 w-4" />
               View Patient Profile
+              <ExternalLink className="ml-auto h-4 w-4" />
             </Button>
           </div>
         </CardContent>
