@@ -18,7 +18,8 @@ import {
   MapPin,
   FileText,
   Plus,
-  Activity
+  Activity,
+  TrendingUp
 } from "lucide-react";
 import { format } from "date-fns";
 import { NewPatientDialog } from "@/components/patient/NewPatientDialog";

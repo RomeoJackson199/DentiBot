@@ -620,6 +620,184 @@ export function AppointmentCompletionDialog({
           </div>
         );
 
+      case 'prescriptions':
+        return (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <Label className="text-base font-semibold">Prescriptions</Label>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={addPrescription}
+                className="gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                Add Prescription
+              </Button>
+            </div>
+
+            {prescriptions.length === 0 ? (
+              <Card className="p-8 text-center bg-muted/30">
+                <Pill className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+                <p className="text-muted-foreground font-medium">No prescriptions added</p>
+                <p className="text-sm text-muted-foreground/60 mt-1">Click "Add Prescription" to prescribe medication</p>
+              </Card>
+            ) : (
+              <div className="space-y-3">
+                {prescriptions.map((rx) => (
+                  <Card key={rx.id}>
+                    <CardContent className="p-4 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <Label className="font-semibold">Medication Details</Label>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removePrescription(rx.id)}
+                          className="text-destructive hover:bg-destructive/10"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <Label htmlFor={`rx-medication-${rx.id}`}>Medication Name</Label>
+                          <Input
+                            id={`rx-medication-${rx.id}`}
+                            placeholder="e.g., Amoxicillin"
+                            value={rx.medication}
+                            onChange={(e) => updatePrescription(rx.id, 'medication', e.target.value)}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor={`rx-dosage-${rx.id}`}>Dosage</Label>
+                          <Input
+                            id={`rx-dosage-${rx.id}`}
+                            placeholder="e.g., 500mg"
+                            value={rx.dosage}
+                            onChange={(e) => updatePrescription(rx.id, 'dosage', e.target.value)}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor={`rx-frequency-${rx.id}`}>Frequency</Label>
+                          <Input
+                            id={`rx-frequency-${rx.id}`}
+                            placeholder="e.g., 3 times daily"
+                            value={rx.frequency}
+                            onChange={(e) => updatePrescription(rx.id, 'frequency', e.target.value)}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor={`rx-duration-${rx.id}`}>Duration</Label>
+                          <Input
+                            id={`rx-duration-${rx.id}`}
+                            placeholder="e.g., 7 days"
+                            value={rx.duration}
+                            onChange={(e) => updatePrescription(rx.id, 'duration', e.target.value)}
+                          />
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor={`rx-instructions-${rx.id}`}>Instructions</Label>
+                        <Textarea
+                          id={`rx-instructions-${rx.id}`}
+                          placeholder="Special instructions for the patient..."
+                          value={rx.instructions}
+                          onChange={(e) => updatePrescription(rx.id, 'instructions', e.target.value)}
+                          className="mt-1"
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+
+      case 'treatment-plan':
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label className="text-base font-semibold">Link to Treatment Plan</Label>
+              <p className="text-sm text-muted-foreground mt-1">
+                Mark this appointment as part of a treatment plan follow-up
+              </p>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="link-treatment-plan"
+                checked={linkToTreatmentPlan}
+                onChange={(e) => setLinkToTreatmentPlan(e.target.checked)}
+                className="w-4 h-4"
+              />
+              <Label htmlFor="link-treatment-plan">Link to existing treatment plan</Label>
+            </div>
+
+            {linkToTreatmentPlan && (
+              <div className="space-y-3">
+                {treatmentPlans.length === 0 ? (
+                  <Card className="p-6 text-center bg-muted/30">
+                    <ClipboardList className="h-10 w-10 text-muted-foreground mx-auto mb-2" />
+                    <p className="text-muted-foreground">No active treatment plans found</p>
+                    <p className="text-sm text-muted-foreground/60 mt-1">
+                      Create a treatment plan in the patient's record first
+                    </p>
+                  </Card>
+                ) : (
+                  <div className="space-y-2">
+                    <Label>Select Treatment Plan</Label>
+                    {treatmentPlans.map((plan) => (
+                      <Card
+                        key={plan.id}
+                        className={`p-4 cursor-pointer transition-all ${
+                          selectedTreatmentPlan === plan.id
+                            ? 'border-primary bg-primary/5'
+                            : 'hover:bg-muted/50'
+                        }`}
+                        onClick={() => setSelectedTreatmentPlan(plan.id)}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <h4 className="font-semibold">{plan.title || 'Untitled Treatment Plan'}</h4>
+                            {plan.description && (
+                              <p className="text-sm text-muted-foreground mt-1">
+                                {plan.description}
+                              </p>
+                            )}
+                            <div className="flex items-center gap-2 mt-2">
+                              <Badge variant="outline">{plan.status}</Badge>
+                              {plan.estimated_cost && (
+                                <span className="text-sm text-muted-foreground">
+                                  Est. Cost: €{plan.estimated_cost}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          {selectedTreatmentPlan === plan.id && (
+                            <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0" />
+                          )}
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {!linkToTreatmentPlan && (
+              <Card className="p-6 text-center bg-muted/30">
+                <p className="text-sm text-muted-foreground">
+                  This appointment will be recorded as a standalone visit
+                </p>
+              </Card>
+            )}
+          </div>
+        );
+
       case 'billing':
         return (
           <div className="space-y-4">
