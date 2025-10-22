@@ -355,102 +355,92 @@ export const InteractiveDentalChat = ({
   };
 
   const handleSuggestions = (suggestions: string[], recommendedDentists?: string[]) => {
-    console.log('🔧 handleSuggestions called with:', { suggestions, recommendedDentists });
+    console.log('🎯 Handling suggestions:', suggestions);
     
     if (!suggestions || suggestions.length === 0) {
       console.log('⚠️ No suggestions to process');
       return;
     }
     
-    // Show toast for every suggestion
-    toast({
-      title: "🎯 Processing Suggestion",
-      description: `Widget: ${suggestions[0]}`,
-      duration: 2000,
+    suggestions.forEach(suggestion => {
+      const normalizedSuggestion = suggestion.toLowerCase().trim();
+      
+      // Show toast for debugging
+      toast({
+        title: "Debug: Widget triggered",
+        description: `Opening ${normalizedSuggestion}`,
+        duration: 2000
+      });
+      
+      // Normalize appointment-related suggestions
+      if (['view-appointments', 'appointments-list', 'show-appointments', 'appointments'].includes(normalizedSuggestion)) {
+        setActiveWidget('view-appointments');
+        console.log('🔧 Triggering appointments list');
+        showAppointments();
+        return;
+      }
+      
+      switch (normalizedSuggestion) {
+        case 'recommend-dentist':
+        case 'dentist-selection':
+          setActiveWidget('recommend-dentist');
+          console.log('🔧 Triggering recommend-dentist widget with dentists:', recommendedDentists);
+          loadDentistsForBooking(false, recommendedDentists);
+          break;
+        case 'book-appointment':
+        case 'appointment-booking':
+          setActiveWidget('book-appointment');
+          startBookingFlow();
+          break;
+        case 'reschedule':
+          setActiveWidget('reschedule');
+          console.log('🔧 Triggering reschedule widget');
+          showRescheduleWidget();
+          break;
+        case 'cancel-appointment':
+          setActiveWidget('cancel-appointment');
+          console.log('🔧 Triggering cancel-appointment widget');
+          showCancelAppointmentWidget();
+          break;
+        case 'pay-now':
+          setActiveWidget('pay-now');
+          console.log('🔧 Triggering pay-now widget');
+          showPayNowWidget();
+          break;
+        case 'prescription-refill':
+          setActiveWidget('prescription-refill');
+          console.log('🔧 Triggering prescription-refill widget');
+          showPrescriptionRefillWidget();
+          break;
+        case 'theme-dark':
+          setTheme('dark');
+          addBotMessage('Theme changed to dark mode! 🌙');
+          break;
+        case 'theme-light':
+          setTheme('light');
+          addBotMessage('Theme changed to light mode! ☀️');
+          break;
+        case 'language-en':
+          handleLanguageChange('en');
+          break;
+        case 'language-fr':
+          handleLanguageChange('fr');
+          break;
+        case 'language-nl':
+          handleLanguageChange('nl');
+          break;
+        case 'language-options':
+          setActiveWidget('quick-settings');
+          addBotMessage('Please choose your preferred language:');
+          break;
+        case 'theme-options':
+          setActiveWidget('quick-settings');
+          addBotMessage('Please select a theme:');
+          break;
+        default:
+          console.log('⚠️ Unknown suggestion:', suggestion);
+      }
     });
-    
-    if (suggestions.includes('view-appointments') || suggestions.includes('appointments-list') || 
-        suggestions.includes('show-appointments') || suggestions.includes('appointments')) {
-      console.log('🔧 Triggering appointments list');
-      showAppointments();
-      return;
-    }
-    
-    if (suggestions.includes('pay-now')) {
-      console.log('🔧 Triggering pay-now widget');
-      showPayNowWidget();
-      return;
-    }
-    
-    if (suggestions.includes('reschedule')) {
-      console.log('🔧 Triggering reschedule widget');
-      showRescheduleWidget();
-      return;
-    }
-    
-    if (suggestions.includes('cancel-appointment')) {
-      console.log('🔧 Triggering cancel-appointment widget');
-      showCancelAppointmentWidget();
-      return;
-    }
-    
-    if (suggestions.includes('prescription-refill')) {
-      console.log('🔧 Triggering prescription-refill widget');
-      showPrescriptionRefillWidget();
-      return;
-    }
-
-    if (suggestions.includes('recommend-dentist')) {
-      console.log('🔧 Triggering recommend-dentist widget with dentists:', recommendedDentists);
-      loadDentistsForBooking(false, recommendedDentists);
-      return;
-    }
-
-    if (suggestions.includes('theme-dark')) {
-      setTheme('dark');
-      addBotMessage('Theme changed to dark mode! 🌙');
-      return;
-    }
-
-    if (suggestions.includes('theme-light')) {
-      setTheme('light');
-      addBotMessage('Theme changed to light mode! ☀️');
-      return;
-    }
-
-    if (suggestions.includes('language-en')) {
-      handleLanguageChange('en');
-      return;
-    }
-
-    if (suggestions.includes('language-fr')) {
-      handleLanguageChange('fr');
-      return;
-    }
-
-    if (suggestions.includes('language-nl')) {
-      handleLanguageChange('nl');
-      return;
-    }
-
-    if (suggestions.includes('language-options')) {
-      setActiveWidget('quick-settings');
-      addBotMessage('Please choose your preferred language:');
-      return;
-    }
-
-    if (suggestions.includes('theme-options')) {
-      setActiveWidget('quick-settings');
-      addBotMessage('Please select a theme:');
-      return;
-    }
-
-    if (
-      suggestions.includes('booking') ||
-      suggestions.includes('skip-patient-selection')
-    ) {
-      startBookingFlow();
-    }
   };
 
   const handleConsent = (accepted: boolean) => {
@@ -684,6 +674,20 @@ Just type what you need! 😊
   };
 
   const handleDateSelection = async (date: Date) => {
+    console.log('📅 Date selected:', date);
+    
+    if (!bookingFlow.selectedDentist) {
+      toast({
+        title: "Please select a dentist first",
+        description: "Opening dentist selection...",
+        variant: "destructive"
+      });
+      // Re-open dentist selection widget
+      setActiveWidget('recommend-dentist');
+      addBotMessage("Please select a dentist first before choosing a date.");
+      return;
+    }
+
     setBookingFlow({ ...bookingFlow, selectedDate: date, step: 'time' });
     setActiveWidget(null);
     
@@ -735,14 +739,14 @@ Just type what you need! 😊
     });
     
     toast({
-      title: "Error loading time slots",
-      description: `Failed to load times: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      title: "Couldn't load available times",
+      description: "Please try again or select another dentist",
       variant: "destructive",
       duration: 5000,
     });
     
-    addBotMessage("I couldn't load the available times. Please try a different date.");
-    setTimeout(() => setActiveWidget('calendar'), 1000);
+    addBotMessage("I couldn't load the available times. Please try selecting another dentist or a different date.");
+    setTimeout(() => setActiveWidget('recommend-dentist'), 1000);
   }
 };
 

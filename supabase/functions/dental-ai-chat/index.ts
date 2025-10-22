@@ -28,19 +28,8 @@ interface PatientContext {
   treatment_plans?: TreatmentPlan[];
 }
 
-// Environment-based CORS configuration
+// CORS configuration - permissive for all environments
 const getCorsHeaders = () => {
-  const environment = Deno.env.get('ENVIRONMENT') || 'development';
-  
-  if (environment === 'production') {
-    return {
-      'Access-Control-Allow-Origin': 'https://gjvxcisbaxhhblhsytar.supabase.co', // Production domain
-      'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Max-Age': '86400',
-    };
-  }
-  
   return {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -781,32 +770,50 @@ ${patient_context.recent_payments.slice(0, 3).map((p: any) => `- €${p.amount} 
     const urgency_detected = false;
     const emergency_detected = false;
 
-    // Enforce widget codes in the assistant response if missing
-    const hasAnyCode = (text: string) => /(89902|77843|66754|55621|44598|33476)\b/.test(text);
+    // HARDENED code enforcement: Always prepend appropriate code based on intent
     let finalResponse = botResponse;
-
-    if (!hasAnyCode(finalResponse)) {
-      // Map suggestions to codes
-      if (suggestions.includes('pay-now')) {
-        finalResponse = `77843 ${finalResponse}`;
-      } else if (suggestions.includes('reschedule')) {
-        finalResponse = `66754 ${finalResponse}`;
-      } else if (suggestions.includes('cancel-appointment')) {
-        finalResponse = `55621 ${finalResponse}`;
-      } else if (suggestions.includes('prescription-refill')) {
-        finalResponse = `44598 ${finalResponse}`;
+    const messageTextLower = sanitizedMessage.toLowerCase();
+    
+    // Check if response already has a code at the start
+    const hasCode = /^\d{5}/.test(botResponse);
+    
+    if (!hasCode) {
+      // Priority order for code enforcement
+      if (suggestions.includes('pay-now') || messageTextLower.includes('pay') || messageTextLower.includes('bill') || messageTextLower.includes('payment')) {
+        finalResponse = '77843 ' + finalResponse;
+        console.log('🔧 Code enforced: 77843 (payment)');
+      } else if (suggestions.includes('reschedule') || messageTextLower.includes('reschedule') || messageTextLower.includes('change appointment')) {
+        finalResponse = '66754 ' + finalResponse;
+        console.log('🔧 Code enforced: 66754 (reschedule)');
+      } else if (suggestions.includes('cancel-appointment') || messageTextLower.includes('cancel')) {
+        finalResponse = '55621 ' + finalResponse;
+        console.log('🔧 Code enforced: 55621 (cancel)');
+      } else if (suggestions.includes('prescription-refill') || messageTextLower.includes('prescription') || messageTextLower.includes('refill')) {
+        finalResponse = '44598 ' + finalResponse;
+        console.log('🔧 Code enforced: 44598 (prescription)');
+      } else if (suggestions.includes('view-appointments') || (messageTextLower.includes('appointment') && (messageTextLower.includes('view') || messageTextLower.includes('show') || messageTextLower.includes('see') || messageTextLower.includes('my appointments')))) {
+        finalResponse = '33476 ' + finalResponse;
+        console.log('🔧 Code enforced: 33476 (view appointments)');
       } else if (
-        suggestions.includes('appointments') ||
-        suggestions.includes('appointments-list') ||
-        suggestions.includes('show-appointments')
+        suggestions.includes('recommend-dentist') || 
+        messageTextLower.includes('dentist') || 
+        messageTextLower.includes('book') || 
+        messageTextLower.includes('appointment') ||
+        messageTextLower.includes('need help') ||
+        messageTextLower.includes('tooth') ||
+        messageTextLower.includes('pain') ||
+        messageTextLower.includes('emergency')
       ) {
-        finalResponse = `33476 ${finalResponse}`;
-      } else if (
-        suggestions.includes('recommend-dentist') ||
-        /\b(book|appointment|dentist|tooth|teeth|pain|toothache|enfant|kid|child|douleur|mal aux dents|afspraak|tandarts)\b/i.test(lowerMessage)
-      ) {
-        finalResponse = `89902 ${finalResponse}`;
+        // Default: dentist recommendation widget for any dental/appointment conversation
+        finalResponse = '89902 ' + finalResponse;
+        console.log('🔧 Code enforced: 89902 (recommend dentist - DEFAULT)');
+      } else {
+        // Last resort: if it's a general chat with no specific action, still use 89902
+        finalResponse = '89902 ' + finalResponse;
+        console.log('🔧 Code enforced: 89902 (recommend dentist - FALLBACK)');
       }
+    } else {
+      console.log('✅ Code already present in AI response');
     }
 
     return new Response(JSON.stringify({ 

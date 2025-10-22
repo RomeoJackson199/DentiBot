@@ -25,7 +25,7 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.dental-ai-chat]
-verify_jwt = true
+verify_jwt = false
 
 [functions.send-email-notification]
 verify_jwt = true
