@@ -13,25 +13,16 @@ import {
   User, 
   Calendar, 
   CreditCard,
-  ClipboardList,
   Mail,
   Phone,
   MapPin,
   FileText,
-  Pill,
   Plus,
-  Eye,
-  TrendingUp,
   Activity
 } from "lucide-react";
 import { format } from "date-fns";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { SimpleAppointmentBooking } from "@/components/SimpleAppointmentBooking";
-import { PatientPaymentHistory } from "@/components/PatientPaymentHistory";
-import { PrescriptionManager } from "@/components/PrescriptionManager";
-import { TreatmentPlanManager } from "@/components/TreatmentPlanManager";
-import { PaymentRequestManager } from "@/components/PaymentRequestManager";
 import { NewPatientDialog } from "@/components/patient/NewPatientDialog";
+import { PatientDetailsTabs } from "./PatientDetailsTabs";
 
 interface Patient {
   id: string;
@@ -592,81 +583,17 @@ export function ModernPatientManagement({ dentistId }: ModernPatientManagementPr
 
               {/* Tabbed Content */}
               <Card className="bg-gradient-card border-border/50">
-                <Tabs defaultValue="appointments" className="w-full">
-                  <CardHeader className="pb-4">
-                    <TabsList className="grid w-full grid-cols-4">
-                      <TabsTrigger value="appointments">
-                        <Calendar className="h-4 w-4 mr-2" />
-                        Appointments
-                      </TabsTrigger>
-                      <TabsTrigger value="treatments">
-                        <ClipboardList className="h-4 w-4 mr-2" />
-                        Treatments
-                      </TabsTrigger>
-                      <TabsTrigger value="prescriptions">
-                        <Pill className="h-4 w-4 mr-2" />
-                        Prescriptions
-                      </TabsTrigger>
-                      <TabsTrigger value="payments">
-                        <CreditCard className="h-4 w-4 mr-2" />
-                        Payments
-                      </TabsTrigger>
-                    </TabsList>
-                  </CardHeader>
-
-                  <CardContent>
-                    <TabsContent value="appointments" className="mt-0">
-                      {appointments.length > 0 ? (
-                        <div className="space-y-3">
-                          {appointments.slice(0, 5).map((apt) => (
-                            <div key={apt.id} className="p-4 bg-background/50 rounded-lg border border-border/50 hover:shadow-md transition-all">
-                              <div className="flex justify-between items-start">
-                                <div>
-                                  <p className="font-semibold">
-                                    {format(new Date(apt.appointment_date), 'PPP')}
-                                  </p>
-                                  <p className="text-sm text-muted-foreground">
-                                    {format(new Date(apt.appointment_date), 'p')} • {apt.duration_minutes} min
-                                  </p>
-                                  {apt.reason && (
-                                    <p className="text-sm mt-1">{apt.reason}</p>
-                                  )}
-                                </div>
-                                <Badge className={
-                                  apt.status === 'completed' ? 'bg-green-500/10 text-green-700 dark:text-green-400' :
-                                  apt.status === 'cancelled' ? 'bg-red-500/10 text-red-700 dark:text-red-400' :
-                                  'bg-blue-500/10 text-blue-700 dark:text-blue-400'
-                                }>
-                                  {apt.status}
-                                </Badge>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="text-center py-12">
-                          <Calendar className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                          <p className="text-muted-foreground">No appointments found</p>
-                        </div>
-                      )}
-                    </TabsContent>
-
-                    <TabsContent value="treatments" className="mt-0">
-                      <TreatmentPlanManager 
-                        patientId={selectedPatient.id} 
-                        dentistId={dentistId}
-                      />
-                    </TabsContent>
-
-                    <TabsContent value="prescriptions" className="mt-0">
-                      <PrescriptionManager dentistId={dentistId} />
-                    </TabsContent>
-
-                    <TabsContent value="payments" className="mt-0">
-                      <PaymentRequestManager dentistId={dentistId} />
-                    </TabsContent>
-                  </CardContent>
-                </Tabs>
+                <CardContent className="p-6">
+                  <PatientDetailsTabs 
+                    selectedPatient={selectedPatient}
+                    dentistId={dentistId}
+                    appointments={appointments}
+                    onRefresh={() => {
+                      fetchPatientData(selectedPatient.id);
+                      fetchPatientFlags(selectedPatient.id);
+                    }}
+                  />
+                </CardContent>
               </Card>
             </>
           )}

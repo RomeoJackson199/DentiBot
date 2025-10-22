@@ -16,7 +16,11 @@ import {
   ArrowRight,
   ArrowLeft,
   User,
-  Clock
+  Clock,
+  Pill,
+  ClipboardList,
+  Plus,
+  Trash2
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -52,6 +56,8 @@ const steps = [
   { id: 'overview', title: 'Overview', icon: User },
   { id: 'treatments', title: 'Treatments', icon: FileText },
   { id: 'notes', title: 'Notes', icon: FileText },
+  { id: 'prescriptions', title: 'Prescriptions', icon: Pill },
+  { id: 'treatment-plan', title: 'Treatment Plan', icon: ClipboardList },
   { id: 'billing', title: 'Billing', icon: DollarSign },
   { id: 'complete', title: 'Complete', icon: CheckCircle2 }
 ] as const;
@@ -73,6 +79,37 @@ export function AppointmentCompletionDialog({
   const [followUpNeeded, setFollowUpNeeded] = useState(false);
   const [followUpDate, setFollowUpDate] = useState('');
   const [paymentReceived, setPaymentReceived] = useState(false);
+  const [prescriptions, setPrescriptions] = useState<Array<{
+    id: string;
+    medication: string;
+    dosage: string;
+    frequency: string;
+    duration: string;
+    instructions: string;
+  }>>([]);
+  const [treatmentPlans, setTreatmentPlans] = useState<any[]>([]);
+  const [selectedTreatmentPlan, setSelectedTreatmentPlan] = useState<string | null>(null);
+  const [linkToTreatmentPlan, setLinkToTreatmentPlan] = useState(false);
+
+  // Fetch treatment plans on mount
+  useEffect(() => {
+    const fetchTreatmentPlans = async () => {
+      const { data } = await supabase
+        .from('treatment_plans')
+        .select('*')
+        .eq('patient_id', appointment.patient_id)
+        .eq('dentist_id', appointment.dentist_id)
+        .eq('status', 'active');
+      
+      if (data) {
+        setTreatmentPlans(data);
+      }
+    };
+    
+    if (open) {
+      fetchTreatmentPlans();
+    }
+  }, [open, appointment]);
 
   // Calculated values
   const totalAmount = treatments.reduce((sum, treatment) => sum + treatment.price, 0);
@@ -123,6 +160,27 @@ export function AppointmentCompletionDialog({
     setTreatments(prev => prev.map(t => 
       t.id === id ? { ...t, tooth } : t
     ));
+  };
+
+  const addPrescription = () => {
+    setPrescriptions(prev => [...prev, {
+      id: `rx-${Date.now()}`,
+      medication: '',
+      dosage: '',
+      frequency: '',
+      duration: '',
+      instructions: ''
+    }]);
+  };
+
+  const updatePrescription = (id: string, field: string, value: string) => {
+    setPrescriptions(prev => prev.map(rx => 
+      rx.id === id ? { ...rx, [field]: value } : rx
+    ));
+  };
+
+  const removePrescription = (id: string) => {
+    setPrescriptions(prev => prev.filter(rx => rx.id !== id));
   };
 
   const handleNext = () => {
@@ -210,7 +268,32 @@ export function AppointmentCompletionDialog({
           }
       }
 
-      // 4. Mark appointment as completed
+      // 4. Save prescriptions
+      if (prescriptions.length > 0) {
+        const prescriptionData = prescriptions.map(rx => ({
+          patient_id: appointment.patient_id,
+          dentist_id: appointment.dentist_id,
+          medication_name: rx.medication,
+          dosage: rx.dosage,
+          frequency: rx.frequency,
+          duration: rx.duration,
+          instructions: rx.instructions,
+          prescribed_date: new Date().toISOString(),
+          status: 'active'
+        }));
+        
+        await supabase.from('prescriptions').insert(prescriptionData);
+      }
+
+      // 5. Link to treatment plan if selected
+      if (linkToTreatmentPlan && selectedTreatmentPlan) {
+        await supabase
+          .from('appointments')
+          .update({ treatment_plan_id: selectedTreatmentPlan })
+          .eq('id', appointment.id);
+      }
+
+      // 6. Mark appointment as completed
       await supabase
         .from('appointments')
         .update({
