@@ -2,12 +2,13 @@ import { useState, useEffect, useRef } from "react";
 import { useCurrentDentist } from "@/hooks/useCurrentDentist";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/hooks/useLanguage";
+import { WeeklyCalendarView } from "@/components/appointments/WeeklyCalendarView";
 import { DayCalendarView } from "@/components/appointments/DayCalendarView";
 import { AppointmentDetailsSidebar } from "@/components/appointments/AppointmentDetailsSidebar";
-import { format, addDays, subDays } from "date-fns";
+import { format, addDays, subDays, parseISO } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
@@ -16,6 +17,7 @@ export default function DentistAppointmentsManagement() {
   const { dentistId, loading: dentistLoading } = useCurrentDentist();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
+  const [viewMode, setViewMode] = useState<"week" | "day">("week");
   const [headerVisible, setHeaderVisible] = useState(true);
   const lastScrollY = useRef(0);
   const { toast } = useToast();
@@ -42,10 +44,22 @@ export default function DentistAppointmentsManagement() {
   }, []);
 
   const navigateDate = (direction: "prev" | "next") => {
+    const daysToAdd = viewMode === "week" ? 7 : 1;
     setCurrentDate(direction === "next" 
-      ? addDays(currentDate, 1)
-      : subDays(currentDate, 1)
+      ? addDays(currentDate, daysToAdd)
+      : subDays(currentDate, daysToAdd)
     );
+  };
+
+  const handleAppointmentClick = (appointment: any) => {
+    setSelectedAppointment(appointment);
+    setViewMode("day");
+    setCurrentDate(parseISO(appointment.appointment_date));
+  };
+
+  const handleBackToWeek = () => {
+    setViewMode("week");
+    setSelectedAppointment(null);
   };
 
   const handleStatusChange = async (appointmentId: string, newStatus: string) => {
@@ -83,7 +97,11 @@ export default function DentistAppointmentsManagement() {
   };
 
   const getDateRangeLabel = () => {
-    return format(currentDate, "EEEE, MMMM d, yyyy");
+    if (viewMode === "day") {
+      return format(currentDate, "EEEE, MMMM d, yyyy");
+    }
+    const weekEnd = addDays(currentDate, 6);
+    return `${format(currentDate, "MMM d")} - ${format(weekEnd, "MMM d, yyyy")}`;
   };
 
   if (dentistLoading) {
@@ -122,6 +140,12 @@ export default function DentistAppointmentsManagement() {
           </div>
           
           <div className="flex items-center gap-3">
+            {viewMode === "day" && (
+              <Button variant="outline" size="lg" onClick={handleBackToWeek} className="gap-2">
+                <ArrowLeft className="h-4 w-4" />
+                Back to Week
+              </Button>
+            )}
             <Button variant="outline" size="lg" onClick={() => setCurrentDate(new Date())}>
               Today
             </Button>
@@ -171,12 +195,21 @@ export default function DentistAppointmentsManagement() {
               <p className="text-muted-foreground">{t.notRegisteredDentist}</p>
             </div>
           ) : (
-            <DayCalendarView
-              dentistId={dentistId}
-              currentDate={currentDate}
-              onAppointmentClick={setSelectedAppointment}
-              selectedAppointmentId={selectedAppointment?.id}
-            />
+            viewMode === "week" ? (
+              <WeeklyCalendarView
+                dentistId={dentistId}
+                currentDate={currentDate}
+                onAppointmentClick={handleAppointmentClick}
+                selectedAppointmentId={selectedAppointment?.id}
+              />
+            ) : (
+              <DayCalendarView
+                dentistId={dentistId}
+                currentDate={currentDate}
+                onAppointmentClick={setSelectedAppointment}
+                selectedAppointmentId={selectedAppointment?.id}
+              />
+            )
           )}
         </div>
 
