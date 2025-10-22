@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { Send, Bot, User as UserIcon, Mic, MicOff } from "lucide-react";
+import { Send, Bot, User as UserIcon, Mic, MicOff, CheckCircle } from "lucide-react";
 import { ChatMessage } from "@/types/chat";
 import { format } from "date-fns";
 import { 
