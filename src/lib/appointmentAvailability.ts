@@ -140,9 +140,9 @@ export async function fetchDentistAvailability(
     const slotDateTime = new Date(`${dateStr}T${timeStr}`);
     
     // Check if it's during break time
-    if (availability.break_start_time && availability.break_end_time) {
-      const breakStart = new Date(`${dateStr}T${availability.break_start_time}`);
-      const breakEnd = new Date(`${dateStr}T${availability.break_end_time}`);
+    if (effectiveAvailability.break_start_time && effectiveAvailability.break_end_time) {
+      const breakStart = new Date(`${dateStr}T${effectiveAvailability.break_start_time}`);
+      const breakEnd = new Date(`${dateStr}T${effectiveAvailability.break_end_time}`);
       if (slotDateTime >= breakStart && slotDateTime < breakEnd) {
         return {
           time: timeStr,

@@ -307,12 +307,22 @@ export const InteractiveDentalChat = ({
       // Detect and extract hidden widget codes
       const { cleanedText, detectedWidgets, recommendedDentists } = detectAndExtractCodes(responseText);
       
-      console.log('🔢 Detected widget codes:', { 
-        original: responseText,
-        cleaned: cleanedText,
-        widgets: detectedWidgets,
-        dentists: recommendedDentists 
-      });
+      // Show visible debug info when codes are detected
+      if (detectedWidgets.length > 0) {
+        console.log('🔢 Widget codes detected:', { 
+          original: responseText,
+          cleaned: cleanedText,
+          widgets: detectedWidgets,
+          dentists: recommendedDentists 
+        });
+        
+        // Show toast with detected codes for debugging
+        toast({
+          title: "🤖 AI Widget Code Detected",
+          description: `Widget triggered: ${detectedWidgets.join(', ')}${recommendedDentists.length > 0 ? `\nDentists: ${recommendedDentists.join(', ')}` : ''}`,
+          duration: 3000,
+        });
+      }
 
       const result = {
         id: crypto.randomUUID(),
@@ -716,7 +726,20 @@ Just type what you need! 😊
       addBotMessage("Please choose your preferred time:");
       
   } catch (error) {
-    console.error("Error fetching slots:", error);
+    console.error("Error fetching slots - Full error:", error);
+    console.error("Error details:", {
+      dentistId: bookingFlow.selectedDentist?.id,
+      date: dateStr,
+      dentist: bookingFlow.selectedDentist
+    });
+    
+    toast({
+      title: "Error loading time slots",
+      description: `Failed to load times: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      variant: "destructive",
+      duration: 5000,
+    });
+    
     addBotMessage("I couldn't load the available times. Please try a different date.");
     setTimeout(() => setActiveWidget('calendar'), 1000);
   }
