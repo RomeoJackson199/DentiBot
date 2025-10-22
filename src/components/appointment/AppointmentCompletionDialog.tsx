@@ -111,6 +111,13 @@ export function AppointmentCompletionDialog({
     }
   }, [open, appointment]);
 
+  // Auto-enable treatment plan link if plans available
+  useEffect(() => {
+    if (open && treatmentPlans.length > 0) {
+      setLinkToTreatmentPlan(true);
+    }
+  }, [open, treatmentPlans.length]);
+
   // Calculated values
   const totalAmount = treatments.reduce((sum, treatment) => sum + treatment.price, 0);
   const currentStepData = steps[currentStep];
