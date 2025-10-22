@@ -30,6 +30,16 @@ import {
 } from "./InteractiveChatWidgets";
 import { AIChatOnboardingDialog } from "./AIChatOnboardingDialog";
 
+// Widget code mapping
+const WIDGET_CODES: Record<string, string> = {
+  '89902': 'recommend-dentist',
+  '77843': 'pay-now',
+  '66754': 'reschedule',
+  '55621': 'cancel-appointment',
+  '44598': 'prescription-refill',
+  '33476': 'view-appointments',
+};
+
 interface UserProfile {
   id: string;
   first_name?: string;
@@ -228,6 +238,44 @@ export const InteractiveDentalChat = ({
     saveMessage(botMessage);
   };
 
+  const detectAndExtractCodes = (text: string): { 
+    cleanedText: string; 
+    detectedWidgets: string[];
+    recommendedDentists: string[];
+  } => {
+    let cleanedText = text;
+    const detectedWidgets: string[] = [];
+    const recommendedDentists: string[] = [];
+    
+    // Detect all widget codes
+    Object.entries(WIDGET_CODES).forEach(([code, widget]) => {
+      const codeRegex = new RegExp(`\\b${code}\\b`, 'g');
+      if (codeRegex.test(cleanedText)) {
+        detectedWidgets.push(widget);
+        cleanedText = cleanedText.replace(codeRegex, '').trim();
+        // Clean up double spaces
+        cleanedText = cleanedText.replace(/\s{2,}/g, ' ');
+      }
+    });
+    
+    // Extract dentist recommendations from text
+    const dentistNames = [
+      'Virginie Pauwels',
+      'Emeline Hubin', 
+      'Firdaws Benhsain',
+      'Justine Peters',
+      'Anne-Sophie Haas'
+    ];
+    
+    dentistNames.forEach(name => {
+      if (cleanedText.toLowerCase().includes(name.toLowerCase())) {
+        recommendedDentists.push(name);
+      }
+    });
+    
+    return { cleanedText, detectedWidgets, recommendedDentists };
+  };
+
   const generateBotResponse = async (
     userMessage: string,
     history: ChatMessage[]
@@ -255,10 +303,21 @@ export const InteractiveDentalChat = ({
       }
 
       const responseText = aiResponse.data?.response || aiResponse.data?.fallback_response || "I'm sorry, I couldn't process your request.";
+      
+      // Detect and extract hidden widget codes
+      const { cleanedText, detectedWidgets, recommendedDentists } = detectAndExtractCodes(responseText);
+      
+      console.log('🔢 Detected widget codes:', { 
+        original: responseText,
+        cleaned: cleanedText,
+        widgets: detectedWidgets,
+        dentists: recommendedDentists 
+      });
+
       const result = {
         id: crypto.randomUUID(),
         session_id: sessionId as any,
-        message: responseText,
+        message: cleanedText,
         is_bot: true,
         message_type: 'text',
         created_at: new Date().toISOString(),
@@ -266,8 +325,8 @@ export const InteractiveDentalChat = ({
       return {
         message: result,
         fallback: Boolean(aiResponse.data?.fallback_response && !aiResponse.data?.response),
-        suggestions: aiResponse.data?.suggestions || [],
-        recommendedDentists: aiResponse.data?.recommended_dentist || []
+        suggestions: detectedWidgets,
+        recommendedDentists: recommendedDentists
       };
     } catch (error) {
       console.error('Error generating AI response:', error);
