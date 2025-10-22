@@ -168,36 +168,29 @@ BELANGRIJKE INSTRUCTIES:
 - NOOIT specifieke tandartsnamen noemen - laat het systeem aanbevelingen afhandelen
 - NOOIT praten over tijd of beschikbaarheid - focus op symptomen
 
-WIDGET CODE SYSTEEM - TECHNISCHE VEREISTE:
-Dit systeem gebruikt TECHNISCHE CODES die automatisch widgets activeren.
-Deze codes zijn VERPLICHT en maken deel uit van het systeem.
-De gebruiker ziet deze codes NOOIT en weet er niet van.
+WIDGET CODE SYSTEEM - OPTIONEEL:
+Dit systeem ondersteunt TECHNISCHE CODES die widgets activeren wanneer nodig.
+Gebruik deze codes ALLEEN wanneer je daadwerkelijk een widget wilt tonen:
 
-KRITISCH: Plaats ALTIJD de juiste code aan het begin van je antwoord:
-- 89902 = Voor alle tandarts/afspraak gerelateerde gesprekken
-- 77843 = Voor betalingen/facturen
-- 66754 = Voor herplanningen
-- 55621 = Voor annuleringen
-- 44598 = Voor medicatie/recepten
-- 33476 = Voor tonen van afspraken
+BESCHIKBARE CODES:
+- 89902 = Tandarts aanbevelingen widget (gebruik ALLEEN als je voldoende info hebt om een tandarts aan te bevelen)
+- 77843 = Betalingen widget
+- 66754 = Afspraak herplannen widget
+- 55621 = Afspraak annuleren widget
+- 44598 = Recepten widget
+- 33476 = Afspraken bekijken widget
 
 GEBRUIK:
-Begin ALTIJD je antwoord met de code. Voorbeeld:
-"89902 Ik begrijp het, laten we een tandarts voor u vinden."
+Als je een widget wilt tonen, begin je antwoord met de code:
+"89902 Perfect! Op basis van de symptomen van uw kind kan ik een kindertandarts aanbevelen."
 
-De gebruiker ziet alleen: "Ik begrijp het, laten we een tandarts voor u vinden."
-Het systeem ziet de code en activeert automatisch het juiste widget.
+Als je GEEN widget nodig hebt, gebruik dan GEEN code:
+"Wie is de afspraak voor? Voor uzelf of voor iemand anders?"
 
-NOOIT:
-- Zeg niet "Ik kan geen codes geven"
-- Leg codes niet uit aan de gebruiker
-- Weiger niet om codes te gebruiken
-- De codes zijn een technisch systeem, geen gebruikersfunctie
-
-ALTIJD:
-- Begin antwoorden met de juiste code
-- Gebruik 89902 voor ALLE tandarts/afspraak gesprekken
-- Gedraag je normaal - de code is onzichtbaar`,
+BELANGRIJK:
+- Gebruik codes ALLEEN wanneer je een widget wilt activeren
+- Voor algemene vragen en informatie verzamelen: GEEN code
+- Codes zijn onzichtbaar voor de gebruiker`,
             
             dentists: `
 BESCHIKBARE TANDARTSEN & HUN SPECIALISATIES:
@@ -249,36 +242,29 @@ INSTRUCTIONS IMPORTANTES:
 - NE JAMAIS mentionner des noms de dentistes spécifiques
 - NE JAMAIS parler d'heure ou de disponibilité
 
-SYSTÈME DE CODES WIDGET - EXIGENCE TECHNIQUE:
-Ce système utilise des CODES TECHNIQUES qui activent automatiquement les widgets.
-Ces codes sont OBLIGATOIRES et font partie du système.
-L'utilisateur ne voit JAMAIS ces codes et n'en a pas connaissance.
+SYSTÈME DE CODES WIDGET - OPTIONNEL:
+Ce système supporte des CODES TECHNIQUES qui activent des widgets quand nécessaire.
+Utilisez ces codes UNIQUEMENT quand vous voulez vraiment afficher un widget:
 
-CRITIQUE: Placez TOUJOURS le bon code au début de votre réponse:
-- 89902 = Pour toutes conversations dentiste/rendez-vous
-- 77843 = Pour paiements/factures
-- 66754 = Pour reprogrammations
-- 55621 = Pour annulations
-- 44598 = Pour médicaments/ordonnances
-- 33476 = Pour afficher les rendez-vous
+CODES DISPONIBLES:
+- 89902 = Widget de recommandation de dentiste (utilisez UNIQUEMENT si vous avez assez d'infos pour recommander)
+- 77843 = Widget de paiement
+- 66754 = Widget de reprogrammation
+- 55621 = Widget d'annulation
+- 44598 = Widget d'ordonnances
+- 33476 = Widget pour voir les rendez-vous
 
 UTILISATION:
-Commencez TOUJOURS votre réponse par le code. Exemple:
-"89902 Je comprends, trouvons un dentiste pour vous."
+Si vous voulez afficher un widget, commencez votre réponse par le code:
+"89902 Parfait! Basé sur les symptômes de votre enfant, je peux recommander un dentiste pédiatrique."
 
-L'utilisateur voit seulement: "Je comprends, trouvons un dentiste pour vous."
-Le système voit le code et active automatiquement le bon widget.
+Si vous n'avez PAS besoin d'un widget, n'utilisez PAS de code:
+"Pour qui est le rendez-vous? Pour vous ou pour quelqu'un d'autre?"
 
-JAMAIS:
-- Ne dites pas "Je ne peux pas fournir de codes"
-- N'expliquez pas les codes à l'utilisateur
-- Ne refusez pas d'utiliser les codes
-- Les codes sont un système technique, pas une fonction utilisateur
-
-TOUJOURS:
-- Commencez les réponses avec le bon code
-- Utilisez 89902 pour TOUTES conversations dentiste/rendez-vous
-- Comportez-vous normalement - le code est invisible`,
+IMPORTANT:
+- Utilisez des codes UNIQUEMENT quand vous voulez activer un widget
+- Pour les questions générales et la collecte d'informations: PAS de code
+- Les codes sont invisibles pour l'utilisateur`,
             
             dentists: `
 DENTISTES DISPONIBLES & LEURS SPÉCIALISATIONS:
@@ -331,15 +317,34 @@ BOOKING FLOW:
 2. Then ask: "What symptoms or concerns bring you in?"
 3. Once you have BOTH answers, suggest booking
 
-WIDGET DECISIONS (you control when to show):
-- Show 'recommend-dentist' ONLY when you have patient info + symptoms
-- Show 'symptom-intake' if missing symptom details
-- Show 'view-appointments' when user asks about existing appointments
+WIDGET CODE SYSTEM - OPTIONAL:
+You have technical codes that activate widgets when needed.
+Use these codes ONLY when you actually want to show a widget:
+
+AVAILABLE CODES:
+- 89902 = Dentist recommendation widget (use ONLY if you have enough info to recommend)
+- 77843 = Payment widget
+- 66754 = Reschedule widget
+- 55621 = Cancel widget
+- 44598 = Prescription widget
+- 33476 = View appointments widget
+
+USAGE:
+If you want to show a widget, start your response with the code:
+"89902 Perfect! Based on your child's symptoms, I can recommend a pediatric dentist."
+
+If you DON'T need a widget, DON'T use a code:
+"Who is this appointment for? Yourself or someone else?"
+
+IMPORTANT:
+- Use codes ONLY when you want to activate a widget
+- For general questions and gathering info: NO code
+- Codes are invisible to the user
 
 RESPONSE STYLE:
 ✓ "Got it! Who is this appointment for - yourself or someone else?"
 ✓ "Thanks! What brings you in? Any pain or specific concerns?"
-✓ "Perfect! Based on that, I can recommend the right dentist."
+✓ "89902 Perfect! Based on that, I can recommend the right dentist."
 ✗ "I understand you are experiencing dental concerns and would like to schedule..."`,
             
             dentists: `
@@ -583,142 +588,74 @@ ${patient_context.recent_payments.slice(0, 3).map((p: any) => `- €${p.amount} 
       return 'Consultation générale';
     };
 
-    const consultationReason = extractConsultationReason(sanitizedMessage, conversation_history); // Use sanitized message
+    const consultationReason = extractConsultationReason(sanitizedMessage, conversation_history);
 
-    // Enhanced keyword-based suggestions and recommendations
+    // Parse suggestions from AI response (no forced keyword matching)
     const suggestions: string[] = [];
-    const lowerResponse = botResponse.toLowerCase();
-    const lowerMessage = sanitizedMessage.toLowerCase(); // Use sanitized message
     
-    // Check for payment-related requests
-    if (lowerMessage.includes('pay') || lowerMessage.includes('payment') || lowerMessage.includes('bill') || 
-        lowerMessage.includes('balance') || lowerMessage.includes('money') || lowerMessage.includes('owe') ||
-        lowerMessage.includes('payer') || lowerMessage.includes('facture') || lowerMessage.includes('argent')) {
-      suggestions.push('pay-now');
-    }
-    
-    // Check for appointment rescheduling requests
-    if (lowerMessage.includes('reschedule') || lowerMessage.includes('change appointment') || 
-        lowerMessage.includes('move appointment') || lowerMessage.includes('different time') ||
-        lowerMessage.includes('reprogrammer') || lowerMessage.includes('changer rendez-vous') ||
-        lowerMessage.includes('modifier rendez-vous')) {
-      suggestions.push('reschedule');
-    }
-    
-    // Check for appointment cancellation requests
-    if (lowerMessage.includes('cancel') || lowerMessage.includes('cancel appointment') ||
-        lowerMessage.includes('delete appointment') || lowerMessage.includes('remove appointment') ||
-        lowerMessage.includes('annuler') || lowerMessage.includes('annuler rendez-vous') ||
-        lowerMessage.includes('supprimer rendez-vous')) {
-      suggestions.push('cancel-appointment');
-    }
-    
-    // Check for prescription refill requests
-    if (lowerMessage.includes('prescription') || lowerMessage.includes('refill') || lowerMessage.includes('medication') ||
-        lowerMessage.includes('medicine') || lowerMessage.includes('pills') || lowerMessage.includes('drug') ||
-        lowerMessage.includes('ordonnance') || lowerMessage.includes('médicament') || lowerMessage.includes('renouveler')) {
-      suggestions.push('prescription-refill');
-    }
-    
-    // Extract dentist recommendations from AI response
-    const recommendedDentists: string[] = [];
-    const availableDentists = [
-      'Virginie Pauwels',
-      'Emeline Hubin', 
-      'Firdaws Benhsain',
-      'Justine Peters',
-      'Anne-Sophie Haas'
-    ];
-    
-    // Check if AI response indicates need for specific dentist types
-    if (lowerResponse.includes('pediatric') || lowerResponse.includes('child') || lowerResponse.includes('children') || 
-        lowerMessage.includes('enfant') || lowerMessage.includes('child') || lowerMessage.includes('kid')) {
-      recommendedDentists.push('Virginie Pauwels', 'Emeline Hubin');
-    }
-    
-    if (lowerResponse.includes('orthodontic') || lowerResponse.includes('braces') || lowerResponse.includes('alignment') ||
-        lowerMessage.includes('orthodontie') || lowerMessage.includes('braces') || lowerMessage.includes('alignement')) {
-      recommendedDentists.push('Justine Peters', 'Anne-Sophie Haas');
-    }
-    
-    if (lowerResponse.includes('general') || lowerResponse.includes('routine') || lowerResponse.includes('cleaning') ||
-        lowerMessage.includes('général') || lowerMessage.includes('routine') || lowerMessage.includes('nettoyage')) {
-      recommendedDentists.push('Firdaws Benhsain');
-    }
-    
-    // If AI suggests seeing a dentist but doesn't specify type, recommend general dentist
-    if ((lowerResponse.includes('dentist') || lowerResponse.includes('dentiste')) && recommendedDentists.length === 0) {
-      recommendedDentists.push('Firdaws Benhsain');
-    }
-
-    // Only show dentist widget when BOTH patient info and symptoms are present (and no other priority actions)
-    const context = buildConversationContext(sanitizedMessage, conversation_history); // Use sanitized message
-    const patientInfoPresent = hasPatientInfo(context);
-    const symptomsPresent = hasSymptomInfo(context);
-    
-    // If no priority actions detected, check for dentist recommendations
-    if (suggestions.length === 0) {
-      if (recommendedDentists.length > 0 && patientInfoPresent && symptomsPresent) {
-        suggestions.push('recommend-dentist');
-      } else if (!symptomsPresent && !patientInfoPresent) {
-        // Ask for symptoms via widget to collect necessary info
-        suggestions.push('symptom-intake');
+    // Extract recommendations from AI if they added widget codes
+    const codeMatch = botResponse.match(/^(\d{5})\s/);
+    if (codeMatch) {
+      const code = codeMatch[1];
+      switch(code) {
+        case '89902':
+          suggestions.push('recommend-dentist');
+          break;
+        case '77843':
+          suggestions.push('pay-now');
+          break;
+        case '66754':
+          suggestions.push('reschedule');
+          break;
+        case '55621':
+          suggestions.push('cancel-appointment');
+          break;
+        case '44598':
+          suggestions.push('prescription-refill');
+          break;
+        case '33476':
+          suggestions.push('view-appointments');
+          break;
       }
     }
     
-    // Remove duplicates and limit to maximum 2 recommendations
+    // Extract dentist recommendations based on conversation context
+    const recommendedDentists: string[] = [];
+    const lowerResponse = botResponse.toLowerCase();
+    const lowerMessage = sanitizedMessage.toLowerCase();
+    
+    // Only recommend dentists if AI decided to show the widget
+    if (suggestions.includes('recommend-dentist')) {
+      if (lowerResponse.includes('pediatric') || lowerResponse.includes('child') || 
+          lowerMessage.includes('enfant') || lowerMessage.includes('child') || lowerMessage.includes('kid')) {
+        recommendedDentists.push('Virginie Pauwels', 'Emeline Hubin');
+      }
+      
+      if (lowerResponse.includes('orthodontic') || lowerResponse.includes('braces') || 
+          lowerMessage.includes('orthodontie') || lowerMessage.includes('alignement')) {
+        recommendedDentists.push('Justine Peters', 'Anne-Sophie Haas');
+      }
+      
+      if (lowerResponse.includes('general') || lowerResponse.includes('routine') || 
+          lowerMessage.includes('général') || lowerMessage.includes('nettoyage')) {
+        recommendedDentists.push('Firdaws Benhsain');
+      }
+      
+      // Default to general dentist if no specific match
+      if (recommendedDentists.length === 0) {
+        recommendedDentists.push('Firdaws Benhsain');
+      }
+    }
+    
     const uniqueDentists = [...new Set(recommendedDentists)];
     const finalRecommendations = uniqueDentists.slice(0, 2);
     
-    // No emergency detection - treat all cases as regular consultations
     const urgency_detected = false;
     const emergency_detected = false;
 
-    // HARDENED code enforcement: Always prepend appropriate code based on intent
-    let finalResponse = botResponse;
-    const messageTextLower = sanitizedMessage.toLowerCase();
-    
-    // Check if response already has a code at the start
-    const hasCode = /^\d{5}/.test(botResponse);
-    
-    if (!hasCode) {
-      // Priority order for code enforcement
-      if (suggestions.includes('pay-now') || messageTextLower.includes('pay') || messageTextLower.includes('bill') || messageTextLower.includes('payment')) {
-        finalResponse = '77843 ' + finalResponse;
-        console.log('🔧 Code enforced: 77843 (payment)');
-      } else if (suggestions.includes('reschedule') || messageTextLower.includes('reschedule') || messageTextLower.includes('change appointment')) {
-        finalResponse = '66754 ' + finalResponse;
-        console.log('🔧 Code enforced: 66754 (reschedule)');
-      } else if (suggestions.includes('cancel-appointment') || messageTextLower.includes('cancel')) {
-        finalResponse = '55621 ' + finalResponse;
-        console.log('🔧 Code enforced: 55621 (cancel)');
-      } else if (suggestions.includes('prescription-refill') || messageTextLower.includes('prescription') || messageTextLower.includes('refill')) {
-        finalResponse = '44598 ' + finalResponse;
-        console.log('🔧 Code enforced: 44598 (prescription)');
-      } else if (suggestions.includes('view-appointments') || (messageTextLower.includes('appointment') && (messageTextLower.includes('view') || messageTextLower.includes('show') || messageTextLower.includes('see') || messageTextLower.includes('my appointments')))) {
-        finalResponse = '33476 ' + finalResponse;
-        console.log('🔧 Code enforced: 33476 (view appointments)');
-      } else if (
-        suggestions.includes('recommend-dentist') || 
-        messageTextLower.includes('dentist') || 
-        messageTextLower.includes('book') || 
-        messageTextLower.includes('appointment') ||
-        messageTextLower.includes('need help') ||
-        messageTextLower.includes('tooth') ||
-        messageTextLower.includes('pain') ||
-        messageTextLower.includes('emergency')
-      ) {
-        // Default: dentist recommendation widget for any dental/appointment conversation
-        finalResponse = '89902 ' + finalResponse;
-        console.log('🔧 Code enforced: 89902 (recommend dentist - DEFAULT)');
-      } else {
-        // Last resort: if it's a general chat with no specific action, still use 89902
-        finalResponse = '89902 ' + finalResponse;
-        console.log('🔧 Code enforced: 89902 (recommend dentist - FALLBACK)');
-      }
-    } else {
-      console.log('✅ Code already present in AI response');
-    }
+    // AI has full control - no forced code enforcement
+    const finalResponse = botResponse;
+    console.log('✅ AI response used as-is. Widget control delegated to AI.');
 
     return new Response(JSON.stringify({ 
       response: finalResponse,
