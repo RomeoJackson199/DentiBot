@@ -88,36 +88,24 @@ export function AddUserDialog({ onUserAdded }: AddUserDialogProps) {
         profileId = profileData.id;
       }
 
-      // Create invitation token
-      const { data: tokenData, error: tokenError } = await supabase.rpc(
-        'create_invitation_token_with_cleanup',
-        {
-          p_profile_id: profileId,
-          p_email: email,
-          p_expires_hours: 72,
-        }
-      );
+      // If adding as dentist, create dentist record directly
+      if (role === 'dentist') {
+        const { error: dentistError } = await supabase
+          .from('dentists')
+          .insert({
+            profile_id: profileId,
+            first_name: firstName,
+            last_name: lastName,
+            email: email,
+            is_active: true,
+          });
 
-      if (tokenError) throw tokenError;
-
-      // Send invitation email
-      const { error: emailError } = await supabase.functions.invoke('send-import-invitations', {
-        body: {
-          invitations: [{
-            email,
-            token: tokenData,
-            firstName,
-            lastName,
-            role,
-          }],
-        },
-      });
-
-      if (emailError) throw emailError;
+        if (dentistError) throw dentistError;
+      }
 
       toast({
-        title: "Invitation Sent",
-        description: `An invitation has been sent to ${email}`,
+        title: "User Added Successfully",
+        description: `${firstName} ${lastName} has been added as ${role}`,
       });
 
       setOpen(false);
@@ -127,10 +115,10 @@ export function AddUserDialog({ onUserAdded }: AddUserDialogProps) {
       setRole("patient");
       onUserAdded?.();
     } catch (error: any) {
-      console.error('Error sending invitation:', error);
+      console.error('Error adding user:', error);
       toast({
         title: "Error",
-        description: error.message || "Failed to send invitation",
+        description: error.message || "Failed to add user",
         variant: "destructive",
       });
     } finally {
@@ -153,7 +141,7 @@ export function AddUserDialog({ onUserAdded }: AddUserDialogProps) {
             Add New User
           </DialogTitle>
           <DialogDescription>
-            Send an invitation to a new user. They will receive an email with instructions to set up their account.
+            Add a new user to the system. For dentists, they will be added directly without email confirmation.
           </DialogDescription>
         </DialogHeader>
 
@@ -226,10 +214,10 @@ export function AddUserDialog({ onUserAdded }: AddUserDialogProps) {
               {loading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Sending...
+                  Adding...
                 </>
               ) : (
-                "Send Invitation"
+                "Add User"
               )}
             </Button>
           </div>
