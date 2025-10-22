@@ -1518,34 +1518,39 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
         onClose={() => setShowOnboarding(false)} 
       />
       
-      <ScrollArea className="flex-1 p-4">
-        <div className="space-y-4 max-w-4xl mx-auto">
+      <ScrollArea className="flex-1 p-4 bg-gradient-to-b from-background to-muted/20">
+        <div className="space-y-4 max-w-4xl mx-auto pb-4">
           {messages.map((message) => (
             <div
               key={message.id}
-              className={`flex ${message.is_bot ? "justify-start" : "justify-end"}`}
+              className={`flex ${message.is_bot ? "justify-start" : "justify-end"} animate-in fade-in slide-in-from-bottom-2 duration-300`}
             >
               <div
-                className={`flex items-start space-x-2 max-w-md ${
-                  message.is_bot ? "" : "flex-row-reverse space-x-reverse"
+                className={`flex items-start gap-3 max-w-[85%] ${
+                  message.is_bot ? "" : "flex-row-reverse"
                 }`}
               >
-                <div className="flex-shrink-0">
+                <div className="flex-shrink-0 mt-1">
                   {message.is_bot ? (
-                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                      <Bot className="w-4 h-4 text-primary" />
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/10 shadow-sm">
+                      <Bot className="w-5 h-5 text-primary" />
                     </div>
                   ) : (
-                    <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
-                      <UserIcon className="w-4 h-4 text-secondary-foreground" />
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-secondary/80 to-secondary flex items-center justify-center shadow-sm">
+                      <UserIcon className="w-5 h-5 text-secondary-foreground" />
                     </div>
                   )}
                 </div>
-                <Card className={`${message.is_bot ? "bg-muted/50" : "bg-primary text-primary-foreground"}`}>
-                  <CardContent className="p-3">
-                    <div className="text-sm whitespace-pre-wrap">{message.message}</div>
+                <Card className={`border-none shadow-md ${
+                  message.is_bot 
+                    ? "bg-card/80 backdrop-blur-sm" 
+                    : "bg-gradient-to-br from-primary to-primary/90 text-primary-foreground"
+                }`}>
+                  <CardContent className="p-4">
+                    <div className="text-sm leading-relaxed whitespace-pre-wrap">{message.message}</div>
                     {message.message_type === 'success' && (
-                      <Badge variant="secondary" className="mt-2">
+                      <Badge variant="secondary" className="mt-2 bg-green-100 text-green-800 border-green-200">
+                        <CheckCircle className="w-3 h-3 mr-1" />
                         Success
                       </Badge>
                     )}
@@ -1556,17 +1561,17 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
           ))}
           
           {isLoading && (
-            <div className="flex justify-start">
-              <div className="flex items-start space-x-2 max-w-md">
-                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Bot className="w-4 h-4 text-primary" />
+            <div className="flex justify-start animate-in fade-in slide-in-from-bottom-2 duration-300">
+              <div className="flex items-start gap-3 max-w-[85%]">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/10 shadow-sm">
+                  <Bot className="w-5 h-5 text-primary" />
                 </div>
-                <Card className="bg-muted/50">
-                  <CardContent className="p-3">
-                    <div className="flex space-x-1">
-                      <div className="w-2 h-2 bg-primary rounded-full animate-bounce"></div>
-                      <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: "0.1s" }}></div>
-                      <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
+                <Card className="bg-card/80 backdrop-blur-sm border-none shadow-md">
+                  <CardContent className="p-4">
+                    <div className="flex gap-1.5">
+                      <div className="w-2.5 h-2.5 bg-primary rounded-full animate-bounce"></div>
+                      <div className="w-2.5 h-2.5 bg-primary rounded-full animate-bounce" style={{ animationDelay: "0.1s" }}></div>
+                      <div className="w-2.5 h-2.5 bg-primary rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
                     </div>
                   </CardContent>
                 </Card>
@@ -1574,25 +1579,31 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
             </div>
           )}
           
-          {renderWidget()}
+          {activeWidget && (
+            <div className="mt-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
+              {renderWidget()}
+            </div>
+          )}
           
           <div ref={messagesEndRef} />
         </div>
       </ScrollArea>
 
-      <div className="border-t p-4">
-        <div className="flex space-x-2 max-w-4xl mx-auto">
+      <div className="border-t bg-card/50 backdrop-blur-sm p-4">
+        <div className="flex gap-3 max-w-4xl mx-auto">
           <Input
             placeholder="Type your message..."
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
             onKeyPress={handleKeyPress}
-            className="flex-1"
+            className="flex-1 bg-background/50 border-input/50 focus:border-primary transition-colors"
+            disabled={isLoading}
           />
           <Button 
             onClick={handleSendMessage} 
-            disabled={!inputMessage.trim()}
+            disabled={!inputMessage.trim() || isLoading}
             size="icon"
+            className="h-10 w-10 rounded-xl shadow-md hover:shadow-lg transition-all"
           >
             <Send className="h-4 w-4" />
           </Button>

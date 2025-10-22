@@ -246,39 +246,39 @@ const TimeSlotsWidget = ({
   };
 
   return (
-    <Card className="max-w-md mx-auto my-4 border-primary/20 shadow-lg">
-      <CardHeader className="text-center">
-        <Clock className="h-8 w-8 mx-auto text-primary mb-2" />
-        <CardTitle className="text-lg">Available Times</CardTitle>
-        <div className="flex items-center justify-center gap-4 mt-3 text-xs">
-          <div className="flex items-center gap-1">
-            <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-            <span>Available</span>
+    <Card className="max-w-md mx-auto my-4 border-primary/20 shadow-xl bg-gradient-to-br from-card to-card/80 backdrop-blur-sm">
+      <CardHeader className="text-center pb-4">
+        <Clock className="h-10 w-10 mx-auto text-primary mb-3 drop-shadow-md" />
+        <CardTitle className="text-xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">Available Times</CardTitle>
+        <div className="flex items-center justify-center gap-6 mt-4 text-xs">
+          <div className="flex items-center gap-2">
+            <div className="w-3.5 h-3.5 bg-green-500 rounded-full shadow-sm"></div>
+            <span className="text-muted-foreground">Available</span>
           </div>
-          <div className="flex items-center gap-1">
-            <div className="w-3 h-3 bg-gray-400 rounded-full"></div>
-            <span>Booked</span>
+          <div className="flex items-center gap-2">
+            <div className="w-3.5 h-3.5 bg-gray-400 rounded-full shadow-sm"></div>
+            <span className="text-muted-foreground">Booked</span>
           </div>
-          <div className="flex items-center gap-1">
-            <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-            <span>Vacation</span>
+          <div className="flex items-center gap-2">
+            <div className="w-3.5 h-3.5 bg-red-500 rounded-full shadow-sm"></div>
+            <span className="text-muted-foreground">Vacation</span>
           </div>
         </div>
       </CardHeader>
       <CardContent>
         {loading ? (
-          <div className="text-center py-8">
-            <Loader2 className="animate-spin h-8 w-8 mx-auto text-primary" />
-            <p className="text-sm text-muted-foreground mt-2">Loading availability...</p>
+          <div className="text-center py-12">
+            <Loader2 className="animate-spin h-10 w-10 mx-auto text-primary drop-shadow-md" />
+            <p className="text-sm text-muted-foreground mt-3">Loading availability...</p>
           </div>
         ) : slots.length === 0 ? (
-          <div className="text-center py-8">
-            <AlertTriangle className="h-8 w-8 mx-auto text-orange-500 mb-2" />
+          <div className="text-center py-12">
+            <AlertTriangle className="h-10 w-10 mx-auto text-orange-500 mb-3 drop-shadow-md" />
             <p className="text-sm text-muted-foreground">No available time slots</p>
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-3 gap-2 mb-4">
+            <div className="grid grid-cols-3 gap-3 mb-4">
               {slots.map((slot) => (
                 <Button
                   key={slot.time}
@@ -286,16 +286,16 @@ const TimeSlotsWidget = ({
                   size="sm"
                   disabled={!slot.available}
                   onClick={() => slot.available && onTimeSelect(slot.time)}
-                  className={`text-xs relative ${
+                  className={`text-sm font-medium relative transition-all duration-200 ${
                     selectedTime === slot.time 
-                      ? "ring-2 ring-primary" 
+                      ? "ring-2 ring-primary shadow-lg scale-105" 
                       : getSlotStyle(slot)
                   }`}
                   title={!slot.available ? getReasonLabel(slot.reason) : undefined}
                 >
                   {formatTime(slot.time)}
                   {!slot.available && (
-                    <X className="absolute top-0 right-0 h-3 w-3 text-red-500" />
+                    <X className="absolute top-1 right-1 h-3 w-3 text-red-500" />
                   )}
                 </Button>
               ))}
