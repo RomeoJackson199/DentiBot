@@ -26,6 +26,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { NotificationService } from '@/lib/notificationService';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface AppointmentCompletionDialogProps {
   open: boolean;
@@ -90,6 +91,15 @@ export function AppointmentCompletionDialog({
   const [treatmentPlans, setTreatmentPlans] = useState<any[]>([]);
   const [selectedTreatmentPlan, setSelectedTreatmentPlan] = useState<string | null>(null);
   const [linkToTreatmentPlan, setLinkToTreatmentPlan] = useState(false);
+  const [createNewTreatmentPlan, setCreateNewTreatmentPlan] = useState(false);
+  const [newTreatmentPlanForm, setNewTreatmentPlanForm] = useState({
+    title: '',
+    description: '',
+    diagnosis: '',
+    priority: 'normal',
+    estimated_cost: '',
+    estimated_duration_weeks: ''
+  });
 
   // Fetch treatment plans on mount
   useEffect(() => {
@@ -292,11 +302,38 @@ export function AppointmentCompletionDialog({
         await supabase.from('prescriptions').insert(prescriptionData);
       }
 
-      // 5. Link to treatment plan if selected
-      if (linkToTreatmentPlan && selectedTreatmentPlan) {
+      // 5. Create new treatment plan or link to existing one
+      let treatmentPlanId = selectedTreatmentPlan;
+      
+      if (createNewTreatmentPlan && newTreatmentPlanForm.title.trim()) {
+        const { data: newPlan, error: planError } = await supabase
+          .from('treatment_plans')
+          .insert({
+            patient_id: appointment.patient_id,
+            dentist_id: appointment.dentist_id,
+            title: newTreatmentPlanForm.title,
+            description: newTreatmentPlanForm.description || null,
+            diagnosis: newTreatmentPlanForm.diagnosis || null,
+            priority: newTreatmentPlanForm.priority,
+            estimated_cost: newTreatmentPlanForm.estimated_cost ? parseFloat(newTreatmentPlanForm.estimated_cost) : null,
+            estimated_duration_weeks: newTreatmentPlanForm.estimated_duration_weeks ? parseInt(newTreatmentPlanForm.estimated_duration_weeks) : null,
+            status: 'active',
+            start_date: new Date().toISOString()
+          })
+          .select()
+          .single();
+        
+        if (planError) {
+          console.error('Error creating treatment plan:', planError);
+        } else if (newPlan) {
+          treatmentPlanId = newPlan.id;
+        }
+      }
+      
+      if (treatmentPlanId) {
         await supabase
           .from('appointments')
-          .update({ treatment_plan_id: selectedTreatmentPlan })
+          .update({ treatment_plan_id: treatmentPlanId })
           .eq('id', appointment.id);
       }
 
@@ -727,18 +764,108 @@ export function AppointmentCompletionDialog({
         return (
           <div className="space-y-4">
             <div>
-              <Label className="text-base font-semibold">Link to Treatment Plan</Label>
+              <Label className="text-base font-semibold">Treatment Plan</Label>
               <p className="text-sm text-muted-foreground mt-1">
-                Mark this appointment as part of a treatment plan follow-up
+                Create a new treatment plan or link to an existing one
               </p>
             </div>
 
+            {/* Create New Treatment Plan */}
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="create-treatment-plan"
+                checked={createNewTreatmentPlan}
+                onChange={(e) => {
+                  setCreateNewTreatmentPlan(e.target.checked);
+                  if (e.target.checked) setLinkToTreatmentPlan(false);
+                }}
+                className="w-4 h-4"
+              />
+              <Label htmlFor="create-treatment-plan">Create new treatment plan</Label>
+            </div>
+
+            {createNewTreatmentPlan && (
+              <Card className="p-4 space-y-3">
+                <div>
+                  <Label htmlFor="plan-title">Plan Title *</Label>
+                  <Input
+                    id="plan-title"
+                    placeholder="e.g., Full Mouth Restoration"
+                    value={newTreatmentPlanForm.title}
+                    onChange={(e) => setNewTreatmentPlanForm(prev => ({ ...prev, title: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="plan-description">Description</Label>
+                  <Textarea
+                    id="plan-description"
+                    placeholder="Describe the treatment plan..."
+                    value={newTreatmentPlanForm.description}
+                    onChange={(e) => setNewTreatmentPlanForm(prev => ({ ...prev, description: e.target.value }))}
+                    className="min-h-20"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label htmlFor="plan-diagnosis">Diagnosis</Label>
+                    <Input
+                      id="plan-diagnosis"
+                      placeholder="e.g., Multiple caries"
+                      value={newTreatmentPlanForm.diagnosis}
+                      onChange={(e) => setNewTreatmentPlanForm(prev => ({ ...prev, diagnosis: e.target.value }))}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="plan-priority">Priority</Label>
+                    <Select
+                      value={newTreatmentPlanForm.priority}
+                      onValueChange={(value) => setNewTreatmentPlanForm(prev => ({ ...prev, priority: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="low">Low</SelectItem>
+                        <SelectItem value="normal">Normal</SelectItem>
+                        <SelectItem value="high">High</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="plan-cost">Estimated Cost (€)</Label>
+                    <Input
+                      id="plan-cost"
+                      type="number"
+                      placeholder="0.00"
+                      value={newTreatmentPlanForm.estimated_cost}
+                      onChange={(e) => setNewTreatmentPlanForm(prev => ({ ...prev, estimated_cost: e.target.value }))}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="plan-duration">Duration (weeks)</Label>
+                    <Input
+                      id="plan-duration"
+                      type="number"
+                      placeholder="0"
+                      value={newTreatmentPlanForm.estimated_duration_weeks}
+                      onChange={(e) => setNewTreatmentPlanForm(prev => ({ ...prev, estimated_duration_weeks: e.target.value }))}
+                    />
+                  </div>
+                </div>
+              </Card>
+            )}
+
+            {/* Link to Existing Treatment Plan */}
             <div className="flex items-center space-x-2">
               <input
                 type="checkbox"
                 id="link-treatment-plan"
                 checked={linkToTreatmentPlan}
-                onChange={(e) => setLinkToTreatmentPlan(e.target.checked)}
+                onChange={(e) => {
+                  setLinkToTreatmentPlan(e.target.checked);
+                  if (e.target.checked) setCreateNewTreatmentPlan(false);
+                }}
                 className="w-4 h-4"
               />
               <Label htmlFor="link-treatment-plan">Link to existing treatment plan</Label>
@@ -751,7 +878,7 @@ export function AppointmentCompletionDialog({
                     <ClipboardList className="h-10 w-10 text-muted-foreground mx-auto mb-2" />
                     <p className="text-muted-foreground">No active treatment plans found</p>
                     <p className="text-sm text-muted-foreground/60 mt-1">
-                      Create a treatment plan in the patient's record first
+                      Create a new treatment plan above
                     </p>
                   </Card>
                 ) : (
@@ -795,7 +922,7 @@ export function AppointmentCompletionDialog({
               </div>
             )}
 
-            {!linkToTreatmentPlan && (
+            {!linkToTreatmentPlan && !createNewTreatmentPlan && (
               <Card className="p-6 text-center bg-muted/30">
                 <p className="text-sm text-muted-foreground">
                   This appointment will be recorded as a standalone visit

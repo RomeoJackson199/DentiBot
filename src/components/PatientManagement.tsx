@@ -217,7 +217,7 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
         .from('appointments')
         .select(`
           patient_id,
-          profiles!inner(
+          profiles(
             id,
             first_name,
             last_name,
@@ -231,7 +231,12 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
         `)
         .eq('dentist_id', dentistId);
 
-      if (appointmentError) throw appointmentError;
+      if (appointmentError) {
+        console.error('Error fetching appointments:', appointmentError);
+        throw appointmentError;
+      }
+
+      console.log('Appointments data:', appointmentData);
 
       // Extract unique patients
       const uniquePatients = appointmentData
@@ -241,6 +246,7 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
         )
         .filter(Boolean) as Patient[];
 
+      console.log('Unique patients:', uniquePatients);
       setPatients(uniquePatients);
     } catch (error: unknown) {
       toast({
