@@ -150,7 +150,7 @@ export function UnifiedAppointments({
         .from('appointments')
         .select(`
           *,
-          patient:profiles!appointments_patient_id_fkey (
+          patient:patient_id (
             id,
             first_name,
             last_name,
@@ -158,9 +158,9 @@ export function UnifiedAppointments({
             phone,
             date_of_birth
           ),
-          dentist:dentists!appointments_dentist_id_fkey (
+          dentist:dentist_id (
             id,
-            profiles:profile_id (
+            profile:profiles (
               first_name,
               last_name
             )
@@ -211,12 +211,12 @@ export function UnifiedAppointments({
       // Load all patients for dentist view
       const { data } = await supabase
         .from('appointments')
-        .select(`patient_id, patient:profiles!appointments_patient_id_fkey ( id, first_name, last_name, email )`)
+        .select(`patient_id, profiles:patient_id ( id, first_name, last_name, email )`)
         .eq('dentist_id', dentistId);
       
       const unique: Record<string, any> = {};
       (data || []).forEach((row: any) => {
-        const p = row.patient;
+        const p = row.profiles;
         if (p && !unique[p.id]) unique[p.id] = p;
       });
       setQuickPatients(Object.values(unique));

@@ -52,19 +52,13 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
           id,
           profile_id,
           specialization,
-          profiles:profile_id(first_name, last_name)
+          first_name,
+          last_name
         `)
         .eq('is_active', true);
 
       if (error) throw error;
-      const normalized = (data || []).map((d: any) => ({
-        id: d.id,
-        profile_id: d.profile_id,
-        specialization: d.specialization,
-        first_name: d.profiles?.first_name || '',
-        last_name: d.profiles?.last_name || ''
-      }));
-      setDentists(normalized);
+      setDentists(data || []);
     } catch (error) {
       console.error('Failed to fetch dentists:', error);
       toast({
@@ -243,19 +237,15 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
         `${selectedDate.toLocaleDateString()} at ${selectedTime}`
       );
 
-      // Create a medical record for this appointment (non-blocking)
-      try {
-        await createMedicalRecord({
-          patientId: profile.id,
-          dentistId: selectedDentist,
-          title: 'Appointment booked',
-          description: `Rendez-vous confirmé le ${selectedDate.toLocaleDateString()} à ${selectedTime}. Motif: ${reason || 'Consultation générale'}`,
-          recordType: 'appointment',
-          visitDate: selectedDate.toISOString().split('T')[0]
-        });
-      } catch (e) {
-        console.warn('Medical record creation skipped:', e);
-      }
+      // Create a medical record for this appointment
+      await createMedicalRecord({
+        patientId: profile.id,
+        dentistId: selectedDentist,
+        title: 'Appointment booked',
+        description: `Rendez-vous confirmé le ${selectedDate.toLocaleDateString()} à ${selectedTime}. Motif: ${reason || 'Consultation générale'}`,
+        recordType: 'appointment',
+        visitDate: selectedDate.toISOString().split('T')[0]
+      });
 
       onComplete({
         date: selectedDate.toLocaleDateString(),
@@ -310,7 +300,7 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
                       <div className="flex items-center py-1">
                         <UserIcon className="h-4 w-4 mr-3 text-blue-600" />
                         <div>
-                          <div className="font-medium">Dr {dentist?.first_name || ''} {dentist?.last_name || ''}</div>
+                          <div className="font-medium">Dr {dentist.first_name} {dentist.last_name}</div>
                           <div className="text-sm text-gray-500">{dentist.specialization || 'General Dentistry'}</div>
                         </div>
                       </div>
