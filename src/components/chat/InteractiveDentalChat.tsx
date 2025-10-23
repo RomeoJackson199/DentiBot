@@ -827,13 +827,30 @@ Just type what you need! 😊
       const [hours, minutes] = bookingFlow.selectedTime.split(":");
       appointmentDateTime.setHours(parseInt(hours), parseInt(minutes));
 
+      // Generate AI appointment reason from conversation
+      let appointmentReason = bookingFlow.reason || "General consultation";
+      if (messages.length > 0) {
+        try {
+          const { generateAppointmentReason } = await import("@/lib/symptoms");
+          const aiReason = await generateAppointmentReason(
+            messages as any,
+            { id: profile.id, first_name: profile.first_name, last_name: profile.last_name } as any
+          );
+          if (aiReason && aiReason !== "General consultation") {
+            appointmentReason = aiReason;
+          }
+        } catch (err) {
+          console.error('Failed to generate AI reason:', err);
+        }
+      }
+
       const { data: appointmentData, error: appointmentError } = await supabase
         .from("appointments")
         .insert({
           patient_id: profile.id,
           dentist_id: bookingFlow.selectedDentist.id,
           appointment_date: appointmentDateTime.toISOString(),
-          reason: bookingFlow.reason || "General consultation",
+          reason: appointmentReason,
           status: "confirmed",
            urgency: bookingFlow.urgency >= 5 ? "emergency" : 
                    bookingFlow.urgency === 4 ? "high" : 
@@ -866,7 +883,7 @@ Just type what you need! 😊
 📅 **Date:** ${format(bookingFlow.selectedDate, "EEEE, MMMM d, yyyy")}
 🕒 **Time:** ${bookingFlow.selectedTime}
 👨‍⚕️ **Dentist:** Dr. ${bookingFlow.selectedDentist.profiles?.first_name} ${bookingFlow.selectedDentist.profiles?.last_name}
-📝 **Type:** ${bookingFlow.reason || "General consultation"}
+📝 **Reason:** ${appointmentReason}
 
 You'll receive a confirmation email shortly. If you need to reschedule or cancel, just ask me! 😊`;
 

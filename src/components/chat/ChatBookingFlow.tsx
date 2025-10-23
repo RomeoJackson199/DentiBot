@@ -16,6 +16,7 @@ interface ChatBookingFlowProps {
   onComplete: (appointmentData: any) => void;
   onCancel: () => void;
   onResponse: (message: string) => void;
+  conversationHistory?: any[];
 }
 
 interface TimeSlot {
@@ -29,7 +30,8 @@ export const ChatBookingFlow = ({
   selectedDentist, 
   onComplete, 
   onCancel, 
-  onResponse 
+  onResponse,
+  conversationHistory = []
 }: ChatBookingFlowProps) => {
   const { t } = useLanguage();
   const { toast } = useToast();
@@ -165,13 +167,28 @@ export const ChatBookingFlow = ({
       const [hours, minutes] = selectedTime.split(":");
       appointmentDateTime.setHours(parseInt(hours), parseInt(minutes));
 
+      // Generate AI appointment reason from conversation
+      let appointmentReason = "General consultation";
+      if (conversationHistory.length > 0) {
+        try {
+          const { generateAppointmentReason } = await import("@/lib/symptoms");
+          const aiReason = await generateAppointmentReason(
+            conversationHistory as any,
+            { id: profile.id, first_name: profile.first_name, last_name: profile.last_name } as any
+          );
+          if (aiReason) appointmentReason = aiReason;
+        } catch (err) {
+          console.error('Failed to generate AI reason:', err);
+        }
+      }
+
       const { data: appointmentData, error: appointmentError } = await supabase
         .from("appointments")
         .insert({
           patient_id: profile.id,
           dentist_id: currentDentist.id,
           appointment_date: appointmentDateTime.toISOString(),
-          reason: "General consultation",
+          reason: appointmentReason,
           status: "confirmed",
           urgency: "medium"
         })
@@ -205,7 +222,7 @@ export const ChatBookingFlow = ({
 📅 **Date:** ${format(selectedDate, "EEEE, MMMM d, yyyy")}
 🕒 **Time:** ${selectedTime}
 👨‍⚕️ **Dentist:** Dr. ${currentDentist.profiles?.first_name} ${currentDentist.profiles?.last_name}
-📝 **Type:** General consultation
+📝 **Reason:** ${appointmentReason}
 
 You'll receive a confirmation email shortly. If you need to reschedule or cancel, just ask me!`;
 
