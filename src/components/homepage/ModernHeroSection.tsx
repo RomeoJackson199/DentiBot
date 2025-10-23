@@ -25,108 +25,73 @@ interface ModernHeroSectionProps {
 
 export function ModernHeroSection({ onBookAppointment, onStartTriage, onOpenAIChat, minimal = false }: ModernHeroSectionProps) {
   const { t, language } = useLanguage();
-  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
-
-  const features = [
-    { icon: Brain, title: t.aiDiagnosis, description: t.aiDiagnosisDesc },
-    { icon: Shield, title: "Secure", description: language === 'fr' ? 'Conforme à la HIPAA' : language === 'nl' ? 'HIPAA-conform' : 'HIPAA compliant platform' },
-    { icon: Zap, title: t.smartBooking, description: t.smartBookingDesc },
-    { icon: Users, title: language === 'fr' ? 'Connecté' : language === 'nl' ? 'Verbonden' : 'Connected', description: language === 'fr' ? 'Communication fluide' : language === 'nl' ? 'Naadloze communicatie' : 'Seamless communication' }
-  ];
-
-  const stats = [
-    { value: "10k+", label: language === 'fr' ? 'Patients satisfaits' : language === 'nl' ? 'Tevreden patiënten' : 'Happy Patients' },
-    { value: "500+", label: language === 'fr' ? 'Professionnels dentaires' : language === 'nl' ? 'Tandheelkundige professionals' : 'Dental Professionals' },
-    { value: "95%", label: language === 'fr' ? 'Taux de satisfaction' : language === 'nl' ? 'Tevredenheidspercentage' : 'Satisfaction Rate' },
-    { value: "24/7", label: language === 'fr' ? 'Assistance IA' : language === 'nl' ? 'AI-ondersteuning' : 'AI Support' }
-  ];
 
   return (
-    <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
-      {/* Enhanced Background */}
-      <div className="absolute inset-0 hero-pattern">
-        <div className="absolute inset-0 bg-gradient-to-br from-background/90 via-background/50 to-background/90" />
-        
-        {/* Floating Elements */}
-        {!minimal && (
-          <>
-            <div className="absolute top-20 left-10 animate-float" style={{ animationDelay: "0s" }}>
-              <Card variant="glass" className="p-3 backdrop-blur-xl">
-                <Heart className="h-6 w-6 text-dental-primary" />
-              </Card>
-            </div>
-            
-            <div className="absolute top-40 right-20 animate-float" style={{ animationDelay: "2s" }}>
-              <Card variant="glass" className="p-3 backdrop-blur-xl">
-                <Shield className="h-6 w-6 text-dental-secondary" />
-              </Card>
-            </div>
-            
-            <div className="absolute bottom-40 left-20 animate-float" style={{ animationDelay: "4s" }}>
-              <Card variant="glass" className="p-3 backdrop-blur-xl">
-                <Zap className="h-6 w-6 text-dental-accent" />
-              </Card>
-            </div>
-          </>
-        )}
-      </div>
+    <section className="relative min-h-screen flex overflow-hidden bg-gradient-to-br from-blue-400 via-purple-400 to-pink-400">
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/90 via-purple-500/90 to-pink-500/90" />
+      
+      <div className="container mx-auto px-8 lg:px-12 relative z-10 flex flex-col justify-between py-12 text-white">
+        <div className="flex items-center gap-2 text-sm font-medium">
+          <Users className="h-5 w-5" />
+          {language === 'fr' ? 'Plus de 10 000 patients gèrent leur santé dentaire' : language === 'nl' ? 'Meer dan 10.000 patiënten beheren hun tandgezondheid' : 'Join 10,000+ patients managing their dental health'}
+        </div>
 
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="max-w-5xl mx-auto text-center space-y-12">
-          
-          {/* AI Badge */}
-          <div className="animate-fade-in">
-            <Badge variant="secondary" className="bg-gradient-primary text-white px-6 py-2 text-sm rounded-full shadow-glow">
-              <Sparkles className="h-4 w-4 mr-2" />
-              {language === 'fr' ? 'Propulsé par une IA avancée' : language === 'nl' ? 'Aangedreven door geavanceerde AI' : 'Powered by Advanced AI'}
-            </Badge>
-          </div>
-
-          {/* Main Headline */}
-          <div className="space-y-6 animate-slide-up" style={{ animationDelay: "0.2s" }}>
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold leading-tight">
-              <span className="gradient-text">{language === 'fr' ? 'Soins dentaires intelligents' : language === 'nl' ? 'Slimme tandheelkundige zorg' : 'Smart Dental Care'}</span>
+        <div className="space-y-8">
+          <div>
+            <h1 className="text-6xl lg:text-7xl font-bold leading-tight mb-4">
+              {language === 'fr' ? 'VOS SOINS DENTAIRES' : language === 'nl' ? 'UW TANDVERZORGING' : 'YOUR DENTAL CARE'}
               <br />
-              <span className="text-foreground">{language === 'fr' ? 'Simplifiés' : language === 'nl' ? 'Eenvoudig gemaakt' : 'Made Simple'}</span>
+              <span className="text-white/90">
+                {language === 'fr' ? 'SIMPLIFIÉS' : language === 'nl' ? 'VEREENVOUDIGD' : 'SIMPLIFIED'}
+              </span>
             </h1>
-            
-            <p className="text-xl sm:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-              {t.experienceFuture}
-            </p>
           </div>
 
-          {/* Feature Grid */}
+          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 max-w-md border border-white/20">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+                <Star className="h-6 w-6 text-yellow-300 fill-yellow-300" />
+              </div>
+              <div>
+                <p className="text-white/95 mb-3 leading-relaxed">
+                  {language === 'fr' ? "DentiBot a complètement transformé ma gestion des rendez-vous dentaires. L'assistant IA est incroyablement utile!" : language === 'nl' ? 'DentiBot heeft mijn tandheelkundige afspraakbeheer volledig getransformeerd. De AI-assistent is ongelooflijk behulpzaam!' : "DentiBot has completely transformed how I manage my dental appointments. The AI assistant is incredibly helpful!"}
+                </p>
+                <p className="font-semibold">{language === 'fr' ? 'Sophie Martin' : language === 'nl' ? 'Jan Janssen' : 'Sarah Johnson'}</p>
+                <p className="text-sm text-white/70">{language === 'fr' ? 'Patiente régulière' : language === 'nl' ? 'Reguliere Patiënt' : 'Regular Patient'}</p>
+              </div>
+            </div>
+          </div>
+
           {!minimal && (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-fade-in" style={{ animationDelay: "0.4s" }}>
-              {features.map((feature, index) => (
-                <Card 
-                  key={feature.title}
-                  variant="glass-strong" 
-                  className="p-4 hover:scale-105 transition-all duration-300 group"
-                  style={{ animationDelay: `${0.6 + index * 0.1}s` }}
-                >
-                  <feature.icon className="h-8 w-8 text-dental-primary mx-auto mb-2 group-hover:scale-110 transition-transform" />
-                  <h3 className="font-semibold text-sm mb-1">{feature.title}</h3>
-                  <p className="text-xs text-muted-foreground">{feature.description}</p>
-                </Card>
-              ))}
+            <div className="grid grid-cols-2 gap-4 max-w-md">
+              <div className="bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20">
+                <Brain className="h-6 w-6 mb-2" />
+                <p className="text-2xl font-bold">24/7</p>
+                <p className="text-sm text-white/80">
+                  {language === 'fr' ? 'Assistance IA' : language === 'nl' ? 'AI Ondersteuning' : 'AI Support'}
+                </p>
+              </div>
+              <div className="bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20">
+                <Shield className="h-6 w-6 mb-2" />
+                <p className="text-2xl font-bold">100%</p>
+                <p className="text-sm text-white/80">
+                  {language === 'fr' ? 'Sécurisé et privé' : language === 'nl' ? 'Veilig & Privé' : 'Secure & Private'}
+                </p>
+              </div>
             </div>
           )}
 
-          {/* CTA Buttons */}
           {!minimal && (
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-slide-up" style={{ animationDelay: "0.8s" }}>
+            <div className="flex flex-col sm:flex-row gap-4 pt-4">
               <AppButton
-                variant="gradient"
+                variant="outline"
                 size="desktop"
                 asChild
-                aria-label="Book a dental appointment"
-                className="group min-w-[200px]"
+                className="bg-white text-primary hover:bg-white/90 border-0 min-w-[200px] h-12"
               >
-                <a href="/book" className="flex items-center">
-                  <Calendar className="h-5 w-5 mr-2 group-hover:scale-110 transition-transform" />
+                <a href="/book" className="flex items-center justify-center">
+                  <Calendar className="h-5 w-5 mr-2" />
                   {t.bookAppointment}
-                  <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
                 </a>
               </AppButton>
               
@@ -134,10 +99,9 @@ export function ModernHeroSection({ onBookAppointment, onStartTriage, onOpenAICh
                 variant="outline"
                 size="desktop"
                 onClick={onStartTriage}
-                aria-label="Start emergency dental triage"
-                className="group min-w-[200px] border-dental-primary/30 hover:bg-dental-primary/5"
+                className="border-white/30 hover:bg-white/10 text-white min-w-[200px] h-12"
               >
-                <Shield className="h-5 w-5 mr-2 group-hover:scale-110 transition-transform" />
+                <Shield className="h-5 w-5 mr-2" />
                 {t['triage.title']}
               </AppButton>
 
@@ -146,71 +110,12 @@ export function ModernHeroSection({ onBookAppointment, onStartTriage, onOpenAICh
                   variant="outline"
                   size="desktop"
                   onClick={onOpenAIChat}
-                  aria-label="Talk to AI assistant"
-                  className="group min-w-[200px] border-dental-primary/30 hover:bg-dental-primary/5"
+                  className="border-white/30 hover:bg-white/10 text-white min-w-[200px] h-12"
                 >
-                  <Brain className="h-5 w-5 mr-2 group-hover:scale-110 transition-transform" />
+                  <Brain className="h-5 w-5 mr-2" />
                   {language === 'fr' ? "Parler à l'IA" : language === 'nl' ? 'Praat met AI' : 'Talk to AI'}
                 </AppButton>
               )}
-            </div>
-          )}
-
-          {/* Stats Section */}
-          {!minimal && (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 pt-12 animate-fade-in" style={{ animationDelay: "1s" }}>
-              {stats.map((stat, index) => (
-                <div key={stat.label} className="text-center group">
-                  <div className="text-3xl sm:text-4xl font-bold gradient-text mb-2 group-hover:scale-110 transition-transform">
-                    {stat.value}
-                  </div>
-                  <div className="text-sm text-muted-foreground">{stat.label}</div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Demo Video Placeholder */}
-          {!minimal && (
-            <div className="relative max-w-4xl mx-auto animate-scale-in" style={{ animationDelay: "1.2s" }}>
-              <Card variant="elevated" className="relative overflow-hidden group">
-                <div className="aspect-video bg-gradient-to-br from-dental-primary/20 to-dental-accent/20 flex items-center justify-center">
-                  {!isVideoPlaying ? (
-                    <AppButton
-                      variant="glass"
-                      size="lg"
-                      onClick={() => setIsVideoPlaying(true)}
-                      aria-label="Play demo video"
-                      className="group hover:scale-110 transition-all duration-300"
-                    >
-                      <Play className="h-8 w-8 mr-2 group-hover:scale-110 transition-transform" />
-                      {language === 'fr' ? 'Regarder la démo' : language === 'nl' ? 'Bekijk demo' : 'Watch Demo'}
-                    </AppButton>
-                    ) : (
-                    <div className="text-white text-lg font-medium">
-                      {language === 'fr' ? 'Lecture de la vidéo de démonstration...' : language === 'nl' ? 'Demovideo wordt afgespeeld...' : 'Demo Video Playing...'}
-                    </div>
-                  )}
-                </div>
-              </Card>
-            </div>
-          )}
-
-          {/* Trust Indicators */}
-          {!minimal && (
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-8 pt-8 animate-fade-in" style={{ animationDelay: "1.4s" }}>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Shield className="h-4 w-4 text-dental-success" />
-                {language === 'fr' ? 'Conforme à la HIPAA' : language === 'nl' ? 'HIPAA-conform' : 'HIPAA Compliant'}
-              </div>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Star className="h-4 w-4 text-dental-warning" />
-                {language === 'fr' ? 'Note 4,9/5' : language === 'nl' ? 'Beoordeling 4,9/5' : '4.9/5 Rating'}
-              </div>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Users className="h-4 w-4 text-dental-info" />
-                {language === 'fr' ? 'Adopté par 500+ dentistes' : language === 'nl' ? 'Vertrouwd door 500+ tandartsen' : 'Trusted by 500+ Dentists'}
-              </div>
             </div>
           )}
         </div>

@@ -1,7 +1,7 @@
 import { AppButton } from "@/components/ui/AppButton";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Shield, Sparkles, ArrowRight } from "lucide-react";
+import { Calendar, Shield, Sparkles, ArrowRight, Star } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
 
 interface ModernHeroSectionMobileProps {
@@ -14,66 +14,80 @@ export function ModernHeroSectionMobile({ onBookAppointment, onStartTriage, mini
 	const { t, language } = useLanguage();
 
 	return (
-		<section className="relative min-h-[80vh] flex items-center justify-center overflow-hidden only-mobile">
-			<div className="absolute inset-0 hero-pattern">
-				<div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/60 to-background/90" />
-			</div>
+		<section className="relative min-h-screen flex overflow-hidden only-mobile bg-gradient-to-br from-blue-400 via-purple-400 to-pink-400">
+			<div className="absolute inset-0 bg-gradient-to-br from-blue-500/90 via-purple-500/90 to-pink-500/90" />
+			
+			<div className="container mx-auto px-4 relative z-10 flex flex-col justify-between py-8 text-white">
+				<div className="flex items-center gap-2 text-xs font-medium">
+					<Shield className="h-4 w-4" />
+					{language === 'fr' ? '10 000+ patients' : language === 'nl' ? '10.000+ patiënten' : '10,000+ patients'}
+				</div>
 
-			<div className="container mx-auto px-4 relative z-10">
-				<div className="max-w-md mx-auto text-center space-y-8 animate-mobile-slide-up">
-					<div className="animate-fade-in">
-						<Badge variant="secondary" className="bg-gradient-primary text-white px-4 py-1.5 text-mobile-sm rounded-full shadow-glow">
-							<Sparkles className="h-4 w-4 mr-2" />
-							{language === 'fr' ? 'IA avancée' : language === 'nl' ? 'Geavanceerde AI' : 'Advanced AI'}
-						</Badge>
+				<div className="space-y-6">
+					<div>
+						<h1 className="text-4xl font-bold leading-tight mb-4">
+							{language === 'fr' ? 'VOS SOINS DENTAIRES' : language === 'nl' ? 'UW TANDVERZORGING' : 'YOUR DENTAL CARE'}
+							<br />
+							<span className="text-white/90">
+								{language === 'fr' ? 'SIMPLIFIÉS' : language === 'nl' ? 'VEREENVOUDIGD' : 'SIMPLIFIED'}
+							</span>
+						</h1>
 					</div>
 
-					<div className="space-y-3 animate-slide-up">
-						<h1 className="text-4xl font-bold leading-tight">
-							<span className="gradient-text">{language === 'fr' ? 'Soin dentaire' : language === 'nl' ? 'Tandzorg' : 'Dental Care'}</span>
-							<br />
-							<span className="text-foreground">{language === 'fr' ? 'simplifié' : language === 'nl' ? 'eenvoudig' : 'Simplified'}</span>
-						</h1>
-						<p className="text-mobile-lg text-muted-foreground leading-relaxed">
-							{t.experienceFuture}
-						</p>
+					<div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20">
+						<div className="flex items-start gap-3">
+							<div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+								<Star className="h-5 w-5 text-yellow-300 fill-yellow-300" />
+							</div>
+							<div>
+								<p className="text-white/95 mb-2 text-sm leading-relaxed">
+									{language === 'fr' ? "DentiBot a transformé ma gestion de rendez-vous!" : language === 'nl' ? 'DentiBot heeft mijn afspraakbeheer getransformeerd!' : "DentiBot transformed my appointment management!"}
+								</p>
+								<p className="text-sm font-semibold">{language === 'fr' ? 'Sophie M.' : language === 'nl' ? 'Jan J.' : 'Sarah J.'}</p>
+							</div>
+						</div>
 					</div>
 
 					{!minimal && (
-						<div className="space-y-3">
+						<div className="grid grid-cols-2 gap-3">
+							<div className="bg-white/10 backdrop-blur-md rounded-xl p-3 border border-white/20">
+								<Calendar className="h-5 w-5 mb-1" />
+								<p className="text-xl font-bold">24/7</p>
+								<p className="text-xs text-white/80">
+									{language === 'fr' ? 'Support' : language === 'nl' ? 'Ondersteuning' : 'Support'}
+								</p>
+							</div>
+							<div className="bg-white/10 backdrop-blur-md rounded-xl p-3 border border-white/20">
+								<Shield className="h-5 w-5 mb-1" />
+								<p className="text-xl font-bold">100%</p>
+								<p className="text-xs text-white/80">
+									{language === 'fr' ? 'Sécurisé' : language === 'nl' ? 'Veilig' : 'Secure'}
+								</p>
+							</div>
+						</div>
+					)}
+
+					{!minimal && (
+						<div className="space-y-3 pt-2">
 							<AppButton
-								variant="gradient"
+								variant="outline"
 								size="mobile"
 								onClick={onBookAppointment}
-								aria-label="Book a dental appointment"
-								className="w-full btn-elevated"
+								className="w-full bg-white text-primary hover:bg-white/90 border-0 h-12"
 							>
 								<Calendar className="h-5 w-5 mr-2" />
 								{t.bookAppointment}
-								<ArrowRight className="h-4 w-4 ml-2" />
 							</AppButton>
 
 							<AppButton
 								variant="outline"
 								size="mobile"
 								onClick={onStartTriage}
-								aria-label="Start emergency dental triage"
-								className="w-full border-dental-primary/30 hover:bg-dental-primary/5"
+								className="w-full border-white/30 hover:bg-white/10 text-white h-12"
 							>
 								<Shield className="h-5 w-5 mr-2" />
 								{t['triage.title']}
 							</AppButton>
-						</div>
-					)}
-
-					{!minimal && (
-						<div className="grid grid-cols-2 gap-3 pt-4">
-							<Card variant="glass" className="p-3 text-left">
-								<p className="text-mobile-sm text-dental-muted-foreground">{language === 'fr' ? 'Assistance 24/7' : language === 'nl' ? '24/7 ondersteuning' : '24/7 Support'}</p>
-							</Card>
-							<Card variant="glass" className="p-3 text-left">
-								<p className="text-mobile-sm text-dental-muted-foreground">{language === 'fr' ? 'Réservations rapides' : language === 'nl' ? 'Snelle boekingen' : 'Fast Booking'}</p>
-							</Card>
 						</div>
 					)}
 				</div>
