@@ -20,7 +20,7 @@ interface MissingField {
 
 interface DentistData {
   clinic_address?: string;
-  specialty?: string;
+  specialization?: string;
 }
 
 interface ProfileData {
@@ -49,7 +49,7 @@ const ProfileCompletionDialog = () => {
       .from("profiles")
       .select(
         `id, role, first_name, last_name, phone, date_of_birth, address, emergency_contact, profile_completion_status, import_session_id,
-         dentists(clinic_address, specialty)`
+         dentists(clinic_address, specialization)`
       )
       .eq("user_id", userId)
       .single();
@@ -108,9 +108,9 @@ const ProfileCompletionDialog = () => {
             table: "dentists",
           });
         }
-        if (!dentist?.specialty) {
+        if (!dentist?.specialization) {
           fields.push({
-            key: "specialty",
+            key: "specialization",
             question: "What is your specialty?",
             type: "text",
             table: "dentists",

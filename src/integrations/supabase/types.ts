@@ -385,6 +385,7 @@ export type Database = {
       dentists: {
         Row: {
           average_rating: number
+          clinic_address: string | null
           communication_score: number
           created_at: string
           email: string | null
@@ -402,6 +403,7 @@ export type Database = {
         }
         Insert: {
           average_rating?: number
+          clinic_address?: string | null
           communication_score?: number
           created_at?: string
           email?: string | null
@@ -419,6 +421,7 @@ export type Database = {
         }
         Update: {
           average_rating?: number
+          clinic_address?: string | null
           communication_score?: number
           created_at?: string
           email?: string | null

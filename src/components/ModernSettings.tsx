@@ -119,14 +119,14 @@ export const ModernSettings = ({ user }: ModernSettingsProps) => {
       if (userIsDentist) {
         const { data: dentistRow, error: dentistErr } = await supabase
           .from('dentists')
-          .select('id, clinic_address, specialty')
+          .select('id, clinic_address, specialization')
           .eq('profile_id', profRow.id)
           .maybeSingle();
         
         if (dentistRow) {
           setHasDentistRecord(true);
           setDentistClinicAddress(dentistRow.clinic_address || '');
-          setDentistSpecialty(dentistRow.specialty || '');
+          setDentistSpecialty(dentistRow.specialization || '');
         }
       }
     } catch (error) {
@@ -163,7 +163,7 @@ export const ModernSettings = ({ user }: ModernSettingsProps) => {
       if (isDentist && profileId) {
         const dentistPayload: any = {
           clinic_address: dentistClinicAddress?.trim() || null,
-          specialty: dentistSpecialty?.trim() || null,
+          specialization: dentistSpecialty?.trim() || null,
         };
 
         if (hasDentistRecord) {
