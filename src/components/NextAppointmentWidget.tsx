@@ -76,7 +76,13 @@ export function NextAppointmentWidget({ dentistId }: NextAppointmentWidgetProps)
             reason,
             urgency,
             consultation_notes,
-            patient_name
+            patient_name,
+            profiles!appointments_patient_id_fkey (
+              first_name,
+              last_name,
+              email,
+              phone
+            )
           `)
           .eq('dentist_id', dentistId)
           .gte('appointment_date', new Date().toISOString())
