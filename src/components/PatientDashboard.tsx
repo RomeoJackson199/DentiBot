@@ -43,7 +43,7 @@ import {
   Plus,
   Eye,
   FileImage,
-  ClipboardList,
+  ClipboardList as ClipboardListIcon,
   CreditCard,
   Settings as SettingsIcon,
   Home,
@@ -118,7 +118,7 @@ const navigationItems = [
     group: "Health Records",
     items: [
       { id: 'prescriptions', label: 'Prescriptions', icon: Pill, badge: null },
-      { id: 'treatment', label: 'Treatment Plans', icon: ClipboardList, badge: null },
+      { id: 'treatment', label: 'Treatment Plans', icon: ClipboardListIcon, badge: null },
       { id: 'records', label: 'Medical Records', icon: FileText, badge: null },
       { id: 'notes', label: 'Clinical Notes', icon: FileCheck, badge: null }
     ]
@@ -856,7 +856,7 @@ const DashboardOverview = ({ userProfile, patientStats, recentAppointments, getW
               </p>
             </div>
             <div className="p-3 bg-orange-100 dark:bg-orange-900/30 rounded-full">
-              <ClipboardList className="h-6 w-6 text-orange-600 dark:text-orange-400" />
+              <ClipboardListIcon className="h-6 w-6 text-orange-600 dark:text-orange-400" />
             </div>
           </div>
         </CardContent>
@@ -1029,7 +1029,7 @@ const TreatmentPlansView = ({ treatmentPlans, formatDate, getStatusColor }: {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
-                <ClipboardList className="h-5 w-5 text-orange-600" />
+                <ClipboardListIcon className="h-5 w-5 text-orange-600" />
                 <div>
                   <p className="font-medium">{plan.title}</p>
                   <p className="text-sm text-gray-600">{plan.description}</p>
@@ -1052,7 +1052,7 @@ const TreatmentPlansView = ({ treatmentPlans, formatDate, getStatusColor }: {
       ))}
       {treatmentPlans.length === 0 && (
         <div className="text-center py-8">
-          <ClipboardList className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <ClipboardListIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">No treatment plans</h3>
           <p className="text-gray-600">You don't have any treatment plans yet.</p>
         </div>

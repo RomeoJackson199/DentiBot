@@ -11,7 +11,7 @@ import {
   Navigation2,
   RefreshCw,
   Pill,
-  ClipboardList,
+  ClipboardList as ClipboardListIcon,
   CreditCard,
   MessageSquare,
   Heart,
@@ -345,7 +345,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
           className="h-auto py-4 flex flex-col items-center gap-2 hover:bg-primary/5"
           onClick={() => onNavigateTo('care')}
         >
-          <ClipboardList className="h-5 w-5 text-orange-600" />
+          <ClipboardListIcon className="h-5 w-5 text-orange-600" />
           <span className="text-xs">{t.treatmentPlans}</span>
           {activeTreatmentPlans > 0 && (
             <Badge variant="secondary" className="text-xs">{activeTreatmentPlans}</Badge>
