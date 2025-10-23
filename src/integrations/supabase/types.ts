@@ -1049,6 +1049,82 @@ export type Database = {
           },
         ]
       }
+      treatment_plans: {
+        Row: {
+          created_at: string
+          dentist_id: string
+          description: string | null
+          diagnosis: string | null
+          end_date: string | null
+          estimated_cost: number | null
+          estimated_duration_weeks: number | null
+          id: string
+          notes: string | null
+          patient_id: string
+          priority: string
+          start_date: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          dentist_id: string
+          description?: string | null
+          diagnosis?: string | null
+          end_date?: string | null
+          estimated_cost?: number | null
+          estimated_duration_weeks?: number | null
+          id?: string
+          notes?: string | null
+          patient_id: string
+          priority?: string
+          start_date?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          dentist_id?: string
+          description?: string | null
+          diagnosis?: string | null
+          end_date?: string | null
+          estimated_cost?: number | null
+          estimated_duration_weeks?: number | null
+          id?: string
+          notes?: string | null
+          patient_id?: string
+          priority?: string
+          start_date?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "treatment_plans_dentist_id_fkey"
+            columns: ["dentist_id"]
+            isOneToOne: false
+            referencedRelation: "dentists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "treatment_plans_dentist_id_fkey"
+            columns: ["dentist_id"]
+            isOneToOne: false
+            referencedRelation: "providers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "treatment_plans_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
