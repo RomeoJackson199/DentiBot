@@ -77,8 +77,6 @@ export function AppointmentCompletionDialog({
   const [treatments, setTreatments] = useState<Treatment[]>([]);
   const [notes, setNotes] = useState('');
   const [consultationNotes, setConsultationNotes] = useState('');
-  const [aiGeneratedReason, setAiGeneratedReason] = useState(appointment.reason || '');
-  const [generatingReason, setGeneratingReason] = useState(false);
   const [followUpNeeded, setFollowUpNeeded] = useState(false);
   const [followUpDate, setFollowUpDate] = useState('');
   const [paymentReceived, setPaymentReceived] = useState(false);
@@ -202,53 +200,6 @@ export function AppointmentCompletionDialog({
     setPrescriptions(prev => prev.filter(rx => rx.id !== id));
   };
 
-  const generateReason = async () => {
-    if (!consultationNotes && !notes && treatments.length === 0) {
-      toast({
-        title: "No information available",
-        description: "Add consultation notes or treatments first",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setGeneratingReason(true);
-    try {
-      const { data: reasonData, error: reasonError } = await supabase.functions.invoke(
-        'appointment-ai-assistant',
-        {
-          body: {
-            action: 'generate_reason',
-            appointmentData: {
-              consultation_notes: consultationNotes || notes,
-              notes: notes,
-              treatments: treatments,
-            },
-          },
-        }
-      );
-
-      if (reasonError) throw reasonError;
-      
-      if (reasonData?.reason) {
-        setAiGeneratedReason(reasonData.reason);
-        toast({
-          title: "Reason generated",
-          description: "AI has generated an appointment reason",
-        });
-      }
-    } catch (error) {
-      console.error('Error generating AI reason:', error);
-      toast({
-        title: "Generation failed",
-        description: "Could not generate reason. Please enter manually.",
-        variant: "destructive",
-      });
-    } finally {
-      setGeneratingReason(false);
-    }
-  };
-
   const handleNext = () => {
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
@@ -264,6 +215,30 @@ export function AppointmentCompletionDialog({
   const handleComplete = async () => {
     setLoading(true);
     try {
+      // Generate AI reason based on consultation notes and treatments
+      let aiGeneratedReason = appointment.reason;
+      try {
+        const { data: reasonData, error: reasonError } = await supabase.functions.invoke(
+          'appointment-ai-assistant',
+          {
+            body: {
+              action: 'generate_reason',
+              appointmentData: {
+                consultation_notes: consultationNotes || notes,
+                notes: notes,
+                treatments: treatments,
+              },
+            },
+          }
+        );
+
+        if (!reasonError && reasonData?.reason) {
+          aiGeneratedReason = reasonData.reason;
+        }
+      } catch (error) {
+        console.error('Error generating AI reason:', error);
+        // Continue with existing reason if AI generation fails
+      }
       // 1. Save treatment records as notes (since appointment_treatments table doesn't exist)
       if (treatments.length > 0) {
         const treatmentNotes = treatments.map(treatment => 
@@ -652,31 +627,6 @@ export function AppointmentCompletionDialog({
       case 'notes':
         return (
           <div className="space-y-4">
-            <div>
-              <Label htmlFor="ai-reason" className="text-base font-semibold flex items-center justify-between">
-                <span>Appointment Reason</span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={generateReason}
-                  disabled={generatingReason}
-                  className="gap-2"
-                >
-                  {generatingReason ? 'Generating...' : 'AI Generate'}
-                </Button>
-              </Label>
-              <Input
-                id="ai-reason"
-                placeholder="AI will generate based on notes and treatments..."
-                value={aiGeneratedReason}
-                onChange={(e) => setAiGeneratedReason(e.target.value)}
-                className="mt-2"
-              />
-              <p className="text-sm text-muted-foreground mt-1">
-                Add consultation notes or treatments, then click "AI Generate" for a suggested reason
-              </p>
-            </div>
-
             <div>
               <Label htmlFor="consultation-notes" className="text-base font-semibold">
                 Clinical Notes
