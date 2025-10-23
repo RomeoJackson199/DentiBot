@@ -61,11 +61,7 @@ export function ClinicalToday({ user, dentistId, onOpenPatientsTab, onOpenAppoin
 						patient_name,
 						reason,
 						status,
-						urgency,
-						profiles:patient_id (
-							first_name,
-							last_name
-						)
+						urgency
 					`)
 					.eq('dentist_id', dentistId)
 					.gte('appointment_date', startOfDay.toISOString())

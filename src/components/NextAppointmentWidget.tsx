@@ -76,13 +76,7 @@ export function NextAppointmentWidget({ dentistId }: NextAppointmentWidgetProps)
             reason,
             urgency,
             consultation_notes,
-            patient_name,
-            profiles:patient_id (
-              first_name,
-              last_name,
-              email,
-              phone
-            )
+            patient_name
           `)
           .eq('dentist_id', dentistId)
           .gte('appointment_date', new Date().toISOString())
@@ -143,13 +137,7 @@ export function NextAppointmentWidget({ dentistId }: NextAppointmentWidgetProps)
         reason,
         urgency,
         consultation_notes,
-        patient_name,
-        profiles:patient_id (
-          first_name,
-          last_name,
-          email,
-          phone
-        )
+        patient_name
       `)
       .eq('dentist_id', dentistId)
       .gte('appointment_date', new Date().toISOString())
