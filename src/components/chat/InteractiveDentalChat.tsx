@@ -422,6 +422,10 @@ export const InteractiveDentalChat = ({
           console.log('🔧 Triggering prescription-refill widget');
           showPrescriptionRefillWidget();
           break;
+        case 'booking-ready':
+          setActiveWidget('booking-ready');
+          console.log('🔧 Triggering booking-ready widget');
+          break;
         case 'theme-dark':
           setTheme('dark');
           addBotMessage('Theme changed to dark mode! 🌙');
