@@ -324,7 +324,8 @@ export function AppointmentCompletionDialog({
                     description: `Appointment on ${format(new Date(appointment.appointment_date), 'PPP')} - ${treatmentDescription}`,
                     patient_email: patientProfile.email,
                     send_now: true,
-                    channels: ['email']
+                    channels: ['email'],
+                    action_url: '/patient/billing?tab=unpaid'
                   }
                 }
               );
