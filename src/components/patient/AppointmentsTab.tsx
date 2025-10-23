@@ -165,12 +165,22 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({
   const fetchAppointments = async () => {
     try {
       setLoading(true);
+      console.log('🔍 [AppointmentsTab] Fetching profile for user:', user.id);
+      
       const {
-        data: profile
+        data: profile, error: profileError
       } = await supabase.from('profiles').select('id').eq('user_id', user.id).single();
+      
+      if (profileError) {
+        console.error('❌ [AppointmentsTab] Profile error:', profileError);
+        return;
+      }
+      
+      console.log('✅ [AppointmentsTab] Found profile:', profile?.id);
+      
       if (profile) {
         const {
-          data: appointmentsData
+          data: appointmentsData, error: appointmentsError
         } = await supabase.from('appointments').select(`
             *,
             dentist:dentist_id(
@@ -180,6 +190,14 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({
           `).eq('patient_id', profile.id).order('appointment_date', {
           ascending: false
         });
+        
+        if (appointmentsError) {
+          console.error('❌ [AppointmentsTab] Appointments error:', appointmentsError);
+          return;
+        }
+        
+        console.log('📊 [AppointmentsTab] Raw appointments:', appointmentsData?.length || 0, appointmentsData);
+        
         if (appointmentsData) {
           // Transform the data to match the expected structure
           const transformedData = appointmentsData.map(apt => ({
@@ -197,6 +215,9 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({
           const upcoming = appointmentsData.filter(apt => new Date(apt.appointment_date) > now && apt.status === 'confirmed').length;
           const completed = appointmentsData.filter(apt => apt.status === 'completed').length;
           const cancelled = appointmentsData.filter(apt => apt.status === 'cancelled').length;
+          
+          console.log('📈 [AppointmentsTab] Stats:', { upcoming, completed, cancelled, total: appointmentsData.length });
+          
           setStats({
             total: appointmentsData.length,
             upcoming,
@@ -206,7 +227,7 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({
         }
       }
     } catch (error) {
-      console.error('Error fetching appointments:', error);
+      console.error('💥 [AppointmentsTab] Exception:', error);
     } finally {
       setLoading(false);
     }

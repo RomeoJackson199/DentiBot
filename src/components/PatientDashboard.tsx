@@ -347,7 +347,8 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
 
   const fetchRecentAppointments = async (profileId: string) => {
     try {
-      const { data: appointmentsData } = await supabase
+      console.log('🔍 Fetching appointments for profile:', profileId);
+      const { data: appointmentsData, error } = await supabase
         .from('appointments')
         .select(`
           *,
@@ -360,7 +361,15 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
         .order('appointment_date', { ascending: false })
         .limit(5);
 
-      setRecentAppointments((appointmentsData || []).map(apt => ({
+      if (error) {
+        console.error('❌ Error fetching appointments:', error);
+        return;
+      }
+
+      console.log('✅ Raw appointments data:', appointmentsData);
+      console.log('📊 Number of appointments:', appointmentsData?.length || 0);
+
+      const transformed = (appointmentsData || []).map(apt => ({
         ...apt,
         duration: apt.duration_minutes || 60,
         urgency_level: apt.urgency === 'emergency' ? 'urgent' : apt.urgency || 'normal',
@@ -371,9 +380,12 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
           last_name: apt.dentist.profile?.last_name,
           specialization: apt.dentist.specialization
         } : undefined
-      })));
+      }));
+
+      console.log('📋 Transformed appointments:', transformed);
+      setRecentAppointments(transformed);
     } catch (error) {
-      console.error('Error fetching recent appointments:', error);
+      console.error('💥 Exception fetching recent appointments:', error);
     }
   };
 
@@ -522,9 +534,22 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
 
   const nextAppointment = (() => {
     const now = new Date();
-    return [...recentAppointments]
-      .filter(a => new Date(a.appointment_date) > now && ['confirmed','scheduled','pending'].includes(a.status))
-      .sort((a,b) => new Date(a.appointment_date).getTime() - new Date(b.appointment_date).getTime())[0] || null;
+    console.log('⏰ Computing next appointment. Current time:', now.toISOString());
+    console.log('📅 Recent appointments count:', recentAppointments.length);
+    
+    const filtered = [...recentAppointments]
+      .filter(a => {
+        const aptDate = new Date(a.appointment_date);
+        const isFuture = aptDate > now;
+        const hasValidStatus = ['confirmed','scheduled','pending'].includes(a.status);
+        console.log(`  - ${a.id}: ${aptDate.toISOString()} (future: ${isFuture}, status: ${a.status}, valid: ${hasValidStatus})`);
+        return isFuture && hasValidStatus;
+      })
+      .sort((a,b) => new Date(a.appointment_date).getTime() - new Date(b.appointment_date).getTime());
+    
+    const next = filtered[0] || null;
+    console.log('🎯 Next appointment:', next?.id || 'none');
+    return next;
   })();
 
   const carePlans: CareItem[] = treatmentPlans.map(tp => ({
