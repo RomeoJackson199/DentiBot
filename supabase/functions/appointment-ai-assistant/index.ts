@@ -30,6 +30,15 @@ serve(async (req) => {
       );
     }
 
+    // Handle reason generation
+    if (action === "generate_reason") {
+      const reason = await generateAppointmentReason(appointmentData, LOVABLE_API_KEY);
+      return new Response(
+        JSON.stringify({ reason }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     // Handle treatment plan chat
     if (action === "chat") {
       const systemPrompt = buildTreatmentChatSystemPrompt(appointmentData, treatmentContext);
@@ -129,6 +138,45 @@ Be professional and focus on actionable insights.`;
 
   const result = await response.json();
   return result.choices?.[0]?.message?.content || "Unable to generate summary";
+}
+
+async function generateAppointmentReason(appointmentData: any, apiKey: string): Promise<string> {
+  const { consultation_notes, notes, urgency, treatments } = appointmentData;
+
+  const contextParts = [
+    consultation_notes ? `Consultation Notes: ${consultation_notes}` : null,
+    notes ? `Notes: ${notes}` : null,
+    urgency ? `Urgency: ${urgency}` : null,
+    treatments?.length > 0 ? `Treatments: ${treatments.map((t: any) => t.treatment_type).join(", ")}` : null,
+  ].filter(Boolean).join("\n");
+
+  const systemPrompt = `You are a dental AI assistant that generates concise appointment reasons. Generate a brief, professional reason for the appointment (2-5 words) based on the provided information.`;
+
+  const userPrompt = `Based on this appointment information:\n\n${contextParts}\n\nGenerate a concise appointment reason (2-5 words only, no punctuation):`;
+
+  const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "google/gemini-2.5-flash",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ],
+    }),
+  });
+
+  if (!response.ok) {
+    if (response.status === 429) throw new Error("Rate limit exceeded");
+    if (response.status === 402) throw new Error("Payment required");
+    throw new Error(`AI API error: ${response.status}`);
+  }
+
+  const result = await response.json();
+  return result.choices?.[0]?.message?.content?.trim() || "General consultation";
 }
 
 function buildTreatmentChatSystemPrompt(appointmentData: any, treatmentContext: any): string {

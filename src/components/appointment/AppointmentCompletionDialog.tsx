@@ -213,9 +213,32 @@ export function AppointmentCompletionDialog({
   };
 
   const handleComplete = async () => {
-
     setLoading(true);
     try {
+      // Generate AI reason based on consultation notes and treatments
+      let aiGeneratedReason = appointment.reason;
+      try {
+        const { data: reasonData, error: reasonError } = await supabase.functions.invoke(
+          'appointment-ai-assistant',
+          {
+            body: {
+              action: 'generate_reason',
+              appointmentData: {
+                consultation_notes: consultationNotes || notes,
+                notes: notes,
+                treatments: treatments,
+              },
+            },
+          }
+        );
+
+        if (!reasonError && reasonData?.reason) {
+          aiGeneratedReason = reasonData.reason;
+        }
+      } catch (error) {
+        console.error('Error generating AI reason:', error);
+        // Continue with existing reason if AI generation fails
+      }
       // 1. Save treatment records as notes (since appointment_treatments table doesn't exist)
       if (treatments.length > 0) {
         const treatmentNotes = treatments.map(treatment => 
@@ -334,6 +357,7 @@ export function AppointmentCompletionDialog({
         .from('appointments')
         .update({
           status: 'completed',
+          reason: aiGeneratedReason,
           consultation_notes: consultationNotes || notes || null
         })
         .eq('id', appointment.id);
