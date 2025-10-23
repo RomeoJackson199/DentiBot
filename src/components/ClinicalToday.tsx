@@ -62,7 +62,7 @@ export function ClinicalToday({ user, dentistId, onOpenPatientsTab, onOpenAppoin
 						reason,
 						status,
 						urgency,
-						profiles (
+						profiles:patient_id (
 							first_name,
 							last_name
 						)

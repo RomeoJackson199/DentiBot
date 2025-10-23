@@ -77,7 +77,7 @@ export function NextAppointmentWidget({ dentistId }: NextAppointmentWidgetProps)
             urgency,
             consultation_notes,
             patient_name,
-            profiles (
+            profiles:patient_id (
               first_name,
               last_name,
               email,
@@ -144,7 +144,7 @@ export function NextAppointmentWidget({ dentistId }: NextAppointmentWidgetProps)
         urgency,
         consultation_notes,
         patient_name,
-        patient:profiles!appointments_patient_id_fkey (
+        profiles:patient_id (
           first_name,
           last_name,
           email,

@@ -66,8 +66,8 @@ export const EnhancedHomeTab: React.FC<EnhancedHomeTabProps> = ({
           .from('appointments')
           .select(`
             *,
-            dentist:dentist_id(
-              profile:profile_id(first_name, last_name)
+            dentists:dentist_id(
+              profiles:profile_id(first_name, last_name)
             )
           `)
           .eq('patient_id', profile.id)

@@ -352,9 +352,9 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
         .from('appointments')
         .select(`
           *,
-          dentist:dentist_id(
+          dentists:dentist_id(
             specialization,
-            profile:profile_id(first_name, last_name)
+            profiles:profile_id(first_name, last_name)
           )
         `)
         .eq('patient_id', profileId)
@@ -375,10 +375,10 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
         urgency_level: apt.urgency === 'emergency' ? 'urgent' : apt.urgency || 'normal',
         status: apt.status === 'pending' ? 'scheduled' : apt.status,
         // Transform the dentist data to match expected structure
-        dentists: apt.dentist ? {
-          first_name: apt.dentist.profile?.first_name,
-          last_name: apt.dentist.profile?.last_name,
-          specialization: apt.dentist.specialization
+        dentists: apt.dentists ? {
+          first_name: apt.dentists.profiles?.first_name,
+          last_name: apt.dentists.profiles?.last_name,
+          specialization: apt.dentists.specialization
         } : undefined
       }));
 

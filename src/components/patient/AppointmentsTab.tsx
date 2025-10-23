@@ -183,9 +183,9 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({
           data: appointmentsData, error: appointmentsError
         } = await supabase.from('appointments').select(`
             *,
-            dentist:dentist_id(
+            dentists:dentist_id(
               specialization,
-              profile:profile_id(first_name, last_name)
+              profiles:profile_id(first_name, last_name)
             )
           `).eq('patient_id', profile.id).order('appointment_date', {
           ascending: false
@@ -202,10 +202,10 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({
           // Transform the data to match the expected structure
           const transformedData = appointmentsData.map(apt => ({
             ...apt,
-            dentist: apt.dentist ? {
-              first_name: apt.dentist.profile?.first_name,
-              last_name: apt.dentist.profile?.last_name,
-              specialization: apt.dentist.specialization
+            dentist: apt.dentists ? {
+              first_name: apt.dentists.profiles?.first_name,
+              last_name: apt.dentists.profiles?.last_name,
+              specialization: apt.dentists.specialization
             } : undefined
           }));
           setAppointments(transformedData as any);
