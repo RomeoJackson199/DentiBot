@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import RealAppointmentsList from "@/components/RealAppointmentsList";
@@ -141,6 +142,8 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({
   const [activeRecall, setActiveRecall] = useState<RecallRecord | null>(null);
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | null>(null);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
+  const [rescheduleAppointmentId, setRescheduleAppointmentId] = useState<string | null>(null);
+  const [cancelAppointmentId, setCancelAppointmentId] = useState<string | null>(null);
   const {
     t
   } = useLanguage();
@@ -245,6 +248,34 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({
       setLoading(false);
     }
   };
+  const handleRescheduleAppointment = async (appointmentId: string) => {
+    setRescheduleAppointmentId(appointmentId);
+    setShowBooking(true);
+  };
+
+  const handleCancelAppointment = async (appointmentId: string) => {
+    setCancelAppointmentId(appointmentId);
+  };
+
+  const confirmCancelAppointment = async () => {
+    if (!cancelAppointmentId) return;
+    
+    try {
+      const { error } = await supabase
+        .from('appointments')
+        .update({ status: 'cancelled' })
+        .eq('id', cancelAppointmentId);
+      
+      if (error) throw error;
+      
+      // Refresh appointments
+      await fetchAppointments();
+      setCancelAppointmentId(null);
+    } catch (error) {
+      console.error('Error cancelling appointment:', error);
+    }
+  };
+
   const selectedDateAppointments = useMemo(() => {
     return appointments.filter(apt => isSameDay(new Date(apt.appointment_date), selectedDate));
   }, [appointments, selectedDate]);
@@ -353,8 +384,8 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({
                                 key={apt.id} 
                                 appointment={apt} 
                                 index={index}
-                                onReschedule={() => setShowBooking(true)} 
-                                onCancel={() => {}} 
+                                onReschedule={() => handleRescheduleAppointment(apt.id)} 
+                                onCancel={() => handleCancelAppointment(apt.id)}
                                 onClick={() => {
                                   setSelectedAppointmentId(apt.id);
                                   setDetailsDialogOpen(true);
@@ -392,8 +423,8 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({
                           key={apt.id} 
                           appointment={apt} 
                           index={index}
-                          onReschedule={onOpenAssistant || (() => setShowBooking(true))} 
-                          onCancel={() => {}} 
+                          onReschedule={() => handleRescheduleAppointment(apt.id)} 
+                          onCancel={() => handleCancelAppointment(apt.id)}
                           onClick={() => {
                             setSelectedAppointmentId(apt.id);
                             setDetailsDialogOpen(true);
@@ -501,6 +532,24 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({
 
       {/* Appointment Details Dialog */}
       {selectedAppointmentId && <AppointmentDetailsDialog appointmentId={selectedAppointmentId} open={detailsDialogOpen} onOpenChange={setDetailsDialogOpen} />}
+
+      {/* Cancel Appointment Confirmation */}
+      <AlertDialog open={!!cancelAppointmentId} onOpenChange={(open) => !open && setCancelAppointmentId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancel Appointment</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to cancel this appointment? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>No, keep it</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmCancelAppointment} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Yes, cancel appointment
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Recall Banner */}
       {activeRecall && <div className="mt-6">

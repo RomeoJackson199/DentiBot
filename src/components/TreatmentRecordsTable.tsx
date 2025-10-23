@@ -19,19 +19,29 @@ export function TreatmentRecordsTable({ patientId }: TreatmentRecordsTableProps)
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState("all");
 
-  const { data: records, isLoading } = useQuery({
+  const { data: records, isLoading, error: queryError } = useQuery({
     queryKey: ["treatment-records", patientId],
     queryFn: async () => {
+      console.log('🔍 [TreatmentRecords] Fetching for patient:', patientId);
       const { data, error } = await supabase
         .from("medical_records")
         .select("*")
         .eq("patient_id", patientId)
         .order("record_date", { ascending: false });
       
-      if (error) throw error;
+      if (error) {
+        console.error('❌ [TreatmentRecords] Query error:', error);
+        throw error;
+      }
+      
+      console.log('✅ [TreatmentRecords] Found records:', data?.length || 0);
       return data;
     }
   });
+
+  if (queryError) {
+    console.error('❌ [TreatmentRecords] React Query error:', queryError);
+  }
 
   const filteredRecords = useMemo(() => {
     if (!records) return [];
@@ -77,11 +87,8 @@ export function TreatmentRecordsTable({ patientId }: TreatmentRecordsTableProps)
   };
 
   const getDentistName = (record: any) => {
-    if (record.dentist?.profile) {
-      const { first_name, last_name } = record.dentist.profile;
-      return `Dr. ${first_name} ${last_name}`;
-    }
-    return "—";
+    // Since we removed dentist embed, we just show a placeholder
+    return "Your Dentist";
   };
 
   if (isLoading) {
