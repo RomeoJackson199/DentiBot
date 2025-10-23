@@ -265,23 +265,25 @@ export function AppointmentCompletionDialog({
         });
       }
 
-      // 3. Create invoice if payment received
-      if (paymentReceived && totalAmount > 0) {
-        const { data: invoice } = await supabase
-          .from('invoices')
-          .insert({
-            appointment_id: appointment.id,
-            patient_id: appointment.patient_id,
-            dentist_id: appointment.dentist_id,
-            total_amount_cents: Math.round(totalAmount * 100),
-            patient_amount_cents: Math.round(totalAmount * 100),
-            mutuality_amount_cents: 0,
-            vat_amount_cents: 0,
-            status: 'paid',
-            claim_status: 'to_be_submitted'
-          })
-          .select()
-          .single();
+      // 3. Create invoice if payment received, or payment request if not
+      if (totalAmount > 0) {
+        if (paymentReceived) {
+          // Payment received - create invoice
+          const { data: invoice } = await supabase
+            .from('invoices')
+            .insert({
+              appointment_id: appointment.id,
+              patient_id: appointment.patient_id,
+              dentist_id: appointment.dentist_id,
+              total_amount_cents: Math.round(totalAmount * 100),
+              patient_amount_cents: Math.round(totalAmount * 100),
+              mutuality_amount_cents: 0,
+              vat_amount_cents: 0,
+              status: 'paid',
+              claim_status: 'to_be_submitted'
+            })
+            .select()
+            .single();
 
           // Add invoice items for treatments
           const invoiceItems = treatments.map(treatment => ({
@@ -298,6 +300,50 @@ export function AppointmentCompletionDialog({
           if (invoiceItems.length > 0) {
             await supabase.from('invoice_items').insert(invoiceItems);
           }
+        } else {
+          // Payment not received - create payment request
+          const { data: patientProfile } = await supabase
+            .from('profiles')
+            .select('email, first_name, last_name')
+            .eq('id', appointment.patient_id)
+            .single();
+
+          if (patientProfile?.email) {
+            const treatmentDescription = treatments.map(t => 
+              `${t.name}${t.tooth ? ` (Tooth ${t.tooth})` : ''}`
+            ).join(', ');
+
+            try {
+              const { data: paymentData, error: paymentError } = await supabase.functions.invoke(
+                'create-payment-request',
+                {
+                  body: {
+                    patient_id: appointment.patient_id,
+                    dentist_id: appointment.dentist_id,
+                    amount: Math.round(totalAmount * 100),
+                    description: `Appointment on ${format(new Date(appointment.appointment_date), 'PPP')} - ${treatmentDescription}`,
+                    patient_email: patientProfile.email,
+                    send_now: true,
+                    channels: ['email']
+                  }
+                }
+              );
+
+              if (paymentError) {
+                console.error('Error creating payment request:', paymentError);
+                toast({
+                  title: "Payment Request Failed",
+                  description: "Could not send payment request to patient. You can create one manually later.",
+                  variant: "destructive",
+                });
+              } else {
+                console.log('✅ Payment request created and sent:', paymentData);
+              }
+            } catch (error) {
+              console.error('Failed to create payment request:', error);
+            }
+          }
+        }
       }
 
       // 4. Save prescriptions
