@@ -61,6 +61,7 @@ import {
   BookOpen,
   HelpCircle
 } from "lucide-react";
+// Icons imported for patient dashboard navigation
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { MobileOptimizations } from "@/components/mobile/MobileOptimizations";
