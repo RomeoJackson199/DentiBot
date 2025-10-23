@@ -107,7 +107,7 @@ export function ModernPatientManagement({ dentistId }: ModernPatientManagementPr
         .from('appointments')
         .select(`
           patient_id,
-          profiles!inner(
+          profiles!appointments_patient_id_fkey (
             id,
             first_name,
             last_name,
