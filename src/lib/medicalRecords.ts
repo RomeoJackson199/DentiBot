@@ -1,5 +1,4 @@
 import { ChatMessage } from "@/types/chat";
-import { saveMedicalRecord } from "@/lib/mockApi";
 import { supabase } from "@/integrations/supabase/client";
 
 export interface CreateMedicalRecordData {
@@ -14,12 +13,28 @@ export interface CreateMedicalRecordData {
 }
 
 export const createMedicalRecord = async (data: CreateMedicalRecordData) => {
-  const { data: record, error } = await saveMedicalRecord(data as any);
-  if (error || !record) {
-    throw new Error((error as any) || 'Failed to save record');
+  const payload: any = {
+    patient_id: data.patientId,
+    dentist_id: data.dentistId || null,
+    title: data.title,
+    description: [data.description, data.recommendations ? `Recommendations: ${data.recommendations}` : null]
+      .filter(Boolean)
+      .join("\n\n"),
+    findings: data.findings || null,
+    record_type: data.recordType || 'consultation',
+    record_date: data.visitDate ? new Date(data.visitDate) : new Date()
+  };
+
+  const { data: inserted, error } = await supabase
+    .from('medical_records')
+    .insert(payload)
+    .select()
+    .maybeSingle();
+
+  if (error || !inserted) {
+    throw new Error(error?.message || 'Failed to save record');
   }
-  // Removed localStorage persistence for security - medical records contain sensitive PII
-  return record;
+  return inserted;
 };
 
 export const generateMedicalRecordFromChat = async (
