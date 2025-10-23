@@ -47,6 +47,7 @@ const LanguageTest = lazy(() => import("./components/LanguageTest").then(module 
 const About = lazy(() => import("./pages/About"));
 const Claim = lazy(() => import("./pages/Claim"));
 const PublicBooking = lazy(() => import("./pages/PublicBooking"));
+const BookAppointmentAI = lazy(() => import("./pages/BookAppointmentAI"));
 const PatientCareHome = lazy(() => import("./pages/PatientCareHome"));
 const PatientAppointmentsPage = lazy(() => import("./pages/PatientAppointmentsPage"));
 const PatientPrescriptionsPage = lazy(() => import("./pages/PatientPrescriptionsPage"));
@@ -144,6 +145,7 @@ const App = () => (
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/book" element={<PublicBooking />} />
+                <Route path="/book-appointment-ai" element={<BookAppointmentAI />} />
                 {/* Auth routes */}
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<Signup />} />

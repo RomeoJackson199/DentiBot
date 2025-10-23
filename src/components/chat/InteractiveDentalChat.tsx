@@ -29,6 +29,7 @@ import {
   PrescriptionRefillWidget
 } from "./InteractiveChatWidgets";
 import { AIChatOnboardingDialog } from "./AIChatOnboardingDialog";
+import { BookingReadyWidget } from "./BookingReadyWidget";
 
 // Widget code mapping
 const WIDGET_CODES: Record<string, string> = {
@@ -38,6 +39,7 @@ const WIDGET_CODES: Record<string, string> = {
   '55621': 'cancel-appointment',
   '44598': 'prescription-refill',
   '33476': 'view-appointments',
+  '12345': 'booking-ready',
 };
 
 interface UserProfile {
@@ -1514,6 +1516,17 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
               setActiveWidget(null);
               addBotMessage(`Urgency level set to ${value}/5. Let me help you with your appointment.`);
               loadDentistsForBooking(false);
+            }}
+          />
+        );
+
+      case 'booking-ready':
+        return (
+          <BookingReadyWidget
+            conversationData={{
+              symptoms: bookingFlow.reason,
+              urgency: bookingFlow.urgency,
+              messages: messages
             }}
           />
         );
