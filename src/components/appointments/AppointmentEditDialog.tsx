@@ -49,8 +49,7 @@ export function AppointmentEditDialog({ appointment, open, onOpenChange }: Appoi
     updateMutation.mutate({
       status: "completed",
       consultation_notes: notes,
-      notes: treatmentNotes,
-      treatment_completed_at: new Date().toISOString()
+      notes: treatmentNotes
     });
   };
 
