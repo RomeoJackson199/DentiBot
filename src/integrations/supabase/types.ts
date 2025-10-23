@@ -447,6 +447,70 @@ export type Database = {
           },
         ]
       }
+      medical_records: {
+        Row: {
+          created_at: string
+          dentist_id: string
+          description: string | null
+          findings: string | null
+          id: string
+          patient_id: string
+          record_date: string
+          record_type: string
+          title: string
+          treatment_provided: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          dentist_id: string
+          description?: string | null
+          findings?: string | null
+          id?: string
+          patient_id: string
+          record_date?: string
+          record_type?: string
+          title: string
+          treatment_provided?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          dentist_id?: string
+          description?: string | null
+          findings?: string | null
+          id?: string
+          patient_id?: string
+          record_date?: string
+          record_type?: string
+          title?: string
+          treatment_provided?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medical_records_dentist_id_fkey"
+            columns: ["dentist_id"]
+            isOneToOne: false
+            referencedRelation: "dentists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "medical_records_dentist_id_fkey"
+            columns: ["dentist_id"]
+            isOneToOne: false
+            referencedRelation: "providers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "medical_records_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notification_preferences: {
         Row: {
           appointment_reminders: boolean
