@@ -168,33 +168,47 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({
       console.log('🔍 [AppointmentsTab] Fetching profile for user:', user.id);
       
       const {
-        data: profile, error: profileError
-      } = await supabase.from('profiles').select('id').eq('user_id', user.id).single();
+        data: profile
+      } = await supabase.from('profiles').select('id').eq('user_id', user.id).maybeSingle();
       
-      if (profileError) {
-        console.error('❌ [AppointmentsTab] Profile error:', profileError);
+      if (!profile) {
+        console.warn('⚠️ [AppointmentsTab] No profile found for user:', user.id);
         return;
       }
       
-      console.log('✅ [AppointmentsTab] Found profile:', profile?.id);
-      
-      if (profile) {
-        const {
-          data: appointmentsData, error: appointmentsError
-        } = await supabase.from('appointments').select(`
-            *,
-            dentists:dentists!appointments_dentist_id_fkey(
-              specialization,
-              profiles:profile_id(first_name, last_name)
-            )
-          `).eq('patient_id', profile.id).order('appointment_date', {
-          ascending: false
-        });
-        
-        if (appointmentsError) {
-          console.error('❌ [AppointmentsTab] Appointments error:', appointmentsError);
-          return;
-        }
+      console.log('✅ [AppointmentsTab] Using profile:', profile?.id);
+          let appointmentsData: any[] | null = null;
+          let appointmentsError: any = null;
+          const { data: dataWithDentist, error: errWithDentist } = await supabase
+            .from('appointments')
+            .select(`
+              *,
+              dentists:dentists!appointments_dentist_id_fkey(
+                specialization,
+                profiles:profile_id(first_name, last_name)
+              )
+            `)
+            .eq('patient_id', profile.id)
+            .order('appointment_date', { ascending: false });
+          
+          if (errWithDentist) {
+            console.warn('⚠️ [AppointmentsTab] Dentist embed failed, falling back:', errWithDentist);
+            const { data: fallbackData, error: fallbackError } = await supabase
+              .from('appointments')
+              .select('*')
+              .eq('patient_id', profile.id)
+              .order('appointment_date', { ascending: false });
+            appointmentsData = fallbackData as any[] | null;
+            appointmentsError = fallbackError;
+          } else {
+            appointmentsData = dataWithDentist as any[] | null;
+            appointmentsError = null;
+          }
+          
+          if (appointmentsError) {
+            console.error('❌ [AppointmentsTab] Appointments error:', appointmentsError);
+            return;
+          }
         
         console.log('📊 [AppointmentsTab] Raw appointments:', appointmentsData?.length || 0, appointmentsData);
         
@@ -225,7 +239,6 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({
             cancelled
           });
         }
-      }
     } catch (error) {
       console.error('💥 [AppointmentsTab] Exception:', error);
     } finally {
