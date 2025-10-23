@@ -26,10 +26,8 @@ interface Dentist {
   id: string;
   profile_id: string;
   specialization?: string;
-  profiles: {
-    first_name: string;
-    last_name: string;
-  };
+  first_name: string;
+  last_name: string;
 }
 
 export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, prefilledReason, onComplete, onCancel }: AppointmentBookingProps) => {
@@ -253,7 +251,7 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
         date: selectedDate.toLocaleDateString(),
         time: selectedTime,
         reason: reason || "Consultation générale",
-        dentist: dentists.find(d => d.id === selectedDentist)?.profiles.first_name + " " + dentists.find(d => d.id === selectedDentist)?.profiles.last_name
+        dentist: dentists.find(d => d.id === selectedDentist)?.first_name + " " + dentists.find(d => d.id === selectedDentist)?.last_name
       });
     } catch (error) {
       console.error("Error booking appointment:", error);
@@ -302,7 +300,7 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
                       <div className="flex items-center py-1">
                         <UserIcon className="h-4 w-4 mr-3 text-blue-600" />
                         <div>
-                          <div className="font-medium">Dr {dentist.profiles.first_name} {dentist.profiles.last_name}</div>
+                          <div className="font-medium">Dr {dentist.first_name} {dentist.last_name}</div>
                           <div className="text-sm text-gray-500">{dentist.specialization || 'General Dentistry'}</div>
                         </div>
                       </div>
