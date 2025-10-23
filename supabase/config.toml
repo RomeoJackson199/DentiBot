@@ -50,3 +50,6 @@ verify_jwt = true
 
 [functions.generate-appointment-summary]
 verify_jwt = true
+
+[functions.appointment-ai-assistant]
+verify_jwt = true

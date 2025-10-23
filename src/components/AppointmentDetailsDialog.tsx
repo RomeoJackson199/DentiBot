@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/hooks/useLanguage";
+import { AppointmentAIAssistant } from "@/components/appointments/AppointmentAIAssistant";
 
 interface AppointmentDetailsProps {
   appointmentId: string;
@@ -125,6 +126,14 @@ export function AppointmentDetailsDialog({ appointmentId, open, onOpenChange }: 
         ) : appointment ? (
           <ScrollArea className="max-h-[70vh]">
             <div className="space-y-6 pr-6">
+              {/* AI Assistant Section */}
+              <AppointmentAIAssistant 
+                appointmentData={appointment}
+                treatmentContext={{
+                  medical_records: appointment.medical_records,
+                  prescriptions: appointment.prescriptions,
+                }}
+              />
               {/* Basic Info */}
               <Card>
                 <CardHeader>

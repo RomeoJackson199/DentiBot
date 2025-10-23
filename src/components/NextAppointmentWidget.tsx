@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { AppointmentCompletionDialog } from "@/components/appointment/AppointmentCompletionDialog";
+import { AppointmentDetailsDialog } from "@/components/AppointmentDetailsDialog";
 import { 
   Calendar, 
   Clock, 
@@ -326,106 +327,14 @@ export function NextAppointmentWidget({ dentistId }: NextAppointmentWidgetProps)
           />
         )}
 
-        {/* Details Dialog */}
-        <Dialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog}>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Appointment Details</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-6">
-              {/* Patient Information */}
-              <div>
-                <h3 className="font-semibold mb-3">Patient Information</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="flex items-center gap-2">
-                    <User className="h-4 w-4 text-muted-foreground" />
-                    <span>{patientName}</span>
-                  </div>
-                  {nextAppointment.profiles?.email && (
-                    <div className="flex items-center gap-2">
-                      <Mail className="h-4 w-4 text-muted-foreground" />
-                      <span>{nextAppointment.profiles.email}</span>
-                    </div>
-                  )}
-                  {nextAppointment.profiles?.phone && (
-                    <div className="flex items-center gap-2">
-                      <Phone className="h-4 w-4 text-muted-foreground" />
-                      <span>{nextAppointment.profiles.phone}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <Separator />
-
-              {/* Appointment Information */}
-              <div>
-                <h3 className="font-semibold mb-3">Appointment Information</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <span>{format(appointmentDate, 'EEEE, MMM dd, yyyy')}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-muted-foreground" />
-                    <span>
-                      {format(appointmentDate, 'HH:mm')}
-                      {nextAppointment.duration_minutes && (
-                        <span className="text-muted-foreground">
-                          {' '}({nextAppointment.duration_minutes} minutes)
-                        </span>
-                      )}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge className={getStatusClasses(nextAppointment.status)}>
-                      {nextAppointment.status}
-                    </Badge>
-                  </div>
-                  {nextAppointment.urgency && (
-                    <div className="flex items-center gap-2">
-                      <Badge className={getUrgencyClasses(nextAppointment.urgency)}>
-                        <AlertTriangle className="h-3 w-3 mr-1" />
-                        {nextAppointment.urgency} priority
-                      </Badge>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Reason and Notes */}
-              {(nextAppointment.reason || nextAppointment.consultation_notes) && (
-                <>
-                  <Separator />
-                  <div className="space-y-4">
-                    {nextAppointment.reason && (
-                      <div>
-                        <h4 className="font-medium mb-2">Reason for Visit</h4>
-                        <p className="text-sm text-muted-foreground bg-muted p-3 rounded-md">
-                          {nextAppointment.reason}
-                        </p>
-                      </div>
-                    )}
-                    {nextAppointment.consultation_notes && (
-                      <div>
-                        <h4 className="font-medium mb-2">Consultation Notes</h4>
-                        <p className="text-sm text-muted-foreground bg-muted p-3 rounded-md">
-                          {nextAppointment.consultation_notes}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </>
-              )}
-
-              <div className="flex justify-end">
-                <Button onClick={() => setShowDetailsDialog(false)}>
-                  Close
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
+        {/* Details Dialog with AI */}
+        {nextAppointment && (
+          <AppointmentDetailsDialog
+            appointmentId={nextAppointment.id}
+            open={showDetailsDialog}
+            onOpenChange={setShowDetailsDialog}
+          />
+        )}
       </CardContent>
     </Card>
   );
