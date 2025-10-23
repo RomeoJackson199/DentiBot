@@ -86,14 +86,15 @@ export function NextAppointmentWidget({ dentistId }: NextAppointmentWidgetProps)
           .maybeSingle();
 
         if (error && error.code !== 'PGRST116') {
-          console.error('❌ Error fetching next appointment:', error);
+          console.error('❌ Error fetching next appointment:', { code: error.code, message: error.message, details: (error as any)?.details });
           return;
         }
 
         console.log('✅ Next appointment data:', data);
         setNextAppointment(data || null);
       } catch (error) {
-        console.error('❌ Caught error fetching next appointment:', error);
+        const err: any = error;
+        console.error('❌ Caught error fetching next appointment:', { message: err?.message, stack: err?.stack });
       } finally {
         setLoading(false);
       }

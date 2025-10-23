@@ -70,7 +70,7 @@ export function ClinicalToday({ user, dentistId, onOpenPatientsTab, onOpenAppoin
 					.order('appointment_date', { ascending: true });
 				
 				if (todayError) {
-					console.error('❌ Error fetching today appointments:', todayError);
+					console.error('❌ Error fetching today appointments:', { code: todayError.code, message: todayError.message, details: (todayError as any)?.details });
 				} else {
 					console.log('✅ Today appointments found:', todayAppts?.length || 0, todayAppts);
 				}

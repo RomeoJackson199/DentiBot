@@ -68,11 +68,14 @@ export type Database = {
       appointments: {
         Row: {
           appointment_date: string
+          consultation_notes: string | null
           created_at: string
           dentist_id: string
+          duration_minutes: number | null
           id: string
           notes: string | null
           patient_id: string
+          patient_name: string | null
           reason: string
           status: string
           updated_at: string
@@ -80,11 +83,14 @@ export type Database = {
         }
         Insert: {
           appointment_date: string
+          consultation_notes?: string | null
           created_at?: string
           dentist_id: string
+          duration_minutes?: number | null
           id?: string
           notes?: string | null
           patient_id: string
+          patient_name?: string | null
           reason?: string
           status?: string
           updated_at?: string
@@ -92,11 +98,14 @@ export type Database = {
         }
         Update: {
           appointment_date?: string
+          consultation_notes?: string | null
           created_at?: string
           dentist_id?: string
+          duration_minutes?: number | null
           id?: string
           notes?: string | null
           patient_id?: string
+          patient_name?: string | null
           reason?: string
           status?: string
           updated_at?: string
