@@ -543,6 +543,187 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_items: {
+        Row: {
+          code: string | null
+          created_at: string
+          description: string
+          id: string
+          payment_request_id: string
+          quantity: number
+          tax_cents: number | null
+          unit_price_cents: number
+        }
+        Insert: {
+          code?: string | null
+          created_at?: string
+          description: string
+          id?: string
+          payment_request_id: string
+          quantity?: number
+          tax_cents?: number | null
+          unit_price_cents: number
+        }
+        Update: {
+          code?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          payment_request_id?: string
+          quantity?: number
+          tax_cents?: number | null
+          unit_price_cents?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_items_payment_request_id_fkey"
+            columns: ["payment_request_id"]
+            isOneToOne: false
+            referencedRelation: "payment_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_reminders: {
+        Row: {
+          channel: string
+          created_at: string
+          id: string
+          metadata: Json | null
+          payment_request_id: string
+          sent_at: string | null
+          status: string
+          template_key: string
+        }
+        Insert: {
+          channel?: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          payment_request_id: string
+          sent_at?: string | null
+          status?: string
+          template_key: string
+        }
+        Update: {
+          channel?: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          payment_request_id?: string
+          sent_at?: string | null
+          status?: string
+          template_key?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_reminders_payment_request_id_fkey"
+            columns: ["payment_request_id"]
+            isOneToOne: false
+            referencedRelation: "payment_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_requests: {
+        Row: {
+          amount: number
+          appointment_id: string | null
+          channels: string[] | null
+          created_at: string
+          created_by: string | null
+          dentist_id: string
+          description: string
+          due_date: string | null
+          id: string
+          last_reminder_at: string | null
+          paid_at: string | null
+          patient_email: string
+          patient_id: string
+          reminder_cadence_days: number[] | null
+          status: string
+          stripe_session_id: string | null
+          terms_due_in_days: number | null
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          appointment_id?: string | null
+          channels?: string[] | null
+          created_at?: string
+          created_by?: string | null
+          dentist_id: string
+          description: string
+          due_date?: string | null
+          id?: string
+          last_reminder_at?: string | null
+          paid_at?: string | null
+          patient_email: string
+          patient_id: string
+          reminder_cadence_days?: number[] | null
+          status?: string
+          stripe_session_id?: string | null
+          terms_due_in_days?: number | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          appointment_id?: string | null
+          channels?: string[] | null
+          created_at?: string
+          created_by?: string | null
+          dentist_id?: string
+          description?: string
+          due_date?: string | null
+          id?: string
+          last_reminder_at?: string | null
+          paid_at?: string | null
+          patient_email?: string
+          patient_id?: string
+          reminder_cadence_days?: number[] | null
+          status?: string
+          stripe_session_id?: string | null
+          terms_due_in_days?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_requests_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_requests_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_requests_dentist_id_fkey"
+            columns: ["dentist_id"]
+            isOneToOne: false
+            referencedRelation: "dentists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_requests_dentist_id_fkey"
+            columns: ["dentist_id"]
+            isOneToOne: false
+            referencedRelation: "providers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_requests_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           address: string | null
