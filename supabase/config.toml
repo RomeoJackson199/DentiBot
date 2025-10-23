@@ -53,3 +53,9 @@ verify_jwt = true
 
 [functions.appointment-ai-assistant]
 verify_jwt = true
+
+[functions.create-subscription-checkout]
+verify_jwt = true
+
+[functions.stripe-subscription-webhook]
+verify_jwt = false

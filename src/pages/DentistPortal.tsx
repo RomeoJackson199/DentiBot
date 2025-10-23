@@ -19,6 +19,7 @@ import DentistAdminSecurity from "./DentistAdminSecurity";
 import DentistAdminUsers from "./DentistAdminUsers";
 import { ModernLoadingSpinner } from "@/components/enhanced/ModernLoadingSpinner";
 import DentistAppointmentsManagement from "./DentistAppointmentsManagement";
+import { SubscriptionBanner } from "@/components/SubscriptionBanner";
 
 interface DentistPortalProps {
   user?: User | null;
@@ -217,6 +218,7 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
       dentistId={dentistId}
     >
       <div className="space-y-4">
+        <SubscriptionBanner dentistId={dentistId} />
         {renderContent()}
       </div>
     </DentistAppShell>
