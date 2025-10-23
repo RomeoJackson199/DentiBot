@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import {
   Calendar,
-  ClipboardList,
+  ClipboardList as ClipboardListIcon,
   Pill,
   CreditCard,
   User,
@@ -119,7 +119,7 @@ export function PatientDetailsTabs({ selectedPatient, dentistId, appointments, o
             Appointments
           </TabsTrigger>
           <TabsTrigger value="treatments" className="text-xs sm:text-sm">
-            <ClipboardList className="h-4 w-4 mr-1" />
+            <ClipboardListIcon className="h-4 w-4 mr-1" />
             Treatments
           </TabsTrigger>
           <TabsTrigger value="prescriptions" className="text-xs sm:text-sm">
@@ -218,14 +218,14 @@ export function PatientDetailsTabs({ selectedPatient, dentistId, appointments, o
           {/* Past Appointments */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold flex items-center gap-2">
-              <ClipboardList className="h-5 w-5 text-muted-foreground" />
+              <ClipboardListIcon className="h-5 w-5 text-muted-foreground" />
               Past Appointments
               <Badge variant="secondary" className="rounded-full">{pastAppointments.length}</Badge>
             </h3>
             
             {pastAppointments.length === 0 ? (
               <Card className="p-8 text-center bg-muted/30">
-                <ClipboardList className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+                <ClipboardListIcon className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
                 <p className="text-muted-foreground font-medium">No past appointments</p>
               </Card>
             ) : (

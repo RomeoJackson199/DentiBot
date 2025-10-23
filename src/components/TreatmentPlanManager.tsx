@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { 
-  ClipboardList,
+  ClipboardList as ClipboardListIcon,
   Plus,
   Edit,
   Trash2,
@@ -511,7 +511,7 @@ setFormData({
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
-                  <ClipboardList className="h-5 w-5 text-orange-600" />
+                  <ClipboardListIcon className="h-5 w-5 text-orange-600" />
                   <div>
                     <p className="font-medium">{plan.title}</p>
                     <p className="text-sm text-gray-600">{plan.description}</p>
@@ -556,7 +556,7 @@ setFormData({
 
       {filteredTreatmentPlans.length === 0 && !loading && (
         <div className="text-center py-8">
-          <ClipboardList className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <ClipboardListIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">No treatment plans found</h3>
           <p className="text-gray-600">
             {searchTerm ? 'Try adjusting your search terms.' : 'No treatment plans have been added yet.'}
@@ -639,7 +639,7 @@ setFormData({
                 <div className="space-y-2">
                   {formData.procedures.map((procedure, index) => (
                     <div key={index} className="flex items-center space-x-2">
-                      <ClipboardList className="h-4 w-4 text-orange-600" />
+                      <ClipboardListIcon className="h-4 w-4 text-orange-600" />
                       <span className="flex-1 text-sm">{procedure}</span>
                       <Button
                         variant="ghost"
@@ -758,7 +758,7 @@ setFormData({
                   <div className="space-y-1">
                     {selectedTreatmentPlan.procedures.map((procedure, index) => (
                       <div key={index} className="flex items-center space-x-2">
-                        <ClipboardList className="h-3 w-3 text-orange-600" />
+                        <ClipboardListIcon className="h-3 w-3 text-orange-600" />
                         <span className="text-sm">{procedure}</span>
                       </div>
                     ))}

@@ -14,7 +14,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Toggle } from "@/components/ui/toggle";
 import { Separator } from "@/components/ui/separator";
 import {
-  ClipboardList,
+  ClipboardList as ClipboardListIcon,
   Pill,
   Calendar,
   FileText,

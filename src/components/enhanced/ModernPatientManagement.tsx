@@ -20,7 +20,8 @@ import {
   Plus,
   Activity,
   TrendingUp,
-  Eye as EyeIcon
+  Eye as EyeIcon,
+  ClipboardList as ClipboardListIcon
 } from "lucide-react";
 import { format } from "date-fns";
 import { NewPatientDialog } from "@/components/patient/NewPatientDialog";
@@ -449,7 +450,7 @@ export function ModernPatientManagement({ dentistId }: ModernPatientManagementPr
                             )}
                             {flags?.hasActiveTreatmentPlan && (
                               <Badge variant="secondary" className="text-xs rounded-full">
-                                <ClipboardList className="h-3 w-3 mr-1" />
+                                <ClipboardListIcon className="h-3 w-3 mr-1" />
                                 Treatment
                               </Badge>
                             )}

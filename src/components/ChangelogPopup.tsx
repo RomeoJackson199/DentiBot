@@ -20,7 +20,7 @@ import {
   CreditCard,
   Stethoscope,
   Pill,
-  ClipboardList,
+  ClipboardList as ClipboardListIcon,
   Eye,
   Phone,
   Mail,

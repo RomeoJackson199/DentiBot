@@ -18,7 +18,7 @@ import {
   User,
   Clock,
   Pill,
-  ClipboardList,
+  ClipboardList as ClipboardListIcon,
   Plus,
   Trash2
 } from 'lucide-react';
@@ -58,7 +58,7 @@ const steps = [
   { id: 'treatments', title: 'Treatments', icon: FileText },
   { id: 'notes', title: 'Notes', icon: FileText },
   { id: 'prescriptions', title: 'Prescriptions', icon: Pill },
-  { id: 'treatment-plan', title: 'Treatment Plan', icon: ClipboardList },
+  { id: 'treatment-plan', title: 'Treatment Plan', icon: ClipboardListIcon },
   { id: 'billing', title: 'Billing', icon: DollarSign },
   { id: 'complete', title: 'Complete', icon: CheckCircle2 }
 ] as const;
@@ -937,7 +937,7 @@ export function AppointmentCompletionDialog({
               <div className="space-y-3">
                 {treatmentPlans.length === 0 ? (
                   <Card className="p-6 text-center bg-muted/30">
-                    <ClipboardList className="h-10 w-10 text-muted-foreground mx-auto mb-2" />
+                    <ClipboardListIcon className="h-10 w-10 text-muted-foreground mx-auto mb-2" />
                     <p className="text-muted-foreground">No active treatment plans found</p>
                     <p className="text-sm text-muted-foreground/60 mt-1">
                       Create a new treatment plan above

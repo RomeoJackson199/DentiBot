@@ -18,7 +18,7 @@ import {
   FileText, 
   Plus, 
   Pill,
-  ClipboardList,
+  ClipboardList as ClipboardListIcon,
   Eye,
   Edit,
   Trash2,
@@ -1260,7 +1260,7 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
                   <CardHeader>
                     <CardTitle className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <ClipboardList className="h-5 w-5 text-dental-primary" />
+                        <ClipboardListIcon className="h-5 w-5 text-dental-primary" />
                         <span>Treatment Plans</span>
                         <Badge variant="outline">{treatmentPlans.length}</Badge>
                       </div>
@@ -1470,7 +1470,7 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
                   <CardHeader>
                     <CardTitle className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <ClipboardList className="h-5 w-5 text-dental-primary" />
+                        <ClipboardListIcon className="h-5 w-5 text-dental-primary" />
                         <span>Appointment Outcomes</span>
                         <Badge variant="outline">{latestOutcome.length}</Badge>
                       </div>
