@@ -183,7 +183,7 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({
           data: appointmentsData, error: appointmentsError
         } = await supabase.from('appointments').select(`
             *,
-            dentists:dentist_id(
+            dentists:dentists!appointments_dentist_id_fkey(
               specialization,
               profiles:profile_id(first_name, last_name)
             )
