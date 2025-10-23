@@ -322,189 +322,301 @@ export default function BookAppointmentAI() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-secondary/10">
-      <div className="max-w-6xl mx-auto p-4 py-8 space-y-6">
-        {/* Header */}
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate(-1)}
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              Book Your Appointment
-            </h1>
-            <p className="text-muted-foreground">
-              {bookingStep === 'dentist' && "Choose your dentist"}
-              {bookingStep === 'datetime' && "Select date and time"}
-              {bookingStep === 'confirm' && "Confirm your appointment"}
-            </p>
+      {bookingStep === 'dentist' && (
+        <div className="max-w-6xl mx-auto p-4 py-8 space-y-6">
+          {/* Header */}
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate(-1)}
+              className="gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to chat
+            </Button>
           </div>
-        </div>
 
-        {bookingStep === 'dentist' && (
-          <div className="space-y-4">
-            {recommendedDentists.length > 0 && (
-              <Card className="border-primary/20 bg-gradient-to-r from-primary/5 to-secondary/5">
-                <CardContent className="p-4 flex items-center gap-3">
-                  <Bot className="h-5 w-5 text-primary" />
-                  <p className="text-sm font-medium">AI recommended dentists based on your needs</p>
-                </CardContent>
-              </Card>
-            )}
+          {recommendedDentists.length > 0 && (
+            <Card className="border-primary/20 bg-gradient-to-r from-primary/5 to-secondary/5">
+              <CardContent className="p-3 flex items-center gap-3">
+                <Bot className="h-4 w-4 text-primary" />
+                <p className="text-sm font-medium">AI recommended dentists based on your needs</p>
+              </CardContent>
+            </Card>
+          )}
 
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {dentists.map((dentist) => {
-                const isRecommended = recommendedDentists.includes(dentist.id);
-                const isExpanded = expandedDentist === dentist.id;
-                const displayName = `${dentist.first_name || dentist.profiles?.first_name} ${dentist.last_name || dentist.profiles?.last_name}`;
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+            {dentists.map((dentist) => {
+              const isRecommended = recommendedDentists.includes(dentist.id);
+              const displayName = `${dentist.first_name || dentist.profiles?.first_name} ${dentist.last_name || dentist.profiles?.last_name}`;
 
-                return (
-                  <Card
-                    key={dentist.id}
-                    className={`cursor-pointer transition-all hover:shadow-lg ${
-                      isRecommended ? 'border-primary/40 bg-gradient-to-br from-primary/5 to-background' : ''
-                    } ${isExpanded ? 'md:col-span-2' : ''}`}
-                    onClick={() => setExpandedDentist(isExpanded ? null : dentist.id)}
-                  >
-                    <CardContent className="p-6 space-y-4">
-                      <div className="flex items-start gap-4">
-                        <Avatar className="h-16 w-16">
-                          <AvatarImage src="" />
-                          <AvatarFallback className="bg-primary/10 text-primary text-lg">
-                            {getDentistInitials(dentist)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h3 className="font-semibold text-lg">Dr. {displayName}</h3>
-                            {isRecommended && (
-                              <Badge className="bg-primary/10 text-primary border-primary/20">
-                                <Bot className="h-3 w-3 mr-1" />
-                                AI Pick
-                              </Badge>
-                            )}
-                          </div>
-                          <p className="text-sm text-muted-foreground capitalize">
-                            {dentist.specialization || 'General Dentistry'}
-                          </p>
-                          <div className="flex items-center gap-1 mt-1">
-                            <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                            <span className="text-sm font-medium">5.0</span>
-                          </div>
+              return (
+                <Card
+                  key={dentist.id}
+                  className={`cursor-pointer transition-all hover:shadow-lg hover:border-primary/40 ${
+                    isRecommended ? 'border-primary/40 ring-2 ring-primary/10' : ''
+                  }`}
+                  onClick={() => handleDentistSelect(dentist)}
+                >
+                  <CardContent className="p-4 space-y-3">
+                    <div className="flex items-start gap-3">
+                      <Avatar className="h-14 w-14">
+                        <AvatarImage src="" />
+                        <AvatarFallback className="bg-primary/10 text-primary text-base">
+                          {getDentistInitials(dentist)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start gap-2">
+                          <h3 className="font-semibold truncate">Dr. {displayName}</h3>
+                          {isRecommended && (
+                            <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200 text-xs shrink-0">
+                              Best pick
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-sm text-muted-foreground capitalize">
+                          {dentist.specialization || 'General Dentistry'}
+                        </p>
+                        <div className="flex items-center gap-1 mt-1">
+                          {[1, 2, 3, 4].map((i) => (
+                            <Star key={i} className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                          ))}
+                          <Star className="h-3 w-3 fill-yellow-400 text-yellow-400 opacity-50" />
+                          <span className="text-xs text-muted-foreground ml-1">4.87</span>
                         </div>
                       </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
-                      {isExpanded && (
-                        <div className="space-y-4 pt-4 border-t animate-in fade-in slide-in-from-top-2">
+      {bookingStep === 'datetime' && selectedDentist && (
+        <div className="max-w-7xl mx-auto p-4 py-8">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setBookingStep('dentist')}
+            className="gap-2 mb-6"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to list
+          </Button>
+
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+            {/* Left side - Dentist Details */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Profile Card */}
+              <Card>
+                <CardContent className="p-6 space-y-4">
+                  <div className="flex items-start gap-4">
+                    <div className="relative">
+                      <Avatar className="h-20 w-20">
+                        <AvatarImage src="" />
+                        <AvatarFallback className="bg-primary/10 text-primary text-xl">
+                          {getDentistInitials(selectedDentist)}
+                        </AvatarFallback>
+                      </Avatar>
+                      {recommendedDentists.includes(selectedDentist.id) && (
+                        <Badge className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-yellow-100 text-yellow-800 border-yellow-200 text-xs px-2">
+                          Best pick
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h2 className="text-xl font-bold">
+                          Dr. {selectedDentist.first_name} {selectedDentist.last_name}
+                        </h2>
+                        <Mail className="h-4 w-4 text-muted-foreground" />
+                        <Star className="h-4 w-4 text-blue-500" />
+                      </div>
+                      <p className="text-sm text-muted-foreground capitalize mb-2">
+                        {selectedDentist.specialization || 'General Dentistry'}
+                      </p>
+                      <div className="flex items-center gap-1">
+                        {[1, 2, 3, 4].map((i) => (
+                          <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                        ))}
+                        <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 opacity-50" />
+                        <span className="text-sm font-medium ml-1">4.87</span>
+                        <span className="text-sm text-muted-foreground ml-1">Reviews</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2">
+                    <Badge variant="secondary" className="text-xs">In person & Online</Badge>
+                    <Badge variant="secondary" className="text-xs">Consultation - $80</Badge>
+                    <Badge variant="secondary" className="text-xs">Additional services</Badge>
+                    <Badge variant="secondary" className="text-xs">Payment methods: Card</Badge>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Bio Section */}
+              <Card>
+                <CardContent className="p-6">
+                  <h3 className="font-semibold mb-3">Bio</h3>
+                  <p className="text-sm text-muted-foreground">
+                    A specialist in {selectedDentist.specialization || 'general dentistry'}, with extensive training and experience. 
+                    During their career focused primarily on the practical aspects of dental care, diagnosis and treatment, 
+                    providing comprehensive dental solutions with a patient-first approach.
+                  </p>
+                </CardContent>
+              </Card>
+
+              {/* Last Review */}
+              <Card>
+                <CardContent className="p-6">
+                  <h3 className="font-semibold mb-4">Last review</h3>
+                  <div className="space-y-3">
+                    <div className="flex items-start gap-3">
+                      <Avatar className="h-10 w-10">
+                        <AvatarFallback className="bg-muted">JH</AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between mb-1">
                           <div>
-                            <h4 className="font-semibold mb-2">Biography</h4>
-                            <p className="text-sm text-muted-foreground">
-                              Dr. {displayName} is a renowned {dentist.specialization || 'general'} dentist with years of experience 
-                              in providing excellent dental care. Dedicated to patient comfort and using the latest dental technology.
-                            </p>
+                            <p className="font-medium text-sm">Jessica H.</p>
+                            <p className="text-xs text-muted-foreground">Warsaw | Verified</p>
                           </div>
-
-                          <div className="space-y-2">
-                            <div className="flex items-center gap-2 text-sm">
-                              <MapPin className="h-4 w-4 text-muted-foreground" />
-                              <span>{dentist.profiles?.address || '123 Dental Street, City'}</span>
-                            </div>
-                            {dentist.profiles?.phone && (
-                              <div className="flex items-center gap-2 text-sm">
-                                <Phone className="h-4 w-4 text-muted-foreground" />
-                                <span>{dentist.profiles.phone}</span>
-                              </div>
-                            )}
-                            <div className="flex items-center gap-2 text-sm">
-                              <Mail className="h-4 w-4 text-muted-foreground" />
-                              <span>{dentist.email || dentist.profiles?.email}</span>
-                            </div>
+                          <div className="flex gap-0.5">
+                            {[1, 2, 3, 4, 5].map((i) => (
+                              <Star key={i} className="h-3 w-3 fill-cyan-500 text-cyan-500" />
+                            ))}
                           </div>
                         </div>
-                      )}
+                        <p className="text-sm text-muted-foreground mb-2">
+                          Dr. {selectedDentist.last_name} is very kind, professional, and attentive. Other doctors often dismiss my concerns, 
+                          but they took them seriously and came up with a brilliant diagnosis.
+                        </p>
+                        <div className="flex items-center justify-between text-xs text-muted-foreground">
+                          <span>17 Oct, 2022</span>
+                          <button className="text-primary">Report</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
-                      <Button
-                        className="w-full"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDentistSelect(dentist);
-                        }}
-                        variant={isRecommended ? "default" : "outline"}
-                      >
-                        Select Dr. {displayName}
-                      </Button>
-                    </CardContent>
-                  </Card>
-                );
-              })}
+              {/* Location */}
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between mb-3">
+                    <h3 className="font-semibold">Dental Clinic</h3>
+                    <div className="flex items-center gap-1">
+                      {[1, 2, 3, 4].map((i) => (
+                        <Star key={i} className="h-3 w-3 fill-cyan-500 text-cyan-500" />
+                      ))}
+                      <Star className="h-3 w-3 fill-cyan-500 text-cyan-500 opacity-50" />
+                      <span className="text-sm font-medium ml-1">4.87</span>
+                    </div>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    {selectedDentist.profiles?.address || 'Dental Street 12, Brussels, Belgium'}
+                  </p>
+                  <div className="w-full h-40 bg-muted rounded-lg flex items-center justify-center">
+                    <MapPin className="h-8 w-8 text-muted-foreground" />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Right side - Calendar & Time Slots */}
+            <div className="lg:col-span-3">
+              <Card className="sticky top-4">
+                <CardContent className="p-6 space-y-6">
+                  {/* Date Navigation */}
+                  <div className="flex items-center justify-between">
+                    <Button variant="ghost" size="icon" onClick={() => {}}>
+                      <ArrowLeft className="h-4 w-4" />
+                    </Button>
+                    <h3 className="font-semibold">
+                      {selectedDate ? format(selectedDate, "EEE, dd MMMM") : "Select a date"}
+                    </h3>
+                    <Button variant="ghost" size="icon" onClick={() => {}}>
+                      <ArrowLeft className="h-4 w-4 rotate-180" />
+                    </Button>
+                  </div>
+
+                  {/* Week Days */}
+                  <div className="grid grid-cols-7 gap-2">
+                    {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, index) => {
+                      const date = new Date();
+                      date.setDate(date.getDate() + index);
+                      const isSelected = selectedDate && format(selectedDate, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd');
+                      const isDisabled = date.getDay() === 0 || date.getDay() === 6;
+                      
+                      return (
+                        <button
+                          key={day}
+                          onClick={() => !isDisabled && handleDateSelect(date)}
+                          disabled={isDisabled}
+                          className={`flex flex-col items-center p-3 rounded-full transition-all ${
+                            isSelected 
+                              ? 'bg-primary text-primary-foreground' 
+                              : isDisabled
+                              ? 'opacity-40 cursor-not-allowed'
+                              : 'hover:bg-muted'
+                          }`}
+                        >
+                          <span className="text-xs mb-1">{day}</span>
+                          <span className="text-lg font-medium">{date.getDate()}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Time Slots */}
+                  {selectedDate && (
+                    <div className="space-y-3 max-h-[400px] overflow-y-auto">
+                      {availableSlots.length === 0 ? (
+                        <p className="text-center text-muted-foreground py-8">Loading time slots...</p>
+                      ) : availableSlots.filter(slot => slot.available).length === 0 ? (
+                        <p className="text-center text-muted-foreground py-8">No available slots for this date</p>
+                      ) : (
+                        availableSlots.filter(slot => slot.available).map((slot) => (
+                          <button
+                            key={slot.time}
+                            onClick={() => handleTimeSelect(slot.time)}
+                            className={`w-full p-4 rounded-xl border-2 text-center font-medium transition-all ${
+                              selectedTime === slot.time
+                                ? 'bg-primary/10 border-primary text-primary'
+                                : 'border-muted hover:border-primary/50 hover:bg-muted/50'
+                            }`}
+                          >
+                            {slot.time}
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  )}
+
+                  {/* Book Button */}
+                  <Button
+                    className="w-full h-12 text-base"
+                    size="lg"
+                    disabled={!selectedDate || !selectedTime}
+                    onClick={() => setBookingStep('confirm')}
+                  >
+                    Book an appointment
+                  </Button>
+                </CardContent>
+              </Card>
             </div>
           </div>
-        )}
+        </div>
+      )}
 
-        {bookingStep === 'datetime' && selectedDentist && (
-          <Card className="max-w-4xl mx-auto">
-            <CardContent className="p-6 space-y-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-xl font-semibold">
-                    Dr. {selectedDentist.first_name} {selectedDentist.last_name}
-                  </h2>
-                  <p className="text-sm text-muted-foreground capitalize">
-                    {selectedDentist.specialization}
-                  </p>
-                </div>
-                <Button variant="outline" onClick={() => setBookingStep('dentist')}>
-                  Change Dentist
-                </Button>
-              </div>
-
-              <div className="grid md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <CalendarDays className="h-5 w-5 text-primary" />
-                    <h3 className="font-semibold">Select Date</h3>
-                  </div>
-                  <Calendar
-                    mode="single"
-                    selected={selectedDate}
-                    onSelect={handleDateSelect}
-                    disabled={isDateDisabled}
-                    className="rounded-lg border"
-                  />
-                </div>
-
-                {selectedDate && (
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-5 w-5 text-primary" />
-                      <h3 className="font-semibold">Select Time</h3>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      {format(selectedDate, "EEEE, MMMM d")}
-                    </p>
-                    <div className="grid grid-cols-3 gap-2">
-                      {availableSlots.filter(slot => slot.available).map((slot) => (
-                        <Button
-                          key={slot.time}
-                          variant={selectedTime === slot.time ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => handleTimeSelect(slot.time)}
-                        >
-                          {slot.time}
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {bookingStep === 'confirm' && selectedDentist && selectedDate && selectedTime && (
+      {bookingStep === 'confirm' && selectedDentist && selectedDate && selectedTime && (
+        <div className="max-w-6xl mx-auto p-4 py-8">
           <Card className="max-w-2xl mx-auto">
             <CardContent className="p-6 space-y-6">
               <div className="text-center">
@@ -558,8 +670,8 @@ export default function BookAppointmentAI() {
               </div>
             </CardContent>
           </Card>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
