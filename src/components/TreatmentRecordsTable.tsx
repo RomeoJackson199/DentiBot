@@ -24,12 +24,7 @@ export function TreatmentRecordsTable({ patientId }: TreatmentRecordsTableProps)
     queryFn: async () => {
       const { data, error } = await supabase
         .from("medical_records")
-        .select(`
-          *,
-          dentist:dentists(
-            profile:profiles(first_name, last_name)
-          )
-        `)
+        .select("*")
         .eq("patient_id", patientId)
         .order("record_date", { ascending: false });
       
