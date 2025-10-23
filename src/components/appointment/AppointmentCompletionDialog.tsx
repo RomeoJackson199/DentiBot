@@ -213,14 +213,6 @@ export function AppointmentCompletionDialog({
   };
 
   const handleComplete = async () => {
-    if (treatments.length === 0) {
-      toast({
-        title: "No treatments added",
-        description: "Please add at least one treatment before completing.",
-        variant: "destructive",
-      });
-      return;
-    }
 
     setLoading(true);
     try {
@@ -342,7 +334,6 @@ export function AppointmentCompletionDialog({
         .from('appointments')
         .update({
           status: 'completed',
-          treatment_completed_at: new Date().toISOString(),
           consultation_notes: consultationNotes || notes || null
         })
         .eq('id', appointment.id);
