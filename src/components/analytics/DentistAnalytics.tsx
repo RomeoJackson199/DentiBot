@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
+import { useBusinessContext } from "@/hooks/useBusinessContext";
 import { 
   BarChart3, 
   TrendingUp, 
@@ -60,6 +61,7 @@ interface AnalyticsData {
 }
 
 export const DentistAnalytics = ({ dentistId, onOpenPatientsTab, onOpenClinicalTab, onOpenPaymentsTab }: DentistAnalyticsProps) => {
+  const { businessId } = useBusinessContext();
   const [loading, setLoading] = useState(true);
 
   // Filters
@@ -173,6 +175,7 @@ export const DentistAnalytics = ({ dentistId, onOpenPatientsTab, onOpenClinicalT
           .from('appointments')
           .select('id, appointment_date, status, patient_id, reason, dentist_id')
           .eq('dentist_id', dentistId)
+          .eq('business_id', businessId!)
           .gte('appointment_date', start.toISOString())
           .lte('appointment_date', end.toISOString());
 
@@ -181,6 +184,7 @@ export const DentistAnalytics = ({ dentistId, onOpenPatientsTab, onOpenClinicalT
           .from('payment_requests')
           .select('id, amount, status, paid_at, created_at, patient_id, dentist_id')
           .eq('dentist_id', dentistId)
+          .eq('business_id', businessId!)
           .gte('created_at', start.toISOString())
           .lte('created_at', end.toISOString());
 
@@ -188,7 +192,8 @@ export const DentistAnalytics = ({ dentistId, onOpenPatientsTab, onOpenClinicalT
         const { data: plans } = await supabase
           .from('treatment_plans')
           .select('id, patient_id, status, estimated_cost, title, start_date, end_date')
-          .eq('dentist_id', dentistId);
+          .eq('dentist_id', dentistId)
+          .eq('business_id', businessId!);
 
         // Invoices in range for payor split
         const { data: inv } = await supabase
@@ -200,8 +205,8 @@ export const DentistAnalytics = ({ dentistId, onOpenPatientsTab, onOpenClinicalT
 
         // Dentist availability and vacations for utilization
         const [{ data: avail }, { data: vacations }] = await Promise.all([
-          supabase.from('dentist_availability').select('*').eq('dentist_id', dentistId),
-          supabase.from('dentist_vacation_days').select('*').eq('dentist_id', dentistId)
+          supabase.from('dentist_availability').select('*').eq('dentist_id', dentistId).eq('business_id', businessId!),
+          supabase.from('dentist_vacation_days').select('*').eq('dentist_id', dentistId).eq('business_id', businessId!)
         ]);
 
         setAppointments(appts || []);
@@ -510,11 +515,13 @@ export const DentistAnalytics = ({ dentistId, onOpenPatientsTab, onOpenClinicalT
         supabase.from('payment_requests')
           .select('amount, status, paid_at, created_at')
           .eq('dentist_id', dentistId)
+          .eq('business_id', businessId!)
           .gte('created_at', prevStart.toISOString())
           .lte('created_at', prevEnd.toISOString()),
         supabase.from('appointments')
           .select('id, appointment_date, status, patient_id')
           .eq('dentist_id', dentistId)
+          .eq('business_id', businessId!)
           .gte('appointment_date', prevStart.toISOString())
           .lte('appointment_date', prevEnd.toISOString())
       ]);

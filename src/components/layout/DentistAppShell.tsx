@@ -28,6 +28,7 @@ import { useMobileOptimizations } from "@/components/mobile/MobileOptimizations"
 import { useClinicBranding } from "@/hooks/useClinicBranding";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { RoleSwitcher } from "@/components/RoleSwitcher";
+import { BusinessSelector } from "@/components/BusinessSelector";
 
 export type DentistSection = 'dashboard' | 'patients' | 'appointments' | 'employees' | 'clinical' | 'schedule' | 'payments' | 'analytics' | 'reports' | 'inventory' | 'imports' | 'branding' | 'security' | 'users';
 
@@ -199,6 +200,9 @@ export const DentistAppShell: React.FC<DentistAppShellProps> = ({
 
           {/* Right Section: Search, Notifications, User */}
           <div className="ml-auto flex items-center gap-3">
+            {/* Business Selector */}
+            <BusinessSelector />
+            
             {/* Role Switcher */}
             <RoleSwitcher />
             

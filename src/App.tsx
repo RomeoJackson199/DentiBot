@@ -7,6 +7,7 @@ import { ThemeProvider } from "next-themes";
 import { LanguageProvider } from "./hooks/useLanguage";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { BusinessProvider } from "./hooks/useBusinessContext";
+import { BusinessPickerDialog } from "./components/BusinessPickerDialog";
 import { PWAInstallPrompt } from "./components/PWAInstallPrompt";
 import ProfileCompletionDialog from "./components/ProfileCompletionDialog";
 import { ChangelogPopup } from "./components/ChangelogPopup";
@@ -125,7 +126,49 @@ const queryClient = new QueryClient({
   },
 });
 
-const App = () => (
+const App = () => {
+  const [showBusinessPicker, setShowBusinessPicker] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    // Check auth and show business picker if multi-business user
+    const checkAuth = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+      
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('user_id', user.id)
+          .single();
+
+        if (profile) {
+          const { data: memberships } = await supabase
+            .from('business_members')
+            .select('business_id')
+            .eq('profile_id', profile.id);
+
+          if (memberships && memberships.length > 1) {
+            setShowBusinessPicker(true);
+          }
+        }
+      }
+    };
+
+    checkAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null);
+      if (event === 'SIGNED_IN') {
+        checkAuth();
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  return (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
       <ThemeProvider
@@ -135,6 +178,7 @@ const App = () => (
         disableTransitionOnChange={false}
       >
         <LanguageProvider>
+          <BusinessProvider>
             <AuthCallbackHandler />
             <TooltipProvider>
               <Sonner />
@@ -194,11 +238,19 @@ const App = () => (
               </Routes>
               </Suspense>
             </BrowserRouter>
+            
+            {/* Business Picker Dialog */}
+            <BusinessPickerDialog 
+              open={showBusinessPicker} 
+              onOpenChange={setShowBusinessPicker}
+            />
           </TooltipProvider>
+        </BusinessProvider>
         </LanguageProvider>
       </ThemeProvider>
     </QueryClientProvider>
   </ErrorBoundary>
-);
+  );
+};
 
 export default App;

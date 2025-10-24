@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { addBusinessContext } from "@/lib/businessScopedSupabase";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -72,20 +73,22 @@ export const AppointmentCalendar = ({ user, onComplete, onCancel, onBackToDentis
       const [hours, minutes] = selectedTime.split(":");
       appointmentDateTime.setHours(parseInt(hours), parseInt(minutes));
 
+      const appointmentPayload = await addBusinessContext({
+        patient_id: profile.id,
+        dentist_id: selectedDentist.id,
+        appointment_date: appointmentDateTime.toISOString(),
+        reason: reason || "Consultation générale",
+        status: "confirmed",
+        urgency: isEmergency ? "emergency" : "medium",
+        is_for_user: isForUser,
+        patient_name: isForUser ? null : patientInfo?.name,
+        patient_age: isForUser ? null : patientInfo?.age,
+        patient_relationship: isForUser ? null : patientInfo?.relationship
+      });
+
       const { data: appointmentData, error: appointmentError } = await supabase
         .from("appointments")
-        .insert({
-          patient_id: profile.id,
-          dentist_id: selectedDentist.id,
-          appointment_date: appointmentDateTime.toISOString(),
-          reason: reason || "Consultation générale",
-          status: "confirmed",
-          urgency: isEmergency ? "emergency" : "medium",
-          is_for_user: isForUser,
-          patient_name: isForUser ? null : patientInfo?.name,
-          patient_age: isForUser ? null : patientInfo?.age,
-          patient_relationship: isForUser ? null : patientInfo?.relationship
-        })
+        .insert(appointmentPayload)
         .select()
         .single();
 
