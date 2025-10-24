@@ -248,11 +248,24 @@ export default function BookAppointmentAI() {
         }
       }
 
+      // Determine business_id for the selected dentist
+      const { data: pbm, error: pbmError } = await supabase
+        .from('provider_business_map')
+        .select('business_id')
+        .eq('provider_id', selectedDentist.profile_id)
+        .maybeSingle();
+
+      if (pbmError) throw pbmError;
+      if (!pbm?.business_id) {
+        throw new Error('Clinic not configured for this dentist');
+      }
+
       const { data: appointmentData, error: appointmentError } = await supabase
         .from("appointments")
         .insert({
           patient_id: profile.id,
           dentist_id: selectedDentist.id,
+          business_id: pbm.business_id,
           appointment_date: appointmentDateTime.toISOString(),
           reason: appointmentReason,
           status: "confirmed",
