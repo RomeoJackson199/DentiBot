@@ -20,6 +20,8 @@ import DentistAdminUsers from "./DentistAdminUsers";
 import { ModernLoadingSpinner } from "@/components/enhanced/ModernLoadingSpinner";
 import DentistAppointmentsManagement from "./DentistAppointmentsManagement";
 import { SubscriptionBanner } from "@/components/SubscriptionBanner";
+import { InviteDentistDialog } from "@/components/InviteDentistDialog";
+import { useBusinessContext } from "@/hooks/useBusinessContext";
 
 interface DentistPortalProps {
   user?: User | null;
@@ -33,6 +35,7 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
   const { toast } = useToast();
   const [badges, setBadges] = useState<Partial<Record<DentistSection, number>>>({});
   const location = useLocation();
+  const [businessInfo, setBusinessInfo] = useState<{ id: string; name: string } | null>(null);
 
   // Handle URL-based section navigation
   useEffect(() => {
@@ -74,8 +77,22 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
   useEffect(() => {
     if (user) {
       fetchDentistProfile();
+      fetchBusinessInfo();
     }
   }, [user]);
+
+  const fetchBusinessInfo = async () => {
+    const businessId = localStorage.getItem('selected_business_id');
+    if (!businessId) return;
+    
+    const { data } = await supabase
+      .from('businesses')
+      .select('id, name')
+      .eq('id', businessId)
+      .single();
+    
+    if (data) setBusinessInfo(data);
+  };
 
   const fetchDentistProfile = async () => {
     if (!user) {
@@ -219,6 +236,14 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
     >
       <div className="space-y-4">
         <SubscriptionBanner dentistId={dentistId} />
+        {activeSection === 'users' && businessInfo && (
+          <div className="flex justify-end mb-4">
+            <InviteDentistDialog 
+              businessId={businessInfo.id} 
+              businessName={businessInfo.name}
+            />
+          </div>
+        )}
         {renderContent()}
       </div>
     </DentistAppShell>

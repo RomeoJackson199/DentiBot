@@ -403,6 +403,70 @@ export type Database = {
           },
         ]
       }
+      dentist_invitations: {
+        Row: {
+          business_id: string
+          created_at: string
+          expires_at: string
+          id: string
+          invited_at: string
+          invitee_email: string
+          invitee_profile_id: string | null
+          inviter_profile_id: string
+          responded_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          invited_at?: string
+          invitee_email: string
+          invitee_profile_id?: string | null
+          inviter_profile_id: string
+          responded_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          invited_at?: string
+          invitee_email?: string
+          invitee_profile_id?: string | null
+          inviter_profile_id?: string
+          responded_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dentist_invitations_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dentist_invitations_invitee_profile_id_fkey"
+            columns: ["invitee_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dentist_invitations_inviter_profile_id_fkey"
+            columns: ["inviter_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dentist_vacation_days: {
         Row: {
           business_id: string

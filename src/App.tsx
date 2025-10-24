@@ -25,6 +25,7 @@ import { AppShell } from "@/components/layout/AppShell";
 import { DentistPortal } from "@/pages/DentistPortal";
 import { PatientPortalNav } from "@/components/patient/PatientPortalNav";
 import { RoleBasedRouter } from "@/components/RoleBasedRouter";
+import { DentistInvitationDialog } from "@/components/DentistInvitationDialog";
 
 const Invite = lazy(() => import("./pages/Invite"));
 const Login = lazy(() => import("./pages/Login"));
@@ -240,6 +241,7 @@ const App = () => {
               <Sonner />
               <PWAInstallPrompt />
               <ProfileCompletionDialog />
+              <DentistInvitationDialog />
               <BrowserRouter>
                 <SeoManager />
               <Suspense fallback={<ModernLoadingSpinner variant="overlay" message="Loading..." /> }>

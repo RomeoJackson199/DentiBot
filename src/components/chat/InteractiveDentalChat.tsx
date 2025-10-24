@@ -30,6 +30,8 @@ import {
 } from "./InteractiveChatWidgets";
 import { AIChatOnboardingDialog } from "./AIChatOnboardingDialog";
 import { BookingReadyWidget } from "./BookingReadyWidget";
+import { AppointmentSuccessWidget } from "./AppointmentSuccessWidget";
+import { createAppointmentDateTime } from "@/lib/timezone";
 
 // Widget code mapping
 const WIDGET_CODES: Record<string, string> = {
@@ -829,9 +831,10 @@ Just type what you need! 😊
         return;
       }
 
-      const appointmentDateTime = new Date(bookingFlow.selectedDate);
-      const [hours, minutes] = bookingFlow.selectedTime.split(":");
-      appointmentDateTime.setHours(parseInt(hours), parseInt(minutes));
+      const appointmentDateTime = createAppointmentDateTime(
+        bookingFlow.selectedDate,
+        bookingFlow.selectedTime
+      );
 
       // Generate AI appointment reason from conversation
       let appointmentReason = bookingFlow.reason || "General consultation";
@@ -884,6 +887,17 @@ Just type what you need! 😊
         description: `${format(bookingFlow.selectedDate, "EEEE, MMMM d")} at ${bookingFlow.selectedTime}`
       });
 
+      // Show success widget with navigation options
+      setWidgetData({
+        appointment: {
+          date: format(bookingFlow.selectedDate, "EEEE, MMMM d, yyyy"),
+          time: bookingFlow.selectedTime,
+          dentistName: `Dr. ${bookingFlow.selectedDentist.profiles?.first_name} ${bookingFlow.selectedDentist.profiles?.last_name}`,
+          reason: appointmentReason
+        }
+      });
+      setActiveWidget('appointment-success');
+
       const confirmationMessage = `🎉 **Appointment Confirmed!**
 
 📅 **Date:** ${format(bookingFlow.selectedDate, "EEEE, MMMM d, yyyy")}
@@ -891,7 +905,7 @@ Just type what you need! 😊
 👨‍⚕️ **Dentist:** Dr. ${bookingFlow.selectedDentist.profiles?.first_name} ${bookingFlow.selectedDentist.profiles?.last_name}
 📝 **Reason:** ${appointmentReason}
 
-You'll receive a confirmation email shortly. If you need to reschedule or cancel, just ask me! 😊`;
+You'll receive a confirmation email shortly.`;
 
       addBotMessage(confirmationMessage, 'success');
 
@@ -1535,6 +1549,24 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
           />
         );
       
+      case 'appointment-success':
+        return widgetData?.appointment ? (
+          <AppointmentSuccessWidget
+            appointmentDetails={widgetData.appointment}
+            onBookAnother={() => {
+              setActiveWidget(null);
+              setBookingFlow({
+                reason: '',
+                selectedDentist: null,
+                selectedDate: null,
+                selectedTime: '',
+                urgency: 1,
+                step: 'dentist'
+              });
+              startBookingFlow();
+            }}
+          />
+        ) : null;
 
       default:
         return null;
