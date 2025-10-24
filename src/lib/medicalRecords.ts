@@ -1,5 +1,6 @@
 import { ChatMessage } from "@/types/chat";
 import { supabase } from "@/integrations/supabase/client";
+import { addBusinessContext } from "@/lib/businessScopedSupabase";
 
 export interface CreateMedicalRecordData {
   patientId: string;
@@ -25,9 +26,12 @@ export const createMedicalRecord = async (data: CreateMedicalRecordData) => {
     record_date: data.visitDate ? new Date(data.visitDate) : new Date()
   };
 
+  // Add business_id from current context
+  const payloadWithBusiness = await addBusinessContext(payload);
+
   const { data: inserted, error } = await supabase
     .from('medical_records')
-    .insert(payload)
+    .insert(payloadWithBusiness)
     .select()
     .maybeSingle();
 

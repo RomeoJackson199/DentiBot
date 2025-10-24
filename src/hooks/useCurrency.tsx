@@ -23,45 +23,70 @@ export function useCurrency(dentistId?: string) {
   });
 
   useEffect(() => {
-    if (dentistId) {
-      loadCurrencySettings();
-    }
+    loadCurrencySettings();
   }, [dentistId]);
 
   const loadCurrencySettings = async () => {
-    if (!dentistId) return;
-
     try {
-      const { data, error } = await supabase
-        .from('clinic_settings')
-        .select('currency')
-        .eq('dentist_id', dentistId)
+      // Get current business context from session_business
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setSettings({
+          currency: 'EUR',
+          symbol: '€',
+          format: (amount: number) => `€${amount.toFixed(2)}`,
+        });
+        return;
+      }
+
+      const { data: sessionBusiness } = await supabase
+        .from('session_business')
+        .select('business_id')
+        .eq('user_id', user.id)
         .maybeSingle();
 
-      if (error) throw error;
+      if (sessionBusiness?.business_id) {
+        const { data: business } = await supabase
+          .from('businesses')
+          .select('currency')
+          .eq('id', sessionBusiness.business_id)
+          .maybeSingle();
 
-      const currency = data?.currency || 'EUR';
-      const symbol = CURRENCY_SYMBOLS[currency] || '€';
+        const currencyCode = business?.currency || 'EUR';
+        const symbol = CURRENCY_SYMBOLS[currencyCode] || '€';
 
+        setSettings({
+          currency: currencyCode as any,
+          symbol,
+          format: (amount: number) => {
+            const locale = currencyCode === 'EUR' ? 'de-DE' : 
+                          currencyCode === 'GBP' ? 'en-GB' :
+                          currencyCode === 'USD' ? 'en-US' :
+                          currencyCode === 'CAD' ? 'en-CA' :
+                          'en-AU';
+            
+            return new Intl.NumberFormat(locale, {
+              style: 'currency',
+              currency: currencyCode,
+            }).format(amount);
+          },
+        });
+        return;
+      }
+
+      // Fallback
       setSettings({
-        currency: currency as any,
-        symbol,
-        format: (amount: number) => {
-          // Format based on currency locale
-          const locale = currency === 'EUR' ? 'de-DE' : 
-                        currency === 'GBP' ? 'en-GB' :
-                        currency === 'USD' ? 'en-US' :
-                        currency === 'CAD' ? 'en-CA' :
-                        'en-AU';
-          
-          return new Intl.NumberFormat(locale, {
-            style: 'currency',
-            currency: currency,
-          }).format(amount);
-        },
+        currency: 'EUR',
+        symbol: '€',
+        format: (amount: number) => `€${amount.toFixed(2)}`,
       });
     } catch (error) {
       console.error('Error loading currency settings:', error);
+      setSettings({
+        currency: 'EUR',
+        symbol: '€',
+        format: (amount: number) => `€${amount.toFixed(2)}`,
+      });
     }
   };
 

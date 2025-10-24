@@ -6,8 +6,10 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { LanguageProvider } from "./hooks/useLanguage";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
-import { BusinessProvider } from "./hooks/useBusinessContext";
+import { BusinessProvider, useBusinessContext } from "./hooks/useBusinessContext";
 import { BusinessPickerDialog } from "./components/BusinessPickerDialog";
+import { BusinessSelectionForPatients } from "./components/BusinessSelectionForPatients";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./components/ui/dialog";
 import { PWAInstallPrompt } from "./components/PWAInstallPrompt";
 import ProfileCompletionDialog from "./components/ProfileCompletionDialog";
 import { ChangelogPopup } from "./components/ChangelogPopup";
@@ -62,6 +64,38 @@ const PatientAccountPrivacyPage = lazy(() => import("./pages/PatientAccountPriva
 const PatientAccountHelpPage = lazy(() => import("./pages/PatientAccountHelpPage"));
 
 // Dashboard component that handles authentication with lazy loading
+// Business gate component that shows appropriate picker
+const BusinessGate = ({ showBusinessPicker, setShowBusinessPicker }: { showBusinessPicker: boolean, setShowBusinessPicker: (show: boolean) => void }) => {
+  const { memberships, switchBusiness, loading } = useBusinessContext();
+
+  if (loading) return null;
+
+  if (memberships && memberships.length > 0) {
+    return (
+      <BusinessPickerDialog 
+        open={showBusinessPicker} 
+        onOpenChange={setShowBusinessPicker}
+      />
+    );
+  }
+
+  return (
+    <Dialog open={showBusinessPicker} onOpenChange={setShowBusinessPicker}>
+      <DialogContent className="sm:max-w-[600px]">
+        <DialogHeader>
+          <DialogTitle>Select Your Clinic</DialogTitle>
+        </DialogHeader>
+        <BusinessSelectionForPatients
+          onSelectBusiness={async (businessId) => {
+            await switchBusiness(businessId);
+            setShowBusinessPicker(false);
+          }}
+        />
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 const Dashboard = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -156,9 +190,22 @@ const App = () => {
             .eq('user_id', user.id)
             .single();
 
-          // Always ask on login if user has memberships
+          // Show business picker on login
           if (memberships && memberships.length > 0) {
+            // Provider/staff: show BusinessPickerDialog
             setTimeout(() => setShowBusinessPicker(true), 500);
+          } else {
+            // Patient/guest: check if they have a session_business set
+            const { data: sessionBusiness } = await supabase
+              .from('session_business')
+              .select('business_id')
+              .eq('user_id', user.id)
+              .maybeSingle();
+
+            if (!sessionBusiness?.business_id) {
+              // No clinic selected yet, show patient picker
+              setTimeout(() => setShowBusinessPicker(true), 500);
+            }
           }
 
         }
@@ -249,9 +296,9 @@ const App = () => {
             </BrowserRouter>
             
             {/* Business Picker Dialog */}
-            <BusinessPickerDialog 
-              open={showBusinessPicker} 
-              onOpenChange={setShowBusinessPicker}
+            <BusinessGate 
+              showBusinessPicker={showBusinessPicker}
+              setShowBusinessPicker={setShowBusinessPicker}
             />
           </TooltipProvider>
         </BusinessProvider>

@@ -81,13 +81,30 @@ Deno.serve(async (req) => {
       .select('role')
       .eq('profile_id', profile.id)
       .eq('business_id', targetBusinessId)
-      .single();
+      .maybeSingle();
 
-    if (membershipError || !membership) {
-      return new Response(JSON.stringify({ error: 'Not a member of this business' }), {
-        status: 403,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+    // If not a member, allow guests (patients) to set context for browsing/booking
+    if (!membership) {
+      await supabase
+        .from('session_business')
+        .upsert({
+          user_id: user.id,
+          business_id: targetBusinessId,
+          updated_at: new Date().toISOString(),
+        });
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          businessId: targetBusinessId,
+          role: 'guest',
+          message: 'Business context set for guest',
+        }),
+        {
+          status: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
     }
 
     // Update session_business table (fallback for JWT)
