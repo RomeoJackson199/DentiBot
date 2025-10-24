@@ -76,78 +76,101 @@ export default function BookAppointmentAI() {
       // Get selected business from localStorage
       const selectedBusinessId = localStorage.getItem("selected_business_id");
       
-      if (!selectedBusinessId) {
-        toast({
-          title: "No Clinic Selected",
-          description: "Please select a clinic first",
-          variant: "destructive",
-        });
-        navigate('/');
-        return;
-      }
+      console.log("Fetching dentists, selected business:", selectedBusinessId);
 
-      console.log("Fetching dentists for business:", selectedBusinessId);
+      let data, error;
 
-      // Get dentists for this business through business_members
-      const { data: memberData, error: memberError } = await supabase
-        .from("business_members")
-        .select(`
-          profile_id,
-          profiles:profile_id (
+      if (selectedBusinessId) {
+        // Get dentists for this specific business through business_members
+        const { data: memberData, error: memberError } = await supabase
+          .from("business_members")
+          .select(`
+            profile_id,
+            profiles:profile_id (
+              id,
+              first_name,
+              last_name,
+              email,
+              phone,
+              address
+            )
+          `)
+          .eq("business_id", selectedBusinessId);
+
+        if (memberError) {
+          console.error("Error fetching business members:", memberError);
+          throw memberError;
+        }
+
+        console.log("Business members found:", memberData?.length || 0);
+
+        // Get dentist records for these profiles
+        const profileIds = memberData?.map(m => m.profile_id) || [];
+        
+        if (profileIds.length === 0) {
+          console.warn("No business members found for this clinic");
+          toast({
+            title: "No Dentists Available",
+            description: "This clinic doesn't have any dentists registered yet.",
+            variant: "destructive",
+          });
+          setDentists([]);
+          setLoading(false);
+          return;
+        }
+
+        console.log("Fetching dentists for profile IDs:", profileIds);
+        
+        const dentistResult = await supabase
+          .from("dentists")
+          .select(`
             id,
             first_name,
             last_name,
             email,
-            phone,
-            address
-          )
-        `)
-        .eq("business_id", selectedBusinessId);
+            specialization,
+            license_number,
+            profile_id,
+            profiles:profile_id (
+              first_name,
+              last_name,
+              email,
+              phone,
+              address
+            )
+          `)
+          .eq("is_active", true)
+          .in("profile_id", profileIds);
 
-      if (memberError) {
-        console.error("Error fetching business members:", memberError);
-        throw memberError;
-      }
-
-      console.log("Business members found:", memberData?.length || 0);
-
-      // Get dentist records for these profiles
-      const profileIds = memberData?.map(m => m.profile_id) || [];
-      
-      if (profileIds.length === 0) {
-        console.warn("No business members found for this clinic");
-        toast({
-          title: "No Dentists Available",
-          description: "This clinic doesn't have any dentists registered yet.",
-          variant: "destructive",
-        });
-        setDentists([]);
-        setLoading(false);
-        return;
-      }
-
-      console.log("Fetching dentists for profile IDs:", profileIds);
-      
-      const { data, error } = await supabase
-        .from("dentists")
-        .select(`
-          id,
-          first_name,
-          last_name,
-          email,
-          specialization,
-          license_number,
-          profile_id,
-          profiles:profile_id (
+        data = dentistResult.data;
+        error = dentistResult.error;
+      } else {
+        // No business selected - show all active dentists
+        console.log("No business selected, showing all dentists");
+        
+        const dentistResult = await supabase
+          .from("dentists")
+          .select(`
+            id,
             first_name,
             last_name,
             email,
-            phone,
-            address
-          )
-        `)
-        .eq("is_active", true)
-        .in("profile_id", profileIds);
+            specialization,
+            license_number,
+            profile_id,
+            profiles:profile_id (
+              first_name,
+              last_name,
+              email,
+              phone,
+              address
+            )
+          `)
+          .eq("is_active", true);
+
+        data = dentistResult.data;
+        error = dentistResult.error;
+      }
 
       if (error) {
         console.error("Error fetching dentists:", error);
