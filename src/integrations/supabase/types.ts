@@ -1416,6 +1416,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      can_view_profile_in_user_business: {
+        Args: { _target_profile_id: string; _viewer_user_id: string }
+        Returns: boolean
+      }
       check_clinic_registration: {
         Args: { business_slug: string }
         Returns: Json
@@ -1446,6 +1450,10 @@ export type Database = {
         Returns: boolean
       }
       is_user_business_member: { Args: { _user_id: string }; Returns: boolean }
+      is_user_member_of_business: {
+        Args: { _business_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "admin" | "provider" | "customer" | "staff" | "patient"
