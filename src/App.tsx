@@ -241,8 +241,8 @@ const App = () => {
               <Sonner />
               <PWAInstallPrompt />
               <ProfileCompletionDialog />
-              <DentistInvitationDialog />
               <BrowserRouter>
+                <DentistInvitationDialog />
                 <SeoManager />
               <Suspense fallback={<ModernLoadingSpinner variant="overlay" message="Loading..." /> }>
               <Routes>
@@ -295,13 +295,13 @@ const App = () => {
                 <Route path="*" element={<NotFound />} />
               </Routes>
               </Suspense>
-            </BrowserRouter>
-            
-            {/* Business Picker Dialog */}
+              
+              {/* Business Picker Dialog */}
             <BusinessGate 
               showBusinessPicker={showBusinessPicker}
               setShowBusinessPicker={setShowBusinessPicker}
             />
+            </BrowserRouter>
           </TooltipProvider>
         </BusinessProvider>
         </LanguageProvider>
