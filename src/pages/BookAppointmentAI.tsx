@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { getCurrentBusinessId } from "@/lib/businessScopedSupabase";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -248,9 +249,9 @@ export default function BookAppointmentAI() {
         }
       }
 
-      // Determine business_id: prefer the slot's business, fallback to provider mapping
+      // Determine business_id: prefer the slot's business, fallback to provider mapping, then session
       const dateStr = selectedDate.toISOString().split('T')[0];
-      const slotTime = selectedTime.includes(':') ? selectedTime : `${selectedTime}:00`;
+      const slotTime = selectedTime.length === 5 ? `${selectedTime}:00` : selectedTime;
 
       let businessId: string | null = null;
 
@@ -260,7 +261,7 @@ export default function BookAppointmentAI() {
         .select('business_id')
         .eq('dentist_id', selectedDentist.id)
         .eq('slot_date', dateStr)
-        .eq('slot_time', slotTime)
+        .ilike('slot_time', `${selectedTime.slice(0,5)}%`)
         .maybeSingle();
       if (!slotErr && slotRow?.business_id) {
         businessId = slotRow.business_id as string;
@@ -275,6 +276,15 @@ export default function BookAppointmentAI() {
           .maybeSingle();
         if (!pbmError && pbm?.business_id) {
           businessId = pbm.business_id as string;
+        }
+      }
+
+      // 3) Final fallback to current session business
+      if (!businessId) {
+        try {
+          businessId = await getCurrentBusinessId();
+        } catch (_) {
+          // ignore
         }
       }
 
@@ -302,8 +312,8 @@ export default function BookAppointmentAI() {
 
       const { error: slotError } = await supabase.rpc('book_appointment_slot', {
         p_dentist_id: selectedDentist.id,
-        p_slot_date: selectedDate.toISOString().split('T')[0],
-        p_slot_time: selectedTime,
+        p_slot_date: dateStr,
+        p_slot_time: slotTime,
         p_appointment_id: appointmentData.id
       });
 
