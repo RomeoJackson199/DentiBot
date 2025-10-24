@@ -131,7 +131,7 @@ const App = () => {
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    // Check auth and show business picker if multi-business user
+    // Check auth and show business picker if multi-business user or no business selected
     const checkAuth = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       setUser(user);
@@ -149,8 +149,19 @@ const App = () => {
             .select('business_id')
             .eq('profile_id', profile.id);
 
-          if (memberships && memberships.length > 1) {
-            setShowBusinessPicker(true);
+          // Check if they have a current business selection
+          const { data: sessionBusiness } = await supabase
+            .from('session_business')
+            .select('business_id')
+            .eq('user_id', user.id)
+            .single();
+
+          // Show picker if: multiple businesses OR (has businesses but no selection)
+          if (memberships && memberships.length > 0) {
+            if (memberships.length > 1 || !sessionBusiness?.business_id) {
+              // Small delay to let BusinessProvider load
+              setTimeout(() => setShowBusinessPicker(true), 500);
+            }
           }
         }
       }

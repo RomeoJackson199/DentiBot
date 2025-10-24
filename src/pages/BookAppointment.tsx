@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/hooks/useLanguage";
+import { BusinessSelectionForPatients } from "@/components/BusinessSelectionForPatients";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -44,6 +45,7 @@ export default function BookAppointment() {
   const { t } = useLanguage();
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
+  const [selectedBusiness, setSelectedBusiness] = useState<{id: string, name: string} | null>(null);
   const [dentists, setDentists] = useState<Dentist[]>([]);
   const [selectedDentist, setSelectedDentist] = useState("");
   const [selectedDate, setSelectedDate] = useState<Date>();
@@ -76,9 +78,33 @@ export default function BookAppointment() {
     fetchUserData();
   }, [navigate]);
 
-  // Fetch dentists
+  // Fetch dentists for selected business
   useEffect(() => {
+    if (!selectedBusiness) {
+      setDentists([]);
+      return;
+    }
+
     const fetchDentists = async () => {
+      // Get providers for this business
+      const { data: providerMap, error: mapError } = await supabase
+        .from('provider_business_map')
+        .select('provider_id')
+        .eq('business_id', selectedBusiness.id);
+
+      if (mapError) {
+        console.error('Error fetching provider map:', mapError);
+        return;
+      }
+
+      if (!providerMap || providerMap.length === 0) {
+        setDentists([]);
+        return;
+      }
+
+      const providerIds = providerMap.map(m => m.provider_id);
+
+      // Get dentists for these providers
       const { data, error } = await supabase
         .from('dentists')
         .select(`
@@ -90,7 +116,8 @@ export default function BookAppointment() {
             last_name
           )
         `)
-        .eq('is_active', true);
+        .eq('is_active', true)
+        .in('profile_id', providerIds);
 
       if (error) {
         console.error('Error fetching dentists:', error);
@@ -100,7 +127,7 @@ export default function BookAppointment() {
     };
 
     fetchDentists();
-  }, []);
+  }, [selectedBusiness]);
 
   // Fetch available slots when date and dentist are selected
   useEffect(() => {
@@ -171,12 +198,13 @@ export default function BookAppointment() {
       const [hours, minutes] = selectedTime.split(":");
       appointmentDateTime.setHours(parseInt(hours), parseInt(minutes));
 
-      // Create appointment
+      // Create appointment with business_id
       const { data: appointmentData, error } = await supabase
         .from('appointments')
         .insert({
           patient_id: profile.id,
           dentist_id: selectedDentist,
+          business_id: selectedBusiness!.id,
           appointment_date: appointmentDateTime.toISOString(),
           reason: reason || appointmentType,
           status: 'confirmed',
@@ -241,8 +269,40 @@ export default function BookAppointment() {
           </CardHeader>
           
           <CardContent className="space-y-6 p-6 md:p-8">
-            {/* Dentist Selection */}
-            <div className="space-y-3">
+            {/* Business Selection */}
+            {!selectedBusiness && (
+              <BusinessSelectionForPatients
+                onSelectBusiness={(id, name) => setSelectedBusiness({ id, name })}
+                selectedBusinessId={selectedBusiness?.id}
+              />
+            )}
+
+            {selectedBusiness && (
+              <>
+                {/* Selected Clinic Info */}
+                <div className="bg-primary/5 rounded-lg p-4 border border-primary/20">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Booking at</p>
+                      <p className="text-lg font-semibold">{selectedBusiness.name}</p>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setSelectedBusiness(null);
+                        setSelectedDentist("");
+                        setSelectedDate(undefined);
+                        setSelectedTime("");
+                      }}
+                    >
+                      Change Clinic
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Dentist Selection */}
+                <div className="space-y-3">
               <Label className="text-base font-semibold flex items-center">
                 <UserIcon className="h-4 w-4 mr-2 text-primary" />
                 {t.selectDentist}
@@ -365,33 +425,35 @@ export default function BookAppointment() {
               </div>
             )}
 
-            {/* Submit Button */}
-            <div className="flex justify-end gap-4 pt-4">
-              <Button
-                variant="outline"
-                onClick={() => navigate(-1)}
-                disabled={isSubmitting}
-              >
-                {t.cancel}
-              </Button>
-              <Button
-                onClick={handleSubmit}
-                disabled={!selectedDentist || !selectedDate || !selectedTime || !appointmentType || isSubmitting}
-                className="gap-2"
-              >
-                {isSubmitting ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    {t.booking}
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle2 className="h-4 w-4" />
-                    {t.confirmBooking}
-                  </>
-                )}
-              </Button>
-            </div>
+                {/* Submit Button */}
+                <div className="flex justify-end gap-4 pt-4">
+                  <Button
+                    variant="outline"
+                    onClick={() => navigate(-1)}
+                    disabled={isSubmitting}
+                  >
+                    {t.cancel}
+                  </Button>
+                  <Button
+                    onClick={handleSubmit}
+                    disabled={!selectedBusiness || !selectedDentist || !selectedDate || !selectedTime || !appointmentType || isSubmitting}
+                    className="gap-2"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        {t.booking}
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle2 className="h-4 w-4" />
+                        {t.confirmBooking}
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>

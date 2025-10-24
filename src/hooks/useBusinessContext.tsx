@@ -82,10 +82,28 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
 
       setMemberships(formattedMemberships);
 
-      // Auto-select first business if none selected
-      if (formattedMemberships.length > 0 && !businessId) {
-        const firstBusiness = formattedMemberships[0];
-        await switchBusiness(firstBusiness.business_id);
+      // Get current session business or auto-select (only if not already set)
+      const currentBusinessId = businessId;
+      if (formattedMemberships.length > 0 && !currentBusinessId) {
+        const { data: sessionBusiness } = await supabase
+          .from('session_business')
+          .select('business_id')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (sessionBusiness?.business_id) {
+          // Restore session business
+          const membership = formattedMemberships.find(m => m.business_id === sessionBusiness.business_id);
+          if (membership?.business) {
+            setBusinessId(membership.business_id);
+            setBusinessSlug(membership.business.slug);
+            setBusinessName(membership.business.name);
+            setMembershipRole(membership.role);
+          }
+        } else if (formattedMemberships.length === 1) {
+          // Auto-select if only one business
+          await switchBusiness(formattedMemberships[0].business_id);
+        }
       }
     } catch (error: any) {
       console.error('Error loading memberships:', error);
@@ -93,7 +111,7 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoading(false);
     }
-  }, [businessId]);
+  }, []); // Empty deps - we capture businessId value at call time
 
   const switchBusiness = useCallback(async (businessIdOrSlug: string) => {
     try {

@@ -73,6 +73,8 @@ export const AppointmentCalendar = ({ user, onComplete, onCancel, onBackToDentis
       const [hours, minutes] = selectedTime.split(":");
       appointmentDateTime.setHours(parseInt(hours), parseInt(minutes));
 
+      // Note: AppointmentCalendar needs business_id - this should be passed as a prop
+      // For now, using addBusinessContext which gets it from session
       const appointmentPayload = await addBusinessContext({
         patient_id: profile.id,
         dentist_id: selectedDentist.id,
