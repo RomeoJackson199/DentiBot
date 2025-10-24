@@ -248,15 +248,37 @@ export default function BookAppointmentAI() {
         }
       }
 
-      // Determine business_id for the selected dentist
-      const { data: pbm, error: pbmError } = await supabase
-        .from('provider_business_map')
-        .select('business_id')
-        .eq('provider_id', selectedDentist.profile_id)
-        .maybeSingle();
+      // Determine business_id: prefer the slot's business, fallback to provider mapping
+      const dateStr = selectedDate.toISOString().split('T')[0];
+      const slotTime = selectedTime.includes(':') ? selectedTime : `${selectedTime}:00`;
 
-      if (pbmError) throw pbmError;
-      if (!pbm?.business_id) {
+      let businessId: string | null = null;
+
+      // 1) Try from the selected slot
+      const { data: slotRow, error: slotErr } = await supabase
+        .from('appointment_slots')
+        .select('business_id')
+        .eq('dentist_id', selectedDentist.id)
+        .eq('slot_date', dateStr)
+        .eq('slot_time', slotTime)
+        .maybeSingle();
+      if (!slotErr && slotRow?.business_id) {
+        businessId = slotRow.business_id as string;
+      }
+
+      // 2) Fallback to provider -> business mapping
+      if (!businessId) {
+        const { data: pbm, error: pbmError } = await supabase
+          .from('provider_business_map')
+          .select('business_id')
+          .eq('provider_id', selectedDentist.profile_id)
+          .maybeSingle();
+        if (!pbmError && pbm?.business_id) {
+          businessId = pbm.business_id as string;
+        }
+      }
+
+      if (!businessId) {
         throw new Error('Clinic not configured for this dentist');
       }
 
@@ -265,7 +287,7 @@ export default function BookAppointmentAI() {
         .insert({
           patient_id: profile.id,
           dentist_id: selectedDentist.id,
-          business_id: pbm.business_id,
+          business_id: businessId,
           appointment_date: appointmentDateTime.toISOString(),
           reason: appointmentReason,
           status: "confirmed",
