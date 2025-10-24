@@ -1402,6 +1402,10 @@ export type Database = {
       }
     }
     Functions: {
+      accept_dentist_invitation: {
+        Args: { p_business_id: string; p_invitation_id: string }
+        Returns: Json
+      }
       assign_provider_role: { Args: never; Returns: undefined }
       book_appointment_slot: {
         Args: {

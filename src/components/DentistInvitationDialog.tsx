@@ -81,73 +81,13 @@ export const DentistInvitationDialog = () => {
     
     setLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
+      // Use the secure RPC function to handle everything atomically
+      const { data, error } = await supabase.rpc('accept_dentist_invitation', {
+        p_invitation_id: invitation.id,
+        p_business_id: invitation.business_id
+      });
 
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("id")
-        .eq("user_id", user.id)
-        .single();
-
-      if (!profile) throw new Error("Profile not found");
-
-      // Start a transaction-like operation
-      // 1. Update invitation status
-      const { error: inviteError } = await supabase
-        .from("dentist_invitations")
-        .update({
-          status: "accepted",
-          responded_at: new Date().toISOString(),
-          invitee_profile_id: profile.id
-        })
-        .eq("id", invitation.id);
-
-      if (inviteError) throw inviteError;
-
-      // 2. Add provider role
-      const { error: roleError } = await supabase.rpc("assign_provider_role");
-      if (roleError) throw roleError;
-
-      // 3. Create or update dentist record
-      const { data: existingDentist } = await supabase
-        .from("dentists")
-        .select("id")
-        .eq("profile_id", profile.id)
-        .single();
-
-      if (!existingDentist) {
-        const { error: dentistError } = await supabase
-          .from("dentists")
-          .insert({
-            profile_id: profile.id,
-            is_active: true
-          });
-
-        if (dentistError) throw dentistError;
-      }
-
-      // 4. Get the dentist ID for business membership
-      const { data: dentist } = await supabase
-        .from("dentists")
-        .select("id")
-        .eq("profile_id", profile.id)
-        .single();
-
-      if (!dentist) throw new Error("Dentist record not found");
-
-      // 5. Add to business_members
-      const { error: memberError } = await supabase
-        .from("business_members")
-        .insert({
-          business_id: invitation.business_id,
-          profile_id: profile.id,
-          role: "dentist"
-        });
-
-      if (memberError && !memberError.message.includes("duplicate")) {
-        throw memberError;
-      }
+      if (error) throw error;
 
       toast({
         title: "Invitation Accepted! 🎉",
