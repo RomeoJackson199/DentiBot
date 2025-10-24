@@ -1,5 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { getCurrentBusinessId, addBusinessContext } from '@/lib/businessScopedSupabase';
+import { useBusinessContext } from '@/hooks/useBusinessContext';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -74,6 +76,7 @@ export function UnifiedAppointments({
   onOpenPatientProfile,
   viewMode = 'clinical' 
 }: UnifiedAppointmentsProps) {
+  const { businessId } = useBusinessContext();
   const [appointments, setAppointments] = useState<UnifiedAppointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState<'all' | 'upcoming' | 'completed' | 'cancelled'>('all');
