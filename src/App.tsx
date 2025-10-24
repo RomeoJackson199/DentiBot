@@ -263,7 +263,7 @@ const App = () => {
                 <Route path="/clinical/*" element={<Navigate to="/dentist/clinical/dashboard" replace />} />
                 <Route path="/business/*" element={<Navigate to="/dentist/business/payments" replace />} />
                 <Route path="/ops/*" element={<Navigate to="/dentist/ops/inventory" replace />} />
-                <Route path="/admin/*" element={<Navigate to="/dentist/admin/branding" replace />} />
+                <Route path="/admin/*" element={<Navigate to="/dentist/settings" replace />} />
                 {/* Patient portal routes with patient nav */}
                 <Route element={<PatientPortalNav><></></PatientPortalNav>}>
                   <Route path="/care" element={<PatientCareHome />} />
