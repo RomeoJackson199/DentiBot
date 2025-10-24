@@ -73,6 +73,40 @@ export default function BookAppointmentAI() {
   const fetchDentists = async () => {
     setLoading(true);
     try {
+      // Get selected business from localStorage
+      const selectedBusinessId = localStorage.getItem("selected_business_id");
+      
+      if (!selectedBusinessId) {
+        toast({
+          title: "No Clinic Selected",
+          description: "Please select a clinic first",
+          variant: "destructive",
+        });
+        navigate('/');
+        return;
+      }
+
+      // Get dentists for this business through business_members
+      const { data: memberData, error: memberError } = await supabase
+        .from("business_members")
+        .select(`
+          profile_id,
+          profiles:profile_id (
+            id,
+            first_name,
+            last_name,
+            email,
+            phone,
+            address
+          )
+        `)
+        .eq("business_id", selectedBusinessId);
+
+      if (memberError) throw memberError;
+
+      // Get dentist records for these profiles
+      const profileIds = memberData?.map(m => m.profile_id) || [];
+      
       const { data, error } = await supabase
         .from("dentists")
         .select(`
@@ -91,7 +125,8 @@ export default function BookAppointmentAI() {
             address
           )
         `)
-        .eq("is_active", true);
+        .eq("is_active", true)
+        .in("profile_id", profileIds);
 
       if (error) throw error;
       

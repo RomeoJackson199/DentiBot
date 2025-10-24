@@ -47,7 +47,7 @@ const Signup = () => {
     setIsLoading(true);
 
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
         options: {
@@ -56,6 +56,18 @@ const Signup = () => {
       });
 
       if (error) throw error;
+
+      // Set the business context after successful signup
+      const selectedBusinessId = localStorage.getItem("selected_business_id");
+      if (selectedBusinessId && data.user) {
+        try {
+          await supabase.functions.invoke('set-current-business', {
+            body: { business_id: selectedBusinessId }
+          });
+        } catch (err) {
+          console.error("Error setting business context:", err);
+        }
+      }
 
       toast({
         title: "Account created!",

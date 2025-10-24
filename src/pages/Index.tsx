@@ -18,6 +18,7 @@ import { SimpleDatabaseSaveTest } from "@/components/SimpleDatabaseSaveTest";
 import { EmailTest } from "@/components/EmailTest";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { BusinessPickerHomepage } from "@/components/BusinessPickerHomepage";
 
 
 const Index = () => {
@@ -32,6 +33,9 @@ const Index = () => {
   const [showLanguageSelection, setShowLanguageSelection] = useState(false);
   const [showAppointmentBooking, setShowAppointmentBooking] = useState(false);
   const [showEmergencyTriage, setShowEmergencyTriage] = useState(false);
+  const [selectedBusinessId, setSelectedBusinessId] = useState<string | null>(
+    localStorage.getItem("selected_business_id")
+  );
 
   const isMountedRef = useRef(true);
   const {
@@ -252,24 +256,38 @@ const Index = () => {
         onStartTriage={() => setShowEmergencyTriage(true)}
       />
 
-      <section className="py-16">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-md mx-auto space-y-6 text-center">
-            <h2 className="text-3xl font-bold">Get Started</h2>
-            <p className="text-muted-foreground">
-              Sign in to manage your appointments or create a new account
-            </p>
-            <div className="flex flex-col gap-3">
-              <Button size="lg" asChild className="w-full">
-                <a href="/login">Sign In to Your Account</a>
-              </Button>
-              <Button size="lg" variant="outline" asChild className="w-full">
-                <a href="/signup">Create New Account</a>
+      {!selectedBusinessId ? (
+        <BusinessPickerHomepage onBusinessSelected={setSelectedBusinessId} />
+      ) : (
+        <section className="py-16">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="max-w-md mx-auto space-y-6 text-center">
+              <h2 className="text-3xl font-bold">Get Started</h2>
+              <p className="text-muted-foreground">
+                Sign in to manage your appointments or create a new account
+              </p>
+              <div className="flex flex-col gap-3">
+                <Button size="lg" asChild className="w-full">
+                  <a href="/login">Sign In to Your Account</a>
+                </Button>
+                <Button size="lg" variant="outline" asChild className="w-full">
+                  <a href="/signup">Create New Account</a>
+                </Button>
+              </div>
+              <Button 
+                variant="ghost" 
+                onClick={() => {
+                  localStorage.removeItem("selected_business_id");
+                  setSelectedBusinessId(null);
+                }}
+                className="mt-4"
+              >
+                Choose Different Clinic
               </Button>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       <Footer />
 

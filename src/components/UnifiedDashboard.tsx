@@ -28,35 +28,48 @@ export const UnifiedDashboard = memo(({ user }: UnifiedDashboardProps) => {
         return;
       }
 
-      // Dentists/providers and admins should be redirected to dentist portal
-      if (isDentist || isAdmin) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('user_id', user.id)
+      // Check current business membership
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (!profile) {
+        setShouldRedirect(false);
+        return;
+      }
+
+      // Get current business from session
+      const { data: sessionBusiness } = await supabase
+        .from('session_business')
+        .select('business_id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      const currentBusinessId = sessionBusiness?.business_id;
+
+      if (currentBusinessId) {
+        // Check if user is a member of this business
+        const { data: membership } = await supabase
+          .from('business_members')
+          .select('role')
+          .eq('profile_id', profile.id)
+          .eq('business_id', currentBusinessId)
           .maybeSingle();
 
-        if (profile) {
-          const { data: providerData } = await supabase
-            .from('providers')
-            .select('is_active')
-            .eq('profile_id', profile.id)
-            .maybeSingle();
-
-          if (providerData?.is_active || isAdmin) {
-            console.log('Active provider/admin detected, redirecting to dentist portal');
-            setShouldRedirect(true);
-            navigate('/dentist/clinical/dashboard', { replace: true });
-            return;
-          }
+        if (membership && (isDentist || isAdmin)) {
+          // User is a dentist/admin in this business, redirect to clinic dashboard
+          console.log('User is a member of this business, redirecting to clinic dashboard');
+          setShouldRedirect(true);
+          navigate('/dentist/clinical/dashboard', { replace: true });
+          return;
         }
       }
 
-      // Patients should go to patient dashboard
-      if (isPatient) {
-        console.log('Patient detected, showing patient dashboard');
-        setShouldRedirect(false);
-      }
+      // Default to patient dashboard
+      console.log('User is a patient or not a member, showing patient dashboard');
+      setShouldRedirect(false);
     };
 
     checkRoleBasedRedirect();
