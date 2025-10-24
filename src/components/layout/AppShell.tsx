@@ -63,6 +63,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { cn } from "@/lib/utils";
 import { emitAnalyticsEvent } from "@/lib/analyticsEvents";
 import { useCurrentDentist } from "@/hooks/useCurrentDentist";
+import { BusinessSelector } from "@/components/BusinessSelector";
 
 const STORAGE = {
   lastItem: "dnav:last-item",
@@ -129,21 +130,7 @@ function TopBar() {
         </div>
 
         <div className="ml-auto flex items-center gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-2">
-                <Building2 className="h-4 w-4" />
-                <span className="hidden sm:inline">{t.topClinic}</span>
-                <ChevronDown className="h-3 w-3" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuLabel>Clinic</DropdownMenuLabel>
-              <DropdownMenuItem>Default Clinic</DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem disabled>Add clinic (soon)</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <BusinessSelector />
 
           {userId && <ModernNotificationCenter userId={userId} />}
 
