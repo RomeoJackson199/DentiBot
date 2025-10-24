@@ -35,7 +35,7 @@ export function GoogleCalendarConnect() {
   const handleConnect = async () => {
     setIsLoading(true);
     try {
-      const redirectUri = `${window.location.origin}/dentist-portal`;
+      const redirectUri = `${window.location.origin}/google-calendar-callback`;
       
       const { data, error } = await supabase.functions.invoke('google-calendar-oauth', {
         body: { 
