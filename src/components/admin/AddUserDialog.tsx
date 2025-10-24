@@ -22,6 +22,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, UserPlus, Shield } from "lucide-react";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useBusinessContext } from "@/hooks/useBusinessContext";
 
 interface AddUserDialogProps {
   onUserAdded?: () => void;
@@ -46,104 +47,99 @@ export function AddUserDialog({ onUserAdded }: AddUserDialogProps) {
     return null;
   }
 
+  const { businessId, businessName } = useBusinessContext();
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      // Check if profile already exists
-      const { data: existingProfile } = await supabase
-        .from('profiles')
-        .select('id, user_id')
-        .eq('email', email)
-        .maybeSingle();
-
-      let profileId: string;
-      let userId: string | null = null;
-      
-      if (existingProfile) {
-        profileId = existingProfile.id;
-        userId = existingProfile.user_id;
-      } else {
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .insert({
-            email,
-            first_name: firstName,
-            last_name: lastName,
-          })
-          .select()
-          .single();
-
-        if (profileError) throw profileError;
-        profileId = profileData.id;
-        userId = profileData.user_id;
-      }
-
-      // If adding as dentist, create dentist record if it doesn't exist
       if (role === 'dentist') {
-        const { data: existingDentist } = await supabase
-          .from('dentists')
+        if (!businessId) {
+          toast({
+            title: 'Select a clinic',
+            description: 'Please select a business before inviting a dentist.',
+            variant: 'destructive',
+          });
+          return;
+        }
+
+        // Get inviter profile id
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error('Not authenticated');
+
+        const { data: inviterProfile } = await supabase
+          .from('profiles')
           .select('id')
-          .eq('profile_id', profileId)
+          .eq('user_id', user.id)
           .maybeSingle();
 
-        if (!existingDentist) {
-          const { error: dentistError } = await supabase
-            .from('dentists')
+        if (!inviterProfile?.id) throw new Error('Profile not found');
+
+        // Check for existing pending invite
+        const { data: existingInvite } = await supabase
+          .from('dentist_invitations')
+          .select('id')
+          .eq('invitee_email', email)
+          .eq('business_id', businessId)
+          .eq('status', 'pending')
+          .maybeSingle();
+
+        if (existingInvite?.id) {
+          toast({
+            title: 'Invitation already pending',
+            description: `${email} already has a pending invite for this clinic.`,
+          });
+        } else {
+          const { error: inviteError } = await supabase
+            .from('dentist_invitations')
             .insert({
-              profile_id: profileId,
-              first_name: firstName,
-              last_name: lastName,
-              email: email,
-              is_active: true,
+              business_id: businessId,
+              inviter_profile_id: inviterProfile.id,
+              invitee_email: email,
             });
 
-          if (dentistError) throw dentistError;
+          if (inviteError) throw inviteError;
+
+          toast({
+            title: 'Invitation sent',
+            description: `An invitation was sent to ${email} to join ${businessName || 'the clinic'} as a dentist.`,
+          });
         }
 
-        // If user exists, add provider role
-        if (userId) {
-          const { error: roleError } = await supabase
-            .from('user_roles')
-            .insert({
-              user_id: userId,
-              role: 'provider',
-            })
-            .select()
-            .maybeSingle();
-
-          // Ignore conflict errors (role already exists)
-          if (roleError && !roleError.message.includes('duplicate')) {
-            console.error('Role error:', roleError);
-          }
-        }
-
-        toast({
-          title: "Dentist Added Successfully",
-          description: existingProfile?.user_id 
-            ? `${firstName} ${lastName} can now switch between patient and dentist views`
-            : `${firstName} ${lastName} has been added as dentist`,
-        });
-      } else {
-        toast({
-          title: "User Added Successfully",
-          description: `${firstName} ${lastName} has been added as ${role}`,
-        });
+        // Reset form and close dialog
+        setOpen(false);
+        setEmail('');
+        setFirstName('');
+        setLastName('');
+        setRole('patient');
+        onUserAdded?.();
+        return;
       }
 
+      // For non-dentist roles, we currently do not create accounts directly for security.
+      toast({
+        title: 'Action not available',
+        description: 'Please ask the user to sign up directly. Admin account creation is restricted.',
+      });
+
       setOpen(false);
-      setEmail("");
-      setFirstName("");
-      setLastName("");
-      setRole("patient");
+      setEmail('');
+      setFirstName('');
+      setLastName('');
+      setRole('patient');
       onUserAdded?.();
     } catch (error: any) {
       console.error('Error adding user:', error);
+      const msg = error?.message || 'Failed to add user';
+      // Provide clearer message for RLS denial (only owners can invite)
+      const hint = msg.includes('row-level security')
+        ? 'Only the business owner can invite dentists to this clinic.'
+        : undefined;
       toast({
-        title: "Error",
-        description: error.message || "Failed to add user",
-        variant: "destructive",
+        title: 'Error',
+        description: hint ? `${msg} ${hint}` : msg,
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -165,7 +161,7 @@ export function AddUserDialog({ onUserAdded }: AddUserDialogProps) {
             Add New User
           </DialogTitle>
           <DialogDescription>
-            Add a new user to the system. For dentists, they will be added directly without email confirmation.
+            Add a new user to the system. For dentists, an invitation will be sent and they will confirm on next login.
           </DialogDescription>
         </DialogHeader>
 
