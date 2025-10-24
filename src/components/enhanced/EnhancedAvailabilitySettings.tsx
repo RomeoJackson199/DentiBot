@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/hooks/useLanguage";
+import { GoogleCalendarConnect } from "@/components/GoogleCalendarConnect";
 interface DentistAvailability {
   id?: string;
   day_of_week: number;
@@ -289,6 +290,8 @@ export function EnhancedAvailabilitySettings({ dentistId }: EnhancedAvailability
           {saving ? t.saving : t.saveAvailability}
         </Button>
       </div>
+
+      <GoogleCalendarConnect />
 
       <Tabs defaultValue="schedule" className="space-y-6">
         <TabsList className="grid w-full grid-cols-2 h-12">

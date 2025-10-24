@@ -8,9 +8,9 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { WeeklyCalendarView } from "@/components/appointments/WeeklyCalendarView";
 import { DayCalendarView } from "@/components/appointments/DayCalendarView";
 import { AppointmentDetailsSidebar } from "@/components/appointments/AppointmentDetailsSidebar";
-import { format, addDays, subDays, parseISO } from "date-fns";
+import { format, addDays, subDays, parseISO, startOfWeek, endOfWeek } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 export default function DentistAppointmentsManagement() {
   const {
@@ -29,6 +29,33 @@ export default function DentistAppointmentsManagement() {
     t
   } = useLanguage();
   const queryClient = useQueryClient();
+
+  // Fetch Google Calendar events
+  const { data: googleCalendarEvents } = useQuery({
+    queryKey: ['google-calendar-events', dentistId, currentDate],
+    queryFn: async () => {
+      if (!dentistId) return [];
+      
+      const startDate = startOfWeek(currentDate);
+      const endDate = endOfWeek(addDays(currentDate, 7));
+      
+      const { data, error } = await supabase.functions.invoke('google-calendar-sync', {
+        body: {
+          startDate: startDate.toISOString(),
+          endDate: endDate.toISOString(),
+        }
+      });
+
+      if (error) {
+        console.error('Error fetching Google Calendar events:', error);
+        return [];
+      }
+
+      return data?.events || [];
+    },
+    enabled: !!dentistId,
+    refetchInterval: 300000, // Refresh every 5 minutes
+  });
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
@@ -150,7 +177,7 @@ export default function DentistAppointmentsManagement() {
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div> : !dentistId ? <div className="flex justify-center items-center h-full">
               <p className="text-muted-foreground">{t.notRegisteredDentist}</p>
-            </div> : viewMode === "week" ? <WeeklyCalendarView dentistId={dentistId} currentDate={currentDate} onAppointmentClick={handleAppointmentClick} selectedAppointmentId={selectedAppointment?.id} /> : <DayCalendarView dentistId={dentistId} currentDate={currentDate} onAppointmentClick={setSelectedAppointment} selectedAppointmentId={selectedAppointment?.id} />}
+            </div> : viewMode === "week" ? <WeeklyCalendarView dentistId={dentistId} currentDate={currentDate} onAppointmentClick={handleAppointmentClick} selectedAppointmentId={selectedAppointment?.id} googleCalendarEvents={googleCalendarEvents} /> : <DayCalendarView dentistId={dentistId} currentDate={currentDate} onAppointmentClick={setSelectedAppointment} selectedAppointmentId={selectedAppointment?.id} googleCalendarEvents={googleCalendarEvents} />}
         </div>
 
         {/* Sidebar */}

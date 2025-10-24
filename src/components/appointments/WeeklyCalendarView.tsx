@@ -20,6 +20,7 @@ interface WeeklyCalendarViewProps {
   currentDate: Date;
   onAppointmentClick: (appointment: any) => void;
   selectedAppointmentId?: string;
+  googleCalendarEvents?: any[];
 }
 
 const TIME_SLOTS = [
@@ -32,6 +33,7 @@ const STATUS_COLORS: Record<string, string> = {
   "cancelled": "bg-gray-50 text-gray-600 border-l-gray-400",
   "confirmed": "bg-blue-50 text-blue-900 border-l-blue-500",
   "pending": "bg-yellow-50 text-yellow-900 border-l-yellow-500",
+  "google-calendar": "bg-purple-50 text-purple-900 border-l-purple-500",
 };
 
 const URGENCY_LABELS: Record<string, string> = {
@@ -44,7 +46,8 @@ export function WeeklyCalendarView({
   dentistId, 
   currentDate, 
   onAppointmentClick,
-  selectedAppointmentId 
+  selectedAppointmentId,
+  googleCalendarEvents = []
 }: WeeklyCalendarViewProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -100,11 +103,28 @@ export function WeeklyCalendarView({
   });
 
   const getAppointmentsForSlot = (day: Date, timeSlot: string) => {
-    return appointments.filter((apt) => {
+    const regularAppts = appointments.filter((apt) => {
       const aptDate = parseISO(apt.appointment_date);
       const aptHour = format(aptDate, "HH:00");
       return isSameDay(aptDate, day) && aptHour === timeSlot;
     });
+    
+    // Add Google Calendar events for this slot
+    const googleEvents = (googleCalendarEvents || []).filter((event) => {
+      const eventStart = parseISO(event.start);
+      const eventHour = format(eventStart, "HH:00");
+      return isSameDay(eventStart, day) && eventHour === timeSlot;
+    }).map(event => ({
+      ...event,
+      id: event.id,
+      patient: { first_name: '', last_name: '', email: '' },
+      reason: event.summary,
+      status: 'google-calendar',
+      isGoogleCalendarEvent: true,
+      appointment_date: event.start
+    }));
+    
+    return [...regularAppts, ...googleEvents];
   };
 
   const getPatientInitials = (firstName?: string, lastName?: string) => {

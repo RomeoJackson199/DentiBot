@@ -537,6 +537,9 @@ export type Database = {
           email: string | null
           expertise_score: number
           first_name: string | null
+          google_calendar_connected: boolean | null
+          google_calendar_last_sync: string | null
+          google_calendar_refresh_token: string | null
           id: string
           is_active: boolean
           last_name: string | null
@@ -555,6 +558,9 @@ export type Database = {
           email?: string | null
           expertise_score?: number
           first_name?: string | null
+          google_calendar_connected?: boolean | null
+          google_calendar_last_sync?: string | null
+          google_calendar_refresh_token?: string | null
           id?: string
           is_active?: boolean
           last_name?: string | null
@@ -573,6 +579,9 @@ export type Database = {
           email?: string | null
           expertise_score?: number
           first_name?: string | null
+          google_calendar_connected?: boolean | null
+          google_calendar_last_sync?: string | null
+          google_calendar_refresh_token?: string | null
           id?: string
           is_active?: boolean
           last_name?: string | null
@@ -966,6 +975,8 @@ export type Database = {
           email: string | null
           emergency_contact: string | null
           first_name: string | null
+          google_calendar_connected: boolean | null
+          google_calendar_refresh_token: string | null
           id: string
           import_session_id: string | null
           last_name: string | null
@@ -984,6 +995,8 @@ export type Database = {
           email?: string | null
           emergency_contact?: string | null
           first_name?: string | null
+          google_calendar_connected?: boolean | null
+          google_calendar_refresh_token?: string | null
           id?: string
           import_session_id?: string | null
           last_name?: string | null
@@ -1002,6 +1015,8 @@ export type Database = {
           email?: string | null
           emergency_contact?: string | null
           first_name?: string | null
+          google_calendar_connected?: boolean | null
+          google_calendar_refresh_token?: string | null
           id?: string
           import_session_id?: string | null
           last_name?: string | null

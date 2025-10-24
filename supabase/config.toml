@@ -1,7 +1,10 @@
 project_id = "gjvxcisbaxhhblhsytar"
 
-[functions.google-calendar-integration]
-verify_jwt = false
+[functions.google-calendar-oauth]
+verify_jwt = true
+
+[functions.google-calendar-sync]
+verify_jwt = true
 
 [functions.send-sms]
 verify_jwt = true

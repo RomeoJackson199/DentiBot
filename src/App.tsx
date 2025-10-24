@@ -30,6 +30,7 @@ import { DentistInvitationDialog } from "@/components/DentistInvitationDialog";
 const Invite = lazy(() => import("./pages/Invite"));
 const Login = lazy(() => import("./pages/Login"));
 const Signup = lazy(() => import("./pages/Signup"));
+const GoogleCalendarCallback = lazy(() => import("./pages/GoogleCalendarCallback"));
 
 // Lazy load pages for better performance
 const Index = lazy(() => import("./pages/Index"));
@@ -291,6 +292,7 @@ const App = () => {
                 <Route path="/invite" element={<Invite />} />
                 <Route path="/claim" element={<Claim />} />
                 <Route path="/pricing" element={<Pricing />} />
+                <Route path="/google-calendar-callback" element={<GoogleCalendarCallback />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
