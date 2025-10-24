@@ -17,6 +17,7 @@ import DataImportManager from "@/components/DataImportManager";
 import DentistAdminBranding from "./DentistAdminBranding";
 import DentistAdminSecurity from "./DentistAdminSecurity";
 import DentistAdminUsers from "./DentistAdminUsers";
+import DentistSettings from "./DentistSettings";
 import { ModernLoadingSpinner } from "@/components/enhanced/ModernLoadingSpinner";
 import DentistAppointmentsManagement from "./DentistAppointmentsManagement";
 import { SubscriptionBanner } from "@/components/SubscriptionBanner";
@@ -46,7 +47,7 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
       const validSections: DentistSection[] = [
         'dashboard', 'patients', 'appointments', 'employees', 'clinical',
         'schedule', 'payments', 'analytics', 'reports', 'inventory',
-        'imports', 'users', 'branding', 'security'
+        'imports', 'users', 'branding', 'security', 'settings'
       ];
       
       if (validSections.includes(sectionFromUrl as DentistSection)) {
@@ -222,6 +223,8 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
         return <DentistAdminBranding />;
       case 'security':
         return <DentistAdminSecurity />;
+      case 'settings':
+        return <DentistSettings />;
       default:
         return <div className="p-4">Section not found</div>;
     }

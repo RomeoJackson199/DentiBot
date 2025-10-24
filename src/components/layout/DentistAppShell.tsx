@@ -30,7 +30,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { RoleSwitcher } from "@/components/RoleSwitcher";
 import { BusinessSelector } from "@/components/BusinessSelector";
 
-export type DentistSection = 'dashboard' | 'patients' | 'appointments' | 'employees' | 'clinical' | 'schedule' | 'payments' | 'analytics' | 'reports' | 'inventory' | 'imports' | 'branding' | 'security' | 'users';
+export type DentistSection = 'dashboard' | 'patients' | 'appointments' | 'employees' | 'clinical' | 'schedule' | 'payments' | 'analytics' | 'reports' | 'inventory' | 'imports' | 'branding' | 'security' | 'users' | 'settings';
 
 interface DentistAppShellProps {
   activeSection: DentistSection;
@@ -249,7 +249,7 @@ export const DentistAppShell: React.FC<DentistAppShellProps> = ({
                   <User className="mr-2 h-4 w-4" />
                   Profile
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onChangeSection('branding')}>
+                <DropdownMenuItem onClick={() => onChangeSection('settings')}>
                   <SettingsIcon className="mr-2 h-4 w-4" />
                   Settings
                 </DropdownMenuItem>

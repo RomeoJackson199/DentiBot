@@ -29,6 +29,7 @@ const pathToLabel: Record<string, string> = {
   'admin': 'Admin',
   'branding': 'Branding',
   'security': 'Security',
+  'settings': 'Settings',
   'users': 'User Management',
   'care': 'Care',
   'prescriptions': 'Prescriptions',
