@@ -86,6 +86,8 @@ export default function BookAppointmentAI() {
         return;
       }
 
+      console.log("Fetching dentists for business:", selectedBusinessId);
+
       // Get dentists for this business through business_members
       const { data: memberData, error: memberError } = await supabase
         .from("business_members")
@@ -102,10 +104,29 @@ export default function BookAppointmentAI() {
         `)
         .eq("business_id", selectedBusinessId);
 
-      if (memberError) throw memberError;
+      if (memberError) {
+        console.error("Error fetching business members:", memberError);
+        throw memberError;
+      }
+
+      console.log("Business members found:", memberData?.length || 0);
 
       // Get dentist records for these profiles
       const profileIds = memberData?.map(m => m.profile_id) || [];
+      
+      if (profileIds.length === 0) {
+        console.warn("No business members found for this clinic");
+        toast({
+          title: "No Dentists Available",
+          description: "This clinic doesn't have any dentists registered yet.",
+          variant: "destructive",
+        });
+        setDentists([]);
+        setLoading(false);
+        return;
+      }
+
+      console.log("Fetching dentists for profile IDs:", profileIds);
       
       const { data, error } = await supabase
         .from("dentists")
@@ -128,7 +149,12 @@ export default function BookAppointmentAI() {
         .eq("is_active", true)
         .in("profile_id", profileIds);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching dentists:", error);
+        throw error;
+      }
+
+      console.log("Dentists found:", data?.length || 0);
       
       // Transform the data to match our interface (profiles comes as array, we need object)
       const transformedData = (data || []).map((d: any) => ({
