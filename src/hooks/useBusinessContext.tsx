@@ -56,28 +56,31 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      // Get all business memberships
-      const { data: membershipData, error } = await supabase
+      // Get all business memberships (no joins to avoid missing FK issues)
+      const { data: membershipData, error: membershipError } = await supabase
         .from('business_members')
-        .select(`
-          id,
-          business_id,
-          role,
-          businesses:business_id (
-            id,
-            name,
-            slug
-          )
-        `)
+        .select('id, business_id, role')
         .eq('profile_id', profile.id);
 
-      if (error) throw error;
+      if (membershipError) throw membershipError;
+
+      const businessIds = (membershipData || []).map((m: any) => m.business_id);
+      let businessMap: Record<string, any> = {};
+      if (businessIds.length > 0) {
+        const { data: businessesData, error: businessesError } = await supabase
+          .from('businesses')
+          .select('id, name, slug')
+          .in('id', businessIds);
+
+        if (businessesError) throw businessesError;
+        businessMap = Object.fromEntries((businessesData || []).map((b: any) => [b.id, b]));
+      }
 
       const formattedMemberships = (membershipData || []).map((m: any) => ({
         id: m.id,
         business_id: m.business_id,
         role: m.role,
-        business: m.businesses,
+        business: businessMap[m.business_id] || null,
       }));
 
       setMemberships(formattedMemberships);

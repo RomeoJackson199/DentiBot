@@ -156,13 +156,11 @@ const App = () => {
             .eq('user_id', user.id)
             .single();
 
-          // Show picker if: multiple businesses OR (has businesses but no selection)
+          // Always ask on login if user has memberships
           if (memberships && memberships.length > 0) {
-            if (memberships.length > 1 || !sessionBusiness?.business_id) {
-              // Small delay to let BusinessProvider load
-              setTimeout(() => setShowBusinessPicker(true), 500);
-            }
+            setTimeout(() => setShowBusinessPicker(true), 500);
           }
+
         }
       }
     };
