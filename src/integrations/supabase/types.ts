@@ -587,7 +587,7 @@ export type Database = {
           {
             foreignKeyName: "dentists_profile_id_fkey"
             columns: ["profile_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -1394,7 +1394,7 @@ export type Database = {
           {
             foreignKeyName: "dentists_profile_id_fkey"
             columns: ["profile_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
