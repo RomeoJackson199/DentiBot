@@ -17,6 +17,7 @@ export type Database = {
       appointment_slots: {
         Row: {
           appointment_id: string | null
+          business_id: string
           created_at: string
           dentist_id: string
           emergency_only: boolean
@@ -28,6 +29,7 @@ export type Database = {
         }
         Insert: {
           appointment_id?: string | null
+          business_id: string
           created_at?: string
           dentist_id: string
           emergency_only?: boolean
@@ -39,6 +41,7 @@ export type Database = {
         }
         Update: {
           appointment_id?: string | null
+          business_id?: string
           created_at?: string
           dentist_id?: string
           emergency_only?: boolean
@@ -49,6 +52,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "appointment_slots_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "appointment_slots_dentist_id_fkey"
             columns: ["dentist_id"]
@@ -68,6 +78,7 @@ export type Database = {
       appointments: {
         Row: {
           appointment_date: string
+          business_id: string
           consultation_notes: string | null
           created_at: string
           dentist_id: string
@@ -83,6 +94,7 @@ export type Database = {
         }
         Insert: {
           appointment_date: string
+          business_id: string
           consultation_notes?: string | null
           created_at?: string
           dentist_id: string
@@ -98,6 +110,7 @@ export type Database = {
         }
         Update: {
           appointment_date?: string
+          business_id?: string
           consultation_notes?: string | null
           created_at?: string
           dentist_id?: string
@@ -112,6 +125,13 @@ export type Database = {
           urgency?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "appointments_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "appointments_dentist_id_fkey"
             columns: ["dentist_id"]
@@ -150,6 +170,48 @@ export type Database = {
           {
             foreignKeyName: "fk_appointments_patient"
             columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      business_members: {
+        Row: {
+          business_id: string
+          created_at: string
+          id: string
+          profile_id: string
+          role: string
+          updated_at: string
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          id?: string
+          profile_id: string
+          role: string
+          updated_at?: string
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          id?: string
+          profile_id?: string
+          role?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_members_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_members_profile_id_fkey"
+            columns: ["profile_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -281,6 +343,7 @@ export type Database = {
         Row: {
           break_end_time: string | null
           break_start_time: string | null
+          business_id: string
           created_at: string
           day_of_week: number
           dentist_id: string
@@ -293,6 +356,7 @@ export type Database = {
         Insert: {
           break_end_time?: string | null
           break_start_time?: string | null
+          business_id: string
           created_at?: string
           day_of_week: number
           dentist_id: string
@@ -305,6 +369,7 @@ export type Database = {
         Update: {
           break_end_time?: string | null
           break_start_time?: string | null
+          business_id?: string
           created_at?: string
           day_of_week?: number
           dentist_id?: string
@@ -315,6 +380,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "dentist_availability_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "dentist_availability_dentist_id_fkey"
             columns: ["dentist_id"]
@@ -333,6 +405,7 @@ export type Database = {
       }
       dentist_vacation_days: {
         Row: {
+          business_id: string
           created_at: string
           dentist_id: string
           end_date: string
@@ -344,6 +417,7 @@ export type Database = {
           vacation_type: string
         }
         Insert: {
+          business_id: string
           created_at?: string
           dentist_id: string
           end_date: string
@@ -355,6 +429,7 @@ export type Database = {
           vacation_type?: string
         }
         Update: {
+          business_id?: string
           created_at?: string
           dentist_id?: string
           end_date?: string
@@ -366,6 +441,13 @@ export type Database = {
           vacation_type?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "dentist_vacation_days_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "dentist_vacation_days_dentist_id_fkey"
             columns: ["dentist_id"]
@@ -449,6 +531,7 @@ export type Database = {
       }
       medical_records: {
         Row: {
+          business_id: string
           created_at: string
           dentist_id: string
           description: string | null
@@ -462,6 +545,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          business_id: string
           created_at?: string
           dentist_id: string
           description?: string | null
@@ -475,6 +559,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          business_id?: string
           created_at?: string
           dentist_id?: string
           description?: string | null
@@ -488,6 +573,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "medical_records_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "medical_records_dentist_id_fkey"
             columns: ["dentist_id"]
@@ -696,6 +788,7 @@ export type Database = {
         Row: {
           amount: number
           appointment_id: string | null
+          business_id: string
           channels: string[] | null
           created_at: string
           created_by: string | null
@@ -716,6 +809,7 @@ export type Database = {
         Insert: {
           amount: number
           appointment_id?: string | null
+          business_id: string
           channels?: string[] | null
           created_at?: string
           created_by?: string | null
@@ -736,6 +830,7 @@ export type Database = {
         Update: {
           amount?: number
           appointment_id?: string | null
+          business_id?: string
           channels?: string[] | null
           created_at?: string
           created_by?: string | null
@@ -759,6 +854,13 @@ export type Database = {
             columns: ["appointment_id"]
             isOneToOne: false
             referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_requests_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
             referencedColumns: ["id"]
           },
           {
@@ -940,6 +1042,32 @@ export type Database = {
           },
         ]
       }
+      session_business: {
+        Row: {
+          business_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          business_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          business_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_business_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscription_plans: {
         Row: {
           created_at: string
@@ -1051,6 +1179,7 @@ export type Database = {
       }
       treatment_plans: {
         Row: {
+          business_id: string
           created_at: string
           dentist_id: string
           description: string | null
@@ -1068,6 +1197,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          business_id: string
           created_at?: string
           dentist_id: string
           description?: string | null
@@ -1085,6 +1215,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          business_id?: string
           created_at?: string
           dentist_id?: string
           description?: string | null
@@ -1102,6 +1233,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "treatment_plans_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "treatment_plans_dentist_id_fkey"
             columns: ["dentist_id"]
@@ -1222,8 +1360,13 @@ export type Database = {
         Args: { p_date: string; p_dentist_id: string }
         Returns: undefined
       }
+      get_current_business_id: { Args: never; Returns: string }
       is_active_dentist_profile: {
         Args: { p_profile_id: string }
+        Returns: boolean
+      }
+      is_business_member: {
+        Args: { p_business_id: string; p_profile_id: string }
         Returns: boolean
       }
       is_dentist_patient: {

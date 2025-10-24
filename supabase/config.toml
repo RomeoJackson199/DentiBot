@@ -59,3 +59,6 @@ verify_jwt = true
 
 [functions.stripe-subscription-webhook]
 verify_jwt = false
+
+[functions.set-current-business]
+verify_jwt = true

@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { LanguageProvider } from "./hooks/useLanguage";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { BusinessProvider } from "./hooks/useBusinessContext";
 import { PWAInstallPrompt } from "./components/PWAInstallPrompt";
 import ProfileCompletionDialog from "./components/ProfileCompletionDialog";
 import { ChangelogPopup } from "./components/ChangelogPopup";
