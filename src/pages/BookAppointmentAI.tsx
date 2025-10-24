@@ -251,7 +251,6 @@ export default function BookAppointmentAI() {
 
       // Determine business_id: prefer the slot's business, fallback to provider mapping, then session
       const dateStr = selectedDate.toISOString().split('T')[0];
-      const slotTime = selectedTime.length === 5 ? `${selectedTime}:00` : selectedTime;
 
       let businessId: string | null = null;
 
@@ -261,7 +260,7 @@ export default function BookAppointmentAI() {
         .select('business_id')
         .eq('dentist_id', selectedDentist.id)
         .eq('slot_date', dateStr)
-        .ilike('slot_time', `${selectedTime.slice(0,5)}%`)
+        .eq('slot_time', selectedTime)
         .maybeSingle();
       if (!slotErr && slotRow?.business_id) {
         businessId = slotRow.business_id as string;
@@ -313,7 +312,7 @@ export default function BookAppointmentAI() {
       const { error: slotError } = await supabase.rpc('book_appointment_slot', {
         p_dentist_id: selectedDentist.id,
         p_slot_date: dateStr,
-        p_slot_time: slotTime,
+        p_slot_time: selectedTime,
         p_appointment_id: appointmentData.id
       });
 

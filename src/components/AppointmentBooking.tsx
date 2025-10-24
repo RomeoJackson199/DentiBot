@@ -201,7 +201,7 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
       const { error: slotBookingError } = await supabase.rpc('book_appointment_slot', {
         p_dentist_id: selectedDentist,
         p_slot_date: selectedDate.toISOString().split('T')[0],
-        p_slot_time: selectedTime + ':00',
+        p_slot_time: selectedTime,
         p_appointment_id: 'temp-id' // Will be updated after appointment creation
       });
 
@@ -235,7 +235,7 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
       await supabase.rpc('book_appointment_slot', {
         p_dentist_id: selectedDentist,
         p_slot_date: selectedDate.toISOString().split('T')[0],
-        p_slot_time: selectedTime + ':00',
+        p_slot_time: selectedTime,
         p_appointment_id: appointmentData.id
       });
 

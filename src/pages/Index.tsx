@@ -69,8 +69,14 @@ const Index = () => {
             setShowOnboarding(true);
           }
 
-          // Create initial dossier for new users
-          createDossierAfterSignup(session.user.id).catch(console.error);
+          // Create initial dossier for new users (skip if no business context yet)
+          import("@/lib/businessUtils").then(({ getBusinessIdOrNull }) => {
+            getBusinessIdOrNull().then(businessId => {
+              if (businessId) {
+                createDossierAfterSignup(session.user.id).catch(console.error);
+              }
+            }).catch(console.error);
+          }).catch(console.error);
         }, 0);
       }
     });
