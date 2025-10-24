@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { useBusinessContext } from "@/hooks/useBusinessContext";
 
 interface DentistManagementProps {
   currentDentistId: string;
@@ -20,6 +21,7 @@ export const DentistManagement = ({ currentDentistId }: DentistManagementProps) 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDentist, setSelectedDentist] = useState<any>(null);
   const { toast } = useToast();
+  const { businessId, businessName } = useBusinessContext();
 
   useEffect(() => {
     fetchDentists();
@@ -76,154 +78,77 @@ export const DentistManagement = ({ currentDentistId }: DentistManagementProps) 
       return;
     }
 
+    if (!businessId) {
+      toast({
+        title: "Error",
+        description: "No business selected. Please select a clinic first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
     try {
-      // Check if user already exists in the system
-      const { data: existingProfile, error: profileError } = await supabase
+      // Get current user's profile ID
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      const { data: profile } = await supabase
         .from('profiles')
-        .select('id, first_name, last_name, role, user_id')
-        .eq('email', newDentistEmail)
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (!profile) throw new Error("Profile not found");
+
+      // Check for existing pending invitation
+      const { data: existingInvite } = await supabase
+        .from('dentist_invitations')
+        .select('id')
+        .eq('invitee_email', newDentistEmail)
+        .eq('business_id', businessId)
+        .eq('status', 'pending')
         .maybeSingle();
 
-      if (profileError) {
-        console.error('Error checking existing profile:', profileError);
+      if (existingInvite) {
+        toast({
+          title: "Invitation Already Sent",
+          description: `A pending invitation already exists for ${newDentistEmail}`,
+        });
+        setNewDentistEmail("");
+        return;
       }
 
-      if (existingProfile) {
-        // Check if already a dentist
-        const { data: existingDentist, error: dentistError } = await supabase
-          .from('dentists')
-          .select('id')
-          .eq('profile_id', existingProfile.id)
-          .maybeSingle();
+      // Create dentist invitation
+      const { error: inviteError } = await supabase
+        .from('dentist_invitations')
+        .insert({
+          business_id: businessId,
+          inviter_profile_id: profile.id,
+          invitee_email: newDentistEmail,
+        });
 
-        if (dentistError) {
-          console.error('Error checking existing dentist:', dentistError);
-        }
-
-        if (existingDentist) {
+      if (inviteError) {
+        // Check if it's an RLS error (only owner can invite)
+        if (inviteError.code === '42501') {
           toast({
-            title: "Already a Dentist",
-            description: `${newDentistEmail} is already registered as a dentist`,
+            title: "Permission Denied",
+            description: "Only the clinic owner can invite dentists to this clinic.",
             variant: "destructive",
           });
-          setNewDentistEmail("");
-          return;
-        }
-
-        // If they have a user_id, they're already signed up - just promote them
-        if (existingProfile.user_id) {
-          // Update existing profile to dentist role and create dentist entry
-          const { error: updateError } = await supabase
-            .from('profiles')
-            .update({ role: 'dentist' })
-            .eq('id', existingProfile.id);
-
-          if (updateError) throw updateError;
-
-          const { error: createDentistError } = await supabase
-            .from('dentists')
-            .insert({
-              profile_id: existingProfile.id,
-              is_active: true
-            });
-
-          if (createDentistError) throw createDentistError;
-
-          toast({
-            title: "Dentist Added Successfully",
-            description: `${existingProfile.first_name} ${existingProfile.last_name} (${newDentistEmail}) has been promoted to dentist`,
-          });
         } else {
-          // Profile exists but no user_id - resend invitation
-          const { data: tokenData, error: tokenError } = await supabase.rpc(
-            'create_invitation_token_with_cleanup',
-            {
-              p_profile_id: existingProfile.id,
-              p_email: newDentistEmail,
-              p_expires_hours: 72,
-            }
-          );
-
-          if (tokenError) throw tokenError;
-
-          // Send invitation email
-          const { error: emailError } = await supabase.functions.invoke('send-import-invitations', {
-            body: {
-              invitations: [{
-                email: newDentistEmail,
-                token: tokenData,
-                firstName: existingProfile.first_name || '',
-                lastName: existingProfile.last_name || '',
-                role: 'dentist',
-              }],
-            },
-          });
-
-          if (emailError) throw emailError;
-
-          toast({
-            title: "Invitation Resent",
-            description: `A new invitation has been sent to ${newDentistEmail}`,
-          });
+          throw inviteError;
         }
-      } else {
-        // User doesn't exist - create profile and send invitation
-        // Extract first and last name from email if not provided
-        const emailName = newDentistEmail.split('@')[0];
-        const nameParts = emailName.split('.');
-        const firstName = nameParts[0]?.charAt(0).toUpperCase() + nameParts[0]?.slice(1) || 'New';
-        const lastName = nameParts[1]?.charAt(0).toUpperCase() + nameParts[1]?.slice(1) || 'Dentist';
-
-        // Create profile
-        const { data: profileData, error: profileCreateError } = await supabase
-          .from('profiles')
-          .insert({
-            email: newDentistEmail,
-            first_name: firstName,
-            last_name: lastName,
-            role: 'dentist',
-          })
-          .select()
-          .single();
-
-        if (profileCreateError) throw profileCreateError;
-
-        // Create invitation token
-        const { data: tokenData, error: tokenError } = await supabase.rpc(
-          'create_invitation_token_with_cleanup',
-          {
-            p_profile_id: profileData.id,
-            p_email: newDentistEmail,
-            p_expires_hours: 72,
-          }
-        );
-
-        if (tokenError) throw tokenError;
-
-        // Send invitation email
-        const { error: emailError } = await supabase.functions.invoke('send-import-invitations', {
-          body: {
-            invitations: [{
-              email: newDentistEmail,
-              token: tokenData,
-              firstName,
-              lastName,
-              role: 'dentist',
-            }],
-          },
-        });
-
-        if (emailError) throw emailError;
-
-        toast({
-          title: "Invitation Sent",
-          description: `An invitation has been sent to ${newDentistEmail}. They will receive an email with instructions to set up their account.`,
-        });
+        return;
       }
 
+      toast({
+        title: "Invitation Sent",
+        description: `An invitation has been sent to ${newDentistEmail}. They will see it when they log in.`,
+      });
+
       setNewDentistEmail("");
-      fetchDentists(); // Refresh the list
+      fetchDentists();
     } catch (error: unknown) {
       console.error('Error adding dentist:', error);
       toast({
@@ -237,26 +162,10 @@ export const DentistManagement = ({ currentDentistId }: DentistManagementProps) 
   };
 
   const handleRemoveDentist = async (dentistId: string) => {
-    try {
-      const { error } = await supabase
-        .from('dentists')
-        .delete()
-        .eq('id', dentistId);
-
-      if (error) throw error;
-
-      toast({
-        title: "Success",
-        description: "Dentist removed successfully",
-      });
-      fetchDentists();
-    } catch (error: unknown) {
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Unknown error",
-        variant: "destructive",
-      });
-    }
+    toast({
+      title: "Feature Not Available",
+      description: "Dentist removal must be managed through business memberships.",
+    });
   };
 
   const filteredDentists = dentists.filter(dentist => {
