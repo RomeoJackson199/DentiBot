@@ -1519,6 +1519,7 @@ export type Database = {
         Args: { _business_id: string; _user_id: string }
         Returns: boolean
       }
+      leave_clinic: { Args: { p_business_id?: string }; Returns: Json }
     }
     Enums: {
       app_role: "admin" | "provider" | "customer" | "staff" | "patient"

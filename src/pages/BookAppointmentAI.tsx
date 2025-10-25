@@ -186,10 +186,10 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
 
       console.log("Dentists found:", data?.length || 0);
       
-      // Transform the data to match our interface (profiles comes as array, we need object)
+      // Normalize nested profile
       const transformedData = (data || []).map((d: any) => ({
         ...d,
-        profiles: d.profiles?.[0] || null
+        profiles: Array.isArray(d.profiles) ? d.profiles[0] : (d.profiles || null),
       }));
       
       setDentists(transformedData);

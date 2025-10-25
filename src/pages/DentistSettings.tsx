@@ -30,26 +30,15 @@ export default function DentistSettings() {
   const handleLeaveClinic = async () => {
     try {
       const businessId = await getCurrentBusinessId();
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      const { data, error } = await supabase.rpc('leave_clinic', { p_business_id: businessId });
+      if (error) throw error;
 
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
-
-      if (!profile) return;
-
-      await supabase
-        .from('business_members')
-        .delete()
-        .eq('profile_id', profile.id)
-        .eq('business_id', businessId);
-
+      const remaining = (data as any)?.remaining_businesses ?? null;
       toast({
         title: "Left clinic",
-        description: "You have successfully left the clinic.",
+        description: remaining === 0
+          ? "You left the clinic and your provider role was removed."
+          : "You left the clinic. You still belong to other clinics.",
       });
 
       navigate('/');

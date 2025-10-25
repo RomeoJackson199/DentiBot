@@ -66,14 +66,16 @@ const ClinicMap: React.FC<MapProps> = ({ address, className }) => {
   }, [address, token]);
 
   if (!token) {
+    // Fallback: privacy-friendly Google Maps embed without API key
+    const q = encodeURIComponent(address || "");
     return (
-      <div className={`w-full h-full grid place-items-center bg-muted/70 rounded ${className || ""}`}>
-        <div className="text-center text-sm text-muted-foreground px-4">
-          Map disabled: add your Mapbox public token.
-          <br />
-          Set VITE_MAPBOX_PUBLIC_TOKEN in env, or store it in localStorage as "MAPBOX_PUBLIC_TOKEN".
-        </div>
-      </div>
+      <iframe
+        title="Clinic location"
+        referrerPolicy="no-referrer-when-downgrade"
+        loading="lazy"
+        className={`w-full h-full rounded border ${className || ""}`}
+        src={`https://www.google.com/maps?q=${q}&output=embed`}
+      />
     );
   }
 
