@@ -26,7 +26,6 @@ import { DentistPortal } from "@/pages/DentistPortal";
 import { PatientPortalNav } from "@/components/patient/PatientPortalNav";
 import { RoleBasedRouter } from "@/components/RoleBasedRouter";
 import { DentistInvitationDialog } from "@/components/DentistInvitationDialog";
-import { BrandingProvider } from "@/components/BrandingProvider";
 
 const Invite = lazy(() => import("./pages/Invite"));
 const Login = lazy(() => import("./pages/Login"));
@@ -232,15 +231,14 @@ const App = () => {
   return (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
-      <BrandingProvider>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="light"
-          enableSystem={true}
-          disableTransitionOnChange={false}
-        >
-          <LanguageProvider>
-            <BusinessProvider>
+      <ThemeProvider
+        attribute="class"
+        defaultTheme="light"
+        enableSystem={true}
+        disableTransitionOnChange={false}
+      >
+        <LanguageProvider>
+          <BusinessProvider>
               <AuthCallbackHandler />
               <TooltipProvider>
                 <Sonner />
@@ -312,9 +310,8 @@ const App = () => {
             </BrowserRouter>
             </TooltipProvider>
           </BusinessProvider>
-          </LanguageProvider>
-        </ThemeProvider>
-      </BrandingProvider>
+        </LanguageProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   </ErrorBoundary>
   );

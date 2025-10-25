@@ -1,12 +1,65 @@
-import { useEffect } from "react";
-import { useClinicBranding } from "@/hooks/useClinicBranding";
+import { useEffect, useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
-export function BrandingProvider({ children }: { children: React.ReactNode }) {
-  const { branding } = useClinicBranding();
+interface BrandingProviderProps {
+  children: React.ReactNode;
+  businessId?: string;
+}
+
+export const BrandingProvider = ({ children, businessId }: BrandingProviderProps) => {
+  const [colors, setColors] = useState({ primary: '#0F3D91', secondary: '#66D2D6' });
 
   useEffect(() => {
-    if (branding.primaryColor || branding.secondaryColor) {
-      // Convert hex to HSL
+    if (!businessId) return;
+
+    const fetchBranding = async () => {
+      try {
+        // First get dentists for this business
+        const { data: members } = await supabase
+          .from('business_members')
+          .select('profile_id')
+          .eq('business_id', businessId)
+          .limit(1)
+          .single();
+
+        if (!members) return;
+
+        // Then get dentist settings
+        const { data: dentist } = await supabase
+          .from('dentists')
+          .select('id')
+          .eq('profile_id', members.profile_id)
+          .single();
+
+        if (!dentist) return;
+
+        // Finally get clinic settings
+        const { data } = await supabase
+          .from('clinic_settings')
+          .select('primary_color, secondary_color')
+          .eq('dentist_id', dentist.id)
+          .single();
+
+        if (data) {
+          setColors({
+            primary: data.primary_color || '#0F3D91',
+            secondary: data.secondary_color || '#66D2D6',
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching branding:', error);
+      }
+    };
+
+    fetchBranding();
+  }, [businessId]);
+
+  useEffect(() => {
+    const applyBranding = () => {
+      const { primary, secondary } = colors;
+
+      if (!primary || !secondary) return;
+
       const hexToHSL = (hex: string) => {
         // Remove # if present
         hex = hex.replace('#', '');
@@ -36,19 +89,17 @@ export function BrandingProvider({ children }: { children: React.ReactNode }) {
 
       const root = document.documentElement;
       
-      if (branding.primaryColor) {
-        const primaryHSL = hexToHSL(branding.primaryColor);
-        root.style.setProperty('--dental-primary', primaryHSL);
-        root.style.setProperty('--primary', primaryHSL);
-      }
-      
-      if (branding.secondaryColor) {
-        const secondaryHSL = hexToHSL(branding.secondaryColor);
-        root.style.setProperty('--dental-accent', secondaryHSL);
-        root.style.setProperty('--secondary', secondaryHSL);
-      }
-    }
-  }, [branding.primaryColor, branding.secondaryColor]);
+      const primaryHSL = hexToHSL(primary);
+      const secondaryHSL = hexToHSL(secondary);
+
+      root.style.setProperty('--dental-primary', primaryHSL);
+      root.style.setProperty('--primary', primaryHSL);
+      root.style.setProperty('--dental-accent', secondaryHSL);
+      root.style.setProperty('--secondary', secondaryHSL);
+    };
+
+    applyBranding();
+  }, [colors]);
 
   return <>{children}</>;
 }

@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { CalendarDays, Clock, User as UserIcon, ArrowLeft, CheckCircle2 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { BrandingProvider } from "@/components/BrandingProvider";
 
 interface Dentist {
   id: string;
@@ -23,6 +24,7 @@ interface Dentist {
   profiles: {
     first_name: string;
     last_name: string;
+    bio?: string;
   };
 }
 
@@ -121,7 +123,8 @@ export default function BookAppointment() {
           specialization,
           profiles:profile_id (
             first_name,
-            last_name
+            last_name,
+            bio
           )
         `)
         .eq('is_active', true)
@@ -271,7 +274,7 @@ export default function BookAppointment() {
   };
 
   return (
-    <>
+    <BrandingProvider businessId={selectedBusiness?.id}>
       <AppointmentSuccessDialog 
         open={showSuccessDialog}
         onOpenChange={setShowSuccessDialog}
@@ -347,13 +350,18 @@ export default function BookAppointment() {
                           <SelectItem key={dentist.id} value={dentist.id}>
                             <div className="flex items-center py-1">
                               <UserIcon className="h-4 w-4 mr-3 text-primary" />
-                              <div>
+                              <div className="flex-1">
                                 <div className="font-medium">
                                   Dr {dentist.profiles.first_name} {dentist.profiles.last_name}
                                 </div>
                                 {dentist.specialization && (
                                   <div className="text-sm text-muted-foreground">
                                     {dentist.specialization}
+                                  </div>
+                                )}
+                                {dentist.profiles.bio && (
+                                  <div className="text-xs text-muted-foreground line-clamp-2 mt-1">
+                                    {dentist.profiles.bio}
                                   </div>
                                 )}
                               </div>
@@ -498,6 +506,6 @@ export default function BookAppointment() {
         </Card>
       </div>
     </div>
-    </>
+    </BrandingProvider>
   );
 }

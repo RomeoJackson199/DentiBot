@@ -1,18 +1,24 @@
 import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Settings as SettingsIcon, Calendar, Palette, Shield, User } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Settings as SettingsIcon, Calendar, Palette, Shield, User, LogOut } from "lucide-react";
 import { EnhancedAvailabilitySettings } from "@/components/enhanced/EnhancedAvailabilitySettings";
 import DentistAdminBranding from "./DentistAdminBranding";
 import DentistAdminSecurity from "./DentistAdminSecurity";
 import DentistAdminProfile from "./DentistAdminProfile";
 import { useCurrentDentist } from "@/hooks/useCurrentDentist";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { getCurrentBusinessId } from "@/lib/businessUtils";
 
 export default function DentistSettings() {
   const { dentistId } = useCurrentDentist();
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState("schedule");
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
   useEffect(() => {
     const tabParam = searchParams.get('tab');
@@ -20,6 +26,42 @@ export default function DentistSettings() {
       setActiveTab(tabParam);
     }
   }, [searchParams]);
+
+  const handleLeaveClinic = async () => {
+    try {
+      const businessId = await getCurrentBusinessId();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (!profile) return;
+
+      await supabase
+        .from('business_members')
+        .delete()
+        .eq('profile_id', profile.id)
+        .eq('business_id', businessId);
+
+      toast({
+        title: "Left clinic",
+        description: "You have successfully left the clinic.",
+      });
+
+      navigate('/');
+    } catch (error) {
+      console.error('Error leaving clinic:', error);
+      toast({
+        title: "Error",
+        description: "Failed to leave clinic. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   if (!dentistId) {
     return (
@@ -89,6 +131,28 @@ export default function DentistSettings() {
 
         <TabsContent value="security" className="space-y-6">
           <DentistAdminSecurity />
+          
+          <Card className="border-destructive/50">
+            <CardHeader>
+              <CardTitle className="text-destructive">Danger Zone</CardTitle>
+              <CardDescription>
+                Irreversible actions that affect your clinic membership
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button 
+                variant="destructive" 
+                onClick={handleLeaveClinic}
+                className="gap-2"
+              >
+                <LogOut className="h-4 w-4" />
+                Leave Clinic
+              </Button>
+              <p className="text-sm text-muted-foreground mt-2">
+                You will lose access to all clinic data and appointments.
+              </p>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>

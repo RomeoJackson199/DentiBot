@@ -286,6 +286,7 @@ export type Database = {
       }
       clinic_settings: {
         Row: {
+          address: string | null
           clinic_name: string | null
           created_at: string
           dentist_id: string
@@ -297,6 +298,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          address?: string | null
           clinic_name?: string | null
           created_at?: string
           dentist_id: string
@@ -308,6 +310,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          address?: string | null
           clinic_name?: string | null
           created_at?: string
           dentist_id?: string

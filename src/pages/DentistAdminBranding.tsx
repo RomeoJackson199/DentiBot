@@ -14,6 +14,7 @@ export default function DentistAdminBranding() {
   const [loading, setLoading] = useState(false);
   const [clinicName, setClinicName] = useState("");
   const [tagline, setTagline] = useState("");
+  const [address, setAddress] = useState("");
   const [primaryColor, setPrimaryColor] = useState("#0EA5E9");
   const [secondaryColor, setSecondaryColor] = useState("#10B981");
   const [logoUrl, setLogoUrl] = useState("");
@@ -38,6 +39,7 @@ export default function DentistAdminBranding() {
       if (settings) {
         setClinicName(settings.clinic_name || "");
         setTagline(settings.tagline || "");
+        setAddress(settings.address || "");
         setPrimaryColor(settings.primary_color || "#2D5D7B");
         setSecondaryColor(settings.secondary_color || "#8B5CF6");
         setLogoUrl(settings.logo_url || "");
@@ -122,6 +124,7 @@ export default function DentistAdminBranding() {
           dentist_id: dentistId,
           clinic_name: clinicName,
           tagline: tagline,
+          address: address,
           logo_url: logoUrl,
           primary_color: primaryColor,
           secondary_color: secondaryColor,
@@ -344,6 +347,15 @@ export default function DentistAdminBranding() {
               <p className="text-xs text-muted-foreground">
                 A short phrase that describes your clinic (optional)
               </p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="address">Clinic Address</Label>
+              <Input
+                id="address"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                placeholder="123 Main St, City, State, ZIP"
+              />
             </div>
           </CardContent>
         </Card>

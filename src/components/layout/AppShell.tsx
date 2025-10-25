@@ -110,61 +110,6 @@ function TopBar() {
     supabase.auth.getSession().then(({ data }) => setUserId(data.session?.user?.id ?? null));
   }, []);
 
-  const handleLeaveClinic = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
-
-      if (!profile) return;
-
-      const { data: session } = await supabase
-        .from('session_business')
-        .select('business_id')
-        .eq('user_id', user.id)
-        .single();
-
-      if (!session) return;
-
-      const { error } = await supabase
-        .from('business_members')
-        .delete()
-        .eq('profile_id', profile.id)
-        .eq('business_id', session.business_id);
-
-      if (error) throw error;
-
-      // Switch to another business if available
-      if (memberships.length > 1) {
-        const otherBusiness = memberships.find(m => m.business_id !== session.business_id);
-        if (otherBusiness) {
-          await switchBusiness(otherBusiness.business_id);
-        }
-      }
-
-      toast({
-        title: "Left clinic",
-        description: "You have successfully left the clinic",
-      });
-
-      // If no other businesses, redirect to home
-      if (memberships.length <= 1) {
-        navigate('/');
-      }
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to leave clinic",
-        variant: "destructive",
-      });
-    }
-  };
-
   return (
     <div className="sticky top-0 z-40 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
       <div className="flex items-center gap-2 px-3 md:px-4 py-2">
@@ -215,9 +160,6 @@ function TopBar() {
               <DropdownMenuItem onClick={() => navigate('/dentist/settings?tab=users')}>
                 <Users className="h-4 w-4 mr-2" />
                 Team Management
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleLeaveClinic} className="text-destructive">
-                Leave Clinic
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => supabase.auth.signOut()}>Sign out</DropdownMenuItem>
