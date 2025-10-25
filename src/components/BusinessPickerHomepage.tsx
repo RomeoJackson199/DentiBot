@@ -30,6 +30,69 @@ export function BusinessPickerHomepage({ onBusinessSelected }: BusinessPickerHom
     loadBusinesses();
   }, []);
 
+  const getBusinessLocation = (business: Business) => {
+    const potentialLocation = (business as Business & { city?: string | null }).city;
+    if (potentialLocation && potentialLocation.trim().length > 0) {
+      return potentialLocation.trim();
+    }
+
+    if (business.tagline) {
+      const locationMatch = business.tagline.match(/(?:located\s+)?(?:in|at)\s+([A-Za-z\s]+)$/i);
+      if (locationMatch?.[1]) {
+        return locationMatch[1].trim();
+      }
+
+      if (business.tagline.includes(",")) {
+        const parts = business.tagline.split(",");
+        const lastPart = parts[parts.length - 1]?.trim();
+        if (lastPart && lastPart.split(" ").length <= 4) {
+          return lastPart;
+        }
+      }
+    }
+
+    return undefined;
+  };
+
+  const availableLocations = useMemo(() => {
+    const locations = new Set<string>();
+    businesses.forEach((business) => {
+      const location = getBusinessLocation(business);
+      if (location) {
+        locations.add(location);
+      }
+    });
+    return Array.from(locations).sort((a, b) => a.localeCompare(b));
+  }, [businesses]);
+
+  useEffect(() => {
+    if (selectedLocation !== "all" && !availableLocations.includes(selectedLocation)) {
+      setSelectedLocation("all");
+    }
+  }, [availableLocations, selectedLocation]);
+
+  const filteredBusinesses = useMemo(() => {
+    const normalizedSearch = searchTerm.trim().toLowerCase();
+
+    return businesses.filter((business) => {
+      const location = getBusinessLocation(business);
+      const matchesLocation = selectedLocation === "all" || location === selectedLocation;
+
+      if (!matchesLocation) {
+        return false;
+      }
+
+      if (!normalizedSearch) {
+        return true;
+      }
+
+      const nameMatch = business.name.toLowerCase().includes(normalizedSearch);
+      const taglineMatch = business.tagline?.toLowerCase().includes(normalizedSearch) ?? false;
+
+      return nameMatch || taglineMatch;
+    });
+  }, [businesses, searchTerm, selectedLocation]);
+
   const loadBusinesses = async () => {
     setLoading(true);
     try {
@@ -97,69 +160,6 @@ export function BusinessPickerHomepage({ onBusinessSelected }: BusinessPickerHom
     );
   }
 
-  const getBusinessLocation = (business: Business) => {
-    const potentialLocation = (business as Business & { city?: string | null }).city;
-    if (potentialLocation && potentialLocation.trim().length > 0) {
-      return potentialLocation.trim();
-    }
-
-    if (business.tagline) {
-      const locationMatch = business.tagline.match(/(?:located\s+)?(?:in|at)\s+([A-Za-z\s]+)$/i);
-      if (locationMatch?.[1]) {
-        return locationMatch[1].trim();
-      }
-
-      if (business.tagline.includes(",")) {
-        const parts = business.tagline.split(",");
-        const lastPart = parts[parts.length - 1]?.trim();
-        if (lastPart && lastPart.split(" ").length <= 4) {
-          return lastPart;
-        }
-      }
-    }
-
-    return undefined;
-  };
-
-  const availableLocations = useMemo(() => {
-    const locations = new Set<string>();
-    businesses.forEach((business) => {
-      const location = getBusinessLocation(business);
-      if (location) {
-        locations.add(location);
-      }
-    });
-    return Array.from(locations).sort((a, b) => a.localeCompare(b));
-  }, [businesses]);
-
-  useEffect(() => {
-    if (selectedLocation !== "all" && !availableLocations.includes(selectedLocation)) {
-      setSelectedLocation("all");
-    }
-  }, [availableLocations, selectedLocation]);
-
-  const filteredBusinesses = useMemo(() => {
-    const normalizedSearch = searchTerm.trim().toLowerCase();
-
-    return businesses.filter((business) => {
-      const location = getBusinessLocation(business);
-      const matchesLocation = selectedLocation === "all" || location === selectedLocation;
-
-      if (!matchesLocation) {
-        return false;
-      }
-
-      if (!normalizedSearch) {
-        return true;
-      }
-
-      const nameMatch = business.name.toLowerCase().includes(normalizedSearch);
-      const taglineMatch = business.tagline?.toLowerCase().includes(normalizedSearch) ?? false;
-
-      return nameMatch || taglineMatch;
-    });
-  }, [businesses, searchTerm, selectedLocation]);
-
   return (
     <section className="py-16 bg-muted/30">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -215,7 +215,7 @@ export function BusinessPickerHomepage({ onBusinessSelected }: BusinessPickerHom
           </div>
         </div>
 
-        {filteredBusinesses.length === 0 ? (
+        {!loading && filteredBusinesses.length === 0 ? (
           <Card className="max-w-4xl mx-auto">
             <CardHeader className="text-center">
               <CardTitle>No Matching Clinics</CardTitle>
