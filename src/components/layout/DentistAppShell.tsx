@@ -134,7 +134,7 @@ export const DentistAppShell: React.FC<DentistAppShellProps> = ({
 
         {/* Mobile Bottom Navigation */}
         <div className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t">
-          <div className="grid grid-cols-4 gap-1 p-2">
+          <div className="grid grid-cols-5 gap-2 p-2">
             {NAV_ITEMS.map((item) => {
               const Icon = item.icon;
               const active = isActive(item.id);
@@ -144,7 +144,7 @@ export const DentistAppShell: React.FC<DentistAppShellProps> = ({
                   key={item.id}
                   onClick={() => onChangeSection(item.id)}
                   className={cn(
-                    "flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-all",
+                    "flex w-full flex-col items-center justify-center px-3 py-2.5 rounded-lg transition-all",
                     active ? "text-primary bg-primary/10 font-semibold" : "text-muted-foreground"
                   )}
                 >
