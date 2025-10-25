@@ -1392,6 +1392,21 @@ export type Database = {
           },
         ]
       }
+      user_profile_map: {
+        Row: {
+          profile_id: string
+          user_id: string
+        }
+        Insert: {
+          profile_id: string
+          user_id: string
+        }
+        Update: {
+          profile_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -1485,6 +1500,10 @@ export type Database = {
         Args: { _target_profile_id: string; _viewer_user_id: string }
         Returns: boolean
       }
+      can_view_profile_in_user_business_norec: {
+        Args: { _target_profile_id: string; _viewer_user_id: string }
+        Returns: boolean
+      }
       check_clinic_registration: {
         Args: { business_slug: string }
         Returns: Json
@@ -1514,12 +1533,17 @@ export type Database = {
         Args: { patient_profile_id: string }
         Returns: boolean
       }
+      is_dentist_patient_norec: {
+        Args: { patient_profile_id: string }
+        Returns: boolean
+      }
       is_user_business_member: { Args: { _user_id: string }; Returns: boolean }
       is_user_member_of_business: {
         Args: { _business_id: string; _user_id: string }
         Returns: boolean
       }
       leave_clinic: { Args: { p_business_id?: string }; Returns: Json }
+      viewer_profile_id: { Args: { _viewer_user_id: string }; Returns: string }
     }
     Enums: {
       app_role: "admin" | "provider" | "customer" | "staff" | "patient"
