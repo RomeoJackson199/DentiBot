@@ -1,10 +1,17 @@
 import { Button } from "@/components/ui/button";
-import { Calendar } from "lucide-react";
+import { Calendar, Bot, CalendarDays } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface FloatingBookingButtonProps {
-  onBookAppointment: () => void;
+  onBookAppointment?: () => void;
   className?: string;
 }
 
@@ -13,6 +20,7 @@ export const FloatingBookingButton = ({
   className
 }: FloatingBookingButtonProps) => {
   const [isHovered, setIsHovered] = useState(false);
+  const navigate = useNavigate();
 
   return (
     <div className={cn("fixed bottom-20 right-4 z-50 md:hidden", className)}>
@@ -27,17 +35,30 @@ export const FloatingBookingButton = ({
       {/* Pulse Ring - Blue accent */}
       <div className="absolute inset-0 bg-blue-500 rounded-full animate-ping opacity-20"></div>
       
-      {/* Main Button - Distinct blue accent */}
-      <Button
-        onClick={onBookAppointment}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-        size="icon"
-        className="touch-target bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-blue-500/50 hover:scale-105 active:scale-95 rounded-full h-14 w-14"
-        aria-label="Book appointment"
-      >
-        <Calendar className="h-6 w-6" />
-      </Button>
+      {/* Main Button with Dropdown */}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+            size="icon"
+            className="touch-target bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-blue-500/50 hover:scale-105 active:scale-95 rounded-full h-14 w-14"
+            aria-label="Book appointment"
+          >
+            <Calendar className="h-6 w-6" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-56 mb-2">
+          <DropdownMenuItem onClick={() => navigate('/book-appointment-ai')} className="cursor-pointer">
+            <Bot className="mr-2 h-4 w-4" />
+            Book with AI Assistant
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => navigate('/book-appointment')} className="cursor-pointer">
+            <CalendarDays className="mr-2 h-4 w-4" />
+            Book Manually
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 };

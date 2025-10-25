@@ -26,6 +26,7 @@ import { DentistPortal } from "@/pages/DentistPortal";
 import { PatientPortalNav } from "@/components/patient/PatientPortalNav";
 import { RoleBasedRouter } from "@/components/RoleBasedRouter";
 import { DentistInvitationDialog } from "@/components/DentistInvitationDialog";
+import { BrandingProvider } from "@/components/BrandingProvider";
 
 const Invite = lazy(() => import("./pages/Invite"));
 const Login = lazy(() => import("./pages/Login"));
@@ -55,6 +56,7 @@ const About = lazy(() => import("./pages/About"));
 const Claim = lazy(() => import("./pages/Claim"));
 const PublicBooking = lazy(() => import("./pages/PublicBooking"));
 const BookAppointmentAI = lazy(() => import("./pages/BookAppointmentAI"));
+const BookAppointment = lazy(() => import("./pages/BookAppointment"));
 const PatientCareHome = lazy(() => import("./pages/PatientCareHome"));
 const PatientAppointmentsPage = lazy(() => import("./pages/PatientAppointmentsPage"));
 const PatientPrescriptionsPage = lazy(() => import("./pages/PatientPrescriptionsPage"));
@@ -230,27 +232,29 @@ const App = () => {
   return (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider
-        attribute="class"
-        defaultTheme="light"
-        enableSystem={true}
-        disableTransitionOnChange={false}
-      >
-        <LanguageProvider>
-          <BusinessProvider>
-            <AuthCallbackHandler />
-            <TooltipProvider>
-              <Sonner />
-              <PWAInstallPrompt />
-              <ProfileCompletionDialog />
-              <BrowserRouter>
-                <DentistInvitationDialog />
-                <SeoManager />
-              <Suspense fallback={<ModernLoadingSpinner variant="overlay" message="Loading..." /> }>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/book" element={<PublicBooking />} />
-                <Route path="/book-appointment-ai" element={<BookAppointmentAI />} />
+      <BrandingProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          enableSystem={true}
+          disableTransitionOnChange={false}
+        >
+          <LanguageProvider>
+            <BusinessProvider>
+              <AuthCallbackHandler />
+              <TooltipProvider>
+                <Sonner />
+                <PWAInstallPrompt />
+                <ProfileCompletionDialog />
+                <BrowserRouter>
+                  <DentistInvitationDialog />
+                  <SeoManager />
+                <Suspense fallback={<ModernLoadingSpinner variant="overlay" message="Loading..." /> }>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/book" element={<PublicBooking />} />
+                  <Route path="/book-appointment" element={<BookAppointment />} />
+                  <Route path="/book-appointment-ai" element={<BookAppointmentAI />} />
                 {/* Auth routes */}
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<Signup />} />
@@ -306,10 +310,11 @@ const App = () => {
               setShowBusinessPicker={setShowBusinessPicker}
             />
             </BrowserRouter>
-          </TooltipProvider>
-        </BusinessProvider>
-        </LanguageProvider>
-      </ThemeProvider>
+            </TooltipProvider>
+          </BusinessProvider>
+          </LanguageProvider>
+        </ThemeProvider>
+      </BrandingProvider>
     </QueryClientProvider>
   </ErrorBoundary>
   );
