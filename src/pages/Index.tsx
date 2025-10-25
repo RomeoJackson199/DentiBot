@@ -251,7 +251,7 @@ const Index = () => {
   return <div className="min-h-screen mesh-bg">
       <Header user={user} minimal />
       <ResponsiveHeroSection
-        minimal
+        variant="ctaFocused"
         onBookAppointment={() => setShowAppointmentBooking(true)}
         onStartTriage={() => setShowEmergencyTriage(true)}
       />
