@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { getCurrentBusinessId } from "@/lib/businessScopedSupabase";
 import { Button } from "@/components/ui/button";
+import { AppointmentSuccessDialog } from "@/components/AppointmentSuccessDialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -56,7 +57,9 @@ export default function BookAppointmentAI() {
   const [selectedTime, setSelectedTime] = useState<string>();
   const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
   const [loading, setLoading] = useState(true);
-  const [bookingStep, setBookingStep] = useState<'dentist' | 'datetime' | 'confirm'>('dentist');
+const [bookingStep, setBookingStep] = useState<'dentist' | 'datetime' | 'confirm'>('dentist');
+const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+const [successDetails, setSuccessDetails] = useState<{ date: string; time: string; dentist?: string; reason?: string } | undefined>(undefined);
 
   useEffect(() => {
     loadBookingData();
@@ -405,13 +408,17 @@ export default function BookAppointmentAI() {
         throw new Error("This time slot is no longer available");
       }
 
-      toast({
-        title: "Appointment Confirmed! 🎉",
-        description: `${format(selectedDate, "EEEE, MMMM d")} at ${selectedTime}`
+      // Show success dialog with Google Calendar option
+      setSuccessDetails({
+        date: selectedDate.toISOString().split('T')[0],
+        time: selectedTime,
+        dentist: `Dr. ${selectedDentist.first_name} ${selectedDentist.last_name}`,
+        reason: appointmentReason
       });
+      setShowSuccessDialog(true);
 
       sessionStorage.removeItem('aiBookingData');
-      navigate('/patient/appointments');
+      // Do not navigate immediately; let user choose next action in the success dialog
     } catch (error) {
       console.error("Error booking appointment:", error);
       toast({
@@ -450,6 +457,11 @@ export default function BookAppointmentAI() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-secondary/10">
+      <AppointmentSuccessDialog 
+        open={showSuccessDialog}
+        onOpenChange={setShowSuccessDialog}
+        appointmentDetails={successDetails}
+      />
       {bookingStep === 'dentist' && (
         <div className="max-w-6xl mx-auto p-4 py-8 space-y-6">
           {/* Header */}
