@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { format, startOfDay } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
+import ClinicMap from "@/components/Map";
 
 interface Dentist {
   id: string;
@@ -37,6 +38,7 @@ interface Dentist {
     email: string;
     phone?: string;
     address?: string;
+    bio?: string;
   } | null;
 }
 
@@ -139,7 +141,8 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
               last_name,
               email,
               phone,
-              address
+              address,
+              bio
             )
           `)
           .eq("is_active", true)
@@ -166,7 +169,8 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
               last_name,
               email,
               phone,
-              address
+              address,
+              bio
             )
           `)
           .eq("is_active", true);
@@ -604,9 +608,9 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
                 <CardContent className="p-6">
                   <h3 className="font-semibold mb-3">Bio</h3>
                   <p className="text-sm text-muted-foreground">
-                    A specialist in {selectedDentist.specialization || 'general dentistry'}, with extensive training and experience. 
-                    During their career focused primarily on the practical aspects of dental care, diagnosis and treatment, 
-                    providing comprehensive dental solutions with a patient-first approach.
+                    {selectedDentist.profiles?.bio && selectedDentist.profiles.bio.trim().length > 0
+                      ? selectedDentist.profiles.bio
+                      : `A specialist in ${selectedDentist.specialization || 'general dentistry'}, with extensive training and experience.`}
                   </p>
                 </CardContent>
               </Card>
@@ -662,8 +666,8 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
                   <p className="text-sm text-muted-foreground mb-3">
                     {selectedDentist.profiles?.address || 'Dental Street 12, Brussels, Belgium'}
                   </p>
-                  <div className="w-full h-40 bg-muted rounded-lg flex items-center justify-center">
-                    <MapPin className="h-8 w-8 text-muted-foreground" />
+                  <div className="w-full h-40 rounded-lg overflow-hidden">
+                    <ClinicMap address={selectedDentist.profiles?.address || ''} />
                   </div>
                 </CardContent>
               </Card>
