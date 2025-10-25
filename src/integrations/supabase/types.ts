@@ -676,6 +676,61 @@ export type Database = {
           },
         ]
       }
+      messages: {
+        Row: {
+          business_id: string
+          created_at: string
+          id: string
+          is_read: boolean
+          message_text: string
+          recipient_profile_id: string
+          sender_profile_id: string
+          updated_at: string
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message_text: string
+          recipient_profile_id: string
+          sender_profile_id: string
+          updated_at?: string
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message_text?: string
+          recipient_profile_id?: string
+          sender_profile_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_recipient_profile_id_fkey"
+            columns: ["recipient_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_sender_profile_id_fkey"
+            columns: ["sender_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notification_preferences: {
         Row: {
           appointment_reminders: boolean

@@ -42,6 +42,7 @@ const EmergencyTriage = lazy(() => import("./pages/EmergencyTriage"));
 const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
 const PaymentCancelled = lazy(() => import("./pages/PaymentCancelled"));
 const Chat = lazy(() => import("./pages/Chat"));
+const Messages = lazy(() => import("./pages/Messages"));
 const Schedule = lazy(() => import("./pages/Schedule"));
 // RecallDeepLink removed - file doesn't exist
 const Analytics = lazy(() => import("./pages/Analytics"));
@@ -289,6 +290,7 @@ const App = () => {
                 <Route path="/features/:id" element={<FeatureDetail />} />
                 <Route path="/language-test" element={<LanguageTest />} />
                 <Route path="/chat" element={<Chat />} />
+                <Route path="/messages" element={<Messages />} />
                 <Route path="/invite" element={<Invite />} />
                 <Route path="/claim" element={<Claim />} />
                 <Route path="/pricing" element={<Pricing />} />
