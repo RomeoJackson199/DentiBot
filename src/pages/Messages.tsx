@@ -1,36 +1,61 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { MessageSquare, Users } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { MessageSquare, LogIn } from 'lucide-react';
 import { ConversationList } from '@/components/messaging/ConversationList';
 import { ChatWindow } from '@/components/messaging/ChatWindow';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useNavigate } from 'react-router-dom';
 
 export default function Messages() {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
   const [selectedRecipient, setSelectedRecipient] = useState<{
     id: string;
     name: string;
     businessId: string;
   } | null>(null);
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
 
   useEffect(() => {
     loadUser();
   }, []);
 
   const loadUser = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      setCurrentUserId(user.id);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setCurrentUserId(user.id);
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
-  if (!currentUserId) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (!currentUserId) {
+    return (
+      <div className="min-h-screen bg-gradient-subtle flex items-center justify-center p-4">
+        <Card className="max-w-md w-full p-8 text-center">
+          <MessageSquare className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+          <h2 className="text-2xl font-bold mb-2">Sign in to Message</h2>
+          <p className="text-muted-foreground mb-6">
+            You need to be signed in to send and receive messages
+          </p>
+          <Button onClick={() => navigate('/login')} size="lg">
+            <LogIn className="h-4 w-4 mr-2" />
+            Sign In
+          </Button>
+        </Card>
       </div>
     );
   }
