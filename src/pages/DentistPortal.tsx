@@ -23,6 +23,7 @@ import DentistAppointmentsManagement from "./DentistAppointmentsManagement";
 import { SubscriptionBanner } from "@/components/SubscriptionBanner";
 import { InviteDentistDialog } from "@/components/InviteDentistDialog";
 import { useBusinessContext } from "@/hooks/useBusinessContext";
+import Messages from "./Messages";
 
 interface DentistPortalProps {
   user?: User | null;
@@ -45,7 +46,7 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
       const sectionFromUrl = pathParts[1]; // Gets 'patients' from '/dentist/patients'
       
       const validSections: DentistSection[] = [
-        'dashboard', 'patients', 'appointments', 'employees', 'clinical',
+        'dashboard', 'patients', 'appointments', 'employees', 'messages', 'clinical',
         'schedule', 'payments', 'analytics', 'reports', 'inventory',
         'imports', 'users', 'branding', 'security', 'settings'
       ];
@@ -196,6 +197,8 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
         return <DentistAppointmentsManagement />;
       case 'employees':
         return <DentistAdminUsers />;
+      case 'messages':
+        return <Messages />;
       case 'clinical':
         return <ClinicalToday dentistId={dentistId} user={user} onOpenPatientsTab={() => setActiveSection('patients')} onOpenAppointmentsTab={() => setActiveSection('appointments')} />;
       case 'schedule':

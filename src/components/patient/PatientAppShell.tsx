@@ -14,6 +14,7 @@ import {
   LogOut,
   Info,
   PanelLeft,
+  MessageSquare,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -32,7 +33,7 @@ import { useClinicBranding } from "@/hooks/useClinicBranding";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { RoleSwitcher } from "@/components/RoleSwitcher";
 
-export type PatientSection = 'home' | 'assistant' | 'care' | 'appointments' | 'payments' | 'settings';
+export type PatientSection = 'home' | 'assistant' | 'care' | 'appointments' | 'payments' | 'messages' | 'settings';
 
 interface PatientAppShellProps {
   activeSection: PatientSection;
@@ -49,6 +50,7 @@ const NAV_ITEMS: Array<{ id: PatientSection; label: string; shortLabel?: string;
   { id: 'care', label: 'Treatment Records', shortLabel: 'Records', icon: FolderOpen, color: 'text-purple-600 bg-purple-100 dark:bg-purple-900/30' },
   { id: 'appointments', label: 'Appointments', shortLabel: 'Appts', icon: Calendar, color: 'text-orange-600 bg-orange-100 dark:bg-orange-900/30' },
   { id: 'payments', label: 'Payments', icon: CreditCard, color: 'text-green-600 bg-green-100 dark:bg-green-900/30' },
+  { id: 'messages', label: 'Messages', icon: MessageSquare, color: 'text-indigo-600 bg-indigo-100 dark:bg-indigo-900/30' },
 ];
 
 export const PatientAppShell: React.FC<PatientAppShellProps> = ({

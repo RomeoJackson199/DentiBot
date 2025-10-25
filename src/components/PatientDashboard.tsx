@@ -81,8 +81,7 @@ import { AppointmentsTab } from "@/components/patient/AppointmentsTab";
 import { PaymentsTab } from "@/components/patient/PaymentsTab";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { AppointmentBooking } from "@/components/AppointmentBooking";
-
-// Messaging functionality removed
+import Messages from "@/pages/Messages";
 
 interface PatientDashboardProps {
   user: User;
@@ -643,7 +642,9 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
         </div>
       )}
 
-      {/* Messages functionality removed */}
+      {activeSection === 'messages' && (
+        <Messages />
+      )}
 
       {activeSection === 'care' && (
         <CareTab

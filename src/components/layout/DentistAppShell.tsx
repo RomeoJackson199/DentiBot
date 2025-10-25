@@ -12,6 +12,7 @@ import {
   Settings as SettingsIcon,
   LogOut,
   User,
+  MessageSquare,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -30,7 +31,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { RoleSwitcher } from "@/components/RoleSwitcher";
 import { BusinessSelector } from "@/components/BusinessSelector";
 
-export type DentistSection = 'dashboard' | 'patients' | 'appointments' | 'employees' | 'clinical' | 'schedule' | 'payments' | 'analytics' | 'reports' | 'inventory' | 'imports' | 'branding' | 'security' | 'users' | 'settings';
+export type DentistSection = 'dashboard' | 'patients' | 'appointments' | 'employees' | 'messages' | 'clinical' | 'schedule' | 'payments' | 'analytics' | 'reports' | 'inventory' | 'imports' | 'branding' | 'security' | 'users' | 'settings';
 
 interface DentistAppShellProps {
   activeSection: DentistSection;
@@ -45,6 +46,7 @@ const NAV_ITEMS = [
   { id: 'patients' as DentistSection, label: 'Patient', icon: Users },
   { id: 'appointments' as DentistSection, label: 'Appointment', icon: Calendar },
   { id: 'employees' as DentistSection, label: 'Employee', icon: UserCog },
+  { id: 'messages' as DentistSection, label: 'Messages', icon: MessageSquare },
 ];
 
 export const DentistAppShell: React.FC<DentistAppShellProps> = ({
