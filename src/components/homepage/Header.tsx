@@ -131,10 +131,20 @@ export const Header = ({
                     <a href="/signup">Get Started</a>
                   </AppButton>
                 </div>
-                <div className="block sm:hidden">
-                  <AppButton size="mobile" variant="outline" className="bg-white/10 backdrop-blur-sm border-white/20 text-dental-primary" asChild>
-                    <a href="/login">{t.signIn}</a>
-                  </AppButton>
+                <div className="block sm:hidden w-full">
+                  <div className="flex flex-col gap-2">
+                    <AppButton
+                      size="mobile"
+                      variant="outline"
+                      className="w-full bg-white/10 backdrop-blur-sm border-white/20 text-dental-primary"
+                      asChild
+                    >
+                      <a href="/login">{t.signIn}</a>
+                    </AppButton>
+                    <AppButton size="mobile" className="w-full" asChild>
+                      <a href="/signup">{t.signUp}</a>
+                    </AppButton>
+                  </div>
                 </div>
               </>
             ) : (
