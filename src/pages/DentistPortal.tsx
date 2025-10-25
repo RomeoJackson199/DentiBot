@@ -17,6 +17,7 @@ import DataImportManager from "@/components/DataImportManager";
 import DentistAdminBranding from "./DentistAdminBranding";
 import DentistAdminSecurity from "./DentistAdminSecurity";
 import DentistAdminUsers from "./DentistAdminUsers";
+import DentistTeamManagement from "./DentistTeamManagement";
 import DentistSettings from "./DentistSettings";
 import { ModernLoadingSpinner } from "@/components/enhanced/ModernLoadingSpinner";
 import DentistAppointmentsManagement from "./DentistAppointmentsManagement";
@@ -48,7 +49,7 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
       const validSections: DentistSection[] = [
         'dashboard', 'patients', 'appointments', 'employees', 'messages', 'clinical',
         'schedule', 'payments', 'analytics', 'reports', 'inventory',
-        'imports', 'users', 'branding', 'security', 'settings'
+        'imports', 'users', 'team', 'branding', 'security', 'settings'
       ];
       
       if (validSections.includes(sectionFromUrl as DentistSection)) {
@@ -222,6 +223,8 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
         return <DataImportManager />;
       case 'users':
         return <DentistAdminUsers />;
+      case 'team':
+        return <DentistTeamManagement />;
       case 'branding':
         return <DentistAdminBranding />;
       case 'security':
@@ -243,6 +246,14 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
       <div className="space-y-4">
         <SubscriptionBanner dentistId={dentistId} />
         {activeSection === 'users' && businessInfo && (
+          <div className="flex justify-end mb-4">
+            <InviteDentistDialog 
+              businessId={businessInfo.id} 
+              businessName={businessInfo.name}
+            />
+          </div>
+        )}
+        {activeSection === 'team' && businessInfo && (
           <div className="flex justify-end mb-4">
             <InviteDentistDialog 
               businessId={businessInfo.id} 

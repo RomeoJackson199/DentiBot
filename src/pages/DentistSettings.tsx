@@ -1,17 +1,25 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Settings as SettingsIcon, Calendar, Palette, Shield, Users, User } from "lucide-react";
+import { Settings as SettingsIcon, Calendar, Palette, Shield, User } from "lucide-react";
 import { EnhancedAvailabilitySettings } from "@/components/enhanced/EnhancedAvailabilitySettings";
 import DentistAdminBranding from "./DentistAdminBranding";
 import DentistAdminSecurity from "./DentistAdminSecurity";
-import DentistAdminUsers from "./DentistAdminUsers";
 import DentistAdminProfile from "./DentistAdminProfile";
 import { useCurrentDentist } from "@/hooks/useCurrentDentist";
 
 export default function DentistSettings() {
   const { dentistId } = useCurrentDentist();
+  const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState("schedule");
+
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam && ['profile', 'schedule', 'branding', 'security'].includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
+  }, [searchParams]);
 
   if (!dentistId) {
     return (
@@ -38,7 +46,7 @@ export default function DentistSettings() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="profile" className="gap-2">
             <User className="h-4 w-4" />
             Profile
@@ -54,10 +62,6 @@ export default function DentistSettings() {
           <TabsTrigger value="security" className="gap-2">
             <Shield className="h-4 w-4" />
             Security
-          </TabsTrigger>
-          <TabsTrigger value="users" className="gap-2">
-            <Users className="h-4 w-4" />
-            Team
           </TabsTrigger>
         </TabsList>
 
@@ -85,10 +89,6 @@ export default function DentistSettings() {
 
         <TabsContent value="security" className="space-y-6">
           <DentistAdminSecurity />
-        </TabsContent>
-
-        <TabsContent value="users" className="space-y-6">
-          <DentistAdminUsers />
         </TabsContent>
       </Tabs>
     </div>

@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 interface ClinicBranding {
   logoUrl: string | null;
   clinicName: string | null;
+  tagline: string | null;
   primaryColor: string;
   secondaryColor: string;
 }
@@ -12,6 +13,7 @@ export function useClinicBranding() {
   const [branding, setBranding] = useState<ClinicBranding>({
     logoUrl: null,
     clinicName: null,
+    tagline: null,
     primaryColor: "#0F3D91",
     secondaryColor: "#66D2D6",
   });
@@ -23,7 +25,7 @@ export function useClinicBranding() {
         // Always get the first clinic settings (single business model)
         const { data, error } = await supabase
           .from('clinic_settings')
-          .select('logo_url, clinic_name, primary_color, secondary_color')
+          .select('logo_url, clinic_name, tagline, primary_color, secondary_color')
           .limit(1)
           .maybeSingle();
 
@@ -33,6 +35,7 @@ export function useClinicBranding() {
           setBranding({
             logoUrl: data.logo_url,
             clinicName: data.clinic_name,
+            tagline: data.tagline,
             primaryColor: data.primary_color || "#0F3D91",
             secondaryColor: data.secondary_color || "#66D2D6",
           });
@@ -62,6 +65,7 @@ export function useClinicBranding() {
             setBranding({
               logoUrl: newData.logo_url,
               clinicName: newData.clinic_name,
+              tagline: newData.tagline,
               primaryColor: newData.primary_color || "#0F3D91",
               secondaryColor: newData.secondary_color || "#66D2D6",
             });

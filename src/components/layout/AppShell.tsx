@@ -59,11 +59,14 @@ import {
   Plus,
   LogOut,
 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { emitAnalyticsEvent } from "@/lib/analyticsEvents";
 import { useCurrentDentist } from "@/hooks/useCurrentDentist";
 import { BusinessSelector } from "@/components/BusinessSelector";
+import { useClinicBranding } from "@/hooks/useClinicBranding";
+import { useBusinessContext } from "@/hooks/useBusinessContext";
 
 const STORAGE = {
   lastItem: "dnav:last-item",
@@ -94,15 +97,73 @@ type NavGroup = {
 };
 
 function TopBar() {
+  const navigate = useNavigate();
   const [openSearch, setOpenSearch] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const { setTheme, theme } = useTheme();
   const { language, setLanguage, t } = useLanguage();
   const { state, toggleSidebar } = useSidebar();
+  const { switchBusiness, memberships } = useBusinessContext();
+  const { toast } = useToast();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setUserId(data.session?.user?.id ?? null));
   }, []);
+
+  const handleLeaveClinic = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (!profile) return;
+
+      const { data: session } = await supabase
+        .from('session_business')
+        .select('business_id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (!session) return;
+
+      const { error } = await supabase
+        .from('business_members')
+        .delete()
+        .eq('profile_id', profile.id)
+        .eq('business_id', session.business_id);
+
+      if (error) throw error;
+
+      // Switch to another business if available
+      if (memberships.length > 1) {
+        const otherBusiness = memberships.find(m => m.business_id !== session.business_id);
+        if (otherBusiness) {
+          await switchBusiness(otherBusiness.business_id);
+        }
+      }
+
+      toast({
+        title: "Left clinic",
+        description: "You have successfully left the clinic",
+      });
+
+      // If no other businesses, redirect to home
+      if (memberships.length <= 1) {
+        navigate('/');
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to leave clinic",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <div className="sticky top-0 z-40 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
@@ -150,6 +211,14 @@ function TopBar() {
               <DropdownMenuItem onClick={() => setLanguage('en')}>🇬🇧 English</DropdownMenuItem>
               <DropdownMenuItem onClick={() => setLanguage('fr')}>🇫🇷 Français</DropdownMenuItem>
               <DropdownMenuItem onClick={() => setLanguage('nl')}>🇳🇱 Nederlands</DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => navigate('/dentist/settings?tab=users')}>
+                <Users className="h-4 w-4 mr-2" />
+                Team Management
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleLeaveClinic} className="text-destructive">
+                Leave Clinic
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => supabase.auth.signOut()}>Sign out</DropdownMenuItem>
             </DropdownMenuContent>
@@ -211,6 +280,7 @@ export function AppShell() {
   const isMobile = useIsMobile();
   const { t } = useLanguage();
   const { dentistId, userId } = useCurrentDentist();
+  const { branding } = useClinicBranding();
 
   useScrollRestoration();
 
@@ -387,10 +457,20 @@ export function AppShell() {
       <Sidebar variant="floating" collapsible={isMobile ? "offcanvas" : "icon"}>
         <SidebarHeader className="px-3 py-3">
           <div className="flex items-center gap-2 px-1">
-            <div className="h-8 w-8 rounded-lg bg-[hsl(var(--brand-600))] text-white flex items-center justify-center font-semibold shadow-sm">D</div>
-            <div className="leading-tight">
-              <div className="font-semibold">Dentist</div>
-              <div className="text-xs text-muted-foreground">Dashboard</div>
+            {branding.logoUrl ? (
+              <img 
+                src={branding.logoUrl} 
+                alt={branding.clinicName || "Clinic"} 
+                className="h-8 w-8 rounded-lg object-cover"
+              />
+            ) : (
+              <div className="h-8 w-8 rounded-lg bg-[hsl(var(--primary))] text-white flex items-center justify-center font-semibold shadow-sm">
+                {branding.clinicName?.[0]?.toUpperCase() || 'D'}
+              </div>
+            )}
+            <div className="leading-tight flex-1 min-w-0">
+              <div className="font-semibold truncate">{branding.clinicName || "Dental Practice"}</div>
+              <div className="text-xs text-muted-foreground truncate">{branding.tagline || "Dashboard"}</div>
             </div>
           </div>
           <div className="mt-2">
