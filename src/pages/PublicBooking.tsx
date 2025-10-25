@@ -50,6 +50,10 @@ export default function PublicBooking() {
   const [loadingTimes, setLoadingTimes] = useState(false);
   const [success, setSuccess] = useState(false);
 
+  useEffect(() => {
+    setSelectedTime("");
+  }, [selectedDentist, selectedDate]);
+
   // Fetch dentists
   useEffect(() => {
     const fetchDentists = async () => {
@@ -67,10 +71,15 @@ export default function PublicBooking() {
 
   // Fetch available times
   useEffect(() => {
-    if (!selectedDentist || !selectedDate) return;
+    if (!selectedDentist || !selectedDate) {
+      setAvailableTimes([]);
+      setSelectedTime("");
+      return;
+    }
 
     const fetchTimes = async () => {
       setLoadingTimes(true);
+      setSelectedTime("");
       const dateStr = selectedDate.toISOString().split('T')[0];
       try {
         // Ensure slots exist for this date (idempotent)

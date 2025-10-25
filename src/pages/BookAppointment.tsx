@@ -56,6 +56,10 @@ export default function BookAppointment() {
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  useEffect(() => {
+    setSelectedTime("");
+  }, [selectedBusiness, selectedDentist, selectedDate]);
+
   // Fetch user and profile
   useEffect(() => {
     const fetchUserData = async () => {
@@ -131,10 +135,15 @@ export default function BookAppointment() {
 
   // Fetch available slots when date and dentist are selected
   useEffect(() => {
-    if (!selectedDate || !selectedDentist) return;
+    if (!selectedDate || !selectedDentist) {
+      setAvailableSlots([]);
+      setSelectedTime("");
+      return;
+    }
 
     const fetchSlots = async () => {
       setLoadingSlots(true);
+      setSelectedTime("");
       try {
         // Generate slots
         await supabase.rpc('generate_daily_slots', {
