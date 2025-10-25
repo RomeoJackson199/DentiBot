@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Settings as SettingsIcon, Calendar, Palette, Shield, Users } from "lucide-react";
+import { Settings as SettingsIcon, Calendar, Palette, Shield, Users, User } from "lucide-react";
 import { EnhancedAvailabilitySettings } from "@/components/enhanced/EnhancedAvailabilitySettings";
 import DentistAdminBranding from "./DentistAdminBranding";
 import DentistAdminSecurity from "./DentistAdminSecurity";
 import DentistAdminUsers from "./DentistAdminUsers";
+import DentistAdminProfile from "./DentistAdminProfile";
 import { useCurrentDentist } from "@/hooks/useCurrentDentist";
 
 export default function DentistSettings() {
@@ -37,7 +38,11 @@ export default function DentistSettings() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="profile" className="gap-2">
+            <User className="h-4 w-4" />
+            Profile
+          </TabsTrigger>
           <TabsTrigger value="schedule" className="gap-2">
             <Calendar className="h-4 w-4" />
             Schedule
@@ -55,6 +60,10 @@ export default function DentistSettings() {
             Team
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="profile" className="space-y-6">
+          <DentistAdminProfile />
+        </TabsContent>
 
         <TabsContent value="schedule" className="space-y-6">
           <Card>
