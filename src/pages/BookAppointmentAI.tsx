@@ -32,6 +32,7 @@ interface Dentist {
   specialization: string;
   license_number?: string;
   profile_id: string;
+  clinic_address?: string;
   profiles?: {
     first_name: string;
     last_name: string;
@@ -191,6 +192,21 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
         ...d,
         profiles: Array.isArray(d.profiles) ? d.profiles[0] : (d.profiles || null),
       }));
+
+      // Fetch clinic settings for addresses
+      const dentistIds = transformedData.map(d => d.id);
+      if (dentistIds.length > 0) {
+        const { data: clinicSettings } = await supabase
+          .from('clinic_settings')
+          .select('dentist_id, address')
+          .in('dentist_id', dentistIds);
+
+        // Merge clinic address into dentist data
+        const settingsMap = new Map(clinicSettings?.map(s => [s.dentist_id, s.address]) || []);
+        transformedData.forEach(d => {
+          d.clinic_address = settingsMap.get(d.id) || d.profiles?.address || '';
+        });
+      }
       
       setDentists(transformedData);
 
@@ -664,10 +680,10 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
                     </div>
                   </div>
                   <p className="text-sm text-muted-foreground mb-3">
-                    {selectedDentist.profiles?.address || 'Dental Street 12, Brussels, Belgium'}
+                    {selectedDentist.clinic_address || 'Address not available'}
                   </p>
                   <div className="w-full h-40 rounded-lg overflow-hidden">
-                    <ClinicMap address={selectedDentist.profiles?.address || ''} />
+                    <ClinicMap address={selectedDentist.clinic_address || ''} />
                   </div>
                 </CardContent>
               </Card>

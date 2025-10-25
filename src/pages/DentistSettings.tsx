@@ -41,7 +41,8 @@ export default function DentistSettings() {
           : "You left the clinic. You still belong to other clinics.",
       });
 
-      navigate('/');
+      // Force reload to update role and UI
+      window.location.href = '/';
     } catch (error) {
       console.error('Error leaving clinic:', error);
       toast({

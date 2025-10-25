@@ -45,6 +45,7 @@ export function useCurrentDentist(): CurrentDentistState {
         .from('dentists')
         .select('id')
         .eq('profile_id', profileId)
+        .eq('is_active', true)
         .maybeSingle();
       if (dentistErr) throw dentistErr;
 

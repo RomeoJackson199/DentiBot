@@ -121,10 +121,12 @@ export default function BookAppointment() {
           id,
           profile_id,
           specialization,
+          clinic_address,
           profiles:profile_id (
             first_name,
             last_name,
-            bio
+            bio,
+            address
           )
         `)
         .eq('is_active', true)
@@ -134,7 +136,28 @@ export default function BookAppointment() {
         console.error('Error fetching dentists:', error);
         return;
       }
-      setDentists(data || []);
+
+      const transformedData = (data || []).map((d: any) => ({
+        ...d,
+        profiles: Array.isArray(d.profiles) ? d.profiles[0] : d.profiles
+      }));
+
+      // Fetch clinic settings for addresses
+      const dentistIds = transformedData.map(d => d.id);
+      if (dentistIds.length > 0) {
+        const { data: clinicSettings } = await supabase
+          .from('clinic_settings')
+          .select('dentist_id, address')
+          .in('dentist_id', dentistIds);
+
+        // Merge clinic address into dentist data
+        const settingsMap = new Map(clinicSettings?.map(s => [s.dentist_id, s.address]) || []);
+        transformedData.forEach(d => {
+          d.clinic_address = settingsMap.get(d.id) || d.profiles?.address || d.clinic_address;
+        });
+      }
+
+      setDentists(transformedData);
     };
 
     fetchDentists();
