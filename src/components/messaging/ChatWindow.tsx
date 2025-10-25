@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
+import type { FormEvent, KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { ArrowLeft, Send } from 'lucide-react';
+import { ArrowLeft, Paperclip, Send, Sparkles } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
@@ -33,6 +34,7 @@ export function ChatWindow({ currentUserId, recipient, onBack }: ChatWindowProps
   const [currentProfileId, setCurrentProfileId] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     loadCurrentProfile();
@@ -147,12 +149,25 @@ export function ChatWindow({ currentUserId, recipient, onBack }: ChatWindowProps
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: ReactKeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       sendMessage();
     }
   };
+
+  const handleTextareaInput = (event: FormEvent<HTMLTextAreaElement>) => {
+    const target = event.currentTarget;
+    target.style.height = 'auto';
+    target.style.height = `${Math.min(target.scrollHeight, 160)}px`;
+  };
+
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+    textarea.style.height = 'auto';
+    textarea.style.height = `${Math.min(textarea.scrollHeight, 160)}px`;
+  }, [newMessage]);
 
   return (
     <div className="flex flex-col h-full">
@@ -203,23 +218,56 @@ export function ChatWindow({ currentUserId, recipient, onBack }: ChatWindowProps
       </ScrollArea>
 
       {/* Input */}
-      <div className="border-t border-border p-4">
-        <div className="flex gap-2">
-          <Textarea
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Type your message..."
-            className="resize-none"
-            rows={2}
-          />
-          <Button 
-            onClick={sendMessage} 
-            disabled={!newMessage.trim() || sending}
-            size="icon"
-          >
-            <Send className="h-4 w-4" />
-          </Button>
+      <div className="border-t border-border bg-muted/30 backdrop-blur-sm p-4">
+        <div className="mx-auto w-full max-w-3xl">
+          <div className="rounded-2xl border border-border/60 bg-background/80 px-4 py-3 shadow-sm backdrop-blur">
+            <div className="flex items-end gap-3">
+              <div className="flex-1 min-w-0">
+                <Textarea
+                  ref={textareaRef}
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  onInput={handleTextareaInput}
+                  placeholder="Type your message..."
+                  className="min-h-[44px] max-h-40 resize-none overflow-y-auto border-0 bg-transparent px-0 py-0 text-sm leading-relaxed shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                  rows={1}
+                />
+              </div>
+              <Button
+                onClick={sendMessage}
+                disabled={!newMessage.trim() || sending}
+                size="icon"
+                aria-label="Send message"
+                className="shrink-0"
+              >
+                <Send className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Attach a file"
+                  className="h-8 w-8 text-muted-foreground"
+                >
+                  <Paperclip className="h-4 w-4" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Insert AI suggestion"
+                  className="h-8 w-8 text-muted-foreground"
+                >
+                  <Sparkles className="h-4 w-4" />
+                </Button>
+              </div>
+              <span>Press Enter to send • Shift + Enter for a new line</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
