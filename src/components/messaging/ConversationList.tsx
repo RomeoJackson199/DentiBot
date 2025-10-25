@@ -4,6 +4,9 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { formatDistanceToNow } from 'date-fns';
+import { useUserRole } from '@/hooks/useUserRole';
+import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
 
 interface Conversation {
   profileId: string;
@@ -23,11 +26,15 @@ export function ConversationList({ currentUserId, onSelectRecipient }: Conversat
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentProfileId, setCurrentProfileId] = useState<string | null>(null);
+  const [showNewConversation, setShowNewConversation] = useState(false);
+  const [availableContacts, setAvailableContacts] = useState<Array<{ id: string; name: string; businessId: string }>>([]);
+  const { isDentist, isPatient } = useUserRole();
 
   useEffect(() => {
     loadConversations();
+    loadAvailableContacts();
     setupRealtimeSubscription();
-  }, [currentUserId]);
+  }, [currentUserId, isDentist, isPatient]);
 
   const loadConversations = async () => {
     try {
@@ -104,6 +111,83 @@ export function ConversationList({ currentUserId, onSelectRecipient }: Conversat
     }
   };
 
+  const loadAvailableContacts = async () => {
+    try {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', currentUserId)
+        .single();
+
+      if (!profile) return;
+
+      if (isPatient) {
+        // For patients, show dentists from their appointments
+        const { data: appointments } = await supabase
+          .from('appointments')
+          .select(`
+            dentist_id,
+            business_id,
+            dentists!inner(
+              profile_id,
+              profiles!inner(first_name, last_name)
+            )
+          `)
+          .eq('patient_id', profile.id);
+
+        if (appointments) {
+          const uniqueDentists = new Map();
+          appointments.forEach(apt => {
+            const dentist = apt.dentists as any;
+            if (dentist?.profiles && !uniqueDentists.has(dentist.profile_id)) {
+              uniqueDentists.set(dentist.profile_id, {
+                id: dentist.profile_id,
+                name: `${dentist.profiles.first_name || ''} ${dentist.profiles.last_name || ''}`.trim() || 'Dentist',
+                businessId: apt.business_id
+              });
+            }
+          });
+          setAvailableContacts(Array.from(uniqueDentists.values()));
+        }
+      } else if (isDentist) {
+        // For dentists, show their patients from appointments
+        const { data: dentistData } = await supabase
+          .from('dentists')
+          .select('id')
+          .eq('profile_id', profile.id)
+          .single();
+
+        if (dentistData) {
+          const { data: appointments } = await supabase
+            .from('appointments')
+            .select(`
+              patient_id,
+              business_id,
+              profiles!inner(first_name, last_name)
+            `)
+            .eq('dentist_id', dentistData.id);
+
+          if (appointments) {
+            const uniquePatients = new Map();
+            appointments.forEach(apt => {
+              const patient = apt.profiles as any;
+              if (patient && !uniquePatients.has(apt.patient_id)) {
+                uniquePatients.set(apt.patient_id, {
+                  id: apt.patient_id,
+                  name: `${patient.first_name || ''} ${patient.last_name || ''}`.trim() || 'Patient',
+                  businessId: apt.business_id
+                });
+              }
+            });
+            setAvailableContacts(Array.from(uniquePatients.values()));
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error loading available contacts:', error);
+    }
+  };
+
   const setupRealtimeSubscription = () => {
     const channel = supabase
       .channel('messages-changes')
@@ -129,52 +213,137 @@ export function ConversationList({ currentUserId, onSelectRecipient }: Conversat
     return <div className="p-4">Loading conversations...</div>;
   }
 
-  if (conversations.length === 0) {
+  if (conversations.length === 0 && !showNewConversation) {
     return (
-      <div className="p-4 text-center text-muted-foreground">
-        <p>No conversations yet</p>
-        <p className="text-sm mt-2">Start a conversation with your dentist or patients</p>
+      <div className="p-4">
+        <div className="text-center text-muted-foreground mb-4">
+          <p>No conversations yet</p>
+          <p className="text-sm mt-2">Start a conversation with {isPatient ? 'your dentist' : 'your patients'}</p>
+        </div>
+        {availableContacts.length > 0 ? (
+          <div className="space-y-2">
+            <p className="text-sm font-medium px-2">Available contacts:</p>
+            <ScrollArea className="h-[400px]">
+              {availableContacts.map((contact) => (
+                <button
+                  key={contact.id}
+                  onClick={() => onSelectRecipient(contact)}
+                  className="w-full p-3 rounded-lg hover:bg-accent transition-colors text-left"
+                >
+                  <div className="flex items-start gap-3">
+                    <Avatar>
+                      <AvatarFallback>
+                        {contact.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                      <span className="font-medium">{contact.name}</span>
+                      <p className="text-xs text-muted-foreground">Start conversation</p>
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </ScrollArea>
+          </div>
+        ) : (
+          <p className="text-sm text-muted-foreground text-center">
+            No contacts available yet. {isPatient ? 'Book an appointment to message your dentist.' : 'You will see patients here once they book appointments.'}
+          </p>
+        )}
       </div>
     );
   }
 
   return (
-    <ScrollArea className="h-full">
-      <div className="p-2 space-y-1">
-        {conversations.map((conv) => (
-          <button
-            key={conv.profileId}
-            onClick={() => onSelectRecipient({ 
-              id: conv.profileId, 
-              name: conv.name,
-              businessId: conv.businessId
-            })}
-            className="w-full p-3 rounded-lg hover:bg-accent transition-colors text-left"
+    <div className="h-full flex flex-col">
+      <div className="p-3 border-b flex items-center justify-between">
+        <h3 className="font-semibold">Messages</h3>
+        {availableContacts.length > 0 && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowNewConversation(!showNewConversation)}
           >
-            <div className="flex items-start gap-3">
-              <Avatar>
-                <AvatarFallback>
-                  {conv.name.split(' ').map(n => n[0]).join('').toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between gap-2 mb-1">
-                  <span className="font-semibold truncate">{conv.name}</span>
-                  {conv.unreadCount > 0 && (
-                    <Badge variant="default" className="rounded-full px-2 py-0.5 text-xs">
-                      {conv.unreadCount}
-                    </Badge>
-                  )}
-                </div>
-                <p className="text-sm text-muted-foreground truncate">{conv.lastMessage}</p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {formatDistanceToNow(new Date(conv.lastMessageTime), { addSuffix: true })}
-                </p>
-              </div>
-            </div>
-          </button>
-        ))}
+            <Plus className="h-4 w-4 mr-1" />
+            New
+          </Button>
+        )}
       </div>
-    </ScrollArea>
+
+      {showNewConversation ? (
+        <div className="flex-1 overflow-hidden">
+          <div className="p-3 border-b flex items-center justify-between">
+            <span className="text-sm font-medium">New conversation</span>
+            <Button variant="ghost" size="sm" onClick={() => setShowNewConversation(false)}>
+              Cancel
+            </Button>
+          </div>
+          <ScrollArea className="h-full">
+            <div className="p-2 space-y-1">
+              {availableContacts.map((contact) => (
+                <button
+                  key={contact.id}
+                  onClick={() => {
+                    onSelectRecipient(contact);
+                    setShowNewConversation(false);
+                  }}
+                  className="w-full p-3 rounded-lg hover:bg-accent transition-colors text-left"
+                >
+                  <div className="flex items-start gap-3">
+                    <Avatar>
+                      <AvatarFallback>
+                        {contact.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                      <span className="font-medium">{contact.name}</span>
+                      <p className="text-xs text-muted-foreground">Start conversation</p>
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </ScrollArea>
+        </div>
+      ) : (
+        <ScrollArea className="flex-1">
+          <div className="p-2 space-y-1">
+            {conversations.map((conv) => (
+              <button
+                key={conv.profileId}
+                onClick={() => onSelectRecipient({ 
+                  id: conv.profileId, 
+                  name: conv.name,
+                  businessId: conv.businessId
+                })}
+                className="w-full p-3 rounded-lg hover:bg-accent transition-colors text-left"
+              >
+                <div className="flex items-start gap-3">
+                  <Avatar>
+                    <AvatarFallback>
+                      {conv.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <span className="font-semibold truncate">{conv.name}</span>
+                      {conv.unreadCount > 0 && (
+                        <Badge variant="default" className="rounded-full px-2 py-0.5 text-xs">
+                          {conv.unreadCount}
+                        </Badge>
+                      )}
+                    </div>
+                    <p className="text-sm text-muted-foreground truncate">{conv.lastMessage}</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {formatDistanceToNow(new Date(conv.lastMessageTime), { addSuffix: true })}
+                    </p>
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+        </ScrollArea>
+      )}
+    </div>
   );
 }
