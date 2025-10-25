@@ -14,31 +14,33 @@ export const BrandingProvider = ({ children, businessId }: BrandingProviderProps
 
     const fetchBranding = async () => {
       try {
-        // First get dentists for this business
-        const { data: members } = await supabase
-          .from('business_members')
-          .select('profile_id')
-          .eq('business_id', businessId)
-          .limit(1)
-          .single();
+        // Find dentists associated with this business via provider_business_map
+        const { data: providerLinks, error: mapErr } = await supabase
+          .from('provider_business_map')
+          .select('provider_id')
+          .eq('business_id', businessId);
 
-        if (!members) return;
+        if (mapErr) throw mapErr;
+        const providerIds = providerLinks?.map((m: any) => m.provider_id) || [];
+        if (providerIds.length === 0) return;
 
-        // Then get dentist settings
-        const { data: dentist } = await supabase
+        const { data: dentist, error: dentistErr } = await supabase
           .from('dentists')
           .select('id')
-          .eq('profile_id', members.profile_id)
-          .single();
+          .in('profile_id', providerIds)
+          .limit(1)
+          .maybeSingle();
 
+        if (dentistErr) throw dentistErr;
         if (!dentist) return;
 
-        // Finally get clinic settings
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from('clinic_settings')
           .select('primary_color, secondary_color')
           .eq('dentist_id', dentist.id)
-          .single();
+          .maybeSingle();
+
+        if (error) throw error;
 
         if (data) {
           setColors({

@@ -35,6 +35,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { useTheme } from "next-themes";
 import { supabase } from "@/integrations/supabase/client";
+import { BrandingProvider } from "@/components/BrandingProvider";
 import {
   Stethoscope,
   Calendar,
@@ -105,12 +106,28 @@ function TopBar() {
   const { state, toggleSidebar } = useSidebar();
   const { switchBusiness, memberships } = useBusinessContext();
   const { toast } = useToast();
+  const [businessId, setBusinessId] = useState<string | null>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setUserId(data.session?.user?.id ?? null));
   }, []);
 
+  useEffect(() => {
+    const loadBusiness = async () => {
+      if (!userId) { setBusinessId(null); return; }
+      const { data } = await supabase
+        .from('session_business')
+        .select('business_id')
+        .eq('user_id', userId)
+        .maybeSingle();
+      setBusinessId(data?.business_id ?? null);
+    };
+    loadBusiness();
+  }, [userId]);
+
   return (
+    <>
+      <BrandingProvider businessId={businessId || undefined} />
     <div className="sticky top-0 z-40 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
       <div className="flex items-center gap-2 px-3 md:px-4 py-2">
         <SidebarTrigger className="md:hidden h-8 w-8" aria-label="Collapse or expand sidebar" title="Collapse/Expand" />
@@ -524,6 +541,7 @@ export function AppShell() {
         </div>
       </SidebarInset>
     </SidebarProvider>
+    </>
   );
 }
 
