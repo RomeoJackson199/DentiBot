@@ -13,6 +13,16 @@ import {
   LogOut,
   User,
   MessageSquare,
+  Stethoscope,
+  CalendarClock,
+  CreditCard,
+  BarChart3,
+  FileText,
+  Boxes,
+  Upload,
+  Palette,
+  ShieldCheck,
+  UserCircle,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -43,10 +53,21 @@ interface DentistAppShellProps {
 
 const NAV_ITEMS = [
   { id: 'dashboard' as DentistSection, label: 'Dashboard', icon: LayoutDashboard },
-  { id: 'patients' as DentistSection, label: 'Patient', icon: Users },
-  { id: 'appointments' as DentistSection, label: 'Appointment', icon: Calendar },
-  { id: 'employees' as DentistSection, label: 'Employee', icon: UserCog },
+  { id: 'patients' as DentistSection, label: 'Patients', icon: Users },
+  { id: 'appointments' as DentistSection, label: 'Appointments', icon: Calendar },
+  { id: 'employees' as DentistSection, label: 'Employees', icon: UserCog },
   { id: 'messages' as DentistSection, label: 'Messages', icon: MessageSquare },
+  { id: 'clinical' as DentistSection, label: 'Clinical', icon: Stethoscope },
+  { id: 'schedule' as DentistSection, label: 'Schedule', icon: CalendarClock },
+  { id: 'payments' as DentistSection, label: 'Payments', icon: CreditCard },
+  { id: 'analytics' as DentistSection, label: 'Analytics', icon: BarChart3 },
+  { id: 'reports' as DentistSection, label: 'Reports', icon: FileText },
+  { id: 'inventory' as DentistSection, label: 'Inventory', icon: Boxes },
+  { id: 'imports' as DentistSection, label: 'Imports', icon: Upload },
+  { id: 'users' as DentistSection, label: 'Users', icon: UserCircle },
+  { id: 'branding' as DentistSection, label: 'Branding', icon: Palette },
+  { id: 'security' as DentistSection, label: 'Security', icon: ShieldCheck },
+  { id: 'settings' as DentistSection, label: 'Settings', icon: SettingsIcon },
 ];
 
 export const DentistAppShell: React.FC<DentistAppShellProps> = ({
@@ -138,18 +159,24 @@ export const DentistAppShell: React.FC<DentistAppShellProps> = ({
             {NAV_ITEMS.map((item) => {
               const Icon = item.icon;
               const active = isActive(item.id);
+              const badgeCount = badges[item.id];
 
               return (
                 <button
                   key={item.id}
                   onClick={() => onChangeSection(item.id)}
                   className={cn(
-                    "flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-all",
+                    "relative flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-all",
                     active ? "text-primary bg-primary/10 font-semibold" : "text-muted-foreground"
                   )}
                 >
                   <Icon className="h-5 w-5" />
                   <span className="text-xs mt-1">{item.label}</span>
+                  {typeof badgeCount === 'number' && badgeCount > 0 && (
+                    <span className="absolute -top-1.5 right-2 min-w-[1.25rem] rounded-full bg-destructive px-1 text-[10px] font-semibold text-destructive-foreground">
+                      {badgeCount}
+                    </span>
+                  )}
                 </button>
               );
             })}
@@ -181,13 +208,14 @@ export const DentistAppShell: React.FC<DentistAppShellProps> = ({
             {NAV_ITEMS.map((item) => {
               const Icon = item.icon;
               const active = isActive(item.id);
+              const badgeCount = badges[item.id];
 
               return (
                 <button
                   key={item.id}
                   onClick={() => onChangeSection(item.id)}
                   className={cn(
-                    "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all",
+                    "relative flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all",
                     active
                       ? "bg-foreground text-background"
                       : "text-muted-foreground hover:text-foreground hover:bg-muted"
@@ -195,6 +223,11 @@ export const DentistAppShell: React.FC<DentistAppShellProps> = ({
                 >
                   <Icon className="h-4 w-4" />
                   {item.label}
+                  {typeof badgeCount === 'number' && badgeCount > 0 && (
+                    <span className="absolute -top-1 right-2 min-w-[1.25rem] rounded-full bg-destructive px-1 text-[10px] font-semibold text-destructive-foreground">
+                      {badgeCount}
+                    </span>
+                  )}
                 </button>
               );
             })}
