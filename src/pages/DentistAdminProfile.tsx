@@ -22,6 +22,7 @@ export default function DentistAdminProfile() {
     specialization: "",
     clinic_address: "",
     license_number: "",
+    bio: "",
   });
 
   useEffect(() => {
@@ -49,6 +50,7 @@ export default function DentistAdminProfile() {
           specialization: dentistData.specialization || "",
           clinic_address: dentistData.clinic_address || "",
           license_number: dentistData.license_number || "",
+          bio: profileData.bio || "",
         });
       }
     } catch (error: any) {
@@ -87,6 +89,7 @@ export default function DentistAdminProfile() {
             last_name: formData.last_name,
             email: formData.email,
             phone: formData.phone,
+            bio: formData.bio,
           })
           .eq('id', profileId),
       ]);
@@ -211,6 +214,17 @@ export default function DentistAdminProfile() {
               onChange={(e) => setFormData({ ...formData, clinic_address: e.target.value })}
               placeholder="123 Main Street, City, State, ZIP"
               rows={3}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="bio">Professional Bio</Label>
+            <Textarea
+              id="bio"
+              value={formData.bio}
+              onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+              placeholder="Tell patients about yourself, your experience, and specializations..."
+              rows={4}
             />
           </div>
 

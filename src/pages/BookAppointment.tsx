@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/hooks/useLanguage";
 import { BusinessSelectionForPatients } from "@/components/BusinessSelectionForPatients";
+import { AppointmentSuccessDialog } from "@/components/AppointmentSuccessDialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -55,6 +56,8 @@ export default function BookAppointment() {
   const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [successDetails, setSuccessDetails] = useState<any>(null);
   const hasDentists = dentists.length > 0;
 
   useEffect(() => {
@@ -241,12 +244,14 @@ export default function BookAppointment() {
         p_appointment_id: appointmentData.id
       });
 
-      toast({
-        title: t.appointmentConfirmed,
-        description: t.appointmentBooked,
+      const selectedDentistData = dentists.find(d => d.id === selectedDentist);
+      setSuccessDetails({
+        date: format(selectedDate, 'MMMM dd, yyyy'),
+        time: selectedTime,
+        dentist: `Dr ${selectedDentistData?.profiles.first_name} ${selectedDentistData?.profiles.last_name}`,
+        reason: reason || appointmentType
       });
-
-      navigate('/dashboard?tab=appointments');
+      setShowSuccessDialog(true);
     } catch (error) {
       console.error('Error booking appointment:', error);
       toast({
@@ -266,8 +271,15 @@ export default function BookAppointment() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-subtle p-4 md:p-6">
-      <div className="max-w-4xl mx-auto">
+    <>
+      <AppointmentSuccessDialog 
+        open={showSuccessDialog}
+        onOpenChange={setShowSuccessDialog}
+        appointmentDetails={successDetails}
+      />
+      
+      <div className="min-h-screen bg-gradient-subtle p-4 md:p-6">
+        <div className="max-w-4xl mx-auto">
         <Button
           variant="ghost"
           onClick={() => navigate(-1)}
@@ -486,5 +498,6 @@ export default function BookAppointment() {
         </Card>
       </div>
     </div>
+    </>
   );
 }

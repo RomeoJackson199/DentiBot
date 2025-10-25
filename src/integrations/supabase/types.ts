@@ -1011,6 +1011,7 @@ export type Database = {
         Row: {
           address: string | null
           ai_opt_out: boolean
+          bio: string | null
           created_at: string
           date_of_birth: string | null
           email: string | null
@@ -1031,6 +1032,7 @@ export type Database = {
         Insert: {
           address?: string | null
           ai_opt_out?: boolean
+          bio?: string | null
           created_at?: string
           date_of_birth?: string | null
           email?: string | null
@@ -1051,6 +1053,7 @@ export type Database = {
         Update: {
           address?: string | null
           ai_opt_out?: boolean
+          bio?: string | null
           created_at?: string
           date_of_birth?: string | null
           email?: string | null
