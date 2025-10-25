@@ -121,67 +121,104 @@ export function ConversationList({ currentUserId, onSelectRecipient }: Conversat
 
       if (!profile) return;
 
-      if (isPatient) {
-        // For patients, show dentists from their appointments
-        const { data: appointments } = await supabase
-          .from('appointments')
-          .select(`
-            dentist_id,
-            business_id,
-            dentists!inner(
-              profile_id,
-              profiles!inner(first_name, last_name)
-            )
-          `)
-          .eq('patient_id', profile.id);
+      // Reset before loading
+      setAvailableContacts([]);
 
-        if (appointments) {
-          const uniqueDentists = new Map();
-          appointments.forEach(apt => {
-            const dentist = apt.dentists as any;
-            if (dentist?.profiles && !uniqueDentists.has(dentist.profile_id)) {
-              uniqueDentists.set(dentist.profile_id, {
-                id: dentist.profile_id,
-                name: `${dentist.profiles.first_name || ''} ${dentist.profiles.last_name || ''}`.trim() || 'Dentist',
-                businessId: apt.business_id
-              });
-            }
-          });
-          setAvailableContacts(Array.from(uniqueDentists.values()));
-        }
+      if (isPatient) {
+        // 1) Get patient's appointments -> dentist_ids + business_ids
+        const { data: appointments, error: apptErr } = await supabase
+          .from('appointments')
+          .select('dentist_id, business_id')
+          .eq('patient_id', profile.id);
+        if (apptErr) throw apptErr;
+        if (!appointments || appointments.length === 0) return;
+
+        const dentistIds = Array.from(new Set(appointments.map(a => a.dentist_id).filter(Boolean)));
+        if (dentistIds.length === 0) return;
+
+        // 2) Map dentist_id -> business_id (first seen)
+        const dentistBusinessMap = new Map<string, string>();
+        appointments.forEach(a => {
+          if (a.dentist_id && a.business_id && !dentistBusinessMap.has(a.dentist_id)) {
+            dentistBusinessMap.set(a.dentist_id, a.business_id);
+          }
+        });
+
+        // 3) Fetch dentists -> profile_id
+        const { data: dentists, error: dentErr } = await supabase
+          .from('dentists')
+          .select('id, profile_id')
+          .in('id', dentistIds);
+        if (dentErr) throw dentErr;
+        if (!dentists || dentists.length === 0) return;
+
+        // 4) Fetch profiles for those profile_ids -> names
+        const profileIds = dentists.map(d => d.profile_id).filter(Boolean);
+        const { data: profilesData, error: profErr } = await supabase
+          .from('profiles')
+          .select('id, first_name, last_name')
+          .in('id', profileIds);
+        if (profErr) throw profErr;
+
+        const profileNameMap = new Map<string, string>();
+        profilesData?.forEach(p => {
+          const name = `${p.first_name || ''} ${p.last_name || ''}`.trim() || 'Dentist';
+          profileNameMap.set(p.id, name);
+        });
+
+        // 5) Build contacts using dentist.profile_id as id and business from appointments
+        const contacts = dentists
+          .map(d => ({
+            id: d.profile_id,
+            name: profileNameMap.get(d.profile_id) || 'Dentist',
+            businessId: dentistBusinessMap.get(d.id) || ''
+          }))
+          .filter(c => !!c.id && !!c.businessId);
+
+        setAvailableContacts(contacts);
       } else if (isDentist) {
-        // For dentists, show their patients from appointments
-        const { data: dentistData } = await supabase
+        // 1) Get current dentist id from profile
+        const { data: dentistData, error: dentistErr } = await supabase
           .from('dentists')
           .select('id')
           .eq('profile_id', profile.id)
           .single();
+        if (dentistErr) throw dentistErr;
+        if (!dentistData) return;
 
-        if (dentistData) {
-          const { data: appointments } = await supabase
-            .from('appointments')
-            .select(`
-              patient_id,
-              business_id,
-              profiles!inner(first_name, last_name)
-            `)
-            .eq('dentist_id', dentistData.id);
+        // 2) Get appointments for this dentist -> patient_ids + business_ids
+        const { data: appointments, error: apptErr } = await supabase
+          .from('appointments')
+          .select('patient_id, business_id')
+          .eq('dentist_id', dentistData.id);
+        if (apptErr) throw apptErr;
+        if (!appointments || appointments.length === 0) return;
 
-          if (appointments) {
-            const uniquePatients = new Map();
-            appointments.forEach(apt => {
-              const patient = apt.profiles as any;
-              if (patient && !uniquePatients.has(apt.patient_id)) {
-                uniquePatients.set(apt.patient_id, {
-                  id: apt.patient_id,
-                  name: `${patient.first_name || ''} ${patient.last_name || ''}`.trim() || 'Patient',
-                  businessId: apt.business_id
-                });
-              }
-            });
-            setAvailableContacts(Array.from(uniquePatients.values()));
+        const patientIds = Array.from(new Set(appointments.map(a => a.patient_id).filter(Boolean)));
+        if (patientIds.length === 0) return;
+
+        // Map patient_id -> business_id (first seen)
+        const patientBusinessMap = new Map<string, string>();
+        appointments.forEach(a => {
+          if (a.patient_id && a.business_id && !patientBusinessMap.has(a.patient_id)) {
+            patientBusinessMap.set(a.patient_id, a.business_id);
           }
-        }
+        });
+
+        // 3) Fetch profiles for patients -> names
+        const { data: profilesData, error: profErr } = await supabase
+          .from('profiles')
+          .select('id, first_name, last_name')
+          .in('id', patientIds);
+        if (profErr) throw profErr;
+
+        const contacts = (profilesData || []).map(p => ({
+          id: p.id,
+          name: `${p.first_name || ''} ${p.last_name || ''}`.trim() || 'Patient',
+          businessId: patientBusinessMap.get(p.id) || ''
+        })).filter(c => !!c.businessId);
+
+        setAvailableContacts(contacts);
       }
     } catch (error) {
       console.error('Error loading available contacts:', error);
@@ -200,6 +237,7 @@ export function ConversationList({ currentUserId, onSelectRecipient }: Conversat
         },
         () => {
           loadConversations();
+          loadAvailableContacts();
         }
       )
       .subscribe();
