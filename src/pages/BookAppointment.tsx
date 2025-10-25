@@ -55,6 +55,7 @@ export default function BookAppointment() {
   const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const hasDentists = dentists.length > 0;
 
   useEffect(() => {
     setSelectedTime("");
@@ -132,6 +133,14 @@ export default function BookAppointment() {
 
     fetchDentists();
   }, [selectedBusiness]);
+
+  useEffect(() => {
+    if (!hasDentists) {
+      setSelectedDentist("");
+      setSelectedDate(undefined);
+      setSelectedTime("");
+    }
+  }, [hasDentists]);
 
   // Fetch available slots when date and dentist are selected
   useEffect(() => {
@@ -312,42 +321,52 @@ export default function BookAppointment() {
 
                 {/* Dentist Selection */}
                 <div className="space-y-3">
-              <Label className="text-base font-semibold flex items-center">
-                <UserIcon className="h-4 w-4 mr-2 text-primary" />
-                {t.selectDentist}
-              </Label>
-              <Select value={selectedDentist} onValueChange={setSelectedDentist}>
-                <SelectTrigger className="h-12">
-                  <SelectValue placeholder={t.chooseDentist} />
-                </SelectTrigger>
-                <SelectContent>
-                  {dentists.map((dentist) => (
-                    <SelectItem key={dentist.id} value={dentist.id}>
-                      <div className="flex items-center py-1">
-                        <UserIcon className="h-4 w-4 mr-3 text-primary" />
-                        <div>
-                          <div className="font-medium">
-                            Dr {dentist.profiles.first_name} {dentist.profiles.last_name}
-                          </div>
-                          {dentist.specialization && (
-                            <div className="text-sm text-muted-foreground">
-                              {dentist.specialization}
+                  <Label className="text-base font-semibold flex items-center">
+                    <UserIcon className="h-4 w-4 mr-2 text-primary" />
+                    {t.selectDentist}
+                  </Label>
+                  {hasDentists ? (
+                    <Select value={selectedDentist} onValueChange={setSelectedDentist}>
+                      <SelectTrigger className="h-12">
+                        <SelectValue placeholder={t.chooseDentist} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {dentists.map((dentist) => (
+                          <SelectItem key={dentist.id} value={dentist.id}>
+                            <div className="flex items-center py-1">
+                              <UserIcon className="h-4 w-4 mr-3 text-primary" />
+                              <div>
+                                <div className="font-medium">
+                                  Dr {dentist.profiles.first_name} {dentist.profiles.last_name}
+                                </div>
+                                {dentist.specialization && (
+                                  <div className="text-sm text-muted-foreground">
+                                    {dentist.specialization}
+                                  </div>
+                                )}
+                              </div>
                             </div>
-                          )}
-                        </div>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <p className="text-sm text-muted-foreground italic bg-muted/50 border border-dashed border-muted rounded-md p-3">
+                      No dentists currently available for this clinic.
+                    </p>
+                  )}
+                </div>
 
             {/* Appointment Type */}
             <div className="space-y-3">
               <Label className="text-base font-semibold">
                 {t.appointmentType}
               </Label>
-              <Select value={appointmentType} onValueChange={setAppointmentType}>
+              <Select
+                value={appointmentType}
+                onValueChange={setAppointmentType}
+                disabled={!hasDentists}
+              >
                 <SelectTrigger className="h-12">
                   <SelectValue placeholder={t.selectAppointmentType} />
                 </SelectTrigger>
