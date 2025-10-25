@@ -154,20 +154,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "fk_appointments_dentist"
-            columns: ["dentist_id"]
-            isOneToOne: false
-            referencedRelation: "dentists"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_appointments_dentist"
-            columns: ["dentist_id"]
-            isOneToOne: false
-            referencedRelation: "providers"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "fk_appointments_patient"
             columns: ["patient_id"]
             isOneToOne: false
