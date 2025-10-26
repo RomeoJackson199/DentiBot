@@ -33,6 +33,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useBusinessTemplate } from "@/hooks/useBusinessTemplate";
 
 interface Appointment {
   id: string;
@@ -70,6 +71,11 @@ export function PatientDetailsTabs({ selectedPatient, dentistId, appointments, o
   const [completingAppointment, setCompletingAppointment] = useState<Appointment | null>(null);
   const [cancellingAppointment, setCancellingAppointment] = useState<Appointment | null>(null);
   const [loading, setLoading] = useState(false);
+
+  // Feature gating from business template
+  const { hasFeature } = useBusinessTemplate();
+  const canShowTreatments = hasFeature('treatmentPlans');
+  const canShowPrescriptions = hasFeature('prescriptions');
 
   const handleCancelAppointment = async () => {
     if (!cancellingAppointment) return;
@@ -118,14 +124,18 @@ export function PatientDetailsTabs({ selectedPatient, dentistId, appointments, o
             <Calendar className="h-4 w-4 mr-1" />
             Appointments
           </TabsTrigger>
-          <TabsTrigger value="treatments" className="text-xs sm:text-sm">
-            <ClipboardListIcon className="h-4 w-4 mr-1" />
-            Treatments
-          </TabsTrigger>
-          <TabsTrigger value="prescriptions" className="text-xs sm:text-sm">
-            <Pill className="h-4 w-4 mr-1" />
-            Prescriptions
-          </TabsTrigger>
+          {canShowTreatments && (
+            <TabsTrigger value="treatments" className="text-xs sm:text-sm">
+              <ClipboardListIcon className="h-4 w-4 mr-1" />
+              Treatments
+            </TabsTrigger>
+          )}
+          {canShowPrescriptions && (
+            <TabsTrigger value="prescriptions" className="text-xs sm:text-sm">
+              <Pill className="h-4 w-4 mr-1" />
+              Prescriptions
+            </TabsTrigger>
+          )}
           <TabsTrigger value="payments" className="text-xs sm:text-sm">
             <CreditCard className="h-4 w-4 mr-1" />
             Payments
@@ -271,19 +281,23 @@ export function PatientDetailsTabs({ selectedPatient, dentistId, appointments, o
         </TabsContent>
 
         {/* Treatment Plans Tab */}
-        <TabsContent value="treatments" className="space-y-4">
-          <TreatmentPlanManager 
-            patientId={selectedPatient.id}
-            dentistId={dentistId}
-          />
-        </TabsContent>
+        {canShowTreatments && (
+          <TabsContent value="treatments" className="space-y-4">
+            <TreatmentPlanManager 
+              patientId={selectedPatient.id}
+              dentistId={dentistId}
+            />
+          </TabsContent>
+        )}
 
         {/* Prescriptions Tab */}
-        <TabsContent value="prescriptions" className="space-y-4">
-          <PrescriptionManager 
-            dentistId={dentistId}
-          />
-        </TabsContent>
+        {canShowPrescriptions && (
+          <TabsContent value="prescriptions" className="space-y-4">
+            <PrescriptionManager 
+              dentistId={dentistId}
+            />
+          </TabsContent>
+        )}
 
         {/* Payments Tab */}
         <TabsContent value="payments" className="space-y-4">
