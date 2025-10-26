@@ -261,6 +261,8 @@ const App = () => {
                 <Route path="/patient/*" element={<Dashboard />} />
                 {/* Dentist routes with tab-based navigation */}
                 <Route path="/dentist/*" element={<RoleBasedRouter requiredRole='dentist'><DentistPortal /></RoleBasedRouter>} />
+                {/* Legacy route alias */}
+                <Route path="/dentist-portal/*" element={<Navigate to="/dentist" replace />} />
                 {/* Old routes for backward compatibility */}
                 <Route path="/clinical" element={<Navigate to="/dentist/clinical/dashboard" replace />} />
                 <Route path="/clinical/*" element={<Navigate to="/dentist/clinical/dashboard" replace />} />

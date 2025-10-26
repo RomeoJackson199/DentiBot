@@ -27,7 +27,7 @@ export function RoleBasedRouter({ children, requiredRole, redirectTo = "/" }: Ro
           return;
         }
 
-        // Extra verification for dentist: ensure provider record is active
+        // Extra verification for dentist: ensure dentist/provider record exists and is active
         if (requiredRole === 'dentist') {
           const { data: { user } } = await supabase.auth.getUser();
           if (user) {
@@ -38,16 +38,50 @@ export function RoleBasedRouter({ children, requiredRole, redirectTo = "/" }: Ro
               .maybeSingle();
 
             if (profile) {
-              const { data: provider } = await supabase
-                .from('providers')
-                .select('is_active')
+              // Check dentists table first
+              const { data: dentist } = await supabase
+                .from('dentists')
+                .select('id, is_active')
                 .eq('profile_id', profile.id)
                 .maybeSingle();
 
-              if (!provider?.is_active) {
-                console.warn('Access denied: provider record is not active');
-                navigate(redirectTo, { replace: true });
-                return;
+              if (dentist) {
+                if (!dentist.is_active) {
+                  console.warn('Access denied: dentist record is not active');
+                  navigate(redirectTo, { replace: true });
+                  return;
+                }
+              } else {
+                // No dentist record, check providers table
+                const { data: provider } = await supabase
+                  .from('providers')
+                  .select('is_active')
+                  .eq('profile_id', profile.id)
+                  .maybeSingle();
+
+                if (provider) {
+                  if (!provider.is_active) {
+                    console.warn('Access denied: provider record is not active');
+                    navigate(redirectTo, { replace: true });
+                    return;
+                  }
+                } else {
+                  // Neither dentist nor provider exists - auto-create dentist record
+                  console.log('No dentist/provider record found, creating dentist record...');
+                  const { error: insertError } = await supabase
+                    .from('dentists')
+                    .insert({
+                      profile_id: profile.id,
+                      is_active: true
+                    });
+
+                  if (insertError) {
+                    console.error('Failed to create dentist record:', insertError);
+                    navigate(redirectTo, { replace: true });
+                    return;
+                  }
+                  console.log('Dentist record created successfully');
+                }
               }
             }
           }

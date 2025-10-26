@@ -60,7 +60,7 @@ export function RoleSwitcher() {
     return null;
   }
 
-  const isOnDentistRoute = location.pathname.startsWith('/dentist');
+  const isOnDentistRoute = location.pathname === '/dentist' || location.pathname.startsWith('/dentist/');
   const currentRole = isOnDentistRoute ? 'dentist' : 'patient';
 
   const switchToPatient = () => {
