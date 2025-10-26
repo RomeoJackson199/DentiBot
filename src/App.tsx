@@ -57,6 +57,7 @@ const Claim = lazy(() => import("./pages/Claim"));
 const PublicBooking = lazy(() => import("./pages/PublicBooking"));
 const BookAppointmentAI = lazy(() => import("./pages/BookAppointmentAI"));
 const BookAppointment = lazy(() => import("./pages/BookAppointment"));
+import { BookingRouteHandler } from "./components/booking/BookingRouteHandler";
 const PatientCareHome = lazy(() => import("./pages/PatientCareHome"));
 const PatientAppointmentsPage = lazy(() => import("./pages/PatientAppointmentsPage"));
 const PatientPrescriptionsPage = lazy(() => import("./pages/PatientPrescriptionsPage"));
@@ -256,8 +257,17 @@ const App = () => {
                 <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/book" element={<PublicBooking />} />
-                  <Route path="/book-appointment" element={<BookAppointment />} />
-                  <Route path="/book-appointment-ai" element={<BookAppointmentAI />} />
+                  <Route path="/book-manual" element={<BookAppointment />} />
+                  <Route path="/book-appointment" element={
+                    <BookingRouteHandler>
+                      <BookAppointmentAI />
+                    </BookingRouteHandler>
+                  } />
+                  <Route path="/book-appointment-ai" element={
+                    <BookingRouteHandler>
+                      <BookAppointmentAI />
+                    </BookingRouteHandler>
+                  } />
                 {/* Auth routes */}
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<Signup />} />

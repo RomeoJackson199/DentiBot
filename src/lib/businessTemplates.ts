@@ -34,6 +34,18 @@ export interface TemplateTerminology {
   business: string;
 }
 
+export interface QuickAddService {
+  name: string;
+  price: number;
+  duration?: number;
+}
+
+export interface CompletionStep {
+  id: string;
+  title: string;
+  enabled: boolean;
+}
+
 export interface TemplateConfig {
   id: TemplateType;
   name: string;
@@ -43,6 +55,8 @@ export interface TemplateConfig {
   terminology: TemplateTerminology;
   appointmentReasons: string[];
   defaultServices: string[];
+  quickAddServices: QuickAddService[];
+  completionSteps: CompletionStep[];
   navigationItems: string[];
 }
 
@@ -89,6 +103,23 @@ export const BUSINESS_TEMPLATES: Record<TemplateType, TemplateConfig> = {
       'Root Canal',
       'Teeth Whitening',
     ],
+    quickAddServices: [
+      { name: 'Routine Cleaning', price: 80, duration: 30 },
+      { name: 'Dental Examination', price: 50, duration: 20 },
+      { name: 'X-Ray', price: 35, duration: 15 },
+      { name: 'Filling', price: 120, duration: 45 },
+      { name: 'Tooth Extraction', price: 150, duration: 30 },
+      { name: 'Root Canal', price: 400, duration: 90 },
+    ],
+    completionSteps: [
+      { id: 'overview', title: 'Overview', enabled: true },
+      { id: 'treatments', title: 'Treatments', enabled: true },
+      { id: 'notes', title: 'Notes', enabled: true },
+      { id: 'prescriptions', title: 'Prescriptions', enabled: true },
+      { id: 'treatment-plan', title: 'Treatment Plan', enabled: true },
+      { id: 'billing', title: 'Billing', enabled: true },
+      { id: 'complete', title: 'Complete', enabled: true },
+    ],
     navigationItems: [
       'dashboard',
       'appointments',
@@ -113,7 +144,7 @@ export const BUSINESS_TEMPLATES: Record<TemplateType, TemplateConfig> = {
       photoUpload: true,
       urgencyLevels: false,
       paymentRequests: true,
-      aiChat: true,
+      aiChat: false, // Disabled for hairdresser
       appointments: true,
       services: true,
     },
@@ -142,6 +173,21 @@ export const BUSINESS_TEMPLATES: Record<TemplateType, TemplateConfig> = {
       'Highlights',
       'Blowout',
       'Hair Treatment',
+    ],
+    quickAddServices: [
+      { name: 'Haircut', price: 35, duration: 30 },
+      { name: 'Hair Color', price: 85, duration: 90 },
+      { name: 'Highlights', price: 120, duration: 120 },
+      { name: 'Blowout', price: 40, duration: 45 },
+      { name: 'Hair Treatment', price: 55, duration: 60 },
+      { name: 'Styling', price: 50, duration: 45 },
+    ],
+    completionSteps: [
+      { id: 'overview', title: 'Overview', enabled: true },
+      { id: 'services', title: 'Services Provided', enabled: true },
+      { id: 'notes', title: 'Notes & Photos', enabled: true },
+      { id: 'billing', title: 'Payment', enabled: true },
+      { id: 'complete', title: 'Complete', enabled: true },
     ],
     navigationItems: [
       'dashboard',
@@ -193,6 +239,20 @@ export const BUSINESS_TEMPLATES: Record<TemplateType, TemplateConfig> = {
       'Initial Assessment',
       'Group Training',
       'Nutrition Consultation',
+    ],
+    quickAddServices: [
+      { name: 'Personal Training Session', price: 60, duration: 60 },
+      { name: '10-Session Package', price: 500, duration: 60 },
+      { name: 'Initial Assessment', price: 50, duration: 45 },
+      { name: 'Group Training', price: 30, duration: 60 },
+      { name: 'Nutrition Consultation', price: 75, duration: 45 },
+    ],
+    completionSteps: [
+      { id: 'overview', title: 'Overview', enabled: true },
+      { id: 'session-notes', title: 'Session Notes', enabled: true },
+      { id: 'workout-plan', title: 'Workout Plan', enabled: true },
+      { id: 'billing', title: 'Payment', enabled: true },
+      { id: 'complete', title: 'Complete', enabled: true },
     ],
     navigationItems: [
       'dashboard',
@@ -247,6 +307,21 @@ export const BUSINESS_TEMPLATES: Record<TemplateType, TemplateConfig> = {
       'Full Body Massage',
       'Waxing',
     ],
+    quickAddServices: [
+      { name: 'Facial Treatment', price: 75, duration: 60 },
+      { name: 'Manicure', price: 35, duration: 45 },
+      { name: 'Pedicure', price: 45, duration: 60 },
+      { name: 'Full Body Massage', price: 90, duration: 90 },
+      { name: 'Waxing', price: 40, duration: 30 },
+      { name: 'Eyelash Extensions', price: 120, duration: 120 },
+    ],
+    completionSteps: [
+      { id: 'overview', title: 'Overview', enabled: true },
+      { id: 'services', title: 'Services Provided', enabled: true },
+      { id: 'notes', title: 'Notes', enabled: true },
+      { id: 'billing', title: 'Payment', enabled: true },
+      { id: 'complete', title: 'Complete', enabled: true },
+    ],
     navigationItems: [
       'dashboard',
       'appointments',
@@ -299,6 +374,23 @@ export const BUSINESS_TEMPLATES: Record<TemplateType, TemplateConfig> = {
       'Emergency Visit',
       'Lab Work',
     ],
+    quickAddServices: [
+      { name: 'General Consultation', price: 100, duration: 30 },
+      { name: 'Annual Check-up', price: 150, duration: 45 },
+      { name: 'Follow-up Visit', price: 75, duration: 20 },
+      { name: 'Emergency Visit', price: 200, duration: 30 },
+      { name: 'Lab Work', price: 50, duration: 15 },
+      { name: 'Vaccination', price: 35, duration: 10 },
+    ],
+    completionSteps: [
+      { id: 'overview', title: 'Overview', enabled: true },
+      { id: 'diagnosis', title: 'Diagnosis', enabled: true },
+      { id: 'notes', title: 'Notes', enabled: true },
+      { id: 'prescriptions', title: 'Prescriptions', enabled: true },
+      { id: 'treatment-plan', title: 'Treatment Plan', enabled: true },
+      { id: 'billing', title: 'Billing', enabled: true },
+      { id: 'complete', title: 'Complete', enabled: true },
+    ],
     navigationItems: [
       'dashboard',
       'appointments',
@@ -348,6 +440,18 @@ export const BUSINESS_TEMPLATES: Record<TemplateType, TemplateConfig> = {
       'Standard Service',
       'Consultation',
       'Follow-up',
+    ],
+    quickAddServices: [
+      { name: 'Standard Service', price: 50, duration: 60 },
+      { name: 'Consultation', price: 75, duration: 45 },
+      { name: 'Follow-up', price: 40, duration: 30 },
+    ],
+    completionSteps: [
+      { id: 'overview', title: 'Overview', enabled: true },
+      { id: 'services', title: 'Services', enabled: true },
+      { id: 'notes', title: 'Notes', enabled: true },
+      { id: 'billing', title: 'Payment', enabled: true },
+      { id: 'complete', title: 'Complete', enabled: true },
     ],
     navigationItems: [
       'dashboard',

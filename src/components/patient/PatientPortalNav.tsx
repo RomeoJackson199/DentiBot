@@ -16,6 +16,7 @@ import { LanguageSelector } from "@/components/LanguageSelector";
 import { FloatingBookingButton } from "./FloatingBookingButton";
 import { BusinessSelector } from "@/components/BusinessSelector";
 import { useClinicBranding } from "@/hooks/useClinicBranding";
+import { useBusinessTemplate } from "@/hooks/useBusinessTemplate";
 
 type NavItem = {
   id: string;
@@ -56,6 +57,7 @@ function PatientPortalNavContent({ children }: { children: React.ReactNode }) {
   const { state, toggleSidebar, open } = useSidebar();
   const { counts } = usePatientBadgeCounts();
   const { branding } = useClinicBranding();
+  const { hasFeature } = useBusinessTemplate();
   const [openGroupId, setOpenGroupId] = useState<string | null>(() => localStorage.getItem(STORAGE_KEYS.lastGroup));
   const [moreOpen, setMoreOpen] = useState(false);
 
@@ -74,17 +76,28 @@ function PatientPortalNavContent({ children }: { children: React.ReactNode }) {
   }, [openGroupId]);
 
   // Groups and items per IA
-  const groups: NavGroup[] = useMemo(() => [
-    {
-      id: 'care',
-      label: t.pnav.group.care,
-      items: [
-        { id: 'care-home', label: t.pnav.care.home, icon: <Home className="h-4 w-4" />, to: '/care' },
-        { id: 'care-appointments', label: t.pnav.care.appointments, icon: <Calendar className="h-4 w-4" />, to: '/care/appointments', badge: counts.upcoming7d },
-        { id: 'care-prescriptions', label: t.pnav.care.prescriptions, icon: <Pill className="h-4 w-4" />, to: '/care/prescriptions' },
-        { id: 'care-history', label: t.pnav.care.history, icon: <FileText className="h-4 w-4" />, to: '/care/history' },
-      ],
-    },
+  const groups: NavGroup[] = useMemo(() => {
+    const careItems = [
+      { id: 'care-home', label: t.pnav.care.home, icon: <Home className="h-4 w-4" />, to: '/care' },
+      { id: 'care-appointments', label: t.pnav.care.appointments, icon: <Calendar className="h-4 w-4" />, to: '/care/appointments', badge: counts.upcoming7d },
+    ];
+
+    // Only add prescriptions if the feature is enabled
+    if (hasFeature('prescriptions')) {
+      careItems.push({ id: 'care-prescriptions', label: t.pnav.care.prescriptions, icon: <Pill className="h-4 w-4" />, to: '/care/prescriptions' });
+    }
+
+    // Only add history if treatment plans are enabled
+    if (hasFeature('treatmentPlans')) {
+      careItems.push({ id: 'care-history', label: t.pnav.care.history, icon: <FileText className="h-4 w-4" />, to: '/care/history' });
+    }
+
+    return [
+      {
+        id: 'care',
+        label: t.pnav.group.care,
+        items: careItems,
+      },
     {
       id: 'billing',
       label: t.pnav.group.billing,
@@ -109,7 +122,8 @@ function PatientPortalNavContent({ children }: { children: React.ReactNode }) {
         { id: 'account-help', label: t.pnav.account.help, icon: <HelpCircle className="h-4 w-4" />, to: '/account/help' },
       ],
     },
-  ], [t, counts.upcoming7d, counts.unpaid]);
+  ];
+  }, [t, counts.upcoming7d, counts.unpaid, hasFeature]);
 
   // Deep link behavior: /billing?status=unpaid expands Billing
   useEffect(() => {
