@@ -8,6 +8,7 @@ import { Calendar, Clock, User as UserIcon, CheckCircle, TrendingUp, AlertCircle
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { NextAppointmentWidget } from "@/components/NextAppointmentWidget";
+import { ServicesQuickLink } from "@/components/dashboard/ServicesQuickLink";
 
 interface ClinicalTodayProps {
 	user: User;
@@ -212,6 +213,9 @@ export function ClinicalToday({ user, dentistId, onOpenPatientsTab, onOpenAppoin
 					</CardContent>
 				</Card>
 			</div>
+
+			{/* Services Quick Link */}
+			<ServicesQuickLink />
 
 			{/* Next Appointment Widget */}
 			<NextAppointmentWidget dentistId={dentistId} />

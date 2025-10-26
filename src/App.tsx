@@ -31,6 +31,7 @@ const Invite = lazy(() => import("./pages/Invite"));
 const Login = lazy(() => import("./pages/Login"));
 const Signup = lazy(() => import("./pages/Signup"));
 const GoogleCalendarCallback = lazy(() => import("./pages/GoogleCalendarCallback"));
+const DentistServices = lazy(() => import("./pages/DentistServices"));
 
 // Lazy load pages for better performance
 const Index = lazy(() => import("./pages/Index"));
@@ -265,6 +266,7 @@ const App = () => {
                 <Route path="/patient/*" element={<Dashboard />} />
                 {/* Dentist routes with tab-based navigation */}
                 <Route path="/dentist/*" element={<RoleBasedRouter requiredRole='dentist'><DentistPortal /></RoleBasedRouter>} />
+                <Route path="/dentist-services" element={<RoleBasedRouter requiredRole='dentist'><DentistServices /></RoleBasedRouter>} />
                 {/* Legacy route alias */}
                 <Route path="/dentist-portal/*" element={<Navigate to="/dentist" replace />} />
                 {/* Old routes for backward compatibility */}

@@ -77,6 +77,7 @@ export type Database = {
       }
       appointments: {
         Row: {
+          amount_paid_cents: number | null
           appointment_date: string
           booking_source: string | null
           business_id: string
@@ -88,12 +89,16 @@ export type Database = {
           notes: string | null
           patient_id: string
           patient_name: string | null
+          payment_intent_id: string | null
+          payment_status: string | null
           reason: string
+          service_id: string | null
           status: string
           updated_at: string
           urgency: string
         }
         Insert: {
+          amount_paid_cents?: number | null
           appointment_date: string
           booking_source?: string | null
           business_id: string
@@ -105,12 +110,16 @@ export type Database = {
           notes?: string | null
           patient_id: string
           patient_name?: string | null
+          payment_intent_id?: string | null
+          payment_status?: string | null
           reason?: string
+          service_id?: string | null
           status?: string
           updated_at?: string
           urgency?: string
         }
         Update: {
+          amount_paid_cents?: number | null
           appointment_date?: string
           booking_source?: string | null
           business_id?: string
@@ -122,7 +131,10 @@ export type Database = {
           notes?: string | null
           patient_id?: string
           patient_name?: string | null
+          payment_intent_id?: string | null
+          payment_status?: string | null
           reason?: string
+          service_id?: string | null
           status?: string
           updated_at?: string
           urgency?: string
@@ -154,6 +166,13 @@ export type Database = {
             columns: ["patient_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "business_services"
             referencedColumns: ["id"]
           },
           {
@@ -206,6 +225,57 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      business_services: {
+        Row: {
+          business_id: string
+          category: string | null
+          created_at: string
+          currency: string
+          description: string | null
+          duration_minutes: number | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          name: string
+          price_cents: number
+          requires_upfront_payment: boolean
+          stripe_price_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          business_id: string
+          category?: string | null
+          created_at?: string
+          currency?: string
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name: string
+          price_cents?: number
+          requires_upfront_payment?: boolean
+          stripe_price_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          business_id?: string
+          category?: string | null
+          created_at?: string
+          currency?: string
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name?: string
+          price_cents?: number
+          requires_upfront_payment?: boolean
+          stripe_price_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       businesses: {
         Row: {
