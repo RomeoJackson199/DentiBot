@@ -23,10 +23,10 @@ export function BusinessPaymentStep({ businessData, onComplete }: BusinessPaymen
       // Store business data in sessionStorage to create after payment
       sessionStorage.setItem('pending_business_data', JSON.stringify(businessData));
 
-      // Create Stripe checkout session for $0.50
+      // Create Stripe checkout session for $1.00
       const { data, error } = await supabase.functions.invoke('create-business-payment', {
         body: {
-          amount: 50, // 50 cents
+          amount: 100, // 100 cents = $1.00
           successUrl: `${window.location.origin}/payment-success?type=business`,
           cancelUrl: `${window.location.origin}/create-business`,
         },
@@ -63,7 +63,7 @@ export function BusinessPaymentStep({ businessData, onComplete }: BusinessPaymen
 
           <div>
             <h3 className="text-xl font-semibold">Activation Fee</h3>
-            <p className="text-3xl font-bold text-primary my-2">$0.50</p>
+            <p className="text-3xl font-bold text-primary my-2">$1.00</p>
             <p className="text-sm text-muted-foreground">
               One-time setup fee to activate your business account
             </p>
@@ -95,7 +95,7 @@ export function BusinessPaymentStep({ businessData, onComplete }: BusinessPaymen
             className="w-full"
           >
             {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-            Pay $0.50 to Create Business
+            Pay $1.00 to Create Business
           </Button>
 
           <p className="text-xs text-muted-foreground">

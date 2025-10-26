@@ -15,6 +15,8 @@ import { useClinicBranding } from "@/hooks/useClinicBranding";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { RoleSwitcher } from "@/components/RoleSwitcher";
 import { UserTour, useUserTour } from "@/components/UserTour";
+import { Settings } from "@/components/Settings";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 export type PatientSection = 'home' | 'assistant' | 'care' | 'appointments' | 'payments' | 'messages' | 'settings';
 interface PatientAppShellProps {
   activeSection: PatientSection;
@@ -92,6 +94,16 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
       return false;
     }
   });
+  const [settingsOpen, setSettingsOpen] = React.useState(false);
+  const [currentUser, setCurrentUser] = React.useState<any>(null);
+
+  React.useEffect(() => {
+    const fetchUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setCurrentUser(user);
+    };
+    fetchUser();
+  }, []);
   React.useEffect(() => {
     try {
       localStorage.setItem('psidebar:collapsed', collapsed ? '1' : '0');
@@ -111,8 +123,7 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
     }
   };
   const handleSettingsClick = () => {
-    if (activeSection === 'settings') return;
-    onChangeSection('settings');
+    setSettingsOpen(true);
   };
   if (isMobile) {
     return <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 overflow-x-hidden">
@@ -257,7 +268,7 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
-                    variant={activeSection === 'settings' ? 'default' : 'ghost'}
+                    variant="ghost"
                     size={collapsed ? 'icon' : 'default'}
                     onClick={handleSettingsClick}
                     className={cn(
@@ -278,15 +289,30 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
               </Tooltip>
             </TooltipProvider>
             
-            <div className="flex items-center gap-2">
-              {!collapsed && (
-                <>
-                  <RoleSwitcher />
-                  <LanguageSelector />
-                  <ModernNotificationCenter userId={userId} />
-                </>
-              )}
-            </div>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size={collapsed ? 'icon' : 'default'}
+                    onClick={handleSignOut}
+                    className={cn(
+                      "w-full text-destructive hover:text-destructive hover:bg-destructive/10",
+                      collapsed ? "justify-center" : "justify-start gap-3"
+                    )}
+                    aria-label="Sign Out"
+                  >
+                    <LogOut className="h-5 w-5" />
+                    {!collapsed && <span>Sign Out</span>}
+                  </Button>
+                </TooltipTrigger>
+                {collapsed && (
+                  <TooltipContent side="right">
+                    <p>Sign Out</p>
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            </TooltipProvider>
           </div>
         </div>
       </div>
@@ -324,6 +350,13 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
 
       {/* User Tour */}
       <UserTour isOpen={showTour} onClose={closeTour} userRole="patient" />
+
+      {/* Settings Dialog */}
+      <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          {currentUser && <Settings user={currentUser} />}
+        </DialogContent>
+      </Dialog>
     </div>;
 };
 export default PatientAppShell;
