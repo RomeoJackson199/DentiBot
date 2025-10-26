@@ -210,12 +210,47 @@ serve(async (req) => {
       .eq('user_id', user.id)
       .single();
 
+    // Get business_id from the appointment or dentist
+    let business_id = null;
+    if (appointment_id) {
+      const { data: appt } = await supabaseClient
+        .from('appointments')
+        .select('business_id')
+        .eq('id', appointment_id)
+        .single();
+      business_id = appt?.business_id;
+    }
+    
+    // If no appointment, get business from dentist's business memberships
+    if (!business_id) {
+      const { data: dentistProfile } = await supabaseClient
+        .from('dentists')
+        .select('profile_id')
+        .eq('id', dentist_id)
+        .single();
+      
+      if (dentistProfile) {
+        const { data: membership } = await supabaseClient
+          .from('business_members')
+          .select('business_id')
+          .eq('profile_id', dentistProfile.profile_id)
+          .limit(1)
+          .single();
+        business_id = membership?.business_id;
+      }
+    }
+
+    if (!business_id) {
+      throw new Error('Unable to determine business context for payment request');
+    }
+
     // Create base payment request in draft state
     const { data: insertedRequest, error: insertBaseError } = await supabaseClient
       .from("payment_requests")
       .insert({
         patient_id,
         dentist_id,
+        business_id,
         amount: totalAmount,
         description,
         stripe_session_id: null,
