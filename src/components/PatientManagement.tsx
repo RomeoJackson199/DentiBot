@@ -149,7 +149,12 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
 
   // Accordion open-state per patient (remembered)
   const [accordionOpenByPatient, setAccordionOpenByPatient] = useState<Record<string, string>>({});
-  const [accordionValue, setAccordionValue] = useState<string>('prescriptions');
+  // Start with appointments or first available section
+  const [accordionValue, setAccordionValue] = useState<string>(() => {
+    if (hasFeature('prescriptions')) return 'prescriptions';
+    if (hasFeature('treatmentPlans')) return 'treatments';
+    return 'appointments';
+  });
 
   // Dialog states
   const [showTreatmentDialog, setShowTreatmentDialog] = useState(false);
@@ -275,27 +280,35 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
       setAppointments(appointmentsData || []);
       setLastAppointment((appointmentsData || []).find(a => a.status !== 'cancelled') || null);
 
-      // Fetch treatment plans
-      const { data: treatmentData, error: treatmentError } = await supabase
-        .from('treatment_plans')
-        .select('*')
-        .eq('patient_id', patientId)
-        .eq('dentist_id', dentistId)
-        .order('created_at', { ascending: false });
+      // Fetch treatment plans only if feature is enabled
+      if (hasFeature('treatmentPlans')) {
+        const { data: treatmentData, error: treatmentError } = await supabase
+          .from('treatment_plans')
+          .select('*')
+          .eq('patient_id', patientId)
+          .eq('dentist_id', dentistId)
+          .order('created_at', { ascending: false });
 
-      if (treatmentError) throw treatmentError;
-      setTreatmentPlans(treatmentData || []);
+        if (treatmentError) throw treatmentError;
+        setTreatmentPlans(treatmentData || []);
+      } else {
+        setTreatmentPlans([]);
+      }
 
-      // Fetch prescriptions
-      const { data: prescriptionData, error: prescriptionError } = await supabase
-        .from('prescriptions')
-        .select('*')
-        .eq('patient_id', patientId)
-        .eq('dentist_id', dentistId)
-        .order('created_at', { ascending: false });
+      // Fetch prescriptions only if feature is enabled
+      if (hasFeature('prescriptions')) {
+        const { data: prescriptionData, error: prescriptionError } = await supabase
+          .from('prescriptions')
+          .select('*')
+          .eq('patient_id', patientId)
+          .eq('dentist_id', dentistId)
+          .order('created_at', { ascending: false });
 
-      if (prescriptionError) throw prescriptionError;
-      setPrescriptions(prescriptionData || []);
+        if (prescriptionError) throw prescriptionError;
+        setPrescriptions(prescriptionData || []);
+      } else {
+        setPrescriptions([]);
+      }
 
       // Fetch notes
       const { data: notesData, error: notesError } = await supabase

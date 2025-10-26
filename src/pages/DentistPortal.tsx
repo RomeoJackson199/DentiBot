@@ -5,6 +5,7 @@ import { User } from "@supabase/supabase-js";
 import { useToast } from "@/hooks/use-toast";
 import { DentistAppShell, DentistSection } from "@/components/layout/DentistAppShell";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
+import { useBusinessTemplate } from "@/hooks/useBusinessTemplate";
 
 // Import components
 import { ClinicalToday } from "@/components/ClinicalToday";
@@ -39,6 +40,9 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
   const [badges, setBadges] = useState<Partial<Record<DentistSection, number>>>({});
   const location = useLocation();
   const [businessInfo, setBusinessInfo] = useState<{ id: string; name: string } | null>(null);
+  const { hasFeature, loading: templateLoading } = useBusinessTemplate();
+
+  console.log('🔧 DentistPortal: hasFeature available, templateLoading:', templateLoading);
 
   // Handle URL-based section navigation
   useEffect(() => {
@@ -176,8 +180,8 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
     }
   };
 
-  if (loading) {
-    return <ModernLoadingSpinner variant="overlay" message="Loading dentist portal..." />;
+  if (loading || templateLoading) {
+    return <ModernLoadingSpinner variant="overlay" message="Loading portal..." />;
   }
 
   if (!user) {
@@ -189,6 +193,13 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
   }
 
   const renderContent = () => {
+    // If trying to access clinical section without medical features, redirect to dashboard
+    if (activeSection === 'clinical' && !hasFeature('medicalRecords') && !hasFeature('prescriptions') && !hasFeature('treatmentPlans')) {
+      console.log('🔧 Clinical section not available for this template, redirecting to dashboard');
+      setActiveSection('dashboard');
+      return <ModernLoadingSpinner variant="card" message="Loading..." />;
+    }
+
     switch (activeSection) {
       case 'dashboard':
         return <ClinicalToday dentistId={dentistId} user={user} onOpenPatientsTab={() => setActiveSection('patients')} onOpenAppointmentsTab={() => setActiveSection('appointments')} />;
@@ -201,11 +212,15 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
       case 'messages':
         return <Messages />;
       case 'clinical':
-        return <ClinicalToday dentistId={dentistId} user={user} onOpenPatientsTab={() => setActiveSection('patients')} onOpenAppointmentsTab={() => setActiveSection('appointments')} />;
+        // Only render clinical if medical features are enabled
+        if (hasFeature('medicalRecords') || hasFeature('prescriptions') || hasFeature('treatmentPlans')) {
+          return <ClinicalToday dentistId={dentistId} user={user} onOpenPatientsTab={() => setActiveSection('patients')} onOpenAppointmentsTab={() => setActiveSection('appointments')} />;
+        }
+        return <div className="p-4">Clinical features not available for this business type</div>;
       case 'schedule':
         return <EnhancedAvailabilitySettings dentistId={dentistId} />;
       case 'payments':
-        return <PaymentRequestManager dentistId={dentistId} />;
+        return hasFeature('paymentRequests') ? <PaymentRequestManager dentistId={dentistId} /> : <div className="p-4">Payment features not available</div>;
       case 'analytics':
         return (
           <DentistAnalytics

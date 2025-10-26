@@ -14,6 +14,7 @@ export function useBusinessTemplate() {
 
   useEffect(() => {
     if (!businessId) {
+      console.log('🔧 useBusinessTemplate: No businessId, using generic template');
       setTemplate(getTemplateConfig('generic'));
       setLoading(false);
       return;
@@ -21,6 +22,7 @@ export function useBusinessTemplate() {
 
     const loadTemplate = async () => {
       try {
+        console.log('🔧 useBusinessTemplate: Loading template for businessId:', businessId);
         const { data, error } = await supabase
           .from('businesses')
           .select('template_type')
@@ -30,9 +32,11 @@ export function useBusinessTemplate() {
         if (error) throw error;
 
         const templateType = (data?.template_type || 'dentist') as TemplateType;
+        console.log('🔧 useBusinessTemplate: Loaded template type:', templateType);
+        console.log('🔧 useBusinessTemplate: Template features:', getTemplateConfig(templateType).features);
         setTemplate(getTemplateConfig(templateType));
       } catch (error) {
-        console.error('Error loading template:', error);
+        console.error('❌ Error loading template:', error);
         setTemplate(getTemplateConfig('dentist'));
       } finally {
         setLoading(false);
@@ -43,7 +47,9 @@ export function useBusinessTemplate() {
   }, [businessId]);
 
   const hasFeature = (feature: keyof TemplateConfig['features']): boolean => {
-    return template?.features[feature] ?? false;
+    const result = template?.features[feature] ?? false;
+    console.log(`🔧 hasFeature("${feature}"):`, result, 'template:', template?.id);
+    return result;
   };
 
   const t = (key: keyof TemplateConfig['terminology']): string => {
