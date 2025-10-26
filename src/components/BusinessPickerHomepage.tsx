@@ -120,9 +120,9 @@ export function BusinessPickerHomepage({ onBusinessSelected }: BusinessPickerHom
       <section className="py-16">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">Select Your Clinic</h2>
+            <h2 className="text-3xl font-bold mb-4">Select Your Business</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Choose your dental clinic to get started with booking appointments
+              Choose your business to get started with booking appointments
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
@@ -149,9 +149,9 @@ export function BusinessPickerHomepage({ onBusinessSelected }: BusinessPickerHom
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <Card className="max-w-2xl mx-auto text-center">
             <CardHeader>
-              <CardTitle>No Clinics Available</CardTitle>
+              <CardTitle>No Businesses Available</CardTitle>
               <CardDescription>
-                There are currently no dental clinics available in the system.
+                There are currently no businesses available in the system.
               </CardDescription>
             </CardHeader>
           </Card>
@@ -164,29 +164,29 @@ export function BusinessPickerHomepage({ onBusinessSelected }: BusinessPickerHom
     <section className="py-16 bg-muted/30">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold mb-4 gradient-text">Select Your Clinic</h2>
+          <h2 className="text-4xl font-bold mb-4 gradient-text">Select Your Business</h2>
           <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
-            Choose your dental clinic to get started with booking appointments and accessing care
+            Choose your business to get started with booking appointments and accessing services
           </p>
         </div>
 
         <div className="max-w-6xl mx-auto mb-10">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="w-full md:max-w-sm">
-              <label htmlFor="clinic-search" className="sr-only">
-                Search clinics
+              <label htmlFor="business-search" className="sr-only">
+                Search businesses
               </label>
               <Input
-                id="clinic-search"
+                id="business-search"
                 type="search"
-                placeholder="Search by clinic name or tagline"
+                placeholder="Search by business name or tagline"
                 value={searchTerm}
                 onChange={(event) => setSearchTerm(event.target.value)}
               />
             </div>
 
             {availableLocations.length > 0 && (
-              <div className="flex flex-wrap items-center gap-2" aria-label="Filter clinics by location">
+              <div className="flex flex-wrap items-center gap-2" aria-label="Filter businesses by location">
                 <span className="flex items-center gap-1 text-sm font-medium text-muted-foreground">
                   <MapPin className="h-4 w-4" />
                   Locations
@@ -218,9 +218,9 @@ export function BusinessPickerHomepage({ onBusinessSelected }: BusinessPickerHom
         {!loading && filteredBusinesses.length === 0 ? (
           <Card className="max-w-4xl mx-auto">
             <CardHeader className="text-center">
-              <CardTitle>No Matching Clinics</CardTitle>
+              <CardTitle>No Matching Businesses</CardTitle>
               <CardDescription>
-                Try adjusting your search or filters to find the clinic you're looking for.
+                Try adjusting your search or filters to find the business you're looking for.
               </CardDescription>
             </CardHeader>
           </Card>
@@ -274,7 +274,7 @@ export function BusinessPickerHomepage({ onBusinessSelected }: BusinessPickerHom
                       handleSelectBusiness(business.id);
                     }}
                   >
-                    Select Clinic
+                    Select Business
                   </Button>
                 </CardContent>
               </Card>

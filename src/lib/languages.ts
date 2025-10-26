@@ -59,14 +59,14 @@ export const TRANSLATIONS = {
     appointmentConfirmed: 'Appointment Confirmed!',
     emergencyBooking: 'Emergency Booking',
     urgentCare: 'Urgent Care',
-    selectDentist: 'Select Dentist',
-    chooseDentist: 'Choose a dentist',
+    selectProvider: 'Select Provider',
+    chooseProvider: 'Choose a provider',
     selectDate: 'Select Date',
     selectTime: 'Select Time',
     selectAppointmentType: 'Select appointment type',
     confirmBooking: 'Confirm Booking',
     booking: 'Booking...',
-    bookAppointmentDescription: 'Book your dental consultation in a few clicks',
+    bookAppointmentDescription: 'Book your consultation in a few clicks',
     additionalNotes: 'Additional Notes (optional)',
     describeSymptoms: 'Describe your symptoms or concerns...',
     noSlotsAvailable: 'No slots available for this date',
@@ -82,13 +82,13 @@ export const TRANSLATIONS = {
     emergency: 'Emergency',
     followUp: 'Follow-up',
     
-    // Patient related
-    patientName: 'Patient Name',
-    patientEmail: 'Patient Email',
-    patientPhone: 'Patient Phone',
-    patientHistory: 'Patient History',
-    medicalRecords: 'Medical Records',
-    treatmentPlans: 'Treatment Plans',
+    // Customer related
+    customerName: 'Customer Name',
+    customerEmail: 'Customer Email',
+    customerPhone: 'Customer Phone',
+    customerHistory: 'Customer History',
+    medicalRecords: 'Records',
+    treatmentPlans: 'Service Plans',
     prescriptions: 'Prescriptions',
     
     // Schedule Management

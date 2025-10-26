@@ -39,7 +39,7 @@ export function BusinessSelectionForPatients({ onSelectBusiness, selectedBusines
         console.error('Error fetching businesses:', error);
         toast({
           title: "Error",
-          description: "Unable to load clinics. Please try again.",
+          description: "Unable to load businesses. Please try again.",
           variant: "destructive",
         });
       } finally {
@@ -70,7 +70,7 @@ export function BusinessSelectionForPatients({ onSelectBusiness, selectedBusines
       <Card>
         <CardContent className="pt-6 text-center">
           <Building2 className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-          <p className="text-muted-foreground">No clinics available at the moment.</p>
+          <p className="text-muted-foreground">No businesses available at the moment.</p>
         </CardContent>
       </Card>
     );
@@ -79,8 +79,8 @@ export function BusinessSelectionForPatients({ onSelectBusiness, selectedBusines
   return (
     <div className="space-y-4">
       <div className="text-center mb-6">
-        <h2 className="text-2xl font-bold mb-2">Choose Your Clinic</h2>
-        <p className="text-muted-foreground">Select the clinic where you'd like to book your appointment</p>
+        <h2 className="text-2xl font-bold mb-2">Choose Your Business</h2>
+        <p className="text-muted-foreground">Select the business where you'd like to book your appointment</p>
       </div>
       
       {businesses.map((business) => (
