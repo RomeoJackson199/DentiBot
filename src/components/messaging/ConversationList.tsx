@@ -6,8 +6,11 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { formatDistanceToNow } from 'date-fns';
-import { MessageSquare, Plus, RefreshCw, AlertCircle } from 'lucide-react';
+import { MessageSquare, Plus, RefreshCw, AlertCircle, Search } from 'lucide-react';
 import { getCurrentBusinessId } from '@/lib/businessUtils';
+import { Input } from '@/components/ui/input';
+import { motion, AnimatePresence } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
 interface Conversation {
   profileId: string;
@@ -31,6 +34,7 @@ export function ConversationList({ currentUserId, onSelectRecipient }: Conversat
   const [isDentist, setIsDentist] = useState(false);
   const [roleDetected, setRoleDetected] = useState(false);
   const [businessError, setBusinessError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     detectRoleAndLoad();
@@ -53,8 +57,6 @@ export function ConversationList({ currentUserId, onSelectRecipient }: Conversat
         return;
       }
 
-      console.debug('[ConversationList] Profile loaded:', profile.id);
-
       const { data: dentistData } = await supabase
         .from('dentists')
         .select('id, is_active')
@@ -64,8 +66,6 @@ export function ConversationList({ currentUserId, onSelectRecipient }: Conversat
       const isDentistUser = !!dentistData && dentistData.is_active;
       setIsDentist(isDentistUser);
       setRoleDetected(true);
-
-      console.debug('[ConversationList] Role detected:', isDentistUser ? 'dentist' : 'patient');
 
       await Promise.all([
         loadConversations(profile.id),
@@ -82,8 +82,6 @@ export function ConversationList({ currentUserId, onSelectRecipient }: Conversat
 
   const loadConversations = async (profileId: string) => {
     try {
-      console.debug('[ConversationList] Loading conversations for profile:', profileId);
-
       const { data: messagesData, error } = await supabase
         .from('messages')
         .select('sender_profile_id, recipient_profile_id, message_text, created_at, is_read, business_id')
@@ -91,8 +89,6 @@ export function ConversationList({ currentUserId, onSelectRecipient }: Conversat
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-
-      console.debug('[ConversationList] Messages loaded:', messagesData?.length || 0);
 
       const conversationMap = new Map<string, any>();
       
@@ -140,7 +136,6 @@ export function ConversationList({ currentUserId, onSelectRecipient }: Conversat
       }) || [];
 
       setConversations(convos);
-      console.debug('[ConversationList] Conversations set:', convos.length);
     } catch (error) {
       console.error('[ConversationList] Error loading conversations:', error);
     }
@@ -148,25 +143,16 @@ export function ConversationList({ currentUserId, onSelectRecipient }: Conversat
 
   const loadAvailableContacts = async (profileId: string, isDentistUser: boolean) => {
     try {
-      console.debug('[ConversationList] Loading contacts for role:', isDentistUser ? 'dentist' : 'patient');
       setAvailableContacts([]);
       setBusinessError(null);
 
       if (!isDentistUser) {
-        // PATIENT: Load dentists from appointments
-        const { data: appointments, error: apptErr } = await supabase
+        const { data: appointments } = await supabase
           .from('appointments')
           .select('dentist_id, business_id')
           .eq('patient_id', profileId);
 
-        if (apptErr) throw apptErr;
-
-        console.debug('[ConversationList] Patient appointments:', appointments?.length || 0);
-
-        if (!appointments || appointments.length === 0) {
-          console.debug('[ConversationList] No appointments found for patient');
-          return;
-        }
+        if (!appointments || appointments.length === 0) return;
 
         const dentistIds = Array.from(new Set(appointments.map(a => a.dentist_id).filter(Boolean)));
         if (dentistIds.length === 0) return;
@@ -178,21 +164,18 @@ export function ConversationList({ currentUserId, onSelectRecipient }: Conversat
           }
         });
 
-        const { data: dentists, error: dentErr } = await supabase
+        const { data: dentists } = await supabase
           .from('dentists')
           .select('id, profile_id')
           .in('id', dentistIds);
 
-        if (dentErr) throw dentErr;
         if (!dentists || dentists.length === 0) return;
 
         const profileIds = dentists.map(d => d.profile_id).filter(Boolean);
-        const { data: profilesData, error: profErr } = await supabase
+        const { data: profilesData } = await supabase
           .from('profiles')
           .select('id, first_name, last_name')
           .in('id', profileIds);
-
-        if (profErr) throw profErr;
 
         const profileNameMap = new Map<string, string>();
         profilesData?.forEach(p => {
@@ -208,41 +191,29 @@ export function ConversationList({ currentUserId, onSelectRecipient }: Conversat
           }))
           .filter(c => !!c.id && !!c.businessId);
 
-        console.debug('[ConversationList] Patient contacts loaded:', contacts.length);
         setAvailableContacts(contacts);
 
       } else {
-        // DENTIST: Load patients from appointments
-        const { data: dentistData, error: dentistErr } = await supabase
+        const { data: dentistData } = await supabase
           .from('dentists')
           .select('id')
           .eq('profile_id', profileId)
           .single();
 
-        if (dentistErr) throw dentistErr;
         if (!dentistData) return;
 
-        const { data: appointments, error: apptErr } = await supabase
+        const { data: appointments } = await supabase
           .from('appointments')
           .select('patient_id, business_id')
           .eq('dentist_id', dentistData.id);
 
-        if (apptErr) throw apptErr;
-
-        console.debug('[ConversationList] Dentist appointments:', appointments?.length || 0);
-
         if (!appointments || appointments.length === 0) {
-          // Fallback: Try to get current business and load all accessible patients
           try {
             const businessId = await getCurrentBusinessId();
-            console.debug('[ConversationList] Using business fallback:', businessId);
-
-            const { data: profilesData, error: profErr } = await supabase
+            const { data: profilesData } = await supabase
               .from('profiles')
               .select('id, first_name, last_name')
               .limit(50);
-
-            if (profErr) throw profErr;
 
             const contacts = (profilesData || [])
               .filter(p => p.id !== profileId)
@@ -252,10 +223,8 @@ export function ConversationList({ currentUserId, onSelectRecipient }: Conversat
                 businessId: businessId
               }));
 
-            console.debug('[ConversationList] Dentist contacts (fallback):', contacts.length);
             setAvailableContacts(contacts);
           } catch (bizErr: any) {
-            console.warn('[ConversationList] Business fallback failed:', bizErr);
             setBusinessError('Please select a clinic to view patients');
           }
           return;
@@ -271,12 +240,10 @@ export function ConversationList({ currentUserId, onSelectRecipient }: Conversat
           }
         });
 
-        const { data: profilesData, error: profErr } = await supabase
+        const { data: profilesData } = await supabase
           .from('profiles')
           .select('id, first_name, last_name')
           .in('id', patientIds);
-
-        if (profErr) throw profErr;
 
         const contacts = (profilesData || []).map(p => ({
           id: p.id,
@@ -284,7 +251,6 @@ export function ConversationList({ currentUserId, onSelectRecipient }: Conversat
           businessId: patientBusinessMap.get(p.id) || ''
         })).filter(c => !!c.businessId);
 
-        console.debug('[ConversationList] Dentist contacts loaded:', contacts.length);
         setAvailableContacts(contacts);
       }
     } catch (error) {
@@ -313,36 +279,61 @@ export function ConversationList({ currentUserId, onSelectRecipient }: Conversat
     };
   };
 
+  const filteredConversations = conversations.filter(conv =>
+    conv.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredContacts = availableContacts.filter(contact =>
+    contact.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
-    <div className="h-full flex flex-col">
-      <div className="p-4 border-b border-border flex justify-between items-center">
-        <h2 className="font-semibold">Messages</h2>
-        <div className="flex gap-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={detectRoleAndLoad}
-            disabled={loading}
-          >
-            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-          </Button>
-          {availableContacts.length > 0 && (
+    <div className="h-full flex flex-col bg-gradient-to-b from-background to-muted/10">
+      {/* Header */}
+      <div className="p-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="flex justify-between items-center mb-3">
+          <h2 className="text-xl font-bold">Messages</h2>
+          <div className="flex gap-1">
             <Button
               variant="ghost"
-              size="sm"
-              onClick={() => setShowNewConversation(!showNewConversation)}
+              size="icon"
+              onClick={detectRoleAndLoad}
+              disabled={loading}
+              className="h-8 w-8"
             >
-              <Plus className="h-4 w-4 mr-1" />
-              New
+              <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />
             </Button>
-          )}
+            {availableContacts.length > 0 && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowNewConversation(!showNewConversation)}
+                className="h-8 w-8"
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {/* Search */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search conversations..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9 h-9 bg-muted/50"
+          />
         </div>
       </div>
 
       <ScrollArea className="flex-1">
         {loading ? (
-          <div className="p-4 text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          <div className="p-8 text-center">
+            <div className="inline-flex items-center justify-center">
+              <div className="animate-spin rounded-full h-10 w-10 border-2 border-primary border-t-transparent"></div>
+            </div>
           </div>
         ) : businessError ? (
           <div className="p-4">
@@ -352,92 +343,132 @@ export function ConversationList({ currentUserId, onSelectRecipient }: Conversat
             </Alert>
           </div>
         ) : showNewConversation ? (
-          <div className="p-2">
-            <div className="mb-3 px-2 flex justify-between items-center">
-              <span className="text-sm font-medium">New conversation</span>
-              <Button variant="ghost" size="sm" onClick={() => setShowNewConversation(false)}>
+          <div className="p-3">
+            <div className="mb-3 flex justify-between items-center">
+              <span className="text-sm font-medium text-muted-foreground">New conversation</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowNewConversation(false)}
+                className="h-7 text-xs"
+              >
                 Cancel
               </Button>
             </div>
             <div className="space-y-1">
-              {availableContacts.map((contact) => (
-                <button
-                  key={contact.id}
-                  onClick={() => {
-                    onSelectRecipient(contact);
-                    setShowNewConversation(false);
-                  }}
-                  className="w-full p-3 rounded-lg hover:bg-accent transition-colors text-left"
-                >
-                  <div className="flex items-start gap-3">
-                    <Avatar>
-                      <AvatarFallback>
-                        {contact.name.split(' ').map(n => n[0]).join('').toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
-                      <span className="font-medium">{contact.name}</span>
-                      <p className="text-xs text-muted-foreground">Start conversation</p>
+              <AnimatePresence>
+                {filteredContacts.map((contact) => (
+                  <motion.button
+                    key={contact.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 20 }}
+                    onClick={() => {
+                      onSelectRecipient(contact);
+                      setShowNewConversation(false);
+                    }}
+                    className="w-full p-3 rounded-xl hover:bg-primary/5 transition-all text-left group"
+                  >
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-10 w-10 border-2 border-primary/10">
+                        <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-primary font-semibold">
+                          {contact.name.split(' ').map((n) => n[0]).join('').toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        <span className="font-medium group-hover:text-primary transition-colors">
+                          {contact.name}
+                        </span>
+                        <p className="text-xs text-muted-foreground">Start conversation</p>
+                      </div>
                     </div>
-                  </div>
-                </button>
-              ))}
+                  </motion.button>
+                ))}
+              </AnimatePresence>
             </div>
           </div>
-        ) : conversations.length > 0 ? (
+        ) : filteredConversations.length > 0 ? (
           <div className="p-2 space-y-1">
-            {conversations.map((conv) => (
-              <button
-                key={conv.profileId}
-                onClick={() => onSelectRecipient({ 
-                  id: conv.profileId, 
-                  name: conv.name,
-                  businessId: conv.businessId
-                })}
-                className="w-full p-3 rounded-lg hover:bg-accent transition-colors text-left"
-              >
-                <div className="flex items-start gap-3">
-                  <Avatar>
-                    <AvatarFallback>
-                      {conv.name.split(' ').map(n => n[0]).join('').toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between gap-2 mb-1">
-                      <span className="font-semibold truncate">{conv.name}</span>
+            <AnimatePresence>
+              {filteredConversations.map((conv) => (
+                <motion.button
+                  key={conv.profileId}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  onClick={() =>
+                    onSelectRecipient({
+                      id: conv.profileId,
+                      name: conv.name,
+                      businessId: conv.businessId
+                    })
+                  }
+                  className="w-full p-3 rounded-xl hover:bg-primary/5 transition-all text-left group relative"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="relative">
+                      <Avatar className="h-12 w-12 border-2 border-primary/10">
+                        <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-primary font-semibold">
+                          {conv.name.split(' ').map((n) => n[0]).join('').toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
                       {conv.unreadCount > 0 && (
-                        <Badge variant="default" className="rounded-full px-2 py-0.5 text-xs">
-                          {conv.unreadCount}
-                        </Badge>
+                        <div className="absolute -top-1 -right-1">
+                          <Badge
+                            variant="default"
+                            className="h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs font-bold animate-pulse"
+                          >
+                            {conv.unreadCount}
+                          </Badge>
+                        </div>
                       )}
                     </div>
-                    <p className="text-sm text-muted-foreground truncate">{conv.lastMessage}</p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {formatDistanceToNow(new Date(conv.lastMessageTime), { addSuffix: true })}
-                    </p>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-baseline justify-between gap-2 mb-1">
+                        <span className="font-semibold truncate group-hover:text-primary transition-colors">
+                          {conv.name}
+                        </span>
+                        <span className="text-xs text-muted-foreground shrink-0">
+                          {formatDistanceToNow(new Date(conv.lastMessageTime), { addSuffix: true })}
+                        </span>
+                      </div>
+                      <p
+                        className={cn(
+                          "text-sm truncate",
+                          conv.unreadCount > 0
+                            ? "text-foreground font-medium"
+                            : "text-muted-foreground"
+                        )}
+                      >
+                        {conv.lastMessage}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              </button>
-            ))}
+                </motion.button>
+              ))}
+            </AnimatePresence>
           </div>
         ) : (
-          <div className="p-8 text-center text-muted-foreground">
-            <MessageSquare className="h-12 w-12 mx-auto mb-3 opacity-50" />
+          <div className="p-8 text-center">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
+              <MessageSquare className="h-8 w-8 text-primary" />
+            </div>
             <p className="text-sm font-medium mb-2">No conversations yet</p>
-            <p className="text-xs mb-4">
-              {roleDetected ? (
-                isDentist 
-                  ? 'Your patients will appear here once you have appointments' 
+            <p className="text-xs text-muted-foreground mb-4 max-w-[250px] mx-auto">
+              {roleDetected
+                ? isDentist
+                  ? 'Your patients will appear here once you have appointments'
                   : 'Your dentists will appear here once you book appointments'
-              ) : 'Loading...'}
+                : 'Loading...'}
             </p>
             {availableContacts.length > 0 && (
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setShowNewConversation(true)}
+                className="gap-2"
               >
-                <Plus className="h-4 w-4 mr-1" />
+                <Plus className="h-4 w-4" />
                 Start New Conversation
               </Button>
             )}
