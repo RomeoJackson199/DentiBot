@@ -7,7 +7,6 @@ import { Calendar, Clock, User, MapPin, Phone, RefreshCw, XCircle, MessageSquare
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
-
 interface TimelineAppointmentCardProps {
   appointment: {
     id: string;
@@ -26,7 +25,6 @@ interface TimelineAppointmentCardProps {
   onClick?: () => void;
   index: number;
 }
-
 export function TimelineAppointmentCard({
   appointment,
   onReschedule,
@@ -36,41 +34,24 @@ export function TimelineAppointmentCard({
 }: TimelineAppointmentCardProps) {
   const isPast = new Date(appointment.appointment_date) < new Date();
   const canModify = !isPast && appointment.status !== 'cancelled' && appointment.status !== 'completed';
-  
-  return (
-    <motion.div
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: index * 0.1 }}
-      className="relative"
-    >
+  return <motion.div initial={{
+    opacity: 0,
+    x: -20
+  }} animate={{
+    opacity: 1,
+    x: 0
+  }} transition={{
+    delay: index * 0.1
+  }} className="relative">
       {/* Timeline line */}
       <div className="absolute left-6 top-12 bottom-0 w-0.5 bg-border -z-10" />
       
       {/* Timeline dot */}
-      <div className={cn(
-        "absolute left-4 top-6 w-4 h-4 rounded-full border-2 bg-background",
-        appointment.status === 'confirmed' && "border-success",
-        appointment.status === 'pending' && "border-warning",
-        appointment.status === 'cancelled' && "border-error",
-        appointment.status === 'completed' && "border-info",
-      )}>
-        <div className={cn(
-          "absolute inset-0.5 rounded-full animate-pulse",
-          appointment.status === 'confirmed' && "bg-success",
-          appointment.status === 'pending' && "bg-warning",
-          appointment.status === 'cancelled' && "bg-error",
-          appointment.status === 'completed' && "bg-info",
-        )} />
+      <div className={cn("absolute left-4 top-6 w-4 h-4 rounded-full border-2 bg-background", appointment.status === 'confirmed' && "border-success", appointment.status === 'pending' && "border-warning", appointment.status === 'cancelled' && "border-error", appointment.status === 'completed' && "border-info")}>
+        <div className={cn("absolute inset-0.5 rounded-full animate-pulse", appointment.status === 'confirmed' && "bg-success", appointment.status === 'pending' && "bg-warning", appointment.status === 'cancelled' && "bg-error", appointment.status === 'completed' && "bg-info")} />
       </div>
 
-      <Card 
-        className={cn(
-          "ml-12 hover:shadow-lg transition-all cursor-pointer",
-          onClick && "hover:scale-[1.02]"
-        )}
-        onClick={onClick}
-      >
+      <Card className={cn("ml-12 hover:shadow-lg transition-all cursor-pointer", onClick && "hover:scale-[1.02]")} onClick={onClick}>
         <CardContent className="p-4 md:p-6">
           <div className="flex items-start justify-between mb-4">
             <div className="space-y-1 flex-1">
@@ -78,10 +59,7 @@ export function TimelineAppointmentCard({
                 <h3 className="font-heading font-semibold text-base md:text-lg">
                   {appointment.reason || 'General Checkup'}
                 </h3>
-                <AppointmentStatusBadge 
-                  status={appointment.status}
-                  appointmentDate={appointment.appointment_date}
-                />
+                <AppointmentStatusBadge status={appointment.status} appointmentDate={appointment.appointment_date} />
               </div>
               
               <div className="flex flex-col gap-2 text-sm text-muted-foreground">
@@ -95,19 +73,15 @@ export function TimelineAppointmentCard({
                   <Clock className="h-4 w-4" />
                   <span>{format(new Date(appointment.appointment_date), 'h:mm a')}</span>
                 </div>
-                {appointment.dentist && (
-                  <div className="flex items-center gap-2">
+                {appointment.dentist && <div className="flex items-center gap-2">
                     <User className="h-4 w-4" />
                     <span>
                       Dr. {appointment.dentist.first_name} {appointment.dentist.last_name}
                     </span>
-                    {appointment.dentist.specialization && (
-                      <Badge variant="outline" className="text-xs">
+                    {appointment.dentist.specialization && <Badge variant="outline" className="text-xs">
                         {appointment.dentist.specialization}
-                      </Badge>
-                    )}
-                  </div>
-                )}
+                      </Badge>}
+                  </div>}
                 <div className="flex items-center gap-2">
                   <MapPin className="h-4 w-4" />
                   <span>Main Clinic</span>
@@ -116,54 +90,30 @@ export function TimelineAppointmentCard({
             </div>
           </div>
 
-          {appointment.notes && (
-            <div className="mb-4 p-3 bg-muted/50 rounded-lg">
+          {appointment.notes && <div className="mb-4 p-3 bg-muted/50 rounded-lg">
               <p className="text-sm text-muted-foreground">
                 <strong>Notes:</strong> {appointment.notes}
               </p>
-            </div>
-          )}
+            </div>}
 
-          {canModify && (
-            <div className="flex gap-2 mt-4 pt-4 border-t">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onReschedule?.();
-                }}
-                className="flex-1"
-              >
+          {canModify && <div className="flex gap-2 mt-4 pt-4 border-t">
+              <Button variant="outline" size="sm" onClick={e => {
+            e.stopPropagation();
+            onReschedule?.();
+          }} className="flex-1">
                 <RefreshCw className="h-4 w-4 mr-2" />
                 Reschedule
               </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onCancel?.();
-                }}
-                className="flex-1 text-destructive hover:bg-destructive hover:text-destructive-foreground"
-              >
+              <Button variant="outline" size="sm" onClick={e => {
+            e.stopPropagation();
+            onCancel?.();
+          }} className="flex-1 text-destructive hover:bg-destructive hover:text-destructive-foreground">
                 <XCircle className="h-4 w-4 mr-2" />
                 Cancel
               </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  // Open messaging
-                }}
-              >
-                <MessageSquare className="h-4 w-4" />
-              </Button>
-            </div>
-          )}
+              
+            </div>}
         </CardContent>
       </Card>
-    </motion.div>
-  );
+    </motion.div>;
 }
