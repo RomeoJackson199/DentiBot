@@ -114,6 +114,21 @@ export const Header = ({
               </>
             )}
             <LanguageSelector />
+            
+            {/* Mobile Menu Toggle */}
+            {!minimal && (
+              <button
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="lg:hidden p-2 text-dental-muted-foreground hover:text-dental-primary transition-colors"
+                aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
+              >
+                {isMobileMenuOpen ? (
+                  <X className="h-6 w-6" />
+                ) : (
+                  <Menu className="h-6 w-6" />
+                )}
+              </button>
+            )}
           </div>
         </div>
 
