@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,6 +27,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { NotificationService } from '@/lib/notificationService';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useBusinessTemplate } from '@/hooks/useBusinessTemplate';
 
 interface AppointmentCompletionDialogProps {
   open: boolean;
@@ -53,15 +54,17 @@ interface Treatment {
   price: number;
 }
 
-const steps = [
-  { id: 'overview', title: 'Overview', icon: User },
-  { id: 'treatments', title: 'Treatments', icon: FileText },
-  { id: 'notes', title: 'Notes', icon: FileText },
-  { id: 'prescriptions', title: 'Prescriptions', icon: Pill },
-  { id: 'treatment-plan', title: 'Treatment Plan', icon: ClipboardListIcon },
-  { id: 'billing', title: 'Billing', icon: DollarSign },
-  { id: 'complete', title: 'Complete', icon: CheckCircle2 }
-] as const;
+// Dynamic steps by template
+const allStepMeta: Record<string, { title: string; icon: any }> = {
+  overview: { title: 'Overview', icon: User },
+  treatments: { title: 'Treatments', icon: FileText },
+  services: { title: 'Services Provided', icon: FileText },
+  notes: { title: 'Notes', icon: FileText },
+  prescriptions: { title: 'Prescriptions', icon: Pill },
+  'treatment-plan': { title: 'Treatment Plan', icon: ClipboardListIcon },
+  billing: { title: 'Billing', icon: DollarSign },
+  complete: { title: 'Complete', icon: CheckCircle2 },
+} as const;
 
 export function AppointmentCompletionDialog({ 
   open, 
@@ -73,6 +76,21 @@ export function AppointmentCompletionDialog({
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(false);
   
+  // Template-driven behavior
+  const { template, hasFeature } = useBusinessTemplate();
+  const steps = useMemo(() => {
+    const defs = template?.completionSteps?.filter(s => s.enabled) ?? [
+      { id: 'overview', title: 'Overview' },
+      { id: 'treatments', title: 'Treatments' },
+      { id: 'notes', title: 'Notes' },
+      { id: 'billing', title: 'Billing' },
+      { id: 'complete', title: 'Complete' },
+    ];
+    return defs.map(d => ({ id: d.id as any, title: (allStepMeta[d.id]?.title ?? d.title), icon: (allStepMeta[d.id]?.icon ?? FileText) }));
+  }, [template]);
+  const showToothInput = template?.id === 'dentist' || !!template?.features.medicalRecords;
+  const serviceLabel = template?.terminology.service || 'Treatment';
+  const serviceLabelPlural = template?.terminology.servicePlural || 'Treatments';
   // Form data
   const [treatments, setTreatments] = useState<Treatment[]>([]);
   const [notes, setNotes] = useState('');
@@ -133,15 +151,15 @@ export function AppointmentCompletionDialog({
   const currentStepData = steps[currentStep];
   const progress = ((currentStep + 1) / steps.length) * 100;
 
-  // Quick treatment options
-  const quickTreatments = [
+  // Quick service options based on template
+  const quickTreatments = (template?.quickAddServices || [
     { name: 'Routine Cleaning', price: 80 },
     { name: 'Dental Examination', price: 50 },
     { name: 'X-Ray', price: 35 },
     { name: 'Filling', price: 120 },
     { name: 'Tooth Extraction', price: 150 },
     { name: 'Root Canal', price: 400 },
-  ];
+  ]).map(s => ({ name: s.name, price: s.price }));
 
   const addTreatment = (treatment: { name: string; price: number }) => {
     const newTreatment: Treatment = {
@@ -581,12 +599,13 @@ export function AppointmentCompletionDialog({
           </div>
         );
 
+      case 'services':
       case 'treatments':
         return (
           <div className="space-y-4">
             {/* Quick treatments */}
             <div>
-              <Label className="text-base font-semibold">Quick Add Treatments</Label>
+              <Label className="text-base font-semibold">Quick Add {serviceLabelPlural}</Label>
               <div className="grid grid-cols-2 gap-2 mt-2">
                 {quickTreatments.map((treatment) => (
                   <Button
@@ -609,14 +628,14 @@ export function AppointmentCompletionDialog({
                 onClick={addCustomTreatment}
                 className="mt-2 w-full"
               >
-                + Custom Treatment
+              + Custom {serviceLabel}
               </Button>
             </div>
 
             {/* Selected treatments */}
             {treatments.length > 0 && (
               <div>
-                <Label className="text-base font-semibold">Selected Treatments</Label>
+                <Label className="text-base font-semibold">Selected {serviceLabelPlural}</Label>
                 <div className="space-y-2 mt-2">
                   {treatments.map((treatment) => (
                     <Card key={treatment.id}>
@@ -625,12 +644,14 @@ export function AppointmentCompletionDialog({
                           <div className="flex-1 space-y-2">
                             <p className="font-medium">{treatment.name}</p>
                             <div className="flex gap-2">
-                              <Input
-                                placeholder="Tooth (e.g., 16)"
-                                value={treatment.tooth || ''}
-                                onChange={(e) => updateTreatmentTooth(treatment.id, e.target.value)}
-                                className="w-24"
-                              />
+                              {showToothInput && (
+                                <Input
+                                  placeholder="Tooth (e.g., 16)"
+                                  value={treatment.tooth || ''}
+                                  onChange={(e) => updateTreatmentTooth(treatment.id, e.target.value)}
+                                  className="w-24"
+                                />
+                              )}
                               <Input
                                 type="number"
                                 step="0.01"
