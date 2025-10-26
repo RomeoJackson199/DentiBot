@@ -120,6 +120,15 @@ function PatientPortalNavContent({ children }: { children: React.ReactNode }) {
     }
   }, [location.pathname, location.search]);
 
+  // Auto-expand correct group based on current route
+  useEffect(() => {
+    const path = location.pathname;
+    if (path.startsWith('/care')) setOpenGroupId('care');
+    else if (path.startsWith('/billing')) setOpenGroupId('billing');
+    else if (path.startsWith('/docs')) setOpenGroupId('documents');
+    else if (path.startsWith('/account')) setOpenGroupId('account');
+  }, [location.pathname]);
+
   const handleNav = (groupId: string, item: NavItem, e: React.MouseEvent) => {
     try { localStorage.setItem(STORAGE_KEYS.lastVisited, item.to); } catch {}
     try { emitAnalyticsEvent('pnav_click', '', { role: 'patient', group: groupId, item: item.id, path: item.to }); } catch {}
@@ -257,6 +266,23 @@ function PatientPortalNavContent({ children }: { children: React.ReactNode }) {
     const haptic = () => { try { (navigator as any)?.vibrate?.(10); } catch {} };
     return (
       <div className="min-h-screen flex flex-col">
+        {/* Mobile top header with menu toggle */}
+        <header className="sticky top-0 z-40 bg-background/80 backdrop-blur border-b px-3 py-2 flex items-center gap-2">
+          <Button variant="ghost" size="icon" onClick={() => setMoreOpen(true)} aria-label="Open menu">
+            <PanelLeft className="h-5 w-5" />
+          </Button>
+          <div className="flex items-center gap-2">
+            {branding.logoUrl ? (
+              <img src={branding.logoUrl} alt="Clinic Logo" className="h-6 w-6 rounded-lg object-cover" />
+            ) : (
+              <span className="inline-flex h-6 w-6 items-center justify-center rounded bg-primary text-primary-foreground text-xs font-semibold">
+                {branding.clinicName?.[0]?.toUpperCase() || 'P'}
+              </span>
+            )}
+            <span className="text-sm font-medium truncate">{branding.clinicName || 'Patient Portal'}</span>
+          </div>
+        </header>
+        
         <div className="flex-1">{children ?? <Outlet />}</div>
         
         {/* Floating Book Appointment Button */}
