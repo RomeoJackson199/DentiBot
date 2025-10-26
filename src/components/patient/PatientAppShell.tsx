@@ -1,10 +1,9 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
-import { Home as HomeIcon, FolderOpen, Calendar, CreditCard, Settings as SettingsIcon, Bot, LogOut, Info, PanelLeft, MessageSquare } from "lucide-react";
+import { Home as HomeIcon, FolderOpen, Calendar, CreditCard, Settings as SettingsIcon, Bot, LogOut, Info, MessageSquare } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ModernNotificationCenter } from "@/components/notifications/ModernNotificationCenter";
 import { FloatingBookingButton } from "@/components/patient/FloatingBookingButton";
@@ -15,6 +14,20 @@ import { useClinicBranding } from "@/hooks/useClinicBranding";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { RoleSwitcher } from "@/components/RoleSwitcher";
 import { UserTour, useUserTour } from "@/components/UserTour";
+import { 
+  Sidebar, 
+  SidebarContent, 
+  SidebarFooter,
+  SidebarGroup, 
+  SidebarGroupContent, 
+  SidebarHeader,
+  SidebarMenu, 
+  SidebarMenuButton, 
+  SidebarMenuItem, 
+  SidebarProvider, 
+  SidebarTrigger,
+  useSidebar
+} from "@/components/ui/sidebar";
 export type PatientSection = 'home' | 'assistant' | 'care' | 'appointments' | 'payments' | 'messages' | 'settings';
 interface PatientAppShellProps {
   activeSection: PatientSection;
@@ -85,18 +98,6 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
     showTour,
     closeTour
   } = useUserTour("patient");
-  const [collapsed, setCollapsed] = React.useState<boolean>(() => {
-    try {
-      return localStorage.getItem('psidebar:collapsed') === '1';
-    } catch {
-      return false;
-    }
-  });
-  React.useEffect(() => {
-    try {
-      localStorage.setItem('psidebar:collapsed', collapsed ? '1' : '0');
-    } catch {}
-  }, [collapsed]);
   const isActive = (id: PatientSection) => activeSection === id;
   const handleSignOut = async () => {
     try {
@@ -205,90 +206,116 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
       </div>;
   }
 
-  // Desktop Layout with Sidebar
-  return <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex" role="main">
-      {/* Desktop Sidebar */}
-      <div className={cn("fixed left-0 top-0 bottom-0 bg-card/80 backdrop-blur-lg border-r border-border/50 z-40 transition-[width] duration-200 ease-linear overflow-hidden", collapsed ? "w-16" : "w-64")}>
-        {/* Sidebar Header */}
-        <div className={cn("flex items-center border-b border-border/50 gap-3", collapsed ? "p-2" : "p-4")}> 
-          {branding.logoUrl ? <img src={branding.logoUrl} alt={branding.clinicName || "Clinic Logo"} className="h-9 w-9 rounded-lg object-cover shrink-0" /> : <div className="h-9 w-9 rounded-lg bg-primary flex items-center justify-center shrink-0">
-              <span className="text-primary-foreground font-bold text-sm">P</span>
-            </div>}
-          {!collapsed && <div className="min-w-0">
-              <h1 className="font-semibold text-base leading-tight truncate">{branding.clinicName || "Patient Portal"}</h1>
-              <p className="text-xs text-muted-foreground">Healthcare Dashboard</p>
-            </div>}
-          <div className="ml-auto">
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setCollapsed(v => !v)} aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"} title={collapsed ? "Expand" : "Collapse"}>
-              <PanelLeft className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-
-        {/* Navigation */}
-        <nav className={cn("p-2", collapsed ? "space-y-1" : "space-y-2 p-4")} role="navigation" aria-label="Primary">
-          <TooltipProvider>
-            {NAV_ITEMS.map(item => {
-            const Icon = item.icon;
-            const active = isActive(item.id);
-            const hasBadge = badges[item.id];
-            return <Tooltip key={item.id}>
-                  <TooltipTrigger asChild>
-                     <button onClick={() => onChangeSection(item.id)} className={cn("w-full flex items-center px-3 py-3 rounded-xl transition-all relative group touch-target min-h-[40px] focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2", active ? "bg-primary text-primary-foreground shadow-md scale-[1.02]" : "text-muted-foreground hover:text-foreground hover:bg-muted/50 hover:scale-[1.01]", collapsed ? "justify-center" : "gap-3")} aria-current={active ? 'page' : undefined} aria-label={item.label}>
-                      <div className="relative shrink-0">
-                        <Icon className="h-5 w-5" />
-                        {hasBadge && <span className="absolute -top-1 -right-1 h-2.5 w-2.5 bg-red-500 rounded-full animate-pulse" />}
-                      </div>
-                      {!collapsed && <span className="font-medium truncate">{item.label}</span>}
-                    </button>
-                  </TooltipTrigger>
-                  {collapsed && <TooltipContent side="right">
-                      <p>{item.label}</p>
-                    </TooltipContent>}
-                </Tooltip>;
-          })}
-          </TooltipProvider>
-        </nav>
-
-        {/* Sidebar Footer */}
-        <div className={cn("absolute bottom-0 left-0 right-0 border-t border-border/50", collapsed ? "p-2" : "p-4")}> 
-          
-        </div>
-      </div>
-
-      {/* Main Content Area */}
-      <div className={cn("flex-1 transition-[margin-left] duration-200 ease-linear", collapsed ? "ml-16" : "ml-64")}> 
-        {/* Global header toggle so it’s ALWAYS visible */}
-        <div className="sticky top-0 z-40 bg-background/80 backdrop-blur border-b">
-          <div className="flex items-center justify-between px-3 py-2">
-            <div className="flex items-center gap-2">
-              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setCollapsed(v => !v)} aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"} title={collapsed ? "Expand sidebar" : "Collapse sidebar"}>
-                <PanelLeft className="h-4 w-4" />
-              </Button>
+  // Desktop Layout with Shadcn Sidebar
+  return <SidebarProvider defaultOpen={true}>
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex w-full" role="main">
+        <Sidebar className="border-r border-border/50" collapsible="icon">
+          <SidebarHeader className="border-b border-border/50">
+            <div className="flex items-center gap-3 p-4">
+              {branding.logoUrl ? <img src={branding.logoUrl} alt={branding.clinicName || "Clinic Logo"} className="h-9 w-9 rounded-lg object-cover shrink-0" /> : <div className="h-9 w-9 rounded-lg bg-primary flex items-center justify-center shrink-0">
+                  <span className="text-primary-foreground font-bold text-sm">P</span>
+                </div>}
+              <div className="min-w-0 group-data-[collapsible=icon]:hidden">
+                <h1 className="font-semibold text-base leading-tight truncate">{branding.clinicName || "Patient Portal"}</h1>
+                <p className="text-xs text-muted-foreground">Healthcare Dashboard</p>
+              </div>
             </div>
-          </div>
-        </div>
-        
-        <AnimatePresence mode="wait">
-          <motion.div key={activeSection} initial={{
-          opacity: 0,
-          x: 20
-        }} animate={{
-          opacity: 1,
-          x: 0
-        }} exit={{
-          opacity: 0,
-          x: -20
-        }} transition={{
-          duration: 0.3
-        }} className="min-h-screen h-screen overflow-y-auto p-6">
-            {children}
-          </motion.div>
-        </AnimatePresence>
-      </div>
+          </SidebarHeader>
 
-      {/* User Tour */}
-      <UserTour isOpen={showTour} onClose={closeTour} userRole="patient" />
-    </div>;
+          <SidebarContent>
+            <SidebarGroup>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {NAV_ITEMS.map(item => {
+                    const Icon = item.icon;
+                    const active = isActive(item.id);
+                    const hasBadge = badges[item.id];
+                    return <SidebarMenuItem key={item.id}>
+                        <SidebarMenuButton onClick={() => onChangeSection(item.id)} isActive={active} tooltip={item.label} className={cn("relative", active && "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground")}>
+                          <div className="relative shrink-0">
+                            <Icon className="h-5 w-5" />
+                            {hasBadge && <span className="absolute -top-1 -right-1 h-2.5 w-2.5 bg-red-500 rounded-full animate-pulse" />}
+                          </div>
+                          <span className="font-medium">{item.label}</span>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>;
+                  })}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </SidebarContent>
+
+          <SidebarFooter className="border-t border-border/50 p-4">
+            <div className="flex items-center gap-2 group-data-[collapsible=icon]:justify-center">
+              <RoleSwitcher />
+              <LanguageSelector />
+              <ModernNotificationCenter userId={userId} />
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className={cn("hover:bg-primary/10 transition-colors", activeSection === 'settings' && "bg-primary/10 text-primary")} aria-label="Settings menu">
+                    <SettingsIcon className="h-5 w-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuLabel>Menu</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSettingsClick}>
+                    <SettingsIcon className="mr-2 h-4 w-4" />
+                    Settings
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/about')}>
+                    <Info className="mr-2 h-4 w-4" />
+                    About
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut} className="text-red-600">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </SidebarFooter>
+        </Sidebar>
+
+        <div className="flex-1 flex flex-col">
+          {/* Header with Sidebar Trigger */}
+          <header className="sticky top-0 z-40 bg-background/80 backdrop-blur border-b">
+            <div className="flex items-center justify-between px-4 py-2">
+              <SidebarTrigger className="-ml-1" />
+              <div className="flex items-center gap-2">
+                {onBookAppointment && <Button variant="gradient" size="sm" onClick={onBookAppointment} className="touch-target">
+                    <Calendar className="h-4 w-4 mr-2" />
+                    Book Appointment
+                  </Button>}
+              </div>
+            </div>
+          </header>
+
+          {/* Main Content */}
+          <main className="flex-1 overflow-y-auto">
+            <AnimatePresence mode="wait">
+              <motion.div key={activeSection} initial={{
+                opacity: 0,
+                x: 20
+              }} animate={{
+                opacity: 1,
+                x: 0
+              }} exit={{
+                opacity: 0,
+                x: -20
+              }} transition={{
+                duration: 0.3
+              }} className="p-6">
+                {children}
+              </motion.div>
+            </AnimatePresence>
+          </main>
+        </div>
+
+        {/* User Tour */}
+        <UserTour isOpen={showTour} onClose={closeTour} userRole="patient" />
+      </div>
+    </SidebarProvider>;
 };
 export default PatientAppShell;
