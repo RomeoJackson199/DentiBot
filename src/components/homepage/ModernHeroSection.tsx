@@ -76,12 +76,21 @@ export function ModernHeroSection({
               </div>
             </div>}
 
-          <div className="max-w-md">
+          <div className="max-w-md space-y-4">
             <AppButton variant="gradient" size="lg" onClick={onOpenAIChat} className="w-full bg-white text-primary hover:bg-white/90 hover:scale-105 transition-all shadow-2xl border-0 h-16 text-lg font-semibold group">
               <Brain className="h-6 w-6 mr-3 group-hover:rotate-12 transition-transform" />
               {language === 'fr' ? '✨ Commencer avec l\'IA' : language === 'nl' ? '✨ Begin met AI' : '✨ Start with AI Assistant'}
             </AppButton>
             
+            <AppButton 
+              variant="outline" 
+              size="lg" 
+              onClick={() => window.location.href = '/signup'}
+              className="w-full bg-white/10 backdrop-blur-md text-white border-white/30 hover:bg-white/20 h-14 text-base font-semibold"
+            >
+              <Users className="h-5 w-5 mr-2" />
+              {language === 'fr' ? '🏥 Créer Votre Clinique' : language === 'nl' ? '🏥 Maak Uw Kliniek' : '🏥 Create Your Business'}
+            </AppButton>
           </div>
         </div>
       </div>

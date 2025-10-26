@@ -98,6 +98,16 @@ export function ModernHeroSectionMobile({ onBookAppointment, onStartTriage, vari
                                                 <AppButton
                                                         variant="outline"
                                                         size="mobile"
+                                                        onClick={() => window.location.href = '/signup'}
+                                                        className="w-full bg-white/10 backdrop-blur-md border-white/30 hover:bg-white/20 text-white h-12 mt-2"
+                                                >
+                                                        <Shield className="h-5 w-5 mr-2" />
+                                                        {language === 'fr' ? '🏥 Créer Votre Clinique' : language === 'nl' ? '🏥 Maak Uw Kliniek' : '🏥 Create Your Business'}
+                                                </AppButton>
+
+                                                <AppButton
+                                                        variant="outline"
+                                                        size="mobile"
                                                         onClick={onStartTriage}
                                                         className="w-full border-white/30 hover:bg-white/10 text-white h-11 mt-2"
                                                 >
