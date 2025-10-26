@@ -268,6 +268,9 @@ const Index = () => {
                 Sign in to manage your appointments or create a new account
               </p>
               <div className="flex flex-col gap-3">
+                <Button size="lg" asChild className="w-full bg-gradient-primary">
+                  <a href="/create-business">Create Your Business</a>
+                </Button>
                 <Button size="lg" asChild className="w-full">
                   <a href="/login">Sign In to Your Account</a>
                 </Button>
