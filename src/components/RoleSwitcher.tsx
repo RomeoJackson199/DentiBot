@@ -64,7 +64,7 @@ export function RoleSwitcher() {
   const currentRole = isOnDentistRoute ? 'dentist' : 'patient';
 
   const switchToPatient = () => {
-    navigate('/patient');
+    navigate('/dashboard');
   };
 
   const switchToDentist = () => {
