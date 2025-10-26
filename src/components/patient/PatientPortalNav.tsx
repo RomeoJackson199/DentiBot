@@ -48,17 +48,16 @@ function readSidebarCookie(): boolean {
   return true;
 }
 
-export function PatientPortalNav({ children }: { children: React.ReactNode }) {
+function PatientPortalNavContent({ children }: { children: React.ReactNode }) {
   const isMobile = useIsMobile();
   const { t } = useLanguage();
   const location = useLocation();
   const navigate = useNavigate();
-  const { state, toggleSidebar } = useSidebar();
+  const { state, toggleSidebar, open } = useSidebar();
   const { counts } = usePatientBadgeCounts();
   const { branding } = useClinicBranding();
   const [openGroupId, setOpenGroupId] = useState<string | null>(() => localStorage.getItem(STORAGE_KEYS.lastGroup));
   const [moreOpen, setMoreOpen] = useState(false);
-  const [defaultOpen, setDefaultOpen] = useState(true);
 
   const handleSignOut = async () => {
     try {
@@ -69,12 +68,6 @@ export function PatientPortalNav({ children }: { children: React.ReactNode }) {
     }
   };
 
-  useEffect(() => {
-    const cookieOpen = readSidebarCookie();
-    const w = window.innerWidth;
-    const computed = w >= 1024 ? true : w >= 768 ? false : false;
-    setDefaultOpen(typeof cookieOpen === 'boolean' ? cookieOpen : computed);
-  }, []);
 
   useEffect(() => {
     if (openGroupId) localStorage.setItem(STORAGE_KEYS.lastGroup, openGroupId);
@@ -323,11 +316,10 @@ export function PatientPortalNav({ children }: { children: React.ReactNode }) {
 
   // Desktop collapsible sidebar
   return (
-    <SidebarProvider defaultOpen={defaultOpen} style={{ ['--sidebar-width' as any]: '17.5rem', ['--sidebar-width-icon' as any]: '4.5rem' }}>
-      <div className="flex">
-        <Sidebar collapsible="icon">
-          {navContent}
-        </Sidebar>
+    <div className="flex min-h-screen w-full">
+      <Sidebar collapsible="icon">
+        {navContent}
+      </Sidebar>
         <div className="flex-1">
           <div className="sticky top-0 z-40 bg-background/80 backdrop-blur border-b px-3 py-2 flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -388,6 +380,22 @@ export function PatientPortalNav({ children }: { children: React.ReactNode }) {
           <div className="p-3 md:p-4">{children ?? <Outlet />}</div>
         </div>
       </div>
+    );
+  }
+
+export function PatientPortalNav({ children }: { children: React.ReactNode }) {
+  const [defaultOpen, setDefaultOpen] = useState(true);
+
+  useEffect(() => {
+    const cookieOpen = readSidebarCookie();
+    const w = window.innerWidth;
+    const computed = w >= 1024 ? true : w >= 768 ? false : false;
+    setDefaultOpen(typeof cookieOpen === 'boolean' ? cookieOpen : computed);
+  }, []);
+
+  return (
+    <SidebarProvider defaultOpen={defaultOpen} style={{ ['--sidebar-width' as any]: '17.5rem', ['--sidebar-width-icon' as any]: '4.5rem' }}>
+      <PatientPortalNavContent>{children}</PatientPortalNavContent>
     </SidebarProvider>
   );
 }
