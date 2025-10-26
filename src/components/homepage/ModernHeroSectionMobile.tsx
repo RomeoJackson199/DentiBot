@@ -89,27 +89,17 @@ export function ModernHeroSectionMobile({ onBookAppointment, onStartTriage, vari
                                                         className="w-full bg-white text-primary hover:bg-white/90 border-0 h-14 text-base font-semibold group"
                                                 >
                                                         <Star className="h-5 w-5 mr-2 group-hover:rotate-12 transition-transform" />
-                                                        {language === 'fr' ? '✨ Réserver avec l\'IA' : language === 'nl' ? '✨ Boeken met AI' : '✨ AI Booking'}
+                                                        {language === 'fr' ? '✨ Commencer avec l\'IA' : language === 'nl' ? '✨ Begin met AI' : '✨ Start with AI'}
                                                 </AppButton>
-                                                <p className="text-xs text-white/80 text-center -mt-2">
-                                                        {language === 'fr' ? 'Rapide. Intelligent.' : language === 'nl' ? 'Snel. Slim.' : 'Smart. Fast.'}
+                                                <p className="text-xs text-white/90 text-center mt-2">
+                                                        {language === 'fr' ? 'Rapide. Intelligent. Disponible 24/7.' : language === 'nl' ? 'Snel. Slim. 24/7 beschikbaar.' : 'Smart. Fast. Available 24/7.'}
                                                 </p>
 
                                                 <AppButton
                                                         variant="outline"
                                                         size="mobile"
-                                                        onClick={onBookAppointment}
-                                                        className="w-full border-white/30 hover:bg-white/10 text-white h-11"
-                                                >
-                                                        <Calendar className="h-5 w-5 mr-2" />
-                                                        {language === 'fr' ? 'Classique' : language === 'nl' ? 'Klassiek' : 'Classic Booking'}
-                                                </AppButton>
-
-                                                <AppButton
-                                                        variant="outline"
-                                                        size="mobile"
                                                         onClick={onStartTriage}
-                                                        className="w-full border-white/30 hover:bg-white/10 text-white h-11"
+                                                        className="w-full border-white/30 hover:bg-white/10 text-white h-11 mt-2"
                                                 >
                                                         <Shield className="h-5 w-5 mr-2" />
                                                         {t['triage.title']}

@@ -486,7 +486,7 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
       {bookingStep === 'dentist' && (
         <div className="max-w-6xl mx-auto p-4 py-8 space-y-6">
           {/* Header */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center justify-between">
             <Button
               variant="ghost"
               size="sm"
@@ -495,6 +495,15 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
             >
               <ArrowLeft className="h-4 w-4" />
               Back to chat
+            </Button>
+            
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate('/book-appointment')}
+              className="text-xs text-muted-foreground hover:text-primary"
+            >
+              Switch to Classic Booking →
             </Button>
           </div>
 

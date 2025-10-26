@@ -317,12 +317,22 @@ export default function BookAppointment() {
         </Button>
 
         <Card className="shadow-elegant border-0">
-          <CardHeader className="text-center pb-6">
+          <CardHeader className="text-center pb-6 relative">
             <CardTitle className="flex items-center justify-center text-2xl font-heading">
               <CalendarDays className="h-6 w-6 mr-3 text-primary" />
               {t.bookAppointment}
             </CardTitle>
             <p className="text-muted-foreground mt-2">{t.bookAppointmentDescription}</p>
+            
+            {/* Toggle to AI booking */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate('/chat')}
+              className="absolute top-4 right-4 text-xs text-muted-foreground hover:text-primary"
+            >
+              ← Switch to AI Assistant
+            </Button>
           </CardHeader>
           
           <CardContent className="space-y-6 p-6 md:p-8">
