@@ -85,6 +85,15 @@ const PaymentSuccess: React.FC = () => {
 
           if (roleError) throw roleError;
 
+          // Ensure user has provider role
+          await supabase.rpc('assign_provider_role');
+
+          // Set current session business
+          await supabase.from('session_business').upsert({
+            user_id: user.id,
+            business_id: business.id,
+          }, { onConflict: 'user_id' });
+
           // Create services if any
           if (businessData.services && businessData.services.length > 0) {
             const servicesData = businessData.services.map((service: any) => ({

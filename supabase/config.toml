@@ -66,5 +66,8 @@ verify_jwt = false
 [functions.set-current-business]
 verify_jwt = true
 
-[functions.create-business-payment]
+[functions.set-current-business]
 verify_jwt = true
+
+[functions.create-business-payment]
+verify_jwt = false
