@@ -21,48 +21,71 @@ export function BusinessPaymentStep({ businessData, onComplete }: BusinessPaymen
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
+      // Get user's profile
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (profileError || !profile) {
+        throw new Error('Profile not found. Please complete your profile first.');
+      }
+
       // Create business slug
       const slug = businessData.name
         ?.toLowerCase()
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/^-|-$/g, '') || 'business';
 
-      // Create business
+      // Ensure unique slug
+      const { data: existingBusiness } = await supabase
+        .from('businesses')
+        .select('id')
+        .eq('slug', slug)
+        .maybeSingle();
+
+      const finalSlug = existingBusiness 
+        ? `${slug}-${Math.random().toString(36).substring(2, 8)}`
+        : slug;
+
+      // Create business with owner_profile_id
       const { data: business, error: businessError } = await supabase
         .from('businesses')
         .insert({
           name: businessData.name,
-          slug: slug,
+          slug: finalSlug,
           tagline: businessData.tagline,
           bio: businessData.bio,
           template_type: businessData.template || 'generic',
+          owner_profile_id: profile.id,
         })
         .select()
         .single();
 
       if (businessError) throw businessError;
 
-      // Assign owner role
+      // Assign owner role to business_members
       const { error: roleError } = await supabase
-        .from('business_roles')
+        .from('business_members')
         .insert({
           business_id: business.id,
-          user_id: user.id,
+          profile_id: profile.id,
           role: 'owner',
         });
 
       if (roleError) throw roleError;
 
-      // Create services
+      // Create services if any
       if (businessData.services && businessData.services.length > 0) {
         const servicesData = businessData.services.map((service: any) => ({
           business_id: business.id,
           name: service.name,
-          price: service.price,
-          duration: service.duration || 30,
+          price_cents: service.price * 100, // Convert to cents
+          duration_minutes: service.duration || 30,
         }));
 
-        await supabase.from('services').insert(servicesData);
+        await supabase.from('business_services').insert(servicesData);
       }
 
       setBusinessId(business.id);
