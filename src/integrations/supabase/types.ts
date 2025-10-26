@@ -1613,6 +1613,10 @@ export type Database = {
         Args: { p_business_id: string; p_profile_id: string }
         Returns: boolean
       }
+      is_business_owner: {
+        Args: { _business_id: string; _user_id: string }
+        Returns: boolean
+      }
       is_clinic_patient: {
         Args: { _business_id: string; _profile_id: string }
         Returns: boolean
