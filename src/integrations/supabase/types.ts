@@ -286,6 +286,7 @@ export type Database = {
           ai_system_behavior: string | null
           ai_tone: string
           appointment_keywords: string[]
+          bio: string | null
           business_hours: Json
           created_at: string
           currency: string
@@ -313,6 +314,7 @@ export type Database = {
           ai_system_behavior?: string | null
           ai_tone?: string
           appointment_keywords?: string[]
+          bio?: string | null
           business_hours?: Json
           created_at?: string
           currency?: string
@@ -340,6 +342,7 @@ export type Database = {
           ai_system_behavior?: string | null
           ai_tone?: string
           appointment_keywords?: string[]
+          bio?: string | null
           business_hours?: Json
           created_at?: string
           currency?: string
