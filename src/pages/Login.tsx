@@ -54,10 +54,22 @@ const Login = () => {
         description: "You've successfully signed in.",
       });
     } catch (error: any) {
+      const errorMessage = error.message.toLowerCase();
+      let userFriendlyMessage = "Unable to sign in. Please try again.";
+      
+      if (errorMessage.includes("invalid") || errorMessage.includes("credentials")) {
+        userFriendlyMessage = "Invalid email or password. Please check your credentials and try again.";
+      } else if (errorMessage.includes("email not confirmed")) {
+        userFriendlyMessage = "Please verify your email before signing in. Check your inbox for the confirmation link.";
+      } else if (errorMessage.includes("network")) {
+        userFriendlyMessage = "Network error. Please check your connection and try again.";
+      }
+
       toast({
-        title: "Sign in failed",
-        description: error.message,
+        title: "❌ Sign in failed",
+        description: userFriendlyMessage,
         variant: "destructive",
+        duration: 6000,
       });
     } finally {
       setIsLoading(false);
@@ -76,9 +88,10 @@ const Login = () => {
       if (error) throw error;
     } catch (error: any) {
       toast({
-        title: "Sign in failed",
-        description: error.message,
+        title: "❌ Google sign in failed",
+        description: "Unable to sign in with Google. Please try again or use email/password.",
         variant: "destructive",
+        duration: 6000,
       });
       setIsLoading(false);
     }

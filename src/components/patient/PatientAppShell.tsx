@@ -32,6 +32,7 @@ import { useMobileOptimizations } from "@/components/mobile/MobileOptimizations"
 import { useClinicBranding } from "@/hooks/useClinicBranding";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { RoleSwitcher } from "@/components/RoleSwitcher";
+import { UserTour, useUserTour } from "@/components/UserTour";
 
 export type PatientSection = 'home' | 'assistant' | 'care' | 'appointments' | 'payments' | 'messages' | 'settings';
 
@@ -65,6 +66,7 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
   const navigate = useNavigate();
   const { isMobile } = useMobileOptimizations();
   const { branding } = useClinicBranding();
+  const { showTour, closeTour } = useUserTour("patient");
   const [collapsed, setCollapsed] = React.useState<boolean>(() => {
     try { return localStorage.getItem('psidebar:collapsed') === '1'; } catch { return false; }
   });
@@ -394,6 +396,9 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
           </motion.div>
         </AnimatePresence>
       </div>
+
+      {/* User Tour */}
+      <UserTour isOpen={showTour} onClose={closeTour} userRole="patient" />
     </div>
   );
 };

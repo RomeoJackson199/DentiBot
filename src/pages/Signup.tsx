@@ -71,14 +71,40 @@ const Signup = () => {
       }
 
       toast({
-        title: "Account created!",
-        description: "Please check your email to verify your account.",
+        title: "✅ Account created successfully!",
+        description: "Please check your email inbox (and spam folder) for a verification link to activate your account.",
+        duration: 10000,
+        className: "bg-green-50 border-green-200 text-green-900 dark:bg-green-950 dark:border-green-800 dark:text-green-100",
       });
+      
+      // Show additional prominent message
+      setTimeout(() => {
+        toast({
+          title: "📧 Important: Verify Your Email",
+          description: "We sent you a confirmation email. Click the link inside to complete your registration.",
+          duration: 15000,
+          className: "bg-blue-50 border-blue-200 text-blue-900 dark:bg-blue-950 dark:border-blue-800 dark:text-blue-100",
+        });
+      }, 1000);
     } catch (error: any) {
+      const errorMessage = error.message.toLowerCase();
+      let userFriendlyMessage = "Unable to create account. Please try again.";
+      
+      if (errorMessage.includes("already registered") || errorMessage.includes("already exists")) {
+        userFriendlyMessage = "This email is already registered. Please sign in instead or use a different email.";
+      } else if (errorMessage.includes("invalid email")) {
+        userFriendlyMessage = "Please enter a valid email address.";
+      } else if (errorMessage.includes("password")) {
+        userFriendlyMessage = "Password must be at least 8 characters with uppercase and lowercase letters.";
+      } else if (errorMessage.includes("network")) {
+        userFriendlyMessage = "Network error. Please check your connection and try again.";
+      }
+
       toast({
-        title: "Sign up failed",
-        description: error.message,
+        title: "❌ Sign up failed",
+        description: userFriendlyMessage,
         variant: "destructive",
+        duration: 6000,
       });
     } finally {
       setIsLoading(false);
@@ -97,9 +123,10 @@ const Signup = () => {
       if (error) throw error;
     } catch (error: any) {
       toast({
-        title: "Sign up failed",
-        description: error.message,
+        title: "❌ Google sign up failed",
+        description: "Unable to sign up with Google. Please try again or use email/password.",
         variant: "destructive",
+        duration: 6000,
       });
       setIsLoading(false);
     }

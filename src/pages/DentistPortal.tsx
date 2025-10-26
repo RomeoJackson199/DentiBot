@@ -27,6 +27,7 @@ import { InviteDentistDialog } from "@/components/InviteDentistDialog";
 import { useBusinessContext } from "@/hooks/useBusinessContext";
 import Messages from "./Messages";
 import { ServiceManager } from "@/components/services/ServiceManager";
+import { UserTour, useUserTour } from "@/components/UserTour";
 
 interface DentistPortalProps {
   user?: User | null;
@@ -42,6 +43,7 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
   const location = useLocation();
   const [businessInfo, setBusinessInfo] = useState<{ id: string; name: string } | null>(null);
   const { hasFeature, loading: templateLoading } = useBusinessTemplate();
+  const { showTour, closeTour } = useUserTour("dentist");
 
   console.log('🔧 DentistPortal: hasFeature available, templateLoading:', templateLoading);
 
@@ -281,6 +283,9 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
         )}
         {renderContent()}
       </div>
+
+      {/* User Tour */}
+      <UserTour isOpen={showTour} onClose={closeTour} userRole="dentist" />
     </DentistAppShell>
   );
 }
