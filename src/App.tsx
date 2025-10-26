@@ -58,6 +58,7 @@ const Claim = lazy(() => import("./pages/Claim"));
 const PublicBooking = lazy(() => import("./pages/PublicBooking"));
 const BookAppointmentAI = lazy(() => import("./pages/BookAppointmentAI"));
 const BookAppointment = lazy(() => import("./pages/BookAppointment"));
+const BusinessPortal = lazy(() => import("./pages/BusinessPortal"));
 import { BookingRouteHandler } from "./components/booking/BookingRouteHandler";
 const PatientCareHome = lazy(() => import("./pages/PatientCareHome"));
 const PatientAppointmentsPage = lazy(() => import("./pages/PatientAppointmentsPage"));
@@ -317,6 +318,8 @@ const App = () => {
                 <Route path="/claim" element={<Claim />} />
                 <Route path="/pricing" element={<Pricing />} />
                 <Route path="/google-calendar-callback" element={<GoogleCalendarCallback />} />
+                {/* Business portal route - must come before catch-all */}
+                <Route path="/:slug" element={<BusinessPortal />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

@@ -109,12 +109,22 @@ const PaymentSuccess: React.FC = () => {
           // Clear pending data
           sessionStorage.removeItem('pending_business_data');
 
-          toast.success('Business created successfully!');
+          // Show business URL and copy to clipboard
+          const businessUrl = `${window.location.origin}/${business.slug}`;
+          toast.success(`Business created! Your URL: ${businessUrl}`);
+          
+          // Copy URL to clipboard
+          if (navigator.clipboard) {
+            await navigator.clipboard.writeText(businessUrl);
+            setTimeout(() => {
+              toast.success('URL copied to clipboard! Share it with your patients.');
+            }, 500);
+          }
           
           // Redirect to dentist portal
           setTimeout(() => {
             navigate('/dentist-portal');
-          }, 2000);
+          }, 4000);
         } catch (error: any) {
           console.error('Error creating business:', error);
           toast.error(error.message || 'Failed to create business');
