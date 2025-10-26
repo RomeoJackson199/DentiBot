@@ -21,6 +21,8 @@ import { AppointmentDetailsDialog } from "@/components/AppointmentDetailsDialog"
 import { useLanguage } from "@/hooks/useLanguage";
 import { TimelineAppointmentCard } from "@/components/patient/TimelineAppointmentCard";
 import { AppointmentStatusBadge } from "@/components/patient/AppointmentStatusBadge";
+import { useBusinessContext } from "@/hooks/useBusinessContext";
+
 export interface AppointmentsTabProps {
   user: User;
   onOpenAssistant?: () => void;
@@ -144,27 +146,28 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [rescheduleAppointmentId, setRescheduleAppointmentId] = useState<string | null>(null);
   const [cancelAppointmentId, setCancelAppointmentId] = useState<string | null>(null);
-  const {
-    t
-  } = useLanguage();
+  const { t } = useLanguage();
+  const { businessId } = useBusinessContext();
   useEffect(() => {
-    fetchAppointments();
-    (async () => {
-      const {
-        data: session
-      } = await supabase.auth.getUser();
-      const uid = session.user?.id;
-      if (uid) {
+    if (businessId) {
+      fetchAppointments();
+      (async () => {
         const {
-          data: profile
-        } = await supabase.from('profiles').select('id').eq('user_id', uid).single();
-        if (profile?.id) {
-          const rec = await getPatientActiveRecall(profile.id);
-          setActiveRecall(rec);
+          data: session
+        } = await supabase.auth.getUser();
+        const uid = session.user?.id;
+        if (uid) {
+          const {
+            data: profile
+          } = await supabase.from('profiles').select('id').eq('user_id', uid).single();
+          if (profile?.id) {
+            const rec = await getPatientActiveRecall(profile.id);
+            setActiveRecall(rec);
+          }
         }
-      }
-    })();
-  }, [user.id]);
+      })();
+    }
+  }, [user.id, businessId]);
   const fetchAppointments = async () => {
     try {
       setLoading(true);
@@ -178,8 +181,13 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({
         console.warn('⚠️ [AppointmentsTab] No profile found for user:', user.id);
         return;
       }
+
+      if (!businessId) {
+        console.warn('⚠️ [AppointmentsTab] No business context set');
+        return;
+      }
       
-      console.log('✅ [AppointmentsTab] Using profile:', profile?.id);
+      console.log('✅ [AppointmentsTab] Using profile:', profile?.id, 'and business:', businessId);
           let appointmentsData: any[] | null = null;
           let appointmentsError: any = null;
           const { data: dataWithDentist, error: errWithDentist } = await supabase
@@ -192,6 +200,7 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({
               )
             `)
             .eq('patient_id', profile.id)
+            .eq('business_id', businessId)
             .order('appointment_date', { ascending: false });
           
           if (errWithDentist) {
@@ -200,6 +209,7 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({
               .from('appointments')
               .select('*')
               .eq('patient_id', profile.id)
+              .eq('business_id', businessId)
               .order('appointment_date', { ascending: false });
             appointmentsData = fallbackData as any[] | null;
             appointmentsError = fallbackError;
