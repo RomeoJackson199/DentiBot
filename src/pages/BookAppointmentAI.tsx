@@ -407,7 +407,8 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
           appointment_date: appointmentDateTime.toISOString(),
           reason: appointmentReason,
           status: "confirmed",
-          urgency: bookingData?.urgency >= 5 ? "emergency" : 
+          booking_source: "ai",
+          urgency: bookingData?.urgency >= 5 ? "emergency" :
                    bookingData?.urgency === 4 ? "high" : 
                    bookingData?.urgency === 3 ? "medium" : "low"
         })

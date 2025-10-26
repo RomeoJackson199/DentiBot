@@ -78,6 +78,7 @@ export type Database = {
       appointments: {
         Row: {
           appointment_date: string
+          booking_source: string | null
           business_id: string
           consultation_notes: string | null
           created_at: string
@@ -94,6 +95,7 @@ export type Database = {
         }
         Insert: {
           appointment_date: string
+          booking_source?: string | null
           business_id: string
           consultation_notes?: string | null
           created_at?: string
@@ -110,6 +112,7 @@ export type Database = {
         }
         Update: {
           appointment_date?: string
+          booking_source?: string | null
           business_id?: string
           consultation_notes?: string | null
           created_at?: string

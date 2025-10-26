@@ -254,6 +254,7 @@ const Index = () => {
         variant="ctaFocused"
         onBookAppointment={() => setShowAppointmentBooking(true)}
         onStartTriage={() => setShowEmergencyTriage(true)}
+        onOpenAIChat={() => window.location.href = '/chat'}
       />
 
       {!selectedBusinessId ? (

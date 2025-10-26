@@ -76,7 +76,33 @@ export function ModernHeroSection({
               </div>
             </div>}
 
-          
+          <div className="flex flex-col gap-4 max-w-md">
+            <AppButton
+              variant="gradient"
+              size="lg"
+              onClick={onOpenAIChat}
+              className="w-full bg-white text-primary hover:bg-white/90 hover:scale-105 transition-all shadow-2xl border-0 h-14 text-lg font-semibold group"
+            >
+              <Brain className="h-6 w-6 mr-3 group-hover:rotate-12 transition-transform" />
+              {language === 'fr' ? '✨ Réserver avec l\'IA' : language === 'nl' ? '✨ Boeken met AI' : '✨ Book with AI Assistant'}
+            </AppButton>
+            <p className="text-xs text-white/80 text-center -mt-2">
+              {language === 'fr' ? 'Rapide. Intelligent. Connaît vos préférences.' : language === 'nl' ? 'Snel. Slim. Kent uw voorkeuren.' : 'Smart. Fast. Knows your preferences.'}
+            </p>
+
+            <AppButton
+              variant="outline"
+              size="lg"
+              onClick={onBookAppointment}
+              className="w-full border-white/40 hover:bg-white/10 text-white h-12"
+            >
+              <Calendar className="h-5 w-5 mr-2" />
+              {language === 'fr' ? 'Réservation Classique' : language === 'nl' ? 'Klassieke Boeking' : 'Classic Booking'}
+            </AppButton>
+            <p className="text-xs text-white/70 text-center -mt-2">
+              {language === 'fr' ? 'Sélection manuelle pour un contrôle total' : language === 'nl' ? 'Handmatige selectie voor volledige controle' : 'Manual selection for full control'}
+            </p>
+          </div>
         </div>
       </div>
     </section>;

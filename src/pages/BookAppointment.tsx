@@ -255,6 +255,7 @@ export default function BookAppointment() {
           appointment_date: appointmentDateTime.toISOString(),
           reason: reason || appointmentType,
           status: 'confirmed',
+          booking_source: 'manual',
           urgency: 'medium'
         })
         .select()
