@@ -15,7 +15,9 @@ export async function getCurrentBusinessId(): Promise<string> {
     .from('session_business')
     .select('business_id')
     .eq('user_id', user.id)
-    .single();
+    .order('updated_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
 
   if (error || !data?.business_id) {
     throw new Error('No business context set. Please select a business.');

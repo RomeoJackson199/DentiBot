@@ -92,6 +92,8 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
           .from('session_business')
           .select('business_id')
           .eq('user_id', user.id)
+          .order('updated_at', { ascending: false })
+          .limit(1)
           .maybeSingle();
 
         if (sessionBusiness?.business_id) {

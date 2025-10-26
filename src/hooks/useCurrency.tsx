@@ -43,6 +43,8 @@ export function useCurrency(dentistId?: string) {
         .from('session_business')
         .select('business_id')
         .eq('user_id', user.id)
+        .order('updated_at', { ascending: false })
+        .limit(1)
         .maybeSingle();
 
       if (sessionBusiness?.business_id) {
@@ -100,6 +102,8 @@ export function useCurrency(dentistId?: string) {
         .from('session_business')
         .select('business_id')
         .eq('user_id', user.id)
+        .order('updated_at', { ascending: false })
+        .limit(1)
         .maybeSingle();
 
       if (sessionError) throw sessionError;

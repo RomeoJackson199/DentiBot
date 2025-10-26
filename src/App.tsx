@@ -192,7 +192,9 @@ const App = () => {
             .from('session_business')
             .select('business_id')
             .eq('user_id', user.id)
-            .single();
+            .order('updated_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
 
           // Show business picker on login
           if (memberships && memberships.length > 0) {
@@ -204,6 +206,8 @@ const App = () => {
               .from('session_business')
               .select('business_id')
               .eq('user_id', user.id)
+              .order('updated_at', { ascending: false })
+              .limit(1)
               .maybeSingle();
 
             if (!sessionBusiness?.business_id) {

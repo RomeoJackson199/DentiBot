@@ -62,8 +62,9 @@ const Signup = () => {
       if (selectedBusinessId && data.user) {
         try {
           await supabase.functions.invoke('set-current-business', {
-            body: { business_id: selectedBusinessId }
+            body: { businessId: selectedBusinessId }
           });
+          localStorage.removeItem('selected_business_id');
         } catch (err) {
           console.error("Error setting business context:", err);
         }
