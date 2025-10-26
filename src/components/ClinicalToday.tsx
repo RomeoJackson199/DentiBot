@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { NextAppointmentWidget } from "@/components/NextAppointmentWidget";
 import { ServicesQuickLink } from "@/components/dashboard/ServicesQuickLink";
+import { useBusinessTemplate } from "@/hooks/useBusinessTemplate";
 
 interface ClinicalTodayProps {
 	user: User;
@@ -32,6 +33,7 @@ interface TodayAppointment {
 
 export function ClinicalToday({ user, dentistId, onOpenPatientsTab, onOpenAppointmentsTab }: ClinicalTodayProps) {
 	const today = new Date();
+	const { hasFeature, t } = useBusinessTemplate();
 	const [stats, setStats] = useState({
 		todayCount: 0,
 		urgentCount: 0,
@@ -155,22 +157,23 @@ export function ClinicalToday({ user, dentistId, onOpenPatientsTab, onOpenAppoin
 				</p>
 			</div>
 
-			{/* Quick Stats */}
-			<div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-				<Card className="border-none shadow-sm">
-					<CardContent className="pt-6">
-						<div className="flex items-center justify-between">
-							<div className="space-y-1">
-								<p className="text-sm font-medium text-muted-foreground">Today</p>
-								<p className="text-2xl font-bold">{stats.todayCount}</p>
-							</div>
-							<div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-								<Calendar className="h-6 w-6 text-primary" />
-							</div>
+		{/* Quick Stats */}
+		<div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+			<Card className="border-none shadow-sm">
+				<CardContent className="pt-6">
+					<div className="flex items-center justify-between">
+						<div className="space-y-1">
+							<p className="text-sm font-medium text-muted-foreground">Today</p>
+							<p className="text-2xl font-bold">{stats.todayCount}</p>
 						</div>
-					</CardContent>
-				</Card>
+						<div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+							<Calendar className="h-6 w-6 text-primary" />
+						</div>
+					</div>
+				</CardContent>
+			</Card>
 
+			{hasFeature('urgencyLevels') && (
 				<Card className="border-none shadow-sm">
 					<CardContent className="pt-6">
 						<div className="flex items-center justify-between">
@@ -184,35 +187,36 @@ export function ClinicalToday({ user, dentistId, onOpenPatientsTab, onOpenAppoin
 						</div>
 					</CardContent>
 				</Card>
+			)}
 
-				<Card className="border-none shadow-sm">
-					<CardContent className="pt-6">
-						<div className="flex items-center justify-between">
-							<div className="space-y-1">
-								<p className="text-sm font-medium text-muted-foreground">Completed</p>
-								<p className="text-2xl font-bold">{stats.weekCompleted}</p>
-							</div>
-							<div className="h-12 w-12 rounded-full bg-success/10 flex items-center justify-center">
-								<CheckCircle className="h-6 w-6 text-success" />
-							</div>
+			<Card className="border-none shadow-sm">
+				<CardContent className="pt-6">
+					<div className="flex items-center justify-between">
+						<div className="space-y-1">
+							<p className="text-sm font-medium text-muted-foreground">Completed</p>
+							<p className="text-2xl font-bold">{stats.weekCompleted}</p>
 						</div>
-					</CardContent>
-				</Card>
+						<div className="h-12 w-12 rounded-full bg-success/10 flex items-center justify-center">
+							<CheckCircle className="h-6 w-6 text-success" />
+						</div>
+					</div>
+				</CardContent>
+			</Card>
 
-				<Card className="border-none shadow-sm">
-					<CardContent className="pt-6">
-						<div className="flex items-center justify-between">
-							<div className="space-y-1">
-								<p className="text-sm font-medium text-muted-foreground">Patients</p>
-								<p className="text-2xl font-bold">{stats.totalPatients}</p>
-							</div>
-							<div className="h-12 w-12 rounded-full bg-accent/10 flex items-center justify-center">
-								<UserIcon className="h-6 w-6 text-accent-foreground" />
-							</div>
+			<Card className="border-none shadow-sm">
+				<CardContent className="pt-6">
+					<div className="flex items-center justify-between">
+						<div className="space-y-1">
+							<p className="text-sm font-medium text-muted-foreground">{t('customerPlural')}</p>
+							<p className="text-2xl font-bold">{stats.totalPatients}</p>
 						</div>
-					</CardContent>
-				</Card>
-			</div>
+						<div className="h-12 w-12 rounded-full bg-accent/10 flex items-center justify-center">
+							<UserIcon className="h-6 w-6 text-accent-foreground" />
+						</div>
+					</div>
+				</CardContent>
+			</Card>
+		</div>
 
 			{/* Services Quick Link */}
 			<ServicesQuickLink />

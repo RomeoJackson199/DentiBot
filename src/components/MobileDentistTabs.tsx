@@ -3,6 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useMobileOptimizations } from "@/components/mobile/MobileOptimizations";
 import { cn } from "@/lib/utils";
+import { useBusinessTemplate } from "@/hooks/useBusinessTemplate";
+import { useMemo } from "react";
 import { 
   Clock, 
   Calendar, 
@@ -29,50 +31,68 @@ interface MobileDentistTabsProps {
 
 export function MobileDentistTabs({ activeTab, setActiveTab, dentistId, children, inventoryBadgeCount = 0, onSignOut }: MobileDentistTabsProps) {
   const { isMobile, cardClass } = useMobileOptimizations();
+  const { hasFeature, t } = useBusinessTemplate();
 
-  const tabGroups = [
-    {
-      id: 'clinical',
-      title: 'Clinical',
-      icon: Stethoscope,
-      tabs: [
-        { id: 'clinical' as TabType, label: 'Clinical', icon: Stethoscope },
-      ]
-    },
-    {
+  const tabGroups = useMemo(() => {
+    const groups = [];
+
+    // Clinical - only if medical features are enabled
+    if (hasFeature('medicalRecords') || hasFeature('prescriptions') || hasFeature('treatmentPlans')) {
+      groups.push({
+        id: 'clinical',
+        title: 'Clinical',
+        icon: Stethoscope,
+        tabs: [
+          { id: 'clinical' as TabType, label: 'Clinical', icon: Stethoscope },
+        ]
+      });
+    }
+
+    // Customers/Patients - always visible
+    groups.push({
       id: 'patients',
-      title: 'Patients',
+      title: t('customerPlural'),
       icon: Users,
       tabs: [
-        { id: 'patients' as TabType, label: 'Patients', icon: Users },
+        { id: 'patients' as TabType, label: t('customerPlural'), icon: Users },
       ]
-    },
-    {
-      id: 'business',
-      title: 'Business',
-      icon: BarChart3,
-      tabs: [
-        { id: 'payments' as TabType, label: 'Payments', icon: CreditCard },
-        { id: 'analytics' as TabType, label: 'Analytics', icon: BarChart3 },
-      ]
-    },
-    {
+    });
+
+    // Business - always visible if payment features enabled
+    if (hasFeature('paymentRequests')) {
+      groups.push({
+        id: 'business',
+        title: 'Business',
+        icon: BarChart3,
+        tabs: [
+          { id: 'payments' as TabType, label: 'Payments', icon: CreditCard },
+          { id: 'analytics' as TabType, label: 'Analytics', icon: BarChart3 },
+        ]
+      });
+    }
+
+    // Data import - always visible
+    groups.push({
       id: 'data',
       title: 'Data',
       icon: Database,
       tabs: [
         { id: 'import' as TabType, label: 'Import', icon: Database },
       ]
-    },
-    {
+    });
+
+    // Inventory - always visible
+    groups.push({
       id: 'inventory',
       title: 'Inventory',
       icon: Package,
       tabs: [
         { id: 'inventory' as TabType, label: 'Inventory', icon: Package, badge: inventoryBadgeCount > 0 ? String(inventoryBadgeCount) : undefined },
       ]
-    },
-    {
+    });
+
+    // Admin - always visible
+    groups.push({
       id: 'admin',
       title: 'Admin',
       icon: Settings,
@@ -81,8 +101,10 @@ export function MobileDentistTabs({ activeTab, setActiveTab, dentistId, children
         { id: 'manage' as TabType, label: 'Settings', icon: Settings },
         { id: 'debug' as TabType, label: 'Debug', icon: Database },
       ]
-    }
-  ];
+    });
+
+    return groups;
+  }, [hasFeature, t, inventoryBadgeCount]);
 
   // Always render the desktop-style sidebar layout on all devices
   return (

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -30,6 +30,7 @@ import { useClinicBranding } from "@/hooks/useClinicBranding";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { RoleSwitcher } from "@/components/RoleSwitcher";
 import { BusinessSelector } from "@/components/BusinessSelector";
+import { useBusinessTemplate } from "@/hooks/useBusinessTemplate";
 
 export type DentistSection = 'dashboard' | 'patients' | 'appointments' | 'employees' | 'messages' | 'clinical' | 'schedule' | 'payments' | 'analytics' | 'reports' | 'inventory' | 'imports' | 'branding' | 'security' | 'users' | 'team' | 'settings';
 
@@ -41,14 +42,6 @@ interface DentistAppShellProps {
   dentistId: string;
 }
 
-const NAV_ITEMS = [
-  { id: 'dashboard' as DentistSection, label: 'Dashboard', icon: LayoutDashboard },
-  { id: 'patients' as DentistSection, label: 'Patient', icon: Users },
-  { id: 'appointments' as DentistSection, label: 'Appointment', icon: Calendar },
-  { id: 'employees' as DentistSection, label: 'Employee', icon: UserCog },
-  { id: 'messages' as DentistSection, label: 'Messages', icon: MessageSquare },
-];
-
 export const DentistAppShell: React.FC<DentistAppShellProps> = ({
   activeSection,
   onChangeSection,
@@ -59,10 +52,19 @@ export const DentistAppShell: React.FC<DentistAppShellProps> = ({
   const { toast } = useToast();
   const { isMobile } = useMobileOptimizations();
   const { branding } = useClinicBranding();
+  const { t } = useBusinessTemplate();
   const [searchQuery, setSearchQuery] = useState("");
   const [notificationCount] = useState(0);
   const [userName, setUserName] = useState<string>("");
   const [userInitials, setUserInitials] = useState<string>("?");
+
+  const NAV_ITEMS = useMemo(() => [
+    { id: 'dashboard' as DentistSection, label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'patients' as DentistSection, label: t('customerPlural'), icon: Users },
+    { id: 'appointments' as DentistSection, label: t('appointmentPlural'), icon: Calendar },
+    { id: 'employees' as DentistSection, label: 'Staff', icon: UserCog },
+    { id: 'messages' as DentistSection, label: 'Messages', icon: MessageSquare },
+  ], [t]);
 
   const isActive = (section: DentistSection) => activeSection === section;
 

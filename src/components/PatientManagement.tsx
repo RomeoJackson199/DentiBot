@@ -48,6 +48,7 @@ import { PatientPaymentHistory } from "@/components/PatientPaymentHistory";
 import { PaymentRequestForm } from "@/components/PaymentRequestForm";
 import SimpleAppointmentBooking from "@/components/SimpleAppointmentBooking";
 import { useNavigate } from "react-router-dom";
+import { useBusinessTemplate } from "@/hooks/useBusinessTemplate";
 
 interface Patient {
   id: string;
@@ -184,6 +185,7 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
   const { toast } = useToast();
   const sb: any = supabase;
   const navigate = useNavigate();
+  const { hasFeature, t } = useBusinessTemplate();
 
   useEffect(() => {
     fetchPatients();
@@ -1013,12 +1015,20 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
                         <DropdownMenuLabel>Quick Add</DropdownMenuLabel>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem onClick={() => setShowNoteDialog(true)}>Add Note</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => setShowPrescriptionDialog(true)}>Add Prescription</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => setShowTreatmentDialog(true)}>Add Treatment Plan</DropdownMenuItem>
+                        {hasFeature('prescriptions') && (
+                          <DropdownMenuItem onClick={() => setShowPrescriptionDialog(true)}>Add Prescription</DropdownMenuItem>
+                        )}
+                        {hasFeature('treatmentPlans') && (
+                          <DropdownMenuItem onClick={() => setShowTreatmentDialog(true)}>Add Treatment Plan</DropdownMenuItem>
+                        )}
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => setAccordionValue('files')}>Upload Image / File</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => setShowPaymentDialog(true)}>Add Payment (request)</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => setAccordionValue('appointments')}>Book Appointment</DropdownMenuItem>
+                        {hasFeature('photoUpload') && (
+                          <DropdownMenuItem onClick={() => setAccordionValue('files')}>Upload Image / File</DropdownMenuItem>
+                        )}
+                        {hasFeature('paymentRequests') && (
+                          <DropdownMenuItem onClick={() => setShowPaymentDialog(true)}>Add Payment (request)</DropdownMenuItem>
+                        )}
+                        <DropdownMenuItem onClick={() => setAccordionValue('appointments')}>Book {t('appointment')}</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
@@ -1170,19 +1180,20 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
                 setAccordionOpenByPatient(prev => ({ ...prev, [selectedPatient.id]: val }));
               }
             }} className="w-full">
-              <AccordionItem value="prescriptions">
-                <Card className="glass-card">
-                  <CardHeader>
-                    <CardTitle className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Pill className="h-5 w-5 text-dental-primary" />
-                        <span>Prescriptions</span>
-                        <Badge variant="outline">{prescriptions.length}</Badge>
-                      </div>
-                      <AccordionTrigger className="py-0" />
-                    </CardTitle>
-                  </CardHeader>
-                  <AccordionContent>
+              {hasFeature('prescriptions') && (
+                <AccordionItem value="prescriptions">
+                  <Card className="glass-card">
+                    <CardHeader>
+                      <CardTitle className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Pill className="h-5 w-5 text-dental-primary" />
+                          <span>Prescriptions</span>
+                          <Badge variant="outline">{prescriptions.length}</Badge>
+                        </div>
+                        <AccordionTrigger className="py-0" />
+                      </CardTitle>
+                    </CardHeader>
+                    <AccordionContent>
                     <CardContent>
                       {prescriptions.length > 0 ? (
                         <div className="space-y-3">
@@ -1251,23 +1262,25 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
                         <Button size="sm" variant="ghost">View All</Button>
                       </div>
                     </CardContent>
-                  </AccordionContent>
-                </Card>
-              </AccordionItem>
+                    </AccordionContent>
+                  </Card>
+                </AccordionItem>
+              )}
 
-              <AccordionItem value="treatments">
-                <Card className="glass-card">
-                  <CardHeader>
-                    <CardTitle className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <ClipboardListIcon className="h-5 w-5 text-dental-primary" />
-                        <span>Treatment Plans</span>
-                        <Badge variant="outline">{treatmentPlans.length}</Badge>
-                      </div>
-                      <AccordionTrigger className="py-0" />
-                    </CardTitle>
-                  </CardHeader>
-                  <AccordionContent>
+              {hasFeature('treatmentPlans') && (
+                <AccordionItem value="treatments">
+                  <Card className="glass-card">
+                    <CardHeader>
+                      <CardTitle className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <ClipboardListIcon className="h-5 w-5 text-dental-primary" />
+                          <span>Treatment Plans</span>
+                          <Badge variant="outline">{treatmentPlans.length}</Badge>
+                        </div>
+                        <AccordionTrigger className="py-0" />
+                      </CardTitle>
+                    </CardHeader>
+                    <AccordionContent>
                     <CardContent>
                       {treatmentPlans.length > 0 ? (
                         <div className="space-y-3">
@@ -1338,9 +1351,10 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
                         <Button size="sm" variant="ghost">View All</Button>
                       </div>
                     </CardContent>
-                  </AccordionContent>
-                </Card>
-              </AccordionItem>
+                    </AccordionContent>
+                  </Card>
+                </AccordionItem>
+              )}
 
               <AccordionItem value="payments">
                 <Card className="glass-card">
