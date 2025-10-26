@@ -11,6 +11,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useClinicBranding } from "@/hooks/useClinicBranding";
+import { BusinessSelector } from "@/components/BusinessSelector";
+import { RoleSwitcher } from "@/components/RoleSwitcher";
 interface HeaderProps {
   user: User | null;
   minimal?: boolean;
@@ -104,7 +106,15 @@ export const Header = ({
             </nav>}
 
           {/* Auth Section */}
-          
+          <div className="flex items-center gap-3">
+            {user && (
+              <>
+                <BusinessSelector />
+                <RoleSwitcher />
+              </>
+            )}
+            <LanguageSelector />
+          </div>
         </div>
 
         {/* Mobile Navigation */}
