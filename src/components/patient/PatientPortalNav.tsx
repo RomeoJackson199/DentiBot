@@ -14,6 +14,8 @@ import { emitAnalyticsEvent } from "@/lib/analyticsEvents";
 import { supabase } from "@/integrations/supabase/client";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { FloatingBookingButton } from "./FloatingBookingButton";
+import { BusinessSelector } from "@/components/BusinessSelector";
+import { useClinicBranding } from "@/hooks/useClinicBranding";
 
 type NavItem = {
   id: string;
@@ -53,6 +55,7 @@ export function PatientPortalNav({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   const { state, toggleSidebar } = useSidebar();
   const { counts } = usePatientBadgeCounts();
+  const { branding } = useClinicBranding();
   const [openGroupId, setOpenGroupId] = useState<string | null>(() => localStorage.getItem(STORAGE_KEYS.lastGroup));
   const [moreOpen, setMoreOpen] = useState(false);
   const [defaultOpen, setDefaultOpen] = useState(true);
@@ -176,8 +179,17 @@ export function PatientPortalNav({ children }: { children: React.ReactNode }) {
     <>
       <SidebarHeader className="px-3 py-3">
         <div className="flex items-center gap-2 px-1">
-          <span className="inline-flex h-7 w-7 items-center justify-center rounded-[var(--radius-pill)] bg-[hsl(var(--brand-100))] text-[hsl(var(--brand-600))] font-semibold">P</span>
-          <span className="font-semibold">Patient</span>
+          {branding.logoUrl ? (
+            <img src={branding.logoUrl} alt="Clinic Logo" className="h-7 w-7 rounded-lg object-cover flex-shrink-0" />
+          ) : (
+            <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-primary-foreground font-semibold flex-shrink-0">
+              {branding.clinicName?.[0]?.toUpperCase() || 'P'}
+            </span>
+          )}
+          <div className="flex flex-col min-w-0 group-data-[collapsible=icon]:hidden">
+            <span className="font-semibold text-sm truncate">{branding.clinicName || 'Patient Portal'}</span>
+            <BusinessSelector />
+          </div>
         </div>
       </SidebarHeader>
       <SidebarContent>
