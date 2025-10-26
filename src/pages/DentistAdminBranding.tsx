@@ -44,11 +44,11 @@ export default function DentistAdminBranding() {
         setSecondaryColor(business.secondary_color || "#8B5CF6");
         setLogoUrl(business.logo_url || "");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error loading branding:', error);
       toast({
         title: "Error",
-        description: "Failed to load branding settings",
+        description: `Failed to load branding settings${error?.code ? ` (${error.code})` : ''}${error?.hint ? ` - ${error.hint}` : ''}`,
         variant: "destructive",
       });
     }
@@ -139,7 +139,7 @@ export default function DentistAdminBranding() {
       console.error('Error saving branding:', error);
       toast({
         title: "Error",
-        description: error.message || "Failed to save branding settings",
+        description: `Failed to save branding settings${error?.code ? ` (${error.code})` : ''}${error?.hint ? ` - ${error.hint}` : ''}`,
         variant: "destructive",
       });
     } finally {

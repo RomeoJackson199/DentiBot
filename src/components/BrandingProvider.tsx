@@ -14,31 +14,11 @@ export const BrandingProvider = ({ children, businessId }: BrandingProviderProps
 
     const fetchBranding = async () => {
       try {
-        // Find dentists associated with this business via provider_business_map
-        const { data: providerLinks, error: mapErr } = await supabase
-          .from('provider_business_map')
-          .select('provider_id')
-          .eq('business_id', businessId);
-
-        if (mapErr) throw mapErr;
-        const providerIds = providerLinks?.map((m: any) => m.provider_id) || [];
-        if (providerIds.length === 0) return;
-
-        const { data: dentist, error: dentistErr } = await supabase
-          .from('dentists')
-          .select('id')
-          .in('profile_id', providerIds)
-          .limit(1)
-          .maybeSingle();
-
-        if (dentistErr) throw dentistErr;
-        if (!dentist) return;
-
         const { data, error } = await supabase
-          .from('clinic_settings')
+          .from('businesses')
           .select('primary_color, secondary_color')
-          .eq('dentist_id', dentist.id)
-          .maybeSingle();
+          .eq('id', businessId)
+          .single();
 
         if (error) throw error;
 

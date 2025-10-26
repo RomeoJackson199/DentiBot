@@ -91,17 +91,25 @@ export function useCurrency(dentistId?: string) {
   };
 
   const updateCurrency = async (currency: CurrencySettings['currency']) => {
-    if (!dentistId) return;
-
     try {
+      // Get current business context from session
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { data: sessionBusiness, error: sessionError } = await supabase
+        .from('session_business')
+        .select('business_id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (sessionError) throw sessionError;
+      const businessId = sessionBusiness?.business_id;
+      if (!businessId) throw new Error('No business selected');
+
       const { error } = await supabase
-        .from('clinic_settings')
-        .upsert({
-          dentist_id: dentistId,
-          currency: currency,
-        }, {
-          onConflict: 'dentist_id',
-        });
+        .from('businesses')
+        .update({ currency })
+        .eq('id', businessId);
 
       if (error) throw error;
 
