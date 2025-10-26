@@ -7,9 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
+import { useBusinessContext } from "@/hooks/useBusinessContext";
 import { AppointmentCompletionDialog } from "@/components/appointment/AppointmentCompletionDialog";
 import { AppointmentDetailsDialog } from "@/components/AppointmentDetailsDialog";
-import { 
+import {
   Calendar, 
   Clock, 
   User, 
@@ -59,12 +60,18 @@ export function NextAppointmentWidget({ dentistId }: NextAppointmentWidgetProps)
   const [showCompleteDialog, setShowCompleteDialog] = useState(false);
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
   const { toast } = useToast();
+  const { businessId } = useBusinessContext();
 
   useEffect(() => {
     const fetchNextAppointment = async () => {
       try {
         console.log('🔍 Fetching next appointment for dentistId:', dentistId);
         console.log('📅 Current time:', new Date().toISOString());
+        
+        if (!businessId) {
+          setLoading(false);
+          return;
+        }
         
         const { data, error } = await supabase
           .from('appointments')
@@ -86,6 +93,7 @@ export function NextAppointmentWidget({ dentistId }: NextAppointmentWidgetProps)
             )
           `)
           .eq('dentist_id', dentistId)
+          .eq('business_id', businessId)
           .gte('appointment_date', new Date().toISOString())
           .neq('status', 'cancelled')
           .order('appointment_date', { ascending: true })
@@ -130,10 +138,12 @@ export function NextAppointmentWidget({ dentistId }: NextAppointmentWidgetProps)
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [dentistId]);
+  }, [dentistId, businessId]);
 
   const handleCompletionSuccess = async () => {
     // Refresh the appointment data to get the next one
+    if (!businessId) return;
+    
     const { data } = await supabase
       .from('appointments')
       .select(`
@@ -148,6 +158,7 @@ export function NextAppointmentWidget({ dentistId }: NextAppointmentWidgetProps)
         patient_name
       `)
       .eq('dentist_id', dentistId)
+      .eq('business_id', businessId)
       .gte('appointment_date', new Date().toISOString())
       .neq('status', 'cancelled')
       .order('appointment_date', { ascending: true })

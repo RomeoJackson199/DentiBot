@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { 
+import { useBusinessContext } from "@/hooks/useBusinessContext";
+import {
   Calendar, 
   Clock, 
   AlertTriangle, 
@@ -41,20 +42,29 @@ export function PatientAppointments({ patientId, dentistId }: PatientAppointment
   const [editingAppointment, setEditingAppointment] = useState<string | null>(null);
   const [consultationNotes, setConsultationNotes] = useState("");
   const { toast } = useToast();
+  const { businessId } = useBusinessContext();
 
   useEffect(() => {
-    fetchAppointments();
-  }, [patientId, dentistId]);
+    if (businessId) {
+      fetchAppointments();
+    }
+  }, [patientId, dentistId, businessId]);
 
   const fetchAppointments = async () => {
     try {
       setLoading(true);
+      
+      if (!businessId) {
+        setAppointments([]);
+        return;
+      }
       
       const { data, error } = await supabase
         .from('appointments')
         .select('*')
         .eq('patient_id', patientId)
         .eq('dentist_id', dentistId)
+        .eq('business_id', businessId)
         .order('appointment_date', { ascending: false });
 
       if (error) throw error;
