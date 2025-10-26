@@ -172,6 +172,9 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
             toast.success(`Switched to ${business.name}`);
           }
         }
+        
+        // Reload memberships to refresh any template-related data
+        await loadMemberships();
       }
     } catch (error: any) {
       console.error('Error switching business:', error);
@@ -179,7 +182,7 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoading(false);
     }
-  }, [memberships]);
+  }, [memberships, loadMemberships]);
 
   useEffect(() => {
     loadMemberships();

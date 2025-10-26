@@ -1,0 +1,122 @@
+import { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Check } from 'lucide-react';
+import { getAllTemplates, TemplateConfig } from '@/lib/businessTemplates';
+import { cn } from '@/lib/utils';
+
+interface BusinessTemplateSelectorProps {
+  selectedTemplate?: string;
+  onSelect: (templateId: string) => void;
+  disabled?: boolean;
+}
+
+export function BusinessTemplateSelector({ 
+  selectedTemplate, 
+  onSelect,
+  disabled = false 
+}: BusinessTemplateSelectorProps) {
+  const templates = getAllTemplates();
+  const [hoveredTemplate, setHoveredTemplate] = useState<string | null>(null);
+
+  const renderFeaturesList = (template: TemplateConfig) => {
+    const enabledFeatures = Object.entries(template.features)
+      .filter(([_, enabled]) => enabled)
+      .map(([feature]) => feature);
+
+    return (
+      <div className="space-y-1">
+        {enabledFeatures.slice(0, 4).map((feature) => (
+          <div key={feature} className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Check className="h-3 w-3 text-primary" />
+            <span className="capitalize">{feature.replace(/([A-Z])/g, ' $1').trim()}</span>
+          </div>
+        ))}
+        {enabledFeatures.length > 4 && (
+          <div className="text-xs text-muted-foreground">
+            + {enabledFeatures.length - 4} more features
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="space-y-2">
+        <h3 className="text-lg font-semibold">Choose Your Business Template</h3>
+        <p className="text-sm text-muted-foreground">
+          Select the template that best fits your business type. This will customize the features and terminology used throughout the platform.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {templates.map((template) => {
+          const Icon = template.icon;
+          const isSelected = selectedTemplate === template.id;
+          const isHovered = hoveredTemplate === template.id;
+
+          return (
+            <Card
+              key={template.id}
+              className={cn(
+                'cursor-pointer transition-all duration-200',
+                isSelected && 'ring-2 ring-primary shadow-lg',
+                isHovered && !isSelected && 'shadow-md scale-[1.02]',
+                disabled && 'opacity-50 cursor-not-allowed'
+              )}
+              onClick={() => !disabled && onSelect(template.id)}
+              onMouseEnter={() => !disabled && setHoveredTemplate(template.id)}
+              onMouseLeave={() => setHoveredTemplate(null)}
+            >
+              <CardHeader className="space-y-3">
+                <div className="flex items-start justify-between">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <Icon className="h-6 w-6 text-primary" />
+                  </div>
+                  {isSelected && (
+                    <Badge variant="default" className="gap-1">
+                      <Check className="h-3 w-3" />
+                      Selected
+                    </Badge>
+                  )}
+                </div>
+                <div>
+                  <CardTitle className="text-base">{template.name}</CardTitle>
+                  <CardDescription className="text-xs mt-1">
+                    {template.description}
+                  </CardDescription>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="text-xs font-medium text-muted-foreground">
+                    Terminology:
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <Badge variant="outline" className="text-xs">
+                      {template.terminology.customerPlural}
+                    </Badge>
+                    <Badge variant="outline" className="text-xs">
+                      {template.terminology.providerPlural}
+                    </Badge>
+                    <Badge variant="outline" className="text-xs">
+                      {template.terminology.servicePlural}
+                    </Badge>
+                  </div>
+                  <div className="pt-2 border-t">
+                    <div className="text-xs font-medium text-muted-foreground mb-2">
+                      Key Features:
+                    </div>
+                    {renderFeaturesList(template)}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+    </div>
+  );
+}

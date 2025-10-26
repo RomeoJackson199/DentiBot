@@ -6,8 +6,20 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Palette, Upload, Image as ImageIcon } from "lucide-react";
+import { Loader2, Palette, Upload, Image as ImageIcon, Briefcase } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { BusinessTemplateSelector } from "@/components/BusinessTemplateSelector";
+import { TemplateType, getTemplateConfig } from "@/lib/businessTemplates";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function DentistAdminBranding() {
   const { businessId, loading: businessLoading } = useBusinessContext();
@@ -18,6 +30,9 @@ export default function DentistAdminBranding() {
   const [primaryColor, setPrimaryColor] = useState("#0EA5E9");
   const [secondaryColor, setSecondaryColor] = useState("#10B981");
   const [logoUrl, setLogoUrl] = useState("");
+  const [templateType, setTemplateType] = useState<TemplateType>("dentist");
+  const [showTemplateWarning, setShowTemplateWarning] = useState(false);
+  const [pendingTemplate, setPendingTemplate] = useState<TemplateType | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -30,7 +45,7 @@ export default function DentistAdminBranding() {
     try {
       const { data: business, error } = await supabase
         .from('businesses')
-        .select('name, tagline, logo_url, primary_color, secondary_color')
+        .select('name, tagline, logo_url, primary_color, secondary_color, template_type')
         .eq('id', businessId)
         .single();
 
@@ -43,6 +58,7 @@ export default function DentistAdminBranding() {
         setPrimaryColor(business.primary_color || "#2D5D7B");
         setSecondaryColor(business.secondary_color || "#8B5CF6");
         setLogoUrl(business.logo_url || "");
+        setTemplateType((business.template_type as TemplateType) || "dentist");
       }
     } catch (error: any) {
       console.error('Error loading branding:', error);
@@ -112,6 +128,26 @@ export default function DentistAdminBranding() {
     }
   };
 
+  const handleTemplateSelect = (newTemplateType: string) => {
+    const newType = newTemplateType as TemplateType;
+    if (newType !== templateType) {
+      setPendingTemplate(newType);
+      setShowTemplateWarning(true);
+    }
+  };
+
+  const confirmTemplateChange = () => {
+    if (pendingTemplate) {
+      setTemplateType(pendingTemplate);
+      setPendingTemplate(null);
+      setShowTemplateWarning(false);
+      toast({
+        title: "Template Changed",
+        description: "Remember to save your changes",
+      });
+    }
+  };
+
   const handleSaveBranding = async () => {
     if (!businessId) return;
     
@@ -126,6 +162,7 @@ export default function DentistAdminBranding() {
           logo_url: logoUrl,
           primary_color: primaryColor,
           secondary_color: secondaryColor,
+          template_type: templateType,
         })
         .eq('id', businessId);
 
@@ -135,6 +172,9 @@ export default function DentistAdminBranding() {
         title: "Settings Saved",
         description: "Your branding settings have been saved successfully",
       });
+
+      // Reload page to apply new template
+      window.location.reload();
     } catch (error: any) {
       console.error('Error saving branding:', error);
       toast({
@@ -168,6 +208,37 @@ export default function DentistAdminBranding() {
       />
 
       <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Briefcase className="h-5 w-5" />
+              Business Template
+            </CardTitle>
+            <CardDescription>
+              Choose the template that best fits your business type. This controls which features are available and the terminology used throughout the platform.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <BusinessTemplateSelector 
+              selectedTemplate={templateType}
+              onSelect={handleTemplateSelect}
+            />
+            <div className="mt-4 p-4 bg-muted/50 rounded-lg">
+              <h4 className="font-medium mb-2">Current Template Features:</h4>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
+                {Object.entries(getTemplateConfig(templateType).features).map(([feature, enabled]) => (
+                  <div key={feature} className="flex items-center gap-2">
+                    <div className={`w-2 h-2 rounded-full ${enabled ? 'bg-green-500' : 'bg-gray-300'}`} />
+                    <span className="capitalize text-muted-foreground">
+                      {feature.replace(/([A-Z])/g, ' $1').trim()}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -373,6 +444,36 @@ export default function DentistAdminBranding() {
           </Button>
         </div>
       </div>
+
+      <AlertDialog open={showTemplateWarning} onOpenChange={setShowTemplateWarning}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Change Business Template?</AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2">
+              <p>
+                Changing your business template will modify which features are available in your account.
+              </p>
+              <p className="font-medium">
+                Some features may be hidden, but your existing data will not be deleted.
+              </p>
+              <p className="text-sm text-muted-foreground">
+                For example, if you switch to a template without prescriptions, the prescription feature will be hidden but any existing prescriptions will remain in the database.
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => {
+              setPendingTemplate(null);
+              setShowTemplateWarning(false);
+            }}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={confirmTemplateChange}>
+              Change Template
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

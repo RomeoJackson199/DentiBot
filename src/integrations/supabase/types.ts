@@ -298,6 +298,7 @@ export type Database = {
           slug: string
           specialty_type: string
           tagline: string | null
+          template_type: string
           updated_at: string
           welcome_message: string | null
         }
@@ -321,6 +322,7 @@ export type Database = {
           slug: string
           specialty_type?: string
           tagline?: string | null
+          template_type?: string
           updated_at?: string
           welcome_message?: string | null
         }
@@ -344,6 +346,7 @@ export type Database = {
           slug?: string
           specialty_type?: string
           tagline?: string | null
+          template_type?: string
           updated_at?: string
           welcome_message?: string | null
         }

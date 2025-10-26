@@ -1,9 +1,18 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { Package, Eye, Plus } from 'lucide-react';
+import { Package, Eye, Plus, ExternalLink } from 'lucide-react';
+import { useBusinessContext } from '@/hooks/useBusinessContext';
 
 export function ServicesQuickLink() {
+  const { businessSlug } = useBusinessContext();
+
+  const handlePreviewBooking = () => {
+    if (businessSlug) {
+      window.open(`/book/${businessSlug}`, '_blank');
+    }
+  };
+
   return (
     <Card className="col-span-full">
       <CardHeader>
@@ -23,11 +32,9 @@ export function ServicesQuickLink() {
               Manage Services
             </Link>
           </Button>
-          <Button variant="outline" asChild>
-            <Link to="/book-appointment">
-              <Eye className="h-4 w-4 mr-2" />
-              Preview Booking Flow
-            </Link>
+          <Button variant="outline" onClick={handlePreviewBooking} disabled={!businessSlug}>
+            <ExternalLink className="h-4 w-4 mr-2" />
+            Preview Customer Booking
           </Button>
         </div>
       </CardContent>
