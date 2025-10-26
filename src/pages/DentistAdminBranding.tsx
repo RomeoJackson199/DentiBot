@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useCurrentDentist } from "@/hooks/useCurrentDentist";
+import { useBusinessContext } from "@/hooks/useBusinessContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,7 +10,7 @@ import { Loader2, Palette, Upload, Image as ImageIcon } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
 
 export default function DentistAdminBranding() {
-  const { dentistId, loading: dentistLoading } = useCurrentDentist();
+  const { businessId, loading: businessLoading } = useBusinessContext();
   const [loading, setLoading] = useState(false);
   const [clinicName, setClinicName] = useState("");
   const [tagline, setTagline] = useState("");
@@ -21,28 +21,28 @@ export default function DentistAdminBranding() {
   const { toast } = useToast();
 
   useEffect(() => {
-    if (dentistId) {
+    if (businessId) {
       loadBrandingSettings();
     }
-  }, [dentistId]);
+  }, [businessId]);
 
   const loadBrandingSettings = async () => {
     try {
-      const { data: settings, error } = await supabase
-        .from('clinic_settings')
-        .select('*')
-        .eq('dentist_id', dentistId)
-        .maybeSingle();
+      const { data: business, error } = await supabase
+        .from('businesses')
+        .select('name, tagline, logo_url, primary_color, secondary_color')
+        .eq('id', businessId)
+        .single();
 
       if (error) throw error;
 
-      if (settings) {
-        setClinicName(settings.clinic_name || "");
-        setTagline(settings.tagline || "");
-        setAddress(settings.address || "");
-        setPrimaryColor(settings.primary_color || "#2D5D7B");
-        setSecondaryColor(settings.secondary_color || "#8B5CF6");
-        setLogoUrl(settings.logo_url || "");
+      if (business) {
+        setClinicName(business.name || "");
+        setTagline(business.tagline || "");
+        setAddress(""); // Address is not on businesses table, will need separate handling if needed
+        setPrimaryColor(business.primary_color || "#2D5D7B");
+        setSecondaryColor(business.secondary_color || "#8B5CF6");
+        setLogoUrl(business.logo_url || "");
       }
     } catch (error) {
       console.error('Error loading branding:', error);
@@ -82,7 +82,7 @@ export default function DentistAdminBranding() {
 
     try {
       const fileExt = file.name.split('.').pop();
-      const fileName = `${dentistId}-logo-${Date.now()}.${fileExt}`;
+      const fileName = `${businessId}-logo-${Date.now()}.${fileExt}`;
 
       const { error: uploadError, data } = await supabase.storage
         .from('dental-photos')
@@ -113,24 +113,21 @@ export default function DentistAdminBranding() {
   };
 
   const handleSaveBranding = async () => {
-    if (!dentistId) return;
+    if (!businessId) return;
     
     setLoading(true);
 
     try {
       const { error } = await supabase
-        .from('clinic_settings')
-        .upsert({
-          dentist_id: dentistId,
-          clinic_name: clinicName,
+        .from('businesses')
+        .update({
+          name: clinicName,
           tagline: tagline,
-          address: address,
           logo_url: logoUrl,
           primary_color: primaryColor,
           secondary_color: secondaryColor,
-        }, {
-          onConflict: 'dentist_id'
-        });
+        })
+        .eq('id', businessId);
 
       if (error) throw error;
 
@@ -150,7 +147,7 @@ export default function DentistAdminBranding() {
     }
   };
 
-  if (dentistLoading) {
+  if (businessLoading) {
     return (
       <div className="flex justify-center items-center p-8">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
