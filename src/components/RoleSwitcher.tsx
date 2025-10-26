@@ -1,5 +1,6 @@
+import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useUserRole } from "@/hooks/useUserRole";
+import { supabase } from "@/integrations/supabase/client";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,11 +13,50 @@ import { Button } from "@/components/ui/button";
 import { UserCog, User, Stethoscope } from "lucide-react";
 
 export function RoleSwitcher() {
-  const { isDentist, isPatient, loading } = useUserRole();
   const navigate = useNavigate();
   const location = useLocation();
+  const [hasBusiness, setHasBusiness] = React.useState(false);
+  const [loading, setLoading] = React.useState(true);
 
-  if (loading || (!isDentist || !isPatient)) {
+  React.useEffect(() => {
+    const checkBusiness = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          setLoading(false);
+          return;
+        }
+
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('user_id', user.id)
+          .single();
+
+        if (!profile) {
+          setLoading(false);
+          return;
+        }
+
+        // Check if user owns or is a member of any business
+        const { data: businesses } = await supabase
+          .from('business_members')
+          .select('business_id')
+          .eq('profile_id', profile.id)
+          .limit(1);
+
+        setHasBusiness((businesses?.length || 0) > 0);
+      } catch (error) {
+        console.error('Error checking business:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkBusiness();
+  }, []);
+
+  if (loading || !hasBusiness) {
     return null;
   }
 
