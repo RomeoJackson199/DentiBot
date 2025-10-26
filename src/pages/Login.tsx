@@ -40,17 +40,8 @@ const Login = () => {
 
       if (error) throw error;
 
-      // Set the business context after successful login
-      const selectedBusinessId = localStorage.getItem("selected_business_id");
-      if (selectedBusinessId && data.user) {
-        try {
-          await supabase.functions.invoke('set-current-business', {
-            body: { business_id: selectedBusinessId }
-          });
-        } catch (err) {
-          console.error("Error setting business context:", err);
-        }
-      }
+      // Business context is now handled by BusinessProvider automatically
+      // No need to manually set it here
 
       toast({
         title: "Welcome back!",
