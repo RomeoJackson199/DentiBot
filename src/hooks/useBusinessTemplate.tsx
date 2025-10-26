@@ -37,7 +37,8 @@ export function useBusinessTemplate() {
         setTemplate(getTemplateConfig(templateType));
       } catch (error) {
         console.error('❌ Error loading template:', error);
-        setTemplate(getTemplateConfig('dentist'));
+        // Fallback to generic template to avoid exposing medical features
+        setTemplate(getTemplateConfig('generic'));
       } finally {
         setLoading(false);
       }

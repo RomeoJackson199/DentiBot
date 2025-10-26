@@ -76,6 +76,7 @@ export function PatientDetailsTabs({ selectedPatient, dentistId, appointments, o
   const { hasFeature } = useBusinessTemplate();
   const canShowTreatments = hasFeature('treatmentPlans');
   const canShowPrescriptions = hasFeature('prescriptions');
+  console.log('🔧 PatientDetailsTabs: gating', { canShowTreatments, canShowPrescriptions });
 
   const handleCancelAppointment = async () => {
     if (!cancellingAppointment) return;
