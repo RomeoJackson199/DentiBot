@@ -4,43 +4,45 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/hooks/useLanguage";
-import { BusinessSelectionForPatients } from "@/components/BusinessSelectionForPatients";
 import { AppointmentSuccessDialog } from "@/components/AppointmentSuccessDialog";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar } from "@/components/ui/calendar";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { CalendarDays, Clock, User as UserIcon, ArrowLeft, CheckCircle2 } from "lucide-react";
-import { format } from "date-fns";
-import { cn } from "@/lib/utils";
-import { BrandingProvider } from "@/components/BrandingProvider";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { 
+  ArrowLeft, 
+  MapPin, 
+  Star, 
+  Clock,
+  CalendarDays,
+  CheckCircle
+} from "lucide-react";
+import { format, startOfDay } from "date-fns";
+import { Skeleton } from "@/components/ui/skeleton";
+import ClinicMap from "@/components/Map";
 
 interface Dentist {
   id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  specialization: string;
   profile_id: string;
-  specialization?: string;
-  profiles: {
+  clinic_address?: string;
+  profiles?: {
     first_name: string;
     last_name: string;
+    email: string;
+    phone?: string;
+    address?: string;
     bio?: string;
-  };
+  } | null;
 }
 
 interface TimeSlot {
-  slot_time: string;
-  is_available: boolean;
-  emergency_only?: boolean;
+  time: string;
+  available: boolean;
 }
-
-const APPOINTMENT_TYPES = [
-  { value: 'consultation', labelKey: 'generalConsultation' },
-  { value: 'cleaning', labelKey: 'cleaning' },
-  { value: 'checkup', labelKey: 'checkup' },
-  { value: 'emergency', labelKey: 'emergency' },
-  { value: 'followup', labelKey: 'followUp' },
-];
 
 export default function BookAppointment() {
   const navigate = useNavigate();
@@ -50,21 +52,14 @@ export default function BookAppointment() {
   const [profile, setProfile] = useState<any>(null);
   const [selectedBusiness, setSelectedBusiness] = useState<{id: string, name: string} | null>(null);
   const [dentists, setDentists] = useState<Dentist[]>([]);
-  const [selectedDentist, setSelectedDentist] = useState("");
+  const [selectedDentist, setSelectedDentist] = useState<Dentist | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>();
-  const [selectedTime, setSelectedTime] = useState("");
-  const [appointmentType, setAppointmentType] = useState("");
-  const [reason, setReason] = useState("");
+  const [selectedTime, setSelectedTime] = useState<string>();
   const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
-  const [loadingSlots, setLoadingSlots] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [bookingStep, setBookingStep] = useState<'dentist' | 'datetime' | 'confirm'>('dentist');
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [successDetails, setSuccessDetails] = useState<any>(null);
-  const hasDentists = dentists.length > 0;
-
-  useEffect(() => {
-    setSelectedTime("");
-  }, [selectedBusiness, selectedDentist, selectedDate]);
 
   // Fetch user and profile
   useEffect(() => {
@@ -88,61 +83,102 @@ export default function BookAppointment() {
     fetchUserData();
   }, [navigate]);
 
-  // Fetch dentists for selected business
+  // Fetch dentists
   useEffect(() => {
-    if (!selectedBusiness) {
-      setDentists([]);
-      return;
-    }
+    fetchDentists();
+  }, []);
 
-    const fetchDentists = async () => {
-      // Get providers for this business
-      const { data: providerMap, error: mapError } = await supabase
-        .from('provider_business_map')
-        .select('provider_id')
-        .eq('business_id', selectedBusiness.id);
+  const fetchDentists = async () => {
+    setLoading(true);
+    try {
+      const selectedBusinessId = localStorage.getItem("selected_business_id");
 
-      if (mapError) {
-        console.error('Error fetching provider map:', mapError);
-        return;
-      }
+      let data, error;
 
-      if (!providerMap || providerMap.length === 0) {
-        setDentists([]);
-        return;
-      }
+      if (selectedBusinessId) {
+        setSelectedBusiness({ id: selectedBusinessId, name: '' });
+        
+        const { data: memberData, error: memberError } = await supabase
+          .from("business_members")
+          .select(`
+            profile_id,
+            profiles:profile_id (
+              id,
+              first_name,
+              last_name,
+              email,
+              phone,
+              address,
+              bio
+            )
+          `)
+          .eq("business_id", selectedBusinessId);
 
-      const providerIds = providerMap.map(m => m.provider_id);
+        if (memberError) throw memberError;
 
-      // Get dentists for these providers
-      const { data, error } = await supabase
-        .from('dentists')
-        .select(`
-          id,
-          profile_id,
-          specialization,
-          clinic_address,
-          profiles:profile_id (
+        const profileIds = memberData?.map(m => m.profile_id) || [];
+        
+        if (profileIds.length === 0) {
+          setDentists([]);
+          setLoading(false);
+          return;
+        }
+        
+        const dentistResult = await supabase
+          .from("dentists")
+          .select(`
+            id,
             first_name,
             last_name,
-            bio,
-            address
-          )
-        `)
-        .eq('is_active', true)
-        .in('profile_id', providerIds);
+            email,
+            specialization,
+            profile_id,
+            profiles:profile_id (
+              first_name,
+              last_name,
+              email,
+              phone,
+              address,
+              bio
+            )
+          `)
+          .eq("is_active", true)
+          .in("profile_id", profileIds);
 
-      if (error) {
-        console.error('Error fetching dentists:', error);
-        return;
+        data = dentistResult.data;
+        error = dentistResult.error;
+      } else {
+        const dentistResult = await supabase
+          .from("dentists")
+          .select(`
+            id,
+            first_name,
+            last_name,
+            email,
+            specialization,
+            profile_id,
+            profiles:profile_id (
+              first_name,
+              last_name,
+              email,
+              phone,
+              address,
+              bio
+            )
+          `)
+          .eq("is_active", true);
+
+        data = dentistResult.data;
+        error = dentistResult.error;
       }
 
+      if (error) throw error;
+      
       const transformedData = (data || []).map((d: any) => ({
         ...d,
-        profiles: Array.isArray(d.profiles) ? d.profiles[0] : d.profiles
+        profiles: Array.isArray(d.profiles) ? d.profiles[0] : (d.profiles || null),
       }));
 
-      // Fetch clinic settings for addresses
       const dentistIds = transformedData.map(d => d.id);
       if (dentistIds.length > 0) {
         const { data: clinicSettings } = await supabase
@@ -150,110 +186,124 @@ export default function BookAppointment() {
           .select('dentist_id, address')
           .in('dentist_id', dentistIds);
 
-        // Merge clinic address into dentist data
         const settingsMap = new Map(clinicSettings?.map(s => [s.dentist_id, s.address]) || []);
         transformedData.forEach(d => {
-          d.clinic_address = settingsMap.get(d.id) || d.profiles?.address || d.clinic_address;
+          d.clinic_address = settingsMap.get(d.id) || d.profiles?.address || '';
         });
       }
-
+      
       setDentists(transformedData);
-    };
-
-    fetchDentists();
-  }, [selectedBusiness]);
-
-  useEffect(() => {
-    if (!hasDentists) {
-      setSelectedDentist("");
-      setSelectedDate(undefined);
-      setSelectedTime("");
-    }
-  }, [hasDentists]);
-
-  // Fetch available slots when date and dentist are selected
-  useEffect(() => {
-    if (!selectedDate || !selectedDentist) {
-      setAvailableSlots([]);
-      setSelectedTime("");
-      return;
-    }
-
-    const fetchSlots = async () => {
-      setLoadingSlots(true);
-      setSelectedTime("");
-      try {
-        // Generate slots
-        await supabase.rpc('generate_daily_slots', {
-          p_dentist_id: selectedDentist,
-          p_date: format(selectedDate, 'yyyy-MM-dd')
-        });
-
-        // Fetch slots
-        const { data, error } = await supabase
-          .from('appointment_slots')
-          .select('slot_time, is_available, emergency_only')
-          .eq('dentist_id', selectedDentist)
-          .eq('slot_date', format(selectedDate, 'yyyy-MM-dd'))
-          .order('slot_time');
-
-        if (error) throw error;
-        setAvailableSlots(data || []);
-      } catch (error) {
-        console.error('Error fetching slots:', error);
-        toast({
-          title: t.error,
-          description: t.unableToLoadSlots,
-          variant: "destructive",
-        });
-      } finally {
-        setLoadingSlots(false);
-      }
-    };
-
-    fetchSlots();
-  }, [selectedDate, selectedDentist, toast, t]);
-
-  const handleSubmit = async () => {
-    if (!selectedDentist || !selectedDate || !selectedTime || !appointmentType) {
+    } catch (error) {
+      console.error("Error fetching dentists:", error);
       toast({
-        title: t.missingInformation,
-        description: t.pleaseCompleteAllFields,
+        title: "Error",
+        description: "Failed to load dentists",
         variant: "destructive",
       });
-      return;
+    } finally {
+      setLoading(false);
     }
+  };
 
-    // Check profile completeness
-    const requiredFields = ['first_name', 'last_name', 'phone', 'email'];
-    const missingFields = requiredFields.filter(field => !profile?.[field]);
-    
-    if (missingFields.length > 0) {
+  const fetchAvailableSlots = async (date: Date, dentistId: string) => {
+    try {
+      await supabase.rpc('generate_daily_slots', {
+        p_dentist_id: dentistId,
+        p_date: date.toISOString().split('T')[0]
+      });
+
+      const { data, error } = await supabase
+        .from('appointment_slots')
+        .select('slot_time, is_available, emergency_only')
+        .eq('dentist_id', dentistId)
+        .eq('slot_date', date.toISOString().split('T')[0])
+        .order('slot_time');
+
+      if (error) throw error;
+
+      const slots: TimeSlot[] = (data || []).map(slot => ({
+        time: slot.slot_time.substring(0, 5),
+        available: slot.is_available && !slot.emergency_only,
+      }));
+
+      setAvailableSlots(slots);
+    } catch (error) {
+      console.error("Error fetching slots:", error);
       toast({
-        title: t.incompleteProfile,
-        description: t.pleaseCompleteProfileFirst,
+        title: "Error",
+        description: "Failed to load available times",
         variant: "destructive",
       });
-      navigate('/dashboard?tab=settings');
-      return;
     }
+  };
 
-    setIsSubmitting(true);
+  const handleDentistSelect = (dentist: Dentist) => {
+    setSelectedDentist(dentist);
+    setBookingStep('datetime');
+  };
+
+  const handleDateSelect = (date: Date | undefined) => {
+    if (!date || !selectedDentist) return;
+    setSelectedDate(date);
+    setSelectedTime(undefined);
+    fetchAvailableSlots(date, selectedDentist.id);
+  };
+
+  const handleTimeSelect = (time: string) => {
+    setSelectedTime(time);
+    setBookingStep('confirm');
+  };
+
+  const confirmBooking = async () => {
+    if (!selectedDate || !selectedTime || !selectedDentist) return;
 
     try {
+      const requiredFields = ['first_name', 'last_name', 'phone', 'email'];
+      const missingFields = requiredFields.filter(field => !profile?.[field]);
+      
+      if (missingFields.length > 0) {
+        toast({
+          title: t.incompleteProfile,
+          description: t.pleaseCompleteProfileFirst,
+          variant: "destructive",
+        });
+        navigate('/dashboard?tab=settings');
+        return;
+      }
+
       const appointmentDateTime = new Date(selectedDate);
       const [hours, minutes] = selectedTime.split(":");
       appointmentDateTime.setHours(parseInt(hours), parseInt(minutes));
 
-      // Create appointment with business_id
+      const dateStr = selectedDate.toISOString().split('T')[0];
+      let businessId: string | null = null;
+
+      const { data: slotRow } = await supabase
+        .from('appointment_slots')
+        .select('business_id')
+        .eq('dentist_id', selectedDentist.id)
+        .eq('slot_date', dateStr)
+        .eq('slot_time', selectedTime)
+        .maybeSingle();
+        
+      if (slotRow?.business_id) {
+        businessId = slotRow.business_id;
+      } else if (selectedBusiness) {
+        businessId = selectedBusiness.id;
+      }
+
+      if (!businessId) {
+        throw new Error('Clinic not configured');
+      }
+
       const { data: appointmentData, error } = await supabase
         .from('appointments')
         .insert({
           patient_id: profile.id,
-          dentist_id: selectedDentist,
-          business_id: selectedBusiness!.id,
+          dentist_id: selectedDentist.id,
+          business_id: businessId,
           appointment_date: appointmentDateTime.toISOString(),
-          reason: reason || appointmentType,
+          reason: 'General consultation',
           status: 'confirmed',
           booking_source: 'manual',
           urgency: 'medium'
@@ -263,20 +313,18 @@ export default function BookAppointment() {
 
       if (error) throw error;
 
-      // Book the slot
       await supabase.rpc('book_appointment_slot', {
-        p_dentist_id: selectedDentist,
-        p_slot_date: format(selectedDate, 'yyyy-MM-dd'),
+        p_dentist_id: selectedDentist.id,
+        p_slot_date: dateStr,
         p_slot_time: selectedTime + ':00',
         p_appointment_id: appointmentData.id
       });
 
-      const selectedDentistData = dentists.find(d => d.id === selectedDentist);
       setSuccessDetails({
         date: format(selectedDate, 'MMMM dd, yyyy'),
         time: selectedTime,
-        dentist: `Dr ${selectedDentistData?.profiles.first_name} ${selectedDentistData?.profiles.last_name}`,
-        reason: reason || appointmentType
+        dentist: `Dr ${selectedDentist.first_name} ${selectedDentist.last_name}`,
+        reason: 'General consultation'
       });
       setShowSuccessDialog(true);
     } catch (error) {
@@ -286,260 +334,313 @@ export default function BookAppointment() {
         description: t.unableToBookAppointment,
         variant: "destructive",
       });
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
   const isDateDisabled = (date: Date) => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    return date < today;
+    const today = startOfDay(new Date());
+    return date < today || date.getDay() === 0 || date.getDay() === 6;
   };
 
+  const getDentistInitials = (dentist: Dentist) => {
+    const fn = dentist.first_name || dentist.profiles?.first_name || "";
+    const ln = dentist.last_name || dentist.profiles?.last_name || "";
+    return `${fn.charAt(0)}${ln.charAt(0)}`.toUpperCase();
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-secondary/10 p-4">
+        <div className="max-w-6xl mx-auto space-y-6 py-8">
+          <Skeleton className="h-12 w-48" />
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {[1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-64 rounded-lg" />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <BrandingProvider businessId={selectedBusiness?.id}>
+    <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-secondary/10">
       <AppointmentSuccessDialog 
         open={showSuccessDialog}
         onOpenChange={setShowSuccessDialog}
         appointmentDetails={successDetails}
       />
-      
-      <div className="min-h-screen bg-gradient-subtle p-4 md:p-6">
-        <div className="max-w-4xl mx-auto">
-        <Button
-          variant="ghost"
-          onClick={() => navigate(-1)}
-          className="mb-4"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          {t.back}
-        </Button>
 
-        <Card className="shadow-elegant border-0">
-          <CardHeader className="text-center pb-6 relative">
-            <CardTitle className="flex items-center justify-center text-2xl font-heading">
-              <CalendarDays className="h-6 w-6 mr-3 text-primary" />
-              {t.bookAppointment}
-            </CardTitle>
-            <p className="text-muted-foreground mt-2">{t.bookAppointmentDescription}</p>
+      {bookingStep === 'dentist' && (
+        <div className="max-w-6xl mx-auto p-4 py-8 space-y-6">
+          <div className="flex items-center justify-between">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate(-1)}
+              className="gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back
+            </Button>
             
-            {/* Toggle to AI booking */}
             <Button
               variant="ghost"
               size="sm"
               onClick={() => navigate('/chat')}
-              className="absolute top-4 right-4 text-xs text-muted-foreground hover:text-primary"
+              className="text-xs text-muted-foreground hover:text-primary"
             >
               ← Switch to AI Assistant
             </Button>
-          </CardHeader>
-          
-          <CardContent className="space-y-6 p-6 md:p-8">
-            {/* Business Selection */}
-            {!selectedBusiness && (
-              <BusinessSelectionForPatients
-                onSelectBusiness={(id, name) => setSelectedBusiness({ id, name })}
-                selectedBusinessId={selectedBusiness?.id}
-              />
-            )}
+          </div>
 
-            {selectedBusiness && (
-              <>
-                {/* Selected Clinic Info */}
-                <div className="bg-primary/5 rounded-lg p-4 border border-primary/20">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Booking at</p>
-                      <p className="text-lg font-semibold">{selectedBusiness.name}</p>
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+            {dentists.map((dentist) => {
+              const displayName = `${dentist.first_name || dentist.profiles?.first_name} ${dentist.last_name || dentist.profiles?.last_name}`;
+
+              return (
+                <Card
+                  key={dentist.id}
+                  className="cursor-pointer transition-all hover:shadow-lg hover:border-primary/40"
+                  onClick={() => handleDentistSelect(dentist)}
+                >
+                  <CardContent className="p-4 space-y-3">
+                    <div className="flex items-start gap-3">
+                      <Avatar className="h-14 w-14">
+                        <AvatarImage src="" />
+                        <AvatarFallback className="bg-primary/10 text-primary text-base">
+                          {getDentistInitials(dentist)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold truncate">Dr. {displayName}</h3>
+                        <p className="text-sm text-muted-foreground capitalize">
+                          {dentist.specialization || 'General Dentistry'}
+                        </p>
+                        <div className="flex items-center gap-1 mt-1">
+                          {[1, 2, 3, 4].map((i) => (
+                            <Star key={i} className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                          ))}
+                          <Star className="h-3 w-3 fill-yellow-400 text-yellow-400 opacity-50" />
+                          <span className="text-xs text-muted-foreground ml-1">4.87</span>
+                        </div>
+                      </div>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        setSelectedBusiness(null);
-                        setSelectedDentist("");
-                        setSelectedDate(undefined);
-                        setSelectedTime("");
-                      }}
-                    >
-                      Change Clinic
-                    </Button>
-                  </div>
-                </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
-                {/* Dentist Selection */}
-                <div className="space-y-3">
-                  <Label className="text-base font-semibold flex items-center">
-                    <UserIcon className="h-4 w-4 mr-2 text-primary" />
-                    {t.selectDentist}
-                  </Label>
-                  {hasDentists ? (
-                    <Select value={selectedDentist} onValueChange={setSelectedDentist}>
-                      <SelectTrigger className="h-12">
-                        <SelectValue placeholder={t.chooseDentist} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {dentists.map((dentist) => (
-                          <SelectItem key={dentist.id} value={dentist.id}>
-                            <div className="flex items-center py-1">
-                              <UserIcon className="h-4 w-4 mr-3 text-primary" />
-                              <div className="flex-1">
-                                <div className="font-medium">
-                                  Dr {dentist.profiles.first_name} {dentist.profiles.last_name}
-                                </div>
-                                {dentist.specialization && (
-                                  <div className="text-sm text-muted-foreground">
-                                    {dentist.specialization}
-                                  </div>
-                                )}
-                                {dentist.profiles.bio && (
-                                  <div className="text-xs text-muted-foreground line-clamp-2 mt-1">
-                                    {dentist.profiles.bio}
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          </SelectItem>
+      {bookingStep === 'datetime' && selectedDentist && (
+        <div className="max-w-7xl mx-auto p-4 py-8">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setBookingStep('dentist')}
+            className="gap-2 mb-6"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to list
+          </Button>
+
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+            <div className="lg:col-span-2 space-y-6">
+              <Card>
+                <CardContent className="p-6 space-y-4">
+                  <div className="flex items-start gap-4">
+                    <div className="relative">
+                      <Avatar className="h-20 w-20">
+                        <AvatarImage src="" />
+                        <AvatarFallback className="bg-primary/10 text-primary text-xl">
+                          {getDentistInitials(selectedDentist)}
+                        </AvatarFallback>
+                      </Avatar>
+                    </div>
+                    <div className="flex-1">
+                      <h2 className="text-xl font-bold">
+                        Dr. {selectedDentist.first_name} {selectedDentist.last_name}
+                      </h2>
+                      <p className="text-sm text-muted-foreground capitalize mb-2">
+                        {selectedDentist.specialization || 'General Dentistry'}
+                      </p>
+                      <div className="flex items-center gap-1">
+                        {[1, 2, 3, 4].map((i) => (
+                          <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                         ))}
-                      </SelectContent>
-                    </Select>
-                  ) : (
-                    <p className="text-sm text-muted-foreground italic bg-muted/50 border border-dashed border-muted rounded-md p-3">
-                      No dentists currently available for this clinic.
-                    </p>
-                  )}
-                </div>
+                        <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 opacity-50" />
+                        <span className="text-sm font-medium ml-1">4.87</span>
+                      </div>
+                    </div>
+                  </div>
 
-            {/* Appointment Type */}
-            <div className="space-y-3">
-              <Label className="text-base font-semibold">
-                {t.appointmentType}
-              </Label>
-              <Select
-                value={appointmentType}
-                onValueChange={setAppointmentType}
-                disabled={!hasDentists}
-              >
-                <SelectTrigger className="h-12">
-                  <SelectValue placeholder={t.selectAppointmentType} />
-                </SelectTrigger>
-                <SelectContent>
-                  {APPOINTMENT_TYPES.map((type) => (
-                    <SelectItem key={type.value} value={type.value}>
-                      {t[type.labelKey] || type.value}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                  <div className="flex flex-wrap gap-2">
+                    <Badge variant="secondary" className="text-xs">In person & Online</Badge>
+                    <Badge variant="secondary" className="text-xs">Consultation - $80</Badge>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-6">
+                  <h3 className="font-semibold mb-3">Bio</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {selectedDentist.profiles?.bio && selectedDentist.profiles.bio.trim().length > 0
+                      ? selectedDentist.profiles.bio
+                      : `A specialist in ${selectedDentist.specialization || 'general dentistry'}, with extensive training and experience.`}
+                  </p>
+                </CardContent>
+              </Card>
+
+              {selectedDentist.clinic_address && (
+                <Card>
+                  <CardContent className="p-6">
+                    <h3 className="font-semibold mb-3">Location</h3>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      {selectedDentist.clinic_address}
+                    </p>
+                    <div className="w-full h-40 rounded-lg overflow-hidden">
+                      <ClinicMap address={selectedDentist.clinic_address} />
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </div>
 
-            {/* Date Selection */}
-            {selectedDentist && (
-              <div className="space-y-3">
-                <Label className="text-base font-semibold">
-                  {t.selectDate}
-                </Label>
-                <div className="flex justify-center">
-                  <Calendar
-                    mode="single"
-                    selected={selectedDate}
-                    onSelect={setSelectedDate}
-                    disabled={isDateDisabled}
-                    className={cn(
-                      "rounded-xl border-2 shadow-lg bg-card pointer-events-auto p-4",
-                      selectedDate && "border-primary"
-                    )}
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* Time Selection */}
-            {selectedDate && (
-              <div className="space-y-4">
-                <Label className="text-base font-semibold flex items-center">
-                  <Clock className="h-4 w-4 mr-2 text-primary" />
-                  {t.selectTime}
-                </Label>
-                
-                {loadingSlots ? (
-                  <div className="flex justify-center items-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                    <span className="ml-3 text-muted-foreground">{t.loading}</span>
+            <div className="lg:col-span-3">
+              <Card className="sticky top-4">
+                <CardContent className="p-6 space-y-6">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-semibold">
+                      {selectedDate ? format(selectedDate, "EEE, dd MMMM") : "Select a date"}
+                    </h3>
                   </div>
-                ) : availableSlots.length > 0 ? (
-                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
-                    {availableSlots
-                      .filter(slot => slot.is_available && !slot.emergency_only)
-                      .map((slot) => (
-                        <Button
-                          key={slot.slot_time}
-                          variant={selectedTime === slot.slot_time.substring(0, 5) ? "default" : "outline"}
-                          onClick={() => setSelectedTime(slot.slot_time.substring(0, 5))}
-                          className="h-12"
+
+                  <div className="grid grid-cols-7 gap-2">
+                    {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, index) => {
+                      const date = new Date();
+                      date.setDate(date.getDate() + index);
+                      const isSelected = selectedDate && format(selectedDate, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd');
+                      const isDisabled = date.getDay() === 0 || date.getDay() === 6;
+                      
+                      return (
+                        <button
+                          key={day}
+                          onClick={() => !isDisabled && handleDateSelect(date)}
+                          disabled={isDisabled}
+                          className={`flex flex-col items-center p-3 rounded-full transition-all ${
+                            isSelected 
+                              ? 'bg-primary text-primary-foreground' 
+                              : isDisabled
+                              ? 'opacity-40 cursor-not-allowed'
+                              : 'hover:bg-muted'
+                          }`}
                         >
-                          {slot.slot_time.substring(0, 5)}
-                        </Button>
-                      ))}
+                          <span className="text-xs mb-1">{day}</span>
+                          <span className="text-lg font-medium">{date.getDate()}</span>
+                        </button>
+                      );
+                    })}
                   </div>
-                ) : (
-                  <p className="text-center text-muted-foreground py-4">
-                    {t.noSlotsAvailable}
-                  </p>
-                )}
-              </div>
-            )}
 
-            {/* Reason/Notes */}
-            {selectedTime && (
-              <div className="space-y-3">
-                <Label className="text-base font-semibold">
-                  {t.additionalNotes}
-                </Label>
-                <Textarea
-                  value={reason}
-                  onChange={(e) => setReason(e.target.value)}
-                  placeholder={t.describeSymptoms}
-                  rows={4}
-                  className="resize-none"
-                />
-              </div>
-            )}
+                  {selectedDate && (
+                    <div className="space-y-3 max-h-[400px] overflow-y-auto">
+                      {availableSlots.length === 0 ? (
+                        <p className="text-center text-muted-foreground py-8">Loading time slots...</p>
+                      ) : availableSlots.filter(slot => slot.available).length === 0 ? (
+                        <p className="text-center text-muted-foreground py-8">No available slots for this date</p>
+                      ) : (
+                        availableSlots.filter(slot => slot.available).map((slot) => (
+                          <button
+                            key={slot.time}
+                            onClick={() => handleTimeSelect(slot.time)}
+                            className={`w-full p-4 rounded-xl border-2 text-center font-medium transition-all ${
+                              selectedTime === slot.time
+                                ? 'bg-primary/10 border-primary text-primary'
+                                : 'border-muted hover:border-primary/50 hover:bg-muted/50'
+                            }`}
+                          >
+                            {slot.time}
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  )}
 
-                {/* Submit Button */}
-                <div className="flex justify-end gap-4 pt-4">
                   <Button
-                    variant="outline"
-                    onClick={() => navigate(-1)}
-                    disabled={isSubmitting}
+                    className="w-full h-12 text-base"
+                    size="lg"
+                    disabled={!selectedDate || !selectedTime}
+                    onClick={() => setBookingStep('confirm')}
                   >
-                    {t.cancel}
+                    Book an appointment
                   </Button>
-                  <Button
-                    onClick={handleSubmit}
-                    disabled={!selectedBusiness || !selectedDentist || !selectedDate || !selectedTime || !appointmentType || isSubmitting}
-                    className="gap-2"
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                        {t.booking}
-                      </>
-                    ) : (
-                      <>
-                        <CheckCircle2 className="h-4 w-4" />
-                        {t.confirmBooking}
-                      </>
-                    )}
-                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {bookingStep === 'confirm' && selectedDentist && selectedDate && selectedTime && (
+        <div className="max-w-6xl mx-auto p-4 py-8">
+          <Card className="max-w-2xl mx-auto">
+            <CardContent className="p-6 space-y-6">
+              <div className="text-center">
+                <CheckCircle className="h-12 w-12 mx-auto text-primary mb-4" />
+                <h2 className="text-2xl font-bold">Confirm Your Appointment</h2>
+              </div>
+
+              <div className="space-y-4 bg-muted/50 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <Avatar className="h-12 w-12">
+                    <AvatarFallback className="bg-primary/10 text-primary">
+                      {getDentistInitials(selectedDentist)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="font-semibold">
+                      Dr. {selectedDentist.first_name} {selectedDentist.last_name}
+                    </p>
+                    <p className="text-sm text-muted-foreground capitalize">
+                      {selectedDentist.specialization}
+                    </p>
+                  </div>
                 </div>
-              </>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-center gap-2">
+                    <CalendarDays className="h-4 w-4 text-muted-foreground" />
+                    <span>{format(selectedDate, "EEEE, MMMM d, yyyy")}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-muted-foreground" />
+                    <span>{selectedTime}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => setBookingStep('datetime')}
+                >
+                  Go Back
+                </Button>
+                <Button
+                  className="flex-1"
+                  onClick={confirmBooking}
+                >
+                  Confirm Booking
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
-    </BrandingProvider>
   );
 }
