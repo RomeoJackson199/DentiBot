@@ -22,6 +22,7 @@ import {
 import { format, startOfDay } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import ClinicMap from "@/components/Map";
+import { ServiceSelector } from "@/components/booking/ServiceSelector";
 
 interface Dentist {
   id: string;
@@ -54,6 +55,7 @@ export default function BookAppointment() {
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const [dentists, setDentists] = useState<Dentist[]>([]);
+  const [selectedService, setSelectedService] = useState<any>(null);
   const [selectedDentist, setSelectedDentist] = useState<Dentist | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [selectedTime, setSelectedTime] = useState<string>();
@@ -262,7 +264,9 @@ export default function BookAppointment() {
           reason: 'General consultation',
           status: 'confirmed',
           booking_source: 'manual',
-          urgency: 'medium'
+          urgency: 'medium',
+          service_id: selectedService?.id || null,
+          duration_minutes: selectedService?.duration_minutes || 60
         })
         .select()
         .single();
@@ -357,6 +361,7 @@ export default function BookAppointment() {
               <ArrowLeft className="h-4 w-4" />
               Back
             </Button>
+
             
             <Button
               variant="ghost"
@@ -367,6 +372,15 @@ export default function BookAppointment() {
               ← Switch to AI Assistant
             </Button>
           </div>
+
+          {/* Service Selection */}
+          {businessId && (
+            <ServiceSelector
+              businessId={businessId}
+              selectedServiceId={selectedService?.id || null}
+              onSelectService={setSelectedService}
+            />
+          )}
 
           <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             {dentists.map((dentist) => {

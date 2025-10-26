@@ -24,6 +24,7 @@ import {
 import { format, startOfDay } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import ClinicMap from "@/components/Map";
+import { ServiceSelector } from "@/components/booking/ServiceSelector";
 
 interface Dentist {
   id: string;
@@ -56,6 +57,7 @@ export default function BookAppointmentAI() {
   const [bookingData, setBookingData] = useState<any>(null);
   const [dentists, setDentists] = useState<Dentist[]>([]);
   const [recommendedDentists, setRecommendedDentists] = useState<string[]>([]);
+  const [selectedService, setSelectedService] = useState<any>(null);
   const [selectedDentist, setSelectedDentist] = useState<Dentist | null>(null);
   const [expandedDentist, setExpandedDentist] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>();
@@ -324,7 +326,9 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
           booking_source: "ai",
           urgency: bookingData?.urgency >= 5 ? "emergency" :
                    bookingData?.urgency === 4 ? "high" : 
-                   bookingData?.urgency === 3 ? "medium" : "low"
+                   bookingData?.urgency === 3 ? "medium" : "low",
+          service_id: selectedService?.id || null,
+          duration_minutes: selectedService?.duration_minutes || 60
         })
         .select()
         .single();
@@ -446,6 +450,15 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
                 <p className="text-sm font-medium">AI recommended dentists based on your needs</p>
               </CardContent>
             </Card>
+          )}
+
+          {/* Service Selection */}
+          {businessId && (
+            <ServiceSelector
+              businessId={businessId}
+              selectedServiceId={selectedService?.id || null}
+              onSelectService={setSelectedService}
+            />
           )}
 
           <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">

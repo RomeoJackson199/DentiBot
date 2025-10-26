@@ -19,6 +19,7 @@ import { ModernLoadingSpinner } from "@/components/enhanced/ModernLoadingSpinner
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Header } from "@/components/homepage/Header";
 import { Footer } from "@/components/homepage/Footer";
+import { ServiceSelector } from "@/components/booking/ServiceSelector";
 
 interface Dentist {
   id: string;
@@ -38,6 +39,7 @@ export default function PublicBooking() {
 
   // Form state
   const [dentists, setDentists] = useState<Dentist[]>([]);
+  const [selectedService, setSelectedService] = useState<any>(null);
   const [selectedDentist, setSelectedDentist] = useState("");
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [selectedTime, setSelectedTime] = useState("");
@@ -175,10 +177,13 @@ export default function PublicBooking() {
         .insert({
           patient_id: profile.id,
           dentist_id: selectedDentist,
+          business_id: effectiveBusinessId,
           appointment_date: appointmentDateTime.toISOString(),
           reason: reason || 'General Consultation',
           status: 'pending',
-          patient_name: `${firstName} ${lastName}`
+          patient_name: `${firstName} ${lastName}`,
+          service_id: selectedService?.id || null,
+          duration_minutes: selectedService?.duration_minutes || 60
         });
 
       if (appointmentError) throw appointmentError;
@@ -248,6 +253,15 @@ export default function PublicBooking() {
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-6">
+                  {/* Service Selection */}
+                  {effectiveBusinessId && (
+                    <ServiceSelector
+                      businessId={effectiveBusinessId}
+                      selectedServiceId={selectedService?.id || null}
+                      onSelectService={setSelectedService}
+                    />
+                  )}
+
                   {/* Patient Information */}
                   <div className="space-y-4">
                     <h3 className="text-lg font-semibold flex items-center">
