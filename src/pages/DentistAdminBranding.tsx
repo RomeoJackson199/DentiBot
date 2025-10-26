@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Palette, Upload, Image as ImageIcon, Briefcase, Package } from "lucide-react";
+import { Loader2, Palette, Upload, Image as ImageIcon, Briefcase, Package, Copy, Check } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { BusinessTemplateSelector } from "@/components/BusinessTemplateSelector";
 import { TemplateType, getTemplateConfig, TemplateFeatures, TemplateTerminology } from "@/lib/businessTemplates";
@@ -29,6 +29,9 @@ export default function DentistAdminBranding() {
   const { businessId, loading: businessLoading } = useBusinessContext();
   const [loading, setLoading] = useState(false);
   const [clinicName, setClinicName] = useState("");
+  const [slug, setSlug] = useState("");
+  const [slugError, setSlugError] = useState("");
+  const [copiedLink, setCopiedLink] = useState(false);
   const [tagline, setTagline] = useState("");
   const [address, setAddress] = useState("");
   const [primaryColor, setPrimaryColor] = useState("#0EA5E9");
@@ -59,7 +62,7 @@ export default function DentistAdminBranding() {
     try {
       const { data: business, error } = await supabase
         .from('businesses')
-        .select('name, tagline, logo_url, primary_color, secondary_color, template_type, ai_system_behavior, ai_greeting, ai_personality_traits')
+        .select('name, slug, tagline, logo_url, primary_color, secondary_color, template_type, ai_system_behavior, ai_greeting, ai_personality_traits')
         .eq('id', businessId)
         .single();
 
@@ -67,6 +70,7 @@ export default function DentistAdminBranding() {
 
       if (business) {
         setClinicName(business.name || "");
+        setSlug(business.slug || "");
         setTagline(business.tagline || "");
         setAddress(""); // Address is not on businesses table
         setPrimaryColor(business.primary_color || "#2D5D7B");
@@ -180,14 +184,69 @@ export default function DentistAdminBranding() {
     }
   };
 
+  const validateSlug = (value: string): boolean => {
+    // Check for invalid characters
+    if (value.includes('/')) {
+      setSlugError("Slug cannot contain forward slashes (/)");
+      return false;
+    }
+    if (value.includes(' ')) {
+      setSlugError("Slug cannot contain spaces");
+      return false;
+    }
+    // Count dots
+    const dotCount = (value.match(/\./g) || []).length;
+    if (dotCount > 1) {
+      setSlugError("Slug can only contain one dot (.)");
+      return false;
+    }
+    setSlugError("");
+    return true;
+  };
+
+  const handleSlugChange = (value: string) => {
+    setSlug(value);
+    validateSlug(value);
+  };
+
+  const copyBusinessLink = async () => {
+    const link = `${window.location.origin}/${slug}`;
+    try {
+      await navigator.clipboard.writeText(link);
+      setCopiedLink(true);
+      toast({
+        title: "Link copied!",
+        description: "Business link copied to clipboard",
+      });
+      setTimeout(() => setCopiedLink(false), 2000);
+    } catch (err) {
+      toast({
+        title: "Failed to copy",
+        description: "Could not copy link to clipboard",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleSaveBranding = async () => {
     if (!businessId) return;
+    
+    // Validate slug before saving
+    if (!validateSlug(slug)) {
+      toast({
+        title: "Invalid Slug",
+        description: slugError,
+        variant: "destructive",
+      });
+      return;
+    }
     
     setLoading(true);
 
     try {
       const updateData: any = {
         name: clinicName,
+        slug: slug,
         tagline: tagline,
         logo_url: logoUrl,
         primary_color: primaryColor,
@@ -457,6 +516,57 @@ export default function DentistAdminBranding() {
                   placeholder="Enter your clinic name"
                 />
               </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="slug">Business URL</Label>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">{window.location.origin}/</span>
+                  <Input
+                    id="slug"
+                    value={slug}
+                    onChange={(e) => handleSlugChange(e.target.value)}
+                    placeholder="your-business-name"
+                    className={slugError ? "border-destructive" : ""}
+                  />
+                </div>
+                {slugError && (
+                  <p className="text-xs text-destructive">{slugError}</p>
+                )}
+                {!slugError && slug && (
+                  <div className="p-3 bg-muted/50 rounded-lg space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-1">Your business link:</p>
+                        <a 
+                          href={`${window.location.origin}/${slug}`} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-sm text-primary hover:underline font-mono"
+                        >
+                          {window.location.origin}/{slug}
+                        </a>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={copyBusinessLink}
+                        className="h-8 w-8 p-0"
+                      >
+                        {copiedLink ? (
+                          <Check className="h-4 w-4 text-green-500" />
+                        ) : (
+                          <Copy className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      ⚠️ Cannot contain spaces or slashes (/) • Maximum one dot (.)
+                    </p>
+                  </div>
+                )}
+              </div>
+              
               <div className="space-y-2">
                 <Label htmlFor="tagline">Tagline</Label>
                 <Input
