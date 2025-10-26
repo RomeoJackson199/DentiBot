@@ -323,18 +323,7 @@ function PatientPortalNavContent({ children }: { children: React.ReactNode }) {
         <div className="flex-1">
           <div className="sticky top-0 z-40 bg-background/80 backdrop-blur border-b px-3 py-2 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <SidebarTrigger className="md:hidden" />
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={toggleSidebar}
-                className="hidden md:inline-flex gap-2"
-                aria-label={state === 'expanded' ? 'Collapse sidebar' : 'Expand sidebar'}
-                title={state === 'expanded' ? 'Collapse sidebar' : 'Expand sidebar'}
-              >
-                <PanelLeft className="h-4 w-4" />
-                <span>{state === 'expanded' ? 'Collapse' : 'Expand'}</span>
-              </Button>
+              <SidebarTrigger aria-label="Toggle sidebar" title="Toggle sidebar" />
             </div>
             <div className="flex items-center gap-6">
               {/* Book Appointment Button - Desktop */}
