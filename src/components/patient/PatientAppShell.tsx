@@ -251,8 +251,43 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
         </nav>
 
         {/* Sidebar Footer */}
-        <div className={cn("absolute bottom-0 left-0 right-0 border-t border-border/50", collapsed ? "p-2" : "p-4")}> 
-          
+        <div className={cn("absolute bottom-0 left-0 right-0 border-t border-border/50", collapsed ? "p-2" : "p-4")}>
+          <div className="flex flex-col gap-2">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={activeSection === 'settings' ? 'default' : 'ghost'}
+                    size={collapsed ? 'icon' : 'default'}
+                    onClick={handleSettingsClick}
+                    className={cn(
+                      "w-full",
+                      collapsed ? "justify-center" : "justify-start gap-3"
+                    )}
+                    aria-label="Settings"
+                  >
+                    <SettingsIcon className="h-5 w-5" />
+                    {!collapsed && <span>Settings</span>}
+                  </Button>
+                </TooltipTrigger>
+                {collapsed && (
+                  <TooltipContent side="right">
+                    <p>Settings</p>
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            </TooltipProvider>
+            
+            <div className="flex items-center gap-2">
+              {!collapsed && (
+                <>
+                  <RoleSwitcher />
+                  <LanguageSelector />
+                  <ModernNotificationCenter userId={userId} />
+                </>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
