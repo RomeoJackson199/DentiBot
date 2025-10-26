@@ -20,57 +20,12 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { 
-  MessageSquare, 
-  Calendar, 
-  Activity, 
-  AlertTriangle,
-  Stethoscope,
-  Clock,
-  BarChart3,
-  User as UserIcon,
-  Shield,
-  Heart,
-  Bell,
-  FileText,
-  Pill,
-  Target,
-  TrendingUp,
-  CheckCircle,
-  XCircle,
-  Loader2,
-  RefreshCw,
-  Plus,
-  Eye,
-  FileImage,
-  ClipboardList as ClipboardListIcon,
-  CreditCard,
-  Settings as SettingsIcon,
-  Home,
-  ChevronRight,
-  ArrowRight,
-  Sparkles,
-  Phone,
-  Video,
-  MessageCircle,
-  CalendarDays,
-  FileCheck,
-  AlertCircle,
-  Zap,
-  Users,
-  BookOpen,
-  HelpCircle
-} from "lucide-react";
+import { MessageSquare, Calendar, Activity, AlertTriangle, Stethoscope, Clock, BarChart3, User as UserIcon, Shield, Heart, Bell, FileText, Pill, Target, TrendingUp, CheckCircle, XCircle, Loader2, RefreshCw, Plus, Eye, FileImage, ClipboardList as ClipboardListIcon, CreditCard, Settings as SettingsIcon, Home, ChevronRight, ArrowRight, Sparkles, Phone, Video, MessageCircle, CalendarDays, FileCheck, AlertCircle, Zap, Users, BookOpen, HelpCircle } from "lucide-react";
 // Icons imported for patient dashboard navigation
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { MobileOptimizations } from "@/components/mobile/MobileOptimizations";
-import { 
-  Prescription, 
-  TreatmentPlan, 
-  MedicalRecord, 
-  PatientNote 
-} from "@/types/dental";
+import { Prescription, TreatmentPlan, MedicalRecord, PatientNote } from "@/types/dental";
 import { Appointment, UserProfile } from "@/types/common";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -82,11 +37,9 @@ import { PaymentsTab } from "@/components/patient/PaymentsTab";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { AppointmentBooking } from "@/components/AppointmentBooking";
 import Messages from "@/pages/Messages";
-
 interface PatientDashboardProps {
   user: User;
 }
-
 interface PatientStats {
   upcomingAppointments: number;
   completedAppointments: number;
@@ -98,46 +51,82 @@ interface PatientStats {
 }
 
 // Navigation items with better organization
-const navigationItems = [
-  {
-    group: "Overview",
-    items: [
-      { id: 'overview', label: 'Dashboard', icon: Home, badge: null },
-      { id: 'chat', label: 'AI Assistant', icon: MessageSquare, badge: 'AI' }
-    ]
-  },
-  {
-    group: "Appointments",
-    items: [
-      { id: 'appointments', label: 'My Appointments', icon: Calendar, badge: null },
-      { id: 'emergency', label: 'Emergency Care', icon: AlertTriangle, badge: '!' }
-    ]
-  },
-  {
-    group: "Health Records",
-    items: [
-      { id: 'prescriptions', label: 'Prescriptions', icon: Pill, badge: null },
-      { id: 'treatment', label: 'Treatment Plans', icon: ClipboardListIcon, badge: null },
-      { id: 'records', label: 'Medical Records', icon: FileText, badge: null },
-      { id: 'notes', label: 'Clinical Notes', icon: FileCheck, badge: null }
-    ]
-  },
-  {
-    group: "Financial",
-    items: [
-      { id: 'payments', label: 'Payment History', icon: CreditCard, badge: null },
-      { id: 'analytics', label: 'Health Analytics', icon: BarChart3, badge: null }
-    ]
-  }
-];
-
-export const PatientDashboard = ({ user }: PatientDashboardProps) => {
-  const { t } = useLanguage();
-  const { toast } = useToast();
+const navigationItems = [{
+  group: "Overview",
+  items: [{
+    id: 'overview',
+    label: 'Dashboard',
+    icon: Home,
+    badge: null
+  }, {
+    id: 'chat',
+    label: 'AI Assistant',
+    icon: MessageSquare,
+    badge: 'AI'
+  }]
+}, {
+  group: "Appointments",
+  items: [{
+    id: 'appointments',
+    label: 'My Appointments',
+    icon: Calendar,
+    badge: null
+  }, {
+    id: 'emergency',
+    label: 'Emergency Care',
+    icon: AlertTriangle,
+    badge: '!'
+  }]
+}, {
+  group: "Health Records",
+  items: [{
+    id: 'prescriptions',
+    label: 'Prescriptions',
+    icon: Pill,
+    badge: null
+  }, {
+    id: 'treatment',
+    label: 'Treatment Plans',
+    icon: ClipboardListIcon,
+    badge: null
+  }, {
+    id: 'records',
+    label: 'Medical Records',
+    icon: FileText,
+    badge: null
+  }, {
+    id: 'notes',
+    label: 'Clinical Notes',
+    icon: FileCheck,
+    badge: null
+  }]
+}, {
+  group: "Financial",
+  items: [{
+    id: 'payments',
+    label: 'Payment History',
+    icon: CreditCard,
+    badge: null
+  }, {
+    id: 'analytics',
+    label: 'Health Analytics',
+    icon: BarChart3,
+    badge: null
+  }]
+}];
+export const PatientDashboard = ({
+  user
+}: PatientDashboardProps) => {
+  const {
+    t
+  } = useLanguage();
+  const {
+    toast
+  } = useToast();
   type Tab = 'overview' | 'chat' | 'appointments' | 'prescriptions' | 'treatment' | 'records' | 'notes' | 'payments' | 'analytics' | 'emergency' | 'test';
   const [activeTab, setActiveTab] = useState<Tab>(() => {
     try {
-      return (localStorage.getItem('pd_tab') as Tab) || 'overview';
+      return localStorage.getItem('pd_tab') as Tab || 'overview';
     } catch {
       return 'overview';
     }
@@ -163,7 +152,7 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
   const [isMobile, setIsMobile] = useState(false);
   const [activeSection, setActiveSection] = useState<PatientSection>(() => {
     try {
-      return (localStorage.getItem('pd_section') as PatientSection) || 'home';
+      return localStorage.getItem('pd_section') as PatientSection || 'home';
     } catch {
       return 'home';
     }
@@ -172,35 +161,26 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
   // Subscribe to real-time updates for medical records
   useEffect(() => {
     if (!userProfile?.id) return;
+    const channel = supabase.channel('medical-records-updates').on('postgres_changes', {
+      event: 'INSERT',
+      schema: 'public',
+      table: 'medical_records',
+      filter: `patient_id=eq.${userProfile.id}`
+    }, payload => {
+      console.log('New medical record created:', payload);
+      // Add the new medical record to the list
+      const newRecord = {
+        ...payload.new,
+        visit_date: payload.new.record_date
+      } as MedicalRecord;
+      setMedicalRecords(prev => [newRecord, ...prev]);
 
-    const channel = supabase
-      .channel('medical-records-updates')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'medical_records',
-          filter: `patient_id=eq.${userProfile.id}`,
-        },
-        (payload) => {
-          console.log('New medical record created:', payload);
-          // Add the new medical record to the list
-          const newRecord = {
-            ...payload.new,
-            visit_date: payload.new.record_date
-          } as MedicalRecord;
-          setMedicalRecords(prev => [newRecord, ...prev]);
-          
-          // Show a toast notification
-          toast({
-            title: "New Medical Record",
-            description: "A new medical record has been added to your file.",
-          });
-        }
-      )
-      .subscribe();
-
+      // Show a toast notification
+      toast({
+        title: "New Medical Record",
+        description: "A new medical record has been added to your file."
+      });
+    }).subscribe();
     return () => {
       supabase.removeChannel(channel);
     };
@@ -217,12 +197,10 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
-
   const handleEmergencyComplete = (urgency: 'low' | 'medium' | 'high' | 'emergency') => {
     setActiveTab('chat');
     setTriggerBooking(urgency);
   };
-
   useEffect(() => {
     try {
       localStorage.setItem('pd_tab', activeTab);
@@ -230,7 +208,6 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
       // Handle localStorage errors silently
     }
   }, [activeTab, user.id]);
-
   useEffect(() => {
     try {
       localStorage.setItem('pd_section', activeSection);
@@ -238,45 +215,38 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
       void 0;
     }
   }, [activeSection]);
-
   const fetchUserProfile = async () => {
     try {
       setLoading(true);
-      const { data: profile, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
+      const {
+        data: profile,
+        error
+      } = await supabase.from('profiles').select('*').eq('user_id', user.id).maybeSingle();
       if (error) {
         console.error('Error fetching user profile:', error);
         setError(`Database error: ${error.message}`);
         return;
       }
-
       if (!profile) {
         // No profile exists for this user - create a basic one or handle gracefully
         console.warn('No profile found for user, creating basic profile...');
-        
-        // Try to create a basic profile from user data
-        const { data: newProfile, error: createError } = await supabase
-          .from('profiles')
-          .insert({
-            user_id: user.id,
-            email: user.email || '',
-            first_name: user.user_metadata?.first_name || '',
-            last_name: user.user_metadata?.last_name || '',
-            role: 'patient'
-          })
-          .select()
-          .single();
 
+        // Try to create a basic profile from user data
+        const {
+          data: newProfile,
+          error: createError
+        } = await supabase.from('profiles').insert({
+          user_id: user.id,
+          email: user.email || '',
+          first_name: user.user_metadata?.first_name || '',
+          last_name: user.user_metadata?.last_name || '',
+          role: 'patient'
+        }).select().single();
         if (createError) {
           console.error('Error creating profile:', createError);
           setError(`Failed to create user profile: ${createError.message}`);
           return;
         }
-
         setUserProfile(newProfile);
       } else {
         setUserProfile(profile);
@@ -288,49 +258,32 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
       setLoading(false);
     }
   };
-
   const fetchPatientStats = async (profileId: string) => {
     try {
       // Fetch appointments
-      const { data: appointmentsData } = await supabase
-        .from('appointments')
-        .select('*')
-        .eq('patient_id', profileId);
-
-      const upcomingAppointments = appointmentsData?.filter(apt => 
-        new Date(apt.appointment_date) > new Date() && apt.status === 'confirmed'
-      ).length || 0;
-
-      const completedAppointments = appointmentsData?.filter(apt => 
-        apt.status === 'completed'
-      ).length || 0;
-
-      const lastVisit = appointmentsData?.filter(apt => 
-        apt.status === 'completed'
-      ).sort((a, b) => new Date(b.appointment_date).getTime() - new Date(a.appointment_date).getTime())[0]?.appointment_date || null;
+      const {
+        data: appointmentsData
+      } = await supabase.from('appointments').select('*').eq('patient_id', profileId);
+      const upcomingAppointments = appointmentsData?.filter(apt => new Date(apt.appointment_date) > new Date() && apt.status === 'confirmed').length || 0;
+      const completedAppointments = appointmentsData?.filter(apt => apt.status === 'completed').length || 0;
+      const lastVisit = appointmentsData?.filter(apt => apt.status === 'completed').sort((a, b) => new Date(b.appointment_date).getTime() - new Date(a.appointment_date).getTime())[0]?.appointment_date || null;
 
       // Fetch prescriptions
-      const { data: prescriptionsData } = await supabase
-        .from('prescriptions')
-        .select('*')
-        .eq('patient_id', profileId);
-
+      const {
+        data: prescriptionsData
+      } = await supabase.from('prescriptions').select('*').eq('patient_id', profileId);
       const activePrescriptions = prescriptionsData?.filter(p => p.status === 'active').length || 0;
 
       // Fetch treatment plans
-      const { data: treatmentPlansData } = await supabase
-        .from('treatment_plans')
-        .select('*')
-        .eq('patient_id', profileId);
-
+      const {
+        data: treatmentPlansData
+      } = await supabase.from('treatment_plans').select('*').eq('patient_id', profileId);
       const activeTreatmentPlans = treatmentPlansData?.filter(tp => tp.status === 'active').length || 0;
 
       // Fetch patient notes
-      const { data: notesData } = await supabase
-        .from('patient_notes')
-        .select('*')
-        .eq('patient_id', profileId);
-
+      const {
+        data: notesData
+      } = await supabase.from('patient_notes').select('*').eq('patient_id', profileId);
       setPatientStats({
         upcomingAppointments,
         completedAppointments,
@@ -344,31 +297,27 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
       console.error('Error fetching patient stats:', error);
     }
   };
-
   const fetchRecentAppointments = async (profileId: string) => {
     try {
       console.log('🔍 Fetching appointments for profile:', profileId);
-      const { data: appointmentsData, error } = await supabase
-        .from('appointments')
-        .select(`
+      const {
+        data: appointmentsData,
+        error
+      } = await supabase.from('appointments').select(`
           *,
           dentists:dentist_id(
             specialization,
             profiles:profile_id(first_name, last_name)
           )
-        `)
-        .eq('patient_id', profileId)
-        .order('appointment_date', { ascending: false })
-        .limit(5);
-
+        `).eq('patient_id', profileId).order('appointment_date', {
+        ascending: false
+      }).limit(5);
       if (error) {
         console.error('❌ Error fetching appointments:', error);
         return;
       }
-
       console.log('✅ Raw appointments data:', appointmentsData);
       console.log('📊 Number of appointments:', appointmentsData?.length || 0);
-
       const transformed = (appointmentsData || []).map(apt => ({
         ...apt,
         duration: apt.duration_minutes || 60,
@@ -381,74 +330,67 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
           specialization: apt.dentists.specialization
         } : undefined
       }));
-
       console.log('📋 Transformed appointments:', transformed);
       setRecentAppointments(transformed);
     } catch (error) {
       console.error('💥 Exception fetching recent appointments:', error);
     }
   };
-
   const fetchPatientData = async (profileId: string) => {
     try {
       // Fetch prescriptions
-      const { data: prescriptionsData } = await supabase
-        .from('prescriptions')
-        .select('*')
-        .eq('patient_id', profileId)
-        .order('prescribed_date', { ascending: false });
-
-       setPrescriptions((prescriptionsData || []).map(prescription => ({
-         ...prescription,
-         duration: prescription.duration_days?.toString() || "7 days"
-       })));
+      const {
+        data: prescriptionsData
+      } = await supabase.from('prescriptions').select('*').eq('patient_id', profileId).order('prescribed_date', {
+        ascending: false
+      });
+      setPrescriptions((prescriptionsData || []).map(prescription => ({
+        ...prescription,
+        duration: prescription.duration_days?.toString() || "7 days"
+      })));
 
       // Fetch treatment plans
-      const { data: treatmentPlansData } = await supabase
-        .from('treatment_plans')
-        .select('*')
-        .eq('patient_id', profileId)
-        .order('created_at', { ascending: false });
-
-       setTreatmentPlans((treatmentPlansData || []).map(plan => ({
-         ...plan,
-         title: plan.title || "Treatment Plan",
-         estimated_duration: plan.estimated_duration_weeks ? `${plan.estimated_duration_weeks} weeks` : "2 weeks"
-       })));
+      const {
+        data: treatmentPlansData
+      } = await supabase.from('treatment_plans').select('*').eq('patient_id', profileId).order('created_at', {
+        ascending: false
+      });
+      setTreatmentPlans((treatmentPlansData || []).map(plan => ({
+        ...plan,
+        title: plan.title || "Treatment Plan",
+        estimated_duration: plan.estimated_duration_weeks ? `${plan.estimated_duration_weeks} weeks` : "2 weeks"
+      })));
 
       // Fetch medical records
-      const { data: medicalRecordsData } = await supabase
-        .from('medical_records')
-        .select('*')
-        .eq('patient_id', profileId)
-        .order('record_date', { ascending: false });
-
-       setMedicalRecords((medicalRecordsData || []).map(record => ({
-         ...record,
-         visit_date: record.record_date
-       })));
+      const {
+        data: medicalRecordsData
+      } = await supabase.from('medical_records').select('*').eq('patient_id', profileId).order('record_date', {
+        ascending: false
+      });
+      setMedicalRecords((medicalRecordsData || []).map(record => ({
+        ...record,
+        visit_date: record.record_date
+      })));
 
       // Fetch patient notes
-      const { data: notesData } = await supabase
-        .from('patient_notes')
-        .select('*')
-        .eq('patient_id', profileId)
-        .order('created_at', { ascending: false });
-
+      const {
+        data: notesData
+      } = await supabase.from('patient_notes').select('*').eq('patient_id', profileId).order('created_at', {
+        ascending: false
+      });
       setPatientNotes(notesData || []);
     } catch (error) {
       console.error('Error fetching patient data:', error);
     }
   };
-
   const fetchTotalDue = useCallback(async (profileId: string) => {
     try {
-      const { data, error } = await supabase
-        .from('payment_requests')
-        .select('amount,status')
-        .eq('patient_id', profileId);
+      const {
+        data,
+        error
+      } = await supabase.from('payment_requests').select('amount,status').eq('patient_id', profileId);
       if (error) throw error;
-      const openStatuses = new Set(['pending','overdue']);
+      const openStatuses = new Set(['pending', 'overdue']);
       const total = (data || []).filter(r => openStatuses.has(r.status)).reduce((sum, r: any) => sum + (r.amount || 0), 0);
       setTotalDueCents(total);
     } catch (e) {
@@ -461,11 +403,9 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
   const fetchPatientStatsCallback = useCallback(fetchPatientStats, []);
   const fetchRecentAppointmentsCallback = useCallback(fetchRecentAppointments, []);
   const fetchPatientDataCallback = useCallback(fetchPatientData, []);
-
   useEffect(() => {
     fetchUserProfileCallback();
   }, [fetchUserProfileCallback]);
-
   useEffect(() => {
     if (userProfile?.id) {
       fetchPatientStatsCallback(userProfile.id);
@@ -474,14 +414,12 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
       fetchTotalDue(userProfile.id);
     }
   }, [userProfile?.id, fetchPatientStatsCallback, fetchRecentAppointmentsCallback, fetchPatientDataCallback, fetchTotalDue]);
-
   const getWelcomeMessage = () => {
     const hour = new Date().getHours();
     if (hour < 12) return "Good morning";
     if (hour < 18) return "Good afternoon";
     return "Good evening";
   };
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -489,32 +427,32 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
       day: 'numeric'
     });
   };
-
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'confirmed': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400';
-      case 'pending': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400';
-      case 'cancelled': return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400';
-      case 'completed': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400';
-      case 'active': return 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400';
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400';
+      case 'confirmed':
+        return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400';
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400';
+      case 'cancelled':
+        return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400';
+      case 'completed':
+        return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400';
+      case 'active':
+        return 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400';
+      default:
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400';
     }
   };
-
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
+    return <div className="flex items-center justify-center h-screen">
         <div className="flex flex-col items-center space-y-4">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
           <p className="text-muted-foreground">Loading your dashboard...</p>
         </div>
-      </div>
-    );
+      </div>;
   }
-
   if (error) {
-    return (
-      <div className="flex items-center justify-center h-screen">
+    return <div className="flex items-center justify-center h-screen">
         <Card className="max-w-md w-full">
           <CardContent className="pt-6">
             <div className="text-center">
@@ -528,30 +466,23 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
             </div>
           </CardContent>
         </Card>
-      </div>
-    );
+      </div>;
   }
-
   const nextAppointment = (() => {
     const now = new Date();
     console.log('⏰ Computing next appointment. Current time:', now.toISOString());
     console.log('📅 Recent appointments count:', recentAppointments.length);
-    
-    const filtered = [...recentAppointments]
-      .filter(a => {
-        const aptDate = new Date(a.appointment_date);
-        const isFuture = aptDate > now;
-        const hasValidStatus = ['confirmed','scheduled','pending'].includes(a.status);
-        console.log(`  - ${a.id}: ${aptDate.toISOString()} (future: ${isFuture}, status: ${a.status}, valid: ${hasValidStatus})`);
-        return isFuture && hasValidStatus;
-      })
-      .sort((a,b) => new Date(a.appointment_date).getTime() - new Date(b.appointment_date).getTime());
-    
+    const filtered = [...recentAppointments].filter(a => {
+      const aptDate = new Date(a.appointment_date);
+      const isFuture = aptDate > now;
+      const hasValidStatus = ['confirmed', 'scheduled', 'pending'].includes(a.status);
+      console.log(`  - ${a.id}: ${aptDate.toISOString()} (future: ${isFuture}, status: ${a.status}, valid: ${hasValidStatus})`);
+      return isFuture && hasValidStatus;
+    }).sort((a, b) => new Date(a.appointment_date).getTime() - new Date(b.appointment_date).getTime());
     const next = filtered[0] || null;
     console.log('🎯 Next appointment:', next?.id || 'none');
     return next;
   })();
-
   const carePlans: CareItem[] = treatmentPlans.map(tp => ({
     id: tp.id,
     type: 'plan',
@@ -559,7 +490,7 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
     subtitle: tp.description || undefined,
     date: tp.start_date,
     status: tp.status,
-    data: tp,
+    data: tp
   }));
   const carePrescriptions: CareItem[] = prescriptions.map(p => ({
     id: p.id,
@@ -568,7 +499,7 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
     subtitle: `${p.dosage} • ${p.frequency}`,
     date: p.prescribed_date,
     status: p.status,
-    data: p,
+    data: p
   }));
   const careVisits: CareItem[] = recentAppointments.map(a => ({
     id: a.id,
@@ -577,7 +508,7 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
     subtitle: a.status,
     date: a.appointment_date,
     status: a.status,
-    data: a,
+    data: a
   }));
   const careRecords: CareItem[] = medicalRecords.map(r => ({
     id: r.id,
@@ -586,100 +517,53 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
     subtitle: r.record_type,
     date: r.record_date,
     status: undefined,
-    data: r,
+    data: r
   }));
-
   const badges = {
     home: false,
     assistant: false,
     care: patientStats.activePrescriptions > 0 || patientStats.activeTreatmentPlans > 0,
     appointments: patientStats.upcomingAppointments > 0,
     payments: totalDueCents > 0,
-    settings: !userProfile?.first_name || !userProfile?.last_name,
+    settings: !userProfile?.first_name || !userProfile?.last_name
     // messages functionality removed
   } as Record<PatientSection, boolean>;
+  return <PatientAppShell activeSection={activeSection} onChangeSection={setActiveSection} badges={badges} userId={user.id} onBookAppointment={() => setActiveSection('assistant')}>
+      {activeSection === 'home' && <HomeTab userId={user.id} firstName={userProfile?.first_name} nextAppointment={nextAppointment ? {
+      id: nextAppointment.id,
+      date: new Date(nextAppointment.appointment_date).toLocaleDateString(),
+      time: new Date(nextAppointment.appointment_date).toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit'
+      }),
+      dentistName: undefined,
+      status: nextAppointment.status
+    } : null} activePrescriptions={patientStats.activePrescriptions} activeTreatmentPlans={patientStats.activeTreatmentPlans} totalDueCents={totalDueCents} onNavigateTo={s => setActiveSection(s)} onOpenAssistant={() => setActiveSection('assistant')} onBookAppointment={() => setActiveSection('assistant')} />}
 
-  return (
-    <PatientAppShell
-      activeSection={activeSection}
-      onChangeSection={setActiveSection}
-      badges={badges}
-      userId={user.id}
-      onBookAppointment={() => setActiveSection('assistant')}
-    >
-      {activeSection === 'home' && (
-        <HomeTab
-          userId={user.id}
-          firstName={userProfile?.first_name}
-          nextAppointment={nextAppointment ? {
-            id: nextAppointment.id,
-            date: new Date(nextAppointment.appointment_date).toLocaleDateString(),
-            time: new Date(nextAppointment.appointment_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            dentistName: undefined,
-            status: nextAppointment.status,
-          } : null}
-          activePrescriptions={patientStats.activePrescriptions}
-          activeTreatmentPlans={patientStats.activeTreatmentPlans}
-          totalDueCents={totalDueCents}
-          onNavigateTo={(s) => setActiveSection(s)}
-          onOpenAssistant={() => setActiveSection('assistant')}
-          onBookAppointment={() => setActiveSection('assistant')}
-        />
-      )}
-
-      {activeSection === 'assistant' && (
-        <div className="px-4 md:px-6 py-4">
+      {activeSection === 'assistant' && <div className="px-4 md:px-6 py-4">
           <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">AI Dental Assistant</CardTitle>
-            </CardHeader>
+            
             <CardContent>
               <div className="h-[70vh]">
                 <InteractiveDentalChat user={user} triggerBooking={triggerBooking} />
               </div>
             </CardContent>
           </Card>
-        </div>
-      )}
+        </div>}
 
-      {activeSection === 'messages' && (
-        <Messages />
-      )}
+      {activeSection === 'messages' && <Messages />}
 
-      {activeSection === 'care' && (
-        <CareTab
-          plans={carePlans}
-          prescriptions={carePrescriptions}
-          visits={careVisits}
-          records={careRecords}
-          user={user}
-          patientId={userProfile?.id || null}
-          onReschedule={() => setShowBooking(true)}
-        />
-      )}
+      {activeSection === 'care' && <CareTab plans={carePlans} prescriptions={carePrescriptions} visits={careVisits} records={careRecords} user={user} patientId={userProfile?.id || null} onReschedule={() => setShowBooking(true)} />}
 
-      {activeSection === 'appointments' && (
-        <AppointmentsTab 
-          user={user} 
-          onOpenAssistant={() => setActiveSection('assistant')}
-        />
-      )}
+      {activeSection === 'appointments' && <AppointmentsTab user={user} onOpenAssistant={() => setActiveSection('assistant')} />}
 
-      {activeSection === 'payments' && userProfile?.id && (
-        <PaymentsTab patientId={userProfile.id} totalDueCents={totalDueCents} />
-      )}
+      {activeSection === 'payments' && userProfile?.id && <PaymentsTab patientId={userProfile.id} totalDueCents={totalDueCents} />}
 
-      {activeSection === 'settings' && (
-        <div className="px-4 md:px-6 py-4">
+      {activeSection === 'settings' && <div className="px-4 md:px-6 py-4">
           <div className="mb-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-3">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setActiveSection('home')}
-                  className="hover:bg-muted/50"
-                >
+                <Button variant="ghost" size="sm" onClick={() => setActiveSection('home')} className="hover:bg-muted/50">
                   <ChevronRight className="h-4 w-4 rotate-180 mr-2" />
                   Back to Home
                 </Button>
@@ -692,8 +576,7 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
             <p className="text-muted-foreground">Manage your account preferences and personal information</p>
           </div>
           <ModernSettings user={user} />
-        </div>
-      )}
+        </div>}
 
       <Dialog open={showAssistant} onOpenChange={setShowAssistant}>
         <DialogContent className="p-0 max-w-3xl w-full">
@@ -706,20 +589,23 @@ export const PatientDashboard = ({ user }: PatientDashboardProps) => {
       <Dialog open={showBooking} onOpenChange={setShowBooking}>
         <DialogContent className="p-0 max-w-4xl w-full">
           <div className="h-[85vh] overflow-auto">
-            <AppointmentBooking
-              user={user}
-              onCancel={() => setShowBooking(false)}
-              onComplete={() => setShowBooking(false)}
-            />
+            <AppointmentBooking user={user} onCancel={() => setShowBooking(false)} onComplete={() => setShowBooking(false)} />
           </div>
         </DialogContent>
       </Dialog>
-    </PatientAppShell>
-  );
+    </PatientAppShell>;
 };
 
 // Helper components for the new structure
-const DashboardOverview = ({ userProfile, patientStats, recentAppointments, getWelcomeMessage, formatDate, getStatusColor, setActiveTab }: {
+const DashboardOverview = ({
+  userProfile,
+  patientStats,
+  recentAppointments,
+  getWelcomeMessage,
+  formatDate,
+  getStatusColor,
+  setActiveTab
+}: {
   userProfile: UserProfile | null;
   patientStats: PatientStats;
   recentAppointments: Appointment[];
@@ -727,12 +613,10 @@ const DashboardOverview = ({ userProfile, patientStats, recentAppointments, getW
   formatDate: (dateString: string) => string;
   getStatusColor: (status: string) => string;
   setActiveTab: (tab: any) => void;
-}) => (
-  <div className="space-y-6">
+}) => <div className="space-y-6">
     {/* Quick Actions */}
     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-      <Card className="group hover:shadow-lg transition-all duration-300 cursor-pointer border-primary/20 hover:border-primary/40"
-            onClick={() => setActiveTab('appointments')}>
+      <Card className="group hover:shadow-lg transition-all duration-300 cursor-pointer border-primary/20 hover:border-primary/40" onClick={() => setActiveTab('appointments')}>
         <CardContent className="p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="p-3 bg-primary/10 rounded-lg group-hover:bg-primary/20 transition-colors">
@@ -745,8 +629,7 @@ const DashboardOverview = ({ userProfile, patientStats, recentAppointments, getW
         </CardContent>
       </Card>
 
-      <Card className="group hover:shadow-lg transition-all duration-300 cursor-pointer border-emerald-500/20 hover:border-emerald-500/40"
-            onClick={() => setActiveTab('chat')}>
+      <Card className="group hover:shadow-lg transition-all duration-300 cursor-pointer border-emerald-500/20 hover:border-emerald-500/40" onClick={() => setActiveTab('chat')}>
         <CardContent className="p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="p-3 bg-emerald-500/10 rounded-lg group-hover:bg-emerald-500/20 transition-colors">
@@ -759,24 +642,20 @@ const DashboardOverview = ({ userProfile, patientStats, recentAppointments, getW
         </CardContent>
       </Card>
 
-      <Card className="group hover:shadow-lg transition-all duration-300 cursor-pointer border-orange-500/20 hover:border-orange-500/40"
-            onClick={() => setActiveTab('prescriptions')}>
+      <Card className="group hover:shadow-lg transition-all duration-300 cursor-pointer border-orange-500/20 hover:border-orange-500/40" onClick={() => setActiveTab('prescriptions')}>
         <CardContent className="p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="p-3 bg-orange-500/10 rounded-lg group-hover:bg-orange-500/20 transition-colors">
               <Pill className="h-6 w-6 text-orange-500" />
             </div>
-            {patientStats.activePrescriptions > 0 && (
-              <Badge className="bg-orange-100 text-orange-700">{patientStats.activePrescriptions}</Badge>
-            )}
+            {patientStats.activePrescriptions > 0 && <Badge className="bg-orange-100 text-orange-700">{patientStats.activePrescriptions}</Badge>}
           </div>
           <h3 className="font-semibold mb-1">Prescriptions</h3>
           <p className="text-sm text-muted-foreground">View active medications</p>
         </CardContent>
       </Card>
 
-      <Card className="group hover:shadow-lg transition-all duration-300 cursor-pointer border-red-500/20 hover:border-red-500/40"
-            onClick={() => setActiveTab('emergency')}>
+      <Card className="group hover:shadow-lg transition-all duration-300 cursor-pointer border-red-500/20 hover:border-red-500/40" onClick={() => setActiveTab('emergency')}>
         <CardContent className="p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="p-3 bg-red-500/10 rounded-lg group-hover:bg-red-500/20 transition-colors">
@@ -798,11 +677,9 @@ const DashboardOverview = ({ userProfile, patientStats, recentAppointments, getW
             <div>
               <p className="text-sm font-medium text-muted-foreground">Upcoming Appointments</p>
               <p className="text-3xl font-bold mt-2">{patientStats.upcomingAppointments}</p>
-              {patientStats.lastVisit && (
-                <p className="text-xs text-muted-foreground mt-2">
+              {patientStats.lastVisit && <p className="text-xs text-muted-foreground mt-2">
                   Last visit: {formatDate(patientStats.lastVisit)}
-                </p>
-              )}
+                </p>}
             </div>
             <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-full">
               <CalendarDays className="h-6 w-6 text-blue-600 dark:text-blue-400" />
@@ -879,41 +756,32 @@ const DashboardOverview = ({ userProfile, patientStats, recentAppointments, getW
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {recentAppointments.slice(0, 3).map((appointment) => (
-              <div key={appointment.id} className="flex items-center justify-between p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
+            {recentAppointments.slice(0, 3).map(appointment => <div key={appointment.id} className="flex items-center justify-between p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
                 <div className="flex items-center space-x-4">
-                  <div className={cn("h-10 w-10 rounded-full flex items-center justify-center",
-                    appointment.status === 'completed' ? 'bg-blue-100 dark:bg-blue-900/30' :
-                    appointment.status === 'confirmed' ? 'bg-green-100 dark:bg-green-900/30' :
-                    'bg-yellow-100 dark:bg-yellow-900/30'
-                  )}>
-                    <Calendar className={cn("h-5 w-5",
-                      appointment.status === 'completed' ? 'text-blue-600 dark:text-blue-400' :
-                      appointment.status === 'confirmed' ? 'text-green-600 dark:text-green-400' :
-                      'text-yellow-600 dark:text-yellow-400'
-                    )} />
+                  <div className={cn("h-10 w-10 rounded-full flex items-center justify-center", appointment.status === 'completed' ? 'bg-blue-100 dark:bg-blue-900/30' : appointment.status === 'confirmed' ? 'bg-green-100 dark:bg-green-900/30' : 'bg-yellow-100 dark:bg-yellow-900/30')}>
+                    <Calendar className={cn("h-5 w-5", appointment.status === 'completed' ? 'text-blue-600 dark:text-blue-400' : appointment.status === 'confirmed' ? 'text-green-600 dark:text-green-400' : 'text-yellow-600 dark:text-yellow-400')} />
                   </div>
                   <div>
                     <p className="font-medium">{appointment.reason || 'General Checkup'}</p>
                     <p className="text-sm text-muted-foreground">
-                      {formatDate(appointment.appointment_date)} at {new Date(appointment.appointment_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      {formatDate(appointment.appointment_date)} at {new Date(appointment.appointment_date).toLocaleTimeString([], {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
                     </p>
                   </div>
                 </div>
                 <Badge className={getStatusColor(appointment.status)}>
                   {appointment.status}
                 </Badge>
-              </div>
-            ))}
-            {recentAppointments.length === 0 && (
-              <div className="text-center py-8">
+              </div>)}
+            {recentAppointments.length === 0 && <div className="text-center py-8">
                 <Calendar className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
                 <p className="text-muted-foreground">No appointments yet</p>
                 <Button className="mt-4" onClick={() => setActiveTab('appointments')}>
                   Book Your First Appointment
                 </Button>
-              </div>
-            )}
+              </div>}
           </div>
         </CardContent>
       </Card>
@@ -963,21 +831,21 @@ const DashboardOverview = ({ userProfile, patientStats, recentAppointments, getW
         </CardContent>
       </Card>
     </div>
-  </div>
-);
-
-const PrescriptionsView = ({ prescriptions, formatDate, getStatusColor }: {
+  </div>;
+const PrescriptionsView = ({
+  prescriptions,
+  formatDate,
+  getStatusColor
+}: {
   prescriptions: Prescription[];
   formatDate: (dateString: string) => string;
   getStatusColor: (status: string) => string;
-}) => (
-  <div className="space-y-4">
+}) => <div className="space-y-4">
     <div className="flex justify-between items-center">
       <h3 className="text-lg font-semibold">Your Prescriptions</h3>
     </div>
     <div className="space-y-2">
-      {prescriptions.map((prescription) => (
-        <Card key={prescription.id}>
+      {prescriptions.map(prescription => <Card key={prescription.id}>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
@@ -1002,31 +870,28 @@ const PrescriptionsView = ({ prescriptions, formatDate, getStatusColor }: {
               </div>
             </div>
           </CardContent>
-        </Card>
-      ))}
-      {prescriptions.length === 0 && (
-        <div className="text-center py-8">
+        </Card>)}
+      {prescriptions.length === 0 && <div className="text-center py-8">
           <Pill className="h-12 w-12 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">No prescriptions</h3>
           <p className="text-gray-600">You don't have any prescriptions yet.</p>
-        </div>
-      )}
+        </div>}
     </div>
-  </div>
-);
-
-const TreatmentPlansView = ({ treatmentPlans, formatDate, getStatusColor }: {
+  </div>;
+const TreatmentPlansView = ({
+  treatmentPlans,
+  formatDate,
+  getStatusColor
+}: {
   treatmentPlans: TreatmentPlan[];
   formatDate: (dateString: string) => string;
   getStatusColor: (status: string) => string;
-}) => (
-  <div className="space-y-4">
+}) => <div className="space-y-4">
     <div className="flex justify-between items-center">
       <h3 className="text-lg font-semibold">Your Treatment Plans</h3>
     </div>
     <div className="space-y-2">
-      {treatmentPlans.map((plan) => (
-        <Card key={plan.id}>
+      {treatmentPlans.map(plan => <Card key={plan.id}>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
@@ -1049,30 +914,26 @@ const TreatmentPlansView = ({ treatmentPlans, formatDate, getStatusColor }: {
               </div>
             </div>
           </CardContent>
-        </Card>
-      ))}
-      {treatmentPlans.length === 0 && (
-        <div className="text-center py-8">
+        </Card>)}
+      {treatmentPlans.length === 0 && <div className="text-center py-8">
           <ClipboardListIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">No treatment plans</h3>
           <p className="text-gray-600">You don't have any treatment plans yet.</p>
-        </div>
-      )}
+        </div>}
     </div>
-  </div>
-);
-
-const MedicalRecordsView = ({ medicalRecords, formatDate }: {
+  </div>;
+const MedicalRecordsView = ({
+  medicalRecords,
+  formatDate
+}: {
   medicalRecords: MedicalRecord[];
   formatDate: (dateString: string) => string;
-}) => (
-  <div className="space-y-4">
+}) => <div className="space-y-4">
     <div className="flex justify-between items-center">
       <h3 className="text-lg font-semibold">Your Medical Records</h3>
     </div>
     <div className="space-y-2">
-      {medicalRecords.map((record) => (
-        <Card key={record.id}>
+      {medicalRecords.map(record => <Card key={record.id}>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
@@ -1092,30 +953,26 @@ const MedicalRecordsView = ({ medicalRecords, formatDate }: {
               </div>
             </div>
           </CardContent>
-        </Card>
-      ))}
-      {medicalRecords.length === 0 && (
-        <div className="text-center py-8">
+        </Card>)}
+      {medicalRecords.length === 0 && <div className="text-center py-8">
           <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">No medical records</h3>
           <p className="text-gray-600">You don't have any medical records yet.</p>
-        </div>
-      )}
+        </div>}
     </div>
-  </div>
-);
-
-const PatientNotesView = ({ patientNotes, formatDate }: {
+  </div>;
+const PatientNotesView = ({
+  patientNotes,
+  formatDate
+}: {
   patientNotes: PatientNote[];
   formatDate: (dateString: string) => string;
-}) => (
-  <div className="space-y-4">
+}) => <div className="space-y-4">
     <div className="flex justify-between items-center">
       <h3 className="text-lg font-semibold">Your Notes</h3>
     </div>
     <div className="space-y-2">
-      {patientNotes.map((note) => (
-        <Card key={note.id}>
+      {patientNotes.map(note => <Card key={note.id}>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
@@ -1135,15 +992,11 @@ const PatientNotesView = ({ patientNotes, formatDate }: {
               </div>
             </div>
           </CardContent>
-        </Card>
-      ))}
-      {patientNotes.length === 0 && (
-        <div className="text-center py-8">
+        </Card>)}
+      {patientNotes.length === 0 && <div className="text-center py-8">
           <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">No notes</h3>
           <p className="text-gray-600">You don't have any notes yet.</p>
-        </div>
-      )}
+        </div>}
     </div>
-  </div>
-);
+  </div>;
