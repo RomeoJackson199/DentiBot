@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { BusinessTemplateSelector } from './BusinessTemplateSelector';
-import { TemplateType } from '@/lib/businessTemplates';
+import { TemplateType, TemplateFeatures, TemplateTerminology } from '@/lib/businessTemplates';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
@@ -18,9 +18,21 @@ interface BusinessCreationDialogProps {
 export function BusinessCreationDialog({ open, onOpenChange, onSuccess }: BusinessCreationDialogProps) {
   const [step, setStep] = useState<'template' | 'details'>('template');
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateType>('dentist');
+  const [customFeatures, setCustomFeatures] = useState<TemplateFeatures | undefined>();
+  const [customTerminology, setCustomTerminology] = useState<TemplateTerminology | undefined>();
   const [businessName, setBusinessName] = useState('');
   const [tagline, setTagline] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const handleTemplateSelect = (
+    templateId: string,
+    features?: TemplateFeatures,
+    terminology?: TemplateTerminology
+  ) => {
+    setSelectedTemplate(templateId as TemplateType);
+    if (features) setCustomFeatures(features);
+    if (terminology) setCustomTerminology(terminology);
+  };
 
   const handleTemplateNext = () => {
     if (selectedTemplate) {
@@ -76,15 +88,23 @@ export function BusinessCreationDialog({ open, onOpenChange, onSuccess }: Busine
       }
 
       // Create business
+      const businessData: any = {
+        name: businessName,
+        slug,
+        tagline: tagline || null,
+        owner_profile_id: profile.id,
+        template_type: selectedTemplate,
+      };
+
+      // Store custom configuration if template is custom
+      if (selectedTemplate === 'custom' && (customFeatures || customTerminology)) {
+        businessData.custom_features = customFeatures;
+        businessData.custom_terminology = customTerminology;
+      }
+
       const { data: business, error: businessError } = await supabase
         .from('businesses')
-        .insert({
-          name: businessName,
-          slug,
-          tagline: tagline || null,
-          owner_profile_id: profile.id,
-          template_type: selectedTemplate,
-        })
+        .insert(businessData)
         .select()
         .single();
 
@@ -150,7 +170,7 @@ export function BusinessCreationDialog({ open, onOpenChange, onSuccess }: Busine
           <div className="space-y-6">
             <BusinessTemplateSelector
               selectedTemplate={selectedTemplate}
-              onSelect={(template) => setSelectedTemplate(template as TemplateType)}
+              onSelect={handleTemplateSelect}
             />
             <div className="flex justify-end gap-3">
               <Button variant="outline" onClick={() => onOpenChange(false)}>

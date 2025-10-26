@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Loader2, Palette, Upload, Image as ImageIcon, Briefcase } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { BusinessTemplateSelector } from "@/components/BusinessTemplateSelector";
-import { TemplateType, getTemplateConfig } from "@/lib/businessTemplates";
+import { TemplateType, getTemplateConfig, TemplateFeatures, TemplateTerminology } from "@/lib/businessTemplates";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,8 +31,14 @@ export default function DentistAdminBranding() {
   const [secondaryColor, setSecondaryColor] = useState("#10B981");
   const [logoUrl, setLogoUrl] = useState("");
   const [templateType, setTemplateType] = useState<TemplateType>("dentist");
+  const [customFeatures, setCustomFeatures] = useState<TemplateFeatures | undefined>();
+  const [customTerminology, setCustomTerminology] = useState<TemplateTerminology | undefined>();
   const [showTemplateWarning, setShowTemplateWarning] = useState(false);
-  const [pendingTemplate, setPendingTemplate] = useState<TemplateType | null>(null);
+  const [pendingTemplate, setPendingTemplate] = useState<{
+    type: TemplateType;
+    features?: TemplateFeatures;
+    terminology?: TemplateTerminology;
+  } | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -128,17 +134,27 @@ export default function DentistAdminBranding() {
     }
   };
 
-  const handleTemplateSelect = (newTemplateType: string) => {
+  const handleTemplateSelect = (
+    newTemplateType: string,
+    features?: TemplateFeatures,
+    terminology?: TemplateTerminology
+  ) => {
     const newType = newTemplateType as TemplateType;
     if (newType !== templateType) {
-      setPendingTemplate(newType);
+      setPendingTemplate({
+        type: newType,
+        features,
+        terminology,
+      });
       setShowTemplateWarning(true);
     }
   };
 
   const confirmTemplateChange = () => {
     if (pendingTemplate) {
-      setTemplateType(pendingTemplate);
+      setTemplateType(pendingTemplate.type);
+      if (pendingTemplate.features) setCustomFeatures(pendingTemplate.features);
+      if (pendingTemplate.terminology) setCustomTerminology(pendingTemplate.terminology);
       setPendingTemplate(null);
       setShowTemplateWarning(false);
       toast({
@@ -154,16 +170,24 @@ export default function DentistAdminBranding() {
     setLoading(true);
 
     try {
+      const updateData: any = {
+        name: clinicName,
+        tagline: tagline,
+        logo_url: logoUrl,
+        primary_color: primaryColor,
+        secondary_color: secondaryColor,
+        template_type: templateType,
+      };
+
+      // Store custom configuration if template is custom
+      if (templateType === 'custom' && (customFeatures || customTerminology)) {
+        updateData.custom_features = customFeatures;
+        updateData.custom_terminology = customTerminology;
+      }
+
       const { error } = await supabase
         .from('businesses')
-        .update({
-          name: clinicName,
-          tagline: tagline,
-          logo_url: logoUrl,
-          primary_color: primaryColor,
-          secondary_color: secondaryColor,
-          template_type: templateType,
-        })
+        .update(updateData)
         .eq('id', businessId);
 
       if (error) throw error;

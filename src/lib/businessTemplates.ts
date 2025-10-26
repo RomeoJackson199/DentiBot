@@ -1,5 +1,5 @@
 import { 
-  Scissors, Stethoscope, Dumbbell, Sparkles, Building2, Briefcase 
+  Scissors, Stethoscope, Dumbbell, Sparkles, Building2, Briefcase, Settings 
 } from 'lucide-react';
 
 export type TemplateType = 
@@ -8,7 +8,8 @@ export type TemplateType =
   | 'personal_trainer' 
   | 'beauty_salon' 
   | 'medical' 
-  | 'generic';
+  | 'generic'
+  | 'custom';
 
 export interface TemplateFeatures {
   prescriptions: boolean;
@@ -408,6 +409,66 @@ export const BUSINESS_TEMPLATES: Record<TemplateType, TemplateConfig> = {
     name: 'Generic Business',
     description: 'Basic appointment booking system for any business',
     icon: Briefcase,
+    features: {
+      prescriptions: false,
+      treatmentPlans: false,
+      medicalRecords: false,
+      photoUpload: true,
+      urgencyLevels: false,
+      paymentRequests: true,
+      aiChat: true,
+      appointments: true,
+      services: true,
+    },
+    terminology: {
+      customer: 'Customer',
+      customerPlural: 'Customers',
+      provider: 'Provider',
+      providerPlural: 'Providers',
+      appointment: 'Appointment',
+      appointmentPlural: 'Appointments',
+      service: 'Service',
+      servicePlural: 'Services',
+      business: 'Business',
+    },
+    appointmentReasons: [
+      'Consultation',
+      'Service',
+      'Follow-up',
+      'Meeting',
+    ],
+    defaultServices: [
+      'Standard Service',
+      'Consultation',
+      'Follow-up',
+    ],
+    quickAddServices: [
+      { name: 'Standard Service', price: 50, duration: 60 },
+      { name: 'Consultation', price: 75, duration: 45 },
+      { name: 'Follow-up', price: 40, duration: 30 },
+    ],
+    completionSteps: [
+      { id: 'overview', title: 'Overview', enabled: true },
+      { id: 'services', title: 'Services', enabled: true },
+      { id: 'notes', title: 'Notes', enabled: true },
+      { id: 'billing', title: 'Payment', enabled: true },
+      { id: 'complete', title: 'Complete', enabled: true },
+    ],
+    navigationItems: [
+      'dashboard',
+      'appointments',
+      'customers',
+      'services',
+      'analytics',
+      'settings',
+    ],
+  },
+  
+  custom: {
+    id: 'custom',
+    name: 'Custom Template',
+    description: 'Fully customizable - choose exactly which features you need',
+    icon: Settings,
     features: {
       prescriptions: false,
       treatmentPlans: false,

@@ -3,14 +3,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Check, Info } from 'lucide-react';
-import { getAllTemplates, TemplateConfig } from '@/lib/businessTemplates';
+import { Check, Info, Settings } from 'lucide-react';
+import { getAllTemplates, TemplateConfig, TemplateFeatures, TemplateTerminology } from '@/lib/businessTemplates';
 import { cn } from '@/lib/utils';
 import { TemplateFeatureExplainer } from './TemplateFeatureExplainer';
+import { CustomTemplateConfigurator } from './CustomTemplateConfigurator';
 
 interface BusinessTemplateSelectorProps {
   selectedTemplate?: string;
-  onSelect: (templateId: string) => void;
+  onSelect: (templateId: string, customFeatures?: TemplateFeatures, customTerminology?: TemplateTerminology) => void;
   disabled?: boolean;
 }
 
@@ -22,6 +23,7 @@ export function BusinessTemplateSelector({
   const templates = getAllTemplates();
   const [hoveredTemplate, setHoveredTemplate] = useState<string | null>(null);
   const [previewTemplate, setPreviewTemplate] = useState<string | null>(null);
+  const [customizingCustom, setCustomizingCustom] = useState(false);
 
   const renderFeaturesList = (template: TemplateConfig) => {
     const enabledFeatures = Object.entries(template.features)
@@ -46,6 +48,21 @@ export function BusinessTemplateSelector({
   };
 
   const previewingTemplate = previewTemplate ? templates.find(t => t.id === previewTemplate) : null;
+
+  const handleTemplateClick = (templateId: string) => {
+    if (disabled) return;
+    
+    if (templateId === 'custom') {
+      setCustomizingCustom(true);
+    } else {
+      onSelect(templateId);
+    }
+  };
+
+  const handleCustomSave = (features: TemplateFeatures, terminology: TemplateTerminology) => {
+    onSelect('custom', features, terminology);
+    setCustomizingCustom(false);
+  };
 
   return (
     <>
@@ -72,7 +89,7 @@ export function BusinessTemplateSelector({
                   isHovered && !isSelected && 'shadow-md scale-[1.02]',
                   disabled && 'opacity-50 cursor-not-allowed'
                 )}
-                onClick={() => !disabled && onSelect(template.id)}
+                onClick={() => handleTemplateClick(template.id)}
                 onMouseEnter={() => !disabled && setHoveredTemplate(template.id)}
                 onMouseLeave={() => setHoveredTemplate(null)}
               >
@@ -123,11 +140,24 @@ export function BusinessTemplateSelector({
                       className="w-full"
                       onClick={(e) => {
                         e.stopPropagation();
-                        setPreviewTemplate(template.id);
+                        if (template.id === 'custom') {
+                          setCustomizingCustom(true);
+                        } else {
+                          setPreviewTemplate(template.id);
+                        }
                       }}
                     >
-                      <Info className="h-4 w-4 mr-2" />
-                      View All Features
+                      {template.id === 'custom' ? (
+                        <>
+                          <Settings className="h-4 w-4 mr-2" />
+                          Customize
+                        </>
+                      ) : (
+                        <>
+                          <Info className="h-4 w-4 mr-2" />
+                          View All Features
+                        </>
+                      )}
                     </Button>
                   </div>
                 </CardContent>
@@ -155,6 +185,18 @@ export function BusinessTemplateSelector({
               </div>
             </>
           )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={customizingCustom} onOpenChange={setCustomizingCustom}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Settings className="h-6 w-6 text-primary" />
+              Customize Your Template
+            </DialogTitle>
+          </DialogHeader>
+          <CustomTemplateConfigurator onSave={handleCustomSave} />
         </DialogContent>
       </Dialog>
     </>
