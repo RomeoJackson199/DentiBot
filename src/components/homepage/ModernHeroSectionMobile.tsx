@@ -21,16 +21,16 @@ export function ModernHeroSectionMobile({ onBookAppointment, onStartTriage, vari
 			<div className="container mx-auto px-4 relative z-10 flex flex-col justify-between py-8 text-white">
 				<div className="flex items-center gap-2 text-xs font-medium">
 					<Shield className="h-4 w-4" />
-					{language === 'fr' ? '10 000+ patients' : language === 'nl' ? '10.000+ patiënten' : '10,000+ patients'}
+					{language === 'fr' ? '10 000+ utilisateurs' : language === 'nl' ? '10.000+ gebruikers' : '10,000+ users'}
 				</div>
 
 				<div className="space-y-6">
 					<div>
 						<h1 className="text-4xl font-bold leading-tight mb-4">
-							{language === 'fr' ? 'VOS SOINS DENTAIRES' : language === 'nl' ? 'UW TANDVERZORGING' : 'YOUR DENTAL CARE'}
+							{language === 'fr' ? 'VOTRE ENTREPRISE' : language === 'nl' ? 'UW BEDRIJF' : 'YOUR BUSINESS'}
 							<br />
 							<span className="text-white/90">
-								{language === 'fr' ? 'SIMPLIFIÉS' : language === 'nl' ? 'VEREENVOUDIGD' : 'SIMPLIFIED'}
+								{language === 'fr' ? 'SIMPLIFIÉE' : language === 'nl' ? 'VEREENVOUDIGD' : 'SIMPLIFIED'}
 							</span>
 						</h1>
 					</div>
@@ -40,10 +40,10 @@ export function ModernHeroSectionMobile({ onBookAppointment, onStartTriage, vari
                                                         <div className="flex items-center gap-2 text-xs text-white/90">
                                                                 <Star className="h-4 w-4 text-yellow-300 fill-yellow-300" />
                                                                 {language === 'fr'
-                                                                        ? 'Des milliers de patients font confiance à DentiBot'
+                                                                        ? 'Des milliers d\'entreprises font confiance à notre plateforme'
                                                                         : language === 'nl'
-                                                                                ? 'Duizenden patiënten vertrouwen op DentiBot'
-                                                                                : 'Thousands of patients trust DentiBot'}
+                                                                                ? 'Duizenden bedrijven vertrouwen op ons platform'
+                                                                                : 'Thousands of businesses trust our platform'}
                                                         </div>
                                                 </div>
                                         ) : (
@@ -54,7 +54,7 @@ export function ModernHeroSectionMobile({ onBookAppointment, onStartTriage, vari
                                                                 </div>
                                                                 <div>
                                                                         <p className="text-white/95 mb-2 text-sm leading-relaxed">
-                                                                                {language === 'fr' ? "DentiBot a transformé ma gestion de rendez-vous!" : language === 'nl' ? 'DentiBot heeft mijn afspraakbeheer getransformeerd!' : "DentiBot transformed my appointment management!"}
+                                                                                {language === 'fr' ? "Cette plateforme a transformé la gestion de mon entreprise!" : language === 'nl' ? 'Dit platform heeft mijn bedrijfsbeheer getransformeerd!' : "This platform transformed my business management!"}
                                                                         </p>
                                                                         <p className="text-sm font-semibold">{language === 'fr' ? 'Sophie M.' : language === 'nl' ? 'Jan J.' : 'Sarah J.'}</p>
                                                                 </div>

@@ -20,12 +20,12 @@ export function ModernFeatureCards() {
   const features = [
     {
       icon: Brain,
-      title: "AI-Powered Triage",
-      description: "Advanced AI analyzes symptoms and prioritizes urgency for optimal care",
+      title: "AI-Powered Assistant",
+      description: "Advanced AI helps you manage tasks and interact with customers intelligently",
       color: "text-dental-primary",
       bgColor: "bg-dental-primary/10",
       badge: "AI Technology",
-      benefits: ["24/7 Assessment", "Instant Results", "High Accuracy"]
+      benefits: ["24/7 Availability", "Instant Responses", "Smart Automation"]
     },
     {
       icon: Calendar,
@@ -39,16 +39,16 @@ export function ModernFeatureCards() {
     {
       icon: MessageSquare,
       title: "Seamless Communication",
-      description: "Direct patient-dentist messaging with secure, HIPAA-compliant channels",
+      description: "Direct business-client messaging with secure, encrypted channels",
       color: "text-dental-accent",
       bgColor: "bg-dental-accent/10", 
-      badge: "HIPAA Secure",
+      badge: "Secure Messaging",
       benefits: ["Instant Messaging", "File Sharing", "Video Calls"]
     },
     {
       icon: Shield,
       title: "Complete Privacy",
-      description: "Bank-level encryption ensures your medical data stays secure and private",
+      description: "Bank-level encryption ensures your business data stays secure and private",
       color: "text-dental-success",
       bgColor: "bg-dental-success/10",
       badge: "Enterprise Security",
@@ -66,11 +66,11 @@ export function ModernFeatureCards() {
     {
       icon: Users,
       title: "Team Collaboration",
-      description: "Dental teams can coordinate care with shared patient insights",
+      description: "Teams can coordinate work with shared insights and dashboards",
       color: "text-dental-info",
       bgColor: "bg-dental-info/10",
       badge: "Team Tools",
-      benefits: ["Shared Dashboard", "Role Permissions", "Care Coordination"]
+      benefits: ["Shared Dashboard", "Role Permissions", "Task Management"]
     }
   ];
 
@@ -90,12 +90,12 @@ export function ModernFeatureCards() {
           <h2 className="text-4xl sm:text-5xl font-bold">
             <span className="gradient-text">Everything You Need</span>
             <br />
-            <span className="text-foreground">For Modern Dental Care</span>
+            <span className="text-foreground">For Modern Business Management</span>
           </h2>
           
           <p className="text-xl text-muted-foreground leading-relaxed">
             Our comprehensive platform combines cutting-edge AI with intuitive design 
-            to revolutionize how dental practices operate and patients receive care.
+            to revolutionize how businesses operate and serve their clients.
           </p>
         </div>
 
@@ -162,7 +162,7 @@ export function ModernFeatureCards() {
               Ready to Experience the Future?
             </h3>
             <p className="text-muted-foreground">
-              Join thousands of dental professionals who have already transformed their practice.
+              Join thousands of business professionals who have already transformed their operations.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button variant="gradient" size="lg">

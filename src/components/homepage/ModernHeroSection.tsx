@@ -25,16 +25,16 @@ export function ModernHeroSection({
       <div className="container mx-auto px-8 lg:px-12 relative z-10 flex flex-col justify-between py-12 text-white">
         <div className="flex items-center gap-2 text-sm font-medium">
           <Users className="h-5 w-5" />
-          {language === 'fr' ? 'Plus de 10 000 patients gèrent leur santé dentaire' : language === 'nl' ? 'Meer dan 10.000 patiënten beheren hun tandgezondheid' : 'Join 10,000+ patients managing their dental health'}
+          {language === 'fr' ? 'Plus de 10 000 utilisateurs font confiance à notre plateforme' : language === 'nl' ? 'Meer dan 10.000 gebruikers vertrouwen op ons platform' : 'Join 10,000+ users managing their business'}
         </div>
 
         <div className="space-y-8">
           <div>
             <h1 className="text-6xl lg:text-7xl font-bold leading-tight mb-4">
-              {language === 'fr' ? 'VOS SOINS DENTAIRES' : language === 'nl' ? 'UW TANDVERZORGING' : 'YOUR DENTAL CARE'}
+              {language === 'fr' ? 'VOTRE ENTREPRISE' : language === 'nl' ? 'UW BEDRIJF' : 'YOUR BUSINESS'}
               <br />
               <span className="text-white/90">
-                {language === 'fr' ? 'SIMPLIFIÉS' : language === 'nl' ? 'VEREENVOUDIGD' : 'SIMPLIFIED'}
+                {language === 'fr' ? 'SIMPLIFIÉE' : language === 'nl' ? 'VEREENVOUDIGD' : 'SIMPLIFIED'}
               </span>
             </h1>
           </div>
@@ -42,7 +42,7 @@ export function ModernHeroSection({
           {isCtaFocused ? <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 max-w-md border border-white/10">
               <div className="flex items-center gap-3 text-sm text-white/90">
                 <Star className="h-5 w-5 text-yellow-300 fill-yellow-300" />
-                {language === 'fr' ? 'Des milliers de patients prennent soin de leur sourire avec DentiBot' : language === 'nl' ? 'Duizenden patiënten verzorgen hun glimlach met DentiBot' : 'Thousands of patients trust DentiBot with their smile'}
+                {language === 'fr' ? 'Des milliers d\'entreprises transforment leur gestion avec notre IA' : language === 'nl' ? 'Duizenden bedrijven transformeren hun beheer met onze AI' : 'Thousands of businesses trust our AI platform'}
               </div>
             </div> : <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 max-w-md border border-white/20">
               <div className="flex items-start gap-4">
@@ -51,10 +51,10 @@ export function ModernHeroSection({
                 </div>
                 <div>
                   <p className="text-white/95 mb-3 leading-relaxed">
-                    {language === 'fr' ? "DentiBot a complètement transformé ma gestion des rendez-vous dentaires. L'assistant IA est incroyablement utile!" : language === 'nl' ? 'DentiBot heeft mijn tandheelkundige afspraakbeheer volledig getransformeerd. De AI-assistent is ongelooflijk behulpzaam!' : "DentiBot has completely transformed how I manage my dental appointments. The AI assistant is incredibly helpful!"}
+                    {language === 'fr' ? "Cette plateforme a complètement transformé la gestion de mon entreprise. L'assistant IA est incroyablement utile!" : language === 'nl' ? 'Dit platform heeft mijn bedrijfsbeheer volledig getransformeerd. De AI-assistent is ongelooflijk behulpzaam!' : "This platform has completely transformed how I manage my business. The AI assistant is incredibly helpful!"}
                   </p>
                   <p className="font-semibold">{language === 'fr' ? 'Sophie Martin' : language === 'nl' ? 'Jan Janssen' : 'Sarah Johnson'}</p>
-                  <p className="text-sm text-white/70">{language === 'fr' ? 'Patiente régulière' : language === 'nl' ? 'Reguliere Patiënt' : 'Regular Patient'}</p>
+                  <p className="text-sm text-white/70">{language === 'fr' ? 'Propriétaire d\'entreprise' : language === 'nl' ? 'Bedrijfseigenaar' : 'Business Owner'}</p>
                 </div>
               </div>
             </div>}

@@ -82,10 +82,10 @@ export const Header = ({
             </div>
             <div className="hidden sm:block">
               <h1 className="text-xl lg:text-2xl font-bold gradient-text">
-                {branding.clinicName || "Denti Bot Unified"}
+                {branding.clinicName || "SmartBusiness AI"}
               </h1>
               <p className="text-xs lg:text-sm text-dental-muted-foreground">
-                {language === 'fr' ? "Plateforme de soins dentaires propulsée par l'IA" : language === 'nl' ? "Door AI aangedreven tandheelkundig platform" : 'AI-Powered Dental Care Platform'}
+                {language === 'fr' ? "Plateforme de gestion intelligente propulsée par l'IA" : language === 'nl' ? "Door AI aangedreven slim bedrijfsplatform" : 'AI-Powered Business Management Platform'}
               </p>
             </div>
           </div>
