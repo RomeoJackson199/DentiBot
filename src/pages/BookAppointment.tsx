@@ -261,7 +261,7 @@ export default function BookAppointment() {
           dentist_id: selectedDentist.id,
           business_id: businessId,
           appointment_date: appointmentDateTime.toISOString(),
-          reason: 'General consultation',
+          reason: selectedService?.name || 'General consultation',
           status: 'confirmed',
           booking_source: 'manual',
           urgency: 'medium',

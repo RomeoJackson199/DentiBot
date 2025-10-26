@@ -321,7 +321,7 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
           dentist_id: selectedDentist.id,
           business_id: businessId,
           appointment_date: appointmentDateTime.toISOString(),
-          reason: appointmentReason,
+          reason: selectedService?.name || appointmentReason,
           status: "confirmed",
           booking_source: "ai",
           urgency: bookingData?.urgency >= 5 ? "emergency" :

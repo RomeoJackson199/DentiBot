@@ -179,7 +179,7 @@ export default function PublicBooking() {
           dentist_id: selectedDentist,
           business_id: effectiveBusinessId,
           appointment_date: appointmentDateTime.toISOString(),
-          reason: reason || 'General Consultation',
+          reason: selectedService?.name || reason || 'General Consultation',
           status: 'pending',
           patient_name: `${firstName} ${lastName}`,
           service_id: selectedService?.id || null,
