@@ -1,0 +1,101 @@
+-- Allow any authenticated user to create businesses
+DROP POLICY IF EXISTS "Providers can create businesses" ON public.businesses;
+
+CREATE POLICY "Authenticated users can create businesses"
+ON public.businesses
+FOR INSERT
+TO authenticated
+WITH CHECK (
+  owner_profile_id IN (
+    SELECT id FROM public.profiles WHERE user_id = auth.uid()
+  )
+);
+
+-- Update the handle_new_user function to automatically create a business and assign provider role
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  new_profile_id uuid;
+  new_business_id uuid;
+  clinic_name text;
+  business_slug text;
+BEGIN
+  -- Extract clinic name from metadata, default to user's name
+  clinic_name := COALESCE(
+    new.raw_user_meta_data->>'clinic_name',
+    CONCAT(
+      COALESCE(new.raw_user_meta_data->>'first_name', 'Dr.'),
+      ' ',
+      COALESCE(new.raw_user_meta_data->>'last_name', 'Clinic')
+    )
+  );
+
+  -- Generate a unique slug from clinic name
+  business_slug := lower(regexp_replace(clinic_name, '[^a-zA-Z0-9]+', '-', 'g'));
+  business_slug := regexp_replace(business_slug, '^-+|-+$', '', 'g');
+  
+  -- Ensure slug is unique by appending random suffix if needed
+  IF EXISTS (SELECT 1 FROM public.businesses WHERE slug = business_slug) THEN
+    business_slug := business_slug || '-' || substr(gen_random_uuid()::text, 1, 8);
+  END IF;
+
+  -- Insert profile
+  INSERT INTO public.profiles (id, user_id, first_name, last_name, email, phone)
+  VALUES (
+    gen_random_uuid(),
+    new.id,
+    new.raw_user_meta_data->>'first_name',
+    new.raw_user_meta_data->>'last_name',
+    new.email,
+    new.raw_user_meta_data->>'phone'
+  )
+  RETURNING id INTO new_profile_id;
+
+  -- Assign provider role to all new users
+  INSERT INTO public.user_roles (user_id, role)
+  VALUES (new.id, 'provider'::app_role);
+
+  -- Also assign patient role for flexibility
+  INSERT INTO public.user_roles (user_id, role)
+  VALUES (new.id, 'patient'::app_role)
+  ON CONFLICT DO NOTHING;
+
+  -- Create a business automatically
+  INSERT INTO public.businesses (
+    id,
+    name,
+    slug,
+    owner_profile_id,
+    tagline,
+    primary_color,
+    secondary_color,
+    currency
+  )
+  VALUES (
+    gen_random_uuid(),
+    clinic_name,
+    business_slug,
+    new_profile_id,
+    'Your Practice, Your Way',
+    '#0F3D91',
+    '#66D2D6',
+    'USD'
+  )
+  RETURNING id INTO new_business_id;
+
+  -- Add the owner as a business member with owner role
+  INSERT INTO public.business_members (profile_id, business_id, role)
+  VALUES (new_profile_id, new_business_id, 'owner');
+
+  -- Set the business as the current session business
+  INSERT INTO public.session_business (user_id, business_id)
+  VALUES (new.id, new_business_id)
+  ON CONFLICT (user_id) DO UPDATE SET business_id = EXCLUDED.business_id;
+
+  RETURN new;
+END;
+$$;

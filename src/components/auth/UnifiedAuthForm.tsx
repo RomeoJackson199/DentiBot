@@ -29,6 +29,7 @@ export const UnifiedAuthForm = ({ compact = false, onSignInSuccess }: UnifiedAut
     firstName: "",
     lastName: "",
     phone: "",
+    clinicName: "",
   });
   const { toast } = useToast();
 
@@ -112,6 +113,7 @@ export const UnifiedAuthForm = ({ compact = false, onSignInSuccess }: UnifiedAut
             first_name: formData.firstName,
             last_name: formData.lastName,
             phone: formData.phone,
+            clinic_name: formData.clinicName,
             health_data_consent: true,
             health_data_consent_at: new Date().toISOString(),
           },
@@ -288,6 +290,22 @@ export const UnifiedAuthForm = ({ compact = false, onSignInSuccess }: UnifiedAut
             
             <TabsContent value="signup">
               <form onSubmit={handleSignUp} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="signup-clinicName">Clinic Name</Label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="signup-clinicName"
+                      name="clinicName"
+                      placeholder="My Dental Clinic"
+                      value={formData.clinicName}
+                      onChange={handleInputChange}
+                      className="pl-10"
+                      required
+                      autoComplete="organization"
+                    />
+                  </div>
+                </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="signup-firstName">{t.firstName}</Label>
