@@ -230,7 +230,7 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
         collapsed ? "w-16" : "w-64"
       )}>
         {/* Sidebar Header */}
-        <div className={cn("flex items-center p-4 border-b border-border/50 gap-3")}> 
+        <div className={cn("flex items-center border-b border-border/50 gap-3", collapsed ? "p-2" : "p-4")}> 
           {branding.logoUrl ? (
             <img 
               src={branding.logoUrl} 
@@ -363,6 +363,24 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
 
       {/* Main Content Area */}
       <div className={cn("flex-1 transition-[margin-left] duration-200 ease-linear", collapsed ? "ml-16" : "ml-64")}> 
+        {/* Global header toggle so it’s ALWAYS visible */}
+        <div className="sticky top-0 z-40 bg-background/80 backdrop-blur border-b">
+          <div className="flex items-center justify-between px-3 py-2">
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => setCollapsed((v) => !v)}
+                aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+                title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+              >
+                <PanelLeft className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+        
         <AnimatePresence mode="wait">
           <motion.div
             key={activeSection}
