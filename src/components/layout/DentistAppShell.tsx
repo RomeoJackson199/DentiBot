@@ -114,7 +114,6 @@ export const DentistAppShell: React.FC<DentistAppShellProps> = ({
               )}
               <span className="font-semibold text-lg">{branding.clinicName || "Dentist Portal"}</span>
             </div>
-            <BusinessSelector />
           </div>
         </div>
 

@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { AppButton } from "@/components/ui/AppButton";
-import { Button } from "@/components/ui/button";
 import { ProgressiveAuthForm } from "@/components/ProgressiveAuthForm";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { User } from "@supabase/supabase-js";
@@ -12,9 +11,6 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useClinicBranding } from "@/hooks/useClinicBranding";
-import { BusinessSelector } from "@/components/BusinessSelector";
-import { RoleSwitcher } from "@/components/RoleSwitcher";
-
 interface HeaderProps {
   user: User | null;
   minimal?: boolean;
@@ -108,58 +104,7 @@ export const Header = ({
             </nav>}
 
           {/* Auth Section */}
-          <div className="flex items-center gap-3">
-            {user && <BusinessSelector />}
-            {user && <RoleSwitcher />}
-            
-            <div className="hidden lg:block">
-              <LanguageSelector />
-            </div>
-            
-            {user ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="gap-2">
-                    <Avatar className="h-7 w-7">
-                      <AvatarFallback className="text-xs">
-                        {user.email?.[0]?.toUpperCase() || 'U'}
-                      </AvatarFallback>
-                    </Avatar>
-                    <span className="hidden lg:inline text-sm">{user.email}</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => window.location.href = '/dentist'}>
-                    <UserIcon className="mr-2 h-4 w-4" />
-                    Profile
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => window.location.href = '/settings'}>
-                    <Settings className="mr-2 h-4 w-4" />
-                    Settings
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Sign Out
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : (
-              <div className="hidden lg:block">
-                <ProgressiveAuthForm />
-              </div>
-            )}
-            
-            {/* Mobile Menu Toggle */}
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="lg:hidden p-2 text-dental-muted-foreground hover:text-dental-primary transition-colors"
-            >
-              {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-            </button>
-          </div>
+          
         </div>
 
         {/* Mobile Navigation */}
