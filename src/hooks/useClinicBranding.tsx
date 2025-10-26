@@ -22,15 +22,32 @@ export function useClinicBranding() {
 
   useEffect(() => {
     const loadBranding = async () => {
-      if (!businessId) {
-        setLoading(false);
-        return;
-      }
       try {
+        let targetBusinessId = businessId;
+
+        // If no business context, try to get patient's business from their profile
+        if (!targetBusinessId) {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            const { data: profile } = await supabase
+              .from('patients')
+              .select('business_id')
+              .eq('user_id', user.id)
+              .maybeSingle();
+            
+            targetBusinessId = profile?.business_id;
+          }
+        }
+
+        if (!targetBusinessId) {
+          setLoading(false);
+          return;
+        }
+
         const { data, error } = await supabase
           .from('businesses')
           .select('logo_url, name, tagline, primary_color, secondary_color')
-          .eq('id', businessId)
+          .eq('id', targetBusinessId)
           .single();
 
         if (error) throw error;
