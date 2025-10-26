@@ -40,8 +40,14 @@ const Login = () => {
 
       if (error) throw error;
 
-      // Business context is now handled by BusinessProvider automatically
-      // No need to manually set it here
+      // Apply pre-login clinic selection if present
+      const selectedBusinessId = localStorage.getItem('selected_business_id');
+      if (selectedBusinessId) {
+        await supabase.functions.invoke('set-current-business', {
+          body: { businessId: selectedBusinessId },
+        }).catch(console.warn);
+        localStorage.removeItem('selected_business_id');
+      }
 
       toast({
         title: "Welcome back!",

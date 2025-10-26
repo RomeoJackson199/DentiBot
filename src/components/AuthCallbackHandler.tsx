@@ -102,6 +102,15 @@ export const AuthCallbackHandler = () => {
                   }
                 }
               }
+
+              // Apply pre-login clinic selection if present
+              const selectedBusinessId = localStorage.getItem('selected_business_id');
+              if (selectedBusinessId) {
+                await supabase.functions.invoke('set-current-business', {
+                  body: { businessId: selectedBusinessId },
+                }).catch(console.warn);
+                localStorage.removeItem('selected_business_id');
+              }
             } catch (error) {
               console.error("Profile linking error:", error);
             }

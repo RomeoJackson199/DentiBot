@@ -67,6 +67,8 @@ import { useCurrentDentist } from "@/hooks/useCurrentDentist";
 import { BusinessSelector } from "@/components/BusinessSelector";
 import { useClinicBranding } from "@/hooks/useClinicBranding";
 import { useBusinessContext } from "@/hooks/useBusinessContext";
+import { BusinessSelectionForPatients } from "@/components/BusinessSelectionForPatients";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const STORAGE = {
   lastItem: "dnav:last-item",
@@ -99,11 +101,12 @@ type NavGroup = {
 function TopBar() {
   const navigate = useNavigate();
   const [openSearch, setOpenSearch] = useState(false);
+  const [openPatientPicker, setOpenPatientPicker] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const { setTheme, theme } = useTheme();
   const { language, setLanguage, t } = useLanguage();
   const { state, toggleSidebar } = useSidebar();
-  const { switchBusiness, memberships } = useBusinessContext();
+  const { switchBusiness, memberships, businessId } = useBusinessContext();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -136,7 +139,14 @@ function TopBar() {
         </div>
 
         <div className="ml-auto flex items-center gap-2">
-          <BusinessSelector />
+          {memberships.length === 0 ? (
+            <Button variant="outline" size="sm" onClick={() => setOpenPatientPicker(true)}>
+              <Building2 className="h-4 w-4 mr-2" />
+              <span className="hidden sm:inline">Change clinic</span>
+            </Button>
+          ) : (
+            <BusinessSelector />
+          )}
 
           {userId && <ModernNotificationCenter userId={userId} />}
 
@@ -179,6 +189,25 @@ function TopBar() {
         </div>
 
         <GlobalSearch open={openSearch} onOpenChange={setOpenSearch} />
+        
+        <Dialog open={openPatientPicker} onOpenChange={setOpenPatientPicker}>
+          <DialogContent className="sm:max-w-[600px]">
+            <DialogHeader>
+              <DialogTitle>Select Your Clinic</DialogTitle>
+            </DialogHeader>
+            <BusinessSelectionForPatients
+              selectedBusinessId={businessId}
+              onSelectBusiness={async (businessId) => {
+                await switchBusiness(businessId);
+                setOpenPatientPicker(false);
+                toast({
+                  title: "Clinic changed",
+                  description: "You've switched to a different clinic.",
+                });
+              }}
+            />
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
