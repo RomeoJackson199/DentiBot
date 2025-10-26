@@ -87,7 +87,7 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
 
       // Get current session business or auto-select (only if not already set)
       const currentBusinessId = businessId;
-      if (formattedMemberships.length > 0 && !currentBusinessId) {
+      if (!currentBusinessId) {
         const { data: sessionBusiness } = await supabase
           .from('session_business')
           .select('business_id')
@@ -95,16 +95,32 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
           .maybeSingle();
 
         if (sessionBusiness?.business_id) {
-          // Restore session business
-          const membership = formattedMemberships.find(m => m.business_id === sessionBusiness.business_id);
-          if (membership?.business) {
-            setBusinessId(membership.business_id);
-            setBusinessSlug(membership.business.slug);
-            setBusinessName(membership.business.name);
-            setMembershipRole(membership.role);
+          // For business members: restore from membership
+          if (formattedMemberships.length > 0) {
+            const membership = formattedMemberships.find(m => m.business_id === sessionBusiness.business_id);
+            if (membership?.business) {
+              setBusinessId(membership.business_id);
+              setBusinessSlug(membership.business.slug);
+              setBusinessName(membership.business.name);
+              setMembershipRole(membership.role);
+            }
+          } else {
+            // For patients (non-members): fetch business details directly
+            const { data: business } = await supabase
+              .from('businesses')
+              .select('id, name, slug')
+              .eq('id', sessionBusiness.business_id)
+              .single();
+
+            if (business) {
+              setBusinessId(business.id);
+              setBusinessSlug(business.slug);
+              setBusinessName(business.name);
+              setMembershipRole('guest');
+            }
           }
         } else if (formattedMemberships.length === 1) {
-          // Auto-select if only one business
+          // Auto-select if only one business membership
           await switchBusiness(formattedMemberships[0].business_id);
         }
       }
@@ -139,9 +155,21 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
         if (membership?.business) {
           setBusinessSlug(membership.business.slug);
           setBusinessName(membership.business.name);
-        }
+          toast.success(`Switched to ${membership.business.name}`);
+        } else {
+          // For patients (non-members): fetch business details
+          const { data: business } = await supabase
+            .from('businesses')
+            .select('name, slug')
+            .eq('id', data.businessId)
+            .single();
 
-        toast.success(`Switched to ${membership?.business?.name || 'business'}`);
+          if (business) {
+            setBusinessSlug(business.slug);
+            setBusinessName(business.name);
+            toast.success(`Switched to ${business.name}`);
+          }
+        }
       }
     } catch (error: any) {
       console.error('Error switching business:', error);
