@@ -19,30 +19,56 @@ export function useClinicBranding() {
   });
   const [loading, setLoading] = useState(true);
   const { businessId } = useBusinessContext();
+  const [resolvedBusinessId, setResolvedBusinessId] = useState<string | null>(null);
 
   useEffect(() => {
     const loadBranding = async () => {
       try {
-        let targetBusinessId = businessId;
+        let targetBusinessId = businessId as string | null | undefined;
 
-        // If no business context, try to get patient's business from their profile
         if (!targetBusinessId) {
           const { data: { user } } = await supabase.auth.getUser();
           if (user) {
-            const { data: profile } = await supabase
-              .from('patients')
+            // First, try session_business for current business context
+            const { data: session } = await supabase
+              .from('session_business')
               .select('business_id')
               .eq('user_id', user.id)
+              .order('updated_at', { ascending: false })
               .maybeSingle();
-            
-            targetBusinessId = profile?.business_id;
+
+            targetBusinessId = session?.business_id || null;
+
+            // If still not found, fall back to most recent appointment's business
+            if (!targetBusinessId) {
+              const { data: profile } = await supabase
+                .from('profiles')
+                .select('id')
+                .eq('user_id', user.id)
+                .maybeSingle();
+
+              if (profile?.id) {
+                const { data: appt } = await supabase
+                  .from('appointments')
+                  .select('business_id, appointment_date, created_at')
+                  .eq('patient_id', profile.id)
+                  .order('appointment_date', { ascending: false })
+                  .order('created_at', { ascending: false })
+                  .maybeSingle();
+
+                targetBusinessId = appt?.business_id || null;
+              }
+            }
           }
         }
 
         if (!targetBusinessId) {
+          console.warn('useClinicBranding: No business context found for branding');
           setLoading(false);
           return;
         }
+
+        setResolvedBusinessId(targetBusinessId as string);
 
         const { data, error } = await supabase
           .from('businesses')
@@ -70,16 +96,18 @@ export function useClinicBranding() {
 
     loadBranding();
 
-    const channel = businessId
+    const activeBusinessId = businessId || resolvedBusinessId;
+
+    const channel = activeBusinessId
       ? supabase
-          .channel('businesses_changes')
+          .channel(`businesses_changes_${activeBusinessId}`)
           .on(
             'postgres_changes',
             {
               event: '*',
               schema: 'public',
               table: 'businesses',
-              filter: `id=eq.${businessId}`,
+              filter: `id=eq.${activeBusinessId}`,
             },
             (payload) => {
               if (payload.new) {
@@ -102,7 +130,7 @@ export function useClinicBranding() {
         supabase.removeChannel(channel);
       }
     };
-  }, [businessId]);
+  }, [businessId, resolvedBusinessId]);
 
   return { branding, loading };
 }
