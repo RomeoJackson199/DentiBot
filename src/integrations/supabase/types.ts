@@ -279,8 +279,11 @@ export type Database = {
       }
       businesses: {
         Row: {
+          ai_greeting: string | null
           ai_instructions: string | null
+          ai_personality_traits: Json | null
           ai_response_length: string
+          ai_system_behavior: string | null
           ai_tone: string
           appointment_keywords: string[]
           business_hours: Json
@@ -303,8 +306,11 @@ export type Database = {
           welcome_message: string | null
         }
         Insert: {
+          ai_greeting?: string | null
           ai_instructions?: string | null
+          ai_personality_traits?: Json | null
           ai_response_length?: string
+          ai_system_behavior?: string | null
           ai_tone?: string
           appointment_keywords?: string[]
           business_hours?: Json
@@ -327,8 +333,11 @@ export type Database = {
           welcome_message?: string | null
         }
         Update: {
+          ai_greeting?: string | null
           ai_instructions?: string | null
+          ai_personality_traits?: Json | null
           ai_response_length?: string
+          ai_system_behavior?: string | null
           ai_tone?: string
           appointment_keywords?: string[]
           business_hours?: Json

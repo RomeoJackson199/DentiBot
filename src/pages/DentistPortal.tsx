@@ -26,6 +26,7 @@ import { SubscriptionBanner } from "@/components/SubscriptionBanner";
 import { InviteDentistDialog } from "@/components/InviteDentistDialog";
 import { useBusinessContext } from "@/hooks/useBusinessContext";
 import Messages from "./Messages";
+import { ServiceManager } from "@/components/services/ServiceManager";
 
 interface DentistPortalProps {
   user?: User | null;
@@ -53,7 +54,7 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
       const validSections: DentistSection[] = [
         'dashboard', 'patients', 'appointments', 'employees', 'messages', 'clinical',
         'schedule', 'payments', 'analytics', 'reports', 'inventory',
-        'imports', 'users', 'team', 'branding', 'security', 'settings'
+        'imports', 'users', 'team', 'branding', 'security', 'settings', 'services'
       ];
       
       if (validSections.includes(sectionFromUrl as DentistSection)) {
@@ -246,6 +247,8 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
         return <DentistAdminSecurity />;
       case 'settings':
         return <DentistSettings />;
+      case 'services':
+        return <ServiceManager />;
       default:
         return <div className="p-4">Section not found</div>;
     }

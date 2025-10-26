@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Palette, Upload, Image as ImageIcon, Briefcase } from "lucide-react";
+import { Loader2, Palette, Upload, Image as ImageIcon, Briefcase, Package } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { BusinessTemplateSelector } from "@/components/BusinessTemplateSelector";
 import { TemplateType, getTemplateConfig, TemplateFeatures, TemplateTerminology } from "@/lib/businessTemplates";
@@ -20,6 +20,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { AIBehaviorSettings } from "@/components/admin/AIBehaviorSettings";
+import { AITestChatDialog } from "@/components/admin/AITestChatDialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ServiceManager } from "@/components/services/ServiceManager";
 
 export default function DentistAdminBranding() {
   const { businessId, loading: businessLoading } = useBusinessContext();
@@ -39,6 +43,10 @@ export default function DentistAdminBranding() {
     features?: TemplateFeatures;
     terminology?: TemplateTerminology;
   } | null>(null);
+  const [aiSystemBehavior, setAiSystemBehavior] = useState("");
+  const [aiGreeting, setAiGreeting] = useState("");
+  const [aiPersonalityTraits, setAiPersonalityTraits] = useState<string[]>([]);
+  const [showTestChat, setShowTestChat] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -51,7 +59,7 @@ export default function DentistAdminBranding() {
     try {
       const { data: business, error } = await supabase
         .from('businesses')
-        .select('name, tagline, logo_url, primary_color, secondary_color, template_type')
+        .select('name, tagline, logo_url, primary_color, secondary_color, template_type, ai_system_behavior, ai_greeting, ai_personality_traits')
         .eq('id', businessId)
         .single();
 
@@ -60,11 +68,19 @@ export default function DentistAdminBranding() {
       if (business) {
         setClinicName(business.name || "");
         setTagline(business.tagline || "");
-        setAddress(""); // Address is not on businesses table, will need separate handling if needed
+        setAddress(""); // Address is not on businesses table
         setPrimaryColor(business.primary_color || "#2D5D7B");
         setSecondaryColor(business.secondary_color || "#8B5CF6");
         setLogoUrl(business.logo_url || "");
         setTemplateType((business.template_type as TemplateType) || "dentist");
+        
+        // Load AI behavior settings or use template defaults
+        const template = getTemplateConfig((business.template_type as TemplateType) || "dentist");
+        setAiSystemBehavior(business.ai_system_behavior || template.aiBehaviorDefaults.systemBehavior);
+        setAiGreeting(business.ai_greeting || template.aiBehaviorDefaults.greeting);
+        setAiPersonalityTraits(
+          (business.ai_personality_traits as string[]) || template.aiBehaviorDefaults.personalityTraits
+        );
       }
     } catch (error: any) {
       console.error('Error loading branding:', error);
@@ -177,6 +193,9 @@ export default function DentistAdminBranding() {
         primary_color: primaryColor,
         secondary_color: secondaryColor,
         template_type: templateType,
+        ai_system_behavior: aiSystemBehavior,
+        ai_greeting: aiGreeting,
+        ai_personality_traits: aiPersonalityTraits,
       };
 
       // Store custom configuration if template is custom
@@ -222,252 +241,304 @@ export default function DentistAdminBranding() {
   return (
     <div>
       <PageHeader 
-        title="Branding & Customization"
-        subtitle="Customize your clinic's appearance and branding"
+        title="Branding & Settings"
+        subtitle="Customize your business appearance, services, and AI behavior"
         breadcrumbs={[
           { label: 'Home', href: '/dentist' },
           { label: 'Admin' },
-          { label: 'Branding' }
+          { label: 'Branding & Settings' }
         ]}
       />
 
-      <div className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Briefcase className="h-5 w-5" />
-              Business Template
-            </CardTitle>
-            <CardDescription>
-              Choose the template that best fits your business type. This controls which features are available and the terminology used throughout the platform.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <BusinessTemplateSelector 
-              selectedTemplate={templateType}
-              onSelect={handleTemplateSelect}
-            />
-            <div className="mt-4 p-4 bg-muted/50 rounded-lg">
-              <h4 className="font-medium mb-2">Current Template Features:</h4>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
-                {Object.entries(getTemplateConfig(templateType).features).map(([feature, enabled]) => (
-                  <div key={feature} className="flex items-center gap-2">
-                    <div className={`w-2 h-2 rounded-full ${enabled ? 'bg-green-500' : 'bg-gray-300'}`} />
-                    <span className="capitalize text-muted-foreground">
-                      {feature.replace(/([A-Z])/g, ' $1').trim()}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      <Tabs defaultValue="branding" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="branding">Branding</TabsTrigger>
+          <TabsTrigger value="services">
+            <Package className="h-4 w-4 mr-2" />
+            Services
+          </TabsTrigger>
+          <TabsTrigger value="ai">AI Behavior</TabsTrigger>
+        </TabsList>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <ImageIcon className="h-5 w-5" />
-              Clinic Logo
-            </CardTitle>
-            <CardDescription>
-              Upload your clinic logo (recommended size: 512x512px, max 2MB)
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {logoUrl && (
-              <div className="flex justify-center p-4 bg-muted/30 rounded-lg">
-                <img 
-                  src={logoUrl} 
-                  alt="Clinic Logo" 
-                  className="h-32 w-32 object-contain rounded-lg"
+        <TabsContent value="branding" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Briefcase className="h-5 w-5" />
+                Business Template
+              </CardTitle>
+              <CardDescription>
+                Choose the template that best fits your business type. This controls which features are available and the terminology used throughout the platform.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <BusinessTemplateSelector 
+                selectedTemplate={templateType}
+                onSelect={handleTemplateSelect}
+              />
+              <div className="mt-4 p-4 bg-muted/50 rounded-lg">
+                <h4 className="font-medium mb-2">Current Template Features:</h4>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
+                  {Object.entries(getTemplateConfig(templateType).features).map(([feature, enabled]) => (
+                    <div key={feature} className="flex items-center gap-2">
+                      <div className={`w-2 h-2 rounded-full ${enabled ? 'bg-green-500' : 'bg-gray-300'}`} />
+                      <span className="capitalize text-muted-foreground">
+                        {feature.replace(/([A-Z])/g, ' $1').trim()}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <ImageIcon className="h-5 w-5" />
+                Clinic Logo
+              </CardTitle>
+              <CardDescription>
+                Upload your clinic logo (recommended size: 512x512px, max 2MB)
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {logoUrl && (
+                <div className="flex justify-center p-4 bg-muted/30 rounded-lg">
+                  <img 
+                    src={logoUrl} 
+                    alt="Clinic Logo" 
+                    className="h-32 w-32 object-contain rounded-lg"
+                  />
+                </div>
+              )}
+              
+              <div className="flex items-center gap-3">
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleLogoUpload}
+                  disabled={loading}
+                  className="hidden"
+                  id="logo-upload"
+                />
+                <Label htmlFor="logo-upload" className="cursor-pointer">
+                  <Button asChild disabled={loading} variant="outline">
+                    <span>
+                      {loading ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Uploading...
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="mr-2 h-4 w-4" />
+                          Upload Logo
+                        </>
+                      )}
+                    </span>
+                  </Button>
+                </Label>
+                {logoUrl && (
+                  <Button 
+                    variant="ghost" 
+                    onClick={() => setLogoUrl("")}
+                    disabled={loading}
+                  >
+                    Remove
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Palette className="h-5 w-5" />
+                Brand Colors
+              </CardTitle>
+              <CardDescription>
+                Choose colors that represent your clinic's brand
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="primary-color">Primary Color</Label>
+                  <div className="flex items-center gap-3">
+                    <Input
+                      id="primary-color"
+                      type="color"
+                      value={primaryColor}
+                      onChange={(e) => setPrimaryColor(e.target.value)}
+                      className="h-12 w-20 cursor-pointer"
+                    />
+                    <Input
+                      type="text"
+                      value={primaryColor}
+                      onChange={(e) => setPrimaryColor(e.target.value)}
+                      placeholder="#0EA5E9"
+                      className="flex-1"
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Used for buttons, links, and primary actions
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="secondary-color">Secondary Color</Label>
+                  <div className="flex items-center gap-3">
+                    <Input
+                      id="secondary-color"
+                      type="color"
+                      value={secondaryColor}
+                      onChange={(e) => setSecondaryColor(e.target.value)}
+                      className="h-12 w-20 cursor-pointer"
+                    />
+                    <Input
+                      type="text"
+                      value={secondaryColor}
+                      onChange={(e) => setSecondaryColor(e.target.value)}
+                      placeholder="#10B981"
+                      className="flex-1"
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Used for secondary actions and accents
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-6 rounded-lg border bg-card space-y-3">
+                <h4 className="font-medium">Preview</h4>
+                <div className="flex flex-wrap gap-3">
+                  <Button style={{ backgroundColor: primaryColor, color: 'white' }}>
+                    Primary Button
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    style={{ 
+                      borderColor: secondaryColor, 
+                      color: secondaryColor 
+                    }}
+                  >
+                    Secondary Button
+                  </Button>
+                  <div 
+                    className="px-4 py-2 rounded-full text-sm font-medium"
+                    style={{ 
+                      backgroundColor: `${primaryColor}20`, 
+                      color: primaryColor 
+                    }}
+                  >
+                    Badge
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Clinic Information</CardTitle>
+              <CardDescription>
+                Basic information about your clinic
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="clinic-name">Clinic Name</Label>
+                <Input
+                  id="clinic-name"
+                  value={clinicName}
+                  onChange={(e) => setClinicName(e.target.value)}
+                  placeholder="Enter your clinic name"
                 />
               </div>
-            )}
-            
-            <div className="flex items-center gap-3">
-              <Input
-                type="file"
-                accept="image/*"
-                onChange={handleLogoUpload}
-                disabled={loading}
-                className="hidden"
-                id="logo-upload"
-              />
-              <Label htmlFor="logo-upload" className="cursor-pointer">
-                <Button asChild disabled={loading} variant="outline">
-                  <span>
-                    {loading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Uploading...
-                      </>
-                    ) : (
-                      <>
-                        <Upload className="mr-2 h-4 w-4" />
-                        Upload Logo
-                      </>
-                    )}
-                  </span>
-                </Button>
-              </Label>
-              {logoUrl && (
-                <Button 
-                  variant="ghost" 
-                  onClick={() => setLogoUrl("")}
-                  disabled={loading}
-                >
-                  Remove
-                </Button>
+              <div className="space-y-2">
+                <Label htmlFor="tagline">Tagline</Label>
+                <Input
+                  id="tagline"
+                  value={tagline}
+                  onChange={(e) => setTagline(e.target.value)}
+                  placeholder="e.g., Modern dental care excellence"
+                />
+                <p className="text-xs text-muted-foreground">
+                  A short phrase that describes your clinic (optional)
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="address">Clinic Address</Label>
+                <Input
+                  id="address"
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  placeholder="123 Main St, City, State, ZIP"
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="flex justify-end gap-3">
+            <Button variant="outline" onClick={loadBrandingSettings}>
+              Reset
+            </Button>
+            <Button onClick={handleSaveBranding} disabled={loading}>
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                "Save Changes"
               )}
-            </div>
-          </CardContent>
-        </Card>
+            </Button>
+          </div>
+        </TabsContent>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Palette className="h-5 w-5" />
-              Brand Colors
-            </CardTitle>
-            <CardDescription>
-              Choose colors that represent your clinic's brand
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="primary-color">Primary Color</Label>
-                <div className="flex items-center gap-3">
-                  <Input
-                    id="primary-color"
-                    type="color"
-                    value={primaryColor}
-                    onChange={(e) => setPrimaryColor(e.target.value)}
-                    className="h-12 w-20 cursor-pointer"
-                  />
-                  <Input
-                    type="text"
-                    value={primaryColor}
-                    onChange={(e) => setPrimaryColor(e.target.value)}
-                    placeholder="#0EA5E9"
-                    className="flex-1"
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Used for buttons, links, and primary actions
-                </p>
-              </div>
+        <TabsContent value="services">
+          <ServiceManager />
+        </TabsContent>
 
-              <div className="space-y-2">
-                <Label htmlFor="secondary-color">Secondary Color</Label>
-                <div className="flex items-center gap-3">
-                  <Input
-                    id="secondary-color"
-                    type="color"
-                    value={secondaryColor}
-                    onChange={(e) => setSecondaryColor(e.target.value)}
-                    className="h-12 w-20 cursor-pointer"
-                  />
-                  <Input
-                    type="text"
-                    value={secondaryColor}
-                    onChange={(e) => setSecondaryColor(e.target.value)}
-                    placeholder="#10B981"
-                    className="flex-1"
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Used for secondary actions and accents
-                </p>
-              </div>
-            </div>
+        <TabsContent value="ai" className="space-y-6">
+          <AIBehaviorSettings
+            systemBehavior={aiSystemBehavior}
+            greeting={aiGreeting}
+            personalityTraits={aiPersonalityTraits}
+            onSystemBehaviorChange={setAiSystemBehavior}
+            onGreetingChange={setAiGreeting}
+            onPersonalityTraitsChange={setAiPersonalityTraits}
+            onTestChat={() => setShowTestChat(true)}
+          />
 
-            <div className="p-6 rounded-lg border bg-card space-y-3">
-              <h4 className="font-medium">Preview</h4>
-              <div className="flex flex-wrap gap-3">
-                <Button style={{ backgroundColor: primaryColor, color: 'white' }}>
-                  Primary Button
-                </Button>
-                <Button 
-                  variant="outline" 
-                  style={{ 
-                    borderColor: secondaryColor, 
-                    color: secondaryColor 
-                  }}
-                >
-                  Secondary Button
-                </Button>
-                <div 
-                  className="px-4 py-2 rounded-full text-sm font-medium"
-                  style={{ 
-                    backgroundColor: `${primaryColor}20`, 
-                    color: primaryColor 
-                  }}
-                >
-                  Badge
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+          <div className="flex justify-end gap-3">
+            <Button variant="outline" onClick={loadBrandingSettings}>
+              Reset to Template Defaults
+            </Button>
+            <Button onClick={handleSaveBranding} disabled={loading}>
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                "Save AI Settings"
+              )}
+            </Button>
+          </div>
+        </TabsContent>
+      </Tabs>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Clinic Information</CardTitle>
-            <CardDescription>
-              Basic information about your clinic
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="clinic-name">Clinic Name</Label>
-              <Input
-                id="clinic-name"
-                value={clinicName}
-                onChange={(e) => setClinicName(e.target.value)}
-                placeholder="Enter your clinic name"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="tagline">Tagline</Label>
-              <Input
-                id="tagline"
-                value={tagline}
-                onChange={(e) => setTagline(e.target.value)}
-                placeholder="e.g., Modern dental care excellence"
-              />
-              <p className="text-xs text-muted-foreground">
-                A short phrase that describes your clinic (optional)
-              </p>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="address">Clinic Address</Label>
-              <Input
-                id="address"
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                placeholder="123 Main St, City, State, ZIP"
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        <div className="flex justify-end gap-3">
-          <Button variant="outline" onClick={loadBrandingSettings}>
-            Reset
-          </Button>
-          <Button onClick={handleSaveBranding} disabled={loading}>
-            {loading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              "Save Changes"
-            )}
-          </Button>
-        </div>
-      </div>
+      <AITestChatDialog
+        open={showTestChat}
+        onOpenChange={setShowTestChat}
+        greeting={aiGreeting}
+        systemBehavior={aiSystemBehavior}
+        personalityTraits={aiPersonalityTraits}
+        businessName={clinicName}
+      />
 
       <AlertDialog open={showTemplateWarning} onOpenChange={setShowTemplateWarning}>
         <AlertDialogContent>

@@ -12,7 +12,15 @@ interface UnifiedDashboardProps {
 }
 
 export const UnifiedDashboard = memo(({ user }: UnifiedDashboardProps) => {
-  const { loading: roleLoading } = useUserRole();
+  const { loading: roleLoading, isDentist } = useUserRole();
+  const navigate = useNavigate();
+
+  React.useEffect(() => {
+    if (!roleLoading && isDentist) {
+      // Redirect business owners/providers to their dashboard
+      navigate('/dentist/dashboard', { replace: true });
+    }
+  }, [roleLoading, isDentist, navigate]);
 
   if (roleLoading) {
     return (
