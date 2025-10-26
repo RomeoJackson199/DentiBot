@@ -12,16 +12,6 @@ export const AppButton = React.forwardRef<HTMLButtonElement, AppButtonProps>(({
   children,
   ...props
 }, ref) => {
-  return (
-    <Button
-      ref={ref}
-      variant={variant}
-      size={size}
-      className={cn(fullWidth && "w-full", className)}
-      {...props}
-    >
-      {children}
-    </Button>
-  );
+  return;
 });
 AppButton.displayName = "AppButton";
