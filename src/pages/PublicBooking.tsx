@@ -5,6 +5,8 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/hooks/useLanguage";
+import { useBusinessContext } from "@/hooks/useBusinessContext";
+import { BusinessSelectionForPatients } from "@/components/BusinessSelectionForPatients";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,6 +33,8 @@ export default function PublicBooking() {
   const { t } = useLanguage();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { businessId: contextBusinessId, loading: businessLoading } = useBusinessContext();
+  const [effectiveBusinessId, setEffectiveBusinessId] = useState<string | null>(null);
 
   // Form state
   const [dentists, setDentists] = useState<Dentist[]>([]);
@@ -51,23 +55,43 @@ export default function PublicBooking() {
   const [success, setSuccess] = useState(false);
 
   useEffect(() => {
+    if (!businessLoading) {
+      const stored = localStorage.getItem('selected_business_id');
+      setEffectiveBusinessId(contextBusinessId || stored);
+    }
+  }, [contextBusinessId, businessLoading]);
+
+  useEffect(() => {
     setSelectedTime("");
   }, [selectedDentist, selectedDate]);
 
   // Fetch dentists
   useEffect(() => {
+    if (!effectiveBusinessId) return;
+    
     const fetchDentists = async () => {
+      const { data: members } = await supabase
+        .from('business_members')
+        .select('profile_id')
+        .eq('business_id', effectiveBusinessId);
+
+      if (!members || members.length === 0) {
+        setDentists([]);
+        return;
+      }
+
       const { data, error } = await supabase
         .from('dentists')
         .select('id, specialization, profiles(first_name, last_name)')
-        .eq('is_active', true);
+        .eq('is_active', true)
+        .in('profile_id', members.map(m => m.profile_id));
 
       if (!error && data) {
         setDentists(data);
       }
     };
     fetchDentists();
-  }, []);
+  }, [effectiveBusinessId]);
 
   // Fetch available times
   useEffect(() => {
@@ -96,6 +120,7 @@ export default function PublicBooking() {
         .select('slot_time, is_available')
         .eq('dentist_id', selectedDentist)
         .eq('slot_date', dateStr)
+        .eq('business_id', effectiveBusinessId)
         .eq('is_available', true)
         .order('slot_time');
 

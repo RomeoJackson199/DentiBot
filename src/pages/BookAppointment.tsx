@@ -4,6 +4,8 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/hooks/useLanguage";
+import { useBusinessContext } from "@/hooks/useBusinessContext";
+import { BusinessSelectionForPatients } from "@/components/BusinessSelectionForPatients";
 import { AppointmentSuccessDialog } from "@/components/AppointmentSuccessDialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -48,9 +50,9 @@ export default function BookAppointment() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { t } = useLanguage();
+  const { businessId, loading: businessLoading, switchBusiness } = useBusinessContext();
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
-  const [selectedBusiness, setSelectedBusiness] = useState<{id: string, name: string} | null>(null);
   const [dentists, setDentists] = useState<Dentist[]>([]);
   const [selectedDentist, setSelectedDentist] = useState<Dentist | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>();
@@ -85,96 +87,66 @@ export default function BookAppointment() {
 
   // Fetch dentists
   useEffect(() => {
-    fetchDentists();
-  }, []);
+    if (!businessLoading && businessId) {
+      fetchDentists();
+    }
+  }, [businessId, businessLoading]);
 
   const fetchDentists = async () => {
+    if (!businessId) return;
+    
     setLoading(true);
     try {
-      const selectedBusinessId = localStorage.getItem("selected_business_id");
-
-      let data, error;
-
-      if (selectedBusinessId) {
-        setSelectedBusiness({ id: selectedBusinessId, name: '' });
-        
-        const { data: memberData, error: memberError } = await supabase
-          .from("business_members")
-          .select(`
-            profile_id,
-            profiles:profile_id (
-              id,
-              first_name,
-              last_name,
-              email,
-              phone,
-              address,
-              bio
-            )
-          `)
-          .eq("business_id", selectedBusinessId);
-
-        if (memberError) throw memberError;
-
-        const profileIds = memberData?.map(m => m.profile_id) || [];
-        
-        if (profileIds.length === 0) {
-          setDentists([]);
-          setLoading(false);
-          return;
-        }
-        
-        const dentistResult = await supabase
-          .from("dentists")
-          .select(`
+      const { data: memberData, error: memberError } = await supabase
+        .from("business_members")
+        .select(`
+          profile_id,
+          profiles:profile_id (
             id,
             first_name,
             last_name,
             email,
-            specialization,
-            profile_id,
-            profiles:profile_id (
-              first_name,
-              last_name,
-              email,
-              phone,
-              address,
-              bio
-            )
-          `)
-          .eq("is_active", true)
-          .in("profile_id", profileIds);
+            phone,
+            address,
+            bio
+          )
+        `)
+        .eq("business_id", businessId);
 
-        data = dentistResult.data;
-        error = dentistResult.error;
-      } else {
-        const dentistResult = await supabase
-          .from("dentists")
-          .select(`
-            id,
-            first_name,
-            last_name,
-            email,
-            specialization,
-            profile_id,
-            profiles:profile_id (
-              first_name,
-              last_name,
-              email,
-              phone,
-              address,
-              bio
-            )
-          `)
-          .eq("is_active", true);
+      if (memberError) throw memberError;
 
-        data = dentistResult.data;
-        error = dentistResult.error;
-      }
-
-      if (error) throw error;
+      const profileIds = memberData?.map(m => m.profile_id) || [];
       
-      const transformedData = (data || []).map((d: any) => ({
+      if (profileIds.length === 0) {
+        setDentists([]);
+        setLoading(false);
+        return;
+      }
+      
+      const dentistResult = await supabase
+        .from("dentists")
+        .select(`
+          id,
+          first_name,
+          last_name,
+          email,
+          specialization,
+          profile_id,
+          profiles:profile_id (
+            first_name,
+            last_name,
+            email,
+            phone,
+            address,
+            bio
+          )
+        `)
+        .eq("is_active", true)
+        .in("profile_id", profileIds);
+
+      if (dentistResult.error) throw dentistResult.error;
+      
+      const transformedData = (dentistResult.data || []).map((d: any) => ({
         ...d,
         profiles: Array.isArray(d.profiles) ? d.profiles[0] : (d.profiles || null),
       }));
@@ -206,6 +178,8 @@ export default function BookAppointment() {
   };
 
   const fetchAvailableSlots = async (date: Date, dentistId: string) => {
+    if (!businessId) return;
+    
     try {
       await supabase.rpc('generate_daily_slots', {
         p_dentist_id: dentistId,
@@ -217,6 +191,7 @@ export default function BookAppointment() {
         .select('slot_time, is_available, emergency_only')
         .eq('dentist_id', dentistId)
         .eq('slot_date', date.toISOString().split('T')[0])
+        .eq('business_id', businessId)
         .order('slot_time');
 
       if (error) throw error;
@@ -255,7 +230,7 @@ export default function BookAppointment() {
   };
 
   const confirmBooking = async () => {
-    if (!selectedDate || !selectedTime || !selectedDentist) return;
+    if (!selectedDate || !selectedTime || !selectedDentist || !businessId) return;
 
     try {
       const requiredFields = ['first_name', 'last_name', 'phone', 'email'];
@@ -276,25 +251,6 @@ export default function BookAppointment() {
       appointmentDateTime.setHours(parseInt(hours), parseInt(minutes));
 
       const dateStr = selectedDate.toISOString().split('T')[0];
-      let businessId: string | null = null;
-
-      const { data: slotRow } = await supabase
-        .from('appointment_slots')
-        .select('business_id')
-        .eq('dentist_id', selectedDentist.id)
-        .eq('slot_date', dateStr)
-        .eq('slot_time', selectedTime)
-        .maybeSingle();
-        
-      if (slotRow?.business_id) {
-        businessId = slotRow.business_id;
-      } else if (selectedBusiness) {
-        businessId = selectedBusiness.id;
-      }
-
-      if (!businessId) {
-        throw new Error('Clinic not configured');
-      }
 
       const { data: appointmentData, error } = await supabase
         .from('appointments')
@@ -348,7 +304,7 @@ export default function BookAppointment() {
     return `${fn.charAt(0)}${ln.charAt(0)}`.toUpperCase();
   };
 
-  if (loading) {
+  if (businessLoading || loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-secondary/10 p-4">
         <div className="max-w-6xl mx-auto space-y-6 py-8">
@@ -358,6 +314,24 @@ export default function BookAppointment() {
               <Skeleton key={i} className="h-64 rounded-lg" />
             ))}
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!businessId) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-secondary/10 p-4">
+        <div className="max-w-4xl mx-auto py-8">
+          <Card>
+            <CardContent className="p-6">
+              <h2 className="text-2xl font-bold mb-4">Select a Clinic</h2>
+              <p className="text-muted-foreground mb-6">Please select a clinic to view available dentists and book an appointment.</p>
+              <BusinessSelectionForPatients 
+                onSelectBusiness={(id, name) => switchBusiness(id)}
+              />
+            </CardContent>
+          </Card>
         </div>
       </div>
     );

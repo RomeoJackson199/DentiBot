@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { getCurrentBusinessId } from "@/lib/businessScopedSupabase";
+import { useBusinessContext } from "@/hooks/useBusinessContext";
+import { BusinessSelectionForPatients } from "@/components/BusinessSelectionForPatients";
 import { Button } from "@/components/ui/button";
 import { AppointmentSuccessDialog } from "@/components/AppointmentSuccessDialog";
 import { Card, CardContent } from "@/components/ui/card";
@@ -51,6 +52,7 @@ interface TimeSlot {
 export default function BookAppointmentAI() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { businessId, loading: businessLoading, switchBusiness } = useBusinessContext();
   const [bookingData, setBookingData] = useState<any>(null);
   const [dentists, setDentists] = useState<Dentist[]>([]);
   const [recommendedDentists, setRecommendedDentists] = useState<string[]>([]);
@@ -66,8 +68,13 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
 
   useEffect(() => {
     loadBookingData();
-    fetchDentists();
   }, []);
+
+  useEffect(() => {
+    if (!businessLoading && businessId) {
+      fetchDentists();
+    }
+  }, [businessId, businessLoading]);
 
   const loadBookingData = () => {
     const data = sessionStorage.getItem('aiBookingData');
@@ -77,123 +84,69 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
   };
 
   const fetchDentists = async () => {
+    if (!businessId) return;
+    
     setLoading(true);
     try {
-      // Get selected business from localStorage
-      const selectedBusinessId = localStorage.getItem("selected_business_id");
-      
-      console.log("Fetching dentists, selected business:", selectedBusinessId);
-
-      let data, error;
-
-      if (selectedBusinessId) {
-        // Get dentists for this specific business through business_members
-        const { data: memberData, error: memberError } = await supabase
-          .from("business_members")
-          .select(`
-            profile_id,
-            profiles:profile_id (
-              id,
-              first_name,
-              last_name,
-              email,
-              phone,
-              address
-            )
-          `)
-          .eq("business_id", selectedBusinessId);
-
-        if (memberError) {
-          console.error("Error fetching business members:", memberError);
-          throw memberError;
-        }
-
-        console.log("Business members found:", memberData?.length || 0);
-
-        // Get dentist records for these profiles
-        const profileIds = memberData?.map(m => m.profile_id) || [];
-        
-        if (profileIds.length === 0) {
-          console.warn("No business members found for this clinic");
-          toast({
-            title: "No Dentists Available",
-            description: "This clinic doesn't have any dentists registered yet.",
-            variant: "destructive",
-          });
-          setDentists([]);
-          setLoading(false);
-          return;
-        }
-
-        console.log("Fetching dentists for profile IDs:", profileIds);
-        
-        const dentistResult = await supabase
-          .from("dentists")
-          .select(`
+      const { data: memberData, error: memberError } = await supabase
+        .from("business_members")
+        .select(`
+          profile_id,
+          profiles:profile_id (
             id,
             first_name,
             last_name,
             email,
-            specialization,
-            license_number,
-            profile_id,
-            profiles:profile_id (
-              first_name,
-              last_name,
-              email,
-              phone,
-              address,
-              bio
-            )
-          `)
-          .eq("is_active", true)
-          .in("profile_id", profileIds);
+            phone,
+            address
+          )
+        `)
+        .eq("business_id", businessId);
 
-        data = dentistResult.data;
-        error = dentistResult.error;
-      } else {
-        // No business selected - show all active dentists
-        console.log("No business selected, showing all dentists");
-        
-        const dentistResult = await supabase
-          .from("dentists")
-          .select(`
-            id,
+      if (memberError) throw memberError;
+
+      const profileIds = memberData?.map(m => m.profile_id) || [];
+      
+      if (profileIds.length === 0) {
+        toast({
+          title: "No Dentists Available",
+          description: "This clinic doesn't have any dentists registered yet.",
+          variant: "destructive",
+        });
+        setDentists([]);
+        setLoading(false);
+        return;
+      }
+      
+      const dentistResult = await supabase
+        .from("dentists")
+        .select(`
+          id,
+          first_name,
+          last_name,
+          email,
+          specialization,
+          license_number,
+          profile_id,
+          profiles:profile_id (
             first_name,
             last_name,
             email,
-            specialization,
-            license_number,
-            profile_id,
-            profiles:profile_id (
-              first_name,
-              last_name,
-              email,
-              phone,
-              address,
-              bio
-            )
-          `)
-          .eq("is_active", true);
+            phone,
+            address,
+            bio
+          )
+        `)
+        .eq("is_active", true)
+        .in("profile_id", profileIds);
 
-        data = dentistResult.data;
-        error = dentistResult.error;
-      }
-
-      if (error) {
-        console.error("Error fetching dentists:", error);
-        throw error;
-      }
-
-      console.log("Dentists found:", data?.length || 0);
+      if (dentistResult.error) throw dentistResult.error;
       
-      // Normalize nested profile
-      const transformedData = (data || []).map((d: any) => ({
+      const transformedData = (dentistResult.data || []).map((d: any) => ({
         ...d,
         profiles: Array.isArray(d.profiles) ? d.profiles[0] : (d.profiles || null),
       }));
 
-      // Fetch clinic settings for addresses
       const dentistIds = transformedData.map(d => d.id);
       if (dentistIds.length > 0) {
         const { data: clinicSettings } = await supabase
@@ -201,7 +154,6 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
           .select('dentist_id, address')
           .in('dentist_id', dentistIds);
 
-        // Merge clinic address into dentist data
         const settingsMap = new Map(clinicSettings?.map(s => [s.dentist_id, s.address]) || []);
         transformedData.forEach(d => {
           d.clinic_address = settingsMap.get(d.id) || d.profiles?.address || '';
@@ -210,7 +162,6 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
       
       setDentists(transformedData);
 
-      // Get AI recommendations based on conversation
       if (bookingData) {
         await getAIRecommendations(transformedData);
       }
@@ -234,6 +185,8 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
   };
 
   const fetchAvailableSlots = async (date: Date, dentistId: string) => {
+    if (!businessId) return;
+    
     try {
       await supabase.rpc('generate_daily_slots', {
         p_dentist_id: dentistId,
@@ -245,6 +198,7 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
         .select('slot_time, is_available, emergency_only')
         .eq('dentist_id', dentistId)
         .eq('slot_date', date.toISOString().split('T')[0])
+        .eq('business_id', businessId)
         .order('slot_time');
 
       if (error) throw error;
@@ -283,7 +237,7 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
   };
 
   const confirmBooking = async () => {
-    if (!selectedDate || !selectedTime || !selectedDentist) return;
+    if (!selectedDate || !selectedTime || !selectedDentist || !businessId) return;
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -356,47 +310,7 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
         }
       }
 
-      // Determine business_id: prefer the slot's business, fallback to provider mapping, then session
       const dateStr = selectedDate.toISOString().split('T')[0];
-
-      let businessId: string | null = null;
-
-      // 1) Try from the selected slot
-      const { data: slotRow, error: slotErr } = await supabase
-        .from('appointment_slots')
-        .select('business_id')
-        .eq('dentist_id', selectedDentist.id)
-        .eq('slot_date', dateStr)
-        .eq('slot_time', selectedTime)
-        .maybeSingle();
-      if (!slotErr && slotRow?.business_id) {
-        businessId = slotRow.business_id as string;
-      }
-
-      // 2) Fallback to provider -> business mapping
-      if (!businessId) {
-        const { data: pbm, error: pbmError } = await supabase
-          .from('provider_business_map')
-          .select('business_id')
-          .eq('provider_id', selectedDentist.profile_id)
-          .maybeSingle();
-        if (!pbmError && pbm?.business_id) {
-          businessId = pbm.business_id as string;
-        }
-      }
-
-      // 3) Final fallback to current session business
-      if (!businessId) {
-        try {
-          businessId = await getCurrentBusinessId();
-        } catch (_) {
-          // ignore
-        }
-      }
-
-      if (!businessId) {
-        throw new Error('Clinic not configured for this dentist');
-      }
 
       const { data: appointmentData, error: appointmentError } = await supabase
         .from("appointments")
@@ -461,7 +375,7 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
     return `${fn.charAt(0)}${ln.charAt(0)}`.toUpperCase();
   };
 
-  if (loading) {
+  if (businessLoading || loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-secondary/10 p-4">
         <div className="max-w-6xl mx-auto space-y-6 py-8">
@@ -471,6 +385,24 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
               <Skeleton key={i} className="h-64 rounded-lg" />
             ))}
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!businessId) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-secondary/10 p-4">
+        <div className="max-w-4xl mx-auto py-8">
+          <Card>
+            <CardContent className="p-6">
+              <h2 className="text-2xl font-bold mb-4">Select a Clinic</h2>
+              <p className="text-muted-foreground mb-6">Please select a clinic to view available dentists and book an appointment.</p>
+              <BusinessSelectionForPatients 
+                onSelectBusiness={(id, name) => switchBusiness(id)}
+              />
+            </CardContent>
+          </Card>
         </div>
       </div>
     );
