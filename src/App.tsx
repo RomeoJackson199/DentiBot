@@ -32,6 +32,7 @@ const Login = lazy(() => import("./pages/Login"));
 const Signup = lazy(() => import("./pages/Signup"));
 const GoogleCalendarCallback = lazy(() => import("./pages/GoogleCalendarCallback"));
 const DentistServices = lazy(() => import("./pages/DentistServices"));
+const CreateBusiness = lazy(() => import("./pages/CreateBusiness"));
 
 // Lazy load pages for better performance
 const Index = lazy(() => import("./pages/Index"));
@@ -271,6 +272,7 @@ const App = () => {
                 {/* Auth routes */}
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<Signup />} />
+                <Route path="/create-business" element={<CreateBusiness />} />
                 {/* Role-based dashboard routing */}
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/patient/*" element={<Dashboard />} />
