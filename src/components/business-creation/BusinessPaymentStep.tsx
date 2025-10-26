@@ -12,104 +12,22 @@ interface BusinessPaymentStepProps {
 
 export function BusinessPaymentStep({ businessData, onComplete }: BusinessPaymentStepProps) {
   const [loading, setLoading] = useState(false);
-  const [businessId, setBusinessId] = useState<string | null>(null);
 
-  const createBusiness = async () => {
+  const handlePayment = async () => {
     setLoading(true);
     try {
       // Get current user
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      // Get user's profile
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
+      // Store business data in sessionStorage to create after payment
+      sessionStorage.setItem('pending_business_data', JSON.stringify(businessData));
 
-      if (profileError || !profile) {
-        throw new Error('Profile not found. Please complete your profile first.');
-      }
-
-      // Create business slug
-      const slug = businessData.name
-        ?.toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-|-$/g, '') || 'business';
-
-      // Ensure unique slug
-      const { data: existingBusiness } = await supabase
-        .from('businesses')
-        .select('id')
-        .eq('slug', slug)
-        .maybeSingle();
-
-      const finalSlug = existingBusiness 
-        ? `${slug}-${Math.random().toString(36).substring(2, 8)}`
-        : slug;
-
-      // Create business with owner_profile_id
-      const { data: business, error: businessError } = await supabase
-        .from('businesses')
-        .insert({
-          name: businessData.name,
-          slug: finalSlug,
-          tagline: businessData.tagline,
-          bio: businessData.bio,
-          template_type: businessData.template || 'generic',
-          owner_profile_id: profile.id,
-        })
-        .select()
-        .single();
-
-      if (businessError) throw businessError;
-
-      // Assign owner role to business_members
-      const { error: roleError } = await supabase
-        .from('business_members')
-        .insert({
-          business_id: business.id,
-          profile_id: profile.id,
-          role: 'owner',
-        });
-
-      if (roleError) throw roleError;
-
-      // Create services if any
-      if (businessData.services && businessData.services.length > 0) {
-        const servicesData = businessData.services.map((service: any) => ({
-          business_id: business.id,
-          name: service.name,
-          price_cents: service.price * 100, // Convert to cents
-          duration_minutes: service.duration || 30,
-        }));
-
-        await supabase.from('business_services').insert(servicesData);
-      }
-
-      setBusinessId(business.id);
-      toast.success('Business created! Now complete payment to activate.');
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to create business');
-      setLoading(false);
-    }
-  };
-
-  const handlePayment = async () => {
-    if (!businessId) {
-      await createBusiness();
-      return;
-    }
-
-    setLoading(true);
-    try {
       // Create Stripe checkout session for $0.50
-      const { data, error } = await supabase.functions.invoke('create-subscription-checkout', {
+      const { data, error } = await supabase.functions.invoke('create-business-payment', {
         body: {
-          priceAmount: 50, // 50 cents
-          businessId: businessId,
-          successUrl: `${window.location.origin}/dentist-portal`,
+          amount: 50, // 50 cents
+          successUrl: `${window.location.origin}/payment-success?type=business`,
           cancelUrl: `${window.location.origin}/create-business`,
         },
       });
@@ -118,8 +36,11 @@ export function BusinessPaymentStep({ businessData, onComplete }: BusinessPaymen
 
       if (data?.url) {
         window.location.href = data.url;
+      } else {
+        throw new Error('No payment URL received');
       }
     } catch (error: any) {
+      console.error('Payment error:', error);
       toast.error(error.message || 'Payment setup failed');
       setLoading(false);
     }
@@ -169,12 +90,12 @@ export function BusinessPaymentStep({ businessData, onComplete }: BusinessPaymen
 
           <Button
             onClick={handlePayment}
-            disabled={loading}
+            disabled={loading || !businessData.name}
             size="lg"
             className="w-full"
           >
             {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-            {businessId ? 'Proceed to Payment' : 'Create Business & Pay'}
+            Pay $0.50 to Create Business
           </Button>
 
           <p className="text-xs text-muted-foreground">
