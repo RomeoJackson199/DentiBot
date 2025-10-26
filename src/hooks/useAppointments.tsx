@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { utcToClinicTime } from '@/lib/timezone';
+import { useBusinessContext } from './useBusinessContext';
 
 export interface Appointment {
   id: string;
@@ -191,6 +192,7 @@ export function useAppointments(params: UseAppointmentsParams): UseAppointmentsR
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+  const { businessId } = useBusinessContext();
 
   const calculateCounts = (appointmentsList: Appointment[]): AppointmentCounts => {
     const now = new Date();
@@ -237,8 +239,16 @@ export function useAppointments(params: UseAppointmentsParams): UseAppointmentsR
       // Apply filters based on role and parameters
       if (params.role === 'patient' && params.patientId) {
         query = query.eq('patient_id', params.patientId);
+        // Filter by current business for patients
+        if (businessId) {
+          query = query.eq('business_id', businessId);
+        }
       } else if (params.role === 'dentist' && params.dentistId) {
         query = query.eq('dentist_id', params.dentistId);
+        // Filter by current business for dentists
+        if (businessId) {
+          query = query.eq('business_id', businessId);
+        }
       }
 
       if (params.status && params.status.length > 0) {
@@ -270,7 +280,7 @@ export function useAppointments(params: UseAppointmentsParams): UseAppointmentsR
     } finally {
       setLoading(false);
     }
-  }, [params.role, params.patientId, params.dentistId, params.status, params.fromDate, params.toDate]);
+  }, [params.role, params.patientId, params.dentistId, params.status, params.fromDate, params.toDate, businessId]);
 
   const updateAppointment = async (id: string, updates: Partial<Appointment>) => {
     try {
