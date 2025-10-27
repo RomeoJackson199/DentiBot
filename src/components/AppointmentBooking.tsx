@@ -282,36 +282,36 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+    <div className="min-h-screen bg-background p-4">
       <div className="max-w-4xl mx-auto">
-        <Card className="shadow-xl border-0 bg-white/95 backdrop-blur-sm">
+        <Card className="shadow-lg border-border">
           <CardHeader className="text-center pb-6">
-            <CardTitle className="flex items-center justify-center text-2xl font-bold text-gray-800">
-              <CalendarDays className="h-6 w-6 mr-3 text-blue-600" />
+            <CardTitle className="flex items-center justify-center text-2xl font-bold text-foreground">
+              <CalendarDays className="h-6 w-6 mr-3 text-primary" />
               Prise de rendez-vous
             </CardTitle>
-            <p className="text-gray-600 mt-2">Réservez votre consultation dentaire en quelques clics</p>
+            <p className="text-muted-foreground mt-2">Réservez votre consultation dentaire en quelques clics</p>
           </CardHeader>
           
           <CardContent className="space-y-8 p-6 md:p-8">
             {/* Dentist Selection - Pre-filled */}
             <div className="space-y-3">
-              <Label className="text-base font-semibold text-gray-700 flex items-center">
-                <UserIcon className="h-4 w-4 mr-2 text-blue-600" />
+              <Label className="text-base font-semibold text-foreground flex items-center">
+                <UserIcon className="h-4 w-4 mr-2 text-primary" />
                 Dentiste sélectionné
               </Label>
               <Select value={selectedDentist} onValueChange={setSelectedDentist}>
-                <SelectTrigger className="h-12 border-2 border-blue-200 bg-blue-50 hover:border-blue-300 transition-colors">
+                <SelectTrigger className="h-12 border-2 border-border bg-input hover:border-primary transition-colors">
                   <SelectValue placeholder="Choisir un dentiste" />
                 </SelectTrigger>
-                <SelectContent className="bg-white border-2 shadow-lg">
+                <SelectContent className="bg-card border-2 shadow-lg">
                   {dentists.map((dentist) => (
-                    <SelectItem key={dentist.id} value={dentist.id} className="cursor-pointer hover:bg-blue-50">
+                    <SelectItem key={dentist.id} value={dentist.id} className="cursor-pointer hover:bg-muted">
                       <div className="flex items-center py-1">
-                        <UserIcon className="h-4 w-4 mr-3 text-blue-600" />
+                        <UserIcon className="h-4 w-4 mr-3 text-primary" />
                         <div>
                           <div className="font-medium">Dr {dentist?.first_name || ''} {dentist?.last_name || ''}</div>
-                          <div className="text-sm text-gray-500">{dentist.specialization || 'General Dentistry'}</div>
+                          <div className="text-sm text-muted-foreground">{dentist.specialization || 'General Dentistry'}</div>
                         </div>
                       </div>
                     </SelectItem>
@@ -322,7 +322,7 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
 
             {/* Date Selection - Responsive calendar */}
             <div className="space-y-3">
-              <Label className="text-base font-semibold text-gray-700">
+              <Label className="text-base font-semibold text-foreground">
                 Choisissez une date
               </Label>
               <div className="flex justify-center">
@@ -335,12 +335,12 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
                   }}
                   disabled={isDateDisabled}
                   className={cn(
-                    "rounded-xl border-2 border-gray-200/50 shadow-lg bg-white/90 backdrop-blur-sm pointer-events-auto",
+                    "rounded-xl border-2 border-border/50 shadow-lg bg-card pointer-events-auto",
                     // Desktop styling
                     "hidden sm:block p-8 [&_table]:w-full [&_table]:mx-auto [&_td]:h-16 [&_td]:w-16 [&_th]:h-12 [&_th]:text-lg [&_th]:text-center [&_button]:h-14 [&_button]:w-14 [&_button]:text-lg",
                     "[&_.rdp-months]:text-xl [&_.rdp-caption]:text-xl [&_.rdp-nav_button]:h-10 [&_.rdp-nav_button]:w-10",
                     "[&_.rdp-head_cell]:text-center [&_.rdp-head_cell]:font-semibold [&_.rdp-cell]:text-center",
-                    selectedDate && "border-blue-300 shadow-blue-100"
+                    selectedDate && "border-primary/50 shadow-primary/10"
                   )}
                 />
                 {/* Mobile calendar - smaller */}
@@ -353,12 +353,12 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
                   }}
                   disabled={isDateDisabled}
                   className={cn(
-                    "rounded-xl border-2 border-gray-200/50 shadow-lg bg-white/90 backdrop-blur-sm pointer-events-auto",
+                    "rounded-xl border-2 border-border/50 shadow-lg bg-card pointer-events-auto",
                     // Mobile styling - smaller
                     "block sm:hidden p-4 [&_table]:w-full [&_table]:mx-auto [&_td]:h-10 [&_td]:w-10 [&_th]:h-8 [&_th]:text-sm [&_th]:text-center [&_button]:h-8 [&_button]:w-8 [&_button]:text-sm",
                     "[&_.rdp-months]:text-base [&_.rdp-caption]:text-base [&_.rdp-nav_button]:h-8 [&_.rdp-nav_button]:w-8",
                     "[&_.rdp-head_cell]:text-center [&_.rdp-head_cell]:font-semibold [&_.rdp-cell]:text-center",
-                    selectedDate && "border-blue-300 shadow-blue-100"
+                    selectedDate && "border-primary/50 shadow-primary/10"
                   )}
                 />
               </div>
@@ -367,15 +367,15 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
             {/* Time Selection */}
             {selectedDate && (
               <div className="space-y-4">
-                <Label className="text-base font-semibold text-gray-700 flex items-center">
-                  <Clock className="h-4 w-4 mr-2 text-blue-600" />
+                <Label className="text-base font-semibold text-foreground flex items-center">
+                  <Clock className="h-4 w-4 mr-2 text-primary" />
                   Choisissez un créneau
                 </Label>
                 
                 {loadingTimes ? (
                   <div className="flex justify-center items-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                    <span className="ml-3 text-gray-600">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                    <span className="ml-3 text-muted-foreground">
                       {errorMessage || "Chargement des créneaux..."}
                       {retryCount > 0 && ` (tentative ${retryCount + 1})`}
                     </span>
@@ -384,45 +384,45 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
                   <div className="space-y-4">
                     {/* Time Slots Grid - Clickable green/red slots */}
                     {allSlots.length > 0 && (
-                      <div className="bg-gray-50 rounded-lg p-4">
-                        <h4 className="font-semibold text-gray-700 mb-3">
+                      <div className="bg-muted/50 rounded-lg p-4">
+                        <h4 className="font-semibold text-foreground mb-3">
                           État de tous les créneaux ({allSlots.length} total)
                         </h4>
-                         <div className="grid grid-cols-3 xs:grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-1 sm:gap-2">
+                         <div className="grid grid-cols-3 xs:grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
                            {allSlots.map((slot) => (
                             <button
                               key={slot.slot_time}
                               onClick={() => slot.is_available && !slot.emergency_only ? setSelectedTime(slot.slot_time.substring(0, 5)) : null}
                               disabled={!slot.is_available || slot.emergency_only}
-                              className={`p-2 sm:p-3 rounded-lg text-xs sm:text-sm text-center font-medium transition-all border-2 ${
+                              className={`p-3 rounded-lg text-sm text-center font-medium transition-all border-2 ${
                                 slot.is_available && !slot.emergency_only
                                   ? selectedTime === slot.slot_time.substring(0, 5)
-                                    ? 'bg-blue-600 text-white border-blue-600 shadow-md'
-                                    : 'bg-green-50 border-green-200 text-green-700 hover:bg-green-100 cursor-pointer'
-                                  : 'bg-red-50 border-red-200 text-red-700 cursor-not-allowed'
+                                    ? 'bg-primary text-primary-foreground border-primary shadow-md'
+                                    : 'bg-success/10 border-success/20 text-success-foreground hover:bg-success/20 cursor-pointer'
+                                  : 'bg-destructive/10 border-destructive/20 text-destructive-foreground cursor-not-allowed'
                               }`}
                             >
-                              <div className="font-bold text-xs sm:text-sm">
+                              <div className="font-bold text-sm">
                                 {slot.slot_time.substring(0, 5)}
                               </div>
-                              <div className="flex items-center justify-center mt-0.5 sm:mt-1">
+                              <div className="flex items-center justify-center mt-1">
                                 {slot.is_available && !slot.emergency_only ? (
-                                  <CheckCircle className="h-2 w-2 sm:h-3 sm:w-3" />
+                                  <CheckCircle className="h-3 w-3" />
                                 ) : (
-                                  <XCircle className="h-2 w-2 sm:h-3 sm:w-3" />
+                                  <XCircle className="h-3 w-3" />
                                 )}
                               </div>
                             </button>
                           ))}
                          </div>
-                          <div className="flex flex-col sm:flex-row justify-center gap-2 sm:gap-8 mt-4 text-xs sm:text-sm font-medium">
-                            <div className="flex items-center justify-center bg-green-50 px-2 sm:px-3 py-1 sm:py-2 rounded-full border border-green-200">
-                              <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-green-600 mr-1 sm:mr-2" />
-                              <span className="text-green-700">Disponible ({allSlots.filter(s => s.is_available && !s.emergency_only).length})</span>
+                          <div className="flex flex-wrap justify-center gap-4 mt-4 text-sm font-medium">
+                            <div className="flex items-center justify-center bg-success/10 px-3 py-2 rounded-full border border-success/20">
+                              <CheckCircle className="h-4 w-4 text-success mr-2" />
+                              <span className="text-success-foreground">Disponible ({allSlots.filter(s => s.is_available && !s.emergency_only).length})</span>
                             </div>
-                            <div className="flex items-center justify-center bg-red-50 px-2 sm:px-3 py-1 sm:py-2 rounded-full border border-red-200">
-                              <XCircle className="h-3 w-3 sm:h-4 sm:w-4 text-red-600 mr-1 sm:mr-2" />
-                              <span className="text-red-700">Occupé ({allSlots.filter(s => !s.is_available).length})</span>
+                            <div className="flex items-center justify-center bg-destructive/10 px-3 py-2 rounded-full border border-destructive/20">
+                              <XCircle className="h-4 w-4 text-destructive mr-2" />
+                              <span className="text-destructive-foreground">Occupé ({allSlots.filter(s => !s.is_available).length})</span>
                             </div>
                           </div>
                       </div>
@@ -434,14 +434,14 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
 
             {/* Reason - Add preset options */}
             <div className="space-y-3">
-              <Label className="text-base font-semibold text-gray-700">
+              <Label className="text-base font-semibold text-foreground">
                 Motif de consultation
               </Label>
               <Select value={reason} onValueChange={setReason}>
-                <SelectTrigger className="h-12 border-2 border-gray-200 hover:border-blue-300 transition-colors">
+                <SelectTrigger className="h-12 border-2 border-border hover:border-primary transition-colors">
                   <SelectValue placeholder="Sélectionnez le motif" />
                 </SelectTrigger>
-                <SelectContent className="bg-white border-2 shadow-lg">
+                <SelectContent className="bg-card border-2 shadow-lg">
                   <SelectItem value="Contrôle de routine">Contrôle de routine</SelectItem>
                   <SelectItem value="Nettoyage dentaire">Nettoyage dentaire</SelectItem>
                   <SelectItem value="Douleur dentaire">Douleur dentaire</SelectItem>
@@ -454,7 +454,7 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
               {reason === "Autre" && (
                 <Textarea
                   placeholder="Décrivez votre motif de consultation..."
-                  className="min-h-[80px] border-2 border-gray-200 hover:border-blue-300 transition-colors"
+                  className="min-h-[80px] border-2 border-border hover:border-primary transition-colors"
                   onChange={(e) => setReason(e.target.value)}
                 />
               )}
@@ -464,8 +464,8 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
             <div className="flex flex-col sm:flex-row gap-4 pt-6">
               <Button 
                 onClick={handleBookAppointment} 
-                className="flex-1 h-12 bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors shadow-lg" 
-                disabled={isLoading}
+                className="flex-1 h-12 font-semibold transition-colors shadow-lg"
+                disabled={isLoading || !selectedDentist || !selectedDate || !selectedTime}
               >
                 {isLoading ? (
                   <div className="flex items-center">
@@ -482,7 +482,7 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
               <Button 
                 variant="outline" 
                 onClick={onCancel}
-                className="h-12 border-2 border-gray-300 hover:bg-gray-50 font-semibold transition-colors"
+                className="h-12 border-2 border-border hover:bg-muted font-semibold transition-colors"
               >
                 Annuler
               </Button>
