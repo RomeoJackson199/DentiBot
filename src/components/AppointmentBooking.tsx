@@ -465,7 +465,7 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
               <Button 
                 onClick={handleBookAppointment} 
                 className="flex-1 h-12 bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors shadow-lg" 
-                disabled={isLoading || !selectedDentist || !selectedDate || !selectedTime}
+                disabled={isLoading}
               >
                 {isLoading ? (
                   <div className="flex items-center">
