@@ -1,4 +1,15 @@
 import '@testing-library/jest-dom';
+
+// Mock import.meta.env
+Object.defineProperty(global, 'import.meta', {
+  value: {
+    env: {
+      VITE_SUPABASE_URL: 'http://localhost:54321',
+      VITE_SUPABASE_ANON_KEY: 'test-anon-key',
+    },
+  },
+  writable: true,
+});
 // Mock Supabase client channel for tests
 jest.mock('@/integrations/supabase/client', () => {
   const actual = jest.requireActual('@/integrations/supabase/client');

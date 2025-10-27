@@ -128,12 +128,12 @@ serve(async (req) => {
     // Optimized language detection with caching
     const detectLanguage = (text: string): string => {
       const lowercaseText = text.toLowerCase().trim();
-      
+
       // Check for obvious language indicators first
       if (/bonjour|merci|dentiste|rendez-vous|douleur|mal aux dents/i.test(text)) return 'fr';
       if (/hallo|tandarts|afspraak|pijn|kiezen/i.test(text)) return 'nl';
       if (/hello|dentist|appointment|teeth|tooth|pain/i.test(text)) return 'en';
-      
+
       // Simplified keyword matching for performance
       const frenchCount = (text.match(/\b(bonjour|merci|dentiste|rendez-vous|dents|douleur|mal|pour|avec|bien|très)\b/gi) || []).length;
       const dutchCount = (text.match(/\b(hallo|tandarts|afspraak|tanden|pijn|graag|kan|ik|ben|van)\b/gi) || []).length;
@@ -193,7 +193,7 @@ BELANGRIJK:
 - Gebruik codes ALLEEN wanneer je een widget wilt activeren
 - Voor algemene vragen en informatie verzamelen: GEEN code
 - Codes zijn onzichtbaar voor de gebruiker`,
-            
+
             dentists: `
 BESCHIKBARE TANDARTSEN & HUN SPECIALISATIES:
 
@@ -216,7 +216,7 @@ Dr. Justine Peters - Orthodontist
 Dr. Anne-Sophie Haas - Orthodontist
   * Gespecialiseerd in: Volwassen orthodontie, Invisalign, complexe uitlijningscases, esthetische behandelingen
   * Het beste voor: Volwassenen die discrete behandeling zoeken, complexe gevallen, professionele uitstraling`,
-            
+
             examples: `
 PROFESSIONELE TAALVOORBEELDEN:
 - "Goedendag ${user_profile?.first_name}! Hoe kan ik u vandaag helpen met uw tandheelkundige zorg?"
@@ -228,7 +228,7 @@ PROFESSIONELE TAALVOORBEELDEN:
 - "Voor annuleren van afspraken bekijkt u uw afsprakenlijst bovenaan"
 - "Is er nog iets anders dat u me zou willen vertellen over uw tandheelkundige situatie?"`
           };
-          
+
         case 'fr':
           return {
             persona: `Vous êtes DentiBot, un assistant virtuel dentaire professionnel français. Vous connaissez le patient ${user_profile?.first_name} ${user_profile?.last_name} et pouvez l'aider à réserver, modifier ou annuler des rendez-vous.`,
@@ -269,7 +269,7 @@ IMPORTANT:
 - Utilisez des codes UNIQUEMENT quand vous voulez activer un widget
 - Pour les questions générales et la collecte d'informations: PAS de code
 - Les codes sont invisibles pour l'utilisateur`,
-            
+
             dentists: `
 DENTISTES DISPONIBLES & LEURS SPÉCIALISATIONS:
 
@@ -292,7 +292,7 @@ Dr. Justine Peters - Orthodontiste
 Dr. Anne-Sophie Haas - Orthodontiste
   * Spécialisée en: Orthodontie pour adultes, Invisalign, cas d'alignement complexes, traitements esthétiques
   * Idéale pour: Adultes cherchant un traitement discret, cas complexes, besoins d'apparence professionnelle`,
-            
+
             examples: `
 EXEMPLES DE LANGAGE PROFESSIONNEL:
 - "Bonjour ${user_profile?.first_name}! Comment puis-je vous aider avec vos soins dentaires aujourd'hui?"
@@ -304,7 +304,7 @@ EXEMPLES DE LANGAGE PROFESSIONNEL:
 - "Pour annuler un rendez-vous, allez dans votre liste de rendez-vous"
 - "Y a-t-il autre chose que vous aimeriez me dire concernant votre situation dentaire?"`
           };
-          
+
         default: // English
           return {
             persona: `You are DentiBot, a friendly and professional dental assistant. You know the patient ${user_profile?.first_name} ${user_profile?.last_name}. You help patients book appointments with the right dentist based on their needs.`,
@@ -352,7 +352,7 @@ RESPONSE STYLE:
 ✓ "Thanks! What brings you in? Any pain or specific concerns?"
 ✓ "89902 Perfect! Based on that, I can recommend the right dentist."
 ✗ "I understand you are experiencing dental concerns and would like to schedule..."`,
-            
+
             dentists: `
 AVAILABLE DENTISTS:
 - Dr. Romeo Jackson - General dentist (routine care, cleanings, fillings, emergencies)
@@ -361,7 +361,7 @@ AVAILABLE DENTISTS:
 - Dr. Firdaws Benhsain - General dentist (adult patients, emergencies)
 - Dr. Justine Peters - Orthodontist (braces, alignment, teens/adults)
 - Dr. Anne-Sophie Haas - Orthodontist (adult ortho, Invisalign)`,
-            
+
             examples: `
 CONVERSATION EXAMPLES:
 User: "I need an appointment"
