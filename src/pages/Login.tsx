@@ -1,16 +1,31 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Star, Users, Clock, Shield } from "lucide-react";
+import { Loader2, Building2, ChevronRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
+
+type Business = {
+  id: string;
+  name: string;
+  tagline: string | null;
+  logo_url: string | null;
+};
 
 const Login = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [businesses, setBusinesses] = useState<Business[]>([]);
+  const [isLoadingBusinesses, setIsLoadingBusinesses] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedBusinessId, setSelectedBusinessId] = useState<string | null>(
+    () => localStorage.getItem("selected_business_id")
+  );
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -21,32 +36,90 @@ const Login = () => {
       if (session) navigate("/");
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) navigate("/");
     });
 
     return () => subscription.unsubscribe();
   }, [navigate]);
 
+  useEffect(() => {
+    const loadBusinesses = async () => {
+      setIsLoadingBusinesses(true);
+      try {
+        const { data, error } = await supabase
+          .from("businesses")
+          .select("id, name, tagline, logo_url")
+          .order("name");
+
+        if (error) throw error;
+        setBusinesses(data || []);
+      } catch (error) {
+        console.error("Error loading businesses:", error);
+      } finally {
+        setIsLoadingBusinesses(false);
+      }
+    };
+
+    loadBusinesses();
+  }, []);
+
+  const filteredBusinesses = useMemo(() => {
+    const term = searchTerm.trim().toLowerCase();
+
+    if (!term) {
+      return businesses;
+    }
+
+    return businesses.filter((business) => {
+      const nameMatches = business.name.toLowerCase().includes(term);
+      const taglineMatches = business.tagline?.toLowerCase().includes(term) ?? false;
+
+      return nameMatches || taglineMatches;
+    });
+  }, [businesses, searchTerm]);
+
+  const selectedBusiness = useMemo(
+    () => (selectedBusinessId ? businesses.find((business) => business.id === selectedBusinessId) : undefined),
+    [businesses, selectedBusinessId]
+  );
+
+  const handleSelectBusiness = (businessId: string) => {
+    localStorage.setItem("selected_business_id", businessId);
+    setSelectedBusinessId(businessId);
+
+    const business = businesses.find((item) => item.id === businessId);
+    if (business) {
+      toast({
+        title: `${business.name} selected`,
+        description: "Sign in on the right to continue to this workspace.",
+        duration: 3500,
+      });
+    }
+  };
+
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithPassword({
         email: formData.email,
         password: formData.password,
       });
 
       if (error) throw error;
 
-      // Apply pre-login clinic selection if present
-      const selectedBusinessId = localStorage.getItem('selected_business_id');
-      if (selectedBusinessId) {
-        await supabase.functions.invoke('set-current-business', {
-          body: { businessId: selectedBusinessId },
-        }).catch(console.warn);
-        localStorage.removeItem('selected_business_id');
+      const storedBusinessId = localStorage.getItem("selected_business_id");
+      if (storedBusinessId) {
+        await supabase.functions
+          .invoke("set-current-business", {
+            body: { businessId: storedBusinessId },
+          })
+          .catch(console.warn);
+        localStorage.removeItem("selected_business_id");
       }
 
       toast({
@@ -56,7 +129,7 @@ const Login = () => {
     } catch (error: any) {
       const errorMessage = error.message.toLowerCase();
       let userFriendlyMessage = "Unable to sign in. Please try again.";
-      
+
       if (errorMessage.includes("invalid") || errorMessage.includes("credentials")) {
         userFriendlyMessage = "Invalid email or password. Please check your credentials and try again.";
       } else if (errorMessage.includes("email not confirmed")) {
@@ -80,7 +153,7 @@ const Login = () => {
     setIsLoading(true);
     try {
       const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
+        provider: "google",
         options: {
           redirectTo: `${window.location.origin}/`,
         },
@@ -97,88 +170,237 @@ const Login = () => {
     }
   };
 
+  const renderBusinessList = (layout: "desktop" | "mobile") => {
+    const isDesktop = layout === "desktop";
+
+    if (isLoadingBusinesses) {
+      return (
+        <div className="space-y-4">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <Skeleton
+              key={`${layout}-skeleton-${index}`}
+              className={cn(
+                "h-24 w-full rounded-2xl",
+                isDesktop ? "bg-white/10" : "bg-slate-200/60"
+              )}
+            />
+          ))}
+        </div>
+      );
+    }
+
+    if (filteredBusinesses.length === 0) {
+      return (
+        <p className={cn("text-sm", isDesktop ? "text-white/70" : "text-muted-foreground")}>
+          No businesses found.
+        </p>
+      );
+    }
+
+    return (
+      <div className="space-y-3">
+        {filteredBusinesses.map((business) => {
+          const isSelected = selectedBusinessId === business.id;
+
+          return (
+            <button
+              key={business.id}
+              type="button"
+              onClick={() => handleSelectBusiness(business.id)}
+              className={cn(
+                "w-full rounded-2xl border p-5 text-left transition-all duration-200 group",
+                isDesktop
+                  ? "border-white/15 bg-white/5 hover:border-white/40 hover:bg-white/10"
+                  : "border-slate-200 bg-white hover:border-slate-300 hover:shadow-md",
+                isSelected &&
+                  (isDesktop
+                    ? "border-white bg-white/20 shadow-lg"
+                    : "border-primary shadow-lg")
+              )}
+            >
+              <div className="flex items-center gap-4">
+                {business.logo_url ? (
+                  <img
+                    src={business.logo_url}
+                    alt={`${business.name} logo`}
+                    className={cn(
+                      "h-12 w-12 rounded-xl object-cover",
+                      isDesktop ? "bg-white/90" : "bg-slate-100"
+                    )}
+                  />
+                ) : (
+                  <div
+                    className={cn(
+                      "flex h-12 w-12 items-center justify-center rounded-xl",
+                      isDesktop ? "bg-white/10 text-white" : "bg-slate-100 text-slate-500"
+                    )}
+                  >
+                    <Building2 className="h-5 w-5" />
+                  </div>
+                )}
+                <div className="min-w-0 flex-1">
+                  <p className={cn("text-lg font-semibold", isDesktop ? "text-white" : "text-slate-900")}>
+                    {business.name}
+                  </p>
+                  {business.tagline && (
+                    <p className={cn("mt-1 truncate text-sm", isDesktop ? "text-white/70" : "text-slate-500")}>
+                      {business.tagline}
+                    </p>
+                  )}
+                </div>
+                <ChevronRight
+                  className={cn(
+                    "h-5 w-5 transition-colors",
+                    isDesktop
+                      ? "text-white/60 group-hover:text-white"
+                      : "text-slate-400 group-hover:text-slate-600"
+                  )}
+                />
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    );
+  };
+
   return (
-    <div className="min-h-screen flex">
-      {/* Left Side - Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-background">
-        <div className="w-full max-w-md space-y-8">
-          <div className="text-center">
-            <h1 className="text-5xl font-bold tracking-tight mb-3">SIGN IN</h1>
-            <p className="text-muted-foreground text-sm">
-              Access your dental care dashboard and manage your appointments
+    <div className="min-h-screen flex flex-col bg-background lg:flex-row">
+      <div className="hidden lg:flex lg:w-1/2 flex-col bg-slate-950 text-white">
+        <div className="flex-1 space-y-8 overflow-y-auto p-12">
+          <div className="space-y-4">
+            <span className="inline-flex w-fit items-center gap-2 rounded-full bg-white/10 px-4 py-1 text-xs uppercase tracking-wide text-white/80">
+              Choose your workspace
+            </span>
+            <h2 className="text-4xl font-semibold leading-tight">
+              Businesses on the left, sign in on the right
+            </h2>
+            <p className="text-sm text-white/70">
+              Pick your business to tailor automations, messaging, and reports to the right location.
             </p>
           </div>
-
           <div className="space-y-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleGoogleSignIn}
-              disabled={isLoading}
-              className="w-full h-12 border-2 hover:bg-accent"
-            >
-              <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24">
-                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-              </svg>
-              Continue with Google
-            </Button>
+            <Input
+              type="search"
+              value={searchTerm}
+              onChange={(event) => setSearchTerm(event.target.value)}
+              placeholder="Search businesses"
+              className="border-white/20 bg-white/10 text-white placeholder:text-white/60"
+            />
+            {renderBusinessList("desktop")}
+          </div>
+        </div>
+        <div className="border-t border-white/10 p-8 text-sm text-white/70">
+          Need a new workspace?{" "}
+          <a href="/create-business" className="font-semibold text-white underline-offset-4 hover:underline">
+            Create a business
+          </a>
+        </div>
+      </div>
 
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">or</span>
-              </div>
+      <div className="flex-1 flex flex-col">
+        <div className="lg:hidden border-b border-slate-200 bg-muted/40">
+          <div className="space-y-4 px-6 py-8">
+            <h2 className="text-xl font-semibold text-slate-900">Choose your business</h2>
+            <p className="text-sm text-muted-foreground">
+              Pick the business you manage so we can log you into the right workspace.
+            </p>
+            <Input
+              type="search"
+              value={searchTerm}
+              onChange={(event) => setSearchTerm(event.target.value)}
+              placeholder="Search businesses"
+            />
+            {renderBusinessList("mobile")}
+          </div>
+        </div>
+
+        <div className="flex flex-1 items-center justify-center px-6 py-12 sm:px-12">
+          <div className="w-full max-w-md space-y-8">
+            <div className="space-y-3 text-center">
+              <h1 className="text-4xl font-semibold tracking-tight">Sign in</h1>
+              <p className="text-sm text-muted-foreground">
+                Access your workspace and keep every patient journey on track.
+              </p>
+              {selectedBusiness && (
+                <div className="mx-auto flex w-fit items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-2 text-sm font-medium text-primary">
+                  <Building2 className="h-4 w-4" />
+                  {selectedBusiness.name}
+                </div>
+              )}
             </div>
 
-            <form onSubmit={handleSignIn} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Your Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="name@email.com"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="h-12"
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="Enter your password"
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="h-12"
-                  required
-                />
-              </div>
-
-              <Button 
-                type="submit" 
-                className="w-full h-12 bg-primary hover:bg-primary/90 text-lg font-semibold"
+            <div className="space-y-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleGoogleSignIn}
                 disabled={isLoading}
+                className="w-full h-12 border-2 hover:bg-accent"
               >
-                {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : "SIGN IN"}
+                <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24">
+                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+                </svg>
+                Continue with Google
               </Button>
 
-              <p className="text-center text-sm text-muted-foreground">
-                Don't have an account?{" "}
-                <Link to="/signup" className="text-primary hover:underline font-medium">
-                  Sign up
-                </Link>
-              </p>
-            </form>
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-background px-2 text-muted-foreground">or</span>
+                </div>
+              </div>
 
-            <p className="text-xs text-center text-muted-foreground pt-4">
+              <form onSubmit={handleSignIn} className="space-y-4">
+                <div className="space-y-2 text-left">
+                  <Label htmlFor="email">Your Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="name@email.com"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    className="h-12"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2 text-left">
+                  <Label htmlFor="password">Password</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="Enter your password"
+                    value={formData.password}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    className="h-12"
+                    required
+                  />
+                </div>
+
+                <Button
+                  type="submit"
+                  className="h-12 w-full bg-primary text-lg font-semibold hover:bg-primary/90"
+                  disabled={isLoading}
+                >
+                  {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Sign in"}
+                </Button>
+
+                <p className="text-center text-sm text-muted-foreground">
+                  Don't have an account?{" "}
+                  <Link to="/signup" className="font-medium text-primary hover:underline">
+                    Sign up
+                  </Link>
+                </p>
+              </form>
+            </div>
+
+            <p className="pt-4 text-center text-xs text-muted-foreground">
               By signing in, you agree to our{" "}
               <Link to="/terms" className="underline hover:text-foreground">
                 Terms of Service
@@ -188,58 +410,6 @@ const Login = () => {
                 Privacy Policy
               </Link>
             </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Right Side - Hero */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-blue-400 via-purple-400 to-pink-400">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/90 via-purple-500/90 to-pink-500/90" />
-        
-        <div className="relative z-10 flex flex-col justify-between p-12 text-white">
-          <div className="space-y-6">
-            <div className="flex items-center gap-2 text-sm font-medium">
-              <Users className="h-5 w-5" />
-              Join 5,000+ patients managing their dental health
-            </div>
-          </div>
-
-          <div className="space-y-8">
-            <div>
-              <h2 className="text-6xl font-bold leading-tight mb-4">
-                YOUR DENTAL CARE
-                <br />
-                <span className="text-white/90">SIMPLIFIED</span>
-              </h2>
-            </div>
-
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 max-w-md border border-white/20">
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
-                  <Star className="h-6 w-6 text-yellow-300 fill-yellow-300" />
-                </div>
-                <div>
-                  <p className="text-white/95 mb-3 leading-relaxed">
-                    "DentiBot has completely transformed how I manage my dental appointments. The AI assistant is incredibly helpful!"
-                  </p>
-                  <p className="font-semibold">Sarah Johnson</p>
-                  <p className="text-sm text-white/70">Regular Patient</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20">
-                <Clock className="h-6 w-6 mb-2" />
-                <p className="text-2xl font-bold">24/7</p>
-                <p className="text-sm text-white/80">AI Support</p>
-              </div>
-              <div className="bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20">
-                <Shield className="h-6 w-6 mb-2" />
-                <p className="text-2xl font-bold">100%</p>
-                <p className="text-sm text-white/80">Secure & Private</p>
-              </div>
-            </div>
           </div>
         </div>
       </div>
