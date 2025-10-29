@@ -1,0 +1,114 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String      @id @default(cuid())
+  name          String
+  email         String      @unique
+  passwordHash  String
+  role          Role
+  businessId    String?
+  profileImg    String?
+  business      Business?   @relation("BusinessMembers", fields: [businessId], references: [id])
+  ownedBusiness Business?   @relation("BusinessOwner")
+  sentMessages  Message[]   @relation("SentMessages")
+  receivedMessages Message[] @relation("ReceivedMessages")
+  clientAppointments Appointment[] @relation("ClientAppointments")
+  professionalAppointments Appointment[] @relation("ProfessionalAppointments")
+  payments      Payment[]
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model Business {
+  id            String      @id @default(cuid())
+  name          String
+  category      String
+  ownerId       String
+  owner         User        @relation("BusinessOwner", fields: [ownerId], references: [id])
+  services      Service[]
+  professionals User[]     @relation("BusinessMembers")
+  appointments  Appointment[]
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+}
+
+model Service {
+  id          String      @id @default(cuid())
+  businessId  String
+  title       String
+  description String
+  duration    Int
+  price       Float
+  business    Business    @relation(fields: [businessId], references: [id])
+  appointments Appointment[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model Appointment {
+  id             String    @id @default(cuid())
+  clientId       String
+  professionalId String
+  serviceId      String
+  startTime      DateTime
+  endTime        DateTime
+  status         AppointmentStatus @default(SCHEDULED)
+  notes          String?
+  client         User      @relation("ClientAppointments", fields: [clientId], references: [id])
+  professional   User      @relation("ProfessionalAppointments", fields: [professionalId], references: [id])
+  service        Service   @relation(fields: [serviceId], references: [id])
+  payment        Payment?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+model Payment {
+  id            String    @id @default(cuid())
+  appointmentId String    @unique
+  payerId       String
+  amount        Float
+  currency      String    @default("usd")
+  method        String
+  status        PaymentStatus @default(PENDING)
+  stripeSession String?
+  appointment   Appointment @relation(fields: [appointmentId], references: [id])
+  payer         User        @relation(fields: [payerId], references: [id])
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+}
+
+model Message {
+  id          String   @id @default(cuid())
+  senderId    String
+  receiverId  String
+  content     String
+  timestamp   DateTime @default(now())
+  sender      User     @relation("SentMessages", fields: [senderId], references: [id])
+  receiver    User     @relation("ReceivedMessages", fields: [receiverId], references: [id])
+}
+
+enum Role {
+  client
+  professional
+}
+
+enum AppointmentStatus {
+  SCHEDULED
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
