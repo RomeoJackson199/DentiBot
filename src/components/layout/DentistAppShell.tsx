@@ -2,15 +2,13 @@ import React, { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
-import { LayoutDashboard, Users, Calendar, UserCog, Search, Bell, Settings as SettingsIcon, LogOut, User, MessageSquare } from "lucide-react";
+import { LayoutDashboard, Users, Calendar, UserCog, Settings as SettingsIcon, LogOut, MessageSquare } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useMobileOptimizations } from "@/components/mobile/MobileOptimizations";
 import { useClinicBranding } from "@/hooks/useClinicBranding";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { RoleSwitcher } from "@/components/RoleSwitcher";
 import { BusinessSelector } from "@/components/BusinessSelector";
 import { useBusinessTemplate } from "@/hooks/useBusinessTemplate";
 export type DentistSection = 'dashboard' | 'patients' | 'appointments' | 'employees' | 'messages' | 'clinical' | 'schedule' | 'payments' | 'analytics' | 'reports' | 'inventory' | 'imports' | 'branding' | 'security' | 'users' | 'team' | 'settings' | 'services';
@@ -40,8 +38,6 @@ export const DentistAppShell: React.FC<DentistAppShellProps> = ({
   const {
     t
   } = useBusinessTemplate();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [notificationCount] = useState(0);
   const [userName, setUserName] = useState<string>("");
   const [userInitials, setUserInitials] = useState<string>("?");
   const NAV_ITEMS = useMemo(() => [{
@@ -172,18 +168,6 @@ export const DentistAppShell: React.FC<DentistAppShellProps> = ({
 
           {/* Right Section: Search, Notifications, User */}
           <div className="ml-auto flex items-center gap-3">
-            {/* Business Selector */}
-            
-            
-            {/* Role Switcher */}
-            <RoleSwitcher />
-            
-            {/* Search */}
-            
-
-            {/* Notifications */}
-            
-
             {/* User Menu */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -197,21 +181,17 @@ export const DentistAppShell: React.FC<DentistAppShellProps> = ({
                   </div>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuContent align="end" className="w-44">
+                <DropdownMenuLabel>Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => onChangeSection('users')}>
-                  <User className="mr-2 h-4 w-4" />
-                  Profile
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onChangeSection('settings')}>
+                <DropdownMenuItem onClick={() => onChangeSection('settings')} className="gap-2">
                   <SettingsIcon className="mr-2 h-4 w-4" />
                   Settings
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
+                <DropdownMenuItem onClick={handleSignOut} className="gap-2 text-destructive">
                   <LogOut className="mr-2 h-4 w-4" />
-                  Sign Out
+                  Log out
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
