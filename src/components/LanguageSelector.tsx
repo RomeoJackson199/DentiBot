@@ -1,8 +1,17 @@
 import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger
+} from "@/components/ui/dropdown-menu";
 import { Globe } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
-const languages = [{
+
+export const languages = [{
   code: 'en',
   name: 'English',
   flag: '🇺🇸'
@@ -15,6 +24,34 @@ const languages = [{
   name: 'Français',
   flag: '🇫🇷'
 }];
+
+export const LanguageSelectorMenu = () => {
+  const {
+    language,
+    setLanguage
+  } = useLanguage();
+
+  return <DropdownMenuSub>
+      <DropdownMenuSubTrigger className="gap-2">
+        <Globe className="h-4 w-4" />
+        <span className="flex-1 text-left">Language</span>
+        <span className="text-xs text-muted-foreground">
+          {languages.find(lang => lang.code === language)?.name}
+        </span>
+      </DropdownMenuSubTrigger>
+      <DropdownMenuSubContent className="w-48">
+        {languages.map(lang => <DropdownMenuItem key={lang.code} onSelect={event => {
+        event.preventDefault();
+        setLanguage(lang.code as 'en' | 'fr' | 'nl');
+      }} className="gap-2">
+            <span>{lang.flag}</span>
+            <span>{lang.name}</span>
+            {language === lang.code && <span className="ml-auto text-xs">✓</span>}
+          </DropdownMenuItem>)}
+      </DropdownMenuSubContent>
+    </DropdownMenuSub>;
+};
+
 export const LanguageSelector = () => {
   const {
     language,
