@@ -362,18 +362,7 @@ const Index = () => {
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-4">
-                  <Button
-                    size="lg"
-                    className="bg-slate-900 text-white hover:bg-slate-800"
-                    asChild
-                  >
-                    <a
-                      href="https://dentibot.lovable.app/create-businiss"
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      Start free trial
-                    </a>
+
                   </Button>
                   <Button size="lg" variant="outline" onClick={() => window.location.href = '/chat'}>
                     Book a walkthrough
