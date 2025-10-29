@@ -5,15 +5,15 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { Home as HomeIcon, FolderOpen, Calendar, CreditCard, Settings as SettingsIcon, Bot, LogOut, Info, PanelLeft, MessageSquare } from "lucide-react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ModernNotificationCenter } from "@/components/notifications/ModernNotificationCenter";
 import { FloatingBookingButton } from "@/components/patient/FloatingBookingButton";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useMobileOptimizations } from "@/components/mobile/MobileOptimizations";
 import { useClinicBranding } from "@/hooks/useClinicBranding";
-import { LanguageSelector } from "@/components/LanguageSelector";
-import { RoleSwitcher } from "@/components/RoleSwitcher";
+import { LanguageSelectorMenu } from "@/components/LanguageSelector";
+import { RoleSwitcherMenu } from "@/components/RoleSwitcher";
 import { UserTour, useUserTour } from "@/components/UserTour";
 import { Settings } from "@/components/Settings";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -137,13 +137,11 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
               <span className="font-semibold text-lg">{branding.clinicName || "Patient Portal"}</span>
             </div>
 
-            <div className="flex items-center space-x-2">
-              <RoleSwitcher />
-              <LanguageSelector />
+            <div className="flex items-center gap-2">
               <ModernNotificationCenter userId={userId} />
-              {onBookAppointment && <Button variant="gradient" size="sm" onClick={onBookAppointment} className="hidden sm:flex touch-target" aria-label="Book appointment">
-                  <Calendar className="h-4 w-4 mr-2" />
-                  Book
+              {onBookAppointment && <Button variant="gradient" size="icon" onClick={onBookAppointment} className="min-h-[44px] min-w-[44px]" aria-label="Book appointment">
+                  <Calendar className="h-5 w-5" />
+                  <span className="sr-only">Book appointment</span>
                 </Button>}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -151,8 +149,15 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
                     <SettingsIcon className="h-5 w-5" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuContent align="end" className="w-56">
                   <DropdownMenuLabel>Menu</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuGroup>
+                    <div className="space-y-1">
+                      <RoleSwitcherMenu />
+                      <LanguageSelectorMenu />
+                    </div>
+                  </DropdownMenuGroup>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleSettingsClick} aria-label="Settings">
                     <SettingsIcon className="mr-2 h-4 w-4" />
