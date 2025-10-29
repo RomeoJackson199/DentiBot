@@ -362,7 +362,12 @@ const Index = () => {
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-4">
-
+                  <Button
+                    size="lg"
+                    className="bg-slate-900 text-white hover:bg-slate-800 shadow-lg shadow-slate-900/20"
+                    onClick={() => setShowAppointmentBooking(true)}
+                  >
+                    Start for free
                   </Button>
                   <Button size="lg" variant="outline" onClick={() => window.location.href = '/chat'}>
                     Book a walkthrough
