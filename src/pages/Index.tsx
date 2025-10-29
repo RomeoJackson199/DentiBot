@@ -351,7 +351,7 @@ const Index = () => {
               <div className="space-y-10">
                 <span className="inline-flex items-center gap-2 rounded-full bg-white/70 px-4 py-2 text-sm font-medium text-slate-700 shadow-sm backdrop-blur">
                   <Sparkles className="h-4 w-4 text-emerald-500" />
-                  AI powered automation for modern practices
+                  Made by Caberu
                 </span>
                 <div className="space-y-6">
                   <h1 className="text-4xl sm:text-5xl lg:text-6xl font-semibold leading-tight text-slate-900">
@@ -365,12 +365,15 @@ const Index = () => {
                   <Button
                     size="lg"
                     className="bg-slate-900 text-white hover:bg-slate-800 shadow-lg shadow-slate-900/20"
-                    onClick={() => setShowAppointmentBooking(true)}
+                    onClick={() => window.location.href = '/login'}
                   >
-                    Start for free
+                    Sign in
                   </Button>
                   <Button size="lg" variant="outline" onClick={() => window.location.href = '/chat'}>
                     Book a walkthrough
+                  </Button>
+                  <Button size="lg" variant="ghost" onClick={() => setShowAppointmentBooking(true)}>
+                    Explore Caberu
                   </Button>
                 </div>
                 <div className="flex flex-wrap gap-6 text-sm text-slate-600">
