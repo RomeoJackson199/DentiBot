@@ -1,6 +1,8 @@
 import { AnalyticsOverview, Appointment, Business, ChatResponse, Payment, Service, UserProfile } from './types';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
+const API_URL =
+  import.meta.env.VITE_API_URL ||
+  (typeof window !== 'undefined' ? `${window.location.origin}/api` : 'http://localhost:4000/api');
 
 type RequestOptions = {
   method?: 'GET' | 'POST' | 'PATCH' | 'DELETE';
