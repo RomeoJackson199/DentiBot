@@ -214,8 +214,18 @@ export const HomeTab: React.FC<HomeTabProps> = ({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <Card className="h-full border-l-4 border-l-primary hover:border-l-2 hover:border-l-primary transition-all hover:shadow-md"
-                onClick={() => onNavigateTo('care')}>
+          <Card
+            role="button"
+            tabIndex={0}
+            onClick={() => onNavigateTo('care')}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                onNavigateTo('care');
+              }
+            }}
+            className="h-full border-l-4 border-l-primary hover:border-l-2 hover:border-l-primary transition-all hover:shadow-md cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+          >
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center justify-between text-base">
                 <span className="flex items-center gap-2">
@@ -233,7 +243,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
               <div className="space-y-2">
                 <p className="text-2xl font-bold">{activePrescriptions}</p>
                 <p className="text-sm text-muted-foreground">{t.activeMedications}</p>
-                <Button variant="link" className="p-0 h-auto text-primary group-hover:underline">
+                <Button variant="link" className="p-0 h-auto text-primary hover:underline">
                   {t.viewInCareTab}
                   <ChevronRight className="h-4 w-4 ml-1" />
                 </Button>
@@ -292,8 +302,18 @@ export const HomeTab: React.FC<HomeTabProps> = ({
           transition={{ delay: 0.4 }}
           className="md:col-span-2 lg:col-span-1"
         >
-          <Card className="h-full bg-gradient-to-br from-emerald-50/50 to-emerald-100/30 dark:from-emerald-900/10 dark:to-emerald-900/5 border-emerald-200/50 hover:shadow-md transition-all cursor-pointer"
-                onClick={onOpenAssistant}>
+          <Card
+            role="button"
+            tabIndex={0}
+            onClick={onOpenAssistant}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                onOpenAssistant?.();
+              }
+            }}
+            className="h-full bg-gradient-to-br from-emerald-50/50 to-emerald-100/30 dark:from-emerald-900/10 dark:to-emerald-900/5 border-emerald-200/50 hover:shadow-md transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300"
+          >
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center justify-between text-base">
                 <span className="flex items-center gap-2">
