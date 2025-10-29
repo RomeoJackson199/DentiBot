@@ -113,8 +113,21 @@ export const Header = ({
                 <RoleSwitcher />
               </>
             )}
+            {!user && (
+              <AppButton
+                variant="outline"
+                size="sm"
+                asChild
+                className="px-4"
+              >
+                <a href="/login" className="flex items-center gap-2">
+                  <UserIcon className="h-4 w-4" />
+                  <span>Sign in</span>
+                </a>
+              </AppButton>
+            )}
             <LanguageSelector />
-            
+
             {/* Mobile Menu Toggle */}
             {!minimal && (
               <button
