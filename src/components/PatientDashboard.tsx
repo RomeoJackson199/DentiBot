@@ -529,16 +529,30 @@ export const PatientDashboard = ({
     // messages functionality removed
   } as Record<PatientSection, boolean>;
   return <PatientAppShell activeSection={activeSection} onChangeSection={setActiveSection} badges={badges} userId={user.id} onBookAppointment={() => setActiveSection('assistant')}>
-      {activeSection === 'home' && <HomeTab userId={user.id} firstName={userProfile?.first_name} nextAppointment={nextAppointment ? {
-      id: nextAppointment.id,
-      date: new Date(nextAppointment.appointment_date).toLocaleDateString(),
-      time: new Date(nextAppointment.appointment_date).toLocaleTimeString([], {
-        hour: '2-digit',
-        minute: '2-digit'
-      }),
-      dentistName: undefined,
-      status: nextAppointment.status
-    } : null} activePrescriptions={patientStats.activePrescriptions} activeTreatmentPlans={patientStats.activeTreatmentPlans} totalDueCents={totalDueCents} onNavigateTo={s => setActiveSection(s)} onOpenAssistant={() => setActiveSection('assistant')} onBookAppointment={() => setActiveSection('assistant')} />}
+      {activeSection === 'home' && <HomeTab userId={user.id} firstName={userProfile?.first_name} nextAppointment={nextAppointment ? (() => {
+      const appointmentDetails = nextAppointment as unknown as Record<string, any>;
+      const joinUrl = appointmentDetails.meeting_url || appointmentDetails.join_url || appointmentDetails.telehealth_url || appointmentDetails.virtual_meeting_url || appointmentDetails.video_url || appointmentDetails.video_meeting_url || appointmentDetails.conference_url || null;
+      const rawVisitType = appointmentDetails.visit_type || appointmentDetails.type || appointmentDetails.appointment_type || appointmentDetails.mode || appointmentDetails.format || appointmentDetails.channel || '';
+      const normalizedVisitType = typeof rawVisitType === 'string' ? rawVisitType.toLowerCase() : '';
+      const baseIsVirtual = appointmentDetails.is_virtual ?? appointmentDetails.virtual ?? appointmentDetails.is_online ?? appointmentDetails.telehealth;
+      const derivedIsVirtual = normalizedVisitType ? normalizedVisitType.includes('virtual') || normalizedVisitType.includes('tele') || normalizedVisitType.includes('online') || normalizedVisitType.includes('remote') : false;
+      const isVirtual = Boolean(baseIsVirtual ?? (derivedIsVirtual || joinUrl));
+      const location = appointmentDetails.location || appointmentDetails.location_description || appointmentDetails.clinic_location || appointmentDetails.address || appointmentDetails.office || appointmentDetails.meeting_location || null;
+      return {
+        id: nextAppointment.id,
+        date: new Date(nextAppointment.appointment_date).toLocaleDateString(),
+        time: new Date(nextAppointment.appointment_date).toLocaleTimeString([], {
+          hour: '2-digit',
+          minute: '2-digit'
+        }),
+        dentistName: undefined,
+        status: nextAppointment.status,
+        isVirtual,
+        joinUrl,
+        location,
+        visitType: typeof rawVisitType === 'string' ? rawVisitType : undefined
+      };
+    })() : null} activePrescriptions={patientStats.activePrescriptions} activeTreatmentPlans={patientStats.activeTreatmentPlans} totalDueCents={totalDueCents} onNavigateTo={s => setActiveSection(s)} onOpenAssistant={() => setActiveSection('assistant')} onBookAppointment={() => setActiveSection('assistant')} />}
 
       {activeSection === 'assistant' && <div className="px-4 md:px-6 py-4">
           <Card>

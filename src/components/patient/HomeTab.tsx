@@ -49,6 +49,10 @@ export interface HomeTabProps {
     time?: string | null;
     dentistName?: string | null;
     status?: string;
+    isVirtual?: boolean;
+    joinUrl?: string | null;
+    location?: string | null;
+    visitType?: string;
   } | null;
   activePrescriptions: number;
   activeTreatmentPlans: number;
@@ -114,6 +118,24 @@ export const HomeTab: React.FC<HomeTabProps> = ({
   const coverageUsed = 65;
   const healthImprovement = 12;
 
+  const handleJoinClick = () => {
+    if (!nextAppointment) return;
+    if (nextAppointment.joinUrl) {
+      if (typeof window !== "undefined") {
+        window.open(nextAppointment.joinUrl, "_blank", "noopener,noreferrer");
+      }
+    } else {
+      onNavigateTo("appointments");
+    }
+  };
+
+  const formatVisitContext = (value?: string | null) => {
+    if (!value) return null;
+    const normalized = value.replace(/[_-]+/g, " ").trim();
+    if (!normalized) return null;
+    return normalized.charAt(0).toUpperCase() + normalized.slice(1);
+  };
+
   return (
     <div className="h-full overflow-y-auto px-4 md:px-6 py-4 space-y-6 max-w-7xl mx-auto">
       {/* Welcome Header */}
@@ -178,16 +200,31 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                           Dr. {nextAppointment.dentistName}
                         </p>
                       )}
+                      {nextAppointment.location && (
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {nextAppointment.location}
+                        </p>
+                      )}
+                      {!nextAppointment.location && nextAppointment.visitType && (
+                        <p className="text-sm text-muted-foreground mt-1 capitalize">
+                          {formatVisitContext(nextAppointment.visitType)}
+                        </p>
+                      )}
                     </div>
                     <div className="flex flex-col gap-2">
                       <Button size="sm" variant="outline" onClick={() => onNavigateTo('appointments')}>
                         {t.reschedule}
                       </Button>
-                      {/* Show Join button for online appointments - would check appointment type */}
-                      <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
-                        <Video className="h-4 w-4 mr-1" />
-                        {t.join}
-                      </Button>
+                      {(nextAppointment.isVirtual || nextAppointment.joinUrl) ? (
+                        <Button size="sm" className="bg-blue-600 hover:bg-blue-700" onClick={handleJoinClick}>
+                          <Video className="h-4 w-4 mr-1" />
+                          {t.join}
+                        </Button>
+                      ) : (
+                        <div className="rounded-md border border-border bg-muted/40 px-3 py-2 text-sm text-muted-foreground text-center">
+                          {nextAppointment.location || formatVisitContext(nextAppointment.visitType) || 'In-person visit'}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
