@@ -1,81 +1,342 @@
-import type { FC, ReactElement } from 'react';
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Toaster } from '@/components/ui/toaster';
-import { Toaster as Sonner } from '@/components/ui/sonner';
-import { AuthProvider, useAuth } from './caberu/context/AuthContext';
-import { HomePage } from './caberu/pages/HomePage';
-import { LoginPage } from './caberu/pages/LoginPage';
-import { SignupPage } from './caberu/pages/SignupPage';
-import { ClientDashboard } from './caberu/pages/ClientDashboard';
-import { ProfessionalDashboard } from './caberu/pages/ProfessionalDashboard';
-import { ChatPage } from './caberu/pages/ChatPage';
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { ThemeProvider } from "next-themes";
+import { LanguageProvider } from "./hooks/useLanguage";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { BusinessProvider, useBusinessContext } from "./hooks/useBusinessContext";
+import { BusinessPickerDialog } from "./components/BusinessPickerDialog";
+import { BusinessSelectionForPatients } from "./components/BusinessSelectionForPatients";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./components/ui/dialog";
+import { PWAInstallPrompt } from "./components/PWAInstallPrompt";
+import ProfileCompletionDialog from "./components/ProfileCompletionDialog";
+import { ChangelogPopup } from "./components/ChangelogPopup";
+import { useState, useEffect, lazy, Suspense } from "react";
+import React from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { User, Session } from "@supabase/supabase-js";
+import { SeoManager } from "./lib/seo";
+import { LazyLoadingWrapper } from "./components/optimized/LazyLoadingWrapper";
+import AuthCallbackHandler from "./components/AuthCallbackHandler";
+import { ModernLoadingSpinner } from "@/components/enhanced/ModernLoadingSpinner";
+import { AppShell } from "@/components/layout/AppShell";
+import { DentistPortal } from "@/pages/DentistPortal";
+import { PatientPortalNav } from "@/components/patient/PatientPortalNav";
+import { RoleBasedRouter } from "@/components/RoleBasedRouter";
+import { DentistInvitationDialog } from "@/components/DentistInvitationDialog";
 
-const queryClient = new QueryClient();
+const Invite = lazy(() => import("./pages/Invite"));
+const Login = lazy(() => import("./pages/Login"));
+const Signup = lazy(() => import("./pages/Signup"));
+const GoogleCalendarCallback = lazy(() => import("./pages/GoogleCalendarCallback"));
+const DentistServices = lazy(() => import("./pages/DentistServices"));
+const CreateBusiness = lazy(() => import("./pages/CreateBusiness"));
 
-type PrivateRouteProps = {
-  children: ReactElement;
-  roles?: Array<'client' | 'professional'>;
-};
+// Lazy load pages for better performance
+const Index = lazy(() => import("./pages/Index"));
+const DentistProfiles = lazy(() => import("./pages/DentistProfiles"));
+const Terms = lazy(() => import("./pages/Terms"));
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const EmergencyTriage = lazy(() => import("./pages/EmergencyTriage"));
+const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
+const PaymentCancelled = lazy(() => import("./pages/PaymentCancelled"));
+const Chat = lazy(() => import("./pages/Chat"));
+const Messages = lazy(() => import("./pages/Messages"));
+const Schedule = lazy(() => import("./pages/Schedule"));
+// RecallDeepLink removed - file doesn't exist
+const Analytics = lazy(() => import("./pages/Analytics"));
+const Pricing = lazy(() => import("./pages/Pricing"));
+const Support = lazy(() => import("./pages/Support"));
+const FeatureDetail = lazy(() => import("./pages/FeatureDetail"));
+const UnifiedDashboard = lazy(() => import("./components/UnifiedDashboard"));
+const LanguageTest = lazy(() => import("./components/LanguageTest").then(module => ({ default: module.LanguageTest })));
+const About = lazy(() => import("./pages/About"));
+const Claim = lazy(() => import("./pages/Claim"));
+const PublicBooking = lazy(() => import("./pages/PublicBooking"));
+const BookAppointmentAI = lazy(() => import("./pages/BookAppointmentAI"));
+const BookAppointment = lazy(() => import("./pages/BookAppointment"));
+const BusinessPortal = lazy(() => import("./pages/BusinessPortal"));
+import { BookingRouteHandler } from "./components/booking/BookingRouteHandler";
+const PatientCareHome = lazy(() => import("./pages/PatientCareHome"));
+const PatientAppointmentsPage = lazy(() => import("./pages/PatientAppointmentsPage"));
+const PatientPrescriptionsPage = lazy(() => import("./pages/PatientPrescriptionsPage"));
+const PatientTreatmentHistoryPage = lazy(() => import("./pages/PatientTreatmentHistoryPage"));
+const PatientBillingPage = lazy(() => import("./pages/PatientBillingPage"));
+const PatientDocumentsPage = lazy(() => import("./pages/PatientDocumentsPage"));
+const PatientAccountProfilePage = lazy(() => import("./pages/PatientAccountProfilePage"));
+const PatientAccountInsurancePage = lazy(() => import("./pages/PatientAccountInsurancePage"));
+const PatientAccountPrivacyPage = lazy(() => import("./pages/PatientAccountPrivacyPage"));
+const PatientAccountHelpPage = lazy(() => import("./pages/PatientAccountHelpPage"));
 
-const PrivateRoute: FC<PrivateRouteProps> = ({ children, roles }) => {
-  const { user } = useAuth();
+// Dashboard component that handles authentication with lazy loading
+// Business gate component that shows appropriate picker
+const BusinessGate = ({ showBusinessPicker, setShowBusinessPicker }: { showBusinessPicker: boolean, setShowBusinessPicker: (show: boolean) => void }) => {
+  const { memberships, switchBusiness, loading } = useBusinessContext();
 
-  if (!user) {
-    return <Navigate to="/login" replace />;
+  if (loading) return null;
+
+  if (memberships && memberships.length > 0) {
+    return (
+      <BusinessPickerDialog 
+        open={showBusinessPicker} 
+        onOpenChange={setShowBusinessPicker}
+      />
+    );
   }
 
-  if (roles && !roles.includes(user.role)) {
+  return (
+    <Dialog open={showBusinessPicker} onOpenChange={setShowBusinessPicker}>
+      <DialogContent className="sm:max-w-[600px]">
+        <DialogHeader>
+          <DialogTitle>Select Your Clinic</DialogTitle>
+        </DialogHeader>
+        <BusinessSelectionForPatients
+          onSelectBusiness={async (businessId) => {
+            await switchBusiness(businessId);
+            setShowBusinessPicker(false);
+          }}
+        />
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+const Dashboard = () => {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
+      setLoading(false);
+    });
+
+    // Check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
+      setLoading(false);
+    }).catch(error => {
+      console.error('Error getting session:', error);
+      setLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  if (loading) {
+    return <ModernLoadingSpinner variant="overlay" message="Loading dashboard..." />;
+  }
+
+  if (!user) {
     return <Navigate to="/" replace />;
   }
 
-  return children;
+  return <UnifiedDashboard user={user} />;
 };
 
-const AppRoutes: FC = () => (
-  <Routes>
-    <Route path="/" element={<HomePage />} />
-    <Route path="/login" element={<LoginPage />} />
-    <Route path="/signup" element={<SignupPage />} />
-    <Route
-      path="/dashboard/client"
-      element={
-        <PrivateRoute roles={['client', 'professional']}>
-          <ClientDashboard />
-        </PrivateRoute>
-      }
-    />
-    <Route
-      path="/dashboard/pro"
-      element={
-        <PrivateRoute roles={['professional']}>
-          <ProfessionalDashboard />
-        </PrivateRoute>
-      }
-    />
-    <Route
-      path="/chat"
-      element={
-        <PrivateRoute>
-          <ChatPage />
-        </PrivateRoute>
-      }
-    />
-    <Route path="*" element={<Navigate to="/" replace />} />
-  </Routes>
-);
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      gcTime: 10 * 60 * 1000, // 10 minutes (was cacheTime)
+      refetchOnWindowFocus: false,
+      retry: (failureCount, error) => {
+        // Don't retry auth errors (401/403)
+        if (error && typeof error === 'object') {
+          // Check for status codes
+          if ('status' in error && (error.status === 401 || error.status === 403)) {
+            return false;
+          }
+          // Check for Supabase error codes
+          if ('code' in error) {
+            const supabaseError = error as { code?: string };
+            if (supabaseError.code === 'PGRST301' || supabaseError.code === 'PGRST116') {
+              return false;
+            }
+          }
+        }
+        return failureCount < 3;
+      },
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    },
+  },
+});
 
-const App: FC = () => {
+const App = () => {
+  const [showBusinessPicker, setShowBusinessPicker] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    // Check auth and show business picker if multi-business user or no business selected
+    const checkAuth = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+      
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('user_id', user.id)
+          .single();
+
+        if (profile) {
+          const { data: memberships } = await supabase
+            .from('business_members')
+            .select('business_id')
+            .eq('profile_id', profile.id);
+
+          // Check if they have a current business selection
+          const { data: sessionBusiness } = await supabase
+            .from('session_business')
+            .select('business_id')
+            .eq('user_id', user.id)
+            .order('updated_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+          // Show business picker on login
+          if (memberships && memberships.length > 0) {
+            // Provider/staff: show BusinessPickerDialog
+            setTimeout(() => setShowBusinessPicker(true), 500);
+          } else {
+            // Patient/guest: check if they have a session_business set
+            const { data: sessionBusiness } = await supabase
+              .from('session_business')
+              .select('business_id')
+              .eq('user_id', user.id)
+              .order('updated_at', { ascending: false })
+              .limit(1)
+              .maybeSingle();
+
+            if (!sessionBusiness?.business_id) {
+              // No clinic selected yet, show patient picker
+              setTimeout(() => setShowBusinessPicker(true), 500);
+            }
+          }
+
+        }
+      }
+    };
+
+    checkAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null);
+      if (event === 'SIGNED_IN') {
+        checkAuth();
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
   return (
+  <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <BrowserRouter>
-          <AppRoutes />
-        </BrowserRouter>
-      </AuthProvider>
-      <Toaster />
-      <Sonner />
+      <ThemeProvider
+        attribute="class"
+        defaultTheme="light"
+        enableSystem={true}
+        disableTransitionOnChange={false}
+      >
+        <LanguageProvider>
+          <BusinessProvider>
+              <AuthCallbackHandler />
+              <TooltipProvider>
+                <Sonner />
+                <PWAInstallPrompt />
+                <ProfileCompletionDialog />
+                <BrowserRouter>
+                  <DentistInvitationDialog />
+                  <SeoManager />
+                <Suspense fallback={<ModernLoadingSpinner variant="overlay" message="Loading..." /> }>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/book" element={<PublicBooking />} />
+                  <Route path="/book-manual" element={<BookAppointment />} />
+                  <Route path="/book-appointment" element={
+                    <BookingRouteHandler>
+                      <BookAppointmentAI />
+                    </BookingRouteHandler>
+                  } />
+                  <Route path="/book-appointment-ai" element={
+                    <BookingRouteHandler>
+                      <BookAppointmentAI />
+                    </BookingRouteHandler>
+                  } />
+                {/* Auth routes */}
+                <Route path="/login" element={<Login />} />
+                <Route path="/signup" element={<Signup />} />
+                <Route path="/create-business" element={<CreateBusiness />} />
+                {/* Role-based dashboard routing */}
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/patient/*" element={<Dashboard />} />
+                {/* Dentist routes with tab-based navigation */}
+                <Route path="/dentist/*" element={<RoleBasedRouter requiredRole='dentist'><DentistPortal /></RoleBasedRouter>} />
+                <Route path="/dentist-services" element={<RoleBasedRouter requiredRole='dentist'><DentistServices /></RoleBasedRouter>} />
+                {/* Legacy route alias */}
+                <Route path="/dentist-portal/*" element={<Navigate to="/dentist" replace />} />
+                {/* Old routes for backward compatibility */}
+                <Route path="/clinical" element={<Navigate to="/dentist/clinical/dashboard" replace />} />
+                <Route path="/clinical/*" element={<Navigate to="/dentist/clinical/dashboard" replace />} />
+                <Route path="/business/*" element={<Navigate to="/dentist/business/payments" replace />} />
+                <Route path="/ops/*" element={<Navigate to="/dentist/ops/inventory" replace />} />
+                <Route path="/admin/*" element={<Navigate to="/dentist/settings" replace />} />
+                {/* Patient portal routes with patient nav */}
+                <Route element={<PatientPortalNav><></></PatientPortalNav>}>
+                  <Route path="/care" element={<PatientCareHome />} />
+                  <Route path="/care/appointments" element={<PatientAppointmentsPage />} />
+                  <Route path="/care/prescriptions" element={<PatientPrescriptionsPage />} />
+                  <Route path="/care/history" element={<PatientTreatmentHistoryPage />} />
+                  <Route path="/billing" element={<PatientBillingPage />} />
+                  <Route path="/docs" element={<PatientDocumentsPage />} />
+                  <Route path="/account/profile" element={<PatientAccountProfilePage />} />
+                  <Route path="/account/insurance" element={<PatientAccountInsurancePage />} />
+                  <Route path="/account/privacy" element={<PatientAccountPrivacyPage />} />
+                  <Route path="/account/help" element={<PatientAccountHelpPage />} />
+                </Route>
+                {/* Public routes */}
+                <Route path="/emergency-triage" element={<EmergencyTriage />} />
+                <Route path="/dentists" element={<DentistProfiles />} />
+                <Route path="/terms" element={<Terms />} />
+                <Route path="/privacy" element={<PrivacyPolicy />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/payment-success" element={<PaymentSuccess />} />
+                <Route path="/payment-cancelled" element={<PaymentCancelled />} />
+                <Route path="/support" element={<Support />} />
+                <Route path="/features/:id" element={<FeatureDetail />} />
+                <Route path="/language-test" element={<LanguageTest />} />
+                <Route path="/chat" element={<Chat />} />
+                <Route path="/messages" element={<Messages />} />
+                <Route path="/invite" element={<Invite />} />
+                <Route path="/claim" element={<Claim />} />
+                <Route path="/pricing" element={<Pricing />} />
+                <Route path="/google-calendar-callback" element={<GoogleCalendarCallback />} />
+                {/* Business portal route - must come before catch-all */}
+                <Route path="/:slug" element={<BusinessPortal />} />
+                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+              </Suspense>
+              
+              {/* Business Picker Dialog */}
+            <BusinessGate 
+              showBusinessPicker={showBusinessPicker}
+              setShowBusinessPicker={setShowBusinessPicker}
+            />
+            </BrowserRouter>
+            </TooltipProvider>
+          </BusinessProvider>
+        </LanguageProvider>
+      </ThemeProvider>
     </QueryClientProvider>
+  </ErrorBoundary>
   );
 };
 
