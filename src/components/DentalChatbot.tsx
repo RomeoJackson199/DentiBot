@@ -741,25 +741,24 @@ Type your request...`;
 
 
   return (
-    <div className="flex flex-col h-full max-h-[700px] bg-card rounded-lg border shadow-sm">
+    <div className="flex flex-col h-full max-h-[600px] bg-white rounded-lg border shadow-sm">
       {/* Chat Header */}
-      <div className="flex items-center justify-between p-4 border-b bg-card-header rounded-t-lg">
+      <div className="flex items-center justify-between p-4 border-b bg-gradient-to-r from-blue-50 to-indigo-50">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
-            <Bot className="w-5 h-5 text-primary-foreground" />
+          <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
+            <Bot className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h3 className="font-semibold text-card-foreground">DentiBot Assistant</h3>
-            <p className="text-sm text-muted-foreground">How can I help you today?</p>
+            <h3 className="font-semibold text-gray-900">DentiBot Assistant</h3>
+            <p className="text-sm text-gray-600">How can I help you today?</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           <Button
             variant="ghost"
-            size="icon"
-            onClick={() => isRecording ? stopRecording() : startRecording()}
-            className={`rounded-full ${isRecording ? 'bg-destructive/20 text-destructive-foreground' : ''}`}
-            aria-label={isRecording ? 'Stop recording' : 'Start recording'}
+            size="sm"
+            onClick={() => setIsRecording(!isRecording)}
+            className={`${isRecording ? 'bg-red-100 text-red-600' : ''}`}
           >
             <Mic className="w-4 h-4" />
           </Button>
@@ -771,54 +770,56 @@ Type your request...`;
         {messages.map((message) => (
           <div
             key={message.id}
-            className={`flex gap-3 ${message.is_bot ? 'justify-start' : 'justify-end'}`}
+            className={`flex ${message.is_bot ? 'justify-start' : 'justify-end'}`}
           >
-            {message.is_bot && (
-              <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                <Bot className="w-4 h-4 text-primary-foreground" />
-              </div>
-            )}
             <div
               className={`max-w-[80%] rounded-2xl px-4 py-3 ${
                 message.is_bot
-                  ? 'bg-muted border'
-                  : 'bg-primary text-primary-foreground'
+                  ? 'bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100'
+                  : 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white'
               }`}
             >
-              <div className="flex-1">
-                {message.is_bot ? (
-                  <MarkdownRenderer content={message.message} />
-                ) : (
-                  <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                    {message.message}
-                  </p>
+              <div className="flex items-start gap-2">
+                {message.is_bot && (
+                  <div className="w-6 h-6 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                    <Bot className="w-3 h-3 text-white" />
+                  </div>
                 )}
-                {message.metadata?.ai_generated && (
-                  <div className="mt-2 text-xs opacity-70">
-                    AI Assistant
+                <div className="flex-1">
+                  {message.is_bot ? (
+                    <MarkdownRenderer content={message.message} />
+                  ) : (
+                    <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                      {message.message}
+                    </p>
+                  )}
+                  {message.metadata?.ai_generated && (
+                    <div className="mt-2 text-xs opacity-70">
+                      AI Assistant
+                    </div>
+                  )}
+                </div>
+                {!message.is_bot && (
+                  <div className="w-6 h-6 bg-gradient-to-r from-gray-500 to-gray-600 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                    <UserIcon className="w-3 h-3 text-white" />
                   </div>
                 )}
               </div>
             </div>
-             {!message.is_bot && (
-              <div className="w-8 h-8 bg-secondary rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                <UserIcon className="w-4 h-4 text-secondary-foreground" />
-              </div>
-            )}
           </div>
         ))}
         
         {isLoading && (
-          <div className="flex justify-start gap-3">
-            <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-              <Bot className="w-4 h-4 text-primary-foreground" />
-            </div>
-            <div className="bg-muted border rounded-2xl px-4 py-3">
+          <div className="flex justify-start">
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-2xl px-4 py-3">
               <div className="flex items-center gap-2">
+                <div className="w-6 h-6 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
+                  <Bot className="w-3 h-3 text-white" />
+                </div>
                 <div className="flex space-x-1">
-                  <div className="w-2 h-2 bg-primary/50 rounded-full animate-bounce"></div>
-                  <div className="w-2 h-2 bg-primary/50 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                  <div className="w-2 h-2 bg-primary/50 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                  <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
+                  <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                  <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                 </div>
               </div>
             </div>
@@ -830,7 +831,7 @@ Type your request...`;
 
       {/* Action Buttons */}
       {actionButtons.length > 0 && (
-        <div className="p-4 border-t bg-muted/50">
+        <div className="p-4 border-t bg-gray-50">
           <div className="flex flex-wrap gap-2">
             {actionButtons.map((button, index) => (
               <Button
@@ -849,36 +850,34 @@ Type your request...`;
       )}
 
       {/* Input Area */}
-      <div className="p-4 border-t bg-card">
-        <div className="flex items-center gap-3">
+      <div className="p-4 border-t bg-white">
+        <div className="flex items-center gap-2">
           <div className="flex-1 relative">
             <Input
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder="Type your message..."
-              className="pr-12 rounded-full border-border focus:border-primary focus:ring-primary"
+              className="pr-12 rounded-full border-gray-200 focus:border-blue-500 focus:ring-blue-500"
               disabled={isLoading}
-              aria-label="Chat input"
             />
             {isRecording && (
-              <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
-                <div className="w-2 h-2 bg-destructive rounded-full animate-pulse"></div>
+              <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
               </div>
             )}
           </div>
           <Button
             onClick={handleVoiceOrSend}
             disabled={isLoading || (!inputMessage.trim() && !isRecording)}
-            className="rounded-full w-10 h-10 p-0"
-            aria-label={isRecording ? 'Stop recording' : inputMessage.trim() ? 'Send message' : 'Start recording'}
+            className="rounded-full w-10 h-10 p-0 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700"
           >
             {isRecording ? (
-              <Square className="w-4 h-4 text-primary-foreground" />
+              <Square className="w-4 h-4 text-white" />
             ) : inputMessage.trim() ? (
-              <Send className="w-4 h-4 text-primary-foreground" />
+              <Send className="w-4 h-4 text-white" />
             ) : (
-              <Mic className="w-4 h-4 text-primary-foreground" />
+              <Mic className="w-4 h-4 text-white" />
             )}
           </Button>
         </div>
