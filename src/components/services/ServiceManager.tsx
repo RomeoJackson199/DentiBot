@@ -3,7 +3,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useBusinessContext } from '@/hooks/useBusinessContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, Pencil, Trash2, Image as ImageIcon } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Plus, Pencil, Trash2, Image as ImageIcon, Filter, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import { ServiceDialog } from './ServiceDialog';
 import { Badge } from '@/components/ui/badge';
@@ -27,6 +28,9 @@ export function ServiceManager() {
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
+  const [dialogCategory, setDialogCategory] = useState<string | undefined>(undefined);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
 
   useEffect(() => {
     if (businessId) {
@@ -93,28 +97,50 @@ export function ServiceManager() {
 
   const handleEdit = (service: Service) => {
     setEditingService(service);
+    setDialogCategory(service.category ?? undefined);
     setDialogOpen(true);
   };
 
-  const handleAddNew = () => {
+  const handleAddNew = (category?: string) => {
     setEditingService(null);
+    setDialogCategory(category);
     setDialogOpen(true);
   };
 
   const handleDialogClose = (shouldRefresh: boolean) => {
     setDialogOpen(false);
     setEditingService(null);
+    setDialogCategory(undefined);
     if (shouldRefresh) {
       loadServices();
     }
   };
 
-  const formatPrice = (cents: number, currency: string) => {
-    return new Intl.NumberFormat('en-US', {
+  const formatPrice = (cents: number) => {
+    return new Intl.NumberFormat('fr-FR', {
       style: 'currency',
-      currency: currency,
+      currency: 'EUR',
+      minimumFractionDigits: 2,
     }).format(cents / 100);
   };
+
+  const filteredServices = services.filter(service => {
+    const matchesStatus =
+      statusFilter === 'all' ||
+      (statusFilter === 'active' && service.is_active) ||
+      (statusFilter === 'inactive' && !service.is_active);
+    const term = searchTerm.trim().toLowerCase();
+    if (!matchesStatus) return false;
+    if (!term) return true;
+    return (
+      service.name.toLowerCase().includes(term) ||
+      (service.category ?? '').toLowerCase().includes(term) ||
+      (service.description ?? '').toLowerCase().includes(term)
+    );
+  });
+
+  const activeCount = services.filter(service => service.is_active).length;
+  const inactiveCount = services.length - activeCount;
 
   if (!businessId) {
     return (
@@ -130,94 +156,181 @@ export function ServiceManager() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <h2 className="text-3xl font-bold">Services & Products</h2>
           <p className="text-muted-foreground mt-1">
             Manage services and products for {businessName}
           </p>
         </div>
-        <Button onClick={handleAddNew} className="gap-2">
-          <Plus className="h-4 w-4" />
-          Add Service
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button onClick={() => handleAddNew('Service')} className="gap-2">
+            <Plus className="h-4 w-4" />
+            Add Service
+          </Button>
+          <Button onClick={() => handleAddNew('Product')} variant="outline" className="gap-2">
+            <Plus className="h-4 w-4" />
+            Add Product
+          </Button>
+          <Button variant="ghost" size="icon" onClick={loadServices} disabled={loading}>
+            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+          </Button>
+        </div>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardDescription>Total items</CardDescription>
+            <CardTitle className="text-3xl">{services.length}</CardTitle>
+          </CardHeader>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardDescription>Active</CardDescription>
+            <CardTitle className="text-3xl text-emerald-600">{activeCount}</CardTitle>
+          </CardHeader>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardDescription>Inactive</CardDescription>
+            <CardTitle className="text-3xl text-amber-500">{inactiveCount}</CardTitle>
+          </CardHeader>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardDescription>Prepay required</CardDescription>
+            <CardTitle className="text-3xl text-primary">
+              {services.filter(service => service.requires_upfront_payment).length}
+            </CardTitle>
+          </CardHeader>
+        </Card>
+      </div>
+
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+        <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center">
+          <div className="relative w-full sm:max-w-xs">
+            <Input
+              value={searchTerm}
+              onChange={event => setSearchTerm(event.target.value)}
+              placeholder="Search name, category or description"
+              className="pl-9"
+            />
+            <Filter className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          </div>
+          <div className="flex gap-2">
+            {(['all', 'active', 'inactive'] as const).map(filter => (
+              <Button
+                key={filter}
+                type="button"
+                variant={statusFilter === filter ? 'default' : 'outline'}
+                onClick={() => setStatusFilter(filter)}
+              >
+                {filter === 'all' ? 'All items' : filter === 'active' ? 'Active' : 'Inactive'}
+              </Button>
+            ))}
+          </div>
+        </div>
+        <div className="text-sm text-muted-foreground">
+          Prices shown in Euro (€). Update items to keep your catalogue consistent.
+        </div>
       </div>
 
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
           {[1, 2, 3].map((i) => (
             <Card key={i} className="animate-pulse">
               <CardHeader>
-                <div className="h-6 bg-muted rounded" />
-                <div className="h-4 bg-muted rounded w-2/3" />
+                <div className="h-6 w-2/3 rounded bg-muted" />
+                <div className="h-4 w-1/2 rounded bg-muted" />
               </CardHeader>
+              <CardContent>
+                <div className="h-10 rounded bg-muted" />
+              </CardContent>
             </Card>
           ))}
         </div>
       ) : services.length === 0 ? (
         <Card>
-          <CardContent className="pt-6 text-center">
-            <ImageIcon className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-            <h3 className="text-lg font-semibold mb-2">No Services Yet</h3>
-            <p className="text-muted-foreground mb-4">
-              Add your first service or product to let customers book appointments
+          <CardContent className="pt-8 text-center">
+            <ImageIcon className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
+            <h3 className="mb-2 text-lg font-semibold">No services yet</h3>
+            <p className="mb-4 text-muted-foreground">
+              Add your first service or product to make booking effortless for your patients.
             </p>
-            <Button onClick={handleAddNew}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Service
-            </Button>
+            <div className="flex flex-wrap justify-center gap-2">
+              <Button onClick={() => handleAddNew('Service')}>
+                <Plus className="mr-2 h-4 w-4" />
+                Add a service
+              </Button>
+              <Button variant="outline" onClick={() => handleAddNew('Product')}>
+                <Plus className="mr-2 h-4 w-4" />
+                Add a product
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      ) : filteredServices.length === 0 ? (
+        <Card>
+          <CardContent className="py-10 text-center">
+            <h3 className="text-lg font-semibold">No items match your filters</h3>
+            <p className="mt-2 text-muted-foreground">
+              Try adjusting the search term or status filter to see more services.
+            </p>
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {services.map((service) => (
-            <Card key={service.id} className={!service.is_active ? 'opacity-60' : ''}>
-              <CardHeader>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {filteredServices.map((service) => (
+            <Card key={service.id} className={`flex h-full flex-col ${!service.is_active ? 'border-dashed opacity-70' : ''}`}>
+              <CardHeader className="space-y-4">
                 {service.image_url && (
-                  <div className="w-full h-40 mb-4 rounded-lg overflow-hidden bg-muted">
+                  <div className="h-40 w-full overflow-hidden rounded-xl border bg-muted">
                     <img
                       src={service.image_url}
                       alt={service.name}
-                      className="w-full h-full object-cover"
+                      className="h-full w-full object-cover"
                     />
                   </div>
                 )}
-                <div className="flex items-start justify-between gap-2">
-                  <CardTitle className="text-xl">{service.name}</CardTitle>
-                  <div className="flex gap-1">
-                    {!service.is_active && (
-                      <Badge variant="secondary">Inactive</Badge>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="space-y-1">
+                    <CardTitle className="text-xl">{service.name}</CardTitle>
+                    {service.category && (
+                      <Badge variant="secondary" className="uppercase tracking-wide">
+                        {service.category}
+                      </Badge>
                     )}
-                    {service.requires_upfront_payment && (
-                      <Badge variant="default">Prepay</Badge>
-                    )}
+                  </div>
+                  <div className="flex flex-wrap justify-end gap-1">
+                    {!service.is_active && <Badge variant="outline">Inactive</Badge>}
+                    {service.requires_upfront_payment && <Badge variant="default">Prepay</Badge>}
                   </div>
                 </div>
                 {service.description && (
-                  <CardDescription className="line-clamp-2">
+                  <CardDescription className="line-clamp-3 text-sm leading-relaxed">
                     {service.description}
                   </CardDescription>
                 )}
-                <div className="flex items-center justify-between mt-2">
-                  <div className="text-2xl font-bold text-primary">
-                    {formatPrice(service.price_cents, service.currency)}
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className="text-2xl font-semibold text-primary">
+                    {formatPrice(service.price_cents)}
                   </div>
-                  {service.duration_minutes && (
-                    <span className="text-sm text-muted-foreground">
-                      {service.duration_minutes} min
-                    </span>
-                  )}
+                  <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                    {service.duration_minutes && <span>{service.duration_minutes} min</span>}
+                    {service.requires_upfront_payment && <span>Prepayment required</span>}
+                  </div>
                 </div>
               </CardHeader>
-              <CardContent>
-                <div className="flex gap-2">
+              <CardContent className="mt-auto">
+                <div className="flex flex-wrap gap-2">
                   <Button
                     variant="outline"
                     size="sm"
                     className="flex-1"
                     onClick={() => handleEdit(service)}
                   >
-                    <Pencil className="h-4 w-4 mr-2" />
+                    <Pencil className="mr-2 h-4 w-4" />
                     Edit
                   </Button>
                   <Button
@@ -246,6 +359,7 @@ export function ServiceManager() {
         onClose={handleDialogClose}
         service={editingService}
         businessId={businessId}
+        defaultCategory={dialogCategory}
       />
     </div>
   );

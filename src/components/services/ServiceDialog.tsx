@@ -33,14 +33,15 @@ interface ServiceDialogProps {
   onClose: (shouldRefresh: boolean) => void;
   service: Service | null;
   businessId: string;
+  defaultCategory?: string;
 }
 
-export function ServiceDialog({ open, onClose, service, businessId }: ServiceDialogProps) {
+export function ServiceDialog({ open, onClose, service, businessId, defaultCategory }: ServiceDialogProps) {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
     price: '',
-    currency: 'USD',
+    currency: 'EUR',
     duration_minutes: '60',
     category: '',
     requires_upfront_payment: false,
@@ -57,7 +58,7 @@ export function ServiceDialog({ open, onClose, service, businessId }: ServiceDia
         name: service.name,
         description: service.description || '',
         price: (service.price_cents / 100).toString(),
-        currency: service.currency,
+        currency: 'EUR',
         duration_minutes: service.duration_minutes?.toString() || '60',
         category: service.category || '',
         requires_upfront_payment: service.requires_upfront_payment,
@@ -69,16 +70,16 @@ export function ServiceDialog({ open, onClose, service, businessId }: ServiceDia
         name: '',
         description: '',
         price: '',
-        currency: 'USD',
+        currency: 'EUR',
         duration_minutes: '60',
-        category: '',
+        category: defaultCategory ?? '',
         requires_upfront_payment: false,
         is_active: true,
       });
       setImagePreview(null);
     }
     setImageFile(null);
-  }, [service, open]);
+    }, [service, open, defaultCategory]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -139,7 +140,7 @@ export function ServiceDialog({ open, onClose, service, businessId }: ServiceDia
         name: formData.name,
         description: formData.description || null,
         price_cents: priceCents,
-        currency: formData.currency,
+        currency: 'EUR',
         image_url: imageUrl,
         duration_minutes: formData.duration_minutes ? parseInt(formData.duration_minutes) : null,
         category: formData.category || null,
@@ -258,7 +259,7 @@ export function ServiceDialog({ open, onClose, service, businessId }: ServiceDia
           </div>
 
           {/* Price and Currency */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="price">Price *</Label>
               <Input
@@ -273,13 +274,11 @@ export function ServiceDialog({ open, onClose, service, businessId }: ServiceDia
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="currency">Currency</Label>
-              <Input
-                id="currency"
-                value={formData.currency}
-                onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
-                placeholder="USD"
-              />
+              <Label>Currency</Label>
+              <Input value="EUR" disabled className="bg-muted/40" />
+              <p className="text-xs text-muted-foreground">
+                All prices are standardised in Euro for a consistent patient experience.
+              </p>
             </div>
           </div>
 
@@ -302,7 +301,7 @@ export function ServiceDialog({ open, onClose, service, businessId }: ServiceDia
                 id="category"
                 value={formData.category}
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                placeholder="e.g., Hair, Consultation"
+                placeholder="e.g., Whitening, Aligners, Product"
               />
             </div>
           </div>
