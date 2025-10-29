@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useBusinessContext } from "@/hooks/useBusinessContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Palette, Upload, Image as ImageIcon, Briefcase, Package, Copy, Check } from "lucide-react";
+import { Loader2, Palette, Upload, Image as ImageIcon, Briefcase, Package, Copy, Check, QrCode, Download } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { BusinessTemplateSelector } from "@/components/BusinessTemplateSelector";
 import { TemplateType, getTemplateConfig, TemplateFeatures, TemplateTerminology } from "@/lib/businessTemplates";
@@ -24,6 +24,8 @@ import { AIBehaviorSettings } from "@/components/admin/AIBehaviorSettings";
 import { AITestChatDialog } from "@/components/admin/AITestChatDialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ServiceManager } from "@/components/services/ServiceManager";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { QRCodeCanvas } from "qrcode.react";
 
 export default function DentistAdminBranding() {
   const { businessId, loading: businessLoading } = useBusinessContext();
@@ -32,6 +34,7 @@ export default function DentistAdminBranding() {
   const [slug, setSlug] = useState("");
   const [slugError, setSlugError] = useState("");
   const [copiedLink, setCopiedLink] = useState(false);
+  const [showQrDialog, setShowQrDialog] = useState(false);
   const [tagline, setTagline] = useState("");
   const [address, setAddress] = useState("");
   const [primaryColor, setPrimaryColor] = useState("#0EA5E9");
@@ -51,6 +54,13 @@ export default function DentistAdminBranding() {
   const [aiPersonalityTraits, setAiPersonalityTraits] = useState<string[]>([]);
   const [showTestChat, setShowTestChat] = useState(false);
   const { toast } = useToast();
+  const qrCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const baseOrigin = typeof window !== "undefined" ? window.location.origin : "";
+  const businessLink = slug
+    ? baseOrigin
+      ? `${baseOrigin}/${slug}`
+      : `/${slug}`
+    : baseOrigin;
 
   useEffect(() => {
     if (businessId) {
@@ -210,9 +220,9 @@ export default function DentistAdminBranding() {
   };
 
   const copyBusinessLink = async () => {
-    const link = `${window.location.origin}/${slug}`;
+    if (!businessLink) return;
     try {
-      await navigator.clipboard.writeText(link);
+      await navigator.clipboard.writeText(businessLink);
       setCopiedLink(true);
       toast({
         title: "Link copied!",
@@ -223,6 +233,35 @@ export default function DentistAdminBranding() {
       toast({
         title: "Failed to copy",
         description: "Could not copy link to clipboard",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDownloadQr = () => {
+    if (!businessLink) return;
+
+    try {
+      const canvas = qrCanvasRef.current;
+      if (!canvas) {
+        throw new Error("QR code is not ready yet");
+      }
+
+      const dataUrl = canvas.toDataURL("image/png");
+      const link = document.createElement("a");
+      link.href = dataUrl;
+      link.download = `${slug || "business"}-qr.png`;
+      link.click();
+
+      toast({
+        title: "QR Code Downloaded",
+        description: "The QR code for your business link has been downloaded",
+      });
+    } catch (error) {
+      console.error("Error downloading QR code", error);
+      toast({
+        title: "Download Failed",
+        description: "We couldn't download the QR code. Please try again.",
         variant: "destructive",
       });
     }
@@ -520,7 +559,9 @@ export default function DentistAdminBranding() {
               <div className="space-y-2">
                 <Label htmlFor="slug">Business URL</Label>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">{window.location.origin}/</span>
+                  <span className="text-sm text-muted-foreground">
+                    {baseOrigin ? `${baseOrigin}/` : "/"}
+                  </span>
                   <Input
                     id="slug"
                     value={slug}
@@ -537,28 +578,40 @@ export default function DentistAdminBranding() {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-xs text-muted-foreground mb-1">Your business link:</p>
-                        <a 
-                          href={`${window.location.origin}/${slug}`} 
-                          target="_blank" 
+                        <a
+                          href={businessLink}
+                          target="_blank"
                           rel="noopener noreferrer"
                           className="text-sm text-primary hover:underline font-mono"
                         >
-                          {window.location.origin}/{slug}
+                          {businessLink}
                         </a>
                       </div>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={copyBusinessLink}
-                        className="h-8 w-8 p-0"
-                      >
-                        {copiedLink ? (
-                          <Check className="h-4 w-4 text-green-500" />
-                        ) : (
-                          <Copy className="h-4 w-4" />
-                        )}
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="flex items-center gap-2"
+                          onClick={() => setShowQrDialog(true)}
+                        >
+                          <QrCode className="h-4 w-4" />
+                          QR Code
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={copyBusinessLink}
+                          className="h-8 w-8 p-0"
+                        >
+                          {copiedLink ? (
+                            <Check className="h-4 w-4 text-green-500" />
+                          ) : (
+                            <Copy className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </div>
                     </div>
                     <p className="text-xs text-muted-foreground">
                       ⚠️ Cannot contain spaces or slashes (/) • Maximum one dot (.)
@@ -640,6 +693,34 @@ export default function DentistAdminBranding() {
           </div>
         </TabsContent>
       </Tabs>
+
+      <Dialog open={showQrDialog} onOpenChange={setShowQrDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Business QR Code</DialogTitle>
+            <DialogDescription>
+              Share this QR code so patients can easily access your business page.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col items-center gap-4">
+            <div className="p-4 bg-white rounded-lg shadow-sm">
+              <QRCodeCanvas
+                ref={qrCanvasRef}
+                value={businessLink || baseOrigin || ""}
+                size={200}
+                level="H"
+                includeMargin
+                bgColor="#FFFFFF"
+                style={{ width: "200px", height: "200px" }}
+              />
+            </div>
+            <Button onClick={handleDownloadQr} className="flex items-center gap-2">
+              <Download className="h-4 w-4" />
+              Download QR Code
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <AITestChatDialog
         open={showTestChat}
