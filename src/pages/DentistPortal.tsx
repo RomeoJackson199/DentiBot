@@ -3,6 +3,7 @@ import { Navigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { useToast } from "@/hooks/use-toast";
+import { logger } from "@/lib/logger";
 import { DentistAppShell, DentistSection } from "@/components/layout/DentistAppShell";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 import { useBusinessTemplate } from "@/hooks/useBusinessTemplate";

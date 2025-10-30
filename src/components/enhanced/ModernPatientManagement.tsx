@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useSearchParams } from "react-router-dom";
+import { showEnhancedErrorToast } from "@/lib/enhancedErrorHandling";
 import { 
   Users, 
   Search, 
@@ -138,10 +138,9 @@ export function ModernPatientManagement({ dentistId }: ModernPatientManagementPr
         fetchPatientFlags(patient.id);
       });
     } catch (error: unknown) {
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to fetch patients",
-        variant: "destructive",
+      showEnhancedErrorToast(error, {
+        component: 'ModernPatientManagement',
+        action: 'fetchPatients',
       });
     } finally {
       setLoading(false);
