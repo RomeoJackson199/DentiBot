@@ -40,7 +40,6 @@ const DentistProfiles = lazy(() => import("./pages/DentistProfiles"));
 const Terms = lazy(() => import("./pages/Terms"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const NotFound = lazy(() => import("./pages/NotFound"));
-const EmergencyTriage = lazy(() => import("./pages/EmergencyTriage"));
 const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
 const PaymentCancelled = lazy(() => import("./pages/PaymentCancelled"));
 const Chat = lazy(() => import("./pages/Chat"));
@@ -259,18 +258,6 @@ const App = () => {
                 <Suspense fallback={<ModernLoadingSpinner variant="overlay" message="Loading..." /> }>
                 <Routes>
                   <Route path="/" element={<Index />} />
-                  <Route path="/book" element={<PublicBooking />} />
-                  <Route path="/book-manual" element={<BookAppointment />} />
-                  <Route path="/book-appointment" element={
-                    <BookingRouteHandler>
-                      <BookAppointmentAI />
-                    </BookingRouteHandler>
-                  } />
-                  <Route path="/book-appointment-ai" element={
-                    <BookingRouteHandler>
-                      <BookAppointmentAI />
-                    </BookingRouteHandler>
-                  } />
                 {/* Auth routes */}
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<Signup />} />
@@ -303,7 +290,6 @@ const App = () => {
                   <Route path="/account/help" element={<PatientAccountHelpPage />} />
                 </Route>
                 {/* Public routes */}
-                <Route path="/emergency-triage" element={<EmergencyTriage />} />
                 <Route path="/dentists" element={<DentistProfiles />} />
                 <Route path="/terms" element={<Terms />} />
                 <Route path="/privacy" element={<PrivacyPolicy />} />
