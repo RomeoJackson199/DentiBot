@@ -33,6 +33,8 @@ serve(async (req) => {
     }
 
     if (action === 'get-auth-url') {
+      console.log('OAuth request - clientId:', googleClientId, 'redirectUri:', redirectUri);
+      
       // Generate OAuth URL
       const scopes = [
         'https://www.googleapis.com/auth/calendar.readonly',

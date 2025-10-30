@@ -35,7 +35,7 @@ export function GoogleCalendarConnect() {
   const handleConnect = async () => {
     setIsLoading(true);
     try {
-      const redirectUri = "https://dentibot.lovable.app/google-calendar-callback";
+      const redirectUri = `${window.location.origin}/google-calendar-callback`;
       
       const { data, error } = await supabase.functions.invoke('google-calendar-oauth', {
         body: { 
@@ -60,9 +60,12 @@ export function GoogleCalendarConnect() {
 
       // Listen for OAuth callback
       const handleMessage = async (event: MessageEvent) => {
+        if (event.origin !== window.location.origin) return;
+        
         if (event.data.type === 'google-calendar-auth') {
           const code = event.data.code;
           popup?.close();
+          window.removeEventListener('message', handleMessage);
           
           // Exchange code for tokens
           const { error: exchangeError } = await supabase.functions.invoke('google-calendar-oauth', {
