@@ -51,6 +51,7 @@ const Pricing = lazy(() => import("./pages/Pricing"));
 const Support = lazy(() => import("./pages/Support"));
 const FeatureDetail = lazy(() => import("./pages/FeatureDetail"));
 const UnifiedDashboard = lazy(() => import("./components/UnifiedDashboard"));
+const LanguageTest = lazy(() => import("./components/LanguageTest").then(module => ({ default: module.LanguageTest })));
 const About = lazy(() => import("./pages/About"));
 const Claim = lazy(() => import("./pages/Claim"));
 const PublicBooking = lazy(() => import("./pages/PublicBooking"));
@@ -297,6 +298,7 @@ const App = () => {
                 <Route path="/payment-cancelled" element={<PaymentCancelled />} />
                 <Route path="/support" element={<Support />} />
                 <Route path="/features/:id" element={<FeatureDetail />} />
+                <Route path="/language-test" element={<LanguageTest />} />
                 <Route path="/chat" element={<Chat />} />
                 <Route path="/messages" element={<Messages />} />
                 <Route path="/invite" element={<Invite />} />
