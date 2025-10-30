@@ -8,7 +8,7 @@ const cardVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-card border shadow-sm",
+        default: "brand-card",
         glass: "glass-card border-white/20",
         "glass-strong": "glass-card-strong border-white/30",
         floating: "floating-card",
@@ -75,7 +75,9 @@ const CardHeader = React.forwardRef<
     ref={ref}
     className={cn(
       "flex flex-col space-y-1.5 p-6",
-      gradient && "bg-gradient-primary text-white rounded-t-[var(--radius-card)] -m-6 mb-6 p-6",
+      gradient
+        ? "bg-gradient-primary text-white rounded-t-[var(--radius-card)] -m-6 mb-6 p-6"
+        : "brand-card-header",
       className
     )}
     {...props}
