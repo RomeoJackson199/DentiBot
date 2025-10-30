@@ -375,36 +375,56 @@ export const EnhancedAppointmentBooking = ({
 
   return (
     <>
-      <div className="min-h-screen bg-gradient-subtle p-4">
-        <div className="max-w-4xl mx-auto">
-          <Card className="shadow-xl border-0 bg-white/95 backdrop-blur-sm">
-            <CardHeader className="text-center pb-6">
-              <CardTitle className="flex items-center justify-center text-2xl font-bold text-gray-800">
-                <CalendarDays className="h-6 w-6 mr-3 text-dental-primary" />
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-background dark:via-background dark:to-primary/5 p-4">
+        <div className="max-w-5xl mx-auto">
+          <Card className="shadow-2xl border-0 bg-white/95 dark:bg-background/95 backdrop-blur-sm">
+            <CardHeader className="text-center pb-6 border-b bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10">
+              <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-white mb-3 shadow-lg mx-auto">
+                <CalendarDays className="h-7 w-7" />
+              </div>
+              <CardTitle className="text-3xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
                 Book Your Appointment
               </CardTitle>
-              <p className="text-dental-muted-foreground mt-2">Schedule your dental consultation</p>
+              <p className="text-muted-foreground mt-2 text-base">Schedule your dental consultation in 3 simple steps</p>
             </CardHeader>
             
-            <CardContent className="space-y-8 p-6 md:p-8">
+            <CardContent className="space-y-8 p-6 md:p-10">
+              {/* Step Indicator */}
+              <div className="flex items-center justify-center gap-3 mb-6">
+                <div className={`flex items-center gap-2 px-4 py-2 rounded-full ${selectedDentist ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'}`}>
+                  <span className="font-semibold">1. Dentist</span>
+                  {selectedDentist && <CheckCircle className="h-4 w-4" />}
+                </div>
+                <div className={`flex items-center gap-2 px-4 py-2 rounded-full ${selectedDate ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' : 'bg-gray-100 dark:bg-gray-800 text-gray-500'}`}>
+                  <span className="font-semibold">2. Date & Time</span>
+                  {selectedDate && selectedTime && <CheckCircle className="h-4 w-4" />}
+                </div>
+                <div className={`flex items-center gap-2 px-4 py-2 rounded-full ${reason ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' : 'bg-gray-100 dark:bg-gray-800 text-gray-500'}`}>
+                  <span className="font-semibold">3. Details</span>
+                  {reason && <CheckCircle className="h-4 w-4" />}
+                </div>
+              </div>
+
               {/* Dentist Selection */}
-              <div className="space-y-3">
-                <Label className="text-base font-semibold text-gray-700 flex items-center">
-                  <UserIcon className="h-4 w-4 mr-2 text-dental-primary" />
-                  Selected Dentist
+              <div className="space-y-4">
+                <Label className="text-lg font-bold text-foreground flex items-center">
+                  <UserIcon className="h-5 w-5 mr-2 text-blue-600" />
+                  Step 1: Choose Your Dentist
                 </Label>
                 <Select value={selectedDentist} onValueChange={setSelectedDentist}>
-                  <SelectTrigger className="h-12 border-2 border-dental-primary/20 bg-dental-primary/5 hover:border-dental-primary/40 transition-colors">
-                    <SelectValue placeholder="Choose a dentist" />
+                  <SelectTrigger className="h-14 border-2 border-blue-200 dark:border-blue-900 bg-blue-50/50 dark:bg-blue-950/20 hover:border-blue-400 dark:hover:border-blue-700 transition-colors text-base">
+                    <SelectValue placeholder="Select your preferred dentist" />
                   </SelectTrigger>
                   <SelectContent>
                     {dentists.map((dentist) => (
-                      <SelectItem key={dentist.id} value={dentist.id}>
-                        <div className="flex items-center py-1">
-                          <UserIcon className="h-4 w-4 mr-3 text-dental-primary" />
+                      <SelectItem key={dentist.id} value={dentist.id} className="py-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold">
+                            {dentist.profiles.first_name[0]}{dentist.profiles.last_name[0]}
+                          </div>
                           <div>
-                            <div className="font-medium">Dr {dentist.profiles.first_name} {dentist.profiles.last_name}</div>
-                            <div className="text-sm text-gray-500">{dentist.specialization || 'General Dentistry'}</div>
+                            <div className="font-semibold">Dr {dentist.profiles.first_name} {dentist.profiles.last_name}</div>
+                            <div className="text-sm text-muted-foreground">{dentist.specialization || 'General Dentistry'}</div>
                           </div>
                         </div>
                       </SelectItem>
@@ -414,9 +434,10 @@ export const EnhancedAppointmentBooking = ({
               </div>
 
               {/* Date Selection */}
-              <div className="space-y-3">
-                <Label className="text-base font-semibold text-gray-700">
-                  Choose a Date
+              <div className="space-y-4">
+                <Label className="text-lg font-bold text-foreground flex items-center">
+                  <CalendarDays className="h-5 w-5 mr-2 text-purple-600" />
+                  Step 2: Pick a Date
                 </Label>
                 <div className="flex justify-center">
                   <Calendar
@@ -427,7 +448,7 @@ export const EnhancedAppointmentBooking = ({
                       if (date) fetchAvailability(date);
                     }}
                     disabled={isDateDisabled}
-                    className="rounded-xl border-2 border-gray-200/50 shadow-lg bg-white/90 backdrop-blur-sm p-6"
+                    className="rounded-2xl border-2 border-purple-200 dark:border-purple-900 shadow-xl bg-purple-50/50 dark:bg-purple-950/20 p-6"
                   />
                 </div>
               </div>
@@ -435,9 +456,9 @@ export const EnhancedAppointmentBooking = ({
               {/* Time Selection with Enhanced UX */}
               {selectedDate && (
                 <div className="space-y-4">
-                  <Label className="text-base font-semibold text-gray-700 flex items-center">
-                    <Clock className="h-4 w-4 mr-2 text-dental-primary" />
-                    Choose a Time Slot
+                  <Label className="text-lg font-bold text-foreground flex items-center">
+                    <Clock className="h-5 w-5 mr-2 text-pink-600" />
+                    Select Your Time Slot
                   </Label>
                   
                   {loadingTimes ? (
@@ -448,42 +469,49 @@ export const EnhancedAppointmentBooking = ({
                   ) : (
                     <div className="space-y-6">
                       {/* Available Slots - Scrollable */}
-                      <Card className="bg-green-50 border-green-200">
-                        <CardHeader className="pb-3">
-                          <CardTitle className="text-lg text-green-800">
-                            Available Slots ({availableSlots.length})
+                      <Card className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 border-2 border-green-300 dark:border-green-800 shadow-lg">
+                        <CardHeader className="pb-3 bg-green-100/50 dark:bg-green-900/30">
+                          <CardTitle className="text-xl text-green-800 dark:text-green-300 flex items-center gap-2">
+                            <CheckCircle className="h-5 w-5" />
+                            Available Time Slots ({availableSlots.length})
                           </CardTitle>
                         </CardHeader>
-                        <CardContent>
+                        <CardContent className="pt-4">
                           {availableSlots.length > 0 ? (
-                            <div 
-                              className="max-h-48 overflow-y-auto scrollbar-visible space-y-2 p-2"
+                            <div
+                              className="max-h-56 overflow-y-auto scrollbar-visible p-2"
                               style={{ scrollbarWidth: 'thin' }}
                             >
-                              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
+                              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
                                 {availableSlots.map((slot) => (
                                   <Button
                                     key={slot.time}
                                     onClick={() => handleTimeSelect(slot.time)}
                                     variant={selectedTime === slot.time ? "default" : "outline"}
                                     className={cn(
-                                      "h-12 text-sm font-medium transition-all",
-                                      "hover:bg-dental-primary hover:text-white",
-                                      "focus:ring-2 focus:ring-dental-primary focus:ring-offset-2",
-                                      selectedTime === slot.time && "bg-dental-primary text-white"
+                                      "h-14 text-base font-semibold transition-all shadow-sm",
+                                      "hover:scale-105 hover:shadow-md",
+                                      selectedTime === slot.time
+                                        ? "bg-gradient-to-br from-blue-500 to-purple-600 text-white border-0 ring-2 ring-blue-300 dark:ring-blue-800"
+                                        : "bg-white dark:bg-gray-900 border-2 border-green-300 dark:border-green-800 hover:border-green-500 dark:hover:border-green-600"
                                     )}
                                   >
+                                    <Clock className="h-4 w-4 mr-1" />
                                     {slot.time}
                                   </Button>
                                 ))}
                               </div>
                             </div>
                           ) : (
-                            <p className="text-center text-gray-500 py-4">
-                              No slots available for this date. 
-                              <br />
-                              <span className="text-sm">Next available: Check other dates</span>
-                            </p>
+                            <div className="text-center py-8">
+                              <XCircle className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+                              <p className="text-gray-600 dark:text-gray-400 font-medium">
+                                No available slots for this date
+                              </p>
+                              <p className="text-sm text-muted-foreground mt-2">
+                                Please select another date to see available times
+                              </p>
+                            </div>
                           )}
                         </CardContent>
                       </Card>
