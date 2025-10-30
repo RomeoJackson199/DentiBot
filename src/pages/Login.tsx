@@ -16,6 +16,8 @@ type Business = {
   logo_url: string | null;
 };
 
+const loginHeroImage = "/lovable-uploads/dd1b725d-745a-4f59-a31a-2b7df6e48a1c.png";
+
 const Login = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -275,8 +277,14 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background md:flex-row">
-      <div className="hidden sm:flex md:w-1/2 flex-col bg-slate-950 text-white">
-        <div className="flex-1 space-y-8 overflow-y-auto p-12">
+      <div className="hidden sm:flex md:w-1/2 flex-col text-white relative overflow-hidden">
+        <img
+          src={loginHeroImage}
+          alt="Dental workspace selection"
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+        <div className="absolute inset-0 bg-slate-950/85" />
+        <div className="relative z-10 flex-1 space-y-8 overflow-y-auto p-12 backdrop-blur-sm">
           <div className="space-y-4">
             <span className="inline-flex w-fit items-center gap-2 rounded-full bg-white/10 px-4 py-1 text-xs uppercase tracking-wide text-white/80">
               Choose your workspace
@@ -299,7 +307,7 @@ const Login = () => {
             {renderBusinessList("desktop")}
           </div>
         </div>
-        <div className="border-t border-white/10 p-8 text-sm text-white/70">
+        <div className="relative z-10 border-t border-white/10 p-8 text-sm text-white/70 backdrop-blur-sm bg-slate-950/60">
           Need a new workspace?{" "}
           <a href="/create-business" className="font-semibold text-white underline-offset-4 hover:underline">
             Create a business
@@ -309,18 +317,40 @@ const Login = () => {
 
       <div className="flex-1 flex flex-col">
         <div className="sm:hidden border-b border-slate-200 bg-muted/40">
-          <div className="space-y-4 px-6 py-8">
-            <h2 className="text-xl font-semibold text-slate-900">Choose your business</h2>
-            <p className="text-sm text-muted-foreground">
-              Pick the business you manage so we can log you into the right workspace.
-            </p>
-            <Input
-              type="search"
-              value={searchTerm}
-              onChange={(event) => setSearchTerm(event.target.value)}
-              placeholder="Search businesses"
-            />
-            {renderBusinessList("mobile")}
+          <div className="px-6 py-8 space-y-6">
+            <div className="relative h-56 w-full overflow-hidden rounded-3xl">
+              <img
+                src={loginHeroImage}
+                alt="Dental workspace selection"
+                className="h-full w-full object-cover"
+              />
+              <div className="absolute inset-0 bg-slate-950/70" />
+              <div className="absolute inset-0 flex flex-col justify-end space-y-3 p-6 text-white">
+                <span className="inline-flex w-fit items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-[11px] uppercase tracking-wide text-white/80">
+                  Choose your workspace
+                </span>
+                <h2 className="text-2xl font-semibold leading-tight">
+                  Businesses on the left, sign in on the right
+                </h2>
+                <p className="text-sm text-white/80">
+                  Pick your business to tailor automations, messaging, and reports to the right location.
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-slate-900">Choose your business</h3>
+              <p className="text-sm text-muted-foreground">
+                Pick the business you manage so we can log you into the right workspace.
+              </p>
+              <Input
+                type="search"
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
+                placeholder="Search businesses"
+              />
+              {renderBusinessList("mobile")}
+            </div>
           </div>
         </div>
 
