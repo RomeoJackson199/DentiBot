@@ -14,6 +14,7 @@ const Signup = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [userType, setUserType] = useState<"client" | "business" | null>(null);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -76,8 +77,16 @@ const Signup = () => {
         duration: 10000,
         className: "bg-green-50 border-green-200 text-green-900 dark:bg-green-950 dark:border-green-800 dark:text-green-100",
       });
-      
-      // Show additional prominent message
+
+      // Redirect business owners to create business flow
+      if (userType === "business") {
+        setTimeout(() => {
+          navigate("/create-business");
+        }, 1500);
+        return;
+      }
+
+      // Show additional prominent message for clients
       setTimeout(() => {
         toast({
           title: "📧 Important: Verify Your Email",
@@ -149,6 +158,69 @@ const Signup = () => {
               Get instant access to AI-powered dental care management
             </p>
           </div>
+
+          {/* User Type Selection */}
+          {!userType && (
+            <div className="space-y-4">
+              <h2 className="text-xl font-semibold text-center mb-6">I am signing up as:</h2>
+              <div className="grid gap-4">
+                <button
+                  onClick={() => setUserType("client")}
+                  className="group relative overflow-hidden rounded-xl border-2 border-muted hover:border-primary transition-all p-6 text-left bg-background hover:bg-accent"
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="rounded-full bg-blue-100 dark:bg-blue-900/30 p-3">
+                      <Calendar className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold mb-2">A Client</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Book appointments, manage your dental records, and communicate with your dentist
+                      </p>
+                    </div>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => setUserType("business")}
+                  className="group relative overflow-hidden rounded-xl border-2 border-muted hover:border-primary transition-all p-6 text-left bg-background hover:bg-accent"
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="rounded-full bg-purple-100 dark:bg-purple-900/30 p-3">
+                      <Sparkles className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold mb-2">A Business Owner</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Manage your dental practice, schedule appointments, and grow your business
+                      </p>
+                    </div>
+                  </div>
+                </button>
+              </div>
+
+              <div className="text-center pt-4">
+                <p className="text-sm text-muted-foreground">
+                  Already have an account?{" "}
+                  <Link to="/login" className="text-primary hover:underline font-medium">
+                    Log in
+                  </Link>
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Sign Up Form - Only show after user type is selected */}
+          {userType && (
+            <div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setUserType(null)}
+                className="mb-4"
+              >
+                ← Change account type
+              </Button>
 
           <div className="space-y-4">
             <Button
@@ -263,7 +335,8 @@ const Signup = () => {
                 Privacy Policy
               </Link>
             </p>
-          </div>
+            </div>
+          )}
         </div>
       </div>
 

@@ -156,51 +156,62 @@ export function ServiceManager() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+      <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 dark:from-blue-950/20 dark:via-purple-950/20 dark:to-pink-950/20 p-6 rounded-2xl border-2 border-blue-100 dark:border-blue-900">
         <div>
-          <h2 className="text-3xl font-bold">Services & Products</h2>
-          <p className="text-muted-foreground mt-1">
-            Manage services and products for {businessName}
+          <h2 className="text-4xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+            Services & Products
+          </h2>
+          <p className="text-muted-foreground mt-2 text-base">
+            Manage your offerings for {businessName}
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Button onClick={() => handleAddNew('Service')} className="gap-2">
-            <Plus className="h-4 w-4" />
+        <div className="flex flex-wrap items-center gap-3">
+          <Button
+            onClick={() => handleAddNew('Service')}
+            className="gap-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg h-11 px-6"
+            size="lg"
+          >
+            <Plus className="h-5 w-5" />
             Add Service
           </Button>
-          <Button onClick={() => handleAddNew('Product')} variant="outline" className="gap-2">
-            <Plus className="h-4 w-4" />
+          <Button
+            onClick={() => handleAddNew('Product')}
+            variant="outline"
+            className="gap-2 border-2 border-purple-300 dark:border-purple-700 hover:bg-purple-50 dark:hover:bg-purple-950/30 h-11 px-6"
+            size="lg"
+          >
+            <Plus className="h-5 w-5" />
             Add Product
           </Button>
-          <Button variant="ghost" size="icon" onClick={loadServices} disabled={loading}>
-            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+          <Button variant="ghost" size="icon" onClick={loadServices} disabled={loading} className="h-11 w-11">
+            <RefreshCw className={`h-5 w-5 ${loading ? 'animate-spin' : ''}`} />
           </Button>
         </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Total items</CardDescription>
-            <CardTitle className="text-3xl">{services.length}</CardTitle>
+        <Card className="border-2 border-blue-200 dark:border-blue-900 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/30 shadow-md">
+          <CardHeader className="pb-3">
+            <CardDescription className="text-blue-700 dark:text-blue-400 font-medium">Total Items</CardDescription>
+            <CardTitle className="text-4xl font-bold text-blue-900 dark:text-blue-100">{services.length}</CardTitle>
           </CardHeader>
         </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Active</CardDescription>
-            <CardTitle className="text-3xl text-emerald-600">{activeCount}</CardTitle>
+        <Card className="border-2 border-emerald-200 dark:border-emerald-900 bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-950/30 dark:to-emerald-900/30 shadow-md">
+          <CardHeader className="pb-3">
+            <CardDescription className="text-emerald-700 dark:text-emerald-400 font-medium">Active</CardDescription>
+            <CardTitle className="text-4xl font-bold text-emerald-900 dark:text-emerald-100">{activeCount}</CardTitle>
           </CardHeader>
         </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Inactive</CardDescription>
-            <CardTitle className="text-3xl text-amber-500">{inactiveCount}</CardTitle>
+        <Card className="border-2 border-amber-200 dark:border-amber-900 bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-950/30 dark:to-amber-900/30 shadow-md">
+          <CardHeader className="pb-3">
+            <CardDescription className="text-amber-700 dark:text-amber-400 font-medium">Inactive</CardDescription>
+            <CardTitle className="text-4xl font-bold text-amber-900 dark:text-amber-100">{inactiveCount}</CardTitle>
           </CardHeader>
         </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Prepay required</CardDescription>
-            <CardTitle className="text-3xl text-primary">
+        <Card className="border-2 border-purple-200 dark:border-purple-900 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950/30 dark:to-purple-900/30 shadow-md">
+          <CardHeader className="pb-3">
+            <CardDescription className="text-purple-700 dark:text-purple-400 font-medium">Prepay Required</CardDescription>
+            <CardTitle className="text-4xl font-bold text-purple-900 dark:text-purple-100">
               {services.filter(service => service.requires_upfront_payment).length}
             </CardTitle>
           </CardHeader>
@@ -280,31 +291,49 @@ export function ServiceManager() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
           {filteredServices.map((service) => (
-            <Card key={service.id} className={`flex h-full flex-col ${!service.is_active ? 'border-dashed opacity-70' : ''}`}>
+            <Card
+              key={service.id}
+              className={`flex h-full flex-col transition-all hover:shadow-xl ${
+                !service.is_active
+                  ? 'border-dashed opacity-60 hover:opacity-80'
+                  : 'border-2 hover:scale-[1.02] shadow-md'
+              }`}
+            >
               <CardHeader className="space-y-4">
                 {service.image_url && (
-                  <div className="h-40 w-full overflow-hidden rounded-xl border bg-muted">
+                  <div className="h-48 w-full overflow-hidden rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-muted shadow-inner">
                     <img
                       src={service.image_url}
                       alt={service.name}
-                      className="h-full w-full object-cover"
+                      className="h-full w-full object-cover transition-transform hover:scale-110"
                     />
                   </div>
                 )}
                 <div className="flex items-start justify-between gap-3">
-                  <div className="space-y-1">
-                    <CardTitle className="text-xl">{service.name}</CardTitle>
+                  <div className="space-y-2">
+                    <CardTitle className="text-xl font-bold">{service.name}</CardTitle>
                     {service.category && (
-                      <Badge variant="secondary" className="uppercase tracking-wide">
+                      <Badge
+                        variant="secondary"
+                        className="uppercase tracking-wide font-semibold bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/50 dark:to-purple-900/50 text-blue-800 dark:text-blue-200"
+                      >
                         {service.category}
                       </Badge>
                     )}
                   </div>
-                  <div className="flex flex-wrap justify-end gap-1">
-                    {!service.is_active && <Badge variant="outline">Inactive</Badge>}
-                    {service.requires_upfront_payment && <Badge variant="default">Prepay</Badge>}
+                  <div className="flex flex-wrap justify-end gap-1.5">
+                    {!service.is_active && (
+                      <Badge variant="outline" className="border-amber-400 text-amber-700 dark:text-amber-400">
+                        Inactive
+                      </Badge>
+                    )}
+                    {service.requires_upfront_payment && (
+                      <Badge className="bg-gradient-to-r from-green-500 to-emerald-600 text-white">
+                        Prepay
+                      </Badge>
+                    )}
                   </div>
                 </div>
                 {service.description && (
@@ -312,22 +341,25 @@ export function ServiceManager() {
                     {service.description}
                   </CardDescription>
                 )}
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div className="text-2xl font-semibold text-primary">
+                <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t">
+                  <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                     {formatPrice(service.price_cents)}
                   </div>
                   <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                    {service.duration_minutes && <span>{service.duration_minutes} min</span>}
-                    {service.requires_upfront_payment && <span>Prepayment required</span>}
+                    {service.duration_minutes && (
+                      <span className="bg-blue-100 dark:bg-blue-900/30 px-2 py-1 rounded-full font-medium">
+                        {service.duration_minutes} min
+                      </span>
+                    )}
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="mt-auto">
+              <CardContent className="mt-auto pt-4 border-t">
                 <div className="flex flex-wrap gap-2">
                   <Button
                     variant="outline"
                     size="sm"
-                    className="flex-1"
+                    className="flex-1 border-2 hover:bg-blue-50 dark:hover:bg-blue-950/30"
                     onClick={() => handleEdit(service)}
                   >
                     <Pencil className="mr-2 h-4 w-4" />
@@ -336,6 +368,7 @@ export function ServiceManager() {
                   <Button
                     variant="outline"
                     size="sm"
+                    className={service.is_active ? 'border-2 border-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/30' : 'border-2 border-green-400 hover:bg-green-50 dark:hover:bg-green-950/30'}
                     onClick={() => handleToggleActive(service.id, service.is_active)}
                   >
                     {service.is_active ? 'Deactivate' : 'Activate'}
@@ -343,6 +376,7 @@ export function ServiceManager() {
                   <Button
                     variant="outline"
                     size="sm"
+                    className="border-2 border-red-400 hover:bg-red-50 dark:hover:bg-red-950/30"
                     onClick={() => handleDelete(service.id)}
                   >
                     <Trash2 className="h-4 w-4" />

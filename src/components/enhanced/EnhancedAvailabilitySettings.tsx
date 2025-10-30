@@ -275,16 +275,23 @@ export function EnhancedAvailabilitySettings({ dentistId }: EnhancedAvailability
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 dark:from-blue-950/20 dark:via-purple-950/20 dark:to-pink-950/20 p-6 rounded-2xl border-2 border-blue-100 dark:border-blue-900 shadow-md">
         <div className="flex items-center gap-4">
-          <Clock className="h-6 w-6 text-primary" />
-          <h2 className="text-xl sm:text-2xl font-bold">{t.availabilityManagement}</h2>
+          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg">
+            <Clock className="h-6 w-6 text-white" />
+          </div>
+          <div>
+            <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+              {t.availabilityManagement}
+            </h2>
+            <p className="text-sm text-muted-foreground mt-1">Manage your working hours and time off</p>
+          </div>
         </div>
-        <Button 
-          onClick={saveAvailability} 
-          disabled={saving} 
+        <Button
+          onClick={saveAvailability}
+          disabled={saving}
           size="lg"
-          className="h-12 px-6 rounded-xl bg-gradient-primary"
+          className="h-12 px-8 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg font-semibold"
         >
           <Save className="h-5 w-5 mr-2" />
           {saving ? t.saving : t.saveAvailability}
@@ -294,28 +301,43 @@ export function EnhancedAvailabilitySettings({ dentistId }: EnhancedAvailability
       <GoogleCalendarConnect />
 
       <Tabs defaultValue="schedule" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2 h-12">
-          <TabsTrigger value="schedule" className="text-sm sm:text-base">{t.weeklySchedule}</TabsTrigger>
-          <TabsTrigger value="vacation" className="text-sm sm:text-base">{t.vacationsAbsences}</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-2 h-14 bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-950/50 dark:to-purple-950/50 p-1 rounded-xl shadow-inner">
+          <TabsTrigger
+            value="schedule"
+            className="text-sm sm:text-base font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-lg"
+          >
+            <Calendar className="h-4 w-4 mr-2" />
+            {t.weeklySchedule}
+          </TabsTrigger>
+          <TabsTrigger
+            value="vacation"
+            className="text-sm sm:text-base font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-lg"
+          >
+            <Coffee className="h-4 w-4 mr-2" />
+            {t.vacationsAbsences}
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="schedule">
-          <Card className="glass-card">
-            <CardHeader>
-              <CardTitle className="flex items-center text-lg sm:text-xl">
-                <Calendar className="h-5 w-5 mr-2" />
+          <Card className="glass-card border-2 shadow-lg">
+            <CardHeader className="bg-gradient-to-r from-blue-50/50 to-purple-50/50 dark:from-blue-950/20 dark:to-purple-950/20 border-b">
+              <CardTitle className="flex items-center text-xl sm:text-2xl font-bold">
+                <Calendar className="h-6 w-6 mr-3 text-blue-600" />
                 {t.weeklyPlanning}
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-6 p-6">
               {/* Quick Preset Buttons - Improved layout */}
-              <div className="p-4 bg-gray-50 rounded-xl space-y-3">
-                <span className="text-sm font-medium text-gray-700 block">{t.quickPresets}</span>
+              <div className="p-5 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 rounded-xl space-y-3 border-2 border-blue-100 dark:border-blue-900">
+                <span className="text-base font-bold text-foreground flex items-center gap-2">
+                  <Clock className="h-5 w-5 text-blue-600" />
+                  {t.quickPresets}
+                </span>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <Button
                     variant="outline"
                     size="lg"
-                    className="h-12 justify-start px-4 rounded-xl"
+                    className="h-14 justify-start px-5 rounded-xl border-2 border-blue-300 dark:border-blue-700 hover:bg-blue-100 dark:hover:bg-blue-950/30 font-semibold"
                     onClick={() => {
                       setAvailability(prev => prev.map(day => ({
                         ...day,
@@ -327,13 +349,13 @@ export function EnhancedAvailabilitySettings({ dentistId }: EnhancedAvailability
                       })));
                     }}
                   >
-                    <Clock className="h-4 w-4 mr-2" />
+                    <Clock className="h-5 w-5 mr-2 text-blue-600" />
                     {t.presetMonFri}
                   </Button>
                   <Button
                     variant="outline"
                     size="lg"
-                    className="h-12 justify-start px-4 rounded-xl"
+                    className="h-14 justify-start px-5 rounded-xl border-2 border-purple-300 dark:border-purple-700 hover:bg-purple-100 dark:hover:bg-purple-950/30 font-semibold"
                     onClick={() => {
                       setAvailability(prev => prev.map(day => ({
                         ...day,
@@ -345,7 +367,7 @@ export function EnhancedAvailabilitySettings({ dentistId }: EnhancedAvailability
                       })));
                     }}
                   >
-                    <Clock className="h-4 w-4 mr-2" />
+                    <Clock className="h-5 w-5 mr-2 text-purple-600" />
                     {t.presetMonSat}
                   </Button>
                 </div>
