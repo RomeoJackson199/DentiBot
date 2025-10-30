@@ -211,7 +211,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                         </p>
                       )}
                     </div>
-                    <div className="flex flex-col gap-2">
+                    <div className="flex flex-row gap-2">
                       <Button size="sm" variant="outline" onClick={() => onNavigateTo('appointments')}>
                         {t.reschedule}
                       </Button>
