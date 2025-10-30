@@ -44,7 +44,6 @@ export function GoogleCalendarConnect() {
       if (!data?.authUrl) {
         throw new Error('No authUrl returned from server');
       }
-      console.log('[GCal] Using redirectUri:', redirectUri, '| authUrl:', data.authUrl);
 
       // Open OAuth flow in popup
       const width = 600;

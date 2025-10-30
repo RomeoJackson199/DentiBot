@@ -212,8 +212,6 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
 
   const generateBotResponse = async (userMessage: string): Promise<ChatMessage> => {
     try {
-      console.log('Generating AI response for:', userMessage);
-      
       // Get patient context if user is logged in
       let patientContext = null;
       if (user) {
@@ -228,10 +226,9 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
             const { data, error } = await supabase.rpc('get_patient_context_for_ai', {
               p_patient_id: profile.id
             });
-            
+
             if (!error && data) {
               patientContext = data;
-              console.log('Loaded patient context for AI:', patientContext);
             }
           }
         } catch (contextError) {
@@ -259,8 +256,6 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
         console.error('AI function error:', error);
         throw error;
       }
-
-      console.log('AI function response:', data);
 
       const response = data.response || "I'm sorry, I couldn't process your request.";
       const suggestions = data.suggestions || [];
@@ -401,7 +396,6 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
         created_at: new Date().toISOString(),
       };
 
-      console.log('Returning AI response:', botMessage);
       return botMessage;
 
     } catch (error) {
@@ -427,8 +421,6 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
 Type your request...`;
       }
 
-      console.log('Returning fallback response:', response);
-
       return {
         id: crypto.randomUUID(),
         session_id: sessionId,
@@ -452,10 +444,7 @@ Type your request...`;
       created_at: new Date().toISOString(),
     };
 
-    setMessages(prev => {
-      console.log('Adding user message to messages. Current count:', prev.length);
-      return [...prev, userMessage];
-    });
+    setMessages(prev => [...prev, userMessage]);
     const currentInput = inputMessage;
     setInputMessage("");
     setIsLoading(true);
@@ -479,14 +468,10 @@ Type your request...`;
     const timeoutId = setTimeout(async () => {
       try {
         const botResponse = await generateBotResponse(userMessage.message);
-        console.log('Bot response received:', botResponse);
-        
+
         // Only update state if component is still mounted
         if (isMountedRef.current) {
-          setMessages(prev => {
-            console.log('Adding bot response to messages. Current count:', prev.length);
-            return [...prev, botResponse];
-          });
+          setMessages(prev => [...prev, botResponse]);
         }
         try {
           await saveMessage(botResponse);
@@ -504,13 +489,10 @@ Type your request...`;
           message_type: "text",
           created_at: new Date().toISOString(),
         };
-        
+
         // Only update state if component is still mounted
         if (isMountedRef.current) {
-          setMessages(prev => {
-            console.log('Adding fallback message to messages. Current count:', prev.length);
-            return [...prev, fallbackMessage];
-          });
+          setMessages(prev => [...prev, fallbackMessage]);
         }
         try {
           await saveMessage(fallbackMessage);
@@ -578,7 +560,7 @@ Type your request...`;
         }
         break;
       default:
-        console.log('Unknown action:', action);
+        break;
     }
   };
 

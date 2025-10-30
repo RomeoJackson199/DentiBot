@@ -298,8 +298,6 @@ export const InteractiveDentalChat = ({
         }
       });
 
-      console.log('🔧 AI Response received:', aiResponse);
-
       if (aiResponse.error) {
         console.error('AI function error:', aiResponse.error);
         // If backend returned a JSON body, try to use it instead of failing hard
@@ -316,23 +314,6 @@ export const InteractiveDentalChat = ({
 
       // Detect and extract widget codes from AI response (no forced codes)
       const { cleanedText, detectedWidgets, recommendedDentists } = detectAndExtractCodes(responseText);
-      
-      // Show visible debug info when codes are detected
-      if (detectedWidgets.length > 0) {
-        console.log('🔢 Widget codes detected:', { 
-          original: responseText,
-          cleaned: cleanedText,
-          widgets: detectedWidgets,
-          dentists: recommendedDentists 
-        });
-        
-        // Show toast with detected codes for debugging
-        toast({
-          title: "🤖 AI Widget Code Detected",
-          description: `Widget triggered: ${detectedWidgets.join(', ')}${recommendedDentists.length > 0 ? `\nDentists: ${recommendedDentists.join(', ')}` : ''}`,
-          duration: 3000,
-        });
-      }
 
       const result = {
         id: crypto.randomUUID(),
@@ -367,36 +348,24 @@ export const InteractiveDentalChat = ({
   };
 
   const handleSuggestions = (suggestions: string[], recommendedDentists?: string[]) => {
-    console.log('🎯 Handling suggestions:', suggestions);
-    
     if (!suggestions || suggestions.length === 0) {
-      console.log('⚠️ No suggestions to process');
       return;
     }
     
     suggestions.forEach(suggestion => {
       const normalizedSuggestion = suggestion.toLowerCase().trim();
-      
-      // Show toast for debugging
-      toast({
-        title: "Debug: Widget triggered",
-        description: `Opening ${normalizedSuggestion}`,
-        duration: 2000
-      });
-      
+
       // Normalize appointment-related suggestions
       if (['view-appointments', 'appointments-list', 'show-appointments', 'appointments'].includes(normalizedSuggestion)) {
         setActiveWidget('view-appointments');
-        console.log('🔧 Triggering appointments list');
         showAppointments();
         return;
       }
-      
+
       switch (normalizedSuggestion) {
         case 'recommend-dentist':
         case 'dentist-selection':
           setActiveWidget('recommend-dentist');
-          console.log('🔧 Triggering recommend-dentist widget with dentists:', recommendedDentists);
           loadDentistsForBooking(false, recommendedDentists);
           break;
         case 'book-appointment':
@@ -406,27 +375,22 @@ export const InteractiveDentalChat = ({
           break;
         case 'reschedule':
           setActiveWidget('reschedule');
-          console.log('🔧 Triggering reschedule widget');
           showRescheduleWidget();
           break;
         case 'cancel-appointment':
           setActiveWidget('cancel-appointment');
-          console.log('🔧 Triggering cancel-appointment widget');
           showCancelAppointmentWidget();
           break;
         case 'pay-now':
           setActiveWidget('pay-now');
-          console.log('🔧 Triggering pay-now widget');
           showPayNowWidget();
           break;
         case 'prescription-refill':
           setActiveWidget('prescription-refill');
-          console.log('🔧 Triggering prescription-refill widget');
           showPrescriptionRefillWidget();
           break;
         case 'booking-ready':
           setActiveWidget('booking-ready');
-          console.log('🔧 Triggering booking-ready widget');
           break;
         case 'theme-dark':
           setTheme('dark');
@@ -454,7 +418,8 @@ export const InteractiveDentalChat = ({
           addBotMessage('Please select a theme:');
           break;
         default:
-          console.log('⚠️ Unknown suggestion:', suggestion);
+          // Unknown suggestion - do nothing
+          break;
       }
     });
   };
@@ -690,8 +655,6 @@ Just type what you need! 😊
   };
 
   const handleDateSelection = async (date: Date) => {
-    console.log('📅 Date selected:', date);
-    
     if (!bookingFlow.selectedDentist) {
       toast({
         title: "Please select a dentist first",
@@ -706,9 +669,8 @@ Just type what you need! 😊
 
     setBookingFlow({ ...bookingFlow, selectedDate: date, step: 'time' });
     setActiveWidget(null);
-    
+
     const dateStr = format(date, 'yyyy-MM-dd');
-    console.log('handleDateSelection called with date:', dateStr, 'dentist:', bookingFlow.selectedDentist);
     
     addBotMessage(`Date selected: **${format(date, "EEEE, MMMM d, yyyy")}** 📅`);
     addBotMessage("Loading available times... ⏳");
@@ -728,8 +690,6 @@ Just type what you need! 😊
         bookingFlow.selectedDentist.id,
         date
       );
-      
-      console.log('Raw availability slots:', availabilitySlots);
 
       // Map to the widget format
       const slots = availabilitySlots.map(slot => ({
@@ -970,31 +930,16 @@ You'll receive a confirmation email shortly.`;
     }
 
     const history = [...messages, userMessage].slice(-10);
-    
-    console.log('📤 Sending to AI:', {
-      message: userMessage.message,
-      historyLength: history.length
-    });
-    
+
     const { message: botResponse, fallback, suggestions, recommendedDentists } = await generateBotResponse(userMessage.message, history);
-    
-    console.log('📥 AI Response:', {
-      message: botResponse.message,
-      fallback,
-      suggestions,
-      recommendedDentists
-    });
-    
+
     setMessages(prev => [...prev, botResponse]);
     await saveMessage(botResponse);
 
     setIsLoading(false);
 
     if (suggestions && suggestions.length > 0) {
-      console.log('🎬 Calling handleSuggestions with:', suggestions, recommendedDentists);
       handleSuggestions(suggestions, recommendedDentists);
-    } else {
-      console.log('⚠️ No suggestions returned from AI');
     }
   };
 

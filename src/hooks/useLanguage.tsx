@@ -2088,10 +2088,8 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const handleSetLanguage = (lang: Language) => {
-    console.log('Setting language to:', lang);
     setLanguage(lang);
     localStorage.setItem("preferred-language", lang);
-    console.log('Language state updated, localStorage set');
   };
 
   const t = translations[language];
@@ -2116,7 +2114,6 @@ export const useLanguage = () => {
   if (context === undefined) {
     throw new Error("useLanguage must be used within a LanguageProvider");
   }
-  console.log('useLanguage called, current language:', context.language);
   return context;
 };
 

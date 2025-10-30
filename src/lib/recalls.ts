@@ -83,7 +83,6 @@ export async function generateSuggestedSlotsAroundDate(
 
 // Temporarily disable recalls functionality until types are updated
 export async function createRecall(...args: any[]): Promise<any> {
-	console.log('Recalls functionality temporarily disabled');
 	return null;
 }
 
@@ -96,15 +95,12 @@ export function mapDentistPortalSelectionToKey(...args: any[]): any {
 }
 
 export async function updateRecallStatus(...args: any[]): Promise<void> {
-	console.log('Recalls functionality temporarily disabled');
 }
 
 export async function regenerateSlots(...args: any[]): Promise<RecallSlot[]> {
-	console.log('Recalls functionality temporarily disabled');
 	return [];
 }
 
 export async function getPatientActiveRecall(...args: any[]): Promise<RecallRecord | null> {
-	console.log('Recalls functionality temporarily disabled');
 	return null;
 }

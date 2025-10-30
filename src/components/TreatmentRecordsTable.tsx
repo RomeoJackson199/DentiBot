@@ -22,19 +22,17 @@ export function TreatmentRecordsTable({ patientId }: TreatmentRecordsTableProps)
   const { data: records, isLoading, error: queryError } = useQuery({
     queryKey: ["treatment-records", patientId],
     queryFn: async () => {
-      console.log('🔍 [TreatmentRecords] Fetching for patient:', patientId);
       const { data, error } = await supabase
         .from("medical_records")
         .select("*")
         .eq("patient_id", patientId)
         .order("record_date", { ascending: false });
-      
+
       if (error) {
         console.error('❌ [TreatmentRecords] Query error:', error);
         throw error;
       }
-      
-      console.log('✅ [TreatmentRecords] Found records:', data?.length || 0);
+
       return data;
     }
   });

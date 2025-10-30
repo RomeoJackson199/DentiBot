@@ -23,16 +23,7 @@ export const AppointmentStats: React.FC<AppointmentStatsProps> = ({ appointments
   const now = new Date();
   const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const todayEnd = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
-  
-  // Debug logging for appointment counts
-  console.log('📊 AppointmentStats Debug:', {
-    totalAppointments: appointments.length,
-    todayStart: todayStart.toISOString(),
-    todayEnd: todayEnd.toISOString(),
-    now: now.toISOString(),
-    sampleAppointment: appointments[0]
-  });
-  
+
   // Calculate statistics
   const stats = {
     total: appointments.length,

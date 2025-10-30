@@ -65,9 +65,6 @@ export function NextAppointmentWidget({ dentistId }: NextAppointmentWidgetProps)
   useEffect(() => {
     const fetchNextAppointment = async () => {
       try {
-        console.log('🔍 Fetching next appointment for dentistId:', dentistId);
-        console.log('📅 Current time:', new Date().toISOString());
-        
         if (!businessId) {
           setLoading(false);
           return;
@@ -105,7 +102,6 @@ export function NextAppointmentWidget({ dentistId }: NextAppointmentWidgetProps)
           return;
         }
 
-        console.log('✅ Next appointment data:', data);
         setNextAppointment(data || null);
       } catch (error) {
         const err: any = error;
@@ -129,7 +125,6 @@ export function NextAppointmentWidget({ dentistId }: NextAppointmentWidgetProps)
           filter: `dentist_id=eq.${dentistId}`,
         },
         () => {
-          console.log('Appointment changed, refetching...');
           fetchNextAppointment();
         }
       )

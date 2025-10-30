@@ -147,10 +147,7 @@ export const Settings = ({ user }: SettingsProps) => {
   const handleSaveProfile = async () => {
     setLoading(true);
     try {
-      console.log('Attempting to save profile data:', profile);
-      
       const result = await saveProfileData(user, profile);
-      console.log('Profile save result:', result);
 
       // Save dentist-specific fields when applicable
       if (isDentist && profileId) {

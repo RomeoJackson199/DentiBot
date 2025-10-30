@@ -98,8 +98,7 @@ export const PatientPaymentHistory: React.FC<PatientPaymentHistoryProps> = ({ pa
   const handlePayNow = async (paymentRequestId: string) => {
     try {
       setProcessingPayment(paymentRequestId);
-      console.log('Processing payment for request:', paymentRequestId);
-      
+
       // Call the edge function to create a new payment session for existing request
       const { data, error } = await supabase.functions.invoke('create-payment-request', {
         body: {
@@ -111,8 +110,6 @@ export const PatientPaymentHistory: React.FC<PatientPaymentHistoryProps> = ({ pa
         console.error('Edge function error:', error);
         throw error;
       }
-
-      console.log('Payment session created:', data);
 
       if (data?.payment_url) {
         // Open payment URL in new tab

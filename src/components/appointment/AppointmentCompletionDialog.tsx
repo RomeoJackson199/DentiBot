@@ -355,8 +355,6 @@ export function AppointmentCompletionDialog({
                   description: "Could not send payment request to patient. You can create one manually later.",
                   variant: "destructive",
                 });
-              } else {
-                console.log('✅ Payment request created and sent:', paymentData);
               }
             } catch (error) {
               console.error('Failed to create payment request:', error);
@@ -523,8 +521,6 @@ export function AppointmentCompletionDialog({
               isSystemNotification: false
             }
           );
-
-          console.log('✅ Email sent to patient:', patientProfile.email);
         }
       } catch (emailError) {
         console.error('Failed to send completion email:', emailError);

@@ -45,8 +45,6 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
   const { hasFeature, loading: templateLoading } = useBusinessTemplate();
   const { showTour, closeTour } = useUserTour("dentist");
 
-  console.log('🔧 DentistPortal: hasFeature available, templateLoading:', templateLoading);
-
   // Handle URL-based section navigation
   useEffect(() => {
     const pathParts = location.pathname.split('/').filter(Boolean);
@@ -109,10 +107,8 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
       setLoading(false);
       return;
     }
-    
+
     try {
-      console.log('🔍 Fetching dentist profile for user:', user.id);
-      
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('id')
@@ -127,8 +123,6 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
         console.error('❌ No profile found for user:', user.id);
         throw new Error('Profile not found');
       }
-      
-      console.log('✅ Profile found:', profile.id);
 
       const { data: dentist, error: dentistError } = await supabase
         .from('dentists')
@@ -149,7 +143,6 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
         throw new Error('Your dentist account is not active');
       }
 
-      console.log('✅ Dentist ID:', dentist.id);
       setDentistId(dentist.id);
       
       // Fetch badge counts
@@ -198,7 +191,6 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
   const renderContent = () => {
     // If trying to access clinical section without medical features, redirect to dashboard
     if (activeSection === 'clinical' && !hasFeature('medicalRecords') && !hasFeature('prescriptions') && !hasFeature('treatmentPlans')) {
-      console.log('🔧 Clinical section not available for this template, redirecting to dashboard');
       setActiveSection('dashboard');
       return <ModernLoadingSpinner variant="card" message="Loading..." />;
     }

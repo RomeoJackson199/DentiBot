@@ -74,7 +74,6 @@ const Support = () => {
   const handleContactSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Handle contact form submission
-    console.log("Contact form submitted:", contactForm);
     // Reset form
     setContactForm({
       name: "",

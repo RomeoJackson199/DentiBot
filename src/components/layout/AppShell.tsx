@@ -172,7 +172,12 @@ function TopBar() {
   }, [formatSegment, location.pathname]);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setUserId(data.session?.user?.id ?? null));
+    supabase.auth.getSession()
+      .then(({ data }) => setUserId(data.session?.user?.id ?? null))
+      .catch((error) => {
+        console.error('Error getting session:', error);
+        setUserId(null);
+      });
   }, []);
 
   return (

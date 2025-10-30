@@ -76,10 +76,6 @@ export const RealAppointmentsList = ({ user, filter }: RealAppointmentsListProps
         .eq('user_id', user.id)
         .single();
 
-      console.log('User ID:', user.id);
-      console.log('Profile:', profile);
-      console.log('Profile error:', profileError);
-
       if (profileError) {
         console.error('Profile error:', profileError);
         throw new Error('Unable to find your profile. Please ensure you are logged in.');
@@ -104,19 +100,6 @@ export const RealAppointmentsList = ({ user, filter }: RealAppointmentsListProps
         .eq('patient_id', profile.id)
         .order('appointment_date', { ascending: false });
 
-      console.log('Looking for appointments with patient_id:', profile.id);
-      console.log('Appointments data:', appointmentsData);
-      console.log('Appointments error:', appointmentsError);
-
-      // Also check all appointments to see if any exist
-      const { data: allAppointments, error: allError } = await supabase
-        .from('appointments')
-        .select('*')
-        .limit(5);
-
-      console.log('All appointments sample:', allAppointments);
-      console.log('All appointments error:', allError);
-
       if (appointmentsError) {
         console.error('Appointments error:', appointmentsError);
         throw new Error('Failed to load appointments from database.');
@@ -140,13 +123,8 @@ export const RealAppointmentsList = ({ user, filter }: RealAppointmentsListProps
         }
       }));
 
-
-      
-      console.log('Raw appointments data:', appointmentsData);
-      console.log('Formatted appointments:', formattedAppointments);
-      
       setAppointments(formattedAppointments);
-      
+
       // Show success message if appointments were loaded
       if (formattedAppointments.length > 0) {
         toast({
@@ -154,8 +132,7 @@ export const RealAppointmentsList = ({ user, filter }: RealAppointmentsListProps
           description: `Loaded ${formattedAppointments.length} appointment${formattedAppointments.length !== 1 ? 's' : ''}`,
           variant: "default",
         });
-      } else {
-              console.log('No appointments found for patient:', profile.id);
+      }
     }
   } catch (err: any) {
     console.error('Error fetching appointments:', err);
@@ -392,11 +369,6 @@ export const RealAppointmentsList = ({ user, filter }: RealAppointmentsListProps
     );
   }
 
-
-  
-  console.log('Rendering appointments list. Length:', appointments.length);
-  console.log('Appointments data:', appointments);
-  
   return (
     <div className="space-y-6">
       {/* Header with refresh */}

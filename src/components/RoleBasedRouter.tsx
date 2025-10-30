@@ -22,7 +22,6 @@ export function RoleBasedRouter({ children, requiredRole, redirectTo = "/" }: Ro
       if (requiredRole) {
         const hasRequiredRole = requiredRole === 'dentist' ? isDentist : hasRole(requiredRole);
         if (!hasRequiredRole) {
-          console.log(`Access denied: Required role ${requiredRole} not found. User roles:`, roles);
           navigate(redirectTo, { replace: true });
           return;
         }
@@ -67,7 +66,6 @@ export function RoleBasedRouter({ children, requiredRole, redirectTo = "/" }: Ro
                   }
                 } else {
                   // Neither dentist nor provider exists - auto-create dentist record
-                  console.log('No dentist/provider record found, creating dentist record...');
                   const { error: insertError } = await supabase
                     .from('dentists')
                     .insert({
@@ -80,7 +78,6 @@ export function RoleBasedRouter({ children, requiredRole, redirectTo = "/" }: Ro
                     navigate(redirectTo, { replace: true });
                     return;
                   }
-                  console.log('Dentist record created successfully');
                 }
               }
             }

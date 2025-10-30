@@ -6,11 +6,7 @@ export const performanceTracker = {
     const start = performance.now();
     const result = renderFn();
     const end = performance.now();
-    
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`🎯 ${componentName} render time: ${(end - start).toFixed(2)}ms`);
-    }
-    
+
     return result;
   },
 
@@ -20,11 +16,7 @@ export const performanceTracker = {
     try {
       const result = await asyncFn();
       const end = performance.now();
-      
-      if (process.env.NODE_ENV === 'development') {
-        console.log(`⚡ ${functionName} execution time: ${(end - start).toFixed(2)}ms`);
-      }
-      
+
       return result;
     } catch (error) {
       const end = performance.now();
@@ -35,14 +27,7 @@ export const performanceTracker = {
 
   // Monitor memory usage
   monitorMemory: () => {
-    if ('memory' in performance && process.env.NODE_ENV === 'development') {
-      const memory = (performance as any).memory;
-      console.log('📊 Memory usage:', {
-        used: `${Math.round(memory.usedJSHeapSize / 1048576)}MB`,
-        total: `${Math.round(memory.totalJSHeapSize / 1048576)}MB`,
-        limit: `${Math.round(memory.jsHeapSizeLimit / 1048576)}MB`
-      });
-    }
+    // Memory monitoring removed for production
   }
 };
 
@@ -116,8 +101,5 @@ export const calculateVisibleItems = (
 
 // Bundle analyzer helper for development
 export const analyzeBundleSize = () => {
-  if (process.env.NODE_ENV === 'development') {
-    // This would typically integrate with webpack-bundle-analyzer
-    console.log('📦 Bundle analysis available in development mode');
-  }
+  // This would typically integrate with webpack-bundle-analyzer
 };

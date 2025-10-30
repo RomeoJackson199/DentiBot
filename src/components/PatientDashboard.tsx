@@ -163,7 +163,6 @@ export const PatientDashboard = ({
       table: 'medical_records',
       filter: `patient_id=eq.${userProfile.id}`
     }, payload => {
-      console.log('New medical record created:', payload);
       // Add the new medical record to the list
       const newRecord = {
         ...payload.new,
@@ -295,7 +294,6 @@ export const PatientDashboard = ({
   };
   const fetchRecentAppointments = async (profileId: string) => {
     try {
-      console.log('🔍 Fetching appointments for profile:', profileId);
       const {
         data: appointmentsData,
         error
@@ -312,8 +310,6 @@ export const PatientDashboard = ({
         console.error('❌ Error fetching appointments:', error);
         return;
       }
-      console.log('✅ Raw appointments data:', appointmentsData);
-      console.log('📊 Number of appointments:', appointmentsData?.length || 0);
       const transformed = (appointmentsData || []).map(apt => ({
         ...apt,
         duration: apt.duration_minutes || 60,
@@ -326,7 +322,6 @@ export const PatientDashboard = ({
           specialization: apt.dentists.specialization
         } : undefined
       }));
-      console.log('📋 Transformed appointments:', transformed);
       setRecentAppointments(transformed);
     } catch (error) {
       console.error('💥 Exception fetching recent appointments:', error);
@@ -466,17 +461,13 @@ export const PatientDashboard = ({
   }
   const nextAppointment = (() => {
     const now = new Date();
-    console.log('⏰ Computing next appointment. Current time:', now.toISOString());
-    console.log('📅 Recent appointments count:', recentAppointments.length);
     const filtered = [...recentAppointments].filter(a => {
       const aptDate = new Date(a.appointment_date);
       const isFuture = aptDate > now;
       const hasValidStatus = ['confirmed', 'scheduled', 'pending'].includes(a.status);
-      console.log(`  - ${a.id}: ${aptDate.toISOString()} (future: ${isFuture}, status: ${a.status}, valid: ${hasValidStatus})`);
       return isFuture && hasValidStatus;
     }).sort((a, b) => new Date(a.appointment_date).getTime() - new Date(b.appointment_date).getTime());
     const next = filtered[0] || null;
-    console.log('🎯 Next appointment:', next?.id || 'none');
     return next;
   })();
   const carePlans: CareItem[] = treatmentPlans.map(tp => ({
