@@ -276,8 +276,8 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background md:flex-row">
-      <div className="hidden sm:flex md:w-1/2 flex-col text-white relative overflow-hidden">
+    <div className="min-h-screen flex flex-row bg-background max-[480px]:flex-col">
+      <div className="relative flex w-full flex-col overflow-hidden text-white max-[480px]:hidden md:w-1/2">
         <img
           src={loginHeroImage}
           alt="Dental workspace selection"
@@ -315,8 +315,8 @@ const Login = () => {
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col">
-        <div className="sm:hidden border-b border-slate-200 bg-muted/40">
+      <div className="flex flex-1 flex-col">
+        <div className="hidden border-b border-slate-200 bg-muted/40 max-[480px]:block">
           <div className="px-6 py-8 space-y-6">
             <div className="relative h-56 w-full overflow-hidden rounded-3xl">
               <img
