@@ -74,33 +74,43 @@ const PatientAccountHelpPage = lazy(() => import("./pages/PatientAccountHelpPage
 // Dashboard component that handles authentication with lazy loading
 // Business gate component that shows appropriate picker
 const BusinessGate = ({ showBusinessPicker, setShowBusinessPicker }: { showBusinessPicker: boolean, setShowBusinessPicker: (show: boolean) => void }) => {
-  const { memberships, switchBusiness, loading } = useBusinessContext();
+  const { memberships, switchBusiness, loading, businessId } = useBusinessContext();
+
+  useEffect(() => {
+    if (!loading && memberships.length === 1 && !businessId) {
+      switchBusiness(memberships[0].business_id);
+    }
+  }, [loading, memberships, businessId, switchBusiness]);
 
   if (loading) return null;
 
-  if (memberships && memberships.length > 0) {
+  if (memberships.length === 0) {
     return (
-      <BusinessPickerDialog 
-        open={showBusinessPicker} 
-        onOpenChange={setShowBusinessPicker}
-      />
+      <Dialog open={showBusinessPicker} onOpenChange={setShowBusinessPicker}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Select Your Clinic</DialogTitle>
+          </DialogHeader>
+          <BusinessSelectionForPatients
+            onSelectBusiness={async (businessId) => {
+              await switchBusiness(businessId);
+              setShowBusinessPicker(false);
+            }}
+          />
+        </DialogContent>
+      </Dialog>
     );
   }
 
+  if (memberships.length === 1) {
+    return null;
+  }
+
   return (
-    <Dialog open={showBusinessPicker} onOpenChange={setShowBusinessPicker}>
-      <DialogContent className="sm:max-w-[600px]">
-        <DialogHeader>
-          <DialogTitle>Select Your Clinic</DialogTitle>
-        </DialogHeader>
-        <BusinessSelectionForPatients
-          onSelectBusiness={async (businessId) => {
-            await switchBusiness(businessId);
-            setShowBusinessPicker(false);
-          }}
-        />
-      </DialogContent>
-    </Dialog>
+    <BusinessPickerDialog
+      open={showBusinessPicker}
+      onOpenChange={setShowBusinessPicker}
+    />
   );
 };
 
@@ -202,22 +212,13 @@ const App = () => {
 
           // Show business picker on login
           if (memberships && memberships.length > 0) {
-            // Provider/staff: show BusinessPickerDialog
-            setTimeout(() => setShowBusinessPicker(true), 500);
-          } else {
-            // Patient/guest: check if they have a session_business set
-            const { data: sessionBusiness } = await supabase
-              .from('session_business')
-              .select('business_id')
-              .eq('user_id', user.id)
-              .order('updated_at', { ascending: false })
-              .limit(1)
-              .maybeSingle();
-
-            if (!sessionBusiness?.business_id) {
-              // No clinic selected yet, show patient picker
+            if (memberships.length > 1 && !sessionBusiness?.business_id) {
+              // Providers with multiple clinics need to choose
               setTimeout(() => setShowBusinessPicker(true), 500);
             }
+          } else if (!sessionBusiness?.business_id) {
+            // Patient/guest: no clinic selected yet, show patient picker
+            setTimeout(() => setShowBusinessPicker(true), 500);
           }
 
         }
