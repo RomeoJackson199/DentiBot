@@ -117,13 +117,10 @@ return data.id;
     metadata?: Record<string, unknown>
   ): Promise<void> {
     if (!sendEmail) {
-      console.log('📧 Email sending disabled, skipping...');
       return;
     }
 
     try {
-      console.log('🔔 Starting email notification process for user:', userId);
-      
       // Get user profile for contact info
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
@@ -136,19 +133,11 @@ return data.id;
         throw new Error('User profile not found');
       }
 
-      console.log('👤 Profile found:', { 
-        email: profile.email, 
-        name: `${profile.first_name} ${profile.last_name}`,
-        id: profile.id 
-      });
-
       const recipientEmail = (metadata?.email as string) || profile.email;
       if (!recipientEmail) {
         console.error('❌ No email address available');
         throw new Error('No email address found');
       }
-
-      console.log('📧 Preparing to send email to:', recipientEmail);
 
       // Invoke the edge function with simplified parameters
       const { data, error } = await supabase.functions.invoke('send-email-notification', {
@@ -168,8 +157,6 @@ return data.id;
         throw new Error(`Email service error: ${error.message}`);
       }
 
-      console.log('✅ Email sent successfully:', data);
-      
     } catch (error) {
       console.error('❌ Email notification failed:', error);
       throw error;

@@ -14,9 +14,6 @@ export interface ProfileData {
 
 export const saveProfileData = async (user: User, profileData: ProfileData) => {
   try {
-    // Minimal logging to avoid exposing PII
-    console.log('Saving profile for user:', user.id);
-
     // Validate required fields
     if (!profileData.first_name?.trim() || !profileData.last_name?.trim()) {
       throw new Error('First name and last name are required');
@@ -43,8 +40,6 @@ export const saveProfileData = async (user: User, profileData: ProfileData) => {
     if (profileData.ai_opt_out !== undefined) {
       cleanData.ai_opt_out = profileData.ai_opt_out;
     }
-
-    console.log('Cleaned data to save:', cleanData);
 
     // Save to database (update, then insert if missing)
     const { data: updateData, error: updateError } = await supabase
@@ -80,8 +75,6 @@ export const saveProfileData = async (user: User, profileData: ProfileData) => {
       throw new Error('Failed to verify saved data');
     }
 
-    console.log('Verified saved data:', verifyData);
-
     // Removed localStorage backup for security - sensitive PII should not be stored locally
 
     return { success: true, data: verifyData };
@@ -93,8 +86,6 @@ export const saveProfileData = async (user: User, profileData: ProfileData) => {
 
 export const loadProfileData = async (user: User): Promise<ProfileData> => {
   try {
-    console.log('Loading profile data for user:', user.id);
-
     // Try to load from database first
     const { data, error } = await supabase
       .from('profiles')
@@ -129,19 +120,16 @@ export const loadProfileData = async (user: User): Promise<ProfileData> => {
 
 export const testDatabaseConnection = async () => {
   try {
-    console.log('Testing database connection...');
-    
     const { data, error } = await supabase
       .from('profiles')
       .select('count')
       .limit(1);
-    
+
     if (error) {
       console.error('Database connection test failed:', error);
       return { success: false, error };
     }
-    
-    console.log('Database connection successful');
+
     return { success: true };
   } catch (error) {
     console.error('Database connection test failed:', error);

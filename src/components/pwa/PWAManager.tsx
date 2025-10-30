@@ -87,7 +87,7 @@ export const PWAManager: React.FC<PWAManagerProps> = ({ onInstall }) => {
             }
           });
         })
-        .catch(error => console.log('SW registration failed:', error));
+        .catch(error => console.error('SW registration failed:', error));
     }
 
     return () => {

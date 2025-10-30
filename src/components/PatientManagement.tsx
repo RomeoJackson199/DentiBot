@@ -243,8 +243,6 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
         throw appointmentError;
       }
 
-      console.log('Appointments data:', appointmentData);
-
       // Extract unique patients
       const uniquePatients = appointmentData
         .map(apt => apt.profiles)
@@ -253,7 +251,6 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
         )
         .filter(Boolean) as Patient[];
 
-      console.log('Unique patients:', uniquePatients);
       setPatients(uniquePatients);
     } catch (error: unknown) {
       toast({

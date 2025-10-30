@@ -137,11 +137,9 @@ const PaymentSuccess: React.FC = () => {
             const { data, error } = await supabase.functions.invoke('update-payment-status', {
               body: { session_id: sessionId }
             });
-            
+
             if (error) {
               console.error('Error updating payment status:', error);
-            } else {
-              console.log('Payment status updated:', data);
             }
           } catch (error) {
             console.error('Failed to update payment status:', error);

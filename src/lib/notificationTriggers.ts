@@ -6,7 +6,6 @@ export class NotificationTriggers {
   static async onPrescriptionCreated(prescriptionId: string): Promise<void> {
     try {
       await NotificationService.createPrescriptionNotification(prescriptionId);
-      console.log('Prescription notification created for:', prescriptionId);
     } catch (error) {
       console.error('Error creating prescription notification:', error);
     }
@@ -19,7 +18,6 @@ export class NotificationTriggers {
   ): Promise<void> {
     try {
       await NotificationService.createTreatmentPlanNotification(treatmentPlanId, action);
-      console.log('Treatment plan notification created for:', treatmentPlanId, action);
     } catch (error) {
       console.error('Error creating treatment plan notification:', error);
     }
@@ -33,8 +31,6 @@ export class NotificationTriggers {
       
       // Schedule 2h reminder
       await NotificationService.createAppointmentReminder(appointmentId, '2h');
-      
-      console.log('Appointment reminders scheduled for:', appointmentId);
     } catch (error) {
       console.error('Error scheduling appointment reminders:', error);
     }
@@ -92,8 +88,6 @@ export class NotificationTriggers {
         undefined,
         true // send email only
       );
-
-      console.log('Appointment confirmation notification sent for:', appointmentId);
     } catch (error) {
       console.error('Error creating appointment confirmation notification:', error);
     }
@@ -147,8 +141,6 @@ export class NotificationTriggers {
         undefined,
         true // send email only
       );
-
-      console.log('Appointment cancellation notification sent for:', appointmentId);
     } catch (error) {
       console.error('Error creating appointment cancellation notification:', error);
     }
@@ -194,8 +186,6 @@ export class NotificationTriggers {
         undefined,
         true // send email only
       );
-
-      console.log('Prescription expiry notification sent for:', prescriptionId);
     } catch (error) {
       console.error('Error creating prescription expiry notification:', error);
     }
@@ -235,8 +225,6 @@ export class NotificationTriggers {
         undefined,
         true // send email only
       );
-
-      console.log('Emergency triage notification sent for patient:', patientUserId);
     } catch (error) {
       console.error('Error creating emergency triage notification:', error);
     }
@@ -261,8 +249,6 @@ export class NotificationTriggers {
           due_date: dueDate
         }
       );
-
-      console.log('Follow-up reminder notification sent for patient:', patientUserId);
     } catch (error) {
       console.error('Error creating follow-up reminder notification:', error);
     }
@@ -301,7 +287,6 @@ export class NotificationTriggers {
       );
 
       await Promise.all(notificationPromises);
-      console.log('System maintenance notifications sent to all users');
     } catch (error) {
       console.error('Error creating system maintenance notifications:', error);
     }
@@ -311,7 +296,6 @@ export class NotificationTriggers {
   static async cleanupExpiredNotifications(): Promise<void> {
     try {
       const deletedCount = await NotificationService.deleteExpiredNotifications();
-      console.log(`Cleaned up ${deletedCount} expired notifications`);
     } catch (error) {
       console.error('Error cleaning up expired notifications:', error);
     }

@@ -44,8 +44,7 @@ export function PatientPreferencesDialog({ children }: PatientPreferencesDialogP
 
   const handleSavePreferences = () => {
     // Here you would save preferences to the database
-    console.log("Saving patient preferences:", preferences);
-    
+
     toast({
       title: "Preferences Updated",
       description: "Your appointment preferences have been saved successfully.",

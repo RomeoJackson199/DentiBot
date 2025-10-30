@@ -171,23 +171,18 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({
   const fetchAppointments = async () => {
     try {
       setLoading(true);
-      console.log('🔍 [AppointmentsTab] Fetching profile for user:', user.id);
-      
+
       const {
         data: profile
       } = await supabase.from('profiles').select('id').eq('user_id', user.id).maybeSingle();
-      
+
       if (!profile) {
-        console.warn('⚠️ [AppointmentsTab] No profile found for user:', user.id);
         return;
       }
 
       if (!businessId) {
-        console.warn('⚠️ [AppointmentsTab] No business context set');
         return;
       }
-      
-      console.log('✅ [AppointmentsTab] Using profile:', profile?.id, 'and business:', businessId);
           let appointmentsData: any[] | null = null;
           let appointmentsError: any = null;
           const { data: dataWithDentist, error: errWithDentist } = await supabase
@@ -202,9 +197,8 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({
             .eq('patient_id', profile.id)
             .eq('business_id', businessId)
             .order('appointment_date', { ascending: false });
-          
+
           if (errWithDentist) {
-            console.warn('⚠️ [AppointmentsTab] Dentist embed failed, falling back:', errWithDentist);
             const { data: fallbackData, error: fallbackError } = await supabase
               .from('appointments')
               .select('*')
@@ -222,9 +216,7 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({
             console.error('❌ [AppointmentsTab] Appointments error:', appointmentsError);
             return;
           }
-        
-        console.log('📊 [AppointmentsTab] Raw appointments:', appointmentsData?.length || 0, appointmentsData);
-        
+
         if (appointmentsData) {
           // Transform the data to match the expected structure
           const transformedData = appointmentsData.map(apt => ({
@@ -242,9 +234,7 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({
           const upcoming = appointmentsData.filter(apt => new Date(apt.appointment_date) > now && apt.status === 'confirmed').length;
           const completed = appointmentsData.filter(apt => apt.status === 'completed').length;
           const cancelled = appointmentsData.filter(apt => apt.status === 'cancelled').length;
-          
-          console.log('📈 [AppointmentsTab] Stats:', { upcoming, completed, cancelled, total: appointmentsData.length });
-          
+
           setStats({
             total: appointmentsData.length,
             upcoming,

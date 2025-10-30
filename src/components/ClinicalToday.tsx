@@ -48,13 +48,7 @@ export function ClinicalToday({ user, dentistId, onOpenPatientsTab, onOpenAppoin
 			try {
 				const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
 				const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
-				
-				console.log('🔍 Fetching dashboard data for dentistId:', dentistId);
-				console.log('📅 Date range:', {
-					start: startOfDay.toISOString(),
-					end: endOfDay.toISOString()
-				});
-				
+
 				// Today's appointments with details
 				const { data: todayAppts, error: todayError } = await supabase
 					.from('appointments')
@@ -75,11 +69,9 @@ export function ClinicalToday({ user, dentistId, onOpenPatientsTab, onOpenAppoin
 					.lt('appointment_date', endOfDay.toISOString())
 					.neq('status', 'cancelled')
 					.order('appointment_date', { ascending: true });
-				
+
 				if (todayError) {
 					console.error('❌ Error fetching today appointments:', { code: todayError.code, message: todayError.message, details: (todayError as any)?.details });
-				} else {
-					console.log('✅ Today appointments found:', todayAppts?.length || 0, todayAppts);
 				}
 
 				// Count urgent cases

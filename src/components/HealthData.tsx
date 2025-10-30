@@ -133,9 +133,8 @@ export const HealthData = ({
       setIsLoading(true);
 
       let profile: any = null;
-      
+
       if (mode === 'patient') {
-        console.log('Loading patient profile for user:', user.id);
         try {
           const profileData = await loadProfileData(user);
           profile = {
@@ -143,13 +142,11 @@ export const HealthData = ({
             user_id: user.id,
             ...profileData
           };
-          console.log('Loaded patient profile:', profile);
         } catch (error) {
           console.error('Error loading patient profile:', error);
           throw error;
         }
       } else if (mode === 'dentist' && patientId) {
-        console.log('Loading patient profile for dentist view, patient ID:', patientId);
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
           .select('*')
@@ -161,7 +158,6 @@ export const HealthData = ({
           throw profileError;
         }
         profile = profileData;
-        console.log('Loaded patient profile for dentist:', profile);
       }
 
       if (!profile) {

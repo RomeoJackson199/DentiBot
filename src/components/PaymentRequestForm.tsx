@@ -31,7 +31,6 @@ export const PaymentRequestForm: React.FC<PaymentRequestFormProps> = ({
 
   const fetchPatients = async () => {
     try {
-      console.log('Fetching patients for dentist:', dentistId);
       const { data, error } = await supabase
         .from('appointments')
         .select(`
@@ -46,8 +45,6 @@ export const PaymentRequestForm: React.FC<PaymentRequestFormProps> = ({
         throw error;
       }
 
-      console.log('Raw appointment data:', data);
-
       // Get unique patients
       const uniquePatients = data?.reduce((acc: any[], appointment: any) => {
         const patient = appointment.profiles;
@@ -57,7 +54,6 @@ export const PaymentRequestForm: React.FC<PaymentRequestFormProps> = ({
         return acc;
       }, []) || [];
 
-      console.log('Unique patients found:', uniquePatients);
       setPatients(uniquePatients);
     } catch (error) {
       console.error('Error fetching patients:', error);

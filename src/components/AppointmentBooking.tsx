@@ -98,18 +98,15 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
     setLoadingTimes(true);
     setSelectedTime("");
     setErrorMessage(null);
-    
+
     try {
-      console.log('Fetching availability for:', date.toISOString().split('T')[0]);
-      
       // Generate slots with retry logic
       const { error: slotError } = await supabase.rpc('generate_daily_slots', {
         p_dentist_id: selectedDentist,
         p_date: date.toISOString().split('T')[0]
       });
-      
+
       if (slotError && retry < 2) {
-        console.log(`Retrying slot generation, attempt ${retry + 1}`);
         setTimeout(() => fetchAvailability(date, retry + 1), 1000);
         return;
       }
@@ -125,13 +122,11 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
 
       const availableSlots = allSlots?.filter(slot => slot.is_available && !slot.emergency_only)
         .map(slot => slot.slot_time.substring(0, 5)) || [];
-      
+
       setAvailableTimes(availableSlots);
       setAllSlots(allSlots || []);
       setRetryCount(0); // Reset retry count on success
-      
-      console.log('Available slots:', availableSlots);
-      
+
     } catch (error) {
       console.error('Failed to fetch availability:', error);
       

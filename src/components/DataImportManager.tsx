@@ -81,12 +81,9 @@ export default function DataImportManager() {
   // Test function to verify edge function connectivity
   const testFunction = async () => {
     try {
-      console.log('Testing edge function connection...');
       const { data, error } = await supabase.functions.invoke('process-csv-import', {
         body: { test: true }
       });
-      
-      console.log('Test function response:', { data, error });
       
       if (error && error.message?.includes('Missing required fields')) {
         // This is expected for a test request, function is working
@@ -121,30 +118,22 @@ export default function DataImportManager() {
   const retryRequest = async (fn: () => Promise<any>, maxRetries = 3): Promise<any> => {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        console.log(`Attempt ${attempt} of ${maxRetries}`);
         return await fn();
       } catch (error: any) {
         console.error(`Attempt ${attempt} failed:`, error);
-        
+
         if (attempt === maxRetries) {
           throw error;
         }
-        
+
         // Wait before retrying (exponential backoff)
         const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
-        console.log(`Retrying in ${delay}ms...`);
         await new Promise(resolve => setTimeout(resolve, delay));
       }
     }
   };
 
   const handleImport = async () => {
-    console.log("Import button clicked", {
-      selectedFile: selectedFile?.name,
-      fieldMappingCount: Object.keys(fieldMapping).length,
-      fieldMapping
-    });
-
     if (!selectedFile) {
       toast({
         title: "No file selected",
@@ -167,7 +156,6 @@ export default function DataImportManager() {
 
     try {
       // First test the connection
-      console.log("Testing edge function connection...");
       const connectionWorking = await testFunction();
       if (!connectionWorking) {
         throw new Error('Edge function is not responding. Please try again later.');
@@ -207,10 +195,6 @@ export default function DataImportManager() {
 
       const csvData = await selectedFile.text();
 
-      console.log('Starting import with dentist ID:', dentist.id);
-      console.log('CSV data length:', csvData.length);
-      console.log('Field mapping:', fieldMapping);
-
       // Use retry logic for the import request
       const result = await retryRequest(async () => {
         const { data, error } = await supabase.functions.invoke('process-csv-import', {
@@ -227,8 +211,6 @@ export default function DataImportManager() {
           }
         });
 
-        console.log('Function response received:', { data, error });
-
         if (error) {
           console.error('Function invocation error:', error);
           throw new Error(`Function error: ${error.message || JSON.stringify(error)}`);
@@ -241,8 +223,6 @@ export default function DataImportManager() {
 
         return data;
       });
-
-      console.log('Import response:', result);
       setImportSession(result);
 
       const successCount = result.successCount || result.successful_records || 0;

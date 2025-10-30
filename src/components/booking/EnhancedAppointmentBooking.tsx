@@ -324,8 +324,6 @@ export const EnhancedAppointmentBooking = ({
             isSystemNotification: true
           }
         });
-
-        console.log('✅ Appointment confirmation email sent successfully');
       } catch (emailError) {
         console.error('Failed to send confirmation email:', emailError);
         // Don't fail the booking if email fails

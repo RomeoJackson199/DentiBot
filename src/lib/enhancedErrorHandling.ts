@@ -94,10 +94,6 @@ const ERROR_MAPPINGS: Record<string, Partial<DetailedError>> = {
  * Process and enhance error information
  */
 export function processError(error: unknown, context?: ErrorContext): DetailedError {
-  console.group('🚨 Error Processing');
-  console.log('Context:', context);
-  console.log('Raw error:', error);
-  
   let processedError: DetailedError = {
     code: 'unknown_error',
     message: 'Unknown error occurred',
@@ -149,10 +145,7 @@ export function processError(error: unknown, context?: ErrorContext): DetailedEr
       }
     });
   }
-  
-  console.log('Processed error:', processedError);
-  console.groupEnd();
-  
+
   return processedError;
 }
 
@@ -250,9 +243,7 @@ export async function retryWithBackoff<T>(
     } catch (error) {
       lastError = error;
       const processedError = processError(error, context);
-      
-      console.log(`Attempt ${attempt}/${maxRetries} failed:`, processedError.message);
-      
+
       if (!processedError.retryable || attempt === maxRetries) {
         throw error;
       }

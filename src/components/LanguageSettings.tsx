@@ -21,18 +21,12 @@ export const LanguageSettings = () => {
   const { toast } = useToast();
 
   const handleLanguageChange = (languageCode: 'en' | 'fr' | 'nl') => {
-    console.log('Language change initiated:', languageCode);
     setLanguage(languageCode);
     const languageObj = languages.find(lang => lang.code === languageCode);
     toast({
       title: t.languageUpdated,
       description: `${t.languageChangedTo} ${languageObj?.name}`,
     });
-    
-    // Force a small delay to ensure state updates propagate
-    setTimeout(() => {
-      console.log('Language should now be:', languageCode);
-    }, 100);
   };
 
   const currentLanguage = languages.find(lang => lang.code === language);

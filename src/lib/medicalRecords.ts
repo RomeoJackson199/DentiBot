@@ -153,7 +153,6 @@ export const createDossierAfterSignup = async (userId: string) => {
     };
 
     await createMedicalRecord(initialRecord);
-    console.log('Initial dossier created for new patient:', profile.id);
   } catch (error) {
     console.error('Error creating initial dossier:', error);
   }

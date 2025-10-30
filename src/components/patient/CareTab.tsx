@@ -302,7 +302,7 @@ export const CareTab: React.FC<CareTabProps> = ({
           text: `${item.title} - ${item.subtitle || ''}`,
         });
       } catch (error) {
-        console.log('Share failed:', error);
+        // Share failed or was cancelled
       }
     } else {
       // Fallback - copy to clipboard

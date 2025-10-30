@@ -323,6 +323,9 @@ export function CompletionSheet({ open, onOpenChange, appointment, dentistId, on
 							}).select('*').single().then(res => {
 								if (res.error) throw res.error;
 								return res.data;
+							}).catch(err => {
+								console.error('Error creating invoice:', err);
+								throw err;
 							}), sb) as { id: string };
 							invoiceId = invoice.id;
 							await sb.from('invoice_items').insert(procedures.map(p => ({
@@ -357,6 +360,9 @@ export function CompletionSheet({ open, onOpenChange, appointment, dentistId, on
 					}).select('*').single().then(res => {
 						if (res.error) throw res.error;
 						return res.data;
+					}).catch(err => {
+						console.error('Error creating invoice:', err);
+						throw err;
 					}), sb) as { id: string };
 					invoiceId = invoice.id;
 					await sb.from('invoice_items').insert(procedures.map(p => ({
