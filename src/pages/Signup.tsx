@@ -336,6 +336,7 @@ const Signup = () => {
               </Link>
             </p>
             </div>
+            </div>
           )}
         </div>
       </div>
