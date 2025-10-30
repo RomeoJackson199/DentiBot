@@ -10,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { ImportFieldMapper } from './ImportFieldMapper';
 import { ImportHistory } from './ImportHistory';
+import { logger } from '@/lib/logger';
 
 interface ImportSession {
   id: string;

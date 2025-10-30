@@ -49,6 +49,7 @@ import { PaymentRequestForm } from "@/components/PaymentRequestForm";
 import SimpleAppointmentBooking from "@/components/SimpleAppointmentBooking";
 import { useNavigate } from "react-router-dom";
 import { useBusinessTemplate } from "@/hooks/useBusinessTemplate";
+import { logger } from '@/lib/logger';
 
 interface Patient {
   id: string;

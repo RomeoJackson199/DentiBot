@@ -14,6 +14,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { Upload, X } from 'lucide-react';
+import { logger } from '@/lib/logger';
 
 interface Service {
   id: string;

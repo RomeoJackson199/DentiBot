@@ -1,5 +1,6 @@
 // Enhanced error handling system with better UX and debugging
 import { toast } from "@/hooks/use-toast";
+import { logger } from '@/lib/logger';
 
 export interface ErrorContext {
   action: string;

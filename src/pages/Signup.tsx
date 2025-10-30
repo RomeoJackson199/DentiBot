@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Loader2, Calendar, MessageSquare, FileText, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Eye, EyeOff } from "lucide-react";
+import { logger } from '@/lib/logger';
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -67,7 +68,7 @@ const Signup = () => {
           });
           localStorage.removeItem('selected_business_id');
         } catch (err) {
-          console.error("Error setting business context:", err);
+          logger.error("Error setting business context:", err);
         }
       }
 

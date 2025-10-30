@@ -26,6 +26,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ServiceManager } from "@/components/services/ServiceManager";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { QRCodeCanvas } from "qrcode.react";
+import { logger } from '@/lib/logger';
 
 export default function DentistAdminBranding() {
   const { businessId, loading: businessLoading } = useBusinessContext();

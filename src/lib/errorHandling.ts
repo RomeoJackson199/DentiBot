@@ -1,4 +1,5 @@
 import { toast } from '@/hooks/use-toast';
+import { logger } from '@/lib/logger';
 
 export interface ErrorInfo {
   message: string;

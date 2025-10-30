@@ -17,6 +17,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { modernToast } from '@/components/enhanced/ModernNotificationToast';
 import { formatDistanceToNow } from 'date-fns';
+import { logger } from '@/lib/logger';
 
 interface SimpleNotificationCenterProps {
   userId: string;

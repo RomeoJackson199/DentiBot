@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { ChatMessage } from "@/types/chat";
 import type { UserProfile } from "@/types/common";
+import { logger } from '@/lib/logger';
 
 /**
  * Generate a short symptom description using the dental AI function.

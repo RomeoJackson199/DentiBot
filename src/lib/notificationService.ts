@@ -1,5 +1,6 @@
 import { supabase } from '../integrations/supabase/client';
 import { Notification, NotificationPreferences, NotificationTemplate } from '../types/common';
+import { logger } from '@/lib/logger';
 
 export class NotificationService {
   // Get all notifications for a user

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useUserRole } from "@/hooks/useUserRole";
 import { ModernLoadingSpinner } from "@/components/enhanced/ModernLoadingSpinner";
 import { supabase } from "@/integrations/supabase/client";
+import { logger } from '@/lib/logger';
 
 interface RoleBasedRouterProps {
   children: React.ReactNode;

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Calendar, Clock, User as UserIcon, MapPin, Phone } from "lucide-react";
 import { format } from "date-fns";
+import { logger } from '@/lib/logger';
 
 interface ChatAppointmentManagerProps {
   user: User;

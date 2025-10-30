@@ -11,6 +11,7 @@ import { getCurrentBusinessId } from '@/lib/businessUtils';
 import { Input } from '@/components/ui/input';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { logger } from '@/lib/logger';
 
 interface Conversation {
   profileId: string;

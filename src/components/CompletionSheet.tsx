@@ -19,6 +19,7 @@ import { mapDentistPortalSelectionToKey, createRecall } from "@/lib/recalls";
 import { withSchemaReloadRetry } from "@/integrations/supabase/retry";
 import { SKU_DISPLAY_NAME, PROCEDURE_DEFS } from "@/lib/constants";
 import { PatientPreferencesDialog } from "./PatientPreferencesDialog";
+import { logger } from '@/lib/logger';
 
 interface CompletionSheetProps {
 	open: boolean;

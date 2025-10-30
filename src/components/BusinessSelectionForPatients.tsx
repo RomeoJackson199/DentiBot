@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Building2, MapPin, Check } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { logger } from '@/lib/logger';
 
 interface Business {
   id: string;

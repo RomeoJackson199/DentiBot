@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Building2, UserPlus } from "lucide-react";
+import { logger } from '@/lib/logger';
 
 interface Invitation {
   id: string;

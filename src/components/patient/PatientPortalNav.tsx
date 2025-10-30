@@ -17,6 +17,7 @@ import { FloatingBookingButton } from "./FloatingBookingButton";
 import { BusinessSelector } from "@/components/BusinessSelector";
 import { useClinicBranding } from "@/hooks/useClinicBranding";
 import { useBusinessTemplate } from "@/hooks/useBusinessTemplate";
+import { logger } from '@/lib/logger';
 
 type NavItem = {
   id: string;

@@ -7,6 +7,7 @@ import { AuthForm } from "@/components/AuthForm";
 import { useToast } from "@/hooks/use-toast";
 import { getTriageInfo } from "@/lib/mockApi";
 import { Button } from "@/components/ui/button";
+import { logger } from '@/lib/logger';
 
 const EmergencyTriage = () => {
   const navigate = useNavigate();
@@ -22,7 +23,7 @@ const EmergencyTriage = () => {
         const sessionRes = await supabase.auth.getSession();
         setUser(sessionRes.data.session?.user ?? null);
       } catch (error) {
-        console.error('Session error:', error);
+        logger.error('Session error:', error);
         toast({ title: 'Error', description: 'Unable to load session' });
       } finally {
         setLoading(false);
@@ -32,7 +33,7 @@ const EmergencyTriage = () => {
       try {
         await getTriageInfo();
       } catch (error) {
-        console.error('Failed to load triage info:', error);
+        logger.error('Failed to load triage info:', error);
         // Don't show toast for triage info failure as it's not critical
       }
       
@@ -91,7 +92,7 @@ const EmergencyTriage = () => {
       />
     );
   } catch (error) {
-    console.error('EmergencyTriage render error:', error);
+    logger.error('EmergencyTriage render error:', error);
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
         <div className="text-center">

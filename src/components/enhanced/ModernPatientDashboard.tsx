@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { formatClinicTime } from '@/lib/timezone';
 import { emitAnalyticsEvent } from '@/lib/analyticsEvents';
+import { logger } from '@/lib/logger';
 
 interface DashboardData {
   profile: any;

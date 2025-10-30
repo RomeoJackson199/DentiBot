@@ -8,6 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar as CalendarIcon, Clock, Plus, Trash2 } from "lucide-react";
+import { logger } from '@/lib/logger';
 
 interface DayAvailability {
   id?: string;

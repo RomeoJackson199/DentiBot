@@ -20,6 +20,7 @@ import {
   Zap
 } from "lucide-react";
 import { format, addDays, isBefore, startOfDay } from "date-fns";
+import { logger } from '@/lib/logger';
 
 interface EmergencyBookingFlowProps {
   user: { id: string; email?: string };

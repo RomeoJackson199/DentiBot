@@ -23,6 +23,7 @@ import { format, startOfDay } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import ClinicMap from "@/components/Map";
 import { ServiceSelector } from "@/components/booking/ServiceSelector";
+import { logger } from '@/lib/logger';
 
 interface Dentist {
   id: string;

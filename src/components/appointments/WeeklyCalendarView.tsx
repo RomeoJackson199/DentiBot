@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { AppointmentCompletionDialog } from "../appointment/AppointmentCompletionDialog";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useNavigate } from "react-router-dom";
+import { logger } from '@/lib/logger';
 
 interface WeeklyCalendarViewProps {
   dentistId: string;

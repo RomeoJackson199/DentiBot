@@ -28,6 +28,7 @@ import { format } from 'date-fns';
 import { NotificationService } from '@/lib/notificationService';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useBusinessTemplate } from '@/hooks/useBusinessTemplate';
+import { logger } from '@/lib/logger';
 
 interface AppointmentCompletionDialogProps {
   open: boolean;

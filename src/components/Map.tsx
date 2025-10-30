@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
+import { logger } from '@/lib/logger';
 
 interface MapProps {
   address?: string;

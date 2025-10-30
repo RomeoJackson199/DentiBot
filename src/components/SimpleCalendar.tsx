@@ -7,6 +7,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Badge } from "@/components/ui/badge";
 import { Clock, CalendarDays, CheckCircle, XCircle, Sparkles, Users, Timer } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { logger } from '@/lib/logger';
 
 interface SimpleCalendarProps {
   selectedDentist: string;

@@ -6,6 +6,7 @@ import { Bell, CheckCircle, AlertCircle, Info, X, ExternalLink } from 'lucide-re
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
+import { logger } from '@/lib/logger';
 
 interface Notification {
   id: string;

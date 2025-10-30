@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { analytics, ANALYTICS_EVENTS } from '@/lib/analytics';
 import { cn } from '@/lib/utils';
+import { logger } from '@/lib/logger';
 
 interface PWAManagerProps {
   onInstall?: () => void;

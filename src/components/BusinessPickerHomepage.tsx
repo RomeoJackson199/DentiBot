@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Building2, MapPin, ChevronRight } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
+import { logger } from '@/lib/logger';
 
 interface Business {
   id: string;

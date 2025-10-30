@@ -8,6 +8,7 @@ import { TemplateType, TemplateFeatures, TemplateTerminology } from '@/lib/busin
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
+import { logger } from '@/lib/logger';
 
 interface BusinessCreationDialogProps {
   open: boolean;

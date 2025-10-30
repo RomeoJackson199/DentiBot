@@ -8,6 +8,7 @@ import { Loader2, Building2, ChevronRight, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { logger } from '@/lib/logger';
 
 type Business = {
   id: string;

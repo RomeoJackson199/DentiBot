@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { bookAppointment } from "@/lib/mockApi";
 import { supabase } from "@/integrations/supabase/client";
 import { 
+import { logger } from '@/lib/logger';
   CheckCircle, 
   Calendar, 
   MapPin, 

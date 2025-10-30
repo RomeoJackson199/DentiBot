@@ -15,6 +15,7 @@ import {
   MessageSquare
 } from "lucide-react";
 import { format } from "date-fns";
+import { logger } from '@/lib/logger';
 
 interface UrgencyAppointment {
   id: string;

@@ -1,6 +1,7 @@
 import { ChatMessage } from "@/types/chat";
 import { supabase } from "@/integrations/supabase/client";
 import { addBusinessContext } from "@/lib/businessScopedSupabase";
+import { logger } from '@/lib/logger';
 
 export interface CreateMedicalRecordData {
   patientId: string;

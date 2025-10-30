@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { logger } from '@/lib/logger';
 
 /**
  * Processes Supabase auth callback parameters then cleans the URL.

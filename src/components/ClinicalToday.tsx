@@ -10,6 +10,7 @@ import { format } from "date-fns";
 import { NextAppointmentWidget } from "@/components/NextAppointmentWidget";
 import { ServicesQuickLink } from "@/components/dashboard/ServicesQuickLink";
 import { useBusinessTemplate } from "@/hooks/useBusinessTemplate";
+import { logger } from '@/lib/logger';
 
 interface ClinicalTodayProps {
 	user: User;

@@ -34,6 +34,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useBusinessTemplate } from "@/hooks/useBusinessTemplate";
+import { logger } from '@/lib/logger';
 
 interface Appointment {
   id: string;

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Check } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { logger } from '@/lib/logger';
 
 interface Service {
   id: string;

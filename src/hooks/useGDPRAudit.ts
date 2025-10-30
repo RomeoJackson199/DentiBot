@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/lib/logger';
 
 type AuditAction = 'create' | 'view_phi' | 'update' | 'delete' | 'export' | 'consent_change' | 'login' | 'logout';
 
@@ -47,7 +48,7 @@ export function useGDPRAudit() {
         });
 
     } catch (error) {
-      console.error('Failed to log audit event:', error);
+      logger.error('Failed to log audit event:', error);
       // Don't throw - audit logging shouldn't break the main flow
     }
   }, []);

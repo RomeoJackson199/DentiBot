@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { utcToClinicTime } from '@/lib/timezone';
 import { useBusinessContext } from './useBusinessContext';
+import { logger } from '@/lib/logger';
 
 export interface Appointment {
   id: string;
@@ -174,7 +175,7 @@ export async function createAppointmentWithNotification(appointmentData: {
       });
     }
   } catch (emailError) {
-    console.error('Failed to send appointment confirmation email:', emailError);
+    logger.error('Failed to send appointment confirmation email:', emailError);
     // Don't fail the appointment creation if email fails
   }
 
@@ -276,7 +277,7 @@ export function useAppointments(params: UseAppointmentsParams): UseAppointmentsR
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch appointments';
       setError(errorMessage);
-      console.error('Error fetching appointments:', err);
+      logger.error('Error fetching appointments:', err);
     } finally {
       setLoading(false);
     }

@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { UserPlus, Mail } from "lucide-react";
+import { logger } from '@/lib/logger';
 
 interface InviteDentistDialogProps {
   businessId: string;

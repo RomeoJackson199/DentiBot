@@ -59,6 +59,7 @@ const BookAppointmentAI = lazy(() => import("./pages/BookAppointmentAI"));
 const BookAppointment = lazy(() => import("./pages/BookAppointment"));
 const BusinessPortal = lazy(() => import("./pages/BusinessPortal"));
 import { BookingRouteHandler } from "./components/booking/BookingRouteHandler";
+import { logger } from '@/lib/logger';
 const PatientCareHome = lazy(() => import("./pages/PatientCareHome"));
 const PatientAppointmentsPage = lazy(() => import("./pages/PatientAppointmentsPage"));
 const PatientPrescriptionsPage = lazy(() => import("./pages/PatientPrescriptionsPage"));
@@ -131,7 +132,7 @@ const Dashboard = () => {
       setUser(currentUser);
       setLoading(false);
     }).catch(error => {
-      console.error('Error getting session:', error);
+      logger.error('Error getting session:', error);
       setLoading(false);
     });
 

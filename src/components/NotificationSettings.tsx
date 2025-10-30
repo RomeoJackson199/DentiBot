@@ -9,6 +9,7 @@ import { NotificationService } from '@/lib/notificationService';
 import { NotificationPreferences } from '@/types/common';
 import { supabase } from '@/integrations/supabase/client';
 import { Bell, Mail, Phone, Clock } from 'lucide-react';
+import { logger } from '@/lib/logger';
 
 export const NotificationSettings: React.FC = () => {
   const [preferences, setPreferences] = useState<NotificationPreferences | null>(null);

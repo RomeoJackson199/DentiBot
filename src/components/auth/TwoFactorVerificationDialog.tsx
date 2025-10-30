@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Loader2, Mail, Shield } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { logger } from '@/lib/logger';
 
 interface TwoFactorVerificationDialogProps {
   open: boolean;

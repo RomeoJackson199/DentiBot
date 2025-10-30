@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
+import { logger } from '@/lib/logger';
   Zap, 
   Activity, 
   Timer, 

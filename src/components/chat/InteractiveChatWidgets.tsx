@@ -42,6 +42,7 @@ import {
   Loader2
 } from "lucide-react";
 import { format, startOfDay, isSameDay } from "date-fns";
+import { logger } from '@/lib/logger';
 
 type Dentist = any;
 type Appointment = any;

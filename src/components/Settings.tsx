@@ -30,6 +30,7 @@ import {
 } from "lucide-react";
 import { saveProfileData, loadProfileData, testDatabaseConnection, ProfileData } from "@/lib/profileUtils";
 import { DentistManagement } from "@/components/DentistManagement";
+import { logger } from '@/lib/logger';
 
 interface SettingsProps {
   user: User;

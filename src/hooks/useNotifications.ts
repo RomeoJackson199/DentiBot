@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Notification, NotificationPreferences } from '../types/common';
 import { NotificationService } from '../lib/notificationService';
+import { logger } from '@/lib/logger';
 
 interface UseNotificationsReturn {
   notifications: Notification[];
@@ -50,7 +51,7 @@ export const useNotifications = (userId: string): UseNotificationsReturn => {
       setUnreadCount(unreadCountData);
       setPreferences(preferencesData);
     } catch (err) {
-      console.error('Error fetching notifications:', err);
+      logger.error('Error fetching notifications:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch notifications');
     } finally {
       setIsLoading(false);
@@ -70,7 +71,7 @@ export const useNotifications = (userId: string): UseNotificationsReturn => {
       );
       debouncedSetUnreadCount(Math.max(0, unreadCount - 1));
     } catch (err) {
-      console.error('Error marking notification as read:', err);
+      logger.error('Error marking notification as read:', err);
       setError(err instanceof Error ? err.message : 'Failed to mark notification as read');
     }
   }, [unreadCount, debouncedSetUnreadCount]);
@@ -82,7 +83,7 @@ export const useNotifications = (userId: string): UseNotificationsReturn => {
       setNotifications(prev => prev.map(notif => ({ ...notif, is_read: true })));
       setUnreadCount(0);
     } catch (err) {
-      console.error('Error marking all notifications as read:', err);
+      logger.error('Error marking all notifications as read:', err);
       setError(err instanceof Error ? err.message : 'Failed to mark all notifications as read');
     }
   }, []);
@@ -95,7 +96,7 @@ export const useNotifications = (userId: string): UseNotificationsReturn => {
       const updatedPrefs = await NotificationService.updateNotificationPreferences(userId, updates);
       setPreferences(updatedPrefs);
     } catch (err) {
-      console.error('Error updating notification preferences:', err);
+      logger.error('Error updating notification preferences:', err);
       setError(err instanceof Error ? err.message : 'Failed to update notification preferences');
     }
   }, [userId]);

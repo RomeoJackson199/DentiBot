@@ -24,6 +24,7 @@ import { Badge } from './ui/badge';
 import { NotificationService } from '../lib/notificationService';
 import { User as UserType } from '../types/common';
 import { supabase } from '../integrations/supabase/client';
+import { logger } from '@/lib/logger';
 
 interface Patient {
   id: string;

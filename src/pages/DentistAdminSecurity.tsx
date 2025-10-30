@@ -14,6 +14,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { StaffInviteDialog } from "@/components/staff/StaffInviteDialog";
 import { TwoFactorVerificationDialog } from "@/components/auth/TwoFactorVerificationDialog";
+import { logger } from '@/lib/logger';
 
 export default function DentistAdminSecurity() {
   const { dentistId, loading: dentistLoading } = useCurrentDentist();

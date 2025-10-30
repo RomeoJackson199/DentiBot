@@ -16,6 +16,7 @@ import { Card, CardContent } from './ui/card';
 import { NotificationService } from '../lib/notificationService';
 import { supabase } from '../integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { logger } from '@/lib/logger';
 
 interface Patient {
   id: string;

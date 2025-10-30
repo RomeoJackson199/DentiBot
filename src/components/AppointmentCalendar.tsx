@@ -13,6 +13,7 @@ import { SimpleCalendar } from "@/components/SimpleCalendar";
 import { DentistSelection } from "@/components/DentistSelection";
 import { PatientSelection } from "@/components/PatientSelection";
 import { CheckCircle, ArrowLeft, ArrowRight } from "lucide-react";
+import { logger } from '@/lib/logger';
 
 interface AppointmentCalendarProps {
   user: User;

@@ -20,6 +20,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Header } from "@/components/homepage/Header";
 import { Footer } from "@/components/homepage/Footer";
 import { ServiceSelector } from "@/components/booking/ServiceSelector";
+import { logger } from '@/lib/logger';
 
 interface Dentist {
   id: string;
