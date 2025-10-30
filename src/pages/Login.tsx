@@ -274,8 +274,8 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background lg:flex-row">
-      <div className="hidden lg:flex lg:w-1/2 flex-col bg-slate-950 text-white">
+    <div className="min-h-screen flex flex-col bg-background sm:flex-row">
+      <div className="hidden sm:flex sm:w-1/2 flex-col bg-slate-950 text-white">
         <div className="flex-1 space-y-8 overflow-y-auto p-12">
           <div className="space-y-4">
             <span className="inline-flex w-fit items-center gap-2 rounded-full bg-white/10 px-4 py-1 text-xs uppercase tracking-wide text-white/80">
@@ -308,7 +308,7 @@ const Login = () => {
       </div>
 
       <div className="flex-1 flex flex-col">
-        <div className="lg:hidden border-b border-slate-200 bg-muted/40">
+        <div className="sm:hidden border-b border-slate-200 bg-muted/40">
           <div className="space-y-4 px-6 py-8">
             <h2 className="text-xl font-semibold text-slate-900">Choose your business</h2>
             <p className="text-sm text-muted-foreground">
