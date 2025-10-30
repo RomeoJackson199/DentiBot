@@ -16,57 +16,37 @@ export function ModernLoadingSpinner({
 }: ModernLoadingSpinnerProps) {
   const sizeClasses = {
     sm: "h-4 w-4",
-    md: "h-6 w-6",
+    md: "h-6 w-6", 
     lg: "h-8 w-8",
     xl: "h-12 w-12"
   };
 
-  const haloSizes = {
-    sm: "h-9 w-9",
-    md: "h-12 w-12",
-    lg: "h-16 w-16",
-    xl: "h-20 w-20"
-  } as const;
-
   const textSizeClasses = {
     sm: "text-sm",
     md: "text-base",
-    lg: "text-lg",
+    lg: "text-lg", 
     xl: "text-xl"
   };
 
   const LoadingContent = () => (
     <div className="flex flex-col items-center space-y-4">
-      <div className="relative flex items-center justify-center">
-        <span
-          className={`relative flex items-center justify-center rounded-full ${haloSizes[size]} bg-gradient-to-br from-dental-primary/25 via-dental-secondary/20 to-dental-accent/25 shadow-glow`}
-        >
-          <span
-            aria-hidden="true"
-            className="absolute inset-0 rounded-full border border-white/60 dark:border-white/10 opacity-70 animate-[pulse-soft_3s_ease-in-out_infinite]"
-          />
-          <span
-            aria-hidden="true"
-            className="absolute -inset-2 rounded-full bg-gradient-to-r from-dental-primary/25 via-transparent to-dental-accent/25 blur-lg opacity-60 animate-[spin_6s_linear_infinite]"
-          />
-          <Loader2 className={`${sizeClasses[size]} text-white drop-shadow-sm animate-spin`} />
-        </span>
-
+      <div className="relative">
+        {/* Main spinner */}
+        <Loader2 className={`${sizeClasses[size]} text-dental-primary animate-spin`} />
+        
+        {/* Decorative elements for larger sizes */}
         {(size === "lg" || size === "xl") && (
           <>
-            <Sparkles
-              aria-hidden="true"
-              className="absolute -top-3 -right-3 h-3 w-3 text-dental-accent animate-pulse"
-            />
-            <Heart
-              aria-hidden="true"
-              className="absolute -bottom-3 -left-3 h-3 w-3 text-dental-secondary animate-pulse"
-              style={{ animationDelay: "0.5s" }}
-            />
+            <div className="absolute -top-2 -right-2">
+              <Sparkles className="h-3 w-3 text-dental-accent animate-pulse" />
+            </div>
+            <div className="absolute -bottom-2 -left-2">
+              <Heart className="h-3 w-3 text-dental-secondary animate-pulse" style={{ animationDelay: "0.5s" }} />
+            </div>
           </>
         )}
       </div>
-
+      
       <div className="text-center space-y-1">
         <p className={`font-medium text-dental-foreground ${textSizeClasses[size]}`}>
           {message}
