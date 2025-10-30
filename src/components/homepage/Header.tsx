@@ -80,11 +80,11 @@ export const Header = ({
                   <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-secondary rounded-full animate-pulse shadow-float"></div>
                 </>}
             </div>
-            <div className="hidden sm:block">
-              <h1 className="text-xl lg:text-2xl font-bold gradient-text">
+            <div className="min-w-0 flex flex-col">
+              <h1 className="text-sm sm:text-xl lg:text-2xl font-bold gradient-text truncate">
                 {branding.clinicName || "Caberu"}
               </h1>
-              <p className="text-xs lg:text-sm text-dental-muted-foreground">
+              <p className="text-[10px] sm:text-xs lg:text-sm text-dental-muted-foreground">
                 {language === 'fr' ? "Propulsé par Caberu" : language === 'nl' ? "Aangedreven door Caberu" : 'Powered by Caberu'}
               </p>
             </div>
