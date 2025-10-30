@@ -305,6 +305,9 @@ const App = () => {
                 <Route path="/claim" element={<Claim />} />
                 <Route path="/pricing" element={<Pricing />} />
                 <Route path="/google-calendar-callback" element={<GoogleCalendarCallback />} />
+                {/* Booking routes */}
+                <Route path="/book-appointment-ai" element={<BookAppointmentAI />} />
+                <Route path="/book-appointment" element={<BookAppointment />} />
                 {/* Business portal route - must come before catch-all */}
                 <Route path="/:slug" element={<BusinessPortal />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
