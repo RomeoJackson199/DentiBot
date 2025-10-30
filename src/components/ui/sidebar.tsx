@@ -42,6 +42,17 @@ const SidebarProvider = React.forwardRef<
 
   const state = open ? "expanded" : "collapsed"
 
+  const mergedStyle = React.useMemo(
+    () =>
+      ({
+        "--sidebar-width": "18rem",
+        "--sidebar-width-icon": "4.75rem",
+        "--sidebar-transition": "220ms cubic-bezier(0.32, 0.72, 0, 1)",
+        ...style,
+      }) as React.CSSProperties,
+    [style]
+  )
+
   const value = React.useMemo<SidebarContext>(
     () => ({ state, open, setOpen, isMobile, toggleSidebar }),
     [state, open, isMobile, toggleSidebar]
@@ -50,8 +61,11 @@ const SidebarProvider = React.forwardRef<
   return (
     <SidebarContext.Provider value={value}>
       <div
-        style={style as React.CSSProperties}
-        className={cn("group/sidebar-wrapper flex min-h-svh w-full", className)}
+        style={mergedStyle}
+        className={cn(
+          "group/sidebar-wrapper flex min-h-svh w-full transition-colors duration-200",
+          className
+        )}
         ref={ref}
         {...props}
       >
@@ -70,7 +84,38 @@ const Sidebar = React.forwardRef<
     collapsible?: "offcanvas" | "icon" | "none"
   }
 >(({ side = "left", variant = "sidebar", collapsible = "icon", className, children, ...props }, ref) => {
-  const { state } = useSidebar()
+  const { state, setOpen, isMobile } = useSidebar()
+  const hoverEnabled = !isMobile && collapsible === "icon"
+  const [hovered, setHovered] = React.useState(false)
+
+  const width = React.useMemo(
+    () =>
+      state === "collapsed" && hoverEnabled
+        ? "var(--sidebar-width-icon, 4.75rem)"
+        : "var(--sidebar-width, 18rem)",
+    [hoverEnabled, state]
+  )
+
+  const containerStyle = React.useMemo(
+    () =>
+      ({
+        width,
+        transition: "width var(--sidebar-transition, 220ms cubic-bezier(0.32, 0.72, 0, 1))",
+      }) as React.CSSProperties,
+    [width]
+  )
+
+  const handleMouseEnter = React.useCallback(() => {
+    if (!hoverEnabled || state !== "collapsed") return
+    setHovered(true)
+    setOpen(true)
+  }, [hoverEnabled, setOpen, state])
+
+  const handleMouseLeave = React.useCallback(() => {
+    if (!hoverEnabled || !hovered) return
+    setHovered(false)
+    setOpen(false)
+  }, [hoverEnabled, hovered, setOpen])
 
   return (
     <div
@@ -80,17 +125,23 @@ const Sidebar = React.forwardRef<
       data-collapsible={state === "collapsed" ? collapsible : ""}
       data-variant={variant}
       data-side={side}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
-      <div className="relative h-svh w-72" />
+      <div className="relative h-svh" style={containerStyle} />
       <div
         className={cn(
-          "fixed inset-y-0 z-10 hidden h-svh w-72 md:flex",
+          "fixed inset-y-0 z-10 hidden h-svh md:flex transition-[width]",
           side === "left" ? "left-0" : "right-0",
           className
         )}
+        style={containerStyle}
         {...props}
       >
-        <div data-sidebar="sidebar" className="flex h-full w-full flex-col bg-sidebar border-r">
+        <div
+          data-sidebar="sidebar"
+          className="flex h-full w-full flex-col border-r border-sidebar-border bg-sidebar/95 backdrop-blur supports-[backdrop-filter]:bg-sidebar/90"
+        >
           {children}
         </div>
       </div>
@@ -213,7 +264,13 @@ const SidebarGroupLabel = React.forwardRef<
     <Comp
       ref={ref}
       data-sidebar="group-label"
-      className={cn("flex h-8 items-center rounded-md px-2 text-xs font-medium text-sidebar-foreground/70", className)}
+      className={cn(
+        "flex h-8 items-center rounded-md px-2 text-xs font-medium text-sidebar-foreground/70 transition-all duration-200",
+        "group-data-[state=collapsed]:h-9 group-data-[state=collapsed]:justify-center group-data-[state=collapsed]:px-1",
+        "group-data-[state=collapsed]:[&>span]:justify-center group-data-[state=collapsed]:[&>span]:gap-0",
+        "group-data-[state=collapsed]:[&>span>span:last-child]:hidden group-data-[state=collapsed]:[&>span>svg]:size-5",
+        className
+      )}
       {...props}
     />
   )
@@ -296,7 +353,14 @@ const SidebarMenuButton = React.forwardRef<
       data-sidebar="menu-button"
       data-size={size}
       data-active={isActive}
-      className={cn(sidebarMenuButtonVariants({ variant, size }), className)}
+      className={cn(
+        sidebarMenuButtonVariants({ variant, size }),
+        "transition-all duration-200",
+        "data-[active=true]:bg-sidebar-primary/15 data-[active=true]:text-sidebar-primary-foreground data-[active=true]:shadow-[inset_0_0_0_1px_hsl(var(--sidebar-primary)/0.4)]",
+        "group-data-[state=collapsed]:justify-center group-data-[state=collapsed]:px-2",
+        "group-data-[state=collapsed]:[&>span:last-child]:sr-only group-data-[state=collapsed]:[&>svg]:mx-auto group-data-[state=collapsed]:[&>svg]:size-5",
+        className
+      )}
       {...props}
     />
   )
