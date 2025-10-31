@@ -14,8 +14,8 @@ export function ModernHeroSectionMobile({ onBookAppointment, onStartTriage, vari
         const { t, language } = useLanguage();
         const isCtaFocused = variant === "ctaFocused";
 
-        return (
-                <section className="relative min-h-screen flex overflow-hidden only-mobile bg-gradient-to-br from-blue-400 via-purple-400 to-pink-400">
+	return (
+		<section className="relative min-h-screen flex overflow-hidden bg-gradient-to-br from-blue-400 via-purple-400 to-pink-400">
                         <div className="absolute inset-0 bg-gradient-to-br from-blue-500/90 via-purple-500/90 to-pink-500/90" />
 			
 			<div className="container mx-auto px-4 relative z-10 flex flex-col justify-between py-8 text-white">
