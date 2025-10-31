@@ -183,18 +183,37 @@ export default function BookAppointment() {
 
   const fetchAvailableSlots = async (date: Date, dentistId: string) => {
     if (!businessId) return;
-    
+
     try {
+      // First, sync with Google Calendar to block any busy times
+      const dateStr = date.toISOString().split('T')[0];
+      const startDate = new Date(dateStr + 'T00:00:00Z');
+      const endDate = new Date(dateStr + 'T23:59:59Z');
+
+      try {
+        await supabase.functions.invoke('google-calendar-sync', {
+          body: {
+            startDate: startDate.toISOString(),
+            endDate: endDate.toISOString(),
+          }
+        });
+      } catch (syncError) {
+        // Log but don't fail - dentist might not have Google Calendar connected
+        logger.error("Google Calendar sync failed (might not be connected):", syncError);
+      }
+
+      // Generate daily slots
       await supabase.rpc('generate_daily_slots', {
         p_dentist_id: dentistId,
-        p_date: date.toISOString().split('T')[0]
+        p_date: dateStr
       });
 
+      // Fetch available slots
       const { data, error } = await supabase
         .from('appointment_slots')
         .select('slot_time, is_available, emergency_only')
         .eq('dentist_id', dentistId)
-        .eq('slot_date', date.toISOString().split('T')[0])
+        .eq('slot_date', dateStr)
         .eq('business_id', businessId)
         .order('slot_time');
 
@@ -465,27 +484,30 @@ export default function BookAppointment() {
             variant="ghost"
             size="sm"
             onClick={() => setBookingStep('dentist')}
-            className="gap-2 mb-6"
+            className="gap-2 mb-6 hover:bg-white/50"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to list
           </Button>
 
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+            {/* Left Column - Dentist Info */}
             <div className="lg:col-span-2 space-y-6">
-              <Card>
+              {/* Dentist Card - Enhanced */}
+              <Card className="border-2 shadow-lg hover:shadow-xl transition-shadow duration-300">
                 <CardContent className="p-6 space-y-4">
                   <div className="flex items-start gap-4">
                     <div className="relative">
-                      <Avatar className="h-20 w-20">
+                      <Avatar className="h-20 w-20 ring-4 ring-primary/10">
                         <AvatarImage src="" />
-                        <AvatarFallback className="bg-primary/10 text-primary text-xl">
+                        <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white text-xl font-bold">
                           {getDentistInitials(selectedDentist)}
                         </AvatarFallback>
                       </Avatar>
+                      <div className="absolute -bottom-1 -right-1 h-6 w-6 bg-green-500 rounded-full border-4 border-white"></div>
                     </div>
                     <div className="flex-1">
-                      <h2 className="text-xl font-bold">
+                      <h2 className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
                         Dr. {selectedDentist.first_name} {selectedDentist.last_name}
                       </h2>
                       <p className="text-sm text-muted-foreground capitalize mb-2">
@@ -496,22 +518,27 @@ export default function BookAppointment() {
                           <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                         ))}
                         <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 opacity-50" />
-                        <span className="text-sm font-medium ml-1">4.87</span>
+                        <span className="text-sm font-semibold ml-1 text-gray-700">4.87</span>
                       </div>
                     </div>
                   </div>
 
                   <div className="flex flex-wrap gap-2">
-                    <Badge variant="secondary" className="text-xs">In person & Online</Badge>
-                    <Badge variant="secondary" className="text-xs">Consultation - $80</Badge>
+                    <Badge variant="secondary" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                      In person & Online
+                    </Badge>
+                    <Badge variant="secondary" className="text-xs bg-green-50 text-green-700 border-green-200">
+                      Consultation - $80
+                    </Badge>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card>
+              {/* Bio Card - Enhanced */}
+              <Card className="border-2 shadow-md">
                 <CardContent className="p-6">
-                  <h3 className="font-semibold mb-3">Bio</h3>
-                  <p className="text-sm text-muted-foreground">
+                  <h3 className="font-semibold mb-3 text-lg">Bio</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
                     {selectedDentist.profiles?.bio && selectedDentist.profiles.bio.trim().length > 0
                       ? selectedDentist.profiles.bio
                       : `A specialist in ${selectedDentist.specialization || 'general dentistry'}, with extensive training and experience.`}
@@ -519,14 +546,18 @@ export default function BookAppointment() {
                 </CardContent>
               </Card>
 
+              {/* Location Card - Enhanced */}
               {selectedDentist.clinic_address && (
-                <Card>
+                <Card className="border-2 shadow-md">
                   <CardContent className="p-6">
-                    <h3 className="font-semibold mb-3">Location</h3>
+                    <h3 className="font-semibold mb-3 text-lg flex items-center gap-2">
+                      <MapPin className="h-5 w-5 text-primary" />
+                      Location
+                    </h3>
                     <p className="text-sm text-muted-foreground mb-3">
                       {selectedDentist.clinic_address}
                     </p>
-                    <div className="w-full h-40 rounded-lg overflow-hidden">
+                    <div className="w-full h-40 rounded-lg overflow-hidden border-2">
                       <ClinicMap address={selectedDentist.clinic_address} />
                     </div>
                   </CardContent>
@@ -534,74 +565,113 @@ export default function BookAppointment() {
               )}
             </div>
 
+            {/* Right Column - Date & Time Picker */}
             <div className="lg:col-span-3">
-              <Card className="sticky top-4">
+              <Card className="sticky top-4 border-2 shadow-xl">
                 <CardContent className="p-6 space-y-6">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-semibold">
-                      {selectedDate ? format(selectedDate, "EEE, dd MMMM") : "Select a date"}
+                  {/* Header */}
+                  <div className="space-y-2">
+                    <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                      {selectedDate ? format(selectedDate, "EEEE, MMMM d") : "Select a date"}
                     </h3>
+                    <p className="text-sm text-muted-foreground">Choose your preferred date and time</p>
                   </div>
 
+                  {/* Enhanced Date Picker */}
                   <div className="grid grid-cols-7 gap-2">
                     {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, index) => {
                       const date = new Date();
                       date.setDate(date.getDate() + index);
                       const isSelected = selectedDate && format(selectedDate, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd');
                       const isDisabled = date.getDay() === 0 || date.getDay() === 6;
-                      
+                      const isToday = format(date, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
+
                       return (
                         <button
                           key={day}
                           onClick={() => !isDisabled && handleDateSelect(date)}
                           disabled={isDisabled}
-                          className={`flex flex-col items-center p-3 rounded-full transition-all ${
-                            isSelected 
-                              ? 'bg-primary text-primary-foreground' 
+                          className={cn(
+                            "flex flex-col items-center p-3 rounded-2xl transition-all duration-200 relative",
+                            isSelected
+                              ? 'bg-gradient-to-br from-blue-500 to-purple-500 text-white shadow-lg scale-105'
                               : isDisabled
-                              ? 'opacity-40 cursor-not-allowed'
-                              : 'hover:bg-muted'
-                          }`}
+                              ? 'opacity-30 cursor-not-allowed bg-gray-100'
+                              : 'hover:bg-gradient-to-br hover:from-blue-50 hover:to-purple-50 border-2 border-transparent hover:border-blue-200 hover:scale-105'
+                          )}
                         >
-                          <span className="text-xs mb-1">{day}</span>
-                          <span className="text-lg font-medium">{date.getDate()}</span>
+                          <span className="text-xs mb-1 font-medium">{day}</span>
+                          <span className="text-lg font-bold">{date.getDate()}</span>
+                          {isToday && !isSelected && (
+                            <div className="absolute -top-1 -right-1 h-3 w-3 bg-blue-500 rounded-full"></div>
+                          )}
                         </button>
                       );
                     })}
                   </div>
 
+                  {/* Enhanced Time Slots */}
                   {selectedDate && (
-                    <div className="space-y-3 max-h-[400px] overflow-y-auto">
-                      {availableSlots.length === 0 ? (
-                        <p className="text-center text-muted-foreground py-8">Loading time slots...</p>
-                      ) : availableSlots.filter(slot => slot.available).length === 0 ? (
-                        <p className="text-center text-muted-foreground py-8">No available slots for this date</p>
-                      ) : (
-                        availableSlots.filter(slot => slot.available).map((slot) => (
-                          <button
-                            key={slot.time}
-                            onClick={() => handleTimeSelect(slot.time)}
-                            className={`w-full p-4 rounded-xl border-2 text-center font-medium transition-all ${
-                              selectedTime === slot.time
-                                ? 'bg-primary/10 border-primary text-primary'
-                                : 'border-muted hover:border-primary/50 hover:bg-muted/50'
-                            }`}
-                          >
-                            {slot.time}
-                          </button>
-                        ))
-                      )}
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-semibold text-lg">Available Times</h4>
+                        <Badge variant="outline" className="text-xs">
+                          <Clock className="h-3 w-3 mr-1" />
+                          {availableSlots.filter(slot => slot.available).length} slots
+                        </Badge>
+                      </div>
+
+                      <div className="max-h-[400px] overflow-y-auto pr-2 space-y-2">
+                        {availableSlots.length === 0 ? (
+                          <div className="text-center py-12">
+                            <Clock className="h-12 w-12 mx-auto text-muted-foreground mb-3 animate-pulse" />
+                            <p className="text-muted-foreground">Loading available times...</p>
+                          </div>
+                        ) : availableSlots.filter(slot => slot.available).length === 0 ? (
+                          <div className="text-center py-12">
+                            <CalendarDays className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
+                            <p className="text-muted-foreground font-medium">No available slots for this date</p>
+                            <p className="text-sm text-muted-foreground mt-2">Please try another day</p>
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-2 gap-3">
+                            {availableSlots.filter(slot => slot.available).map((slot) => (
+                              <button
+                                key={slot.time}
+                                onClick={() => handleTimeSelect(slot.time)}
+                                className={cn(
+                                  "p-4 rounded-xl font-medium transition-all duration-200 border-2",
+                                  selectedTime === slot.time
+                                    ? 'bg-gradient-to-br from-blue-500 to-purple-500 border-transparent text-white shadow-lg scale-105'
+                                    : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50 hover:scale-105 shadow-sm'
+                                )}
+                              >
+                                <Clock className={cn("h-4 w-4 mx-auto mb-1", selectedTime === slot.time ? "text-white" : "text-blue-500")} />
+                                <div className={cn("text-base font-bold", selectedTime === slot.time ? "text-white" : "text-gray-700")}>
+                                  {slot.time}
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )}
 
+                  {/* Enhanced Book Button */}
                   <Button
-                    className="w-full h-12 text-base bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300"
+                    className={cn(
+                      "w-full h-14 text-lg font-semibold transition-all duration-300 shadow-lg",
+                      !selectedDate || !selectedTime
+                        ? "bg-gray-300 cursor-not-allowed"
+                        : "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 hover:shadow-2xl hover:scale-105"
+                    )}
                     size="lg"
                     disabled={!selectedDate || !selectedTime}
                     onClick={() => setBookingStep('confirm')}
                   >
-                    <CalendarDays className="h-5 w-5 mr-2" />
-                    Book an appointment
+                    <CalendarDays className="h-6 w-6 mr-2" />
+                    {!selectedDate || !selectedTime ? "Select Date & Time" : "Continue to Confirm"}
                   </Button>
                 </CardContent>
               </Card>
@@ -612,54 +682,99 @@ export default function BookAppointment() {
 
       {bookingStep === 'confirm' && selectedDentist && selectedDate && selectedTime && (
         <div className="max-w-6xl mx-auto p-4 py-8">
-          <Card className="max-w-2xl mx-auto">
-            <CardContent className="p-6 space-y-6">
-              <div className="text-center">
-                <CheckCircle className="h-12 w-12 mx-auto text-primary mb-4" />
-                <h2 className="text-2xl font-bold">Confirm Your Appointment</h2>
+          <Card className="max-w-2xl mx-auto border-2 shadow-2xl">
+            <CardContent className="p-8 space-y-8">
+              {/* Header with Icon */}
+              <div className="text-center space-y-4">
+                <div className="relative inline-block">
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full blur-xl opacity-50"></div>
+                  <div className="relative bg-gradient-to-br from-blue-500 to-purple-500 rounded-full p-4">
+                    <CheckCircle className="h-12 w-12 text-white" />
+                  </div>
+                </div>
+                <div>
+                  <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                    Confirm Your Appointment
+                  </h2>
+                  <p className="text-muted-foreground mt-2">Please review your appointment details</p>
+                </div>
               </div>
 
-              <div className="space-y-4 bg-muted/50 rounded-lg p-4">
-                <div className="flex items-start gap-3">
-                  <Avatar className="h-12 w-12">
-                    <AvatarFallback className="bg-primary/10 text-primary">
+              {/* Appointment Details Card */}
+              <div className="space-y-6 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-blue-950/20 dark:via-purple-950/20 dark:to-pink-950/20 rounded-2xl p-6 border-2 border-blue-100">
+                {/* Dentist Info */}
+                <div className="flex items-start gap-4 pb-4 border-b border-blue-200">
+                  <Avatar className="h-16 w-16 ring-4 ring-white shadow-lg">
+                    <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white text-lg font-bold">
                       {getDentistInitials(selectedDentist)}
                     </AvatarFallback>
                   </Avatar>
-                  <div>
-                    <p className="font-semibold">
+                  <div className="flex-1">
+                    <p className="text-lg font-bold text-gray-900">
                       Dr. {selectedDentist.first_name} {selectedDentist.last_name}
                     </p>
                     <p className="text-sm text-muted-foreground capitalize">
-                      {selectedDentist.specialization}
+                      {selectedDentist.specialization || 'General Dentistry'}
                     </p>
+                    {selectedService && (
+                      <Badge className="mt-2 bg-blue-100 text-blue-700 border-blue-200">
+                        {selectedService.name}
+                      </Badge>
+                    )}
                   </div>
                 </div>
 
-                <div className="space-y-2 text-sm">
-                  <div className="flex items-center gap-2">
-                    <CalendarDays className="h-4 w-4 text-muted-foreground" />
-                    <span>{format(selectedDate, "EEEE, MMMM d, yyyy")}</span>
+                {/* Date & Time Details */}
+                <div className="grid gap-4">
+                  <div className="flex items-center gap-4 p-4 bg-white dark:bg-gray-900 rounded-xl shadow-sm">
+                    <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center">
+                      <CalendarDays className="h-6 w-6 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">Date</p>
+                      <p className="font-semibold text-gray-900">{format(selectedDate, "EEEE, MMMM d, yyyy")}</p>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-muted-foreground" />
-                    <span>{selectedTime}</span>
+
+                  <div className="flex items-center gap-4 p-4 bg-white dark:bg-gray-900 rounded-xl shadow-sm">
+                    <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+                      <Clock className="h-6 w-6 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">Time</p>
+                      <p className="font-semibold text-gray-900">{selectedTime}</p>
+                    </div>
                   </div>
+
+                  {selectedDentist.clinic_address && (
+                    <div className="flex items-start gap-4 p-4 bg-white dark:bg-gray-900 rounded-xl shadow-sm">
+                      <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-green-500 to-teal-500 flex items-center justify-center flex-shrink-0">
+                        <MapPin className="h-6 w-6 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">Location</p>
+                        <p className="font-medium text-gray-900 text-sm">{selectedDentist.clinic_address}</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
-              <div className="flex gap-3">
+              {/* Action Buttons */}
+              <div className="flex gap-4">
                 <Button
                   variant="outline"
-                  className="flex-1"
+                  className="flex-1 h-12 border-2 hover:bg-gray-50"
                   onClick={() => setBookingStep('datetime')}
                 >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
                   Go Back
                 </Button>
                 <Button
-                  className="flex-1"
+                  className="flex-1 h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300"
                   onClick={confirmBooking}
                 >
+                  <CheckCircle className="h-5 w-5 mr-2" />
                   Confirm Booking
                 </Button>
               </div>

@@ -30,11 +30,11 @@ const TIME_SLOTS = [
 ];
 
 const STATUS_COLORS: Record<string, string> = {
-  "completed": "bg-green-50 text-green-900 border-l-green-500",
-  "cancelled": "bg-gray-50 text-gray-600 border-l-gray-400",
-  "confirmed": "bg-blue-50 text-blue-900 border-l-blue-500",
-  "pending": "bg-yellow-50 text-yellow-900 border-l-yellow-500",
-  "google-calendar": "bg-purple-50 text-purple-900 border-l-purple-500",
+  "completed": "bg-gradient-to-br from-green-50 to-green-100 text-green-900 border-l-green-500 shadow-sm",
+  "cancelled": "bg-gradient-to-br from-gray-50 to-gray-100 text-gray-600 border-l-gray-400 shadow-sm",
+  "confirmed": "bg-gradient-to-br from-blue-50 to-blue-100 text-blue-900 border-l-blue-500 shadow-sm",
+  "pending": "bg-gradient-to-br from-yellow-50 to-yellow-100 text-yellow-900 border-l-yellow-500 shadow-sm",
+  "google-calendar": "bg-gradient-to-br from-purple-50 to-purple-100 text-purple-900 border-l-purple-500 shadow-sm",
 };
 
 const URGENCY_LABELS: Record<string, string> = {
@@ -177,20 +177,21 @@ export function WeeklyCalendarView({
 
   return (
     <TooltipProvider>
-      <div className="border rounded-lg bg-background overflow-hidden">
+      <div className="border-2 rounded-2xl bg-background overflow-hidden shadow-lg">
         {/* Mobile day navigation */}
         {isMobile && (
-          <div className="flex items-center justify-between p-3 border-b bg-muted/30">
+          <div className="flex items-center justify-between p-3 border-b bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/30 dark:to-purple-950/30">
             <Button
               variant="ghost"
               size="icon"
               onClick={handlePreviousDay}
               disabled={mobileCurrentDay === 0}
+              className="hover:bg-white/50"
             >
               <ChevronLeft className="h-5 w-5" />
             </Button>
             <div className="text-center">
-              <div className="text-xs text-muted-foreground font-medium uppercase">
+              <div className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
                 {format(displayDays[0], "EEEE")}
               </div>
               <div className={cn(
@@ -205,6 +206,7 @@ export function WeeklyCalendarView({
               size="icon"
               onClick={handleNextDay}
               disabled={mobileCurrentDay === 6}
+              className="hover:bg-white/50"
             >
               <ChevronRight className="h-5 w-5" />
             </Button>
@@ -213,21 +215,21 @@ export function WeeklyCalendarView({
 
         {/* Header with days (desktop only) */}
         {!isMobile && (
-          <div className="grid grid-cols-[80px_repeat(7,1fr)] border-b bg-muted/30">
+          <div className="grid grid-cols-[80px_repeat(7,1fr)] border-b bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 dark:from-blue-950/30 dark:via-purple-950/30 dark:to-pink-950/30">
             <div className="p-3 border-r"></div>
             {weekDays.map((day) => (
               <div
                 key={day.toISOString()}
                 className="p-3 text-center border-r last:border-r-0"
               >
-                <div className="text-xs text-muted-foreground font-medium uppercase">
+                <div className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
                   {format(day, "EEE")}
                 </div>
                 <div
                   className={cn(
                     "text-lg font-semibold mt-1",
                     isSameDay(day, new Date()) &&
-                      "bg-primary text-primary-foreground rounded-full w-8 h-8 flex items-center justify-center mx-auto"
+                      "bg-gradient-to-br from-blue-500 to-purple-500 text-white rounded-full w-8 h-8 flex items-center justify-center mx-auto shadow-md"
                   )}
                 >
                   {format(day, "dd")}

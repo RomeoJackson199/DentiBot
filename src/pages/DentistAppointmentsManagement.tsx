@@ -157,23 +157,71 @@ export default function DentistAppointmentsManagement() {
         </Card>
       </div>;
   }
-  return <div className="h-screen flex flex-col bg-background pt-6">
-      {/* Header */}
-      <div className={cn("border-b bg-card sticky top-0 z-30 transition-transform duration-300", headerVisible ? "translate-y-0" : "-translate-y-full")}>
-        
+  return <div className="h-screen flex flex-col bg-gradient-to-br from-background via-primary/5 to-secondary/10 pt-6">
+      {/* Enhanced Header */}
+      <div className={cn("border-b bg-card/95 backdrop-blur-lg sticky top-0 z-30 transition-transform duration-300 shadow-md", headerVisible ? "translate-y-0" : "-translate-y-full")}>
+        {/* Page Title */}
+        <div className="px-6 pt-4 pb-2">
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            My Calendar & Appointments
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">Manage your schedule and appointments</p>
+        </div>
 
         {/* View Controls */}
-        <div className="flex items-center justify-center px-6 pb-4 gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigateDate("prev")} className="h-9 w-9">
-            <ChevronLeft className="h-5 w-5" />
-          </Button>
-          
-          <span className="text-base font-semibold min-w-[240px] text-center">
-            {getDateRangeLabel()}
-          </span>
-          
-          <Button variant="ghost" size="icon" onClick={() => navigateDate("next")} className="h-9 w-9">
-            <ChevronRight className="h-5 w-5" />
+        <div className="flex items-center justify-between px-6 pb-4">
+          <div className="flex items-center gap-2">
+            <Button
+              variant={viewMode === "week" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setViewMode("week")}
+              className={cn(viewMode === "week" && "bg-gradient-to-r from-blue-600 to-purple-600")}
+            >
+              Week View
+            </Button>
+            <Button
+              variant={viewMode === "day" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setViewMode("day")}
+              className={cn(viewMode === "day" && "bg-gradient-to-r from-blue-600 to-purple-600")}
+            >
+              Day View
+            </Button>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigateDate("prev")}
+              className="h-9 w-9 hover:bg-primary/10"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </Button>
+
+            <div className="flex items-center gap-2">
+              <span className="text-base font-semibold min-w-[240px] text-center bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+                {getDateRangeLabel()}
+              </span>
+            </div>
+
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigateDate("next")}
+              className="h-9 w-9 hover:bg-primary/10"
+            >
+              <ChevronRight className="h-5 w-5" />
+            </Button>
+          </div>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentDate(new Date())}
+            className="border-primary/30 hover:bg-primary/10"
+          >
+            Today
           </Button>
         </div>
       </div>
@@ -193,7 +241,7 @@ export default function DentistAppointmentsManagement() {
         </div>
 
         {/* Sidebar */}
-        {selectedAppointment && <div className={cn("w-[78%] border-l bg-card transition-all duration-300")}>
+        {selectedAppointment && <div className={cn("w-[78%] border-l bg-card/95 backdrop-blur-lg transition-all duration-300 shadow-xl")}>
             <AppointmentDetailsSidebar appointment={selectedAppointment} onClose={handleBackToWeek} onStatusChange={handleStatusChange} />
           </div>}
       </div>
