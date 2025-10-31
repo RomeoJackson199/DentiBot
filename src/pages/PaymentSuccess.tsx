@@ -12,12 +12,13 @@ const PaymentSuccess: React.FC = () => {
   const navigate = useNavigate();
   const sessionId = searchParams.get('session_id');
   const type = searchParams.get('type');
+  const isPromo = searchParams.get('promo') === 'true';
   const [processing, setProcessing] = useState(false);
 
   useEffect(() => {
     const handlePaymentSuccess = async () => {
       if (type === 'business') {
-        // Handle business creation after payment
+        // Handle business creation after payment (or with promo code)
         setProcessing(true);
         try {
           const pendingData = sessionStorage.getItem('pending_business_data');
@@ -26,6 +27,10 @@ const PaymentSuccess: React.FC = () => {
           }
 
           const businessData = JSON.parse(pendingData);
+
+          // Get promo code if used
+          const promoCodeData = sessionStorage.getItem('promo_code_used');
+          const promoCode = promoCodeData ? JSON.parse(promoCodeData) : null;
 
           // Get current user
           const { data: { user } } = await supabase.auth.getUser();
@@ -107,13 +112,33 @@ const PaymentSuccess: React.FC = () => {
             await supabase.from('business_services').insert(servicesData);
           }
 
+          // Update promo code usage if used
+          if (promoCode) {
+            try {
+              // Call RPC function to increment promo code usage
+              const { error: promoError } = await supabase.rpc('increment_promo_usage', {
+                promo_id: promoCode.id
+              });
+
+              if (promoError) {
+                console.error('Error updating promo code usage:', promoError);
+              }
+            } catch (err) {
+              console.error('Failed to update promo code:', err);
+            }
+          }
+
           // Clear pending data
           sessionStorage.removeItem('pending_business_data');
+          sessionStorage.removeItem('promo_code_used');
 
           // Show business URL and copy to clipboard
           const businessUrl = `${window.location.origin}/${business.slug}`;
-          toast.success(`Business created! Your URL: ${businessUrl}`);
-          
+          const successMessage = isPromo
+            ? `Business created for FREE with promo code! Your URL: ${businessUrl}`
+            : `Business created! Your URL: ${businessUrl}`;
+          toast.success(successMessage);
+
           // Copy URL to clipboard
           if (navigator.clipboard) {
             await navigator.clipboard.writeText(businessUrl);
@@ -164,7 +189,7 @@ const PaymentSuccess: React.FC = () => {
             )}
           </div>
           <CardTitle className="text-2xl text-green-600">
-            {processing ? 'Setting up your business...' : 'Payment Successful!'}
+            {processing ? 'Setting up your business...' : (isPromo ? 'Business Created!' : 'Payment Successful!')}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
