@@ -1,15 +1,15 @@
 {
-  "name": "DentiSmart Scheduler",
-  "short_name": "DentiScheduler",
-  "description": "Intelligent dental appointment scheduling and patient management platform",
+  "name": "DentiBot - Complete Dental Practice Management",
+  "short_name": "DentiBot",
+  "description": "AI-powered dental practice management platform for modern dental professionals. Manage appointments, patient records, billing, inventory, and more.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#0f172a",
+  "theme_color": "#2563eb",
   "orientation": "portrait-primary",
   "scope": "/",
   "lang": "en",
-  "categories": ["medical", "health", "productivity"],
+  "categories": ["medical", "health", "productivity", "business"],
   "icons": [
     {
       "src": "/lovable-uploads/bd9069b9-f5b0-427d-8acb-8b6a25ccba24.png",
@@ -22,6 +22,22 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Book Appointment",
+      "short_name": "Book",
+      "description": "Book a new appointment",
+      "url": "/book-appointment",
+      "icons": [{ "src": "/lovable-uploads/bd9069b9-f5b0-427d-8acb-8b6a25ccba24.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "View your dashboard",
+      "url": "/dashboard",
+      "icons": [{ "src": "/lovable-uploads/bd9069b9-f5b0-427d-8acb-8b6a25ccba24.png", "sizes": "192x192" }]
     }
   ]
 }

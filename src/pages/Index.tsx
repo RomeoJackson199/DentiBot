@@ -69,15 +69,14 @@ const Index = () => {
               </div>
 
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 tracking-tight">
-                Smart Appointment Booking
+                Your Complete Dental
                 <span className="block bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mt-2">
-                  Made Simple
+                  Practice Management System
                 </span>
               </h1>
 
               <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-                Manage appointments, schedules, and client communications in one easy-to-use platform.
-                Perfect for dental practices, salons, and any business that books appointments.
+                From appointment scheduling to patient records, payments to inventory—manage your entire dental practice with AI-powered efficiency. Built specifically for modern dental professionals.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
@@ -104,16 +103,20 @@ const Index = () => {
               {/* Trust indicators */}
               <div className="flex flex-wrap justify-center items-center gap-8 pt-8 text-sm text-gray-600">
                 <div className="flex items-center gap-2">
+                  <Shield className="h-5 w-5 text-blue-600" />
+                  <span>HIPAA Compliant</span>
+                </div>
+                <div className="flex items-center gap-2">
                   <CheckCircle2 className="h-5 w-5 text-green-600" />
                   <span>No credit card required</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-5 w-5 text-green-600" />
-                  <span>Free for 30 days</span>
+                  <Sparkles className="h-5 w-5 text-purple-600" />
+                  <span>AI-Powered Features</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-5 w-5 text-green-600" />
-                  <span>Cancel anytime</span>
+                  <Users className="h-5 w-5 text-green-600" />
+                  <span>Multi-Location Support</span>
                 </div>
               </div>
             </div>
@@ -125,10 +128,10 @@ const Index = () => {
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-16 animate-fade-in">
               <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
-                Everything You Need to Manage Appointments
+                Everything Your Dental Practice Needs
               </h2>
               <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                Simple, powerful tools to streamline your scheduling and grow your business
+                Comprehensive practice management tools designed for dentists, by healthcare professionals
               </p>
             </div>
 
@@ -137,37 +140,37 @@ const Index = () => {
                 {
                   icon: Calendar,
                   title: "Smart Scheduling",
-                  description: "Easy-to-use calendar interface for managing all your appointments in one place",
+                  description: "Intelligent appointment calendar with conflict detection, recurring appointments, and multi-provider scheduling",
                   gradient: "from-blue-500 to-cyan-500"
                 },
                 {
                   icon: Zap,
                   title: "AI-Powered Triage",
-                  description: "Intelligent appointment booking with AI chatbot to assess urgency and symptoms",
+                  description: "AI chatbot assesses patient urgency, symptoms, and recommends appropriate appointment types automatically",
                   gradient: "from-purple-500 to-pink-500"
                 },
                 {
                   icon: Bell,
-                  title: "Automated Reminders",
-                  description: "Reduce no-shows with automatic email and SMS reminders",
+                  title: "Patient Reminders",
+                  description: "Automated appointment reminders and recall systems reduce no-shows by up to 40%",
                   gradient: "from-orange-500 to-red-500"
                 },
                 {
                   icon: Users,
-                  title: "Client Management",
-                  description: "Keep track of client information, history, and preferences",
+                  title: "Complete Patient Records",
+                  description: "Digital health records, treatment history, prescriptions, X-rays, and insurance info in one place",
                   gradient: "from-green-500 to-emerald-500"
                 },
                 {
                   icon: Shield,
-                  title: "Secure & HIPAA Ready",
-                  description: "Your data is encrypted and protected with enterprise-grade security",
+                  title: "HIPAA Compliant & Secure",
+                  description: "Enterprise-grade encryption, audit logs, and role-based access control for complete data security",
                   gradient: "from-indigo-500 to-blue-500"
                 },
                 {
                   icon: CheckCircle2,
-                  title: "Easy to Use",
-                  description: "Intuitive interface designed for businesses of all sizes",
+                  title: "Billing & Payments",
+                  description: "Track payments, send invoices, record insurance claims, and manage practice revenue effortlessly",
                   gradient: "from-teal-500 to-cyan-500"
                 }
               ].map((feature, index) => (
@@ -197,14 +200,21 @@ const Index = () => {
 
             {/* Additional features list */}
             <div className="mt-16 bg-gradient-to-br from-gray-50 to-blue-50 rounded-2xl p-8 md:p-12">
+              <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">Plus Much More</h3>
               <div className="grid md:grid-cols-2 gap-6">
                 {[
-                  "Multi-location support",
-                  "Payment processing integration",
-                  "Comprehensive analytics",
-                  "Mobile-responsive design",
-                  "Customizable business templates",
-                  "Real-time notifications"
+                  "Multi-location & multi-provider support",
+                  "Inventory management with low-stock alerts",
+                  "Comprehensive analytics & reporting",
+                  "Mobile-responsive PWA design",
+                  "Customizable clinic templates",
+                  "Real-time notifications & messaging",
+                  "Prescription management system",
+                  "Treatment plan tracking",
+                  "Staff & team management",
+                  "Data import/export tools",
+                  "Custom branding & white-labeling",
+                  "Google Calendar synchronization"
                 ].map((feature, index) => (
                   <div key={index} className="flex items-center gap-3">
                     <div className="flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center">
@@ -218,18 +228,40 @@ const Index = () => {
           </div>
         </section>
 
-        {/* Social Proof Section */}
-        <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gray-50">
+        {/* Benefits Section */}
+        <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-gray-50 to-blue-50">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-12">
-              <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Trusted by Healthcare Professionals</p>
+              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+                Why Dental Practices Choose DentiBot
+              </h2>
+              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                Built specifically for dental professionals with the features you actually need
+              </p>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 items-center justify-items-center opacity-60">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="flex items-center gap-2">
-                  <Star className="h-5 w-5 text-yellow-500 fill-yellow-500" />
-                  <span className="text-gray-600 font-medium">5.0 Rating</span>
-                </div>
+            <div className="grid md:grid-cols-3 gap-8">
+              {[
+                {
+                  title: "Save Time",
+                  description: "Reduce administrative work by up to 60% with automated scheduling, reminders, and patient communications",
+                  stat: "60% less admin time"
+                },
+                {
+                  title: "Increase Revenue",
+                  description: "Reduce no-shows, improve appointment utilization, and streamline billing to boost practice income",
+                  stat: "40% fewer no-shows"
+                },
+                {
+                  title: "Better Patient Care",
+                  description: "Access complete patient histories instantly, track treatment plans, and provide more personalized care",
+                  stat: "100% organized records"
+                }
+              ].map((benefit, index) => (
+                <Card key={index} className="p-8 text-center bg-white border-2 border-blue-100 hover:border-blue-300 transition-all">
+                  <div className="text-4xl font-bold text-blue-600 mb-2">{benefit.stat}</div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-3">{benefit.title}</h3>
+                  <p className="text-gray-600">{benefit.description}</p>
+                </Card>
               ))}
             </div>
           </div>
@@ -246,15 +278,15 @@ const Index = () => {
           <div className="max-w-4xl mx-auto text-center text-white space-y-8 relative">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm text-white text-sm font-medium mb-4">
               <Zap className="h-4 w-4" />
-              <span>Limited Time Offer</span>
+              <span>Start Your Free Trial</span>
             </div>
 
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight">
-              Ready to Simplify Your Scheduling?
+              Ready to Transform Your Dental Practice?
             </h2>
             <p className="text-xl text-blue-100 max-w-2xl mx-auto">
-              Join thousands of professionals who trust our platform for their appointment management.
-              Start your free trial today—no credit card required.
+              Join modern dental practices using DentiBot to save time, reduce no-shows, and provide better patient care.
+              Get started today—no credit card required.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
@@ -287,11 +319,11 @@ const Index = () => {
               </div>
               <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full">
                 <CheckCircle2 className="h-4 w-4" />
-                <span>30-Day Money Back</span>
+                <span>No Credit Card Required</span>
               </div>
               <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full">
-                <Users className="h-4 w-4" />
-                <span>1000+ Happy Clients</span>
+                <Clock className="h-4 w-4" />
+                <span>Setup in 5 Minutes</span>
               </div>
             </div>
           </div>
