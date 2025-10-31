@@ -13,8 +13,10 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
-import { Upload, X } from 'lucide-react';
+import { Upload, X, AlertCircle } from 'lucide-react';
 import { logger } from '@/lib/logger';
+import { sanitizeServiceData, serviceCreationSchema } from '@/lib/validationSchemas';
+import { z } from 'zod';
 
 interface Service {
   id: string;
@@ -52,6 +54,7 @@ export function ServiceDialog({ open, onClose, service, businessId, defaultCateg
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (service) {
@@ -80,6 +83,7 @@ export function ServiceDialog({ open, onClose, service, businessId, defaultCateg
       setImagePreview(null);
     }
     setImageFile(null);
+    setErrors({});
     }, [service, open, defaultCategory]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -124,30 +128,43 @@ export function ServiceDialog({ open, onClose, service, businessId, defaultCateg
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrors({});
 
-    if (!formData.name || !formData.price) {
-      toast.error('Please fill in all required fields');
-      return;
-    }
-
+    // Validate form data
     try {
+      const validationData = {
+        name: formData.name,
+        description: formData.description || undefined,
+        price: parseFloat(formData.price) || 0,
+        duration: formData.duration_minutes ? parseInt(formData.duration_minutes) : undefined,
+        category: formData.category || undefined,
+      };
+
+      const validated = serviceCreationSchema.parse(validationData);
+
       setSaving(true);
 
+      // Upload image if provided
       const imageUrl = await uploadImage();
-      const priceCents = Math.round(parseFloat(formData.price) * 100);
+      if (imageFile && !imageUrl) {
+        throw new Error('Image upload failed');
+      }
 
-      const serviceData = {
+      const priceCents = Math.round(validated.price * 100);
+
+      // Sanitize the data
+      const serviceData = sanitizeServiceData({
         business_id: businessId,
-        name: formData.name,
-        description: formData.description || null,
+        name: validated.name,
+        description: validated.description || null,
         price_cents: priceCents,
         currency: 'EUR',
         image_url: imageUrl,
-        duration_minutes: formData.duration_minutes ? parseInt(formData.duration_minutes) : null,
-        category: formData.category || null,
+        duration_minutes: validated.duration || null,
+        category: validated.category || null,
         requires_upfront_payment: formData.requires_upfront_payment,
         is_active: formData.is_active,
-      };
+      });
 
       if (service) {
         const { error } = await supabase
@@ -155,21 +172,45 @@ export function ServiceDialog({ open, onClose, service, businessId, defaultCateg
           .update(serviceData)
           .eq('id', service.id);
 
-        if (error) throw error;
+        if (error) {
+          console.error('Database error:', error);
+          throw new Error(error.message || 'Failed to update service');
+        }
         toast.success('Service updated successfully');
+        logger.info('Service updated', { serviceId: service.id });
       } else {
-        const { error } = await supabase
+        const { error, data } = await supabase
           .from('business_services')
-          .insert(serviceData);
+          .insert(serviceData)
+          .select()
+          .single();
 
-        if (error) throw error;
+        if (error) {
+          console.error('Database error:', error);
+          throw new Error(error.message || 'Failed to create service');
+        }
         toast.success('Service created successfully');
+        logger.info('Service created', { serviceId: data?.id });
       }
 
       onClose(true);
     } catch (error: any) {
       console.error('Error saving service:', error);
-      toast.error('Failed to save service');
+
+      if (error instanceof z.ZodError) {
+        // Handle validation errors
+        const newErrors: Record<string, string> = {};
+        error.errors.forEach((err) => {
+          const path = err.path.join('.');
+          newErrors[path] = err.message;
+        });
+        setErrors(newErrors);
+        toast.error('Please fix the validation errors');
+      } else {
+        // Handle other errors
+        const errorMessage = error.message || 'Failed to save service';
+        toast.error(errorMessage);
+      }
     } finally {
       setSaving(false);
     }
@@ -241,10 +282,20 @@ export function ServiceDialog({ open, onClose, service, businessId, defaultCateg
             <Input
               id="name"
               value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              onChange={(e) => {
+                setFormData({ ...formData, name: e.target.value });
+                if (errors.name) setErrors({ ...errors, name: '' });
+              }}
               placeholder="e.g., Men's Haircut, Consultation, Teeth Cleaning"
               required
+              className={errors.name ? 'border-red-500' : ''}
             />
+            {errors.name && (
+              <div className="flex items-center gap-1 text-sm text-red-500">
+                <AlertCircle className="h-3 w-3" />
+                <span>{errors.name}</span>
+              </div>
+            )}
           </div>
 
           {/* Description */}
@@ -253,10 +304,20 @@ export function ServiceDialog({ open, onClose, service, businessId, defaultCateg
             <Textarea
               id="description"
               value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              onChange={(e) => {
+                setFormData({ ...formData, description: e.target.value });
+                if (errors.description) setErrors({ ...errors, description: '' });
+              }}
               placeholder="Describe what's included in this service..."
               rows={3}
+              className={errors.description ? 'border-red-500' : ''}
             />
+            {errors.description && (
+              <div className="flex items-center gap-1 text-sm text-red-500">
+                <AlertCircle className="h-3 w-3" />
+                <span>{errors.description}</span>
+              </div>
+            )}
           </div>
 
           {/* Price and Currency */}
@@ -269,10 +330,20 @@ export function ServiceDialog({ open, onClose, service, businessId, defaultCateg
                 step="0.01"
                 min="0"
                 value={formData.price}
-                onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                onChange={(e) => {
+                  setFormData({ ...formData, price: e.target.value });
+                  if (errors.price) setErrors({ ...errors, price: '' });
+                }}
                 placeholder="0.00"
                 required
+                className={errors.price ? 'border-red-500' : ''}
               />
+              {errors.price && (
+                <div className="flex items-center gap-1 text-sm text-red-500">
+                  <AlertCircle className="h-3 w-3" />
+                  <span>{errors.price}</span>
+                </div>
+              )}
             </div>
             <div className="space-y-2">
               <Label>Currency</Label>
@@ -290,20 +361,41 @@ export function ServiceDialog({ open, onClose, service, businessId, defaultCateg
               <Input
                 id="duration"
                 type="number"
-                min="0"
+                min="5"
+                max="480"
                 value={formData.duration_minutes}
-                onChange={(e) => setFormData({ ...formData, duration_minutes: e.target.value })}
+                onChange={(e) => {
+                  setFormData({ ...formData, duration_minutes: e.target.value });
+                  if (errors.duration) setErrors({ ...errors, duration: '' });
+                }}
                 placeholder="60"
+                className={errors.duration ? 'border-red-500' : ''}
               />
+              {errors.duration && (
+                <div className="flex items-center gap-1 text-sm text-red-500">
+                  <AlertCircle className="h-3 w-3" />
+                  <span>{errors.duration}</span>
+                </div>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="category">Category</Label>
               <Input
                 id="category"
                 value={formData.category}
-                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                onChange={(e) => {
+                  setFormData({ ...formData, category: e.target.value });
+                  if (errors.category) setErrors({ ...errors, category: '' });
+                }}
                 placeholder="e.g., Whitening, Aligners, Product"
+                className={errors.category ? 'border-red-500' : ''}
               />
+              {errors.category && (
+                <div className="flex items-center gap-1 text-sm text-red-500">
+                  <AlertCircle className="h-3 w-3" />
+                  <span>{errors.category}</span>
+                </div>
+              )}
             </div>
           </div>
 

@@ -3,13 +3,18 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
-import { Plus, Trash2 } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { Plus, Trash2, AlertCircle } from 'lucide-react';
 import { TemplateType, getTemplateConfig } from '@/lib/businessTemplates';
+import { serviceCreationSchema } from '@/lib/validationSchemas';
+import { z } from 'zod';
 
 interface Service {
   name: string;
   price: number;
   duration?: number;
+  description?: string;
+  category?: string;
 }
 
 interface BusinessServicesStepProps {
@@ -19,19 +24,57 @@ interface BusinessServicesStepProps {
 }
 
 export function BusinessServicesStep({ services, template, onUpdate }: BusinessServicesStepProps) {
-  const [localServices, setLocalServices] = useState<Service[]>(services.length > 0 ? services : [{ name: '', price: 0, duration: 30 }]);
+  const [localServices, setLocalServices] = useState<Service[]>(
+    services.length > 0 ? services : [{ name: '', price: 0, duration: 30, description: '', category: '' }]
+  );
+  const [errors, setErrors] = useState<Record<number, Record<string, string>>>({});
 
   const templateConfig = template ? getTemplateConfig(template) : null;
   const quickAddServices = templateConfig?.quickAddServices || [];
 
+  const validateService = (service: Service, index: number): boolean => {
+    try {
+      serviceCreationSchema.parse(service);
+      // Clear errors for this service
+      const newErrors = { ...errors };
+      delete newErrors[index];
+      setErrors(newErrors);
+      return true;
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const serviceErrors: Record<string, string> = {};
+        error.errors.forEach((err) => {
+          const path = err.path.join('.');
+          serviceErrors[path] = err.message;
+        });
+        setErrors({ ...errors, [index]: serviceErrors });
+      }
+      return false;
+    }
+  };
+
   const addService = () => {
-    const newServices = [...localServices, { name: '', price: 0, duration: 30 }];
+    const newServices = [...localServices, { name: '', price: 0, duration: 30, description: '', category: '' }];
     setLocalServices(newServices);
     onUpdate(newServices);
   };
 
   const removeService = (index: number) => {
     const newServices = localServices.filter((_, i) => i !== index);
+    // Remove errors for this service and reindex
+    const newErrors = { ...errors };
+    delete newErrors[index];
+    // Reindex remaining errors
+    const reindexedErrors: Record<number, Record<string, string>> = {};
+    Object.keys(newErrors).forEach((key) => {
+      const keyNum = parseInt(key);
+      if (keyNum > index) {
+        reindexedErrors[keyNum - 1] = newErrors[keyNum];
+      } else {
+        reindexedErrors[keyNum] = newErrors[keyNum];
+      }
+    });
+    setErrors(reindexedErrors);
     setLocalServices(newServices);
     onUpdate(newServices);
   };
@@ -41,6 +84,16 @@ export function BusinessServicesStep({ services, template, onUpdate }: BusinessS
     newServices[index] = { ...newServices[index], [field]: value };
     setLocalServices(newServices);
     onUpdate(newServices);
+
+    // Clear error for this field
+    if (errors[index]?.[field]) {
+      const newErrors = { ...errors };
+      delete newErrors[index][field];
+      if (Object.keys(newErrors[index]).length === 0) {
+        delete newErrors[index];
+      }
+      setErrors(newErrors);
+    }
   };
 
   const addQuickService = (quickService: any) => {
@@ -83,25 +136,59 @@ export function BusinessServicesStep({ services, template, onUpdate }: BusinessS
             <div className="flex items-start gap-4">
               <div className="flex-1 space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor={`service-name-${index}`}>Service Name</Label>
+                  <Label htmlFor={`service-name-${index}`}>Service Name *</Label>
                   <Input
                     id={`service-name-${index}`}
                     placeholder="e.g., Haircut, Consultation"
                     value={service.name}
                     onChange={(e) => updateService(index, 'name', e.target.value)}
+                    className={errors[index]?.name ? 'border-red-500' : ''}
                   />
+                  {errors[index]?.name && (
+                    <div className="flex items-center gap-1 text-sm text-red-500">
+                      <AlertCircle className="h-3 w-3" />
+                      <span>{errors[index].name}</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor={`service-description-${index}`}>Description</Label>
+                  <Textarea
+                    id={`service-description-${index}`}
+                    placeholder="Describe what's included..."
+                    value={service.description || ''}
+                    onChange={(e) => updateService(index, 'description', e.target.value)}
+                    rows={2}
+                    className={errors[index]?.description ? 'border-red-500' : ''}
+                  />
+                  {errors[index]?.description && (
+                    <div className="flex items-center gap-1 text-sm text-red-500">
+                      <AlertCircle className="h-3 w-3" />
+                      <span>{errors[index].description}</span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor={`service-price-${index}`}>Price ($)</Label>
+                    <Label htmlFor={`service-price-${index}`}>Price (€) *</Label>
                     <Input
                       id={`service-price-${index}`}
                       type="number"
+                      step="0.01"
+                      min="0"
                       placeholder="0.00"
-                      value={service.price}
+                      value={service.price || ''}
                       onChange={(e) => updateService(index, 'price', parseFloat(e.target.value) || 0)}
+                      className={errors[index]?.price ? 'border-red-500' : ''}
                     />
+                    {errors[index]?.price && (
+                      <div className="flex items-center gap-1 text-sm text-red-500">
+                        <AlertCircle className="h-3 w-3" />
+                        <span>{errors[index].price}</span>
+                      </div>
+                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -109,11 +196,37 @@ export function BusinessServicesStep({ services, template, onUpdate }: BusinessS
                     <Input
                       id={`service-duration-${index}`}
                       type="number"
+                      min="5"
+                      max="480"
                       placeholder="30"
                       value={service.duration || ''}
                       onChange={(e) => updateService(index, 'duration', parseInt(e.target.value) || undefined)}
+                      className={errors[index]?.duration ? 'border-red-500' : ''}
                     />
+                    {errors[index]?.duration && (
+                      <div className="flex items-center gap-1 text-sm text-red-500">
+                        <AlertCircle className="h-3 w-3" />
+                        <span>{errors[index].duration}</span>
+                      </div>
+                    )}
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor={`service-category-${index}`}>Category</Label>
+                  <Input
+                    id={`service-category-${index}`}
+                    placeholder="e.g., Whitening, Consultation"
+                    value={service.category || ''}
+                    onChange={(e) => updateService(index, 'category', e.target.value)}
+                    className={errors[index]?.category ? 'border-red-500' : ''}
+                  />
+                  {errors[index]?.category && (
+                    <div className="flex items-center gap-1 text-sm text-red-500">
+                      <AlertCircle className="h-3 w-3" />
+                      <span>{errors[index].category}</span>
+                    </div>
+                  )}
                 </div>
               </div>
 
