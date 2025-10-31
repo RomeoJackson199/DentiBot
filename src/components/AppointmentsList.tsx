@@ -8,8 +8,8 @@ import { CalendarDays, Clock, User as UserIcon, Plus, X } from "lucide-react";
 import { toast } from "sonner";
 import { useLanguage } from "@/hooks/useLanguage";
 import { ReviewDialog } from "@/components/ReviewDialog";
-import { 
 import { logger } from '@/lib/logger';
+import { 
   AlertDialog, 
   AlertDialogAction, 
   AlertDialogCancel, 

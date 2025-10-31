@@ -5,8 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguageDetection } from "@/hooks/useLanguageDetection";
-import { 
 import { logger } from '@/lib/logger';
+import { 
   Star, 
   Clock, 
   MessageCircle, 

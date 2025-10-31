@@ -134,8 +134,7 @@ export const RealAppointmentsList = ({ user, filter }: RealAppointmentsListProps
           variant: "default",
         });
       }
-    }
-  } catch (err: any) {
+    } catch (err: any) {
     console.error('Error fetching appointments:', err);
     setError(err.message || 'Failed to load appointments');
     toast({

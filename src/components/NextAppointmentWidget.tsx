@@ -24,8 +24,8 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { utcToClinicTime, formatClinicTime } from "@/lib/timezone";
-import { 
 import { logger } from '@/lib/logger';
+import { 
   getStatusClasses, 
   getUrgencyClasses, 
   canCompleteAppointment,

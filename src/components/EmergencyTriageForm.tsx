@@ -10,8 +10,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { bookAppointment } from "@/lib/mockApi";
 import { supabase } from "@/integrations/supabase/client";
-import { 
 import { logger } from '@/lib/logger';
+import { 
   CheckCircle, 
   Calendar, 
   MapPin, 

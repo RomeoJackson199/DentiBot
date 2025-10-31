@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useBusinessContext } from './useBusinessContext';
 import { supabase } from '@/integrations/supabase/client';
-import { 
 import { logger } from '@/lib/logger';
+import { 
   TemplateType, 
   TemplateConfig, 
   getTemplateConfig 

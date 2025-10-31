@@ -9,8 +9,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Search, Mail, Calendar, Shield, Users as UsersIcon, RefreshCw } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ModernLoadingSpinner } from "@/components/enhanced/ModernLoadingSpinner";
-import {
 import { logger } from '@/lib/logger';
+import {
   Table,
   TableBody,
   TableCell,
