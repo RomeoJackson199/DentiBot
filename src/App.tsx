@@ -7,6 +7,7 @@ import { ThemeProvider } from "next-themes";
 import { LanguageProvider } from "./hooks/useLanguage";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { BusinessProvider, useBusinessContext } from "./hooks/useBusinessContext";
+import { TemplateProvider } from "./contexts/TemplateContext";
 import { BusinessPickerDialog } from "./components/BusinessPickerDialog";
 import { BusinessSelectionForPatients } from "./components/BusinessSelectionForPatients";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./components/ui/dialog";
@@ -248,6 +249,7 @@ const App = () => {
       >
         <LanguageProvider>
           <BusinessProvider>
+            <TemplateProvider>
               <AuthCallbackHandler />
               <TooltipProvider>
                 <Sonner />
@@ -323,6 +325,7 @@ const App = () => {
             />
             </BrowserRouter>
             </TooltipProvider>
+            </TemplateProvider>
           </BusinessProvider>
         </LanguageProvider>
       </ThemeProvider>
