@@ -186,29 +186,27 @@ export default function BookAppointment() {
     if (!businessId) return;
 
     try {
-      // First, sync with Google Calendar to block any busy times
       const dateStr = date.toISOString().split('T')[0];
-      const startDate = new Date(dateStr + 'T00:00:00Z');
-      const endDate = new Date(dateStr + 'T23:59:59Z');
 
+      // 1. First generate daily slots
+      await supabase.rpc('generate_daily_slots', {
+        p_dentist_id: dentistId,
+        p_date: dateStr
+      });
+
+      // 2. Then sync with Google Calendar to block busy times
       try {
         await supabase.functions.invoke('google-calendar-sync', {
           body: {
             dentistId: dentistId,
-            startDate: startDate.toISOString(),
-            endDate: endDate.toISOString(),
+            startDate: startOfDay(date).toISOString(),
+            endDate: new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59).toISOString(),
           }
         });
       } catch (syncError) {
         // Log but don't fail - dentist might not have Google Calendar connected
         logger.error("Google Calendar sync failed (might not be connected):", syncError);
       }
-
-      // Generate daily slots
-      await supabase.rpc('generate_daily_slots', {
-        p_dentist_id: dentistId,
-        p_date: dateStr
-      });
 
       // Fetch available slots
       const { data, error } = await supabase

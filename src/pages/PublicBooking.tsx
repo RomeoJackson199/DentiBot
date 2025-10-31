@@ -108,8 +108,9 @@ export default function PublicBooking() {
       setLoadingTimes(true);
       setSelectedTime("");
       const dateStr = selectedDate.toISOString().split('T')[0];
+      
       try {
-        // Ensure slots exist for this date (idempotent)
+        // 1. Ensure slots exist for this date (idempotent)
         await supabase.rpc('ensure_daily_slots', {
           p_dentist_id: selectedDentist,
           p_date: dateStr,
@@ -118,6 +119,20 @@ export default function PublicBooking() {
         console.warn('ensure_daily_slots failed (continuing):', e);
       }
 
+      // 2. Sync with Google Calendar to block busy times
+      try {
+        await supabase.functions.invoke('google-calendar-sync', {
+          body: {
+            dentistId: selectedDentist,
+            startDate: startOfDay(selectedDate).toISOString(),
+            endDate: new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), 23, 59, 59).toISOString(),
+          }
+        });
+      } catch (syncError) {
+        console.warn('Google Calendar sync failed (might not be connected):', syncError);
+      }
+
+      // 3. Fetch available slots
       const { data, error } = await supabase
         .from('appointment_slots')
         .select('slot_time, is_available')
@@ -136,7 +151,7 @@ export default function PublicBooking() {
       setLoadingTimes(false);
     };
     fetchTimes();
-  }, [selectedDentist, selectedDate]);
+  }, [selectedDentist, selectedDate, effectiveBusinessId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -124,7 +124,7 @@ serve(async (req) => {
       .update({ google_calendar_last_sync: new Date().toISOString() })
       .eq('id', dentist.id);
     
-    // Transform events to match our format and mark slots as unavailable
+    // Transform events to match our format
     const events = (calendarData.items || []).map((event: any) => ({
       id: `gcal_${event.id}`,
       summary: event.summary || 'Untitled Event',
@@ -133,25 +133,64 @@ serve(async (req) => {
       end: event.end?.dateTime || event.end?.date,
       location: event.location || '',
       isGoogleCalendarEvent: true,
+      isAllDay: !event.start?.dateTime, // All-day events don't have dateTime
     }));
+
+    console.log(`Found ${events.length} Google Calendar events`);
 
     // Block appointment slots for Google Calendar events
     for (const event of events) {
-      if (event.start) {
-        const startTime = new Date(event.start);
-        const slotDate = startTime.toISOString().split('T')[0];
-        const slotTime = startTime.toISOString().split('T')[1].substring(0, 5);
+      if (event.isAllDay) {
+        // Handle all-day events: block all slots for each date in range
+        const startDate = new Date(event.start);
+        const endDate = new Date(event.end); // Google all-day events: end is exclusive
         
-        // Mark slot as unavailable
-        await supabase
-          .from('appointment_slots')
-          .update({ 
-            is_available: false,
-            updated_at: new Date().toISOString()
-          })
-          .eq('dentist_id', dentist.id)
-          .eq('slot_date', slotDate)
-          .eq('slot_time', slotTime);
+        let currentDate = new Date(startDate);
+        while (currentDate < endDate) {
+          const dateStr = currentDate.toISOString().split('T')[0];
+          console.log(`Blocking all slots for all-day event on ${dateStr}`);
+          
+          await supabase
+            .from('appointment_slots')
+            .update({ 
+              is_available: false,
+              updated_at: new Date().toISOString()
+            })
+            .eq('dentist_id', dentist.id)
+            .eq('slot_date', dateStr);
+          
+          currentDate.setDate(currentDate.getDate() + 1);
+        }
+      } else if (event.start && event.end) {
+        // Handle timed events: block all 30-minute slots in the event duration
+        const startTime = new Date(event.start);
+        const endTime = new Date(event.end);
+        const slotDate = event.start.substring(0, 10); // YYYY-MM-DD
+        
+        // Generate all 30-minute slot times for this event
+        const slotsToBlock: string[] = [];
+        let currentSlot = new Date(startTime);
+        
+        while (currentSlot < endTime) {
+          const hours = currentSlot.getHours().toString().padStart(2, '0');
+          const minutes = currentSlot.getMinutes().toString().padStart(2, '0');
+          slotsToBlock.push(`${hours}:${minutes}:00`);
+          currentSlot.setMinutes(currentSlot.getMinutes() + 30);
+        }
+        
+        if (slotsToBlock.length > 0) {
+          console.log(`Blocking ${slotsToBlock.length} slots on ${slotDate}: ${slotsToBlock.join(', ')}`);
+          
+          await supabase
+            .from('appointment_slots')
+            .update({ 
+              is_available: false,
+              updated_at: new Date().toISOString()
+            })
+            .eq('dentist_id', dentist.id)
+            .eq('slot_date', slotDate)
+            .in('slot_time', slotsToBlock);
+        }
       }
     }
     
