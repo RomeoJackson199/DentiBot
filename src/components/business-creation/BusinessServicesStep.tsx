@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Trash2, AlertCircle } from 'lucide-react';
 import { TemplateType, getTemplateConfig } from '@/lib/businessTemplates';
 import { serviceCreationSchema } from '@/lib/validationSchemas';
@@ -31,6 +32,14 @@ export function BusinessServicesStep({ services, template, onUpdate }: BusinessS
 
   const templateConfig = template ? getTemplateConfig(template) : null;
   const quickAddServices = templateConfig?.quickAddServices || [];
+  const categories = templateConfig?.serviceCategories || [];
+  const fieldLabels = templateConfig?.serviceFieldLabels || {
+    serviceName: 'Service Name',
+    serviceNamePlaceholder: 'e.g., Consultation, Service',
+    descriptionPlaceholder: 'Describe what\'s included...',
+    categoryLabel: 'Category',
+    durationLabel: 'Duration (minutes)',
+  };
 
   const validateService = (service: Service, index: number): boolean => {
     try {
@@ -102,18 +111,20 @@ export function BusinessServicesStep({ services, template, onUpdate }: BusinessS
     onUpdate(newServices);
   };
 
+  const servicePlural = templateConfig?.terminology.servicePlural || 'Services';
+
   return (
     <div className="space-y-6">
       <div className="text-center mb-6">
-        <h2 className="text-2xl font-bold">Add Your Services</h2>
+        <h2 className="text-2xl font-bold">Add Your {servicePlural}</h2>
         <p className="text-muted-foreground mt-2">
-          Define the services you offer and their pricing
+          Define the {servicePlural.toLowerCase()} you offer and their pricing
         </p>
       </div>
 
       {quickAddServices.length > 0 && (
         <div className="mb-6">
-          <Label className="mb-3 block">Quick Add Common Services</Label>
+          <Label className="mb-3 block">Quick Add Common {servicePlural}</Label>
           <div className="flex flex-wrap gap-2">
             {quickAddServices.map((service, idx) => (
               <Button
@@ -121,9 +132,10 @@ export function BusinessServicesStep({ services, template, onUpdate }: BusinessS
                 variant="outline"
                 size="sm"
                 onClick={() => addQuickService(service)}
+                className="text-left"
               >
                 <Plus className="w-3 h-3 mr-1" />
-                {service.name} - ${service.price}
+                <span className="truncate">{service.name} - €{service.price}</span>
               </Button>
             ))}
           </div>
@@ -136,10 +148,10 @@ export function BusinessServicesStep({ services, template, onUpdate }: BusinessS
             <div className="flex items-start gap-4">
               <div className="flex-1 space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor={`service-name-${index}`}>Service Name *</Label>
+                  <Label htmlFor={`service-name-${index}`}>{fieldLabels.serviceName} *</Label>
                   <Input
                     id={`service-name-${index}`}
-                    placeholder="e.g., Haircut, Consultation"
+                    placeholder={fieldLabels.serviceNamePlaceholder}
                     value={service.name}
                     onChange={(e) => updateService(index, 'name', e.target.value)}
                     className={errors[index]?.name ? 'border-red-500' : ''}
@@ -156,7 +168,7 @@ export function BusinessServicesStep({ services, template, onUpdate }: BusinessS
                   <Label htmlFor={`service-description-${index}`}>Description</Label>
                   <Textarea
                     id={`service-description-${index}`}
-                    placeholder="Describe what's included..."
+                    placeholder={fieldLabels.descriptionPlaceholder}
                     value={service.description || ''}
                     onChange={(e) => updateService(index, 'description', e.target.value)}
                     rows={2}
@@ -192,7 +204,7 @@ export function BusinessServicesStep({ services, template, onUpdate }: BusinessS
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor={`service-duration-${index}`}>Duration (min)</Label>
+                    <Label htmlFor={`service-duration-${index}`}>{fieldLabels.durationLabel}</Label>
                     <Input
                       id={`service-duration-${index}`}
                       type="number"
@@ -213,14 +225,32 @@ export function BusinessServicesStep({ services, template, onUpdate }: BusinessS
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor={`service-category-${index}`}>Category</Label>
-                  <Input
-                    id={`service-category-${index}`}
-                    placeholder="e.g., Whitening, Consultation"
-                    value={service.category || ''}
-                    onChange={(e) => updateService(index, 'category', e.target.value)}
-                    className={errors[index]?.category ? 'border-red-500' : ''}
-                  />
+                  <Label htmlFor={`service-category-${index}`}>{fieldLabels.categoryLabel}</Label>
+                  {categories.length > 0 ? (
+                    <Select
+                      value={service.category || ''}
+                      onValueChange={(value) => updateService(index, 'category', value)}
+                    >
+                      <SelectTrigger className={errors[index]?.category ? 'border-red-500' : ''}>
+                        <SelectValue placeholder="Select a category..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.map((cat) => (
+                          <SelectItem key={cat} value={cat}>
+                            {cat}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <Input
+                      id={`service-category-${index}`}
+                      placeholder="e.g., Standard, Premium"
+                      value={service.category || ''}
+                      onChange={(e) => updateService(index, 'category', e.target.value)}
+                      className={errors[index]?.category ? 'border-red-500' : ''}
+                    />
+                  )}
                   {errors[index]?.category && (
                     <div className="flex items-center gap-1 text-sm text-red-500">
                       <AlertCircle className="h-3 w-3" />
@@ -245,7 +275,7 @@ export function BusinessServicesStep({ services, template, onUpdate }: BusinessS
 
       <Button onClick={addService} variant="outline" className="w-full">
         <Plus className="w-4 h-4 mr-2" />
-        Add Another Service
+        Add Another {templateConfig?.terminology.service || 'Service'}
       </Button>
     </div>
   );

@@ -39,6 +39,8 @@ export interface QuickAddService {
   name: string;
   price: number;
   duration?: number;
+  description?: string;
+  category?: string;
 }
 
 export interface CompletionStep {
@@ -53,6 +55,14 @@ export interface AIBehaviorDefaults {
   personalityTraits: string[];
 }
 
+export interface ServiceFieldLabels {
+  serviceName: string;
+  serviceNamePlaceholder: string;
+  descriptionPlaceholder: string;
+  categoryLabel: string;
+  durationLabel: string;
+}
+
 export interface TemplateConfig {
   id: TemplateType;
   name: string;
@@ -62,7 +72,9 @@ export interface TemplateConfig {
   terminology: TemplateTerminology;
   appointmentReasons: string[];
   defaultServices: string[];
+  serviceCategories: string[];
   quickAddServices: QuickAddService[];
+  serviceFieldLabels: ServiceFieldLabels;
   completionSteps: CompletionStep[];
   navigationItems: string[];
   aiBehaviorDefaults: AIBehaviorDefaults;
@@ -111,14 +123,37 @@ export const BUSINESS_TEMPLATES: Record<TemplateType, TemplateConfig> = {
       'Root Canal',
       'Teeth Whitening',
     ],
-    quickAddServices: [
-      { name: 'Routine Cleaning', price: 80, duration: 30 },
-      { name: 'Dental Examination', price: 50, duration: 20 },
-      { name: 'X-Ray', price: 35, duration: 15 },
-      { name: 'Filling', price: 120, duration: 45 },
-      { name: 'Tooth Extraction', price: 150, duration: 30 },
-      { name: 'Root Canal', price: 400, duration: 90 },
+    serviceCategories: [
+      'General Dentistry',
+      'Preventive Care',
+      'Restorative',
+      'Cosmetic',
+      'Orthodontics',
+      'Oral Surgery',
+      'Emergency Care',
+      'Pediatric Dentistry',
+      'Periodontics',
+      'Endodontics',
     ],
+    quickAddServices: [
+      { name: 'Routine Cleaning', price: 80, duration: 30, description: 'Professional teeth cleaning and polishing', category: 'Preventive Care' },
+      { name: 'Dental Examination', price: 50, duration: 20, description: 'Comprehensive oral health check-up', category: 'General Dentistry' },
+      { name: 'X-Ray', price: 35, duration: 15, description: 'Digital dental radiography', category: 'General Dentistry' },
+      { name: 'Filling', price: 120, duration: 45, description: 'Composite or amalgam cavity filling', category: 'Restorative' },
+      { name: 'Tooth Extraction', price: 150, duration: 30, description: 'Simple tooth extraction procedure', category: 'Oral Surgery' },
+      { name: 'Root Canal', price: 400, duration: 90, description: 'Endodontic root canal treatment', category: 'Endodontics' },
+      { name: 'Teeth Whitening', price: 250, duration: 60, description: 'Professional teeth bleaching treatment', category: 'Cosmetic' },
+      { name: 'Dental Crown', price: 800, duration: 60, description: 'Porcelain or ceramic crown placement', category: 'Restorative' },
+      { name: 'Dental Implant', price: 2000, duration: 120, description: 'Surgical implant placement', category: 'Oral Surgery' },
+      { name: 'Braces Consultation', price: 100, duration: 45, description: 'Orthodontic assessment and treatment planning', category: 'Orthodontics' },
+    ],
+    serviceFieldLabels: {
+      serviceName: 'Treatment Name',
+      serviceNamePlaceholder: 'e.g., Teeth Cleaning, Root Canal, Dental Exam',
+      descriptionPlaceholder: 'Describe the treatment procedure, what\'s included, and any preparation needed...',
+      categoryLabel: 'Treatment Category',
+      durationLabel: 'Procedure Duration (minutes)',
+    },
     completionSteps: [
       { id: 'overview', title: 'Overview', enabled: true },
       { id: 'treatments', title: 'Treatments', enabled: true },
@@ -187,14 +222,36 @@ export const BUSINESS_TEMPLATES: Record<TemplateType, TemplateConfig> = {
       'Blowout',
       'Hair Treatment',
     ],
-    quickAddServices: [
-      { name: 'Haircut', price: 35, duration: 30 },
-      { name: 'Hair Color', price: 85, duration: 90 },
-      { name: 'Highlights', price: 120, duration: 120 },
-      { name: 'Blowout', price: 40, duration: 45 },
-      { name: 'Hair Treatment', price: 55, duration: 60 },
-      { name: 'Styling', price: 50, duration: 45 },
+    serviceCategories: [
+      'Haircuts',
+      'Coloring',
+      'Highlights & Balayage',
+      'Styling',
+      'Hair Treatment',
+      'Extensions',
+      'Bridal Services',
+      'Men\'s Grooming',
+      'Kids Cuts',
     ],
+    quickAddServices: [
+      { name: 'Women\'s Haircut', price: 45, duration: 45, description: 'Cut and style for all hair lengths', category: 'Haircuts' },
+      { name: 'Men\'s Haircut', price: 30, duration: 30, description: 'Classic or modern men\'s cut', category: 'Men\'s Grooming' },
+      { name: 'Full Color', price: 85, duration: 90, description: 'All-over permanent or semi-permanent color', category: 'Coloring' },
+      { name: 'Highlights', price: 120, duration: 120, description: 'Foil highlights with toner', category: 'Highlights & Balayage' },
+      { name: 'Balayage', price: 150, duration: 150, description: 'Hand-painted highlights for natural look', category: 'Highlights & Balayage' },
+      { name: 'Blowout', price: 40, duration: 45, description: 'Wash, blow-dry, and style', category: 'Styling' },
+      { name: 'Deep Conditioning', price: 55, duration: 60, description: 'Restorative hair treatment with mask', category: 'Hair Treatment' },
+      { name: 'Keratin Treatment', price: 200, duration: 180, description: 'Smoothing and straightening treatment', category: 'Hair Treatment' },
+      { name: 'Hair Extensions', price: 300, duration: 180, description: 'Tape-in or clip-in extensions', category: 'Extensions' },
+      { name: 'Updo Styling', price: 75, duration: 60, description: 'Formal updo for special occasions', category: 'Bridal Services' },
+    ],
+    serviceFieldLabels: {
+      serviceName: 'Service Name',
+      serviceNamePlaceholder: 'e.g., Women\'s Haircut, Balayage, Blowout',
+      descriptionPlaceholder: 'Describe the service, hair type suitability, and what\'s included...',
+      categoryLabel: 'Service Category',
+      durationLabel: 'Service Duration (minutes)',
+    },
     completionSteps: [
       { id: 'overview', title: 'Overview', enabled: true },
       { id: 'services', title: 'Services Provided', enabled: true },
@@ -258,13 +315,32 @@ export const BUSINESS_TEMPLATES: Record<TemplateType, TemplateConfig> = {
       'Group Training',
       'Nutrition Consultation',
     ],
-    quickAddServices: [
-      { name: 'Personal Training Session', price: 60, duration: 60 },
-      { name: '10-Session Package', price: 500, duration: 60 },
-      { name: 'Initial Assessment', price: 50, duration: 45 },
-      { name: 'Group Training', price: 30, duration: 60 },
-      { name: 'Nutrition Consultation', price: 75, duration: 45 },
+    serviceCategories: [
+      'Personal Training',
+      'Group Classes',
+      'Packages',
+      'Nutrition Services',
+      'Assessments',
+      'Specialized Training',
+      'Online Coaching',
     ],
+    quickAddServices: [
+      { name: 'Personal Training Session', price: 60, duration: 60, description: 'One-on-one customized training session', category: 'Personal Training' },
+      { name: '10-Session Package', price: 500, duration: 60, description: 'Package of 10 personal training sessions', category: 'Packages' },
+      { name: 'Initial Fitness Assessment', price: 50, duration: 45, description: 'Comprehensive fitness evaluation and goal setting', category: 'Assessments' },
+      { name: 'Group Training Class', price: 30, duration: 60, description: 'High-energy group workout session', category: 'Group Classes' },
+      { name: 'Nutrition Consultation', price: 75, duration: 45, description: 'Personalized meal planning and nutrition guidance', category: 'Nutrition Services' },
+      { name: 'HIIT Training', price: 65, duration: 45, description: 'High-intensity interval training session', category: 'Specialized Training' },
+      { name: 'Strength Training', price: 65, duration: 60, description: 'Focused weightlifting and muscle building', category: 'Specialized Training' },
+      { name: 'Online Coaching Program', price: 150, duration: 30, description: 'Monthly online training and check-ins', category: 'Online Coaching' },
+    ],
+    serviceFieldLabels: {
+      serviceName: 'Package/Session Name',
+      serviceNamePlaceholder: 'e.g., Personal Training Session, HIIT Class, 5-Session Package',
+      descriptionPlaceholder: 'Describe the training focus, fitness level, and what clients will achieve...',
+      categoryLabel: 'Training Category',
+      durationLabel: 'Session Duration (minutes)',
+    },
     completionSteps: [
       { id: 'overview', title: 'Overview', enabled: true },
       { id: 'session-notes', title: 'Session Notes', enabled: true },
@@ -330,14 +406,36 @@ export const BUSINESS_TEMPLATES: Record<TemplateType, TemplateConfig> = {
       'Full Body Massage',
       'Waxing',
     ],
-    quickAddServices: [
-      { name: 'Facial Treatment', price: 75, duration: 60 },
-      { name: 'Manicure', price: 35, duration: 45 },
-      { name: 'Pedicure', price: 45, duration: 60 },
-      { name: 'Full Body Massage', price: 90, duration: 90 },
-      { name: 'Waxing', price: 40, duration: 30 },
-      { name: 'Eyelash Extensions', price: 120, duration: 120 },
+    serviceCategories: [
+      'Facials',
+      'Nails',
+      'Massage',
+      'Waxing & Hair Removal',
+      'Eyelashes & Brows',
+      'Makeup Services',
+      'Skin Treatments',
+      'Body Treatments',
+      'Bridal Packages',
     ],
+    quickAddServices: [
+      { name: 'Deep Cleansing Facial', price: 75, duration: 60, description: 'Exfoliating facial with extractions and mask', category: 'Facials' },
+      { name: 'Classic Manicure', price: 35, duration: 45, description: 'Nail shaping, cuticle care, and polish', category: 'Nails' },
+      { name: 'Spa Pedicure', price: 50, duration: 60, description: 'Foot soak, scrub, massage, and polish', category: 'Nails' },
+      { name: 'Full Body Massage', price: 90, duration: 90, description: 'Relaxing Swedish or deep tissue massage', category: 'Massage' },
+      { name: 'Brazilian Wax', price: 55, duration: 30, description: 'Professional bikini waxing service', category: 'Waxing & Hair Removal' },
+      { name: 'Eyelash Extensions', price: 120, duration: 120, description: 'Individual lash extension application', category: 'Eyelashes & Brows' },
+      { name: 'Gel Manicure', price: 45, duration: 60, description: 'Long-lasting gel polish manicure', category: 'Nails' },
+      { name: 'Microblading', price: 350, duration: 150, description: 'Semi-permanent eyebrow enhancement', category: 'Eyelashes & Brows' },
+      { name: 'Bridal Makeup', price: 150, duration: 90, description: 'Professional makeup application for weddings', category: 'Makeup Services' },
+      { name: 'Anti-Aging Facial', price: 120, duration: 75, description: 'Rejuvenating treatment with serums and LED therapy', category: 'Skin Treatments' },
+    ],
+    serviceFieldLabels: {
+      serviceName: 'Service Name',
+      serviceNamePlaceholder: 'e.g., Deep Cleansing Facial, Gel Manicure, Full Body Massage',
+      descriptionPlaceholder: 'Describe the treatment process, benefits, and what clients can expect...',
+      categoryLabel: 'Service Category',
+      durationLabel: 'Treatment Duration (minutes)',
+    },
     completionSteps: [
       { id: 'overview', title: 'Overview', enabled: true },
       { id: 'services', title: 'Services Provided', enabled: true },
@@ -402,14 +500,33 @@ export const BUSINESS_TEMPLATES: Record<TemplateType, TemplateConfig> = {
       'Emergency Visit',
       'Lab Work',
     ],
-    quickAddServices: [
-      { name: 'General Consultation', price: 100, duration: 30 },
-      { name: 'Annual Check-up', price: 150, duration: 45 },
-      { name: 'Follow-up Visit', price: 75, duration: 20 },
-      { name: 'Emergency Visit', price: 200, duration: 30 },
-      { name: 'Lab Work', price: 50, duration: 15 },
-      { name: 'Vaccination', price: 35, duration: 10 },
+    serviceCategories: [
+      'Consultations',
+      'Preventive Care',
+      'Diagnostic Services',
+      'Vaccinations',
+      'Minor Procedures',
+      'Wellness Exams',
+      'Chronic Care Management',
+      'Specialist Referrals',
     ],
+    quickAddServices: [
+      { name: 'General Consultation', price: 100, duration: 30, description: 'Comprehensive medical consultation for acute or chronic conditions', category: 'Consultations' },
+      { name: 'Annual Physical Exam', price: 150, duration: 45, description: 'Complete yearly health check-up with lab orders', category: 'Wellness Exams' },
+      { name: 'Follow-up Visit', price: 75, duration: 20, description: 'Check progress after initial consultation or treatment', category: 'Consultations' },
+      { name: 'Emergency Visit', price: 200, duration: 30, description: 'Urgent medical care for acute conditions', category: 'Consultations' },
+      { name: 'Blood Work', price: 50, duration: 15, description: 'Laboratory blood tests and analysis', category: 'Diagnostic Services' },
+      { name: 'Flu Vaccination', price: 35, duration: 10, description: 'Annual influenza immunization', category: 'Vaccinations' },
+      { name: 'EKG', price: 80, duration: 20, description: 'Electrocardiogram heart monitoring', category: 'Diagnostic Services' },
+      { name: 'Minor Wound Care', price: 120, duration: 30, description: 'Cleaning, stitching, and dressing of wounds', category: 'Minor Procedures' },
+    ],
+    serviceFieldLabels: {
+      serviceName: 'Service Name',
+      serviceNamePlaceholder: 'e.g., General Consultation, Annual Physical, Vaccination',
+      descriptionPlaceholder: 'Describe the medical service, what it includes, and any preparation needed...',
+      categoryLabel: 'Medical Service Category',
+      durationLabel: 'Appointment Duration (minutes)',
+    },
     completionSteps: [
       { id: 'overview', title: 'Overview', enabled: true },
       { id: 'diagnosis', title: 'Diagnosis', enabled: true },
@@ -474,11 +591,25 @@ export const BUSINESS_TEMPLATES: Record<TemplateType, TemplateConfig> = {
       'Consultation',
       'Follow-up',
     ],
-    quickAddServices: [
-      { name: 'Standard Service', price: 50, duration: 60 },
-      { name: 'Consultation', price: 75, duration: 45 },
-      { name: 'Follow-up', price: 40, duration: 30 },
+    serviceCategories: [
+      'Standard Services',
+      'Consultations',
+      'Premium Services',
+      'Packages',
     ],
+    quickAddServices: [
+      { name: 'Standard Service', price: 50, duration: 60, description: 'Basic professional service offering', category: 'Standard Services' },
+      { name: 'Consultation', price: 75, duration: 45, description: 'One-on-one consultation session', category: 'Consultations' },
+      { name: 'Follow-up Session', price: 40, duration: 30, description: 'Follow-up appointment or check-in', category: 'Standard Services' },
+      { name: 'Premium Service', price: 100, duration: 90, description: 'Enhanced service with premium features', category: 'Premium Services' },
+    ],
+    serviceFieldLabels: {
+      serviceName: 'Service Name',
+      serviceNamePlaceholder: 'e.g., Consultation, Standard Service, Premium Package',
+      descriptionPlaceholder: 'Describe what this service includes and who it\'s for...',
+      categoryLabel: 'Service Category',
+      durationLabel: 'Service Duration (minutes)',
+    },
     completionSteps: [
       { id: 'overview', title: 'Overview', enabled: true },
       { id: 'services', title: 'Services', enabled: true },
@@ -539,11 +670,24 @@ export const BUSINESS_TEMPLATES: Record<TemplateType, TemplateConfig> = {
       'Consultation',
       'Follow-up',
     ],
-    quickAddServices: [
-      { name: 'Standard Service', price: 50, duration: 60 },
-      { name: 'Consultation', price: 75, duration: 45 },
-      { name: 'Follow-up', price: 40, duration: 30 },
+    serviceCategories: [
+      'Standard Services',
+      'Consultations',
+      'Premium Services',
+      'Packages',
     ],
+    quickAddServices: [
+      { name: 'Standard Service', price: 50, duration: 60, description: 'Basic professional service offering', category: 'Standard Services' },
+      { name: 'Consultation', price: 75, duration: 45, description: 'One-on-one consultation session', category: 'Consultations' },
+      { name: 'Follow-up Session', price: 40, duration: 30, description: 'Follow-up appointment or check-in', category: 'Standard Services' },
+    ],
+    serviceFieldLabels: {
+      serviceName: 'Service Name',
+      serviceNamePlaceholder: 'e.g., Consultation, Standard Service, Custom Package',
+      descriptionPlaceholder: 'Describe what this service includes...',
+      categoryLabel: 'Service Category',
+      durationLabel: 'Service Duration (minutes)',
+    },
     completionSteps: [
       { id: 'overview', title: 'Overview', enabled: true },
       { id: 'services', title: 'Services', enabled: true },

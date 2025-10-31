@@ -12,11 +12,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { Upload, X, AlertCircle } from 'lucide-react';
 import { logger } from '@/lib/logger';
 import { sanitizeServiceData, serviceCreationSchema } from '@/lib/validationSchemas';
 import { z } from 'zod';
+import { TemplateType, getTemplateConfig } from '@/lib/businessTemplates';
 
 interface Service {
   id: string;
@@ -55,6 +57,40 @@ export function ServiceDialog({ open, onClose, service, businessId, defaultCateg
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [templateType, setTemplateType] = useState<TemplateType | null>(null);
+
+  // Fetch business template type
+  useEffect(() => {
+    const fetchTemplate = async () => {
+      if (!businessId) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('businesses')
+          .select('template_type')
+          .eq('id', businessId)
+          .single();
+
+        if (error) throw error;
+        setTemplateType((data?.template_type as TemplateType) || 'generic');
+      } catch (error) {
+        console.error('Error fetching business template:', error);
+        setTemplateType('generic');
+      }
+    };
+
+    fetchTemplate();
+  }, [businessId]);
+
+  const templateConfig = templateType ? getTemplateConfig(templateType) : null;
+  const categories = templateConfig?.serviceCategories || [];
+  const fieldLabels = templateConfig?.serviceFieldLabels || {
+    serviceName: 'Service Name',
+    serviceNamePlaceholder: 'e.g., Consultation, Service',
+    descriptionPlaceholder: 'Describe what\'s included...',
+    categoryLabel: 'Category',
+    durationLabel: 'Duration (minutes)',
+  };
 
   useEffect(() => {
     if (service) {
@@ -278,7 +314,7 @@ export function ServiceDialog({ open, onClose, service, businessId, defaultCateg
 
           {/* Name */}
           <div className="space-y-2">
-            <Label htmlFor="name">Service Name *</Label>
+            <Label htmlFor="name">{fieldLabels.serviceName} *</Label>
             <Input
               id="name"
               value={formData.name}
@@ -286,7 +322,7 @@ export function ServiceDialog({ open, onClose, service, businessId, defaultCateg
                 setFormData({ ...formData, name: e.target.value });
                 if (errors.name) setErrors({ ...errors, name: '' });
               }}
-              placeholder="e.g., Men's Haircut, Consultation, Teeth Cleaning"
+              placeholder={fieldLabels.serviceNamePlaceholder}
               required
               className={errors.name ? 'border-red-500' : ''}
             />
@@ -308,7 +344,7 @@ export function ServiceDialog({ open, onClose, service, businessId, defaultCateg
                 setFormData({ ...formData, description: e.target.value });
                 if (errors.description) setErrors({ ...errors, description: '' });
               }}
-              placeholder="Describe what's included in this service..."
+              placeholder={fieldLabels.descriptionPlaceholder}
               rows={3}
               className={errors.description ? 'border-red-500' : ''}
             />
@@ -357,7 +393,7 @@ export function ServiceDialog({ open, onClose, service, businessId, defaultCateg
           {/* Duration and Category */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="duration">Duration (minutes)</Label>
+              <Label htmlFor="duration">{fieldLabels.durationLabel}</Label>
               <Input
                 id="duration"
                 type="number"
@@ -379,17 +415,38 @@ export function ServiceDialog({ open, onClose, service, businessId, defaultCateg
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="category">Category</Label>
-              <Input
-                id="category"
-                value={formData.category}
-                onChange={(e) => {
-                  setFormData({ ...formData, category: e.target.value });
-                  if (errors.category) setErrors({ ...errors, category: '' });
-                }}
-                placeholder="e.g., Whitening, Aligners, Product"
-                className={errors.category ? 'border-red-500' : ''}
-              />
+              <Label htmlFor="category">{fieldLabels.categoryLabel}</Label>
+              {categories.length > 0 ? (
+                <Select
+                  value={formData.category}
+                  onValueChange={(value) => {
+                    setFormData({ ...formData, category: value });
+                    if (errors.category) setErrors({ ...errors, category: '' });
+                  }}
+                >
+                  <SelectTrigger className={errors.category ? 'border-red-500' : ''}>
+                    <SelectValue placeholder="Select a category..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((cat) => (
+                      <SelectItem key={cat} value={cat}>
+                        {cat}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Input
+                  id="category"
+                  value={formData.category}
+                  onChange={(e) => {
+                    setFormData({ ...formData, category: e.target.value });
+                    if (errors.category) setErrors({ ...errors, category: '' });
+                  }}
+                  placeholder="e.g., Standard, Premium"
+                  className={errors.category ? 'border-red-500' : ''}
+                />
+              )}
               {errors.category && (
                 <div className="flex items-center gap-1 text-sm text-red-500">
                   <AlertCircle className="h-3 w-3" />
