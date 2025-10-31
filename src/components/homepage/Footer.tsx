@@ -14,7 +14,7 @@ export const Footer = () => {
               <div className="flex items-center justify-center w-10 h-10 bg-blue-600 rounded-lg">
                 <Calendar className="h-6 w-6 text-white" />
               </div>
-              <span className="text-xl font-bold text-gray-900">AppointBook</span>
+              <span className="text-xl font-bold text-gray-900">Caberu</span>
             </div>
             <p className="text-sm text-gray-600">
               Simplifying appointment management for businesses worldwide.
@@ -48,7 +48,7 @@ export const Footer = () => {
                 </Link>
               </li>
               <li>
-                <a href="mailto:support@appointbook.com" className="text-gray-600 hover:text-gray-900">
+                <a href="mailto:support@caberu.com" className="text-gray-600 hover:text-gray-900">
                   Contact Us
                 </a>
               </li>
@@ -74,7 +74,7 @@ export const Footer = () => {
         </div>
 
         <div className="mt-8 pt-8 border-t border-gray-200 text-center text-sm text-gray-600">
-          <p>&copy; {currentYear} AppointBook. All rights reserved.</p>
+          <p>&copy; {currentYear} Caberu. All rights reserved.</p>
         </div>
       </div>
     </footer>

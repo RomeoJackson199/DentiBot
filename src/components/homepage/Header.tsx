@@ -25,7 +25,7 @@ export const Header = ({ user, minimal = false }: HeaderProps) => {
             <div className="flex items-center justify-center w-10 h-10 bg-blue-600 rounded-lg">
               <Calendar className="h-6 w-6 text-white" />
             </div>
-            <span className="text-xl font-bold text-gray-900">AppointBook</span>
+            <span className="text-xl font-bold text-gray-900">Caberu</span>
           </a>
 
           {/* Desktop Navigation */}
