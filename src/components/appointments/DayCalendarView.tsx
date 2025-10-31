@@ -22,11 +22,11 @@ const TIME_SLOTS = [
 ];
 
 const STATUS_COLORS: Record<string, string> = {
-  "completed": "bg-green-50 text-green-900 border-l-green-500",
-  "cancelled": "bg-gray-50 text-gray-600 border-l-gray-400",
-  "confirmed": "bg-blue-50 text-blue-900 border-l-blue-500",
-  "pending": "bg-yellow-50 text-yellow-900 border-l-yellow-500",
-  "google-calendar": "bg-purple-50 text-purple-900 border-l-purple-500",
+  "completed": "bg-gradient-to-br from-green-50 to-green-100 text-green-900 border-l-green-500 shadow-sm",
+  "cancelled": "bg-gradient-to-br from-gray-50 to-gray-100 text-gray-600 border-l-gray-400 shadow-sm",
+  "confirmed": "bg-gradient-to-br from-blue-50 to-blue-100 text-blue-900 border-l-blue-500 shadow-sm",
+  "pending": "bg-gradient-to-br from-yellow-50 to-yellow-100 text-yellow-900 border-l-yellow-500 shadow-sm",
+  "google-calendar": "bg-gradient-to-br from-purple-50 to-purple-100 text-purple-900 border-l-purple-500 shadow-sm",
 };
 
 const URGENCY_BADGES: Record<string, string> = {
@@ -120,13 +120,13 @@ export function DayCalendarView({
   }
 
   return (
-    <div className="border rounded-lg bg-background overflow-hidden">
+    <div className="border-2 rounded-2xl bg-background overflow-hidden shadow-lg">
       {/* Header */}
-      <div className="border-b bg-muted/30 px-6 py-4">
+      <div className="border-b bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 dark:from-blue-950/30 dark:via-purple-950/30 dark:to-pink-950/30 px-6 py-4">
         <div className="text-sm text-muted-foreground font-medium uppercase tracking-wide">
           {format(currentDate, "EEEE")}
         </div>
-        <div className="text-2xl font-semibold mt-1">
+        <div className="text-2xl font-semibold mt-1 bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
           {format(currentDate, "MMMM d, yyyy")}
         </div>
       </div>
