@@ -194,6 +194,7 @@ export default function BookAppointment() {
       try {
         await supabase.functions.invoke('google-calendar-sync', {
           body: {
+            dentistId: dentistId,
             startDate: startDate.toISOString(),
             endDate: endDate.toISOString(),
           }

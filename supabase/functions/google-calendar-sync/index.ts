@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { startDate, endDate } = await req.json();
+    const { startDate, endDate, dentistId } = await req.json();
     
     const googleClientId = Deno.env.get('GOOGLE_CLIENT_ID');
     const googleClientSecret = Deno.env.get('GOOGLE_CLIENT_SECRET');
@@ -21,33 +21,53 @@ serve(async (req) => {
     
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     
-    // Get user from request
-    const authHeader = req.headers.get('Authorization')?.split('Bearer ')[1];
-    if (!authHeader) {
-      throw new Error('No authorization header');
-    }
+    let dentist;
     
-    const { data: { user }, error: userError } = await supabase.auth.getUser(authHeader);
-    if (userError || !user) {
-      throw new Error('User not authenticated');
-    }
+    // If dentistId is provided, use it directly (for patient bookings)
+    if (dentistId) {
+      const { data, error } = await supabase
+        .from('dentists')
+        .select('id, google_calendar_refresh_token, google_calendar_connected')
+        .eq('id', dentistId)
+        .single();
+      
+      if (error || !data) {
+        throw new Error('Dentist not found');
+      }
+      dentist = data;
+    } else {
+      // Otherwise, get dentist from authenticated user (for dentist's own sync)
+      const authHeader = req.headers.get('Authorization')?.split('Bearer ')[1];
+      if (!authHeader) {
+        throw new Error('No authorization header');
+      }
+      
+      const { data: { user }, error: userError } = await supabase.auth.getUser(authHeader);
+      if (userError || !user) {
+        throw new Error('User not authenticated');
+      }
 
-    // Get dentist record with refresh token
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('user_id', user.id)
-      .single();
-    
-    if (!profile) {
-      throw new Error('Profile not found');
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (!profile) {
+        throw new Error('Profile not found');
+      }
+      
+      const { data, error } = await supabase
+        .from('dentists')
+        .select('id, google_calendar_refresh_token, google_calendar_connected')
+        .eq('profile_id', profile.id)
+        .single();
+      
+      if (error || !data) {
+        throw new Error('Dentist record not found');
+      }
+      dentist = data;
     }
-    
-    const { data: dentist } = await supabase
-      .from('dentists')
-      .select('id, google_calendar_refresh_token, google_calendar_connected')
-      .eq('profile_id', profile.id)
-      .single();
     
     if (!dentist?.google_calendar_connected || !dentist.google_calendar_refresh_token) {
       return new Response(
