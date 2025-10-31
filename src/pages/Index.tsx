@@ -9,15 +9,17 @@ import { Card } from "@/components/ui/card";
 import { Calendar, Clock, Bell, Shield, Users, CheckCircle2, ArrowRight, Sparkles, Zap, Star } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AccessibleLoadingIndicator } from "@/components/ui/skip-to-content";
-
 const Index = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-
   useEffect(() => {
     // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({
+      data: {
+        session
+      }
+    }) => {
       setUser(session?.user ?? null);
       setLoading(false);
     }).catch(() => {
@@ -25,20 +27,20 @@ const Index = () => {
     });
 
     // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const {
+      data: {
+        subscription
+      }
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
       setLoading(false);
     });
-
     return () => subscription.unsubscribe();
   }, []);
-
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    return <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50">
         <AccessibleLoadingIndicator message="Loading DentiBot" size="lg" />
-      </div>
-    );
+      </div>;
   }
 
   // If user is authenticated, show the dashboard
@@ -47,8 +49,7 @@ const Index = () => {
   }
 
   // Homepage for non-authenticated users
-  return (
-    <div className="min-h-screen bg-white">
+  return <div className="min-h-screen bg-white">
       <Header user={user} minimal />
 
       <main id="main-content">
@@ -57,7 +58,9 @@ const Index = () => {
           {/* Background decoration */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
             <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-float"></div>
-            <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-float" style={{ animationDelay: '2s' }}></div>
+            <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-float" style={{
+            animationDelay: '2s'
+          }}></div>
           </div>
 
           <div className="max-w-7xl mx-auto relative">
@@ -80,22 +83,11 @@ const Index = () => {
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
-                <Button
-                  size="lg"
-                  className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-6 text-lg shadow-lg hover:shadow-xl transition-all group"
-                  onClick={() => navigate('/signup')}
-                  aria-label="Get started with free account"
-                >
+                <Button size="lg" className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-6 text-lg shadow-lg hover:shadow-xl transition-all group" onClick={() => navigate('/signup')} aria-label="Get started with free account">
                   Get Started Free
                   <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                 </Button>
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="border-2 border-gray-300 hover:border-blue-600 hover:bg-blue-50 px-8 py-6 text-lg transition-all"
-                  onClick={() => navigate('/login')}
-                  aria-label="Sign in to existing account"
-                >
+                <Button size="lg" variant="outline" className="border-2 border-gray-300 hover:border-blue-600 hover:bg-blue-50 px-8 py-6 text-lg transition-all" onClick={() => navigate('/login')} aria-label="Sign in to existing account">
                   Sign In
                 </Button>
               </div>
@@ -136,52 +128,39 @@ const Index = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {[
-                {
-                  icon: Calendar,
-                  title: "Smart Scheduling",
-                  description: "Intelligent appointment calendar with conflict detection, recurring appointments, and multi-provider scheduling",
-                  gradient: "from-blue-500 to-cyan-500"
-                },
-                {
-                  icon: Zap,
-                  title: "AI-Powered Triage",
-                  description: "AI chatbot assesses patient urgency, symptoms, and recommends appropriate appointment types automatically",
-                  gradient: "from-purple-500 to-pink-500"
-                },
-                {
-                  icon: Bell,
-                  title: "Patient Reminders",
-                  description: "Automated appointment reminders and recall systems reduce no-shows by up to 40%",
-                  gradient: "from-orange-500 to-red-500"
-                },
-                {
-                  icon: Users,
-                  title: "Complete Patient Records",
-                  description: "Digital health records, treatment history, prescriptions, X-rays, and insurance info in one place",
-                  gradient: "from-green-500 to-emerald-500"
-                },
-                {
-                  icon: Shield,
-                  title: "HIPAA Compliant & Secure",
-                  description: "Enterprise-grade encryption, audit logs, and role-based access control for complete data security",
-                  gradient: "from-indigo-500 to-blue-500"
-                },
-                {
-                  icon: CheckCircle2,
-                  title: "Billing & Payments",
-                  description: "Track payments, send invoices, record insurance claims, and manage practice revenue effortlessly",
-                  gradient: "from-teal-500 to-cyan-500"
-                }
-              ].map((feature, index) => (
-                <Card
-                  key={index}
-                  className="group p-6 border-2 border-gray-200 hover:border-transparent hover:shadow-2xl transition-all duration-300 cursor-pointer relative overflow-hidden"
-                  style={{ animationDelay: `${index * 100}ms` }}
-                  role="article"
-                  tabIndex={0}
-                  aria-label={`Feature: ${feature.title}`}
-                >
+              {[{
+              icon: Calendar,
+              title: "Smart Scheduling",
+              description: "Intelligent appointment calendar with conflict detection, recurring appointments, and multi-provider scheduling",
+              gradient: "from-blue-500 to-cyan-500"
+            }, {
+              icon: Zap,
+              title: "AI-Powered Triage",
+              description: "AI chatbot assesses patient urgency, symptoms, and recommends appropriate appointment types automatically",
+              gradient: "from-purple-500 to-pink-500"
+            }, {
+              icon: Bell,
+              title: "Patient Reminders",
+              description: "Automated appointment reminders and recall systems reduce no-shows by up to 40%",
+              gradient: "from-orange-500 to-red-500"
+            }, {
+              icon: Users,
+              title: "Complete Patient Records",
+              description: "Digital health records, treatment history, prescriptions, X-rays, and insurance info in one place",
+              gradient: "from-green-500 to-emerald-500"
+            }, {
+              icon: Shield,
+              title: "HIPAA Compliant & Secure",
+              description: "Enterprise-grade encryption, audit logs, and role-based access control for complete data security",
+              gradient: "from-indigo-500 to-blue-500"
+            }, {
+              icon: CheckCircle2,
+              title: "Billing & Payments",
+              description: "Track payments, send invoices, record insurance claims, and manage practice revenue effortlessly",
+              gradient: "from-teal-500 to-cyan-500"
+            }].map((feature, index) => <Card key={index} className="group p-6 border-2 border-gray-200 hover:border-transparent hover:shadow-2xl transition-all duration-300 cursor-pointer relative overflow-hidden" style={{
+              animationDelay: `${index * 100}ms`
+            }} role="article" tabIndex={0} aria-label={`Feature: ${feature.title}`}>
                   {/* Gradient background on hover */}
                   <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-300`}></div>
 
@@ -194,35 +173,19 @@ const Index = () => {
                     </h3>
                     <p className="text-gray-600 leading-relaxed">{feature.description}</p>
                   </div>
-                </Card>
-              ))}
+                </Card>)}
             </div>
 
             {/* Additional features list */}
             <div className="mt-16 bg-gradient-to-br from-gray-50 to-blue-50 rounded-2xl p-8 md:p-12">
               <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">Plus Much More</h3>
               <div className="grid md:grid-cols-2 gap-6">
-                {[
-                  "Multi-location & multi-provider support",
-                  "Inventory management with low-stock alerts",
-                  "Comprehensive analytics & reporting",
-                  "Mobile-responsive PWA design",
-                  "Customizable clinic templates",
-                  "Real-time notifications & messaging",
-                  "Prescription management system",
-                  "Treatment plan tracking",
-                  "Staff & team management",
-                  "Data import/export tools",
-                  "Custom branding & white-labeling",
-                  "Google Calendar synchronization"
-                ].map((feature, index) => (
-                  <div key={index} className="flex items-center gap-3">
+                {["Multi-location & multi-provider support", "Inventory management with low-stock alerts", "Comprehensive analytics & reporting", "Mobile-responsive PWA design", "Customizable clinic templates", "Real-time notifications & messaging", "Prescription management system", "Treatment plan tracking", "Staff & team management", "Data import/export tools", "Custom branding & white-labeling", "Google Calendar synchronization"].map((feature, index) => <div key={index} className="flex items-center gap-3">
                     <div className="flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center">
                       <CheckCircle2 className="h-4 w-4 text-white" aria-hidden="true" />
                     </div>
                     <span className="text-gray-700 font-medium">{feature}</span>
-                  </div>
-                ))}
+                  </div>)}
               </div>
             </div>
           </div>
@@ -240,29 +203,23 @@ const Index = () => {
               </p>
             </div>
             <div className="grid md:grid-cols-3 gap-8">
-              {[
-                {
-                  title: "Save Time",
-                  description: "Reduce administrative work by up to 60% with automated scheduling, reminders, and patient communications",
-                  stat: "60% less admin time"
-                },
-                {
-                  title: "Increase Revenue",
-                  description: "Reduce no-shows, improve appointment utilization, and streamline billing to boost practice income",
-                  stat: "40% fewer no-shows"
-                },
-                {
-                  title: "Better Patient Care",
-                  description: "Access complete patient histories instantly, track treatment plans, and provide more personalized care",
-                  stat: "100% organized records"
-                }
-              ].map((benefit, index) => (
-                <Card key={index} className="p-8 text-center bg-white border-2 border-blue-100 hover:border-blue-300 transition-all">
+              {[{
+              title: "Save Time",
+              description: "Reduce administrative work by up to 60% with automated scheduling, reminders, and patient communications",
+              stat: "60% less admin time"
+            }, {
+              title: "Increase Revenue",
+              description: "Reduce no-shows, improve appointment utilization, and streamline billing to boost practice income",
+              stat: "40% fewer no-shows"
+            }, {
+              title: "Better Patient Care",
+              description: "Access complete patient histories instantly, track treatment plans, and provide more personalized care",
+              stat: "100% organized records"
+            }].map((benefit, index) => <Card key={index} className="p-8 text-center bg-white border-2 border-blue-100 hover:border-blue-300 transition-all">
                   <div className="text-4xl font-bold text-blue-600 mb-2">{benefit.stat}</div>
                   <h3 className="text-xl font-bold text-gray-900 mb-3">{benefit.title}</h3>
                   <p className="text-gray-600">{benefit.description}</p>
-                </Card>
-              ))}
+                </Card>)}
             </div>
           </div>
         </section>
@@ -290,25 +247,11 @@ const Index = () => {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
-              <Button
-                size="lg"
-                className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-6 text-lg shadow-2xl hover:shadow-3xl transition-all group font-semibold"
-                onClick={() => navigate('/signup')}
-                aria-label="Start your free trial today"
-              >
+              <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-6 text-lg shadow-2xl hover:shadow-3xl transition-all group font-semibold" onClick={() => navigate('/signup')} aria-label="Start your free trial today">
                 Start Your Free Trial
                 <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="border-2 border-white text-white hover:bg-white hover:text-blue-600 px-8 py-6 text-lg transition-all"
-                onClick={() => navigate('/chat')}
-                aria-label="Talk to AI assistant"
-              >
-                <Sparkles className="mr-2 h-5 w-5" />
-                Try AI Assistant
-              </Button>
+              
             </div>
 
             {/* Trust badges */}
@@ -331,8 +274,6 @@ const Index = () => {
       </main>
 
       <Footer />
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
