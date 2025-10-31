@@ -27,6 +27,7 @@ import { DentistPortal } from "@/pages/DentistPortal";
 import { PatientPortalNav } from "@/components/patient/PatientPortalNav";
 import { RoleBasedRouter } from "@/components/RoleBasedRouter";
 import { DentistInvitationDialog } from "@/components/DentistInvitationDialog";
+import { CommandPalette } from "@/components/CommandPalette";
 
 const Invite = lazy(() => import("./pages/Invite"));
 const Login = lazy(() => import("./pages/Login"));
@@ -257,6 +258,7 @@ const App = () => {
                 <ProfileCompletionDialog />
                 <BrowserRouter>
                   <DentistInvitationDialog />
+                  <CommandPalette />
                   <SeoManager />
                 <Suspense fallback={<ModernLoadingSpinner variant="overlay" message="Loading..." /> }>
                 <Routes>
