@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useBusinessContext } from "@/hooks/useBusinessContext";
+import { cn } from "@/lib/utils";
 import { BusinessSelectionForPatients } from "@/components/BusinessSelectionForPatients";
 import { AppointmentSuccessDialog } from "@/components/AppointmentSuccessDialog";
 import { Button } from "@/components/ui/button";
