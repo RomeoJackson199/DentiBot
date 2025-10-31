@@ -174,7 +174,7 @@ serve(async (req) => {
         while (currentSlot < endTime) {
           const hours = currentSlot.getHours().toString().padStart(2, '0');
           const minutes = currentSlot.getMinutes().toString().padStart(2, '0');
-          slotsToBlock.push(`${hours}:${minutes}:00`);
+          slotsToBlock.push(`${hours}:${minutes}`);
           currentSlot.setMinutes(currentSlot.getMinutes() + 30);
         }
         
