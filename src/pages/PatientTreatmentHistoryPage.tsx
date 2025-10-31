@@ -42,7 +42,7 @@ export default function PatientTreatmentHistoryPage() {
       {patientId ? (
         <TreatmentRecordsTable patientId={patientId} />
       ) : (
-        <LoadingCard message={t.loading || "Loading your treatment history..."} />
+        <LoadingCard />
       )}
     </div>
   );

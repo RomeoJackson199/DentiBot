@@ -92,7 +92,19 @@ export default function PatientCareHome() {
         .order('appointment_date', { ascending: true })
         .limit(3);
 
-      setUpcomingAppointments(appointments || []);
+      // Transform appointments to match expected type
+      const transformedAppointments = (appointments || []).map(apt => ({
+        ...apt,
+        dentists: Array.isArray(apt.dentists) && apt.dentists.length > 0
+          ? {
+              profiles: Array.isArray(apt.dentists[0].profiles)
+                ? apt.dentists[0].profiles[0]
+                : apt.dentists[0].profiles
+            }
+          : undefined
+      }));
+
+      setUpcomingAppointments(transformedAppointments);
 
       // Get total appointments count
       const { count: totalCount } = await supabase

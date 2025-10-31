@@ -43,6 +43,8 @@ interface Patient {
 
 interface Appointment {
   id: string;
+  patient_id: string;
+  dentist_id: string;
   appointment_date: string;
   duration_minutes: number;
   status: string;
@@ -126,7 +128,7 @@ export function ModernPatientManagement({ dentistId }: ModernPatientManagementPr
       if (appointmentError) throw appointmentError;
 
       const uniquePatients = appointmentData
-        .map(apt => apt.profiles)
+        .map(apt => Array.isArray(apt.profiles) ? apt.profiles[0] : apt.profiles)
         .filter((patient, index, self) => 
           patient && self.findIndex(p => p?.id === patient.id) === index
         )

@@ -391,6 +391,8 @@ export function AnimatedBackground({ className }: { className?: string }) {
 interface SectionHeaderProps {
   title: string;
   description?: string;
+  icon?: React.ElementType;
+  gradient?: string;
   action?: {
     label: string;
     onClick: () => void;
@@ -398,14 +400,21 @@ interface SectionHeaderProps {
   };
 }
 
-export function SectionHeader({ title, description, action }: SectionHeaderProps) {
+export function SectionHeader({ title, description, icon: Icon, gradient, action }: SectionHeaderProps) {
   return (
     <div className="flex items-center justify-between mb-6">
-      <div>
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{title}</h2>
-        {description && (
-          <p className="text-sm text-muted-foreground mt-1">{description}</p>
+      <div className="flex items-center gap-3">
+        {Icon && (
+          <div className={`p-2 rounded-lg bg-gradient-to-br ${gradient || 'from-primary to-primary/80'}`}>
+            <Icon className="h-5 w-5 text-white" />
+          </div>
         )}
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{title}</h2>
+          {description && (
+            <p className="text-sm text-muted-foreground mt-1">{description}</p>
+          )}
+        </div>
       </div>
       {action && (
         <Button onClick={action.onClick} className="gap-2">

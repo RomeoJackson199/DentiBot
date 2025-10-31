@@ -29,7 +29,7 @@ interface TodayAppointment {
 	profiles: {
 		first_name: string;
 		last_name: string;
-	} | null;
+	};
 }
 
 export function ClinicalToday({ user, dentistId, onOpenPatientsTab, onOpenAppointmentsTab }: ClinicalTodayProps) {
@@ -51,32 +51,40 @@ export function ClinicalToday({ user, dentistId, onOpenPatientsTab, onOpenAppoin
 				const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
 
 				// Today's appointments with details
-				const { data: todayAppts, error: todayError } = await supabase
-					.from('appointments')
-					.select(`
-						id,
-						appointment_date,
-						patient_name,
-						reason,
-						status,
-						urgency,
-						profiles!appointments_patient_id_fkey (
-							first_name,
-							last_name
-						)
-					`)
-					.eq('dentist_id', dentistId)
-					.gte('appointment_date', startOfDay.toISOString())
-					.lt('appointment_date', endOfDay.toISOString())
-					.neq('status', 'cancelled')
-					.order('appointment_date', { ascending: true });
+			const { data: todayAppts, error: todayError } = await supabase
+				.from('appointments')
+				.select(`
+					id,
+					appointment_date,
+					patient_name,
+					reason,
+					status,
+					urgency,
+					profiles!appointments_patient_id_fkey (
+						first_name,
+						last_name
+					)
+				`)
+				.eq('dentist_id', dentistId)
+				.gte('appointment_date', startOfDay.toISOString())
+				.lt('appointment_date', endOfDay.toISOString())
+				.neq('status', 'cancelled')
+				.order('appointment_date', { ascending: true });
 
-				if (todayError) {
-					logger.error('❌ Error fetching today appointments:', { code: todayError.code, message: todayError.message, details: (todayError as any)?.details });
-				}
+			if (todayError) {
+				logger.error('❌ Error fetching today appointments:', { code: todayError.code, message: todayError.message, details: (todayError as any)?.details });
+			}
 
-				// Count urgent cases
-				const urgentCount = todayAppts?.filter(a => a.urgency === 'high').length || 0;
+			// Filter out appointments without profile data and unwrap profiles array
+			const validAppts = (todayAppts || [])
+				.filter(apt => apt.profiles && (Array.isArray(apt.profiles) ? apt.profiles.length > 0 : true))
+				.map(apt => ({
+					...apt,
+					profiles: Array.isArray(apt.profiles) ? apt.profiles[0] : apt.profiles
+				})) as TodayAppointment[];
+
+			// Count urgent cases
+			const urgentCount = validAppts.filter(a => a.urgency === 'high').length || 0;
 
 				// This week's completed
 				const startOfWeek = new Date(today);
@@ -97,13 +105,13 @@ export function ClinicalToday({ user, dentistId, onOpenPatientsTab, onOpenAppoin
 				
 				const uniquePatients = new Set(patients?.map(p => p.patient_id) || []);
 
-				setStats({
-					todayCount: todayAppts?.length || 0,
-					urgentCount,
-					weekCompleted: weekCompleted?.length || 0,
-					totalPatients: uniquePatients.size
-				});
-				setTodayAppointments(todayAppts || []);
+			setStats({
+				todayCount: validAppts.length,
+				urgentCount,
+				weekCompleted: weekCompleted?.length || 0,
+				totalPatients: uniquePatients.size
+			});
+			setTodayAppointments(validAppts);
 			} catch (error) {
 				logger.error('Error fetching dashboard data:', error);
 			} finally {
