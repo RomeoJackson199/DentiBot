@@ -60,7 +60,7 @@ const Login = () => {
         if (error) throw error;
         setBusinesses(data || []);
       } catch (error) {
-        console.error("Error loading businesses:", error);
+        logger.error("Error loading businesses:", error);
       } finally {
         setIsLoadingBusinesses(false);
       }
