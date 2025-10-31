@@ -205,8 +205,10 @@ export const BUSINESS_TEMPLATES: Record<TemplateType, TemplateConfig> = {
     navigationItems: [
       'dashboard',
       'appointments',
-      'clients',
+      'patients', // Uses 'patients' internally but displays as 'Clients' via terminology
       'services',
+      'employees',
+      'messages',
       'analytics',
       'settings',
     ],
@@ -274,10 +276,12 @@ export const BUSINESS_TEMPLATES: Record<TemplateType, TemplateConfig> = {
     ],
     navigationItems: [
       'dashboard',
-      'sessions',
-      'clients',
-      'workout-plans',
+      'appointments', // Uses 'appointments' but displays as 'Sessions' via terminology
+      'patients', // Uses 'patients' but displays as 'Clients' via terminology
+      'treatment-plans', // For workout plans
       'services',
+      'employees',
+      'messages',
       'analytics',
       'settings',
     ],
@@ -348,8 +352,10 @@ export const BUSINESS_TEMPLATES: Record<TemplateType, TemplateConfig> = {
     navigationItems: [
       'dashboard',
       'appointments',
-      'clients',
+      'patients', // Uses 'patients' but displays as 'Clients' via terminology
       'services',
+      'employees',
+      'messages',
       'analytics',
       'settings',
     ],
@@ -489,8 +495,10 @@ export const BUSINESS_TEMPLATES: Record<TemplateType, TemplateConfig> = {
     navigationItems: [
       'dashboard',
       'appointments',
-      'customers',
+      'patients', // Uses 'patients' but displays as 'Customers' via terminology
       'services',
+      'employees',
+      'messages',
       'analytics',
       'settings',
     ],

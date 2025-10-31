@@ -10,6 +10,7 @@ import { Loader2, Palette, Upload, Image as ImageIcon, Briefcase, Package, Copy,
 import { PageHeader } from "@/components/layout/PageHeader";
 import { BusinessTemplateSelector } from "@/components/BusinessTemplateSelector";
 import { TemplateType, getTemplateConfig, TemplateFeatures, TemplateTerminology } from "@/lib/businessTemplates";
+import { useTemplate } from "@/contexts/TemplateContext";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,9 +28,11 @@ import { ServiceManager } from "@/components/services/ServiceManager";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { QRCodeCanvas } from "qrcode.react";
 import { logger } from '@/lib/logger';
+import { TemplatePreview } from "@/components/TemplatePreview";
 
 export default function DentistAdminBranding() {
   const { businessId, loading: businessLoading } = useBusinessContext();
+  const { updateTemplate: updateTemplateContext } = useTemplate();
   const [loading, setLoading] = useState(false);
   const [clinicName, setClinicName] = useState("");
   const [slug, setSlug] = useState("");
@@ -177,6 +180,7 @@ export default function DentistAdminBranding() {
         features,
         terminology,
       });
+      // Show preview dialog instead of basic warning
       setShowTemplateWarning(true);
     }
   };
@@ -186,11 +190,19 @@ export default function DentistAdminBranding() {
       setTemplateType(pendingTemplate.type);
       if (pendingTemplate.features) setCustomFeatures(pendingTemplate.features);
       if (pendingTemplate.terminology) setCustomTerminology(pendingTemplate.terminology);
+
+      // Load AI defaults from new template
+      const newTemplateConfig = getTemplateConfig(pendingTemplate.type);
+      setAiSystemBehavior(newTemplateConfig.aiBehaviorDefaults.systemBehavior);
+      setAiGreeting(newTemplateConfig.aiBehaviorDefaults.greeting);
+      setAiPersonalityTraits(newTemplateConfig.aiBehaviorDefaults.personalityTraits);
+
       setPendingTemplate(null);
       setShowTemplateWarning(false);
       toast({
         title: "Template Changed",
-        description: "Remember to save your changes",
+        description: "Remember to save your changes to apply the new template",
+        duration: 5000,
       });
     }
   };
@@ -310,13 +322,13 @@ export default function DentistAdminBranding() {
 
       if (error) throw error;
 
+      // Update template in context without page reload
+      await updateTemplateContext(templateType, customFeatures, customTerminology);
+
       toast({
         title: "Settings Saved",
-        description: "Your branding settings have been saved successfully",
+        description: "Your branding settings have been saved successfully. All changes are now active!",
       });
-
-      // Reload page to apply new template
-      window.location.reload();
     } catch (error: any) {
       console.error('Error saving branding:', error);
       toast({
@@ -732,35 +744,18 @@ export default function DentistAdminBranding() {
         businessName={clinicName}
       />
 
-      <AlertDialog open={showTemplateWarning} onOpenChange={setShowTemplateWarning}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Change Business Template?</AlertDialogTitle>
-            <AlertDialogDescription className="space-y-2">
-              <p>
-                Changing your business template will modify which features are available in your account.
-              </p>
-              <p className="font-medium">
-                Some features may be hidden, but your existing data will not be deleted.
-              </p>
-              <p className="text-sm text-muted-foreground">
-                For example, if you switch to a template without prescriptions, the prescription feature will be hidden but any existing prescriptions will remain in the database.
-              </p>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => {
-              setPendingTemplate(null);
-              setShowTemplateWarning(false);
-            }}>
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction onClick={confirmTemplateChange}>
-              Change Template
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {pendingTemplate && (
+        <TemplatePreview
+          currentTemplate={templateType}
+          previewTemplate={pendingTemplate.type}
+          open={showTemplateWarning}
+          onOpenChange={(open) => {
+            setShowTemplateWarning(open);
+            if (!open) setPendingTemplate(null);
+          }}
+          onConfirmSwitch={confirmTemplateChange}
+        />
+      )}
     </div>
   );
 }

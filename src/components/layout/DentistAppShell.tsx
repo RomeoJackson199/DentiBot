@@ -11,6 +11,7 @@ import { useClinicBranding } from "@/hooks/useClinicBranding";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { BusinessSelector } from "@/components/BusinessSelector";
 import { useBusinessTemplate } from "@/hooks/useBusinessTemplate";
+import { useTemplateNavigation } from "@/hooks/useTemplateNavigation";
 export type DentistSection = 'dashboard' | 'patients' | 'appointments' | 'employees' | 'messages' | 'clinical' | 'schedule' | 'payments' | 'analytics' | 'reports' | 'inventory' | 'imports' | 'branding' | 'security' | 'users' | 'team' | 'settings' | 'services';
 interface DentistAppShellProps {
   activeSection: DentistSection;
@@ -38,9 +39,10 @@ export const DentistAppShell: React.FC<DentistAppShellProps> = ({
   const {
     t
   } = useBusinessTemplate();
+  const { filterNavItems } = useTemplateNavigation();
   const [userName, setUserName] = useState<string>("");
   const [userInitials, setUserInitials] = useState<string>("?");
-  const NAV_ITEMS = useMemo(() => [{
+  const allNavItems = useMemo(() => [{
     id: 'dashboard' as DentistSection,
     label: 'Dashboard',
     icon: LayoutDashboard
@@ -61,6 +63,9 @@ export const DentistAppShell: React.FC<DentistAppShellProps> = ({
     label: 'Messages',
     icon: MessageSquare
   }], [t]);
+
+  // Filter navigation items based on template configuration
+  const NAV_ITEMS = useMemo(() => filterNavItems(allNavItems), [filterNavItems, allNavItems]);
   const isActive = (section: DentistSection) => activeSection === section;
   const handleSignOut = async () => {
     try {
