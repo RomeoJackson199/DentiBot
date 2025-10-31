@@ -138,7 +138,29 @@ serve(async (req) => {
 
     console.log(`Found ${events.length} Google Calendar events`);
 
-    // Block appointment slots for Google Calendar events
+    // First, reset all slots in the date range to available (unblock previously blocked slots)
+    const resetStartDate = new Date(startDate);
+    const resetEndDate = new Date(endDate);
+    let currentResetDate = new Date(resetStartDate);
+
+    while (currentResetDate <= resetEndDate) {
+      const dateStr = currentResetDate.toISOString().split('T')[0];
+      console.log(`Resetting all slots to available for ${dateStr}`);
+
+      await supabase
+        .from('appointment_slots')
+        .update({
+          is_available: true,
+          updated_at: new Date().toISOString()
+        })
+        .eq('dentist_id', dentist.id)
+        .eq('slot_date', dateStr)
+        .is('appointment_id', null); // Only reset slots that aren't already booked
+
+      currentResetDate.setDate(currentResetDate.getDate() + 1);
+    }
+
+    // Now block appointment slots for Google Calendar events
     for (const event of events) {
       if (event.isAllDay) {
         // Handle all-day events: block all slots for each date in range
