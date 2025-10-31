@@ -65,7 +65,7 @@ export function TemplatePreview({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh]">
+      <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Eye className="h-5 w-5" />
@@ -76,7 +76,7 @@ export function TemplatePreview({
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs defaultValue="overview" className="w-full">
+        <Tabs defaultValue="overview" className="w-full flex-1 flex flex-col overflow-hidden">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="features">Features</TabsTrigger>
@@ -84,7 +84,7 @@ export function TemplatePreview({
             <TabsTrigger value="navigation">Navigation</TabsTrigger>
           </TabsList>
 
-          <ScrollArea className="h-[500px] w-full pr-4">
+          <ScrollArea className="flex-1 w-full pr-4">
             <TabsContent value="overview" className="space-y-4">
               <Card>
                 <CardHeader>

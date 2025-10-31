@@ -28,7 +28,8 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { toast } from "sonner";
-import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useEffect } from "react";
 
 type FeedbackType = "bug" | "feature" | "improvement" | "general";
 
@@ -83,15 +84,26 @@ export function FeedbackWidget({
   const [open, setOpen] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { user } = useAuth();
+  const [userEmail, setUserEmail] = useState<string>("");
 
   const [formData, setFormData] = useState<FeedbackFormData>({
     type: "general",
     title: "",
     description: "",
-    email: user?.email || "",
+    email: "",
     page: window.location.pathname,
   });
+
+  useEffect(() => {
+    const loadUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user?.email) {
+        setUserEmail(user.email);
+        setFormData(prev => ({ ...prev, email: user.email }));
+      }
+    };
+    loadUser();
+  }, []);
 
   const positionClasses = {
     "bottom-right": "bottom-6 right-6",
@@ -135,7 +147,7 @@ export function FeedbackWidget({
           type: "general",
           title: "",
           description: "",
-          email: user?.email || "",
+          email: userEmail || "",
           page: window.location.pathname,
         });
       }, 2000);
@@ -274,7 +286,7 @@ export function FeedbackWidget({
                 </div>
 
                 {/* Email (optional if logged out) */}
-                {!user && (
+                {!userEmail && (
                   <div className="space-y-2">
                     <Label htmlFor="email">
                       Email <span className="text-gray-500">(optional)</span>

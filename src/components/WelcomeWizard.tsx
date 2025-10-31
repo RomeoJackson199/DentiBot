@@ -421,9 +421,10 @@ export function WelcomeWizard({ open, onClose, userId }: WelcomeWizardProps) {
           {/* Step Header */}
           <div className="text-center space-y-2">
             <div className="inline-flex p-3 rounded-full bg-blue-100">
-              {steps[currentStep] && (
-                <steps[currentStep].icon className="h-8 w-8 text-blue-600" />
-              )}
+              {steps[currentStep] && (() => {
+                const StepIcon = steps[currentStep].icon;
+                return <StepIcon className="h-8 w-8 text-blue-600" />;
+              })()}
             </div>
             <h2 className="text-2xl font-bold text-gray-900">{steps[currentStep]?.title}</h2>
             <p className="text-gray-600">{steps[currentStep]?.description}</p>

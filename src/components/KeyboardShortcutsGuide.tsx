@@ -22,7 +22,7 @@ import {
   Command,
   HelpCircle,
 } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useUserRole } from "@/hooks/useUserRole";
 
 interface Shortcut {
   keys: string[];
@@ -134,7 +134,7 @@ export function KeyboardShortcutsGuide({
   onOpenChange,
 }: KeyboardShortcutsGuideProps) {
   const [open, setOpen] = useState(false);
-  const { userRole } = useAuth();
+  const { roles } = useUserRole();
 
   // Use controlled or uncontrolled state
   const isOpen = controlledOpen !== undefined ? controlledOpen : open;

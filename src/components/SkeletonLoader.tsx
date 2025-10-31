@@ -172,8 +172,9 @@ export function ChartSkeleton() {
           {[...Array(12)].map((_, i) => (
             <Skeleton
               key={i}
-              className="flex-1"
-              style={{ height: `${Math.random() * 80 + 20}%` }}
+              className={`flex-1 ${
+                i % 4 === 0 ? 'h-32' : i % 4 === 1 ? 'h-48' : i % 4 === 2 ? 'h-40' : 'h-56'
+              }`}
             />
           ))}
         </div>
@@ -239,10 +240,7 @@ export function TextSkeleton({ lines = 3 }: { lines?: number }) {
       {Array.from({ length: lines }).map((_, i) => (
         <Skeleton
           key={i}
-          className="h-4"
-          style={{
-            width: i === lines - 1 ? "70%" : "100%",
-          }}
+          className={`h-4 ${i === lines - 1 ? 'w-3/4' : 'w-full'}`}
         />
       ))}
     </div>
