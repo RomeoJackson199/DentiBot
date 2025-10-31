@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { logger } from '@/lib/logger';
 
 interface UseRetryOptions {
   maxRetries?: number;
@@ -33,7 +34,7 @@ export const useRetry = (options: UseRetryOptions = {}) => {
         return result;
       } catch (error) {
         lastError = error as Error;
-        console.warn(`Attempt ${attempt + 1} failed:`, error);
+        logger.warn(`Attempt ${attempt + 1} failed:`, error);
         
         if (onError) {
           onError(lastError, attempt);

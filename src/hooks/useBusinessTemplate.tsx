@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useBusinessContext } from './useBusinessContext';
 import { supabase } from '@/integrations/supabase/client';
 import { 
+import { logger } from '@/lib/logger';
   TemplateType, 
   TemplateConfig, 
   getTemplateConfig 
@@ -32,7 +33,7 @@ export function useBusinessTemplate() {
         const templateType = (data?.template_type || 'dentist') as TemplateType;
         setTemplate(getTemplateConfig(templateType));
       } catch (error) {
-        console.error('❌ Error loading template:', error);
+        logger.error('❌ Error loading template:', error);
         // Fallback to generic template to avoid exposing medical features
         setTemplate(getTemplateConfig('generic'));
       } finally {

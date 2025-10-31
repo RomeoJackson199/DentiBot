@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger';
 
 interface BusinessMembership {
   id: string;
@@ -127,7 +128,7 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
         }
       }
     } catch (error: any) {
-      console.error('Error loading memberships:', error);
+      logger.error('Error loading memberships:', error);
       toast.error('Failed to load business memberships');
     } finally {
       setLoading(false);
@@ -177,7 +178,7 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
         await loadMemberships();
       }
     } catch (error: any) {
-      console.error('Error switching business:', error);
+      logger.error('Error switching business:', error);
       toast.error(error.message || 'Failed to switch business');
     } finally {
       setLoading(false);

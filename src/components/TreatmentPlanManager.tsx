@@ -43,6 +43,7 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { TreatmentPlan, NewTreatmentPlanForm } from "@/types/dental";
+import { logger } from '@/lib/logger';
 
 interface TreatmentPlanManagerProps {
   patientId: string;

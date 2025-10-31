@@ -6,6 +6,7 @@ import { ModernLoadingSpinner } from "@/components/enhanced/ModernLoadingSpinner
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Building2 } from "lucide-react";
+import { logger } from '@/lib/logger';
 
 export default function BusinessPortal() {
   const { slug } = useParams<{ slug: string }>();

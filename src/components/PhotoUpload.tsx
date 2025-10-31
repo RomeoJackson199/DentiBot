@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Upload, Camera, Image, X } from "lucide-react";
 import { AiDisclaimer } from "@/components/AiDisclaimer";
+import { logger } from '@/lib/logger';
 
 interface PhotoUploadProps {
   onComplete: (photoUrl: string) => void;

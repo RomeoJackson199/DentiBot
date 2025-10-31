@@ -71,6 +71,7 @@ import { useClinicBranding } from "@/hooks/useClinicBranding";
 import { useBusinessContext } from "@/hooks/useBusinessContext";
 import { BusinessSelectionForPatients } from "@/components/BusinessSelectionForPatients";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { logger } from '@/lib/logger';
 
 const STORAGE = {
   lastItem: "dnav:last-item",

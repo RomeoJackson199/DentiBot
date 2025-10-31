@@ -55,6 +55,7 @@ import {
 import { saveProfileData, loadProfileData, ProfileData } from "@/lib/profileUtils";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DentistManagement } from "@/components/DentistManagement";
+import { logger } from '@/lib/logger';
 
 interface ModernSettingsProps {
   user: User;

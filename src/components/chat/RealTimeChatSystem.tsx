@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { modernToast } from '@/components/enhanced/ModernNotificationToast';
+import { logger } from '@/lib/logger';
 
 interface Message {
   id: string;

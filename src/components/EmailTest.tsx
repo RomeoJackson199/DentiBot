@@ -5,6 +5,7 @@ import { toast } from '@/hooks/use-toast';
 import { Mail, CheckCircle, AlertCircle } from 'lucide-react';
 import { NotificationService } from '@/lib/notificationService';
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/lib/logger';
 
 export const EmailTest: React.FC = () => {
   const [testing, setTesting] = useState(false);

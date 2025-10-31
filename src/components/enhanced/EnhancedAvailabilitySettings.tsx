@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/hooks/useLanguage";
 import { GoogleCalendarConnect } from "@/components/GoogleCalendarConnect";
+import { logger } from '@/lib/logger';
 interface DentistAvailability {
   id?: string;
   day_of_week: number;

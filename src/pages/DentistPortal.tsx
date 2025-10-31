@@ -3,6 +3,7 @@ import { Navigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { useToast } from "@/hooks/use-toast";
+import { logger } from "@/lib/logger";
 import { DentistAppShell, DentistSection } from "@/components/layout/DentistAppShell";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 import { useBusinessTemplate } from "@/hooks/useBusinessTemplate";
@@ -116,11 +117,11 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
         .maybeSingle();
 
       if (profileError) {
-        console.error('❌ Profile error:', profileError);
+        logger.error('❌ Profile error:', profileError);
         throw profileError;
       }
       if (!profile) {
-        console.error('❌ No profile found for user:', user.id);
+        logger.error('❌ No profile found for user:', user.id);
         throw new Error('Profile not found');
       }
 
@@ -131,15 +132,15 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
         .maybeSingle();
 
       if (dentistError) {
-        console.error('❌ Dentist error:', dentistError);
+        logger.error('❌ Dentist error:', dentistError);
         throw dentistError;
       }
       if (!dentist) {
-        console.error('❌ No dentist record found for profile:', profile.id);
+        logger.error('❌ No dentist record found for profile:', profile.id);
         throw new Error('You are not registered as a dentist');
       }
       if (!dentist.is_active) {
-        console.error('❌ Dentist account is inactive');
+        logger.error('❌ Dentist account is inactive');
         throw new Error('Your dentist account is not active');
       }
 

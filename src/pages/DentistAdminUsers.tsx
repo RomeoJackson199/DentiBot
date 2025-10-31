@@ -10,6 +10,7 @@ import { Search, Mail, Calendar, Shield, Users as UsersIcon, RefreshCw } from "l
 import { formatDistanceToNow } from "date-fns";
 import { ModernLoadingSpinner } from "@/components/enhanced/ModernLoadingSpinner";
 import {
+import { logger } from '@/lib/logger';
   Table,
   TableBody,
   TableCell,
@@ -75,7 +76,7 @@ export default function DentistAdminUsers() {
 
       setUsers(usersWithRoles);
     } catch (error: any) {
-      console.error('Error fetching users:', error);
+      logger.error('Error fetching users:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to fetch users",

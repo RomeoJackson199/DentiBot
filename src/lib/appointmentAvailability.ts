@@ -1,5 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import { format, parseISO, isSameDay, addMinutes } from 'date-fns';
+import { logger } from '@/lib/logger';
 
 export interface TimeSlot {
   time: string;

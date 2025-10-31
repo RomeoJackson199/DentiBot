@@ -8,6 +8,7 @@ import { Plus, Pencil, Trash2, Image as ImageIcon, Filter, RefreshCw } from 'luc
 import { toast } from 'sonner';
 import { ServiceDialog } from './ServiceDialog';
 import { Badge } from '@/components/ui/badge';
+import { logger } from '@/lib/logger';
 
 interface Service {
   id: string;

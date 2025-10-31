@@ -9,6 +9,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { InteractiveDentalChat } from '@/components/chat/InteractiveDentalChat';
 import { User } from '@supabase/supabase-js';
 import type { Database } from '@/integrations/supabase/types';
+import { logger } from '@/lib/logger';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 

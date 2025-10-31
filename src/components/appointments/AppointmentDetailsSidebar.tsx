@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { AppointmentCompletionDialog } from "@/components/appointment/AppointmentCompletionDialog";
+import { logger } from '@/lib/logger';
 
 interface AppointmentDetailsSidebarProps {
   appointment: any;

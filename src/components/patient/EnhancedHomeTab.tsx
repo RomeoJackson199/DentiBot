@@ -18,6 +18,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
 import { useCurrency } from "@/hooks/useCurrency";
 import { User } from "@supabase/supabase-js";
+import { logger } from '@/lib/logger';
 
 interface EnhancedHomeTabProps {
   user: User;

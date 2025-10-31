@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { DollarSign, Clock, CheckCircle, XCircle, ExternalLink, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { logger } from '@/lib/logger';
 
 interface PaymentRequest {
   id: string;

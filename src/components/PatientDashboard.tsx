@@ -37,6 +37,7 @@ import { PaymentsTab } from "@/components/patient/PaymentsTab";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { AppointmentBooking } from "@/components/AppointmentBooking";
 import Messages from "@/pages/Messages";
+import { logger } from '@/lib/logger';
 interface PatientDashboardProps {
   user: User;
 }

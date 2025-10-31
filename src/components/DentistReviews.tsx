@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { fr, nl, enUS } from "date-fns/locale";
+import { logger } from '@/lib/logger';
 
 interface DentistRating {
   id: string;

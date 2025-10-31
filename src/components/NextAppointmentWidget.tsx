@@ -25,6 +25,7 @@ import {
 import { format } from "date-fns";
 import { utcToClinicTime, formatClinicTime } from "@/lib/timezone";
 import { 
+import { logger } from '@/lib/logger';
   getStatusClasses, 
   getUrgencyClasses, 
   canCompleteAppointment,

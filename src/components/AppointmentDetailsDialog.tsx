@@ -23,6 +23,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/hooks/useLanguage";
 import { AppointmentAIAssistant } from "@/components/appointments/AppointmentAIAssistant";
+import { logger } from '@/lib/logger';
 
 interface AppointmentDetailsProps {
   appointmentId: string;

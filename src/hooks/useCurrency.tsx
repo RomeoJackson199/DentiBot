@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { logger } from '@/lib/logger';
 
 export interface CurrencySettings {
   currency: 'EUR' | 'USD' | 'GBP' | 'CAD' | 'AUD';
@@ -83,7 +84,7 @@ export function useCurrency(dentistId?: string) {
         format: (amount: number) => `€${amount.toFixed(2)}`,
       });
     } catch (error) {
-      console.error('Error loading currency settings:', error);
+      logger.error('Error loading currency settings:', error);
       setSettings({
         currency: 'EUR',
         symbol: '€',
@@ -135,7 +136,7 @@ export function useCurrency(dentistId?: string) {
         },
       });
     } catch (error) {
-      console.error('Error updating currency:', error);
+      logger.error('Error updating currency:', error);
       throw error;
     }
   };

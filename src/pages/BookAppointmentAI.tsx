@@ -25,6 +25,8 @@ import { format, startOfDay } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import ClinicMap from "@/components/Map";
 import { ServiceSelector } from "@/components/booking/ServiceSelector";
+import { logger } from '@/lib/logger';
+import { AnimatedBackground, EmptyState } from "@/components/ui/polished-components";
 
 interface Dentist {
   id: string;
@@ -168,7 +170,7 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
         await getAIRecommendations(transformedData);
       }
     } catch (error) {
-      console.error("Error fetching dentists:", error);
+      logger.error("Error fetching dentists:", error);
       toast({
         title: "Error",
         description: "Failed to load dentists",
@@ -212,7 +214,7 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
 
       setAvailableSlots(slots);
     } catch (error) {
-      console.error("Error fetching slots:", error);
+      logger.error("Error fetching slots:", error);
       toast({
         title: "Error",
         description: "Failed to load available times",
@@ -308,7 +310,7 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
           );
           if (aiReason) appointmentReason = aiReason;
         } catch (err) {
-          console.error('Failed to generate AI reason:', err);
+          logger.error('Failed to generate AI reason:', err);
         }
       }
 
@@ -359,7 +361,7 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
       sessionStorage.removeItem('aiBookingData');
       // Do not navigate immediately; let user choose next action in the success dialog
     } catch (error) {
-      console.error("Error booking appointment:", error);
+      logger.error("Error booking appointment:", error);
       toast({
         title: "Booking Failed",
         description: "Please try again",
@@ -421,33 +423,61 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
       />
       {bookingStep === 'dentist' && (
         <div className="max-w-6xl mx-auto p-4 py-8 space-y-6">
-          {/* Header */}
-          <div className="flex items-center justify-between">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate(-1)}
-              className="gap-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back to chat
-            </Button>
-            
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate('/book-appointment')}
-              className="text-xs text-muted-foreground hover:text-primary"
-            >
-              Switch to Classic Booking →
-            </Button>
+          {/* Enhanced Header with Animated Background */}
+          <div className="relative overflow-hidden bg-gradient-to-br from-purple-50 via-blue-50 to-cyan-50 dark:from-purple-950/20 dark:via-blue-950/20 dark:to-cyan-950/20 rounded-2xl p-6 mb-6">
+            <AnimatedBackground />
+
+            <div className="relative z-10">
+              <div className="flex items-center justify-between mb-4">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigate(-1)}
+                  className="gap-2 hover:bg-white/50"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  Back to chat
+                </Button>
+
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigate('/book-appointment')}
+                  className="gap-2 text-muted-foreground hover:text-primary hover:bg-white/50"
+                >
+                  <CalendarDays className="h-4 w-4" />
+                  <span className="hidden sm:inline">Switch to Classic Booking</span>
+                </Button>
+              </div>
+
+              <div className="text-center space-y-3">
+                <div className="flex items-center justify-center gap-3 mb-2">
+                  <div className="p-3 bg-gradient-to-br from-purple-500 to-cyan-500 rounded-xl shadow-lg animate-pulse">
+                    <Bot className="h-6 w-6 text-white" />
+                  </div>
+                  <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-purple-600 to-cyan-600 bg-clip-text text-transparent">
+                    AI-Powered Booking
+                  </h1>
+                </div>
+                <p className="text-muted-foreground max-w-2xl mx-auto">
+                  {recommendedDentists.length > 0
+                    ? "We've selected the best dentists based on your conversation"
+                    : "Choose your preferred dentist and schedule a convenient time"}
+                </p>
+              </div>
+            </div>
           </div>
 
           {recommendedDentists.length > 0 && (
-            <Card className="border-primary/20 bg-gradient-to-r from-primary/5 to-secondary/5">
-              <CardContent className="p-3 flex items-center gap-3">
-                <Bot className="h-4 w-4 text-primary" />
-                <p className="text-sm font-medium">AI recommended dentists based on your needs</p>
+            <Card className="border-blue-500/30 bg-gradient-to-r from-blue-50/50 to-cyan-50/50 dark:from-blue-950/30 dark:to-cyan-950/30 shadow-md">
+              <CardContent className="p-4 flex items-center gap-3">
+                <div className="p-2 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg">
+                  <Bot className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <p className="font-semibold text-sm">AI Recommendations</p>
+                  <p className="text-xs text-muted-foreground">These dentists best match your needs based on our conversation</p>
+                </div>
               </CardContent>
             </Card>
           )}
@@ -461,53 +491,81 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
             />
           )}
 
-          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-            {dentists.map((dentist) => {
-              const isRecommended = recommendedDentists.includes(dentist.id);
-              const displayName = `${dentist.first_name || dentist.profiles?.first_name} ${dentist.last_name || dentist.profiles?.last_name}`;
+          {dentists.length === 0 ? (
+            <EmptyState
+              icon={Bot}
+              title="No Dentists Available"
+              description="This clinic doesn't have any dentists available for booking at the moment. Please try again later or contact the clinic directly."
+              action={{
+                label: "Back to Chat",
+                onClick: () => navigate(-1)
+              }}
+            />
+          ) : (
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+              {dentists.map((dentist) => {
+                const isRecommended = recommendedDentists.includes(dentist.id);
+                const displayName = `${dentist.first_name || dentist.profiles?.first_name} ${dentist.last_name || dentist.profiles?.last_name}`;
 
-              return (
-                <Card
-                  key={dentist.id}
-                  className={`cursor-pointer transition-all hover:shadow-lg hover:border-primary/40 ${
-                    isRecommended ? 'border-primary/40 ring-2 ring-primary/10' : ''
-                  }`}
-                  onClick={() => handleDentistSelect(dentist)}
-                >
-                  <CardContent className="p-4 space-y-3">
-                    <div className="flex items-start gap-3">
-                      <Avatar className="h-14 w-14">
-                        <AvatarImage src="" />
-                        <AvatarFallback className="bg-primary/10 text-primary text-base">
-                          {getDentistInitials(dentist)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start gap-2">
-                          <h3 className="font-semibold truncate">Dr. {displayName}</h3>
-                          {isRecommended && (
-                            <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200 text-xs shrink-0">
-                              Best pick
-                            </Badge>
-                          )}
-                        </div>
-                        <p className="text-sm text-muted-foreground capitalize">
-                          {dentist.specialization || 'General Dentistry'}
-                        </p>
-                        <div className="flex items-center gap-1 mt-1">
-                          {[1, 2, 3, 4].map((i) => (
-                            <Star key={i} className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                          ))}
-                          <Star className="h-3 w-3 fill-yellow-400 text-yellow-400 opacity-50" />
-                          <span className="text-xs text-muted-foreground ml-1">4.87</span>
+                return (
+                  <Card
+                    key={dentist.id}
+                    className={`group cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${
+                      isRecommended
+                        ? 'border-yellow-400/50 ring-2 ring-yellow-400/20 bg-gradient-to-br from-yellow-50/50 to-amber-50/50 dark:from-yellow-950/20 dark:to-amber-950/20 hover:shadow-yellow-500/20'
+                        : 'hover:shadow-blue-500/10 hover:border-blue-500/40'
+                    }`}
+                    onClick={() => handleDentistSelect(dentist)}
+                  >
+                    <CardContent className="p-4 space-y-3">
+                      <div className="flex items-start gap-3">
+                        <Avatar className={`h-14 w-14 ring-2 transition-all ${
+                          isRecommended
+                            ? 'ring-yellow-400/30 group-hover:ring-yellow-400/50'
+                            : 'ring-primary/10 group-hover:ring-primary/30'
+                        }`}>
+                          <AvatarImage src="" />
+                          <AvatarFallback className={`text-base font-bold ${
+                            isRecommended
+                              ? 'bg-gradient-to-br from-yellow-400/20 to-amber-400/20 text-yellow-700'
+                              : 'bg-gradient-to-br from-blue-500/10 to-purple-500/10 text-primary'
+                          }`}>
+                            {getDentistInitials(dentist)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start gap-2 mb-1">
+                            <h3 className={`font-semibold truncate transition-colors ${
+                              isRecommended
+                                ? 'group-hover:text-yellow-700'
+                                : 'group-hover:text-blue-600'
+                            }`}>
+                              Dr. {displayName}
+                            </h3>
+                            {isRecommended && (
+                              <Badge className="bg-gradient-to-r from-yellow-100 to-amber-100 text-yellow-800 border-yellow-300 text-xs shrink-0 shadow-sm">
+                                ⭐ Best pick
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-sm text-muted-foreground capitalize">
+                            {dentist.specialization || 'General Dentistry'}
+                          </p>
+                          <div className="flex items-center gap-1 mt-1">
+                            {[1, 2, 3, 4].map((i) => (
+                              <Star key={i} className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                            ))}
+                            <Star className="h-3 w-3 fill-yellow-400 text-yellow-400 opacity-50" />
+                            <span className="text-xs text-muted-foreground ml-1">4.87</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 
@@ -716,12 +774,13 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
 
                   {/* Book Button */}
                   <Button
-                    className="w-full h-12 text-base"
+                    className="w-full h-12 text-base bg-gradient-to-r from-purple-600 to-cyan-600 hover:from-purple-700 hover:to-cyan-700 shadow-lg hover:shadow-xl transition-all duration-300"
                     size="lg"
                     disabled={!selectedDate || !selectedTime}
                     onClick={() => setBookingStep('confirm')}
                   >
-                    Book an appointment
+                    <Bot className="h-5 w-5 mr-2" />
+                    Book with AI Assistant
                   </Button>
                 </CardContent>
               </Card>

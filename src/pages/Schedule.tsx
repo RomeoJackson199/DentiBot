@@ -10,6 +10,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { format, addDays, startOfWeek, endOfWeek, eachDayOfInterval } from "date-fns";
 import { ModernLoadingSpinner } from "@/components/enhanced/ModernLoadingSpinner";
 import { useToast } from "@/hooks/use-toast";
+import { logger } from '@/lib/logger';
 
 interface RealAppointment {
   id: string;

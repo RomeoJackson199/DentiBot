@@ -1,12 +1,14 @@
 import React from "react";
-import { CreditCard } from "lucide-react";
+import { CreditCard, DollarSign, Receipt, FileText } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { useLanguage } from "@/hooks/useLanguage";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { PaymentsTab } from "@/components/patient/PaymentsTab";
 import { emitAnalyticsEvent } from "@/lib/analyticsEvents";
+import { AnimatedBackground, SectionHeader, EmptyState } from "@/components/ui/polished-components";
 
 export default function PatientBillingPage() {
   const { t } = useLanguage();
@@ -53,34 +55,66 @@ export default function PatientBillingPage() {
   }, [tab]);
 
   return (
-    <div className="space-y-4">
-      <h1 className="text-xl font-semibold flex items-center gap-2"><CreditCard className="h-5 w-5" /> {t.pnav.billing.main}</h1>
+    <div className="space-y-6">
+      {/* Enhanced Header */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 dark:from-amber-950/20 dark:via-orange-950/20 dark:to-red-950/20 rounded-2xl p-6">
+        <AnimatedBackground />
+
+        <div className="relative z-10 flex items-start justify-between">
+          <SectionHeader
+            icon={DollarSign}
+            title={t.pnav.billing.main}
+            description="Manage your payments, invoices, and billing statements"
+            gradient="from-amber-600 to-orange-600"
+          />
+          {totalDueCents > 0 && (
+            <Badge className="bg-gradient-to-r from-red-500 to-orange-500 text-white shadow-lg">
+              ${(totalDueCents / 100).toFixed(2)} due
+            </Badge>
+          )}
+        </div>
+      </div>
+
       <Tabs value={tab} onValueChange={(v) => setTab(v as any)}>
-        <TabsList>
-          <TabsTrigger value="unpaid">{t.unpaid}</TabsTrigger>
-          <TabsTrigger value="paid">{t.paid}</TabsTrigger>
-          <TabsTrigger value="statements">{t.statements}</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="unpaid" className="gap-2">
+            <CreditCard className="h-4 w-4" />
+            {t.unpaid}
+          </TabsTrigger>
+          <TabsTrigger value="paid" className="gap-2">
+            <Receipt className="h-4 w-4" />
+            {t.paid}
+          </TabsTrigger>
+          <TabsTrigger value="statements" className="gap-2">
+            <FileText className="h-4 w-4" />
+            {t.statements}
+          </TabsTrigger>
         </TabsList>
-        <div className="mt-4">
+        <div className="mt-6">
           <TabsContent value="unpaid">
             {patientId && <PaymentsTab patientId={patientId} totalDueCents={totalDueCents} />}
           </TabsContent>
           <TabsContent value="paid">
-            <Card>
-              <CardHeader><CardTitle>{t.paid}</CardTitle></CardHeader>
-              <CardContent>
-                {/* Could list paid invoices */}
-                <p className="text-sm text-muted-foreground">{t.paidInvoices}</p>
-              </CardContent>
-            </Card>
+            <EmptyState
+              icon={Receipt}
+              title="No Paid Invoices"
+              description={t.paidInvoices || "Your payment history will appear here once you've made payments."}
+              action={{
+                label: "View Unpaid",
+                onClick: () => setTab('unpaid')
+              }}
+            />
           </TabsContent>
           <TabsContent value="statements">
-            <Card>
-              <CardHeader><CardTitle>{t.statements}</CardTitle></CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">{t.downloadStatements}</p>
-              </CardContent>
-            </Card>
+            <EmptyState
+              icon={FileText}
+              title="No Statements Available"
+              description={t.downloadStatements || "Your billing statements will be available for download once generated."}
+              action={{
+                label: "Contact Support",
+                onClick: () => {}
+              }}
+            />
           </TabsContent>
         </div>
       </Tabs>

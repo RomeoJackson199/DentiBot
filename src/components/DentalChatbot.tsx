@@ -22,6 +22,7 @@ import { generateSymptomSummary } from "@/lib/symptoms";
 import { generateMedicalRecordFromChat, createMedicalRecord } from "@/lib/medicalRecords";
 import { AiDisclaimer } from "@/components/AiDisclaimer";
 import { MarkdownRenderer } from "@/components/chat/MarkdownRenderer";
+import { logger } from '@/lib/logger';
 
 interface DentalChatbotProps {
   user: User | null;

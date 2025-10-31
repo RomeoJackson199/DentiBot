@@ -20,6 +20,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, UserPlus } from "lucide-react";
+import { logger } from '@/lib/logger';
 
 interface StaffInviteDialogProps {
   dentistId: string;

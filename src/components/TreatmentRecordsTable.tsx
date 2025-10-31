@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { FileText, Search, Filter, Loader2, Calendar, User, Activity } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
 import { format } from "date-fns";
+import { logger } from '@/lib/logger';
 
 interface TreatmentRecordsTableProps {
   patientId: string;

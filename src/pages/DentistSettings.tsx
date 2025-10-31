@@ -12,6 +12,7 @@ import { useCurrentDentist } from "@/hooks/useCurrentDentist";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { getCurrentBusinessId } from "@/lib/businessUtils";
+import { logger } from '@/lib/logger';
 
 export default function DentistSettings() {
   const { dentistId } = useCurrentDentist();
@@ -44,7 +45,7 @@ export default function DentistSettings() {
       // Force reload to update role and UI
       window.location.href = '/';
     } catch (error) {
-      console.error('Error leaving clinic:', error);
+      logger.error('Error leaving clinic:', error);
       toast({
         title: "Error",
         description: "Failed to leave clinic. Please try again.",

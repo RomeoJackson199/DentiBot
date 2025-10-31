@@ -23,6 +23,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Loader2, UserPlus, Shield } from "lucide-react";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useBusinessContext } from "@/hooks/useBusinessContext";
+import { logger } from '@/lib/logger';
 
 interface AddUserDialogProps {
   onUserAdded?: () => void;

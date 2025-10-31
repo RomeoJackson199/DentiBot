@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useBusinessContext } from "@/hooks/useBusinessContext";
+import { logger } from '@/lib/logger';
 interface ClinicBranding {
   logoUrl: string | null;
   clinicName: string | null;
@@ -63,7 +64,7 @@ export function useClinicBranding() {
         }
 
         if (!targetBusinessId) {
-          console.warn('useClinicBranding: No business context found for branding');
+          logger.warn('useClinicBranding: No business context found for branding');
           setLoading(false);
           return;
         }
@@ -88,7 +89,7 @@ export function useClinicBranding() {
           });
         }
       } catch (error) {
-        console.error('Error loading branding:', error);
+        logger.error('Error loading branding:', error);
       } finally {
         setLoading(false);
       }

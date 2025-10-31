@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { UserCog, User, Stethoscope } from "lucide-react";
+import { logger } from '@/lib/logger';
 
 export interface RoleSwitcherState {
   loading: boolean;

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/lib/logger';
 
 interface QueryOptions {
   enabled?: boolean;
@@ -107,7 +108,7 @@ export function useOptimizedQuery<T>(
       
       const error = err instanceof Error ? err : new Error('Query failed');
       setError(error);
-      console.error(`Query failed for key: ${queryKey}`, error);
+      logger.error(`Query failed for key: ${queryKey}`, error);
     } finally {
       setIsLoading(false);
     }

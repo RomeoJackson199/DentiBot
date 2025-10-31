@@ -6,6 +6,7 @@ import { EventEmailService } from '@/lib/eventEmailService';
 import { EMAIL_TEMPLATES, EVENT_SCHEMAS } from '@/lib/emailTemplates';
 import { useToast } from '@/hooks/use-toast';
 import { Calendar, Mail, Clock, CheckCircle, AlertTriangle } from 'lucide-react';
+import { logger } from '@/lib/logger';
 
 export const EmailSystemDemo = () => {
   const [isLoading, setIsLoading] = useState(false);

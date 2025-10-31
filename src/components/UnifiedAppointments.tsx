@@ -35,6 +35,7 @@ import { useLanguage } from "@/hooks/useLanguage";
 import PaymentWizard from "@/components/payments/PaymentWizard";
 import { PrescriptionManager } from "@/components/PrescriptionManager";
 import { Sheet as UISheet, SheetContent as UISheetContent } from "@/components/ui/sheet";
+import { logger } from '@/lib/logger';
 
 interface UnifiedAppointment {
   id: string;

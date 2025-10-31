@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ImageIcon, Upload, X } from "lucide-react";
 import { AiDisclaimer } from "@/components/AiDisclaimer";
+import { logger } from '@/lib/logger';
 
 interface QuickPhotoUploadProps {
   onPhotoUploaded: (url: string) => void;

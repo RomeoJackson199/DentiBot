@@ -36,6 +36,7 @@ import { AIConversationDialog } from "@/components/AIConversationDialog";
 import { CompletionSheet } from "@/components/CompletionSheet";
 import { AppointmentList } from "@/components/optimized/AppointmentList";
 import { AppointmentStats } from "@/components/optimized/AppointmentStats";
+import { logger } from '@/lib/logger';
 
 interface Appointment {
   id: string;

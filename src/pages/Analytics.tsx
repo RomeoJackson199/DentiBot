@@ -31,6 +31,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { format, subDays } from "date-fns";
 import type { DateRange } from "react-day-picker";
+import { logger } from '@/lib/logger';
 
 interface TrendPoint {
   date: string;
@@ -187,7 +188,7 @@ const Analytics = () => {
         setData(dataObj);
         setInsights(msgs.slice(0, 4));
       } catch (error) {
-        console.error("Failed to fetch analytics:", error);
+        logger.error("Failed to fetch analytics:", error);
       } finally {
         setLoading(false);
       }

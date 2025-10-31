@@ -5,6 +5,7 @@ import { Calendar, Check, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useCurrentDentist } from "@/hooks/useCurrentDentist";
+import { logger } from '@/lib/logger';
 
 export function GoogleCalendarConnect() {
   const [isConnected, setIsConnected] = useState(false);

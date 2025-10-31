@@ -9,6 +9,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Badge } from "@/components/ui/badge";
 import { CalendarDays, Clock, CheckCircle, User as UserIcon } from "lucide-react";
 import { format, addDays, startOfDay } from "date-fns";
+import { logger } from '@/lib/logger';
 
 interface ChatBookingFlowProps {
   user: User;

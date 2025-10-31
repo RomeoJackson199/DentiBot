@@ -12,6 +12,7 @@ import { format, addDays, subDays, parseISO, startOfWeek, endOfWeek } from "date
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
+import { logger } from '@/lib/logger';
 export default function DentistAppointmentsManagement() {
   const {
     dentistId,
@@ -47,7 +48,7 @@ export default function DentistAppointmentsManagement() {
       });
 
       if (error) {
-        console.error('Error fetching Google Calendar events:', error);
+        logger.error('Error fetching Google Calendar events:', error);
         return [];
       }
 
@@ -114,7 +115,7 @@ export default function DentistAppointmentsManagement() {
         exact: false
       });
     } catch (error) {
-      console.error('Failed to update appointment status:', error);
+      logger.error('Failed to update appointment status:', error);
       toast({
         title: "Error",
         description: "Failed to update appointment status",

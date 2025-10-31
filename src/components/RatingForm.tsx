@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguageDetection } from "@/hooks/useLanguageDetection";
 import { Star, Send, MessageCircle, Award, Clock, Heart } from "lucide-react";
+import { logger } from '@/lib/logger';
 
 interface RatingFormProps {
   appointmentId: string;

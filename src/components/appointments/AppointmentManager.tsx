@@ -17,6 +17,7 @@ import { AppointmentDialog } from './AppointmentDialog';
 import { formatClinicTime } from '@/lib/timezone';
 import { emitAnalyticsEvent } from '@/lib/analyticsEvents';
 import { cn } from '@/lib/utils';
+import { logger } from '@/lib/logger';
 
 export interface Appointment {
   id: string;

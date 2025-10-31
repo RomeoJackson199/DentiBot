@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { useLanguage } from "@/hooks/useLanguage";
 import { ReviewDialog } from "@/components/ReviewDialog";
 import { 
+import { logger } from '@/lib/logger';
   AlertDialog, 
   AlertDialogAction, 
   AlertDialogCancel, 

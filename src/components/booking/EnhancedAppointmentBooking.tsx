@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { CalendarDays, Clock, User as UserIcon, CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { clinicTimeToUtc, utcToClinicTime, getClinicTimeSlots, formatClinicTime } from "@/lib/timezone";
+import { logger } from '@/lib/logger';
 
 interface EnhancedAppointmentBookingProps {
   user: User;

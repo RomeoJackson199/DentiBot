@@ -3,6 +3,7 @@ import App from './App.tsx'
 import './index.css'
 import { performanceTracker } from './utils/performance'
 import { notify } from './lib/notify'
+import { logger } from '@/lib/logger';
 
 // Initialize performance monitoring
 if (process.env.NODE_ENV === 'development') {

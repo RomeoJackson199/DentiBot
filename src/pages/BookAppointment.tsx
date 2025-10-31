@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,18 +10,21 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { 
-  ArrowLeft, 
-  MapPin, 
-  Star, 
+import {
+  ArrowLeft,
+  MapPin,
+  Star,
   Clock,
   CalendarDays,
-  CheckCircle
+  CheckCircle,
+  Bot
 } from "lucide-react";
 import { format, startOfDay } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import ClinicMap from "@/components/Map";
 import { ServiceSelector } from "@/components/booking/ServiceSelector";
+import { logger } from '@/lib/logger';
+import { AnimatedBackground, EmptyState, GradientCard } from "@/components/ui/polished-components";
 
 interface Dentist {
   id: string;
@@ -168,7 +170,7 @@ export default function BookAppointment() {
       
       setDentists(transformedData);
     } catch (error) {
-      console.error("Error fetching dentists:", error);
+      logger.error("Error fetching dentists:", error);
       toast({
         title: "Error",
         description: "Failed to load dentists",
@@ -205,7 +207,7 @@ export default function BookAppointment() {
 
       setAvailableSlots(slots);
     } catch (error) {
-      console.error("Error fetching slots:", error);
+      logger.error("Error fetching slots:", error);
       toast({
         title: "Error",
         description: "Failed to load available times",
@@ -288,7 +290,7 @@ export default function BookAppointment() {
       });
       setShowSuccessDialog(true);
     } catch (error) {
-      console.error('Error booking appointment:', error);
+      logger.error('Error booking appointment:', error);
       toast({
         title: t.error,
         description: t.unableToBookAppointment,
@@ -351,26 +353,47 @@ export default function BookAppointment() {
 
       {bookingStep === 'dentist' && (
         <div className="max-w-6xl mx-auto p-4 py-8 space-y-6">
-          <div className="flex items-center justify-between">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate(-1)}
-              className="gap-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back
-            </Button>
+          {/* Enhanced Header with Animated Background */}
+          <div className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-blue-950/20 dark:via-purple-950/20 dark:to-pink-950/20 rounded-2xl p-6 mb-6">
+            <AnimatedBackground />
 
-            
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate('/chat')}
-              className="text-xs text-muted-foreground hover:text-primary"
-            >
-              ← Switch to AI Assistant
-            </Button>
+            <div className="relative z-10">
+              <div className="flex items-center justify-between mb-4">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigate(-1)}
+                  className="gap-2 hover:bg-white/50"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  Back
+                </Button>
+
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigate('/chat')}
+                  className="gap-2 text-muted-foreground hover:text-primary hover:bg-white/50"
+                >
+                  <Bot className="h-4 w-4" />
+                  <span className="hidden sm:inline">Switch to AI Assistant</span>
+                </Button>
+              </div>
+
+              <div className="text-center space-y-3">
+                <div className="flex items-center justify-center gap-3 mb-2">
+                  <div className="p-3 bg-gradient-to-br from-blue-500 to-purple-500 rounded-xl shadow-lg">
+                    <CalendarDays className="h-6 w-6 text-white" />
+                  </div>
+                  <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                    Book an Appointment
+                  </h1>
+                </div>
+                <p className="text-muted-foreground max-w-2xl mx-auto">
+                  Choose your preferred dentist and schedule a convenient time for your visit
+                </p>
+              </div>
+            </div>
           </div>
 
           {/* Service Selection */}
@@ -382,43 +405,57 @@ export default function BookAppointment() {
             />
           )}
 
-          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-            {dentists.map((dentist) => {
-              const displayName = `${dentist.first_name || dentist.profiles?.first_name} ${dentist.last_name || dentist.profiles?.last_name}`;
+          {dentists.length === 0 ? (
+            <EmptyState
+              icon={CalendarDays}
+              title="No Dentists Available"
+              description="This clinic doesn't have any dentists available for booking at the moment. Please try again later or contact the clinic directly."
+              action={{
+                label: "Go Back",
+                onClick: () => navigate(-1)
+              }}
+            />
+          ) : (
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+              {dentists.map((dentist) => {
+                const displayName = `${dentist.first_name || dentist.profiles?.first_name} ${dentist.last_name || dentist.profiles?.last_name}`;
 
-              return (
-                <Card
-                  key={dentist.id}
-                  className="cursor-pointer transition-all hover:shadow-lg hover:border-primary/40"
-                  onClick={() => handleDentistSelect(dentist)}
-                >
-                  <CardContent className="p-4 space-y-3">
-                    <div className="flex items-start gap-3">
-                      <Avatar className="h-14 w-14">
-                        <AvatarImage src="" />
-                        <AvatarFallback className="bg-primary/10 text-primary text-base">
-                          {getDentistInitials(dentist)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold truncate">Dr. {displayName}</h3>
-                        <p className="text-sm text-muted-foreground capitalize">
-                          {dentist.specialization || 'General Dentistry'}
-                        </p>
-                        <div className="flex items-center gap-1 mt-1">
-                          {[1, 2, 3, 4].map((i) => (
-                            <Star key={i} className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                          ))}
-                          <Star className="h-3 w-3 fill-yellow-400 text-yellow-400 opacity-50" />
-                          <span className="text-xs text-muted-foreground ml-1">4.87</span>
+                return (
+                  <Card
+                    key={dentist.id}
+                    className="group cursor-pointer transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/10 hover:border-blue-500/40 hover:-translate-y-1"
+                    onClick={() => handleDentistSelect(dentist)}
+                  >
+                    <CardContent className="p-4 space-y-3">
+                      <div className="flex items-start gap-3">
+                        <Avatar className="h-14 w-14 ring-2 ring-primary/10 group-hover:ring-primary/30 transition-all">
+                          <AvatarImage src="" />
+                          <AvatarFallback className="bg-gradient-to-br from-blue-500/10 to-purple-500/10 text-primary text-base font-bold">
+                            {getDentistInitials(dentist)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold truncate group-hover:text-blue-600 transition-colors">
+                            Dr. {displayName}
+                          </h3>
+                          <p className="text-sm text-muted-foreground capitalize">
+                            {dentist.specialization || 'General Dentistry'}
+                          </p>
+                          <div className="flex items-center gap-1 mt-1">
+                            {[1, 2, 3, 4].map((i) => (
+                              <Star key={i} className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                            ))}
+                            <Star className="h-3 w-3 fill-yellow-400 text-yellow-400 opacity-50" />
+                            <span className="text-xs text-muted-foreground ml-1">4.87</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 
@@ -558,11 +595,12 @@ export default function BookAppointment() {
                   )}
 
                   <Button
-                    className="w-full h-12 text-base"
+                    className="w-full h-12 text-base bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300"
                     size="lg"
                     disabled={!selectedDate || !selectedTime}
                     onClick={() => setBookingStep('confirm')}
                   >
+                    <CalendarDays className="h-5 w-5 mr-2" />
                     Book an appointment
                   </Button>
                 </CardContent>

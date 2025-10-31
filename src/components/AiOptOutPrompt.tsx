@@ -11,6 +11,7 @@ import {
   DialogTitle 
 } from "@/components/ui/dialog";
 import { Bot, X, Check } from "lucide-react";
+import { logger } from '@/lib/logger';
 
 interface AiOptOutPromptProps {
   user: User;

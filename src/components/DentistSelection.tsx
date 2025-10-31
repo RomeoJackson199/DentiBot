@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Star, MapPin, Clock, Check, User, Award, Heart, Shield } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
+import { logger } from '@/lib/logger';
 
 interface Dentist {
   id: string;

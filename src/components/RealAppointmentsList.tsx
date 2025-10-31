@@ -29,6 +29,7 @@ import {
   AlertDialogTrigger
 } from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
+import { logger } from '@/lib/logger';
 
 interface Appointment {
   id: string;

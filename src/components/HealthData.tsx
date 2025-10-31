@@ -28,6 +28,7 @@ import { PrescriptionManager } from "@/components/PrescriptionManager";
 import { TreatmentPlanManager } from "@/components/TreatmentPlanManager";
 import SimpleAppointmentBooking from "@/components/SimpleAppointmentBooking";
 import { AIConversationDialog } from "@/components/AIConversationDialog";
+import { logger } from '@/lib/logger';
 
 interface HealthDataProps {
   user: User;

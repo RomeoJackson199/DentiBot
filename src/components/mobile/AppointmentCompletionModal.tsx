@@ -17,6 +17,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { withSchemaReloadRetry } from "@/integrations/supabase/retry";
 import { SKU_DISPLAY_NAME, PROCEDURE_DEFS, type ProcedureDef } from "@/lib/constants";
+import { logger } from '@/lib/logger';
 
 interface AppointmentCompletionModalProps {
 	open: boolean;

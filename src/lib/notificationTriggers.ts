@@ -1,5 +1,6 @@
 import { NotificationService } from './notificationService';
 import { supabase } from '../integrations/supabase/client';
+import { logger } from '@/lib/logger';
 
 export class NotificationTriggers {
   // Trigger notification when a new prescription is created

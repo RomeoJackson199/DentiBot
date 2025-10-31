@@ -22,6 +22,7 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { TimelineAppointmentCard } from "@/components/patient/TimelineAppointmentCard";
 import { AppointmentStatusBadge } from "@/components/patient/AppointmentStatusBadge";
 import { useBusinessContext } from "@/hooks/useBusinessContext";
+import { logger } from '@/lib/logger';
 
 export interface AppointmentsTabProps {
   user: User;

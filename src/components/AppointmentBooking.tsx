@@ -13,6 +13,7 @@ import { CalendarDays, Clock, User as UserIcon, CheckCircle, XCircle, Loader2 } 
 import { cn } from "@/lib/utils";
 import { createMedicalRecord } from "@/lib/medicalRecords";
 import { showAppointmentConfirmed } from "@/lib/successNotifications";
+import { logger } from '@/lib/logger';
 
 interface AppointmentBookingProps {
   user: User;

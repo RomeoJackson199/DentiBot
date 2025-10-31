@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState, useEffect } from "react";
 import { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,6 +9,8 @@ import { format } from "date-fns";
 import { NextAppointmentWidget } from "@/components/NextAppointmentWidget";
 import { ServicesQuickLink } from "@/components/dashboard/ServicesQuickLink";
 import { useBusinessTemplate } from "@/hooks/useBusinessTemplate";
+import { logger } from '@/lib/logger';
+import { AnimatedBackground, StatCard, EmptyState } from "@/components/ui/polished-components";
 
 interface ClinicalTodayProps {
 	user: User;
@@ -71,7 +72,7 @@ export function ClinicalToday({ user, dentistId, onOpenPatientsTab, onOpenAppoin
 					.order('appointment_date', { ascending: true });
 
 				if (todayError) {
-					console.error('❌ Error fetching today appointments:', { code: todayError.code, message: todayError.message, details: (todayError as any)?.details });
+					logger.error('❌ Error fetching today appointments:', { code: todayError.code, message: todayError.message, details: (todayError as any)?.details });
 				}
 
 				// Count urgent cases
@@ -104,7 +105,7 @@ export function ClinicalToday({ user, dentistId, onOpenPatientsTab, onOpenAppoin
 				});
 				setTodayAppointments(todayAppts || []);
 			} catch (error) {
-				console.error('Error fetching dashboard data:', error);
+				logger.error('Error fetching dashboard data:', error);
 			} finally {
 				setLoading(false);
 			}
@@ -139,75 +140,51 @@ export function ClinicalToday({ user, dentistId, onOpenPatientsTab, onOpenAppoin
 
 	return (
 		<div className="space-y-6 p-6">
-			{/* Welcome Header */}
-			<div className="space-y-1">
-				<h1 className="text-3xl font-bold tracking-tight">
-					Good {today.getHours() < 12 ? 'morning' : today.getHours() < 18 ? 'afternoon' : 'evening'}
-				</h1>
-				<p className="text-muted-foreground">
-					{format(today, 'EEEE, MMMM d, yyyy')}
-				</p>
+			{/* Enhanced Welcome Header with Animated Background */}
+			<div className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950/20 dark:via-indigo-950/20 dark:to-purple-950/20 rounded-2xl p-6 shadow-sm">
+				<AnimatedBackground />
+
+				<div className="relative z-10 space-y-1">
+					<h1 className="text-3xl sm:text-4xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+						Good {today.getHours() < 12 ? 'morning' : today.getHours() < 18 ? 'afternoon' : 'evening'}
+					</h1>
+					<p className="text-muted-foreground font-medium">
+						{format(today, 'EEEE, MMMM d, yyyy')}
+					</p>
+				</div>
 			</div>
 
-		{/* Quick Stats */}
+		{/* Quick Stats with Polished Components */}
 		<div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-			<Card className="border-none shadow-sm">
-				<CardContent className="pt-6">
-					<div className="flex items-center justify-between">
-						<div className="space-y-1">
-							<p className="text-sm font-medium text-muted-foreground">Today</p>
-							<p className="text-2xl font-bold">{stats.todayCount}</p>
-						</div>
-						<div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-							<Calendar className="h-6 w-6 text-primary" />
-						</div>
-					</div>
-				</CardContent>
-			</Card>
+			<StatCard
+				title="Today's Appointments"
+				value={stats.todayCount.toString()}
+				icon={Calendar}
+				gradient="from-blue-500 to-cyan-500"
+			/>
 
 			{hasFeature('urgencyLevels') && (
-				<Card className="border-none shadow-sm">
-					<CardContent className="pt-6">
-						<div className="flex items-center justify-between">
-							<div className="space-y-1">
-								<p className="text-sm font-medium text-muted-foreground">Urgent</p>
-								<p className="text-2xl font-bold">{stats.urgentCount}</p>
-							</div>
-							<div className="h-12 w-12 rounded-full bg-destructive/10 flex items-center justify-center">
-								<AlertCircle className="h-6 w-6 text-destructive" />
-							</div>
-						</div>
-					</CardContent>
-				</Card>
+				<StatCard
+					title="Urgent Cases"
+					value={stats.urgentCount.toString()}
+					icon={AlertCircle}
+					gradient="from-red-500 to-orange-500"
+				/>
 			)}
 
-			<Card className="border-none shadow-sm">
-				<CardContent className="pt-6">
-					<div className="flex items-center justify-between">
-						<div className="space-y-1">
-							<p className="text-sm font-medium text-muted-foreground">Completed</p>
-							<p className="text-2xl font-bold">{stats.weekCompleted}</p>
-						</div>
-						<div className="h-12 w-12 rounded-full bg-success/10 flex items-center justify-center">
-							<CheckCircle className="h-6 w-6 text-success" />
-						</div>
-					</div>
-				</CardContent>
-			</Card>
+			<StatCard
+				title="Completed This Week"
+				value={stats.weekCompleted.toString()}
+				icon={CheckCircle}
+				gradient="from-green-500 to-emerald-500"
+			/>
 
-			<Card className="border-none shadow-sm">
-				<CardContent className="pt-6">
-					<div className="flex items-center justify-between">
-						<div className="space-y-1">
-							<p className="text-sm font-medium text-muted-foreground">{t('customerPlural')}</p>
-							<p className="text-2xl font-bold">{stats.totalPatients}</p>
-						</div>
-						<div className="h-12 w-12 rounded-full bg-accent/10 flex items-center justify-center">
-							<UserIcon className="h-6 w-6 text-accent-foreground" />
-						</div>
-					</div>
-				</CardContent>
-			</Card>
+			<StatCard
+				title={t('customerPlural')}
+				value={stats.totalPatients.toString()}
+				icon={UserIcon}
+				gradient="from-purple-500 to-pink-500"
+			/>
 		</div>
 
 			{/* Services Quick Link */}
@@ -221,26 +198,36 @@ export function ClinicalToday({ user, dentistId, onOpenPatientsTab, onOpenAppoin
 				<CardContent className="pt-6">
 					<div className="flex items-center justify-between mb-4">
 						<h2 className="text-lg font-semibold">Today's Schedule</h2>
-						<Button onClick={() => onOpenAppointmentsTab?.()} variant="ghost" size="sm">
+						<Button
+							onClick={() => onOpenAppointmentsTab?.()}
+							className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-md hover:shadow-lg transition-all"
+							size="sm"
+						>
 							<Plus className="h-4 w-4 mr-2" />
 							New Appointment
 						</Button>
 					</div>
 
 					{todayAppointments.length === 0 ? (
-						<div className="text-center py-12">
-							<Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-3 opacity-50" />
-							<p className="text-muted-foreground">No appointments scheduled for today</p>
-							<Button onClick={() => onOpenAppointmentsTab?.()} variant="outline" size="sm" className="mt-4">
-								View All Appointments
-							</Button>
-						</div>
+						<EmptyState
+							icon={Calendar}
+							title="No appointments today"
+							description="You don't have any appointments scheduled for today. Take this time to catch up on other tasks or schedule new appointments."
+							action={{
+								label: "View All Appointments",
+								onClick: () => onOpenAppointmentsTab?.()
+							}}
+							secondaryAction={{
+								label: "Schedule New",
+								onClick: () => onOpenAppointmentsTab?.()
+							}}
+						/>
 					) : (
 						<div className="space-y-3">
 							{todayAppointments.map((appointment) => (
 								<div
 									key={appointment.id}
-									className="flex items-center justify-between p-4 rounded-lg border bg-card hover:shadow-md transition-all cursor-pointer"
+									className="group flex items-center justify-between p-4 rounded-lg border bg-card hover:shadow-lg hover:shadow-blue-500/10 hover:border-blue-500/40 hover:-translate-y-0.5 transition-all duration-300 cursor-pointer"
 									onClick={() => onOpenAppointmentsTab?.()}
 								>
 									<div className="flex items-center gap-4 flex-1">

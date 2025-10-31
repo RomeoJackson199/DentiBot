@@ -29,6 +29,7 @@ import {
 import { clinicTimeToUtc, utcToClinicTime, getClinicTimeSlots } from '@/lib/timezone';
 import { emitAnalyticsEvent } from '@/lib/analyticsEvents';
 import { Appointment } from './AppointmentManager';
+import { logger } from '@/lib/logger';
 
 interface AppointmentDialogProps {
   open: boolean;

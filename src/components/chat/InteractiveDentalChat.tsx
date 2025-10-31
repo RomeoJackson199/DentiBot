@@ -32,6 +32,7 @@ import { AIChatOnboardingDialog } from "./AIChatOnboardingDialog";
 import { BookingReadyWidget } from "./BookingReadyWidget";
 import { AppointmentSuccessWidget } from "./AppointmentSuccessWidget";
 import { createAppointmentDateTime } from "@/lib/timezone";
+import { logger } from '@/lib/logger';
 
 // Widget code mapping
 const WIDGET_CODES: Record<string, string> = {
