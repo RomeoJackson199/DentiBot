@@ -141,7 +141,8 @@ export function GoogleCalendarConnect() {
           Google Calendar Integration
         </CardTitle>
         <CardDescription>
-          Sync your Google Calendar to see all your appointments in one place
+          Sync your Google Calendar to see all your appointments in one place. 
+          Appointments created here will automatically appear in your Google Calendar, and events from Google Calendar will block your availability.
         </CardDescription>
       </CardHeader>
       <CardContent>

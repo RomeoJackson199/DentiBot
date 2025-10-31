@@ -96,6 +96,17 @@ export default function DentistAppointmentsManagement() {
         updated_at: new Date().toISOString()
       }).eq("id", appointmentId);
       if (error) throw error;
+
+      // Sync to Google Calendar - delete if cancelled, otherwise update
+      try {
+        const action = newStatus === 'cancelled' ? 'delete' : 'update';
+        await supabase.functions.invoke('google-calendar-create-event', {
+          body: { appointmentId, action }
+        });
+      } catch (calendarError) {
+        logger.error('Failed to sync status change to Google Calendar:', calendarError);
+      }
+
       toast({
         title: "Success",
         description: "Appointment status updated successfully"

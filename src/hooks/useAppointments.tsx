@@ -101,6 +101,16 @@ export async function createAppointmentWithNotification(appointmentData: {
 
   if (error) throw error;
 
+  // Sync to Google Calendar
+  try {
+    await supabase.functions.invoke('google-calendar-create-event', {
+      body: { appointmentId: appointment.id, action: 'create' }
+    });
+  } catch (calendarError) {
+    logger.error('Failed to sync appointment to Google Calendar:', calendarError);
+    // Don't fail the appointment creation if Google Calendar sync fails
+  }
+
   // Send confirmation email
   try {
     const patient = appointment.patient;
@@ -291,6 +301,15 @@ export function useAppointments(params: UseAppointmentsParams): UseAppointmentsR
         .eq('id', id);
 
       if (error) throw error;
+
+      // Sync update to Google Calendar
+      try {
+        await supabase.functions.invoke('google-calendar-create-event', {
+          body: { appointmentId: id, action: 'update' }
+        });
+      } catch (calendarError) {
+        logger.error('Failed to sync appointment update to Google Calendar:', calendarError);
+      }
 
       // Optimistically update local state
       setAppointments(prev => 

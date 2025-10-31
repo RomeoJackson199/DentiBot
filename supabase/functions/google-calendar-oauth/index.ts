@@ -35,10 +35,10 @@ serve(async (req) => {
     if (action === 'get-auth-url') {
       console.log('OAuth request - clientId:', googleClientId, 'redirectUri:', redirectUri);
       
-      // Generate OAuth URL
+      // Generate OAuth URL with full calendar access for bidirectional sync
       const scopes = [
-        'https://www.googleapis.com/auth/calendar.readonly',
-        'https://www.googleapis.com/auth/calendar.events.readonly'
+        'https://www.googleapis.com/auth/calendar',
+        'https://www.googleapis.com/auth/calendar.events'
       ];
       
       const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +

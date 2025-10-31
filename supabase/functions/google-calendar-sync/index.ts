@@ -104,7 +104,7 @@ serve(async (req) => {
       .update({ google_calendar_last_sync: new Date().toISOString() })
       .eq('id', dentist.id);
     
-    // Transform events to match our format
+    // Transform events to match our format and mark slots as unavailable
     const events = (calendarData.items || []).map((event: any) => ({
       id: `gcal_${event.id}`,
       summary: event.summary || 'Untitled Event',
@@ -114,6 +114,26 @@ serve(async (req) => {
       location: event.location || '',
       isGoogleCalendarEvent: true,
     }));
+
+    // Block appointment slots for Google Calendar events
+    for (const event of events) {
+      if (event.start) {
+        const startTime = new Date(event.start);
+        const slotDate = startTime.toISOString().split('T')[0];
+        const slotTime = startTime.toISOString().split('T')[1].substring(0, 5);
+        
+        // Mark slot as unavailable
+        await supabase
+          .from('appointment_slots')
+          .update({ 
+            is_available: false,
+            updated_at: new Date().toISOString()
+          })
+          .eq('dentist_id', dentist.id)
+          .eq('slot_date', slotDate)
+          .eq('slot_time', slotTime);
+      }
+    }
     
     return new Response(
       JSON.stringify({ events, connected: true }),
