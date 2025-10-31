@@ -105,11 +105,24 @@ const PaymentSuccess: React.FC = () => {
             const servicesData = businessData.services.map((service: any) => ({
               business_id: business.id,
               name: service.name,
-              price_cents: service.price * 100,
+              description: service.description || null,
+              price_cents: Math.round((service.price || 0) * 100),
+              currency: 'EUR',
               duration_minutes: service.duration || 30,
+              category: service.category || null,
+              image_url: service.image_url || null,
+              requires_upfront_payment: service.requires_upfront_payment || false,
+              is_active: service.is_active !== undefined ? service.is_active : true,
             }));
 
-            await supabase.from('business_services').insert(servicesData);
+            const { error: servicesError } = await supabase
+              .from('business_services')
+              .insert(servicesData);
+
+            if (servicesError) {
+              console.error('Error creating services:', servicesError);
+              // Don't throw, just log the error so business creation can complete
+            }
           }
 
           // Update promo code usage if used

@@ -229,6 +229,75 @@ export const dentistProfileSchema = z.object({
   }).optional(),
 });
 
+// ==================== SERVICES & PRODUCTS ====================
+
+export const serviceSchema = z.object({
+  name: z.string()
+    .min(2, "Service name is required")
+    .max(200, "Service name is too long")
+    .regex(/^[a-zA-Z0-9\s\-'&.,()]+$/, "Service name contains invalid characters"),
+  description: z.string()
+    .max(2000, "Description is too long")
+    .optional()
+    .or(z.literal('')),
+  price: z.number()
+    .nonnegative("Price cannot be negative")
+    .max(1000000, "Price is too high")
+    .refine(val => Number.isFinite(val), "Price must be a valid number"),
+  priceCents: z.number()
+    .int("Price must be a whole number of cents")
+    .nonnegative("Price cannot be negative")
+    .max(100000000, "Price is too high"),
+  currency: z.enum(['EUR', 'USD', 'GBP'], {
+    errorMap: () => ({ message: "Invalid currency" }),
+  }),
+  duration_minutes: z.number()
+    .int("Duration must be a whole number")
+    .min(5, "Minimum duration is 5 minutes")
+    .max(480, "Maximum duration is 8 hours")
+    .optional()
+    .nullable(),
+  category: z.string()
+    .max(100, "Category name is too long")
+    .regex(/^[a-zA-Z0-9\s\-&]+$/, "Category contains invalid characters")
+    .optional()
+    .or(z.literal(''))
+    .nullable(),
+  requires_upfront_payment: z.boolean(),
+  is_active: z.boolean(),
+  image_url: z.string()
+    .url("Invalid image URL")
+    .optional()
+    .nullable()
+    .or(z.literal('')),
+});
+
+// Simplified schema for business creation step
+export const serviceCreationSchema = z.object({
+  name: z.string()
+    .min(2, "Service name is required")
+    .max(200, "Service name is too long"),
+  price: z.number()
+    .nonnegative("Price cannot be negative")
+    .max(1000000, "Price is too high"),
+  duration: z.number()
+    .int("Duration must be a whole number")
+    .min(5, "Minimum duration is 5 minutes")
+    .max(480, "Maximum duration is 8 hours")
+    .optional(),
+  description: z.string()
+    .max(2000, "Description is too long")
+    .optional(),
+  category: z.string()
+    .max(100, "Category name is too long")
+    .optional(),
+});
+
+// Array validation for multiple services
+export const servicesArraySchema = z.array(serviceCreationSchema)
+  .min(1, "At least one service is required")
+  .max(50, "Maximum 50 services allowed");
+
 // ==================== PAYMENT ====================
 
 export const paymentRequestSchema = z.object({
@@ -337,6 +406,29 @@ export function getValidationErrorMessages(
   return messages;
 }
 
+/**
+ * Sanitize string input by trimming whitespace and removing control characters
+ */
+export function sanitizeString(input: string | null | undefined): string {
+  if (!input) return '';
+  return input
+    .trim()
+    .replace(/[\x00-\x1F\x7F-\x9F]/g, '') // Remove control characters
+    .replace(/\s+/g, ' '); // Normalize whitespace
+}
+
+/**
+ * Sanitize service data before saving to database
+ */
+export function sanitizeServiceData(data: any): any {
+  return {
+    ...data,
+    name: sanitizeString(data.name),
+    description: data.description ? sanitizeString(data.description) : null,
+    category: data.category ? sanitizeString(data.category) : null,
+  };
+}
+
 // ==================== TYPE EXPORTS ====================
 
 export type SignupFormData = z.infer<typeof signupSchema>;
@@ -349,6 +441,8 @@ export type PrescriptionData = z.infer<typeof prescriptionSchema>;
 export type TreatmentPlanData = z.infer<typeof treatmentPlanSchema>;
 export type BusinessCreationData = z.infer<typeof businessCreationSchema>;
 export type DentistProfileData = z.infer<typeof dentistProfileSchema>;
+export type ServiceData = z.infer<typeof serviceSchema>;
+export type ServiceCreationData = z.infer<typeof serviceCreationSchema>;
 export type PaymentRequestData = z.infer<typeof paymentRequestSchema>;
 export type InventoryItemData = z.infer<typeof inventoryItemSchema>;
 export type NotificationPreferencesData = z.infer<typeof notificationPreferencesSchema>;
