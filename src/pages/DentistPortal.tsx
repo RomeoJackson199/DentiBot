@@ -29,6 +29,9 @@ import { useBusinessContext } from "@/hooks/useBusinessContext";
 import Messages from "./Messages";
 import { ServiceManager } from "@/components/services/ServiceManager";
 import { UserTour, useUserTour } from "@/components/UserTour";
+import { DentistDemoTour } from "@/components/DentistDemoTour";
+import { HelpCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface DentistPortalProps {
   user?: User | null;
@@ -45,6 +48,7 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
   const [businessInfo, setBusinessInfo] = useState<{ id: string; name: string } | null>(null);
   const { hasFeature, loading: templateLoading } = useBusinessTemplate();
   const { showTour, closeTour } = useUserTour("dentist");
+  const [showDemoTour, setShowDemoTour] = useState(false);
 
   // Handle URL-based section navigation
   useEffect(() => {
@@ -257,6 +261,19 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
       dentistId={dentistId}
     >
       <div className="space-y-4">
+        {/* Demo Tour Trigger Button */}
+        <div className="flex justify-end px-6 pt-4">
+          <Button
+            onClick={() => setShowDemoTour(true)}
+            variant="outline"
+            size="sm"
+            className="gap-2"
+          >
+            <HelpCircle className="h-4 w-4" />
+            Start Tour
+          </Button>
+        </div>
+
         <SubscriptionBanner dentistId={dentistId} />
         {activeSection === 'users' && businessInfo && (
           <div className="flex justify-end mb-4">
@@ -279,6 +296,13 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
 
       {/* User Tour */}
       <UserTour isOpen={showTour} onClose={closeTour} userRole="dentist" />
+
+      {/* Demo Tour */}
+      <DentistDemoTour
+        run={showDemoTour}
+        onClose={() => setShowDemoTour(false)}
+        onChangeSection={setActiveSection}
+      />
     </DentistAppShell>
   );
 }
