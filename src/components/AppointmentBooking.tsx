@@ -236,59 +236,111 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
       const [hours, minutes] = selectedTime.split(":");
       appointmentDateTime.setHours(parseInt(hours), parseInt(minutes));
 
-      // First, try to book the slot using existing function
+      // If rescheduling, release the old appointment's slot first
+      if (rescheduleAppointmentId && existingAppointment) {
+        try {
+          const oldDate = new Date(existingAppointment.appointment_date);
+          const oldTime = oldDate.toTimeString().substring(0, 5);
+          
+          await supabase.rpc('release_appointment_slot', {
+            p_appointment_id: rescheduleAppointmentId
+          });
+          
+          // Also mark the old slot as available
+          await supabase
+            .from('appointment_slots')
+            .update({ 
+              is_available: true, 
+              appointment_id: null 
+            })
+            .eq('dentist_id', existingAppointment.dentist_id)
+            .eq('slot_date', oldDate.toISOString().split('T')[0])
+            .eq('slot_time', oldTime);
+        } catch (releaseError) {
+          console.error('Error releasing old slot:', releaseError);
+        }
+      }
+
+      // Try to book the new slot
       const { error: slotBookingError } = await supabase.rpc('book_appointment_slot', {
         p_dentist_id: selectedDentist,
         p_slot_date: selectedDate.toISOString().split('T')[0],
         p_slot_time: selectedTime,
-        p_appointment_id: 'temp-id' // Will be updated after appointment creation
+        p_appointment_id: rescheduleAppointmentId || 'temp-id'
       });
 
       if (slotBookingError) {
         throw new Error("Ce créneau n'est plus disponible");
       }
 
-      // If slot reservation successful, create the appointment
-      const { data: appointmentData, error: appointmentError } = await supabase
-        .from("appointments")
-        .insert({
-          patient_id: profile.id,
-          dentist_id: selectedDentist,
-          appointment_date: appointmentDateTime.toISOString(),
-          reason: reason || "Consultation générale",
-          status: "confirmed", // Set to confirmed since slot is reserved
-          urgency: "medium"
-        })
-        .select()
-        .single();
+      let appointmentData;
 
-      if (appointmentError) {
-        // If appointment creation fails, release the slot
-        await supabase.rpc('release_appointment_slot', {
-          p_appointment_id: 'temp-id'
-        });
-        throw appointmentError;
-      }
-
-      // Update slot with actual appointment ID
-      await supabase.rpc('book_appointment_slot', {
-        p_dentist_id: selectedDentist,
-        p_slot_date: selectedDate.toISOString().split('T')[0],
-        p_slot_time: selectedTime,
-        p_appointment_id: appointmentData.id
-      });
-      
-      // If rescheduling, cancel the old appointment
       if (rescheduleAppointmentId) {
-        await supabase
-          .from('appointments')
-          .update({ status: 'cancelled' })
-          .eq('id', rescheduleAppointmentId);
+        // Update existing appointment
+        const { data, error: updateError } = await supabase
+          .from("appointments")
+          .update({
+            dentist_id: selectedDentist,
+            appointment_date: appointmentDateTime.toISOString(),
+            reason: reason || "Consultation générale",
+            status: "confirmed"
+          })
+          .eq('id', rescheduleAppointmentId)
+          .select()
+          .single();
+
+        if (updateError) {
+          // If update fails, release the new slot
+          await supabase.rpc('release_appointment_slot', {
+            p_appointment_id: rescheduleAppointmentId
+          });
+          throw updateError;
+        }
+        appointmentData = data;
+      } else {
+        // Create new appointment
+        const { data, error: appointmentError } = await supabase
+          .from("appointments")
+          .insert({
+            patient_id: profile.id,
+            dentist_id: selectedDentist,
+            appointment_date: appointmentDateTime.toISOString(),
+            reason: reason || "Consultation générale",
+            status: "confirmed",
+            urgency: "medium"
+          })
+          .select()
+          .single();
+
+        if (appointmentError) {
+          // If appointment creation fails, release the slot
+          await supabase.rpc('release_appointment_slot', {
+            p_appointment_id: 'temp-id'
+          });
+          throw appointmentError;
+        }
+
+        // Update slot with actual appointment ID
+        await supabase.rpc('book_appointment_slot', {
+          p_dentist_id: selectedDentist,
+          p_slot_date: selectedDate.toISOString().split('T')[0],
+          p_slot_time: selectedTime,
+          p_appointment_id: data.id
+        });
+        
+        appointmentData = data;
       }
 
       showAppointmentConfirmed(
         `${selectedDate.toLocaleDateString()} at ${selectedTime}`
       );
+
+      toast({
+        title: rescheduleAppointmentId ? "Rendez-vous reprogrammé" : "Rendez-vous confirmé",
+        description: rescheduleAppointmentId 
+          ? `Votre rendez-vous a été reprogrammé pour le ${selectedDate.toLocaleDateString()} à ${selectedTime}`
+          : `Votre rendez-vous est confirmé pour le ${selectedDate.toLocaleDateString()} à ${selectedTime}`,
+      });
 
       // Create a medical record for this appointment (non-blocking)
       try {
