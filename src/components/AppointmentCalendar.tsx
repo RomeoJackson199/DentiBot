@@ -14,6 +14,7 @@ import { DentistSelection } from "@/components/DentistSelection";
 import { PatientSelection } from "@/components/PatientSelection";
 import { CheckCircle, ArrowLeft, ArrowRight } from "lucide-react";
 import { logger } from '@/lib/logger';
+import { clinicTimeToUtc } from "@/lib/timezone";
 
 interface AppointmentCalendarProps {
   user: User;
@@ -70,9 +71,12 @@ export const AppointmentCalendar = ({ user, onComplete, onCancel, onBackToDentis
 
       if (profileError) throw profileError;
 
-      const appointmentDateTime = new Date(selectedDate);
-      const [hours, minutes] = selectedTime.split(":");
-      appointmentDateTime.setHours(parseInt(hours), parseInt(minutes));
+      const dateStr = selectedDate.toISOString().split('T')[0];
+
+      // Create appointment with proper timezone handling
+      const appointmentDateTime = clinicTimeToUtc(
+        new Date(`${dateStr}T${selectedTime}:00`)
+      );
 
       // Note: AppointmentCalendar needs business_id - this should be passed as a prop
       // For now, using addBusinessContext which gets it from session

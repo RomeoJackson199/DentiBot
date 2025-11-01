@@ -27,6 +27,7 @@ import ClinicMap from "@/components/Map";
 import { ServiceSelector } from "@/components/booking/ServiceSelector";
 import { logger } from '@/lib/logger';
 import { AnimatedBackground, EmptyState } from "@/components/ui/polished-components";
+import { clinicTimeToUtc } from "@/lib/timezone";
 
 interface Dentist {
   id: string;
@@ -288,9 +289,12 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
         return;
       }
 
-      const appointmentDateTime = new Date(selectedDate);
-      const [hours, minutes] = selectedTime.split(":");
-      appointmentDateTime.setHours(parseInt(hours), parseInt(minutes));
+      const dateStr = selectedDate.toISOString().split('T')[0];
+
+      // Create appointment with proper timezone handling
+      const appointmentDateTime = clinicTimeToUtc(
+        new Date(`${dateStr}T${selectedTime}:00`)
+      );
 
       let appointmentReason = "General consultation";
       if (bookingData?.messages?.length > 0) {
@@ -298,9 +302,9 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
           const { generateAppointmentReason } = await import("@/lib/symptoms");
           const aiReason = await generateAppointmentReason(
             bookingData.messages as any,
-            { 
-              id: profile.id, 
-              first_name: profile.first_name, 
+            {
+              id: profile.id,
+              first_name: profile.first_name,
               last_name: profile.last_name,
               user_id: profile.user_id,
               email: profile.email,
@@ -313,8 +317,6 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
           logger.error('Failed to generate AI reason:', err);
         }
       }
-
-      const dateStr = selectedDate.toISOString().split('T')[0];
 
       const { data: appointmentData, error: appointmentError } = await supabase
         .from("appointments")

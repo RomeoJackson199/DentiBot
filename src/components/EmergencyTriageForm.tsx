@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { bookAppointment } from "@/lib/mockApi";
 import { supabase } from "@/integrations/supabase/client";
 import { logger } from '@/lib/logger';
+import { clinicTimeToUtc } from "@/lib/timezone";
 import { 
   CheckCircle, 
   Calendar, 
@@ -128,7 +129,10 @@ const handleTriageComplete = (urgency: 'low' | 'medium' | 'high' | 'emergency', 
       }
 
       const dentist = dentists[0];
-      const appointmentDateTime = new Date(`${bookingData.date}T${bookingData.time}`);
+      // Convert clinic time to UTC for database storage
+      const appointmentDateTime = clinicTimeToUtc(
+        new Date(`${bookingData.date}T${bookingData.time}:00`)
+      );
 
       // Create appointment in database
       const { data: appointment, error: appointmentError } = await supabase
