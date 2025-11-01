@@ -141,9 +141,18 @@ const PaymentSuccess: React.FC = () => {
             }
           }
 
+          // Mark onboarding as complete
+          await supabase
+            .from('profiles')
+            .update({ onboarding_completed: true })
+            .eq('id', profile.id);
+
           // Clear pending data
           sessionStorage.removeItem('pending_business_data');
           sessionStorage.removeItem('promo_code_used');
+          
+          // Clear tour localStorage to ensure it shows for new business owner
+          localStorage.removeItem('tour_completed_dentist');
 
           // Show business URL and copy to clipboard
           const businessUrl = `${window.location.origin}/${business.slug}`;

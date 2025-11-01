@@ -1117,6 +1117,7 @@ export type Database = {
           import_session_id: string | null
           last_name: string | null
           medical_history: string | null
+          onboarding_completed: boolean | null
           phone: string | null
           profile_completion_status: string
           role: string | null
@@ -1138,6 +1139,7 @@ export type Database = {
           import_session_id?: string | null
           last_name?: string | null
           medical_history?: string | null
+          onboarding_completed?: boolean | null
           phone?: string | null
           profile_completion_status?: string
           role?: string | null
@@ -1159,6 +1161,7 @@ export type Database = {
           import_session_id?: string | null
           last_name?: string | null
           medical_history?: string | null
+          onboarding_completed?: boolean | null
           phone?: string | null
           profile_completion_status?: string
           role?: string | null
