@@ -10,6 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { showEnhancedErrorToast } from "@/lib/enhancedErrorHandling";
+import { PatientDemoTour } from "@/components/PatientDemoTour";
+import { HelpCircle } from "lucide-react";
 
 interface Appointment {
   id: string;
@@ -42,6 +44,7 @@ export default function PatientCareHome() {
     totalAppointments: 0,
     activePrescriptions: 0,
   });
+  const [showDemoTour, setShowDemoTour] = useState(false);
 
   useEffect(() => {
     fetchPatientData();
@@ -195,15 +198,27 @@ export default function PatientCareHome() {
             Here's your dental care overview
           </p>
         </div>
+        <div className="flex items-center gap-3">
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2"
+            onClick={() => setShowDemoTour(true)}
+          >
+            <HelpCircle className="h-4 w-4" />
+            <span className="hidden sm:inline">Start Tour</span>
+          </Button>
         <Button
           size="lg"
           className="gap-2"
           onClick={() => navigate('/book-appointment')}
           aria-label={t.bookAppointment}
+          data-tour="book-appointment-btn"
         >
           <Calendar className="h-4 w-4" />
           {t.bookAppointment || "Book Appointment"}
         </Button>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -218,7 +233,7 @@ export default function PatientCareHome() {
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4" data-tour="stats-cards">
           <Card className="hover:shadow-lg transition-shadow">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
@@ -267,7 +282,7 @@ export default function PatientCareHome() {
       )}
 
       {/* Quick Actions */}
-      <div>
+      <div data-tour="quick-actions">
         <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {quickActions.map((action, index) => (
@@ -300,7 +315,7 @@ export default function PatientCareHome() {
       </div>
 
       {/* Upcoming Appointments */}
-      <div>
+      <div data-tour="upcoming-appointments">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold">Upcoming Appointments</h2>
           {upcomingAppointments.length > 0 && (
@@ -400,6 +415,12 @@ export default function PatientCareHome() {
           </p>
         </CardContent>
       </Card>
+
+      {/* Demo Tour */}
+      <PatientDemoTour
+        run={showDemoTour}
+        onClose={() => setShowDemoTour(false)}
+      />
     </div>
   );
 }

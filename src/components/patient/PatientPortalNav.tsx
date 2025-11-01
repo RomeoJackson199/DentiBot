@@ -212,7 +212,7 @@ function PatientPortalNavContent({ children }: { children: React.ReactNode }) {
       <SidebarContent>
         <nav aria-label="Primary" onKeyDown={onKeyDownNav} ref={navRef}>
           {groups.map((group) => (
-            <section key={group.id} aria-labelledby={`group-${group.id}`}>
+            <section key={group.id} aria-labelledby={`group-${group.id}`} data-tour={`nav-${group.id}`}>
               <SidebarGroup>
                 <SidebarGroupLabel
                   className="flex items-center justify-between pr-8"
