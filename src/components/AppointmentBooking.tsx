@@ -102,10 +102,13 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
     setErrorMessage(null);
 
     try {
+      // Use format to preserve Brussels date without UTC conversion
+      const dateStr = format(date, 'yyyy-MM-dd');
+
       // Generate slots with retry logic
       const { error: slotError } = await supabase.rpc('generate_daily_slots', {
         p_dentist_id: selectedDentist,
-        p_date: date.toISOString().split('T')[0]
+        p_date: dateStr
       });
 
       if (slotError && retry < 2) {
@@ -117,7 +120,7 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
         .from('appointment_slots')
         .select('slot_time, is_available, emergency_only')
         .eq('dentist_id', selectedDentist)
-        .eq('slot_date', date.toISOString().split('T')[0])
+        .eq('slot_date', dateStr)
         .order('slot_time');
 
       if (error) throw error;
@@ -190,7 +193,8 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
         return;
       }
 
-      const dateStr = selectedDate.toISOString().split('T')[0];
+      // Use format to preserve Brussels date without UTC conversion
+      const dateStr = format(selectedDate, 'yyyy-MM-dd');
 
       // Create appointment with proper timezone handling
       const appointmentDateTime = clinicTimeToUtc(
@@ -234,7 +238,7 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
       // Update slot with actual appointment ID
       await supabase.rpc('book_appointment_slot', {
         p_dentist_id: selectedDentist,
-        p_slot_date: selectedDate.toISOString().split('T')[0],
+        p_slot_date: dateStr,
         p_slot_time: selectedTime,
         p_appointment_id: appointmentData.id
       });
@@ -256,7 +260,7 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
           title: 'Appointment booked',
           description: `Rendez-vous confirmé le ${selectedDate.toLocaleDateString()} à ${selectedTime}. Motif: ${reason || 'Consultation générale'}`,
           recordType: 'appointment',
-          visitDate: selectedDate.toISOString().split('T')[0]
+          visitDate: dateStr
         });
       } catch (e) {
         console.warn('Medical record creation skipped:', e);

@@ -191,18 +191,21 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
 
   const fetchAvailableSlots = async (date: Date, dentistId: string) => {
     if (!businessId) return;
-    
+
     try {
+      // Use format to preserve Brussels date without UTC conversion
+      const dateStr = format(date, 'yyyy-MM-dd');
+
       await supabase.rpc('generate_daily_slots', {
         p_dentist_id: dentistId,
-        p_date: date.toISOString().split('T')[0]
+        p_date: dateStr
       });
 
       const { data, error } = await supabase
         .from('appointment_slots')
         .select('slot_time, is_available, emergency_only')
         .eq('dentist_id', dentistId)
-        .eq('slot_date', date.toISOString().split('T')[0])
+        .eq('slot_date', dateStr)
         .eq('business_id', businessId)
         .order('slot_time');
 
@@ -289,7 +292,8 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
         return;
       }
 
-      const dateStr = selectedDate.toISOString().split('T')[0];
+      // Use format to preserve Brussels date without UTC conversion
+      const dateStr = format(selectedDate, 'yyyy-MM-dd');
 
       // Create appointment with proper timezone handling
       const appointmentDateTime = clinicTimeToUtc(
@@ -353,7 +357,7 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
 
       // Show success dialog with Google Calendar option
       setSuccessDetails({
-        date: selectedDate.toISOString().split('T')[0],
+        date: format(selectedDate, 'yyyy-MM-dd'),
         time: selectedTime,
         dentist: `Dr. ${selectedDentist.first_name} ${selectedDentist.last_name}`,
         reason: appointmentReason

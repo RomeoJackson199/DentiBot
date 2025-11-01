@@ -108,7 +108,8 @@ export default function PublicBooking() {
     const fetchTimes = async () => {
       setLoadingTimes(true);
       setSelectedTime("");
-      const dateStr = selectedDate.toISOString().split('T')[0];
+      // Use format to preserve Brussels date without UTC conversion
+      const dateStr = format(selectedDate, 'yyyy-MM-dd');
       
       try {
         // 1. Ensure slots exist for this date (idempotent)
@@ -185,7 +186,8 @@ export default function PublicBooking() {
       if (profileError) throw profileError;
 
       // Create the appointment with proper timezone handling
-      const dateStr = selectedDate.toISOString().split('T')[0];
+      // Use format to preserve Brussels date without UTC conversion
+      const dateStr = format(selectedDate, 'yyyy-MM-dd');
       const appointmentDateTime = clinicTimeToUtc(
         new Date(`${dateStr}T${selectedTime}:00`)
       );

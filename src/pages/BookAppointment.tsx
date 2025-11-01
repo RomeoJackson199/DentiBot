@@ -187,7 +187,8 @@ export default function BookAppointment() {
     if (!businessId) return;
 
     try {
-      const dateStr = date.toISOString().split('T')[0];
+      // Use format to preserve Brussels date without UTC conversion
+      const dateStr = format(date, 'yyyy-MM-dd');
 
       // 1. First generate daily slots
       await supabase.rpc('generate_daily_slots', {
@@ -270,7 +271,8 @@ export default function BookAppointment() {
         return;
       }
 
-      const dateStr = selectedDate.toISOString().split('T')[0];
+      // Use format to preserve Brussels date without UTC conversion
+      const dateStr = format(selectedDate, 'yyyy-MM-dd');
 
       // Create appointment with proper timezone handling
       const appointmentDateTime = clinicTimeToUtc(
