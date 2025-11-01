@@ -1167,6 +1167,45 @@ export type Database = {
         }
         Relationships: []
       }
+      promo_codes: {
+        Row: {
+          code: string
+          created_at: string
+          discount_type: string
+          discount_value: number | null
+          expires_at: string | null
+          id: string
+          is_active: boolean | null
+          max_uses: number | null
+          updated_at: string
+          uses_count: number | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          discount_type: string
+          discount_value?: number | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_uses?: number | null
+          updated_at?: string
+          uses_count?: number | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          discount_type?: string
+          discount_value?: number | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_uses?: number | null
+          updated_at?: string
+          uses_count?: number | null
+        }
+        Relationships: []
+      }
       provider_business_map: {
         Row: {
           business_id: string
@@ -1605,6 +1644,7 @@ export type Database = {
         Returns: undefined
       }
       get_current_business_id: { Args: never; Returns: string }
+      increment_promo_usage: { Args: { promo_id: string }; Returns: undefined }
       is_active_dentist_profile: {
         Args: { p_profile_id: string }
         Returns: boolean
