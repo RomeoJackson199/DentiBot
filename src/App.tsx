@@ -48,6 +48,7 @@ const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
 const PaymentCancelled = lazy(() => import("./pages/PaymentCancelled"));
 const Chat = lazy(() => import("./pages/Chat"));
 const Messages = lazy(() => import("./pages/Messages"));
+const DemoDentistDashboard = lazy(() => import("./pages/demo/DemoDentistDashboard"));
 const Schedule = lazy(() => import("./pages/Schedule"));
 // RecallDeepLink removed - file doesn't exist
 const Analytics = lazy(() => import("./pages/Analytics"));
@@ -267,6 +268,8 @@ const App = () => {
                 <Suspense fallback={<ModernLoadingSpinner variant="overlay" message="Loading..." /> }>
                 <Routes>
                   <Route path="/" element={<Index />} />
+                {/* Demo routes */}
+                <Route path="/demo/dentist" element={<DemoDentistDashboard />} />
                 {/* Auth routes */}
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<Signup />} />
