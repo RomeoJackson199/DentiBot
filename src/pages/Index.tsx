@@ -6,12 +6,14 @@ import { Header } from "@/components/homepage/Header";
 import { Footer } from "@/components/homepage/Footer";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Calendar, Clock, Bell, Shield, Users, CheckCircle2, ArrowRight, Sparkles, Zap, Star } from "lucide-react";
+import { Calendar, Clock, Bell, Shield, Users, CheckCircle2, ArrowRight, Sparkles, Zap, Star, PlayCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AccessibleLoadingIndicator } from "@/components/ui/skip-to-content";
+import { DemoTourFlow } from "@/components/demo/DemoTourFlow";
 const Index = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showDemoTour, setShowDemoTour] = useState(false);
   const navigate = useNavigate();
   useEffect(() => {
     // Check for existing session
@@ -86,6 +88,16 @@ const Index = () => {
                 <Button size="lg" className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-6 text-lg shadow-lg hover:shadow-xl transition-all group" onClick={() => navigate('/signup')} aria-label="Get started with free account">
                   Get Started Free
                   <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                </Button>
+                <Button 
+                  size="lg" 
+                  variant="outline" 
+                  className="border-2 border-purple-300 hover:border-purple-600 hover:bg-purple-50 px-8 py-6 text-lg transition-all group" 
+                  onClick={() => setShowDemoTour(true)}
+                  aria-label="Try interactive demo tour"
+                >
+                  <PlayCircle className="mr-2 h-5 w-5 group-hover:scale-110 transition-transform" />
+                  Try Demo Tour
                 </Button>
                 <Button size="lg" variant="outline" className="border-2 border-gray-300 hover:border-blue-600 hover:bg-blue-50 px-8 py-6 text-lg transition-all" onClick={() => navigate('/login')} aria-label="Sign in to existing account">
                   Sign In
@@ -385,6 +397,12 @@ const Index = () => {
       </main>
 
       <Footer />
+      
+      {/* Demo Tour Modal */}
+      <DemoTourFlow 
+        isOpen={showDemoTour} 
+        onClose={() => setShowDemoTour(false)} 
+      />
     </div>;
 };
 export default Index;

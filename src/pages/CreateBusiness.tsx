@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -37,6 +37,22 @@ export default function CreateBusiness() {
   const [businessData, setBusinessData] = useState<BusinessData>({});
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showTour, setShowTour] = useState(true);
+
+  // Check for demo data on mount
+  useEffect(() => {
+    const demoBusinessName = sessionStorage.getItem('demo_business_name');
+    const demoTemplate = sessionStorage.getItem('demo_template');
+    
+    if (demoBusinessName && demoTemplate) {
+      setBusinessData({
+        name: demoBusinessName,
+        template: demoTemplate as TemplateType,
+      });
+      // Clear demo data after using it
+      sessionStorage.removeItem('demo_business_name');
+      sessionStorage.removeItem('demo_template');
+    }
+  }, []);
 
   const progress = (currentStep / STEPS.length) * 100;
 
