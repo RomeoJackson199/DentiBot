@@ -1682,6 +1682,15 @@ export type Database = {
         Args: { p_appointment_id: string }
         Returns: undefined
       }
+      reschedule_appointment: {
+        Args: {
+          p_appointment_id: string
+          p_slot_date: string
+          p_slot_time: string
+          p_user_id: string
+        }
+        Returns: boolean
+      }
       viewer_profile_id: { Args: { _viewer_user_id: string }; Returns: string }
     }
     Enums: {

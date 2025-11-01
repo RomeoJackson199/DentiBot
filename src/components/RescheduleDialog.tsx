@@ -158,58 +158,20 @@ export const RescheduleDialog = ({ appointmentId, open, onOpenChange, onSuccess 
     setProcessing(true);
 
     try {
-      const oldDate = new Date(appointment.appointment_date);
-      const oldTime = oldDate.toTimeString().substring(0, 5);
-
-      // Step 1: Release the old slot
-      try {
-        await supabase.rpc('release_appointment_slot', {
-          p_appointment_id: appointment.id
-        });
-
-        // Also mark old slot as available directly
-        await supabase
-          .from('appointment_slots')
-          .update({ is_available: true, appointment_id: null })
-          .eq('dentist_id', appointment.dentist_id)
-          .eq('slot_date', oldDate.toISOString().split('T')[0])
-          .eq('slot_time', oldTime);
-      } catch (releaseError) {
-        console.warn('Error releasing old slot:', releaseError);
+      // Atomically reschedule via secure RPC (handles RLS, releases old slot, books new slot, updates appointment)
+      const { data: userData, error: userErr } = await supabase.auth.getUser();
+      if (userErr || !userData?.user) {
+        throw new Error('You must be logged in to reschedule.');
       }
 
-      // Step 2: Book the new slot
-      const { error: bookError } = await supabase.rpc('book_appointment_slot', {
-        p_dentist_id: appointment.dentist_id,
+      const { error: rpcError } = await (supabase as any).rpc('reschedule_appointment', {
+        p_appointment_id: appointment.id,
+        p_user_id: userData.user.id,
         p_slot_date: selectedDate.toISOString().split('T')[0],
-        p_slot_time: selectedTime,
-        p_appointment_id: appointment.id
+        p_slot_time: selectedTime
       });
 
-      if (bookError) {
-        throw new Error("This time slot is no longer available. Please select another time.");
-      }
-
-      // Step 3: Update the appointment
-      const newDateTime = new Date(selectedDate);
-      const [hours, minutes] = selectedTime.split(":");
-      newDateTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
-
-      const { error: updateError } = await supabase
-        .from('appointments')
-        .update({
-          appointment_date: newDateTime.toISOString(),
-          status: 'confirmed'
-        })
-        .eq('id', appointment.id);
-
-      if (updateError) {
-        // If update fails, release the new slot
-        await supabase.rpc('release_appointment_slot', {
-          p_appointment_id: appointment.id
-        });
-        throw updateError;
-      }
+      if (rpcError) throw rpcError;
 
       // Success!
       showAppointmentRescheduled(format(selectedDate, 'MMM d, yyyy') + ' at ' + selectedTime);
@@ -224,9 +186,12 @@ export const RescheduleDialog = ({ appointmentId, open, onOpenChange, onSuccess 
 
     } catch (error: any) {
       console.error('Error rescheduling appointment:', error);
+      const message = (error?.message || '').includes('slot_unavailable')
+        ? 'This time slot is no longer available. Please select another time.'
+        : (error?.message || 'Failed to reschedule appointment');
       toast({
         title: "Error",
-        description: error.message || "Failed to reschedule appointment",
+        description: message,
         variant: "destructive"
       });
     } finally {
