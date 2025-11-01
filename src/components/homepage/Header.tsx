@@ -28,7 +28,7 @@ export const Header = ({ user, minimal = false }: HeaderProps) => {
             <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg shadow-md">
               <Calendar className="h-6 w-6 text-white" />
             </div>
-            <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Caberu</span>
+
           </a>
 
           {/* Desktop Navigation */}
