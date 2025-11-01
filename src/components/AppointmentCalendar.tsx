@@ -71,7 +71,8 @@ export const AppointmentCalendar = ({ user, onComplete, onCancel, onBackToDentis
 
       if (profileError) throw profileError;
 
-      const dateStr = selectedDate.toISOString().split('T')[0];
+      // Use format to preserve Brussels date without UTC conversion
+      const dateStr = format(selectedDate, 'yyyy-MM-dd');
 
       // Create appointment with proper timezone handling
       const appointmentDateTime = clinicTimeToUtc(
@@ -103,7 +104,7 @@ export const AppointmentCalendar = ({ user, onComplete, onCancel, onBackToDentis
 
       const { error: slotError } = await supabase.rpc('book_appointment_slot', {
         p_dentist_id: selectedDentist.id,
-        p_slot_date: selectedDate.toISOString().split('T')[0],
+        p_slot_date: dateStr,
         p_slot_time: selectedTime + ':00',
         p_appointment_id: appointmentData.id
       });

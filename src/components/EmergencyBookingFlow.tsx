@@ -284,7 +284,8 @@ export const EmergencyBookingFlow = ({ user, onComplete, onCancel }: EmergencyBo
       }
 
       // Create appointment with proper timezone handling
-      const dateStr = selectedDate.toISOString().split('T')[0];
+      // Use format to preserve Brussels date without UTC conversion
+      const dateStr = format(selectedDate, 'yyyy-MM-dd');
       const appointmentDateTime = clinicTimeToUtc(
         new Date(`${dateStr}T${selectedTime}:00`)
       );

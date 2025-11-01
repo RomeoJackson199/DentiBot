@@ -118,12 +118,15 @@ export const EnhancedAppointmentBooking = ({
     
     setLoadingTimes(true);
     setSelectedTime("");
-    
+
     try {
+      // Use format to preserve Brussels date without UTC conversion
+      const dateStr = format(date, 'yyyy-MM-dd');
+
       // Generate slots for the date
       await supabase.rpc('generate_daily_slots', {
         p_dentist_id: selectedDentist,
-        p_date: date.toISOString().split('T')[0]
+        p_date: dateStr
       });
 
       // Fetch ALL slots for comprehensive view
@@ -131,7 +134,7 @@ export const EnhancedAppointmentBooking = ({
         .from('appointment_slots')
         .select('slot_time, is_available, emergency_only')
         .eq('dentist_id', selectedDentist)
-        .eq('slot_date', date.toISOString().split('T')[0])
+        .eq('slot_date', dateStr)
         .order('slot_time');
 
       if (error) throw error;
@@ -199,15 +202,18 @@ export const EnhancedAppointmentBooking = ({
         return;
       }
 
+      // Use format to preserve Brussels date without UTC conversion
+      const dateStr = format(selectedDate, 'yyyy-MM-dd');
+
       // Create appointment datetime in clinic timezone, then convert to UTC
       const appointmentDateTime = clinicTimeToUtc(
-        new Date(`${selectedDate.toISOString().split('T')[0]}T${selectedTime}:00`)
+        new Date(`${dateStr}T${selectedTime}:00`)
       );
 
       // Book the slot first
       const { error: slotBookingError } = await supabase.rpc('book_appointment_slot', {
         p_dentist_id: selectedDentist,
-        p_slot_date: selectedDate.toISOString().split('T')[0],
+        p_slot_date: dateStr,
         p_slot_time: selectedTime + ':00',
         p_appointment_id: idempotencyKey // Use as temp ID
       });
@@ -244,7 +250,7 @@ export const EnhancedAppointmentBooking = ({
       // Update slot with actual appointment ID
       await supabase.rpc('book_appointment_slot', {
         p_dentist_id: selectedDentist,
-        p_slot_date: selectedDate.toISOString().split('T')[0],
+        p_slot_date: dateStr,
         p_slot_time: selectedTime + ':00',
         p_appointment_id: appointmentData.id
       });

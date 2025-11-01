@@ -77,17 +77,20 @@ export const ChatBookingFlow = ({
   const fetchAvailableSlots = async (date: Date, dentistId: string) => {
     setLoading(true);
     try {
+      // Use format to preserve Brussels date without UTC conversion
+      const dateStr = format(date, 'yyyy-MM-dd');
+
       // Generate slots for the date
       await supabase.rpc('generate_daily_slots', {
         p_dentist_id: dentistId,
-        p_date: date.toISOString().split('T')[0]
+        p_date: dateStr
       });
 
       const { data, error } = await supabase
         .from('appointment_slots')
         .select('slot_time, is_available, emergency_only')
         .eq('dentist_id', dentistId)
-        .eq('slot_date', date.toISOString().split('T')[0])
+        .eq('slot_date', dateStr)
         .order('slot_time');
 
       if (error) throw error;
@@ -165,7 +168,8 @@ export const ChatBookingFlow = ({
         return;
       }
 
-      const dateStr = selectedDate.toISOString().split('T')[0];
+      // Use format to preserve Brussels date without UTC conversion
+      const dateStr = format(selectedDate, 'yyyy-MM-dd');
 
       // Create appointment with proper timezone handling
       const appointmentDateTime = clinicTimeToUtc(
@@ -204,7 +208,7 @@ export const ChatBookingFlow = ({
 
       const { error: slotError } = await supabase.rpc('book_appointment_slot', {
         p_dentist_id: currentDentist.id,
-        p_slot_date: selectedDate.toISOString().split('T')[0],
+        p_slot_date: dateStr,
         p_slot_time: selectedTime,
         p_appointment_id: appointmentData.id
       });
