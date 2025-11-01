@@ -1,16 +1,13 @@
-User-agent: Googlebot
-Allow: /
-
-User-agent: Bingbot
-Allow: /
-
-User-agent: Twitterbot
-Allow: /
-
-User-agent: facebookexternalhit
-Allow: /
+# Caberu - Dental Practice Management System
+# https://caberu.app
 
 User-agent: *
 Allow: /
+Disallow: /dashboard
+Disallow: /dentist/*
+Disallow: /patient/*
+Disallow: /admin/*
+Disallow: /api/*
 
-Sitemap: https://denti-smart-scheduler.lovable.app/sitemap.xml
+# Sitemap location
+Sitemap: https://caberu.app/sitemap.xml

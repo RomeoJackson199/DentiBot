@@ -1,4 +1,4 @@
-# DentiBot - Complete Dental Practice Management System
+# Caberu - Complete Dental Practice Management System
 
 > AI-powered dental practice management platform built for modern dental professionals
 
@@ -7,9 +7,9 @@
 [![React](https://img.shields.io/badge/React-18.3-61dafb.svg)](https://reactjs.org/)
 [![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-green.svg)](https://supabase.io/)
 
-## 🦷 What is DentiBot?
+## 🦷 What is Caberu?
 
-DentiBot is a comprehensive, production-ready dental practice management platform that helps dentists and dental practices manage their entire operation from a single, intuitive interface. From appointment scheduling to patient records, billing to inventory management—everything you need to run a modern dental practice.
+Caberu is a comprehensive, production-ready dental practice management platform that helps dentists and dental practices manage their entire operation from a single, intuitive interface. From appointment scheduling to patient records, billing to inventory management—everything you need to run a modern dental practice.
 
 ### Key Features
 
@@ -36,8 +36,8 @@ DentiBot is a comprehensive, production-ready dental practice management platfor
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/yourusername/DentiBot.git
-cd DentiBot
+git clone https://github.com/yourusername/Caberu.git
+cd Caberu
 ```
 
 2. **Install dependencies**
@@ -114,7 +114,7 @@ Your application will be available at `http://localhost:5173`
 ## 📁 Project Structure
 
 ```
-DentiBot/
+Caberu/
 ├── src/
 │   ├── components/          # React components
 │   │   ├── ui/             # shadcn/ui components
@@ -140,7 +140,7 @@ DentiBot/
 
 ## 🎨 Design System
 
-DentiBot uses a comprehensive design system with:
+Caberu uses a comprehensive design system with:
 - **Color Palette**: HSL-based theming for dark/light modes
 - **Typography**: Poppins, DM Sans, Inter fonts
 - **Components**: 50+ pre-built UI components
@@ -298,9 +298,9 @@ npm run fix:types
 
 ## 📧 Support
 
-- **Email**: support@dentibot.com
-- **Documentation**: [docs.dentibot.com](https://docs.dentibot.com)
-- **Issues**: [GitHub Issues](https://github.com/yourusername/DentiBot/issues)
+- **Email**: support@caberu.app
+- **Documentation**: [docs.caberu.app](https://docs.caberu.app)
+- **Issues**: [GitHub Issues](https://github.com/yourusername/Caberu/issues)
 
 ## 📄 License
 
