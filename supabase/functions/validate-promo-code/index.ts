@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -13,26 +13,26 @@ serve(async (req) => {
   }
 
   try {
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      {
+        global: {
+          headers: { Authorization: req.headers.get('Authorization')! },
+        },
+      }
+    );
+
     const { code } = await req.json();
 
     if (!code) {
       throw new Error('Promo code is required');
     }
 
-    // Create Supabase client
-    const supabaseUrl = Deno.env.get('SUPABASE_URL');
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-
-    if (!supabaseUrl || !supabaseServiceKey) {
-      throw new Error('Supabase configuration not found');
-    }
-
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
     console.log('Validating promo code:', code);
 
-    // Query the promo_codes table
-    const { data: promoCode, error } = await supabase
+    // Query promo code from database
+    const { data: promoCode, error } = await supabaseClient
       .from('promo_codes')
       .select('*')
       .eq('code', code.toUpperCase())
@@ -42,7 +42,7 @@ serve(async (req) => {
     if (error || !promoCode) {
       console.log('Promo code not found or inactive:', error);
       return new Response(
-        JSON.stringify({ valid: false, message: 'Invalid promo code' }),
+        JSON.stringify({ valid: false, message: 'Invalid or expired promo code' }),
         {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 200,
@@ -50,9 +50,9 @@ serve(async (req) => {
       );
     }
 
-    // Check if expired
+    // Check if promo code has expired
     if (promoCode.expires_at && new Date(promoCode.expires_at) < new Date()) {
-      console.log('Promo code expired');
+      console.log('Promo code expired:', promoCode.expires_at);
       return new Response(
         JSON.stringify({ valid: false, message: 'Promo code has expired' }),
         {
@@ -62,9 +62,9 @@ serve(async (req) => {
       );
     }
 
-    // Check if max uses reached
-    if (promoCode.max_uses !== null && promoCode.uses_count >= promoCode.max_uses) {
-      console.log('Promo code max uses reached');
+    // Check if promo code has reached max uses
+    if (promoCode.max_uses && promoCode.uses_count >= promoCode.max_uses) {
+      console.log('Promo code max uses reached:', { uses_count: promoCode.uses_count, max_uses: promoCode.max_uses });
       return new Response(
         JSON.stringify({ valid: false, message: 'Promo code has reached its usage limit' }),
         {
@@ -74,12 +74,11 @@ serve(async (req) => {
       );
     }
 
-    console.log('Promo code is valid:', promoCode);
+    console.log('Promo code validated successfully:', promoCode);
 
-    // Return valid promo code
     return new Response(
-      JSON.stringify({
-        valid: true,
+      JSON.stringify({ 
+        valid: true, 
         promoCode: {
           id: promoCode.id,
           code: promoCode.code,

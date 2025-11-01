@@ -547,7 +547,7 @@ export const DentistOnboardingFlow = ({ isOpen, onClose, userId }: DentistOnboar
   const isStepValid = () => {
     switch (currentStep) {
       case 0:
-        return data.role !== "";
+        return !!data.role;
       case 1:
         return data.practiceName && data.practiceType && data.specialty;
       case 2:

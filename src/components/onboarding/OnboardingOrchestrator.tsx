@@ -29,7 +29,7 @@ export const OnboardingOrchestrator = ({ user }: OnboardingOrchestratorProps) =>
       // Check if user has completed onboarding
       const { data: profile, error } = await supabase
         .from('profiles')
-        .select('onboarding_completed, role')
+        .select('id, onboarding_completed, role')
         .eq('user_id', user.id)
         .single();
 

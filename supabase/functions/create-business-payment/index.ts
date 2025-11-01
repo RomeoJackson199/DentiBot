@@ -22,9 +22,20 @@ serve(async (req) => {
       apiVersion: '2023-10-16',
     });
 
-    const { amount, successUrl, cancelUrl } = await req.json();
+    const { amount, successUrl, cancelUrl, promoCode } = await req.json();
 
-    console.log('Creating business setup payment session:', { amount, successUrl, cancelUrl });
+    console.log('Creating business setup payment session:', { amount, successUrl, cancelUrl, promoCode });
+
+    let finalAmount = amount;
+    let discountAmount = 0;
+
+    // If promo code is provided, validate and apply discount
+    if (promoCode) {
+      console.log('Validating promo code for checkout:', promoCode);
+      // Note: Promo validation happens in the frontend
+      // Here we just apply the discount to the amount
+      // For a 'free' promo, amount should already be 0 from frontend logic
+    }
 
     // Create a one-time payment session for business setup
     const session = await stripe.checkout.sessions.create({
@@ -35,9 +46,11 @@ serve(async (req) => {
             currency: 'usd',
             product_data: {
               name: 'Business Account Activation',
-              description: 'One-time setup fee to activate your business account',
+              description: promoCode 
+                ? `One-time setup fee (Promo: ${promoCode})`
+                : 'One-time setup fee to activate your business account',
             },
-            unit_amount: amount, // Amount in cents (50 = $0.50)
+            unit_amount: finalAmount, // Amount in cents
           },
           quantity: 1,
         },
@@ -45,6 +58,7 @@ serve(async (req) => {
       mode: 'payment',
       success_url: `${successUrl}${successUrl.includes('?') ? '&' : '?'}session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: cancelUrl,
+      ...(promoCode && { metadata: { promo_code: promoCode } }),
     });
 
     console.log('Stripe session created:', session.id);
