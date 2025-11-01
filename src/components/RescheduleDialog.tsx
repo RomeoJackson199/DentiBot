@@ -111,9 +111,12 @@ export const RescheduleDialog = ({ appointmentId, open, onOpenChange, onSuccess 
 
     try {
       // Generate slots for the selected date
+      // Use format to get date string in Brussels timezone (avoid UTC conversion)
+      const dateStr = format(date, 'yyyy-MM-dd');
+
       const { error: generateError } = await supabase.rpc('generate_daily_slots', {
         p_dentist_id: appointment.dentist_id,
-        p_date: date.toISOString().split('T')[0]
+        p_date: dateStr
       });
 
       if (generateError) {
@@ -125,7 +128,7 @@ export const RescheduleDialog = ({ appointmentId, open, onOpenChange, onSuccess 
         .from('appointment_slots')
         .select('slot_time, is_available')
         .eq('dentist_id', appointment.dentist_id)
-        .eq('slot_date', date.toISOString().split('T')[0])
+        .eq('slot_date', dateStr)
         .eq('is_available', true)
         .order('slot_time');
 
@@ -164,10 +167,13 @@ export const RescheduleDialog = ({ appointmentId, open, onOpenChange, onSuccess 
         throw new Error('You must be logged in to reschedule.');
       }
 
+      // Use format to get date string in Brussels timezone (avoid UTC conversion)
+      const dateStr = format(selectedDate, 'yyyy-MM-dd');
+
       const { error: rpcError } = await (supabase as any).rpc('reschedule_appointment', {
         p_appointment_id: appointment.id,
         p_user_id: userData.user.id,
-        p_slot_date: selectedDate.toISOString().split('T')[0],
+        p_slot_date: dateStr,
         p_slot_time: selectedTime
       });
 
