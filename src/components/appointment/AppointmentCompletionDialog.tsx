@@ -29,7 +29,6 @@ import { NotificationService } from '@/lib/notificationService';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useBusinessTemplate } from '@/hooks/useBusinessTemplate';
 import { logger } from '@/lib/logger';
-import { clinicTimeToUtc } from '@/lib/timezone';
 
 interface AppointmentCompletionDialogProps {
   open: boolean;
@@ -430,15 +429,10 @@ export function AppointmentCompletionDialog({
       // 5. Schedule follow-up if needed with email notification
       if (followUpNeeded && followUpDate) {
         const { createAppointmentWithNotification } = await import('@/hooks/useAppointments');
-        // Convert clinic time to UTC for database storage
-        const followUpDateTime = clinicTimeToUtc(
-          new Date(followUpDate)
-        ).toISOString();
-
         await createAppointmentWithNotification({
           patient_id: appointment.patient_id,
           dentist_id: appointment.dentist_id,
-          appointment_date: followUpDateTime,
+          appointment_date: new Date(followUpDate).toISOString(),
           reason: 'Follow-up appointment',
           status: 'confirmed',
           duration_minutes: 30
