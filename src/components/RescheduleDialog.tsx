@@ -1,0 +1,413 @@
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Loader2, Calendar as CalendarIcon, Clock, User, ArrowRight, CheckCircle } from "lucide-react";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
+import { showAppointmentRescheduled } from "@/lib/successNotifications";
+
+interface RescheduleDialogProps {
+  appointmentId: string | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSuccess?: () => void;
+}
+
+interface AppointmentDetails {
+  id: string;
+  appointment_date: string;
+  reason: string;
+  dentist_id: string;
+  dentist?: {
+    profiles?: {
+      first_name: string;
+      last_name: string;
+    };
+  };
+}
+
+interface TimeSlot {
+  slot_time: string;
+  is_available: boolean;
+}
+
+export const RescheduleDialog = ({ appointmentId, open, onOpenChange, onSuccess }: RescheduleDialogProps) => {
+  const [appointment, setAppointment] = useState<AppointmentDetails | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>();
+  const [selectedTime, setSelectedTime] = useState<string>("");
+  const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [loadingSlots, setLoadingSlots] = useState(false);
+  const [processing, setProcessing] = useState(false);
+  const { toast } = useToast();
+
+  // Load appointment details when dialog opens
+  useEffect(() => {
+    if (open && appointmentId) {
+      loadAppointmentDetails();
+    } else {
+      // Reset state when dialog closes
+      setSelectedDate(undefined);
+      setSelectedTime("");
+      setAvailableSlots([]);
+    }
+  }, [open, appointmentId]);
+
+  const loadAppointmentDetails = async () => {
+    if (!appointmentId) return;
+
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('appointments')
+        .select(`
+          id,
+          appointment_date,
+          reason,
+          dentist_id,
+          dentists!appointments_dentist_id_fkey (
+            profiles:profile_id (
+              first_name,
+              last_name
+            )
+          )
+        `)
+        .eq('id', appointmentId)
+        .single();
+
+      if (error) throw error;
+
+      setAppointment(data as any);
+    } catch (error) {
+      console.error('Error loading appointment:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load appointment details",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Load available slots when date is selected
+  useEffect(() => {
+    if (selectedDate && appointment) {
+      loadAvailableSlots(selectedDate);
+    }
+  }, [selectedDate, appointment]);
+
+  const loadAvailableSlots = async (date: Date) => {
+    if (!appointment) return;
+
+    setLoadingSlots(true);
+    setSelectedTime("");
+    setAvailableSlots([]);
+
+    try {
+      // Generate slots for the selected date
+      const { error: generateError } = await supabase.rpc('generate_daily_slots', {
+        p_dentist_id: appointment.dentist_id,
+        p_date: date.toISOString().split('T')[0]
+      });
+
+      if (generateError) {
+        console.warn('Slot generation warning:', generateError);
+      }
+
+      // Fetch available slots
+      const { data: slots, error: slotsError } = await supabase
+        .from('appointment_slots')
+        .select('slot_time, is_available')
+        .eq('dentist_id', appointment.dentist_id)
+        .eq('slot_date', date.toISOString().split('T')[0])
+        .eq('is_available', true)
+        .order('slot_time');
+
+      if (slotsError) throw slotsError;
+
+      setAvailableSlots(slots || []);
+
+      if (!slots || slots.length === 0) {
+        toast({
+          title: "No slots available",
+          description: "Please select a different date",
+          variant: "default"
+        });
+      }
+    } catch (error) {
+      console.error('Error loading slots:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load available time slots",
+        variant: "destructive"
+      });
+    } finally {
+      setLoadingSlots(false);
+    }
+  };
+
+  const handleReschedule = async () => {
+    if (!appointment || !selectedDate || !selectedTime) return;
+
+    setProcessing(true);
+
+    try {
+      const oldDate = new Date(appointment.appointment_date);
+      const oldTime = oldDate.toTimeString().substring(0, 5);
+
+      // Step 1: Release the old slot
+      try {
+        await supabase.rpc('release_appointment_slot', {
+          p_appointment_id: appointment.id
+        });
+
+        // Also mark old slot as available directly
+        await supabase
+          .from('appointment_slots')
+          .update({ is_available: true, appointment_id: null })
+          .eq('dentist_id', appointment.dentist_id)
+          .eq('slot_date', oldDate.toISOString().split('T')[0])
+          .eq('slot_time', oldTime);
+      } catch (releaseError) {
+        console.warn('Error releasing old slot:', releaseError);
+      }
+
+      // Step 2: Book the new slot
+      const { error: bookError } = await supabase.rpc('book_appointment_slot', {
+        p_dentist_id: appointment.dentist_id,
+        p_slot_date: selectedDate.toISOString().split('T')[0],
+        p_slot_time: selectedTime,
+        p_appointment_id: appointment.id
+      });
+
+      if (bookError) {
+        throw new Error("This time slot is no longer available. Please select another time.");
+      }
+
+      // Step 3: Update the appointment
+      const newDateTime = new Date(selectedDate);
+      const [hours, minutes] = selectedTime.split(":");
+      newDateTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+
+      const { error: updateError } = await supabase
+        .from('appointments')
+        .update({
+          appointment_date: newDateTime.toISOString(),
+          status: 'confirmed'
+        })
+        .eq('id', appointment.id);
+
+      if (updateError) {
+        // If update fails, release the new slot
+        await supabase.rpc('release_appointment_slot', {
+          p_appointment_id: appointment.id
+        });
+        throw updateError;
+      }
+
+      // Success!
+      showAppointmentRescheduled(format(selectedDate, 'MMM d, yyyy') + ' at ' + selectedTime);
+
+      toast({
+        title: "Appointment Rescheduled",
+        description: `Your appointment has been moved to ${format(selectedDate, 'MMMM d, yyyy')} at ${selectedTime}`,
+      });
+
+      onOpenChange(false);
+      if (onSuccess) onSuccess();
+
+    } catch (error: any) {
+      console.error('Error rescheduling appointment:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to reschedule appointment",
+        variant: "destructive"
+      });
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const isDateDisabled = (date: Date) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    // Disable past dates and weekends
+    return date < today || date.getDay() === 0 || date.getDay() === 6;
+  };
+
+  if (!appointment && loading) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-[600px]">
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  const currentDate = appointment ? new Date(appointment.appointment_date) : null;
+  const dentistName = appointment?.dentists?.profiles
+    ? `Dr. ${appointment.dentists.profiles.first_name} ${appointment.dentists.profiles.last_name}`
+    : "Your Dentist";
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="text-2xl">Reschedule Appointment</DialogTitle>
+          <DialogDescription>
+            Choose a new date and time for your appointment
+          </DialogDescription>
+        </DialogHeader>
+
+        {appointment && (
+          <div className="space-y-6 py-4">
+            {/* Current Appointment Info */}
+            <Card className="bg-muted/50 border-dashed">
+              <CardContent className="pt-6">
+                <div className="flex items-start justify-between">
+                  <div className="space-y-2">
+                    <p className="text-sm text-muted-foreground">Current Appointment</p>
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2 text-sm">
+                        <CalendarIcon className="h-4 w-4" />
+                        <span className="font-medium">
+                          {currentDate && format(currentDate, 'EEEE, MMMM d, yyyy')}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <Clock className="h-4 w-4" />
+                        <span className="font-medium">
+                          {currentDate && format(currentDate, 'h:mm a')}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <User className="h-4 w-4" />
+                        <span>{dentistName}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <Badge variant="outline">{appointment.reason}</Badge>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* New Date Selection */}
+            <div className="space-y-4">
+              <div>
+                <h4 className="font-semibold mb-3 flex items-center gap-2">
+                  <ArrowRight className="h-4 w-4" />
+                  Select New Date
+                </h4>
+                <div className="flex justify-center">
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={setSelectedDate}
+                    disabled={isDateDisabled}
+                    className="rounded-md border"
+                  />
+                </div>
+              </div>
+
+              {/* Time Slot Selection */}
+              {selectedDate && (
+                <div className="space-y-3">
+                  <h4 className="font-semibold flex items-center gap-2">
+                    <Clock className="h-4 w-4" />
+                    Select New Time
+                  </h4>
+
+                  {loadingSlots ? (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="h-6 w-6 animate-spin text-primary mr-2" />
+                      <span className="text-sm text-muted-foreground">Loading available times...</span>
+                    </div>
+                  ) : availableSlots.length > 0 ? (
+                    <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
+                      {availableSlots.map((slot) => (
+                        <Button
+                          key={slot.slot_time}
+                          variant={selectedTime === slot.slot_time.substring(0, 5) ? "default" : "outline"}
+                          className={cn(
+                            "h-auto py-3",
+                            selectedTime === slot.slot_time.substring(0, 5) && "ring-2 ring-primary"
+                          )}
+                          onClick={() => setSelectedTime(slot.slot_time.substring(0, 5))}
+                        >
+                          {slot.slot_time.substring(0, 5)}
+                        </Button>
+                      ))}
+                    </div>
+                  ) : (
+                    <Card>
+                      <CardContent className="py-8 text-center">
+                        <p className="text-sm text-muted-foreground">
+                          No available time slots for this date.
+                          <br />
+                          Please select a different date.
+                        </p>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+              )}
+
+              {/* Summary */}
+              {selectedDate && selectedTime && (
+                <Card className="bg-primary/5 border-primary/20">
+                  <CardContent className="pt-6">
+                    <div className="flex items-start gap-3">
+                      <CheckCircle className="h-5 w-5 text-primary mt-0.5" />
+                      <div>
+                        <p className="font-semibold mb-1">New Appointment</p>
+                        <p className="text-sm text-muted-foreground">
+                          {format(selectedDate, 'EEEE, MMMM d, yyyy')} at {selectedTime}
+                        </p>
+                        <p className="text-sm text-muted-foreground">with {dentistName}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </div>
+        )}
+
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={processing}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleReschedule}
+            disabled={!selectedDate || !selectedTime || processing}
+          >
+            {processing ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                Rescheduling...
+              </>
+            ) : (
+              <>
+                <CheckCircle className="h-4 w-4 mr-2" />
+                Confirm Reschedule
+              </>
+            )}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};

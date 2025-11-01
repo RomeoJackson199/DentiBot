@@ -19,7 +19,6 @@ interface AppointmentBookingProps {
   user: User;
   selectedDentist?: Dentist;
   prefilledReason?: string;
-  rescheduleAppointmentId?: string | null;
   onComplete: (appointmentData?: Record<string, unknown>) => void;
   onCancel: () => void;
 }
@@ -32,7 +31,7 @@ interface Dentist {
   last_name: string;
 }
 
-export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, prefilledReason, rescheduleAppointmentId, onComplete, onCancel }: AppointmentBookingProps) => {
+export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, prefilledReason, onComplete, onCancel }: AppointmentBookingProps) => {
   const [dentists, setDentists] = useState<Dentist[]>([]);
   const [selectedDentist, setSelectedDentist] = useState("");
   const [selectedDate, setSelectedDate] = useState<Date>();
@@ -44,7 +43,6 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
   const [isLoading, setIsLoading] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [existingAppointment, setExistingAppointment] = useState<any>(null);
   const { toast } = useToast();
 
   const fetchDentists = useCallback(async () => {
@@ -84,48 +82,7 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
     if (prefilledReason) {
       setReason(prefilledReason);
     }
-    
-    // Load existing appointment if rescheduling
-    if (rescheduleAppointmentId) {
-      loadExistingAppointment();
-    }
-  }, [prefilledReason, fetchDentists, rescheduleAppointmentId]);
-  
-  const loadExistingAppointment = async () => {
-    if (!rescheduleAppointmentId) return;
-    
-    try {
-      const { data, error } = await supabase
-        .from('appointments')
-        .select('*, dentists(id, profile_id, specialization)')
-        .eq('id', rescheduleAppointmentId)
-        .single();
-        
-      if (error) throw error;
-      
-      setExistingAppointment(data);
-      setSelectedDentist(data.dentist_id);
-      setReason(data.reason || '');
-      
-      // Parse the date and time
-      const appointmentDate = new Date(data.appointment_date);
-      setSelectedDate(appointmentDate);
-      const timeString = appointmentDate.toTimeString().substring(0, 5);
-      setSelectedTime(timeString);
-      
-      // Load availability for the date
-      if (appointmentDate) {
-        fetchAvailability(appointmentDate);
-      }
-    } catch (error) {
-      console.error('Error loading appointment:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load appointment details",
-        variant: "destructive"
-      });
-    }
-  };
+  }, [prefilledReason, fetchDentists]);
 
   // Auto-select dentist when dentists are loaded
   useEffect(() => {
@@ -177,14 +134,14 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
       if (retry < 2) {
         setRetryCount(retry + 1);
         setTimeout(() => fetchAvailability(date, retry + 1), 2000);
-        setErrorMessage(`Tentative ${retry + 1}/3 de chargement des créneaux...`);
+        setErrorMessage(`Loading time slots... (attempt ${retry + 1}/3)`);
       } else {
         toast({
-          title: "Erreur",
-          description: "Impossible de charger les créneaux disponibles après plusieurs tentatives",
+          title: "Error",
+          description: "Unable to load available time slots after multiple attempts",
           variant: "destructive",
         });
-        setErrorMessage("Échec du chargement des créneaux");
+        setErrorMessage("Failed to load time slots");
         setAvailableTimes([]);
         setAllSlots([]);
       }
@@ -200,8 +157,8 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
   const handleBookAppointment = async () => {
     if (!selectedDentist || !selectedDate || !selectedTime) {
       toast({
-        title: "Informations manquantes",
-        description: "Veuillez sélectionner un dentiste, une date et une heure",
+        title: "Missing Information",
+        description: "Please select a dentist, date, and time",
         variant: "destructive",
       });
       return;
@@ -225,8 +182,8 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
       
       if (missingFields.length > 0) {
         toast({
-          title: "Profil incomplet",
-          description: "Veuillez compléter votre profil dans les paramètres avant de prendre rendez-vous",
+          title: "Incomplete Profile",
+          description: "Please complete your profile in settings before booking an appointment",
           variant: "destructive",
         });
         return;
@@ -236,110 +193,55 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
       const [hours, minutes] = selectedTime.split(":");
       appointmentDateTime.setHours(parseInt(hours), parseInt(minutes));
 
-      // If rescheduling, release the old appointment's slot first
-      if (rescheduleAppointmentId && existingAppointment) {
-        try {
-          const oldDate = new Date(existingAppointment.appointment_date);
-          const oldTime = oldDate.toTimeString().substring(0, 5);
-          
-          await supabase.rpc('release_appointment_slot', {
-            p_appointment_id: rescheduleAppointmentId
-          });
-          
-          // Also mark the old slot as available
-          await supabase
-            .from('appointment_slots')
-            .update({ 
-              is_available: true, 
-              appointment_id: null 
-            })
-            .eq('dentist_id', existingAppointment.dentist_id)
-            .eq('slot_date', oldDate.toISOString().split('T')[0])
-            .eq('slot_time', oldTime);
-        } catch (releaseError) {
-          console.error('Error releasing old slot:', releaseError);
-        }
-      }
-
-      // Try to book the new slot
+      // Try to book the slot with a temporary ID first
       const { error: slotBookingError } = await supabase.rpc('book_appointment_slot', {
         p_dentist_id: selectedDentist,
         p_slot_date: selectedDate.toISOString().split('T')[0],
         p_slot_time: selectedTime,
-        p_appointment_id: rescheduleAppointmentId || 'temp-id'
+        p_appointment_id: 'temp-id'
       });
 
       if (slotBookingError) {
-        throw new Error("Ce créneau n'est plus disponible");
+        throw new Error("This time slot is no longer available");
       }
 
-      let appointmentData;
+      // Create new appointment
+      const { data: appointmentData, error: appointmentError } = await supabase
+        .from("appointments")
+        .insert({
+          patient_id: profile.id,
+          dentist_id: selectedDentist,
+          appointment_date: appointmentDateTime.toISOString(),
+          reason: reason || "General consultation",
+          status: "confirmed",
+          urgency: "medium"
+        })
+        .select()
+        .single();
 
-      if (rescheduleAppointmentId) {
-        // Update existing appointment
-        const { data, error: updateError } = await supabase
-          .from("appointments")
-          .update({
-            dentist_id: selectedDentist,
-            appointment_date: appointmentDateTime.toISOString(),
-            reason: reason || "Consultation générale",
-            status: "confirmed"
-          })
-          .eq('id', rescheduleAppointmentId)
-          .select()
-          .single();
-
-        if (updateError) {
-          // If update fails, release the new slot
-          await supabase.rpc('release_appointment_slot', {
-            p_appointment_id: rescheduleAppointmentId
-          });
-          throw updateError;
-        }
-        appointmentData = data;
-      } else {
-        // Create new appointment
-        const { data, error: appointmentError } = await supabase
-          .from("appointments")
-          .insert({
-            patient_id: profile.id,
-            dentist_id: selectedDentist,
-            appointment_date: appointmentDateTime.toISOString(),
-            reason: reason || "Consultation générale",
-            status: "confirmed",
-            urgency: "medium"
-          })
-          .select()
-          .single();
-
-        if (appointmentError) {
-          // If appointment creation fails, release the slot
-          await supabase.rpc('release_appointment_slot', {
-            p_appointment_id: 'temp-id'
-          });
-          throw appointmentError;
-        }
-
-        // Update slot with actual appointment ID
-        await supabase.rpc('book_appointment_slot', {
-          p_dentist_id: selectedDentist,
-          p_slot_date: selectedDate.toISOString().split('T')[0],
-          p_slot_time: selectedTime,
-          p_appointment_id: data.id
+      if (appointmentError) {
+        // If appointment creation fails, release the slot
+        await supabase.rpc('release_appointment_slot', {
+          p_appointment_id: 'temp-id'
         });
-        
-        appointmentData = data;
+        throw appointmentError;
       }
+
+      // Update slot with actual appointment ID
+      await supabase.rpc('book_appointment_slot', {
+        p_dentist_id: selectedDentist,
+        p_slot_date: selectedDate.toISOString().split('T')[0],
+        p_slot_time: selectedTime,
+        p_appointment_id: appointmentData.id
+      });
 
       showAppointmentConfirmed(
         `${selectedDate.toLocaleDateString()} at ${selectedTime}`
       );
 
       toast({
-        title: rescheduleAppointmentId ? "Rendez-vous reprogrammé" : "Rendez-vous confirmé",
-        description: rescheduleAppointmentId 
-          ? `Votre rendez-vous a été reprogrammé pour le ${selectedDate.toLocaleDateString()} à ${selectedTime}`
-          : `Votre rendez-vous est confirmé pour le ${selectedDate.toLocaleDateString()} à ${selectedTime}`,
+        title: "Appointment Confirmed",
+        description: `Your appointment is confirmed for ${selectedDate.toLocaleDateString()} at ${selectedTime}`,
       });
 
       // Create a medical record for this appointment (non-blocking)
@@ -359,14 +261,14 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
       onComplete({
         date: selectedDate.toLocaleDateString(),
         time: selectedTime,
-        reason: reason || "Consultation générale",
+        reason: reason || "General consultation",
         dentist: dentists.find(d => d.id === selectedDentist)?.first_name + " " + dentists.find(d => d.id === selectedDentist)?.last_name
       });
     } catch (error) {
       console.error("Error booking appointment:", error);
       toast({
-        title: "Erreur",
-        description: "Impossible de créer le rendez-vous",
+        title: "Error",
+        description: "Unable to create appointment. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -387,25 +289,23 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
           <CardHeader className="text-center pb-6">
             <CardTitle className="flex items-center justify-center text-2xl font-bold text-gray-800">
               <CalendarDays className="h-6 w-6 mr-3 text-blue-600" />
-              {rescheduleAppointmentId ? 'Reprogrammer le rendez-vous' : 'Prise de rendez-vous'}
+              Book Appointment
             </CardTitle>
             <p className="text-gray-600 mt-2">
-              {rescheduleAppointmentId 
-                ? 'Sélectionnez une nouvelle date et heure pour votre rendez-vous' 
-                : 'Réservez votre consultation dentaire en quelques clics'}
+              Schedule your dental consultation in just a few clicks
             </p>
           </CardHeader>
           
           <CardContent className="space-y-8 p-6 md:p-8">
-            {/* Dentist Selection - Pre-filled */}
+            {/* Dentist Selection */}
             <div className="space-y-3">
               <Label className="text-base font-semibold text-gray-700 flex items-center">
                 <UserIcon className="h-4 w-4 mr-2 text-blue-600" />
-                Dentiste sélectionné
+                Select Dentist
               </Label>
               <Select value={selectedDentist} onValueChange={setSelectedDentist}>
                 <SelectTrigger className="h-12 border-2 border-blue-200 bg-blue-50 hover:border-blue-300 transition-colors">
-                  <SelectValue placeholder="Choisir un dentiste" />
+                  <SelectValue placeholder="Choose a dentist" />
                 </SelectTrigger>
                 <SelectContent className="bg-white border-2 shadow-lg">
                   {dentists.map((dentist) => (
@@ -426,7 +326,7 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
             {/* Date Selection - Responsive calendar */}
             <div className="space-y-3">
               <Label className="text-base font-semibold text-gray-700">
-                Choisissez une date
+                Choose a Date
               </Label>
               <div className="flex justify-center">
                 <Calendar
@@ -472,15 +372,15 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
               <div className="space-y-4">
                 <Label className="text-base font-semibold text-gray-700 flex items-center">
                   <Clock className="h-4 w-4 mr-2 text-blue-600" />
-                  Choisissez un créneau
+                  Choose a Time Slot
                 </Label>
-                
+
                 {loadingTimes ? (
                   <div className="flex justify-center items-center py-8">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                     <span className="ml-3 text-gray-600">
-                      {errorMessage || "Chargement des créneaux..."}
-                      {retryCount > 0 && ` (tentative ${retryCount + 1})`}
+                      {errorMessage || "Loading time slots..."}
+                      {retryCount > 0 && ` (attempt ${retryCount + 1})`}
                     </span>
                   </div>
                 ) : (
@@ -489,7 +389,7 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
                     {allSlots.length > 0 && (
                       <div className="bg-gray-50 rounded-lg p-4">
                         <h4 className="font-semibold text-gray-700 mb-3">
-                          État de tous les créneaux ({allSlots.length} total)
+                          All Time Slots ({allSlots.length} total)
                         </h4>
                          <div className="grid grid-cols-3 xs:grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-1 sm:gap-2">
                            {allSlots.map((slot) => (
@@ -521,11 +421,11 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
                           <div className="flex flex-col sm:flex-row justify-center gap-2 sm:gap-8 mt-4 text-xs sm:text-sm font-medium">
                             <div className="flex items-center justify-center bg-green-50 px-2 sm:px-3 py-1 sm:py-2 rounded-full border border-green-200">
                               <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-green-600 mr-1 sm:mr-2" />
-                              <span className="text-green-700">Disponible ({allSlots.filter(s => s.is_available && !s.emergency_only).length})</span>
+                              <span className="text-green-700">Available ({allSlots.filter(s => s.is_available && !s.emergency_only).length})</span>
                             </div>
                             <div className="flex items-center justify-center bg-red-50 px-2 sm:px-3 py-1 sm:py-2 rounded-full border border-red-200">
                               <XCircle className="h-3 w-3 sm:h-4 sm:w-4 text-red-600 mr-1 sm:mr-2" />
-                              <span className="text-red-700">Occupé ({allSlots.filter(s => !s.is_available).length})</span>
+                              <span className="text-red-700">Booked ({allSlots.filter(s => !s.is_available).length})</span>
                             </div>
                           </div>
                       </div>
@@ -538,25 +438,25 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
             {/* Reason - Add preset options */}
             <div className="space-y-3">
               <Label className="text-base font-semibold text-gray-700">
-                Motif de consultation
+                Reason for Visit
               </Label>
               <Select value={reason} onValueChange={setReason}>
                 <SelectTrigger className="h-12 border-2 border-gray-200 hover:border-blue-300 transition-colors">
-                  <SelectValue placeholder="Sélectionnez le motif" />
+                  <SelectValue placeholder="Select reason" />
                 </SelectTrigger>
                 <SelectContent className="bg-white border-2 shadow-lg">
-                  <SelectItem value="Contrôle de routine">Contrôle de routine</SelectItem>
-                  <SelectItem value="Nettoyage dentaire">Nettoyage dentaire</SelectItem>
-                  <SelectItem value="Douleur dentaire">Douleur dentaire</SelectItem>
-                  <SelectItem value="Urgence dentaire">Urgence dentaire</SelectItem>
-                  <SelectItem value="Consultation esthétique">Consultation esthétique</SelectItem>
-                  <SelectItem value="Autre">Autre (personnalisé)</SelectItem>
+                  <SelectItem value="Routine checkup">Routine checkup</SelectItem>
+                  <SelectItem value="Teeth cleaning">Teeth cleaning</SelectItem>
+                  <SelectItem value="Dental pain">Dental pain</SelectItem>
+                  <SelectItem value="Emergency">Dental emergency</SelectItem>
+                  <SelectItem value="Cosmetic consultation">Cosmetic consultation</SelectItem>
+                  <SelectItem value="Other">Other (custom)</SelectItem>
                 </SelectContent>
               </Select>
-              
-              {reason === "Autre" && (
+
+              {reason === "Other" && (
                 <Textarea
-                  placeholder="Décrivez votre motif de consultation..."
+                  placeholder="Describe your reason for consultation..."
                   className="min-h-[80px] border-2 border-gray-200 hover:border-blue-300 transition-colors"
                   onChange={(e) => setReason(e.target.value)}
                 />
@@ -573,21 +473,21 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
                 {isLoading ? (
                   <div className="flex items-center">
                     <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    Confirmation...
+                    Confirming...
                   </div>
                 ) : (
                   <div className="flex items-center">
                     <CheckCircle className="h-4 w-4 mr-2" />
-                    Confirmer le rendez-vous
+                    Confirm Appointment
                   </div>
                 )}
               </Button>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={onCancel}
                 className="h-12 border-2 border-gray-300 hover:bg-gray-50 font-semibold transition-colors"
               >
-                Annuler
+                Cancel
               </Button>
             </div>
           </CardContent>

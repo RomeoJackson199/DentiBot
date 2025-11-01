@@ -9,6 +9,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import RealAppointmentsList from "@/components/RealAppointmentsList";
 import { AppointmentBooking } from "@/components/AppointmentBooking";
+import { RescheduleDialog } from "@/components/RescheduleDialog";
 import { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
@@ -249,12 +250,11 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({
       setLoading(false);
     }
   };
-  const handleRescheduleAppointment = async (appointmentId: string) => {
+  const handleRescheduleAppointment = (appointmentId: string) => {
     setRescheduleAppointmentId(appointmentId);
-    setShowBooking(true);
   };
 
-  const handleCancelAppointment = async (appointmentId: string) => {
+  const handleCancelAppointment = (appointmentId: string) => {
     setCancelAppointmentId(appointmentId);
   };
 
@@ -522,28 +522,31 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({
       </div>
 
       {/* Booking Dialog */}
-      <Dialog open={showBooking} onOpenChange={(open) => {
-        setShowBooking(open);
-        if (!open) {
-          setRescheduleAppointmentId(null);
-        }
-      }}>
+      <Dialog open={showBooking} onOpenChange={setShowBooking}>
         <DialogContent className="max-w-4xl w-full max-h-[90vh] overflow-auto p-0">
-          <AppointmentBooking 
-            user={user} 
-            rescheduleAppointmentId={rescheduleAppointmentId}
-            onCancel={() => {
-              setShowBooking(false);
-              setRescheduleAppointmentId(null);
-            }} 
+          <AppointmentBooking
+            user={user}
+            onCancel={() => setShowBooking(false)}
             onComplete={() => {
               setShowBooking(false);
-              setRescheduleAppointmentId(null);
               fetchAppointments();
-            }} 
+            }}
           />
         </DialogContent>
       </Dialog>
+
+      {/* Reschedule Dialog */}
+      <RescheduleDialog
+        appointmentId={rescheduleAppointmentId}
+        open={!!rescheduleAppointmentId}
+        onOpenChange={(open) => {
+          if (!open) setRescheduleAppointmentId(null);
+        }}
+        onSuccess={() => {
+          setRescheduleAppointmentId(null);
+          fetchAppointments();
+        }}
+      />
 
       {/* Appointment Details Dialog */}
       {selectedAppointmentId && <AppointmentDetailsDialog appointmentId={selectedAppointmentId} open={detailsDialogOpen} onOpenChange={setDetailsDialogOpen} />}
