@@ -29,6 +29,7 @@ import { RoleBasedRouter } from "@/components/RoleBasedRouter";
 import { DentistInvitationDialog } from "@/components/DentistInvitationDialog";
 import { CommandPalette } from "@/components/CommandPalette";
 import { CookieConsent } from "@/components/CookieConsent";
+import { OnboardingOrchestrator } from "@/components/onboarding/OnboardingOrchestrator";
 
 const Invite = lazy(() => import("./pages/Invite"));
 const Login = lazy(() => import("./pages/Login"));
@@ -261,6 +262,7 @@ const App = () => {
                   <DentistInvitationDialog />
                   <CommandPalette />
                   <CookieConsent />
+                  <OnboardingOrchestrator user={user} />
                   <SeoManager />
                 <Suspense fallback={<ModernLoadingSpinner variant="overlay" message="Loading..." /> }>
                 <Routes>

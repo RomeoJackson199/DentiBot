@@ -39,7 +39,7 @@ const Index = () => {
   }, []);
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50">
-        <AccessibleLoadingIndicator message="Loading DentiBot" size="lg" />
+        <AccessibleLoadingIndicator message="Loading Caberu" size="lg" />
       </div>;
   }
 
@@ -196,7 +196,7 @@ const Index = () => {
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-12">
               <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
-                Why Dental Practices Choose DentiBot
+                Why Dental Practices Choose Caberu
               </h2>
               <p className="text-lg text-gray-600 max-w-2xl mx-auto">
                 Built specifically for dental professionals with the features you actually need
@@ -224,6 +224,117 @@ const Index = () => {
           </div>
         </section>
 
+        {/* Pricing Preview Section */}
+        <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+                Simple, Transparent Pricing
+              </h2>
+              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                Start free, upgrade when you're ready. No hidden fees, cancel anytime.
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+              {/* Free Plan */}
+              <Card className="p-8 border-2 border-gray-200 hover:border-gray-300 transition-all">
+                <div className="text-center mb-6">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Free</h3>
+                  <div className="flex items-baseline justify-center gap-1">
+                    <span className="text-5xl font-bold text-gray-900">$0</span>
+                    <span className="text-gray-600">/month</span>
+                  </div>
+                  <p className="text-sm text-gray-600 mt-2">Perfect for getting started</p>
+                </div>
+                <ul className="space-y-3 mb-8">
+                  {["Up to 50 patients", "Basic appointment scheduling", "Patient reminders", "Mobile app access", "Email support"].map((feature) => (
+                    <li key={feature} className="flex items-center gap-2 text-gray-700">
+                      <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0" />
+                      <span className="text-sm">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+                <Button
+                  onClick={() => navigate('/signup')}
+                  variant="outline"
+                  className="w-full border-2"
+                >
+                  Get Started Free
+                </Button>
+              </Card>
+
+              {/* Pro Plan */}
+              <Card className="p-8 border-2 border-blue-600 bg-gradient-to-br from-blue-50 to-purple-50 relative shadow-xl transform scale-105">
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+                  <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-1 rounded-full text-sm font-semibold shadow-lg">
+                    Most Popular
+                  </div>
+                </div>
+                <div className="text-center mb-6">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Professional</h3>
+                  <div className="flex items-baseline justify-center gap-1">
+                    <span className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">$49</span>
+                    <span className="text-gray-600">/month</span>
+                  </div>
+                  <p className="text-sm text-gray-600 mt-2">For growing practices</p>
+                </div>
+                <ul className="space-y-3 mb-8">
+                  {["Unlimited patients", "Advanced scheduling & calendar sync", "AI-powered triage", "Patient records & X-rays", "Billing & payments", "Analytics & reporting", "Priority support"].map((feature) => (
+                    <li key={feature} className="flex items-center gap-2 text-gray-700">
+                      <CheckCircle2 className="h-5 w-5 text-blue-600 flex-shrink-0" />
+                      <span className="text-sm font-medium">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+                <Button
+                  onClick={() => navigate('/pricing')}
+                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg"
+                >
+                  Start Free Trial
+                </Button>
+              </Card>
+
+              {/* Enterprise Plan */}
+              <Card className="p-8 border-2 border-gray-200 hover:border-gray-300 transition-all">
+                <div className="text-center mb-6">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Enterprise</h3>
+                  <div className="flex items-baseline justify-center gap-1">
+                    <span className="text-4xl font-bold text-gray-900">Custom</span>
+                  </div>
+                  <p className="text-sm text-gray-600 mt-2">For large organizations</p>
+                </div>
+                <ul className="space-y-3 mb-8">
+                  {["Everything in Pro", "Multi-location support", "Custom integrations", "Dedicated account manager", "Custom training", "SLA guarantees", "24/7 phone support"].map((feature) => (
+                    <li key={feature} className="flex items-center gap-2 text-gray-700">
+                      <CheckCircle2 className="h-5 w-5 text-purple-600 flex-shrink-0" />
+                      <span className="text-sm">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+                <Button
+                  onClick={() => navigate('/support')}
+                  variant="outline"
+                  className="w-full border-2"
+                >
+                  Contact Sales
+                </Button>
+              </Card>
+            </div>
+
+            <div className="text-center mt-12">
+              <p className="text-gray-600 mb-4">All plans include a 14-day free trial. No credit card required.</p>
+              <Button
+                onClick={() => navigate('/pricing')}
+                variant="link"
+                className="text-blue-600 hover:text-blue-700"
+              >
+                View detailed pricing →
+              </Button>
+            </div>
+          </div>
+        </section>
+
         {/* CTA Section */}
         <section className="relative py-20 px-4 sm:px-6 lg:px-8 overflow-hidden bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600">
           {/* Background decoration */}
@@ -242,7 +353,7 @@ const Index = () => {
               Ready to Transform Your Dental Practice?
             </h2>
             <p className="text-xl text-blue-100 max-w-2xl mx-auto">
-              Join modern dental practices using DentiBot to save time, reduce no-shows, and provide better patient care.
+              Join modern dental practices using Caberu to save time, reduce no-shows, and provide better patient care.
               Get started today—no credit card required.
             </p>
 
