@@ -36,7 +36,6 @@ import PaymentWizard from "@/components/payments/PaymentWizard";
 import { PrescriptionManager } from "@/components/PrescriptionManager";
 import { Sheet as UISheet, SheetContent as UISheetContent } from "@/components/ui/sheet";
 import { logger } from '@/lib/logger';
-import { clinicTimeToUtc } from "@/lib/timezone";
 
 interface UnifiedAppointment {
   id: string;
@@ -315,11 +314,8 @@ export function UnifiedAppointments({
     if (!selectedAppointment || !rescheduleDate || !rescheduleTime) return;
 
     try {
-      // Convert clinic time to UTC for database storage
-      const newDateTime = clinicTimeToUtc(
-        new Date(`${rescheduleDate}T${rescheduleTime}:00`)
-      ).toISOString();
-
+      const newDateTime = new Date(`${rescheduleDate}T${rescheduleTime}`).toISOString();
+      
       const { error } = await supabase
         .from('appointments')
         .update({ appointment_date: newDateTime })
@@ -355,11 +351,8 @@ export function UnifiedAppointments({
         return;
       }
 
-      // Convert clinic time to UTC for database storage
-      const appointmentDateTime = clinicTimeToUtc(
-        new Date(`${quickDate}T${quickTime}:00`)
-      ).toISOString();
-
+      const appointmentDateTime = new Date(`${quickDate}T${quickTime}`).toISOString();
+      
       const { error } = await supabase
         .from('appointments')
         .insert({

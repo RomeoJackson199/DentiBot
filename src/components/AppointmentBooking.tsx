@@ -14,7 +14,6 @@ import { cn } from "@/lib/utils";
 import { createMedicalRecord } from "@/lib/medicalRecords";
 import { showAppointmentConfirmed } from "@/lib/successNotifications";
 import { logger } from '@/lib/logger';
-import { clinicTimeToUtc } from "@/lib/timezone";
 
 interface AppointmentBookingProps {
   user: User;
@@ -190,17 +189,14 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
         return;
       }
 
-      const dateStr = selectedDate.toISOString().split('T')[0];
-
-      // Create appointment with proper timezone handling
-      const appointmentDateTime = clinicTimeToUtc(
-        new Date(`${dateStr}T${selectedTime}:00`)
-      );
+      const appointmentDateTime = new Date(selectedDate);
+      const [hours, minutes] = selectedTime.split(":");
+      appointmentDateTime.setHours(parseInt(hours), parseInt(minutes));
 
       // Try to book the slot with a temporary ID first
       const { error: slotBookingError } = await supabase.rpc('book_appointment_slot', {
         p_dentist_id: selectedDentist,
-        p_slot_date: dateStr,
+        p_slot_date: selectedDate.toISOString().split('T')[0],
         p_slot_time: selectedTime,
         p_appointment_id: 'temp-id'
       });
