@@ -30,6 +30,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 import { logger } from '@/lib/logger';
+import { RescheduleDialog } from '@/components/RescheduleDialog';
 
 interface Appointment {
   id: string;
@@ -61,8 +62,7 @@ export const RealAppointmentsList = ({ user, filter }: RealAppointmentsListProps
 
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
-  const [rescheduleOpen, setRescheduleOpen] = useState(false);
-  const [rescheduleDate, setRescheduleDate] = useState<string>('');
+  const [rescheduleAppointmentId, setRescheduleAppointmentId] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
 
   const fetchAppointments = useCallback(async () => {
@@ -262,12 +262,7 @@ export const RealAppointmentsList = ({ user, filter }: RealAppointmentsListProps
   };
 
   const openReschedule = (apt: Appointment) => {
-    setSelectedAppointment(apt);
-    // Initialize datetime-local value (approximate)
-    const dt = new Date(apt.appointment_date);
-    const local = new Date(dt.getTime() - dt.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-    setRescheduleDate(local);
-    setRescheduleOpen(true);
+    setRescheduleAppointmentId(apt.id);
   };
 
   const cancelAppointment = async (appointmentId: string) => {
@@ -291,34 +286,6 @@ export const RealAppointmentsList = ({ user, filter }: RealAppointmentsListProps
     } catch (err) {
       console.error(err);
       toast({ title: 'Failed to cancel appointment', variant: 'destructive' });
-    } finally {
-      setProcessing(false);
-    }
-  };
-
-  const applyReschedule = async () => {
-    if (!selectedAppointment || !rescheduleDate) return;
-    try {
-      setProcessing(true);
-      // Release previous slot if any
-      await supabase.rpc('release_appointment_slot', { p_appointment_id: selectedAppointment.id });
-      const newDate = new Date(rescheduleDate);
-      const iso = newDate.toISOString();
-      const { error } = await supabase
-        .from('appointments')
-        .update({ 
-          appointment_date: iso, 
-          status: (selectedAppointment.status === 'cancelled' ? 'pending' : selectedAppointment.status) as 'pending' | 'confirmed' | 'completed' | 'cancelled'
-        })
-        .eq('id', selectedAppointment.id);
-      if (error) throw error;
-      toast({ title: 'Appointment rescheduled' });
-      setRescheduleOpen(false);
-      setDetailsOpen(false);
-      await fetchAppointments();
-    } catch (err) {
-      console.error(err);
-      toast({ title: 'Failed to reschedule', variant: 'destructive' });
     } finally {
       setProcessing(false);
     }
@@ -631,22 +598,17 @@ export const RealAppointmentsList = ({ user, filter }: RealAppointmentsListProps
       </Dialog>
 
       {/* Reschedule dialog */}
-      <Dialog open={rescheduleOpen} onOpenChange={setRescheduleOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Reschedule Appointment</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-3">
-            <Input type="datetime-local" value={rescheduleDate} onChange={(e) => setRescheduleDate(e.target.value)} />
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setRescheduleOpen(false)} disabled={processing}>Cancel</Button>
-            <Button onClick={applyReschedule} disabled={processing || !rescheduleDate}>
-              {processing ? 'Saving...' : 'Save'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <RescheduleDialog
+        appointmentId={rescheduleAppointmentId}
+        open={!!rescheduleAppointmentId}
+        onOpenChange={(open) => {
+          if (!open) setRescheduleAppointmentId(null);
+        }}
+        onSuccess={() => {
+          setRescheduleAppointmentId(null);
+          fetchAppointments();
+        }}
+      />
     </div>
   );
 };
