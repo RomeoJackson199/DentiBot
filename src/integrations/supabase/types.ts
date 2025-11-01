@@ -1678,6 +1678,10 @@ export type Database = {
         Returns: boolean
       }
       leave_clinic: { Args: { p_business_id?: string }; Returns: Json }
+      release_appointment_slot: {
+        Args: { p_appointment_id: string }
+        Returns: undefined
+      }
       viewer_profile_id: { Args: { _viewer_user_id: string }; Returns: string }
     }
     Enums: {

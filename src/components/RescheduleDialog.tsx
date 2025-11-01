@@ -254,8 +254,8 @@ export const RescheduleDialog = ({ appointmentId, open, onOpenChange, onSuccess 
   }
 
   const currentDate = appointment ? new Date(appointment.appointment_date) : null;
-  const dentistName = appointment?.dentists?.profiles
-    ? `Dr. ${appointment.dentists.profiles.first_name} ${appointment.dentists.profiles.last_name}`
+  const dentistName = appointment?.dentist?.profiles
+    ? `Dr. ${appointment.dentist.profiles.first_name} ${appointment.dentist.profiles.last_name}`
     : "Your Dentist";
 
   return (
