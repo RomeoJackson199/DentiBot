@@ -5,12 +5,12 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { AlertCircle } from "lucide-react";
 
-// Import the same components as the real dashboard
-import { ClinicalToday } from "@/components/ClinicalToday";
-import { ModernPatientManagement } from "@/components/enhanced/ModernPatientManagement";
-import DentistAppointmentsManagement from "@/pages/DentistAppointmentsManagement";
-import DentistAdminUsers from "@/pages/DentistAdminUsers";
-import Messages from "@/pages/Messages";
+// Import demo components with fake data
+import { DemoClinicalToday } from "@/components/demo/DemoClinicalToday";
+import { DemoPatientManagement } from "@/components/demo/DemoPatientManagement";
+import { DemoAppointments } from "@/components/demo/DemoAppointments";
+import { DemoStaff } from "@/components/demo/DemoStaff";
+import { DemoMessages } from "@/components/demo/DemoMessages";
 
 export default function DemoDentistDashboard() {
   const [activeSection, setActiveSection] = useState<DentistSection>('dashboard');
@@ -19,16 +19,6 @@ export default function DemoDentistDashboard() {
 
   // Get demo data from sessionStorage
   const demoBusinessName = sessionStorage.getItem('demo_business_name') || 'Demo Clinic';
-
-  // Create a demo user object
-  const demoUser = {
-    id: 'demo-user-id',
-    email: 'demo@example.com',
-    user_metadata: {},
-    app_metadata: {},
-    aud: 'authenticated',
-    created_at: new Date().toISOString(),
-  };
 
   const handleTourComplete = () => {
     setShowDemoTour(false);
@@ -43,17 +33,17 @@ export default function DemoDentistDashboard() {
   const renderContent = () => {
     switch (activeSection) {
       case 'dashboard':
-        return <ClinicalToday dentistId="demo-dentist-id" user={demoUser as any} onOpenPatientsTab={() => setActiveSection('patients')} onOpenAppointmentsTab={() => setActiveSection('appointments')} />;
+        return <DemoClinicalToday />;
       case 'patients':
-        return <ModernPatientManagement dentistId="demo-dentist-id" />;
+        return <DemoPatientManagement />;
       case 'appointments':
-        return <DentistAppointmentsManagement />;
+        return <DemoAppointments />;
       case 'employees':
-        return <DentistAdminUsers />;
+        return <DemoStaff />;
       case 'messages':
-        return <Messages />;
+        return <DemoMessages />;
       default:
-        return <ClinicalToday dentistId="demo-dentist-id" user={demoUser as any} onOpenPatientsTab={() => setActiveSection('patients')} onOpenAppointmentsTab={() => setActiveSection('appointments')} />;
+        return <DemoClinicalToday />;
     }
   };
 
