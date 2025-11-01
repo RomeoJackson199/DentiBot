@@ -301,7 +301,7 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
       <DentistDemoTour
         run={showDemoTour}
         onClose={() => setShowDemoTour(false)}
-        onChangeSection={setActiveSection}
+        onChangeSection={(section) => setActiveSection(section as DentistSection)}
       />
     </DentistAppShell>
   );

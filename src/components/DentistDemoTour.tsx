@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from "react";
 import Joyride, { CallBackProps, STATUS, Step, ACTIONS, EVENTS } from "react-joyride";
+import { DentistSection } from "@/components/layout/DentistAppShell";
 
 interface DentistDemoTourProps {
   run: boolean;
   onClose: () => void;
-  onChangeSection?: (section: string) => void;
+  onChangeSection?: (section: DentistSection) => void;
 }
 
 export function DentistDemoTour({ run, onClose, onChangeSection }: DentistDemoTourProps) {
