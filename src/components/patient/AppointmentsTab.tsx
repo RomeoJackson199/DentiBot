@@ -522,12 +522,26 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({
       </div>
 
       {/* Booking Dialog */}
-      <Dialog open={showBooking} onOpenChange={setShowBooking}>
+      <Dialog open={showBooking} onOpenChange={(open) => {
+        setShowBooking(open);
+        if (!open) {
+          setRescheduleAppointmentId(null);
+        }
+      }}>
         <DialogContent className="max-w-4xl w-full max-h-[90vh] overflow-auto p-0">
-          <AppointmentBooking user={user} onCancel={() => setShowBooking(false)} onComplete={() => {
-          setShowBooking(false);
-          fetchAppointments();
-        }} />
+          <AppointmentBooking 
+            user={user} 
+            rescheduleAppointmentId={rescheduleAppointmentId}
+            onCancel={() => {
+              setShowBooking(false);
+              setRescheduleAppointmentId(null);
+            }} 
+            onComplete={() => {
+              setShowBooking(false);
+              setRescheduleAppointmentId(null);
+              fetchAppointments();
+            }} 
+          />
         </DialogContent>
       </Dialog>
 

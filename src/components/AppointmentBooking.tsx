@@ -19,6 +19,7 @@ interface AppointmentBookingProps {
   user: User;
   selectedDentist?: Dentist;
   prefilledReason?: string;
+  rescheduleAppointmentId?: string | null;
   onComplete: (appointmentData?: Record<string, unknown>) => void;
   onCancel: () => void;
 }
@@ -31,7 +32,7 @@ interface Dentist {
   last_name: string;
 }
 
-export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, prefilledReason, onComplete, onCancel }: AppointmentBookingProps) => {
+export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, prefilledReason, rescheduleAppointmentId, onComplete, onCancel }: AppointmentBookingProps) => {
   const [dentists, setDentists] = useState<Dentist[]>([]);
   const [selectedDentist, setSelectedDentist] = useState("");
   const [selectedDate, setSelectedDate] = useState<Date>();
@@ -43,6 +44,7 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
   const [isLoading, setIsLoading] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [existingAppointment, setExistingAppointment] = useState<any>(null);
   const { toast } = useToast();
 
   const fetchDentists = useCallback(async () => {
@@ -82,7 +84,48 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
     if (prefilledReason) {
       setReason(prefilledReason);
     }
-  }, [prefilledReason, fetchDentists]);
+    
+    // Load existing appointment if rescheduling
+    if (rescheduleAppointmentId) {
+      loadExistingAppointment();
+    }
+  }, [prefilledReason, fetchDentists, rescheduleAppointmentId]);
+  
+  const loadExistingAppointment = async () => {
+    if (!rescheduleAppointmentId) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('appointments')
+        .select('*, dentists(id, profile_id, specialization)')
+        .eq('id', rescheduleAppointmentId)
+        .single();
+        
+      if (error) throw error;
+      
+      setExistingAppointment(data);
+      setSelectedDentist(data.dentist_id);
+      setReason(data.reason || '');
+      
+      // Parse the date and time
+      const appointmentDate = new Date(data.appointment_date);
+      setSelectedDate(appointmentDate);
+      const timeString = appointmentDate.toTimeString().substring(0, 5);
+      setSelectedTime(timeString);
+      
+      // Load availability for the date
+      if (appointmentDate) {
+        fetchAvailability(appointmentDate);
+      }
+    } catch (error) {
+      console.error('Error loading appointment:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load appointment details",
+        variant: "destructive"
+      });
+    }
+  };
 
   // Auto-select dentist when dentists are loaded
   useEffect(() => {
@@ -234,6 +277,14 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
         p_slot_time: selectedTime,
         p_appointment_id: appointmentData.id
       });
+      
+      // If rescheduling, cancel the old appointment
+      if (rescheduleAppointmentId) {
+        await supabase
+          .from('appointments')
+          .update({ status: 'cancelled' })
+          .eq('id', rescheduleAppointmentId);
+      }
 
       showAppointmentConfirmed(
         `${selectedDate.toLocaleDateString()} at ${selectedTime}`
@@ -284,9 +335,13 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
           <CardHeader className="text-center pb-6">
             <CardTitle className="flex items-center justify-center text-2xl font-bold text-gray-800">
               <CalendarDays className="h-6 w-6 mr-3 text-blue-600" />
-              Prise de rendez-vous
+              {rescheduleAppointmentId ? 'Reprogrammer le rendez-vous' : 'Prise de rendez-vous'}
             </CardTitle>
-            <p className="text-gray-600 mt-2">Réservez votre consultation dentaire en quelques clics</p>
+            <p className="text-gray-600 mt-2">
+              {rescheduleAppointmentId 
+                ? 'Sélectionnez une nouvelle date et heure pour votre rendez-vous' 
+                : 'Réservez votre consultation dentaire en quelques clics'}
+            </p>
           </CardHeader>
           
           <CardContent className="space-y-8 p-6 md:p-8">
