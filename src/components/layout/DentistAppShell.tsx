@@ -193,7 +193,7 @@ export const DentistAppShell: React.FC<DentistAppShellProps> = ({
             {NAV_ITEMS.map(item => {
             const Icon = item.icon;
             const active = isActive(item.id);
-            return <button key={item.id} onClick={() => onChangeSection(item.id)} className={cn("flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all", active ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground hover:bg-muted")}>
+            return <button key={item.id} onClick={() => onChangeSection(item.id)} data-tour={`nav-${item.id}`} className={cn("flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all", active ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground hover:bg-muted")}>
                   <Icon className="h-4 w-4" />
                   {item.label}
                 </button>;
@@ -205,7 +205,7 @@ export const DentistAppShell: React.FC<DentistAppShellProps> = ({
             {/* User Menu */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-9 px-2 gap-2">
+                <Button variant="ghost" className="h-9 px-2 gap-2" data-tour="user-menu">
                   <Avatar className="h-7 w-7">
                     <AvatarFallback className="text-xs">{userInitials}</AvatarFallback>
                   </Avatar>

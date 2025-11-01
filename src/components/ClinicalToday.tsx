@@ -163,7 +163,7 @@ export function ClinicalToday({ user, dentistId, onOpenPatientsTab, onOpenAppoin
 			</div>
 
 		{/* Quick Stats with Polished Components */}
-		<div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+		<div className="grid grid-cols-2 lg:grid-cols-4 gap-4" data-tour="stats-cards">
 			<StatCard
 				title="Today's Appointments"
 				value={stats.todayCount.toString()}
@@ -202,7 +202,7 @@ export function ClinicalToday({ user, dentistId, onOpenPatientsTab, onOpenAppoin
 			<NextAppointmentWidget dentistId={dentistId} />
 
 			{/* Today's Schedule */}
-			<Card className="border-none shadow-sm">
+			<Card className="border-none shadow-sm" data-tour="appointments-list">
 				<CardContent className="pt-6">
 					<div className="flex items-center justify-between mb-4">
 						<h2 className="text-lg font-semibold">Today's Schedule</h2>
