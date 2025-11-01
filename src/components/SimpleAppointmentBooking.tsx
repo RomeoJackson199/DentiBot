@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { AIWritingAssistant } from "@/components/AIWritingAssistant";
 import { Calendar, Plus } from "lucide-react";
+import { clinicTimeToUtc } from "@/lib/timezone";
 
 interface SimpleAppointmentBookingProps {
   dentistId: string;
@@ -49,9 +50,11 @@ export function SimpleAppointmentBooking({
     setLoading(true);
 
     try {
-      // Combine date and time
-      const appointmentDateTime = new Date(`${formData.date}T${formData.time}`);
-      
+      // Combine date and time in clinic timezone, then convert to UTC
+      const appointmentDateTime = clinicTimeToUtc(
+        new Date(`${formData.date}T${formData.time}:00`)
+      );
+
       const { data, error } = await supabase.rpc('create_simple_appointment', {
         p_patient_id: patientId,
         p_dentist_id: dentistId,

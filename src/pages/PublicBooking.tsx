@@ -21,6 +21,7 @@ import { Header } from "@/components/homepage/Header";
 import { Footer } from "@/components/homepage/Footer";
 import { ServiceSelector } from "@/components/booking/ServiceSelector";
 import { logger } from '@/lib/logger';
+import { clinicTimeToUtc } from "@/lib/timezone";
 
 interface Dentist {
   id: string;
@@ -183,10 +184,11 @@ export default function PublicBooking() {
 
       if (profileError) throw profileError;
 
-      // Create the appointment
-      const appointmentDateTime = new Date(selectedDate);
-      const [hours, minutes] = selectedTime.split(':');
-      appointmentDateTime.setHours(parseInt(hours), parseInt(minutes));
+      // Create the appointment with proper timezone handling
+      const dateStr = selectedDate.toISOString().split('T')[0];
+      const appointmentDateTime = clinicTimeToUtc(
+        new Date(`${dateStr}T${selectedTime}:00`)
+      );
 
       const { error: appointmentError } = await supabase
         .from('appointments')

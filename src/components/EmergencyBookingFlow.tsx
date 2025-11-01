@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { format, addDays, isBefore, startOfDay } from "date-fns";
 import { logger } from '@/lib/logger';
+import { clinicTimeToUtc } from "@/lib/timezone";
 
 interface EmergencyBookingFlowProps {
   user: { id: string; email?: string };
@@ -282,14 +283,15 @@ export const EmergencyBookingFlow = ({ user, onComplete, onCancel }: EmergencyBo
         throw new Error('Unable to create or find user profile');
       }
 
-      // Create appointment
-      const appointmentDateTime = new Date(selectedDate);
-      const [hours, minutes] = selectedTime.split(':');
-      appointmentDateTime.setHours(parseInt(hours), parseInt(minutes));
+      // Create appointment with proper timezone handling
+      const dateStr = selectedDate.toISOString().split('T')[0];
+      const appointmentDateTime = clinicTimeToUtc(
+        new Date(`${dateStr}T${selectedTime}:00`)
+      );
 
       const urgencyConfig = getUrgencyConfig(urgencyLevel);
       const urgencyValue = urgencyConfig.priority as 'low' | 'medium' | 'high' | 'emergency';
-      
+
       const { data: appointmentData, error: appointmentError } = await supabase
         .from('appointments')
         .insert({
