@@ -27,6 +27,7 @@ import ClinicMap from "@/components/Map";
 import { ServiceSelector } from "@/components/booking/ServiceSelector";
 import { logger } from '@/lib/logger';
 import { AnimatedBackground, EmptyState } from "@/components/ui/polished-components";
+import { clinicTimeToUtc } from "@/lib/timezone";
 
 interface Dentist {
   id: string;
@@ -190,18 +191,21 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
 
   const fetchAvailableSlots = async (date: Date, dentistId: string) => {
     if (!businessId) return;
-    
+
     try {
+      // Use format to preserve Brussels date without UTC conversion
+      const dateStr = format(date, 'yyyy-MM-dd');
+
       await supabase.rpc('generate_daily_slots', {
         p_dentist_id: dentistId,
-        p_date: date.toISOString().split('T')[0]
+        p_date: dateStr
       });
 
       const { data, error } = await supabase
         .from('appointment_slots')
         .select('slot_time, is_available, emergency_only')
         .eq('dentist_id', dentistId)
-        .eq('slot_date', date.toISOString().split('T')[0])
+        .eq('slot_date', dateStr)
         .eq('business_id', businessId)
         .order('slot_time');
 
@@ -288,9 +292,13 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
         return;
       }
 
-      const appointmentDateTime = new Date(selectedDate);
-      const [hours, minutes] = selectedTime.split(":");
-      appointmentDateTime.setHours(parseInt(hours), parseInt(minutes));
+      // Use format to preserve Brussels date without UTC conversion
+      const dateStr = format(selectedDate, 'yyyy-MM-dd');
+
+      // Create appointment with proper timezone handling
+      const appointmentDateTime = clinicTimeToUtc(
+        new Date(`${dateStr}T${selectedTime}:00`)
+      );
 
       let appointmentReason = "General consultation";
       if (bookingData?.messages?.length > 0) {
@@ -298,9 +306,9 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
           const { generateAppointmentReason } = await import("@/lib/symptoms");
           const aiReason = await generateAppointmentReason(
             bookingData.messages as any,
-            { 
-              id: profile.id, 
-              first_name: profile.first_name, 
+            {
+              id: profile.id,
+              first_name: profile.first_name,
               last_name: profile.last_name,
               user_id: profile.user_id,
               email: profile.email,
@@ -313,8 +321,6 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
           logger.error('Failed to generate AI reason:', err);
         }
       }
-
-      const dateStr = selectedDate.toISOString().split('T')[0];
 
       const { data: appointmentData, error: appointmentError } = await supabase
         .from("appointments")
@@ -351,7 +357,7 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
 
       // Show success dialog with Google Calendar option
       setSuccessDetails({
-        date: selectedDate.toISOString().split('T')[0],
+        date: format(selectedDate, 'yyyy-MM-dd'),
         time: selectedTime,
         dentist: `Dr. ${selectedDentist.first_name} ${selectedDentist.last_name}`,
         reason: appointmentReason

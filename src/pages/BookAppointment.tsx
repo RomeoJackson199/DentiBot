@@ -26,6 +26,7 @@ import ClinicMap from "@/components/Map";
 import { ServiceSelector } from "@/components/booking/ServiceSelector";
 import { logger } from '@/lib/logger';
 import { AnimatedBackground, EmptyState, GradientCard } from "@/components/ui/polished-components";
+import { clinicTimeToUtc } from "@/lib/timezone";
 
 interface Dentist {
   id: string;
@@ -186,7 +187,8 @@ export default function BookAppointment() {
     if (!businessId) return;
 
     try {
-      const dateStr = date.toISOString().split('T')[0];
+      // Use format to preserve Brussels date without UTC conversion
+      const dateStr = format(date, 'yyyy-MM-dd');
 
       // 1. First generate daily slots
       await supabase.rpc('generate_daily_slots', {
@@ -269,11 +271,13 @@ export default function BookAppointment() {
         return;
       }
 
-      const appointmentDateTime = new Date(selectedDate);
-      const [hours, minutes] = selectedTime.split(":");
-      appointmentDateTime.setHours(parseInt(hours), parseInt(minutes));
+      // Use format to preserve Brussels date without UTC conversion
+      const dateStr = format(selectedDate, 'yyyy-MM-dd');
 
-      const dateStr = selectedDate.toISOString().split('T')[0];
+      // Create appointment with proper timezone handling
+      const appointmentDateTime = clinicTimeToUtc(
+        new Date(`${dateStr}T${selectedTime}:00`)
+      );
 
       const { data: appointmentData, error } = await supabase
         .from('appointments')

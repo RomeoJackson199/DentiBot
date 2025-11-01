@@ -21,6 +21,7 @@ import { Header } from "@/components/homepage/Header";
 import { Footer } from "@/components/homepage/Footer";
 import { ServiceSelector } from "@/components/booking/ServiceSelector";
 import { logger } from '@/lib/logger';
+import { clinicTimeToUtc } from "@/lib/timezone";
 
 interface Dentist {
   id: string;
@@ -107,7 +108,8 @@ export default function PublicBooking() {
     const fetchTimes = async () => {
       setLoadingTimes(true);
       setSelectedTime("");
-      const dateStr = selectedDate.toISOString().split('T')[0];
+      // Use format to preserve Brussels date without UTC conversion
+      const dateStr = format(selectedDate, 'yyyy-MM-dd');
       
       try {
         // 1. Ensure slots exist for this date (idempotent)
@@ -183,10 +185,12 @@ export default function PublicBooking() {
 
       if (profileError) throw profileError;
 
-      // Create the appointment
-      const appointmentDateTime = new Date(selectedDate);
-      const [hours, minutes] = selectedTime.split(':');
-      appointmentDateTime.setHours(parseInt(hours), parseInt(minutes));
+      // Create the appointment with proper timezone handling
+      // Use format to preserve Brussels date without UTC conversion
+      const dateStr = format(selectedDate, 'yyyy-MM-dd');
+      const appointmentDateTime = clinicTimeToUtc(
+        new Date(`${dateStr}T${selectedTime}:00`)
+      );
 
       const { error: appointmentError } = await supabase
         .from('appointments')
