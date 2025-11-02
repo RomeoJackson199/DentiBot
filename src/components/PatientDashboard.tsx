@@ -561,38 +561,17 @@ export const PatientDashboard = ({
       };
     })() : null} activePrescriptions={patientStats.activePrescriptions} activeTreatmentPlans={patientStats.activeTreatmentPlans} totalDueCents={totalDueCents} onNavigateTo={s => setActiveSection(s)} onOpenAssistant={() => setActiveSection('assistant')} onBookAppointment={() => setActiveSection('assistant')} />}
 
-        hasAIChat ? (
-          <div className="px-4 md:px-6 py-4">
-            <Card>
-              <CardContent>
-                <div className="h-[70vh]">
-                  <InteractiveDentalChat user={user} triggerBooking={triggerBooking} />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        ) : (
-          <div className="px-4 md:px-6 py-4">
-            <Card className="h-full">
-              <CardHeader>
-                <CardTitle>Classic Booking</CardTitle>
-                <CardDescription>
-                  Book an appointment using the standard booking system. It will open in a new tab so you can still use your dashboard tabs here.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-col sm:flex-row items-center gap-3">
-                  <Button size="lg" onClick={() => window.open('https://caberu.be/book-appointment', '_blank')}>
-                    Open Booking
-                  </Button>
-                  <p className="text-sm text-muted-foreground">
-                    Tip: Keep this page open to navigate between Home, Messages, and more.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )
+      {activeSection === 'assistant' && hasAIChat && (
+        <div className="px-4 md:px-6 py-4">
+          <Card>
+            <CardContent>
+              <div className="h-[70vh]">
+                <InteractiveDentalChat user={user} triggerBooking={triggerBooking} />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {activeSection === 'messages' && <Messages />}
 
