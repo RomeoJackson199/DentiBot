@@ -290,6 +290,8 @@ export type Database = {
           business_hours: Json
           created_at: string
           currency: string
+          custom_features: Json | null
+          custom_terminology: Json | null
           emergency_keywords: string[]
           id: string
           logo_url: string | null
@@ -318,6 +320,8 @@ export type Database = {
           business_hours?: Json
           created_at?: string
           currency?: string
+          custom_features?: Json | null
+          custom_terminology?: Json | null
           emergency_keywords?: string[]
           id?: string
           logo_url?: string | null
@@ -346,6 +350,8 @@ export type Database = {
           business_hours?: Json
           created_at?: string
           currency?: string
+          custom_features?: Json | null
+          custom_terminology?: Json | null
           emergency_keywords?: string[]
           id?: string
           logo_url?: string | null
@@ -1497,6 +1503,38 @@ export type Database = {
             columns: ["plan_id"]
             isOneToOne: false
             referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      template_change_history: {
+        Row: {
+          business_id: string
+          changed_at: string
+          from_template: string | null
+          id: string
+          to_template: string
+        }
+        Insert: {
+          business_id: string
+          changed_at?: string
+          from_template?: string | null
+          id?: string
+          to_template: string
+        }
+        Update: {
+          business_id?: string
+          changed_at?: string
+          from_template?: string | null
+          id?: string
+          to_template?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "template_change_history_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
             referencedColumns: ["id"]
           },
         ]
