@@ -90,7 +90,7 @@ export default function PatientAppointmentsPage() {
               <Button
                 size="lg"
                 className="gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all"
-                onClick={() => navigate('/book-appointment')}
+                onClick={() => window.location.href = 'https://caberu.be/book-appointment'}
                 aria-label={t.bookAppointment}
               >
                 <Plus className="h-4 w-4" />

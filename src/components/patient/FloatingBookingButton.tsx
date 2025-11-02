@@ -45,7 +45,7 @@ export const FloatingBookingButton = ({
         <Button
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
-          onClick={() => navigate('/book-appointment')}
+          onClick={() => window.location.href = 'https://caberu.be/book-appointment'}
           size="icon"
           className="touch-target bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-blue-500/50 hover:scale-105 active:scale-95 rounded-full h-14 w-14"
           aria-label="Book appointment"
@@ -83,11 +83,11 @@ export const FloatingBookingButton = ({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56 mb-2">
-          <DropdownMenuItem onClick={() => navigate('/book-appointment-ai')} className="cursor-pointer">
+          <DropdownMenuItem onClick={() => window.location.href = 'https://caberu.be/book-appointment'} className="cursor-pointer">
             <Bot className="mr-2 h-4 w-4" />
             Book with AI Assistant
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => navigate('/book-appointment')} className="cursor-pointer">
+          <DropdownMenuItem onClick={() => window.location.href = 'https://caberu.be/book-appointment'} className="cursor-pointer">
             <CalendarDays className="mr-2 h-4 w-4" />
             Book Manually
           </DropdownMenuItem>

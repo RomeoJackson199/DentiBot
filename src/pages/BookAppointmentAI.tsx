@@ -406,7 +406,8 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
 
   // If AI chat is disabled, redirect to manual booking
   if (!hasAIChat) {
-    return <Navigate to="/book-appointment" replace />;
+    window.location.href = 'https://caberu.be/book-appointment';
+    return null;
   }
 
   if (!businessId) {
@@ -455,7 +456,7 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => navigate('/book-appointment')}
+                  onClick={() => window.location.href = 'https://caberu.be/book-appointment'}
                   className="gap-2 text-muted-foreground hover:text-primary hover:bg-white/50"
                 >
                   <CalendarDays className="h-4 w-4" />
