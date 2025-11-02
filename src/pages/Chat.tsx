@@ -10,6 +10,7 @@ import { InteractiveDentalChat } from '@/components/chat/InteractiveDentalChat';
 import { User } from '@supabase/supabase-js';
 import type { Database } from '@/integrations/supabase/types';
 import { logger } from '@/lib/logger';
+import { useBusinessTemplate } from '@/hooks/useBusinessTemplate';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 
@@ -17,6 +18,8 @@ export default function Chat() {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const isMobile = useIsMobile();
+  const { hasFeature } = useBusinessTemplate();
+  const hasAIChat = hasFeature('aiChat');
 
   useEffect(() => {
     loadUserProfile();
@@ -72,6 +75,23 @@ export default function Chat() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-dental-primary"></div>
+      </div>
+    );
+  }
+
+  // If AI chat is not enabled for this template, don't show the chat page
+  if (!hasAIChat) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-6">
+        <Card className="max-w-md">
+          <CardContent className="pt-6 text-center">
+            <Bot className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+            <h2 className="text-xl font-semibold mb-2">AI Chat Not Available</h2>
+            <p className="text-muted-foreground">
+              AI chat is not enabled for this business type. Please contact your service provider for more information.
+            </p>
+          </CardContent>
+        </Card>
       </div>
     );
   }

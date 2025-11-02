@@ -38,6 +38,8 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { AppointmentBooking } from "@/components/AppointmentBooking";
 import Messages from "@/pages/Messages";
 import { logger } from '@/lib/logger';
+import { useBusinessTemplate } from '@/hooks/useBusinessTemplate';
+
 interface PatientDashboardProps {
   user: User;
 }
@@ -52,19 +54,22 @@ interface PatientStats {
 }
 
 // Navigation items with better organization
-const navigationItems = [{
+const getNavigationItems = (hasAIChat: boolean) => [{
   group: "Overview",
-  items: [{
-    id: 'overview',
-    label: 'Dashboard',
-    icon: Home,
-    badge: null
-  }, {
-    id: 'chat',
-    label: 'AI Assistant',
-    icon: MessageSquare,
-    badge: 'AI'
-  }]
+  items: [
+    {
+      id: 'overview',
+      label: 'Dashboard',
+      icon: Home,
+      badge: null
+    },
+    ...(hasAIChat ? [{
+      id: 'chat',
+      label: 'AI Assistant',
+      icon: MessageSquare,
+      badge: 'AI'
+    }] : [])
+  ]
 }, {
   group: "Appointments",
   items: [{
@@ -124,6 +129,9 @@ export const PatientDashboard = ({
   const {
     toast
   } = useToast();
+  const { hasFeature } = useBusinessTemplate();
+  const hasAIChat = hasFeature('aiChat');
+  const navigationItems = getNavigationItems(hasAIChat);
   type Tab = 'overview' | 'chat' | 'appointments' | 'prescriptions' | 'treatment' | 'records' | 'notes' | 'payments' | 'analytics' | 'emergency' | 'test';
   const [activeTab, setActiveTab] = useState<Tab>(() => {
     try {
@@ -546,7 +554,7 @@ export const PatientDashboard = ({
       };
     })() : null} activePrescriptions={patientStats.activePrescriptions} activeTreatmentPlans={patientStats.activeTreatmentPlans} totalDueCents={totalDueCents} onNavigateTo={s => setActiveSection(s)} onOpenAssistant={() => setActiveSection('assistant')} onBookAppointment={() => setActiveSection('assistant')} />}
 
-      {activeSection === 'assistant' && <div className="px-4 md:px-6 py-4">
+      {activeSection === 'assistant' && hasAIChat && <div className="px-4 md:px-6 py-4">
           <Card>
             
             <CardContent>
@@ -587,7 +595,7 @@ export const PatientDashboard = ({
       <Dialog open={showAssistant} onOpenChange={setShowAssistant}>
         <DialogContent className="p-0 max-w-3xl w-full">
           <div className="h-[80vh]">
-            <InteractiveDentalChat user={user} triggerBooking={triggerBooking} />
+            {hasAIChat && <InteractiveDentalChat user={user} triggerBooking={triggerBooking} />}
           </div>
         </DialogContent>
       </Dialog>
