@@ -572,19 +572,7 @@ export const PatientDashboard = ({
               </CardContent>
             </Card>
           </div>
-        ) : (
-          <div className="px-4 md:px-6 py-4">
-            <Card className="h-full">
-              <CardContent className="p-0">
-                <iframe
-                  src="https://caberu.be/book-appointment"
-                  className="w-full h-[75vh] border-0 rounded-lg"
-                  title="Book Appointment"
-                />
-              </CardContent>
-            </Card>
-          </div>
-        )
+        ) : null
       )}
 
       {activeSection === 'messages' && <Messages />}
