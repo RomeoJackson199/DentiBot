@@ -4,22 +4,26 @@ import { format, startOfDay } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useBusinessContext } from "@/hooks/useBusinessContext";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
-import { Clock, CheckCircle2, ArrowLeft } from "lucide-react";
+import { Clock, CheckCircle2, ArrowLeft, ArrowRight, Calendar as CalendarIcon, User } from "lucide-react";
 import { ModernLoadingSpinner } from "@/components/enhanced/ModernLoadingSpinner";
 import { ServiceSelector } from "@/components/booking/ServiceSelector";
-import { clinicTimeToUtc, createAppointmentDateTimeFromStrings } from "@/lib/timezone";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { createAppointmentDateTimeFromStrings } from "@/lib/timezone";
 
 interface Dentist {
   id: string;
-  profiles: any; // Supabase returns array from join
+  profiles: any;
   specialization?: string;
+  bio?: string;
 }
+
+type BookingStep = 'service' | 'provider' | 'datetime' | 'confirm' | 'success';
 
 export default function BookAppointment() {
   const { toast } = useToast();
@@ -29,7 +33,7 @@ export default function BookAppointment() {
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
 
-  // Form state
+  const [currentStep, setCurrentStep] = useState<BookingStep>('service');
   const [dentists, setDentists] = useState<Dentist[]>([]);
   const [selectedService, setSelectedService] = useState<any>(null);
   const [selectedDentist, setSelectedDentist] = useState("");
@@ -37,10 +41,9 @@ export default function BookAppointment() {
   const [selectedTime, setSelectedTime] = useState("");
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
   const [reason, setReason] = useState("");
-  
   const [loading, setLoading] = useState(true);
   const [loadingTimes, setLoadingTimes] = useState(false);
-  const [success, setSuccess] = useState(false);
+  const [bookingId, setBookingId] = useState<string | null>(null);
 
   useEffect(() => {
     const getUser = async () => {
@@ -71,7 +74,6 @@ export default function BookAppointment() {
     setSelectedTime("");
   }, [selectedDentist, selectedDate]);
 
-  // Fetch dentists
   useEffect(() => {
     if (!effectiveBusinessId) return;
     
@@ -88,7 +90,11 @@ export default function BookAppointment() {
 
       const { data, error } = await supabase
         .from('dentists')
-        .select('id, specialization, profiles!dentists_profile_id_fkey(first_name, last_name)')
+        .select(`
+          id, 
+          specialization,
+          profiles!dentists_profile_id_fkey(first_name, last_name, bio)
+        `)
         .eq('is_active', true)
         .in('profile_id', members.map(m => m.profile_id));
 
@@ -99,7 +105,6 @@ export default function BookAppointment() {
     fetchDentists();
   }, [effectiveBusinessId]);
 
-  // Fetch available times
   useEffect(() => {
     if (!selectedDentist || !selectedDate) {
       setAvailableTimes([]);
@@ -145,7 +150,6 @@ export default function BookAppointment() {
       if (!error && data) {
         setAvailableTimes(data.map(s => (s.slot_time.length === 8 ? s.slot_time.slice(0,5) : s.slot_time)));
       } else {
-        console.error('Error fetching slots:', error);
         setAvailableTimes([]);
       }
       setLoadingTimes(false);
@@ -153,13 +157,47 @@ export default function BookAppointment() {
     fetchTimes();
   }, [selectedDentist, selectedDate, effectiveBusinessId]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const handleNext = () => {
+    if (currentStep === 'service') {
+      setCurrentStep('provider');
+    } else if (currentStep === 'provider') {
+      if (!selectedDentist) {
+        toast({
+          title: "Error",
+          description: "Please select a provider",
+          variant: "destructive"
+        });
+        return;
+      }
+      setCurrentStep('datetime');
+    } else if (currentStep === 'datetime') {
+      if (!selectedDate || !selectedTime) {
+        toast({
+          title: "Error",
+          description: "Please select date and time",
+          variant: "destructive"
+        });
+        return;
+      }
+      setCurrentStep('confirm');
+    }
+  };
+
+  const handleBack = () => {
+    if (currentStep === 'provider') {
+      setCurrentStep('service');
+    } else if (currentStep === 'datetime') {
+      setCurrentStep('provider');
+    } else if (currentStep === 'confirm') {
+      setCurrentStep('datetime');
+    }
+  };
+
+  const handleConfirm = async () => {
     if (!profile || !selectedDentist || !selectedDate || !selectedTime) {
       toast({
         title: "Error",
-        description: "Please complete all fields",
+        description: "Missing required information",
         variant: "destructive"
       });
       return;
@@ -171,7 +209,7 @@ export default function BookAppointment() {
       const dateStr = format(selectedDate, 'yyyy-MM-dd');
       const appointmentDateTime = createAppointmentDateTimeFromStrings(dateStr, selectedTime);
 
-      const { error: appointmentError } = await supabase
+      const { data: appointment, error: appointmentError } = await supabase
         .from('appointments')
         .insert({
           patient_id: profile.id,
@@ -182,17 +220,18 @@ export default function BookAppointment() {
           status: 'pending',
           service_id: selectedService?.id || null,
           duration_minutes: selectedService?.duration_minutes || 60
-        });
+        })
+        .select()
+        .single();
 
       if (appointmentError) throw appointmentError;
 
-      setSuccess(true);
+      setBookingId(appointment.id);
+      setCurrentStep('success');
       toast({
         title: "Success",
         description: "Your appointment has been booked!",
       });
-
-      setTimeout(() => navigate('/dashboard'), 2000);
     } catch (error) {
       console.error('Booking error:', error);
       toast({
@@ -203,6 +242,21 @@ export default function BookAppointment() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleAddToGoogleCalendar = () => {
+    if (!selectedDate || !selectedTime || !selectedDentist) return;
+
+    const dentist = dentists.find(d => d.id === selectedDentist);
+    const startDate = createAppointmentDateTimeFromStrings(format(selectedDate, 'yyyy-MM-dd'), selectedTime);
+    const endDate = new Date(startDate.getTime() + (selectedService?.duration_minutes || 60) * 60000);
+    
+    const title = encodeURIComponent(`Appointment with ${dentist?.profiles?.first_name || ''} ${dentist?.profiles?.last_name || ''}`);
+    const details = encodeURIComponent(selectedService?.name || reason || 'General Consultation');
+    const dates = `${format(startDate, "yyyyMMdd'T'HHmmss")}/${format(endDate, "yyyyMMdd'T'HHmmss")}`;
+    
+    const googleCalendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&details=${details}&dates=${dates}`;
+    window.open(googleCalendarUrl, '_blank');
   };
 
   if (loading || businessLoading) {
@@ -228,7 +282,9 @@ export default function BookAppointment() {
     );
   }
 
-  if (success) {
+  const selectedDentistData = dentists.find(d => d.id === selectedDentist);
+
+  if (currentStep === 'success') {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
         <Card className="max-w-md w-full">
@@ -238,10 +294,23 @@ export default function BookAppointment() {
             </div>
             <h2 className="text-2xl font-bold">Appointment Confirmed!</h2>
             <p className="text-muted-foreground">Your appointment has been successfully booked.</p>
-            <Button onClick={() => navigate('/dashboard')} className="w-full">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Dashboard
-            </Button>
+            
+            <Separator />
+            
+            <div className="space-y-2">
+              <Button onClick={() => navigate('/dashboard')} className="w-full" size="lg">
+                Back to Dashboard
+              </Button>
+              <Button 
+                onClick={handleAddToGoogleCalendar} 
+                variant="outline" 
+                className="w-full"
+                size="lg"
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                Add to Google Calendar
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -253,11 +322,13 @@ export default function BookAppointment() {
       <Card className="max-w-4xl mx-auto">
         <CardHeader>
           <CardTitle className="text-2xl">Book an Appointment</CardTitle>
+          <CardDescription>
+            Step {currentStep === 'service' ? '1' : currentStep === 'provider' ? '2' : currentStep === 'datetime' ? '3' : '4'} of 4
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Step 1: Select Service */}
-            {effectiveBusinessId && (
+          {currentStep === 'service' && effectiveBusinessId && (
+            <div className="space-y-6">
               <div className="space-y-2">
                 <Label>Select Service (Optional)</Label>
                 <ServiceSelector
@@ -266,96 +337,207 @@ export default function BookAppointment() {
                   selectedServiceId={selectedService?.id || null}
                 />
               </div>
-            )}
-
-            {/* Step 2: Select Dentist */}
-            <div className="space-y-2">
-              <Label>Select Provider *</Label>
-              <Select value={selectedDentist} onValueChange={setSelectedDentist}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Choose a provider" />
-                </SelectTrigger>
-                <SelectContent>
-                  {dentists.map((dentist) => (
-                    <SelectItem key={dentist.id} value={dentist.id}>
-                      {dentist.profiles?.first_name} {dentist.profiles?.last_name}
-                      {dentist.specialization && ` - ${dentist.specialization}`}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Step 3: Select Date */}
-            <div className="space-y-2">
-              <Label>Select Date *</Label>
-              <Calendar
-                mode="single"
-                selected={selectedDate}
-                onSelect={setSelectedDate}
-                disabled={(date) => date < new Date() || !selectedDentist}
-                className="rounded-md border"
-              />
-            </div>
-
-            {/* Step 4: Select Time */}
-            {selectedDate && (
+              
               <div className="space-y-2">
-                <Label>Select Time *</Label>
-                {loadingTimes ? (
-                  <div className="flex items-center justify-center py-4">
-                    <ModernLoadingSpinner />
-                  </div>
-                ) : availableTimes.length > 0 ? (
-                  <div className="grid grid-cols-4 gap-2">
-                    {availableTimes.map((time) => (
-                      <Button
-                        key={time}
-                        type="button"
-                        variant={selectedTime === time ? "default" : "outline"}
-                        onClick={() => setSelectedTime(time)}
-                        className="w-full"
-                      >
-                        <Clock className="mr-1 h-4 w-4" />
-                        {time}
-                      </Button>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-muted-foreground">No available times for this date</p>
-                )}
+                <Label>Reason for Visit (Optional)</Label>
+                <Textarea
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                  placeholder="Describe your symptoms or reason for visit..."
+                  rows={4}
+                />
               </div>
-            )}
 
-            {/* Reason */}
-            <div className="space-y-2">
-              <Label>Reason for Visit</Label>
-              <Textarea
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-                placeholder="Describe your symptoms or reason for visit..."
-                rows={4}
-              />
+              <div className="flex justify-end">
+                <Button onClick={handleNext} size="lg">
+                  Next
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </div>
             </div>
+          )}
 
-            <div className="flex gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => navigate(-1)}
-                className="flex-1"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                disabled={!selectedDentist || !selectedDate || !selectedTime || loading}
-                className="flex-1"
-              >
-                {loading ? "Booking..." : "Confirm Appointment"}
-              </Button>
+          {currentStep === 'provider' && (
+            <div className="space-y-6">
+              <div className="space-y-4">
+                <Label>Select Your Provider</Label>
+                {dentists.map((dentist) => (
+                  <Card 
+                    key={dentist.id}
+                    className={`cursor-pointer transition-all ${
+                      selectedDentist === dentist.id 
+                        ? 'ring-2 ring-primary' 
+                        : 'hover:border-primary/50'
+                    }`}
+                    onClick={() => setSelectedDentist(dentist.id)}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-start gap-4">
+                        <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                          <User className="w-8 h-8 text-primary" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-lg">
+                            {dentist.profiles?.first_name} {dentist.profiles?.last_name}
+                          </h3>
+                          {dentist.specialization && (
+                            <Badge variant="secondary" className="mb-2">
+                              {dentist.specialization}
+                            </Badge>
+                          )}
+                          {dentist.profiles?.bio && (
+                            <p className="text-sm text-muted-foreground mt-2">
+                              {dentist.profiles.bio}
+                            </p>
+                          )}
+                        </div>
+                        {selectedDentist === dentist.id && (
+                          <CheckCircle2 className="w-6 h-6 text-primary flex-shrink-0" />
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+
+              <div className="flex gap-2">
+                <Button onClick={handleBack} variant="outline" size="lg">
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Back
+                </Button>
+                <Button onClick={handleNext} size="lg" className="flex-1">
+                  Next
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </div>
             </div>
-          </form>
+          )}
+
+          {currentStep === 'datetime' && (
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <Label>Select Date</Label>
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={setSelectedDate}
+                  disabled={(date) => date < new Date() || !selectedDentist}
+                  className="rounded-md border"
+                />
+              </div>
+
+              {selectedDate && (
+                <div className="space-y-2">
+                  <Label>Select Time</Label>
+                  {loadingTimes ? (
+                    <div className="flex items-center justify-center py-4">
+                      <ModernLoadingSpinner />
+                    </div>
+                  ) : availableTimes.length > 0 ? (
+                    <div className="grid grid-cols-4 gap-2">
+                      {availableTimes.map((time) => (
+                        <Button
+                          key={time}
+                          type="button"
+                          variant={selectedTime === time ? "default" : "outline"}
+                          onClick={() => setSelectedTime(time)}
+                          className="w-full"
+                        >
+                          <Clock className="mr-1 h-4 w-4" />
+                          {time}
+                        </Button>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground">No available times for this date</p>
+                  )}
+                </div>
+              )}
+
+              <div className="flex gap-2">
+                <Button onClick={handleBack} variant="outline" size="lg">
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Back
+                </Button>
+                <Button 
+                  onClick={handleNext} 
+                  size="lg" 
+                  className="flex-1"
+                  disabled={!selectedDate || !selectedTime}
+                >
+                  Next
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {currentStep === 'confirm' && (
+            <div className="space-y-6">
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Confirm Your Appointment</h3>
+                
+                <Card>
+                  <CardContent className="p-4 space-y-3">
+                    {selectedService && (
+                      <div>
+                        <p className="text-sm text-muted-foreground">Service</p>
+                        <p className="font-medium">{selectedService.name}</p>
+                      </div>
+                    )}
+                    
+                    {selectedService && <Separator />}
+                    
+                    <div>
+                      <p className="text-sm text-muted-foreground">Provider</p>
+                      <p className="font-medium">
+                        {selectedDentistData?.profiles?.first_name} {selectedDentistData?.profiles?.last_name}
+                      </p>
+                      {selectedDentistData?.specialization && (
+                        <Badge variant="secondary" className="mt-1">
+                          {selectedDentistData.specialization}
+                        </Badge>
+                      )}
+                    </div>
+                    
+                    <Separator />
+                    
+                    <div>
+                      <p className="text-sm text-muted-foreground">Date & Time</p>
+                      <p className="font-medium">
+                        {selectedDate && format(selectedDate, 'EEEE, MMMM d, yyyy')} at {selectedTime}
+                      </p>
+                    </div>
+                    
+                    {reason && (
+                      <>
+                        <Separator />
+                        <div>
+                          <p className="text-sm text-muted-foreground">Reason for Visit</p>
+                          <p className="font-medium">{reason}</p>
+                        </div>
+                      </>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+
+              <div className="flex gap-2">
+                <Button onClick={handleBack} variant="outline" size="lg">
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Back
+                </Button>
+                <Button 
+                  onClick={handleConfirm} 
+                  size="lg" 
+                  className="flex-1"
+                  disabled={loading}
+                >
+                  {loading ? "Booking..." : "Confirm Appointment"}
+                </Button>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
