@@ -158,6 +158,10 @@ export function DentistDemoTour({ run, onClose, onChangeSection }: DentistDemoTo
     if (([STATUS.FINISHED, STATUS.SKIPPED] as string[]).includes(status)) {
       setRunTour(false);
       setStepIndex(0);
+      // Mark tour as completed
+      if (status === STATUS.FINISHED) {
+        localStorage.setItem('dentist-tour-completed', 'true');
+      }
       onClose();
     } else if (type === EVENTS.STEP_AFTER || type === EVENTS.TARGET_NOT_FOUND) {
       const nextStepIndex = index + (action === ACTIONS.PREV ? -1 : 1);

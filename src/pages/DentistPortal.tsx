@@ -23,7 +23,6 @@ import DentistTeamManagement from "./DentistTeamManagement";
 import DentistSettings from "./DentistSettings";
 import { ModernLoadingSpinner } from "@/components/enhanced/ModernLoadingSpinner";
 import DentistAppointmentsManagement from "./DentistAppointmentsManagement";
-import { SubscriptionBanner } from "@/components/SubscriptionBanner";
 import { InviteDentistDialog } from "@/components/InviteDentistDialog";
 import { useBusinessContext } from "@/hooks/useBusinessContext";
 import Messages from "./Messages";
@@ -49,6 +48,13 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
   const { hasFeature, loading: templateLoading } = useBusinessTemplate();
   const { showTour, closeTour } = useUserTour("dentist");
   const [showDemoTour, setShowDemoTour] = useState(false);
+  const [tourCompleted, setTourCompleted] = useState(false);
+
+  // Check if tour has been completed
+  useEffect(() => {
+    const completed = localStorage.getItem('dentist-tour-completed') === 'true';
+    setTourCompleted(completed);
+  }, []);
 
   // Handle URL-based section navigation
   useEffect(() => {
@@ -261,20 +267,20 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
       dentistId={dentistId}
     >
       <div className="space-y-4">
-        {/* Demo Tour Trigger Button */}
-        <div className="flex justify-end px-6 pt-4">
-          <Button
-            onClick={() => setShowDemoTour(true)}
-            variant="outline"
-            size="sm"
-            className="gap-2"
-          >
-            <HelpCircle className="h-4 w-4" />
-            Start Tour
-          </Button>
-        </div>
-
-        <SubscriptionBanner dentistId={dentistId} />
+        {/* Demo Tour Trigger Button - Hide after completion */}
+        {!tourCompleted && (
+          <div className="flex justify-end px-6 pt-4">
+            <Button
+              onClick={() => setShowDemoTour(true)}
+              variant="outline"
+              size="sm"
+              className="gap-2"
+            >
+              <HelpCircle className="h-4 w-4" />
+              Start Tour
+            </Button>
+          </div>
+        )}
         {activeSection === 'users' && businessInfo && (
           <div className="flex justify-end mb-4">
             <InviteDentistDialog 
@@ -300,7 +306,12 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
       {/* Demo Tour */}
       <DentistDemoTour
         run={showDemoTour}
-        onClose={() => setShowDemoTour(false)}
+        onClose={() => {
+          setShowDemoTour(false);
+          // Refresh tour completed state
+          const completed = localStorage.getItem('dentist-tour-completed') === 'true';
+          setTourCompleted(completed);
+        }}
         onChangeSection={(section) => setActiveSection(section as DentistSection)}
       />
     </DentistAppShell>
