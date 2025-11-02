@@ -17,7 +17,10 @@ import { RoleSwitcherMenu } from "@/components/RoleSwitcher";
 import { UserTour, useUserTour } from "@/components/UserTour";
 import { Settings } from "@/components/Settings";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { useTemplate } from "@/contexts/TemplateContext";
+
 export type PatientSection = 'home' | 'assistant' | 'care' | 'appointments' | 'payments' | 'messages' | 'settings';
+
 interface PatientAppShellProps {
   activeSection: PatientSection;
   onChangeSection: (section: PatientSection) => void;
@@ -27,46 +30,62 @@ interface PatientAppShellProps {
   onBookAppointment?: () => void;
   hasAIChat?: boolean;
 }
-const getNavItems = (hasAIChat: boolean): Array<{
+
+const getNavItems = (hasAIChat: boolean, hasMedicalFeatures: boolean): Array<{
   id: PatientSection;
   label: string;
   shortLabel?: string;
   icon: React.ComponentType<any>;
   color: string;
-}> => [{
-  id: 'home',
-  label: 'Home',
-  icon: HomeIcon,
-  color: 'text-blue-600 bg-blue-100 dark:bg-blue-900/30'
-}, {
-  id: 'assistant' as PatientSection,
-  label: hasAIChat ? 'Assistant' : 'Classic Booking',
-  shortLabel: hasAIChat ? undefined : 'Booking',
-  icon: hasAIChat ? Bot : Calendar,
-  color: hasAIChat ? 'text-emerald-600 bg-emerald-100 dark:bg-emerald-900/30' : 'text-orange-600 bg-orange-100 dark:bg-orange-900/30'
-}, {
-  id: 'care',
-  label: 'Treatment Records',
-  shortLabel: 'Records',
-  icon: FolderOpen,
-  color: 'text-purple-600 bg-purple-100 dark:bg-purple-900/30'
-}, {
-  id: 'appointments',
-  label: 'Appointments',
-  shortLabel: 'Appts',
-  icon: Calendar,
-  color: 'text-orange-600 bg-orange-100 dark:bg-orange-900/30'
-}, {
-  id: 'payments',
-  label: 'Payments',
-  icon: CreditCard,
-  color: 'text-green-600 bg-green-100 dark:bg-green-900/30'
-}, {
-  id: 'messages',
-  label: 'Messages',
-  icon: MessageSquare,
-  color: 'text-indigo-600 bg-indigo-100 dark:bg-indigo-900/30'
-}];
+}> => {
+  const items = [{
+    id: 'home' as PatientSection,
+    label: 'Home',
+    icon: HomeIcon,
+    color: 'text-blue-600 bg-blue-100 dark:bg-blue-900/30'
+  }, {
+    id: 'assistant' as PatientSection,
+    label: hasAIChat ? 'Assistant' : 'Classic Booking',
+    shortLabel: hasAIChat ? undefined : 'Booking',
+    icon: hasAIChat ? Bot : Calendar,
+    color: hasAIChat ? 'text-emerald-600 bg-emerald-100 dark:bg-emerald-900/30' : 'text-orange-600 bg-orange-100 dark:bg-orange-900/30'
+  }];
+
+  // Only add Treatment Records if medical features are enabled
+  if (hasMedicalFeatures) {
+    items.push({
+      id: 'care' as PatientSection,
+      label: 'Treatment Records',
+      shortLabel: 'Records',
+      icon: FolderOpen,
+      color: 'text-purple-600 bg-purple-100 dark:bg-purple-900/30'
+    });
+  }
+
+  items.push(
+    {
+      id: 'appointments' as PatientSection,
+      label: 'Appointments',
+      shortLabel: 'Appts',
+      icon: Calendar,
+      color: 'text-orange-600 bg-orange-100 dark:bg-orange-900/30'
+    },
+    {
+      id: 'payments' as PatientSection,
+      label: 'Payments',
+      icon: CreditCard,
+      color: 'text-green-600 bg-green-100 dark:bg-green-900/30'
+    },
+    {
+      id: 'messages' as PatientSection,
+      label: 'Messages',
+      icon: MessageSquare,
+      color: 'text-indigo-600 bg-indigo-100 dark:bg-indigo-900/30'
+    }
+  );
+
+  return items;
+};
 export const PatientAppShell: React.FC<PatientAppShellProps> = ({
   activeSection,
   onChangeSection,
@@ -76,7 +95,9 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
   onBookAppointment,
   hasAIChat = false
 }) => {
-  const NAV_ITEMS = getNavItems(hasAIChat);
+  const { hasFeature } = useTemplate();
+  const hasMedicalFeatures = hasFeature('medicalRecords') || hasFeature('treatmentPlans');
+  const NAV_ITEMS = getNavItems(hasAIChat, hasMedicalFeatures);
   const {
     toast
   } = useToast();
