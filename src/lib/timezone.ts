@@ -40,12 +40,41 @@ export function formatClinicTime(date: Date | string, formatStr: string = 'PPpp'
 
 /**
  * Create appointment datetime in clinic timezone
+ * Takes a date and time string and correctly interprets them as Brussels time
+ * before converting to UTC for storage
  */
 export function createAppointmentDateTime(date: Date, timeSlot: string): Date {
+  // Extract date components
+  const year = date.getFullYear();
+  const month = date.getMonth();
+  const day = date.getDate();
+
+  // Extract time components
   const [hours, minutes] = timeSlot.split(':').map(Number);
-  const appointmentDate = new Date(date);
-  appointmentDate.setHours(hours, minutes, 0, 0);
-  return fromZonedTime(appointmentDate, CLINIC_TIMEZONE);
+
+  // Create a Date object with exact component values
+  // fromZonedTime will interpret these components as Brussels time
+  const localDate = new Date(year, month, day, hours, minutes, 0, 0);
+
+  return fromZonedTime(localDate, CLINIC_TIMEZONE);
+}
+
+/**
+ * Create appointment datetime from date string and time string
+ * Interprets the date/time as Brussels timezone and converts to UTC
+ */
+export function createAppointmentDateTimeFromStrings(dateStr: string, timeStr: string): Date {
+  // Parse date components from 'yyyy-MM-dd' format
+  const [year, month, day] = dateStr.split('-').map(Number);
+
+  // Parse time components from 'HH:mm' format
+  const [hours, minutes] = timeStr.split(':').map(Number);
+
+  // Create a Date object with exact component values
+  // fromZonedTime will interpret these components as Brussels time
+  const localDate = new Date(year, month - 1, day, hours, minutes, 0, 0);
+
+  return fromZonedTime(localDate, CLINIC_TIMEZONE);
 }
 
 /**

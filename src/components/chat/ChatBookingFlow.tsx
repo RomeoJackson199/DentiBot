@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { CalendarDays, Clock, CheckCircle, User as UserIcon } from "lucide-react";
 import { format, addDays, startOfDay } from "date-fns";
 import { logger } from '@/lib/logger';
-import { clinicTimeToUtc } from "@/lib/timezone";
+import { clinicTimeToUtc, createAppointmentDateTimeFromStrings } from "@/lib/timezone";
 
 interface ChatBookingFlowProps {
   user: User;
@@ -172,9 +172,8 @@ export const ChatBookingFlow = ({
       const dateStr = format(selectedDate, 'yyyy-MM-dd');
 
       // Create appointment with proper timezone handling
-      const appointmentDateTime = clinicTimeToUtc(
-        new Date(`${dateStr}T${selectedTime}:00`)
-      );
+      // Parse date and time strings as Brussels timezone and convert to UTC
+      const appointmentDateTime = createAppointmentDateTimeFromStrings(dateStr, selectedTime);
 
       // Generate AI appointment reason from conversation
       let appointmentReason = "General consultation";

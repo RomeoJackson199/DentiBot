@@ -26,7 +26,7 @@ import ClinicMap from "@/components/Map";
 import { ServiceSelector } from "@/components/booking/ServiceSelector";
 import { logger } from '@/lib/logger';
 import { AnimatedBackground, EmptyState, GradientCard } from "@/components/ui/polished-components";
-import { clinicTimeToUtc } from "@/lib/timezone";
+import { clinicTimeToUtc, createAppointmentDateTimeFromStrings } from "@/lib/timezone";
 
 interface Dentist {
   id: string;
@@ -275,9 +275,8 @@ export default function BookAppointment() {
       const dateStr = format(selectedDate, 'yyyy-MM-dd');
 
       // Create appointment with proper timezone handling
-      const appointmentDateTime = clinicTimeToUtc(
-        new Date(`${dateStr}T${selectedTime}:00`)
-      );
+      // Parse date and time strings as Brussels timezone and convert to UTC
+      const appointmentDateTime = createAppointmentDateTimeFromStrings(dateStr, selectedTime);
 
       const { data: appointmentData, error } = await supabase
         .from('appointments')
