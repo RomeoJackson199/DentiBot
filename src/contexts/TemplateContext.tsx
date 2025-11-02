@@ -118,6 +118,22 @@ export function TemplateProvider({ children }: { children: ReactNode }) {
       });
     }
 
+    // Persist the new template to the database so future sessions load correctly
+    const { error: updateError } = await supabase
+      .from('businesses')
+      .update({
+        template_type: newTemplateType,
+        custom_features: newTemplateType === 'custom' ? (newCustomFeatures ?? null) : null,
+        custom_terminology: newTemplateType === 'custom' ? (newCustomTerminology ?? null) : null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', businessId);
+
+    if (updateError) {
+      logger.error('Failed to persist template update', { updateError, businessId, newTemplateType });
+      throw updateError;
+    }
+
     // Update template in state immediately for instant UI update
     setTemplateType(newTemplateType);
 
@@ -133,6 +149,8 @@ export function TemplateProvider({ children }: { children: ReactNode }) {
       setCustomTerminology(newCustomTerminology);
     } else {
       setTemplate(getTemplateConfig(newTemplateType));
+      setCustomFeatures(undefined);
+      setCustomTerminology(undefined);
     }
 
     // Invalidate all queries to refetch with new template context
