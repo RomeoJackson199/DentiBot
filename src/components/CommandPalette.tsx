@@ -33,6 +33,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useTemplate } from "@/contexts/TemplateContext";
 
 interface CommandItem {
   id: string;
@@ -47,6 +48,7 @@ export function CommandPalette() {
   const [open, setOpen] = useState(false);
   const [userRole, setUserRole] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { hasFeature } = useTemplate();
 
   // Fetch user role
   useEffect(() => {
@@ -129,22 +131,22 @@ export function CommandPalette() {
     // Patient-specific
     ...(userRole === "patient"
       ? [
-          {
+          ...(hasFeature('prescriptions') ? [{
             id: "nav-prescriptions",
             label: "View Prescriptions",
             icon: Pill,
             action: () => navigate("/care/prescriptions"),
             keywords: ["prescriptions", "medications", "drugs"],
             group: "Medical",
-          },
-          {
+          }] : []),
+          ...(hasFeature('medicalRecords') || hasFeature('treatmentPlans') ? [{
             id: "nav-history",
             label: "View Treatment History",
             icon: FileBarChart,
             action: () => navigate("/care/history"),
             keywords: ["history", "treatments", "records"],
             group: "Medical",
-          },
+          }] : []),
           {
             id: "nav-billing",
             label: "View Billing",

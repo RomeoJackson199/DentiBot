@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { showEnhancedErrorToast } from "@/lib/enhancedErrorHandling";
+import { useTemplate } from "@/contexts/TemplateContext";
 
 interface Appointment {
   id: string;
@@ -34,6 +35,7 @@ interface PatientStats {
 export default function PatientCareHome() {
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const { hasFeature } = useTemplate();
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
   const [upcomingAppointments, setUpcomingAppointments] = useState<Appointment[]>([]);
@@ -157,22 +159,22 @@ export default function PatientCareHome() {
       color: "text-blue-600",
       bgColor: "bg-blue-50 hover:bg-blue-100",
     },
-    {
+    ...(hasFeature('medicalRecords') || hasFeature('treatmentPlans') ? [{
       icon: FileText,
       label: "Medical Records",
       description: "View your health history",
       onClick: () => navigate('/care/history'),
       color: "text-purple-600",
       bgColor: "bg-purple-50 hover:bg-purple-100",
-    },
-    {
+    }] : []),
+    ...(hasFeature('aiChat') ? [{
       icon: MessageSquare,
       label: "AI Dental Assistant",
       description: "Get instant answers",
       onClick: () => navigate('/chat'),
       color: "text-green-600",
       bgColor: "bg-green-50 hover:bg-green-100",
-    },
+    }] : []),
     {
       icon: AlertCircle,
       label: "Emergency Care",
