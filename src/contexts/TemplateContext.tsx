@@ -73,7 +73,8 @@ export function TemplateProvider({ children }: { children: ReactNode }) {
       }
     } catch (error) {
       logger.error('Failed to load template', { error, businessId });
-      setTemplate(getTemplateConfig('generic'));
+      // Fail closed: hide gated features instead of defaulting to generic
+      setTemplate(null);
       setTemplateType('generic');
     } finally {
       setLoading(false);
