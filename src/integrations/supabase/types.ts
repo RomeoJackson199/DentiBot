@@ -682,6 +682,71 @@ export type Database = {
           },
         ]
       }
+      homepage_settings: {
+        Row: {
+          about_content: string | null
+          about_title: string | null
+          business_id: string
+          created_at: string | null
+          cta_link: string | null
+          cta_text: string | null
+          custom_sections: Json | null
+          hero_image_url: string | null
+          hero_subtitle: string | null
+          hero_title: string | null
+          id: string
+          is_active: boolean | null
+          show_about: boolean | null
+          show_services: boolean | null
+          theme_config: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          about_content?: string | null
+          about_title?: string | null
+          business_id: string
+          created_at?: string | null
+          cta_link?: string | null
+          cta_text?: string | null
+          custom_sections?: Json | null
+          hero_image_url?: string | null
+          hero_subtitle?: string | null
+          hero_title?: string | null
+          id?: string
+          is_active?: boolean | null
+          show_about?: boolean | null
+          show_services?: boolean | null
+          theme_config?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          about_content?: string | null
+          about_title?: string | null
+          business_id?: string
+          created_at?: string | null
+          cta_link?: string | null
+          cta_text?: string | null
+          custom_sections?: Json | null
+          hero_image_url?: string | null
+          hero_subtitle?: string | null
+          hero_title?: string | null
+          id?: string
+          is_active?: boolean | null
+          show_about?: boolean | null
+          show_services?: boolean | null
+          theme_config?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "homepage_settings_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: true
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       medical_records: {
         Row: {
           business_id: string

@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Building2 } from "lucide-react";
 import { logger } from '@/lib/logger';
+import { CustomizableHomepage } from "@/components/business/CustomizableHomepage";
 
 export default function BusinessPortal() {
   const { slug } = useParams<{ slug: string }>();
@@ -15,6 +16,8 @@ export default function BusinessPortal() {
   const [business, setBusiness] = useState<any>(null);
   const [user, setUser] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const [homepageSettings, setHomepageSettings] = useState<any>(null);
+  const [services, setServices] = useState<any[]>([]);
 
   useEffect(() => {
     checkBusinessAndAuth();
@@ -36,6 +39,28 @@ export default function BusinessPortal() {
       }
 
       setBusiness(businessData);
+
+      // Load homepage settings
+      const { data: homepageData } = await supabase
+        .from("homepage_settings")
+        .select("*")
+        .eq("business_id", businessData.id)
+        .single();
+
+      if (homepageData) {
+        setHomepageSettings(homepageData);
+      }
+
+      // Load services
+      const { data: servicesData } = await supabase
+        .from("business_services")
+        .select("*")
+        .eq("business_id", businessData.id)
+        .eq("is_active", true);
+
+      if (servicesData) {
+        setServices(servicesData);
+      }
 
       // Check if user is authenticated
       const { data: { user: currentUser } } = await supabase.auth.getUser();
@@ -94,6 +119,14 @@ export default function BusinessPortal() {
     window.location.reload();
   };
 
+  const handleCTAClick = () => {
+    // Trigger auth form display by scrolling to auth section or navigate
+    const authSection = document.getElementById('auth-section');
+    if (authSection) {
+      authSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -117,6 +150,37 @@ export default function BusinessPortal() {
     );
   }
 
+  // If homepage settings exist and is active, show customizable homepage
+  if (homepageSettings && homepageSettings.is_active) {
+    return (
+      <>
+        <CustomizableHomepage
+          business={business}
+          settings={homepageSettings}
+          services={services}
+          onCTAClick={handleCTAClick}
+        />
+        {/* Auth section for booking */}
+        <div id="auth-section" className="py-16 px-4 bg-muted/30">
+          <div className="container mx-auto max-w-md">
+            <Card className="border-2">
+              <CardHeader className="text-center">
+                <CardTitle>Sign In to Book</CardTitle>
+                <CardDescription>
+                  Create an account or sign in to book your appointment
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <UnifiedAuthForm onSignInSuccess={handleAuthSuccess} />
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  // Default auth-focused view if no custom homepage
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background via-background to-muted">
       <div className="w-full max-w-md space-y-6">

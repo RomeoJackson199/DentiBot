@@ -3,7 +3,8 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Settings as SettingsIcon, Calendar, Palette, Shield, User, LogOut, Mail, HelpCircle } from "lucide-react";
+import { Settings as SettingsIcon, Calendar, Palette, Shield, User, LogOut, Mail, HelpCircle, Globe } from "lucide-react";
+import { HomepageEditor } from "@/components/business/HomepageEditor";
 import { EnhancedAvailabilitySettings } from "@/components/enhanced/EnhancedAvailabilitySettings";
 import DentistAdminBranding from "./DentistAdminBranding";
 import DentistAdminSecurity from "./DentistAdminSecurity";
@@ -23,7 +24,7 @@ export default function DentistSettings() {
 
   useEffect(() => {
     const tabParam = searchParams.get('tab');
-    if (tabParam && ['profile', 'schedule', 'branding', 'security', 'support'].includes(tabParam)) {
+    if (tabParam && ['profile', 'schedule', 'branding', 'homepage', 'security', 'support'].includes(tabParam)) {
       setActiveTab(tabParam);
     }
   }, [searchParams]);
@@ -79,7 +80,7 @@ export default function DentistSettings() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="profile" className="gap-2">
             <User className="h-4 w-4" />
             Profile
@@ -91,6 +92,10 @@ export default function DentistSettings() {
           <TabsTrigger value="branding" className="gap-2">
             <Palette className="h-4 w-4" />
             Branding
+          </TabsTrigger>
+          <TabsTrigger value="homepage" className="gap-2">
+            <Globe className="h-4 w-4" />
+            Homepage
           </TabsTrigger>
           <TabsTrigger value="security" className="gap-2">
             <Shield className="h-4 w-4" />
@@ -122,6 +127,10 @@ export default function DentistSettings() {
 
         <TabsContent value="branding" className="space-y-6">
           <DentistAdminBranding />
+        </TabsContent>
+
+        <TabsContent value="homepage" className="space-y-6">
+          <HomepageEditor />
         </TabsContent>
 
         <TabsContent value="security" className="space-y-6">
