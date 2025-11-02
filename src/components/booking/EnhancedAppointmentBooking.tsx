@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { CalendarDays, Clock, User as UserIcon, CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { clinicTimeToUtc, utcToClinicTime, getClinicTimeSlots, formatClinicTime } from "@/lib/timezone";
+import { clinicTimeToUtc, utcToClinicTime, getClinicTimeSlots, formatClinicTime, createAppointmentDateTimeFromStrings } from "@/lib/timezone";
 import { logger } from '@/lib/logger';
 
 interface EnhancedAppointmentBookingProps {
@@ -206,9 +206,8 @@ export const EnhancedAppointmentBooking = ({
       const dateStr = format(selectedDate, 'yyyy-MM-dd');
 
       // Create appointment datetime in clinic timezone, then convert to UTC
-      const appointmentDateTime = clinicTimeToUtc(
-        new Date(`${dateStr}T${selectedTime}:00`)
-      );
+      // Parse date and time strings as Brussels timezone and convert to UTC
+      const appointmentDateTime = createAppointmentDateTimeFromStrings(dateStr, selectedTime);
 
       // Book the slot first
       const { error: slotBookingError } = await supabase.rpc('book_appointment_slot', {

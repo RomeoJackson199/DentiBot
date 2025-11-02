@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import { format, addDays, isBefore, startOfDay } from "date-fns";
 import { logger } from '@/lib/logger';
-import { clinicTimeToUtc } from "@/lib/timezone";
+import { clinicTimeToUtc, createAppointmentDateTimeFromStrings } from "@/lib/timezone";
 
 interface EmergencyBookingFlowProps {
   user: { id: string; email?: string };
@@ -286,9 +286,8 @@ export const EmergencyBookingFlow = ({ user, onComplete, onCancel }: EmergencyBo
       // Create appointment with proper timezone handling
       // Use format to preserve Brussels date without UTC conversion
       const dateStr = format(selectedDate, 'yyyy-MM-dd');
-      const appointmentDateTime = clinicTimeToUtc(
-        new Date(`${dateStr}T${selectedTime}:00`)
-      );
+      // Parse date and time strings as Brussels timezone and convert to UTC
+      const appointmentDateTime = createAppointmentDateTimeFromStrings(dateStr, selectedTime);
 
       const urgencyConfig = getUrgencyConfig(urgencyLevel);
       const urgencyValue = urgencyConfig.priority as 'low' | 'medium' | 'high' | 'emergency';

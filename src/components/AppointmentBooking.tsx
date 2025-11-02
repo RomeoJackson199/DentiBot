@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 import { createMedicalRecord } from "@/lib/medicalRecords";
 import { showAppointmentConfirmed } from "@/lib/successNotifications";
 import { logger } from '@/lib/logger';
-import { clinicTimeToUtc } from "@/lib/timezone";
+import { clinicTimeToUtc, createAppointmentDateTimeFromStrings } from "@/lib/timezone";
 
 interface AppointmentBookingProps {
   user: User;
@@ -197,9 +197,8 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
       const dateStr = format(selectedDate, 'yyyy-MM-dd');
 
       // Create appointment with proper timezone handling
-      const appointmentDateTime = clinicTimeToUtc(
-        new Date(`${dateStr}T${selectedTime}:00`)
-      );
+      // Parse date and time strings as Brussels timezone and convert to UTC
+      const appointmentDateTime = createAppointmentDateTimeFromStrings(dateStr, selectedTime);
 
       // Try to book the slot with a temporary ID first
       const { error: slotBookingError } = await supabase.rpc('book_appointment_slot', {
