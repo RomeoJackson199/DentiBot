@@ -204,21 +204,17 @@ export const UserTour = ({ isOpen, onClose, userRole }: UserTourProps) => {
 };
 
 // Hook to manage tour visibility
+// DISABLED: Auto-show disabled - tour now only shown on manual trigger
+// This prevents overwhelming new users with multiple onboarding popups
+// The OnboardingOrchestrator provides comprehensive onboarding instead
 export const useUserTour = (userRole: "patient" | "dentist") => {
   const [showTour, setShowTour] = useState(false);
 
+  // Auto-show disabled - tour is now opt-in only
+  // Users can access it manually via help/tour buttons
   useEffect(() => {
-    const tourKey = `tour_completed_${userRole}`;
-    const hasCompletedTour = localStorage.getItem(tourKey);
-    
-    if (!hasCompletedTour) {
-      // Show tour after a short delay
-      const timer = setTimeout(() => {
-        setShowTour(true);
-      }, 1000);
-      
-      return () => clearTimeout(timer);
-    }
+    // Tour auto-show is intentionally disabled
+    // Keep this empty to prevent automatic tour display
   }, [userRole]);
 
   const closeTour = () => {
