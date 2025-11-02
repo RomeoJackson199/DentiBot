@@ -4,8 +4,7 @@ import { useTemplate } from '@/contexts/TemplateContext';
 import { TemplateType } from '@/lib/businessTemplates';
 import {
   Scissors,
-  Dumbbell,
-  Sparkles,
+  UtensilsCrossed,
   Stethoscope,
   TrendingUp,
   Users,
@@ -13,11 +12,7 @@ import {
   DollarSign,
   Star,
   Clock,
-  Target,
-  Award,
-  Heart,
-  Zap,
-  Activity,
+  ShoppingBag,
 } from 'lucide-react';
 
 /**
@@ -44,20 +39,10 @@ export function TemplateDashboardHeader() {
           title: '✨ Style Dashboard',
           subtitle: `Manage your ${t('business').toLowerCase()} and track your styling success`,
         };
-      case 'personal_trainer':
+      case 'restaurant':
         return {
-          title: '💪 Fitness Dashboard',
-          subtitle: `Track client progress and manage training ${t('appointmentPlural').toLowerCase()}`,
-        };
-      case 'beauty_salon':
-        return {
-          title: '🌸 Beauty Dashboard',
-          subtitle: `Your sanctuary of self-care and wellness management`,
-        };
-      case 'medical':
-        return {
-          title: '🏥 Medical Dashboard',
-          subtitle: `Patient care and practice management at your fingertips`,
+          title: '🍽️ Restaurant Dashboard',
+          subtitle: `Manage reservations and track your dining service`,
         };
       case 'dentist':
         return {
@@ -120,99 +105,35 @@ export function TemplateSpecificMetrics() {
           },
         ];
 
-      case 'personal_trainer':
+      case 'restaurant':
         return [
           {
-            icon: Dumbbell,
-            label: `${t('appointmentPlural')} This Week`,
+            icon: UtensilsCrossed,
+            label: 'Reservations Today',
             value: '-',
-            description: 'Training sessions',
+            description: 'Tables booked',
             color: 'text-orange-600',
           },
           {
-            icon: Target,
-            label: 'Active Workout Plans',
-            value: '-',
-            description: 'Clients training',
-            color: 'text-blue-600',
-          },
-          {
-            icon: TrendingUp,
-            label: 'Client Progress',
-            value: '-',
-            description: 'Avg improvement',
-            color: 'text-green-600',
-          },
-          {
-            icon: Award,
-            label: 'Goals Achieved',
-            value: '-',
-            description: 'This month',
-            color: 'text-yellow-600',
-          },
-        ];
-
-      case 'beauty_salon':
-        return [
-          {
-            icon: Sparkles,
-            label: 'Treatments Today',
-            value: '-',
-            description: 'Scheduled services',
-            color: 'text-pink-600',
-          },
-          {
             icon: Users,
-            label: `${t('customerPlural')} Served`,
+            label: 'Covers Today',
             value: '-',
-            description: 'This week',
-            color: 'text-purple-600',
+            description: 'Guests served',
+            color: 'text-blue-600',
           },
           {
             icon: Star,
-            label: 'Top Service',
-            value: 'Facial Treatment',
-            description: 'Most popular',
+            label: 'Popular Dish',
+            value: '-',
+            description: 'Most ordered',
             color: 'text-yellow-600',
           },
           {
-            icon: Heart,
-            label: 'Client Retention',
+            icon: ShoppingBag,
+            label: 'Revenue Today',
             value: '-',
-            description: 'Return rate',
-            color: 'text-red-600',
-          },
-        ];
-
-      case 'medical':
-        return [
-          {
-            icon: Stethoscope,
-            label: `${t('customerPlural')} Today`,
-            value: '-',
-            description: 'Scheduled appointments',
-            color: 'text-blue-600',
-          },
-          {
-            icon: Activity,
-            label: 'Prescriptions Issued',
-            value: '-',
-            description: 'This week',
+            description: 'Total sales',
             color: 'text-green-600',
-          },
-          {
-            icon: Zap,
-            label: 'Urgent Cases',
-            value: '-',
-            description: 'Requiring attention',
-            color: 'text-red-600',
-          },
-          {
-            icon: TrendingUp,
-            label: 'Follow-ups Scheduled',
-            value: '-',
-            description: 'Next 7 days',
-            color: 'text-purple-600',
           },
         ];
 
@@ -320,23 +241,14 @@ export function TemplateQuickActions() {
           { label: 'Product Sales', description: 'Track retail' },
         ];
 
-      case 'personal_trainer':
+      case 'restaurant':
         return [
-          { label: 'New Workout Plan', description: 'Create program' },
-          { label: 'Track Progress', description: 'Client measurements' },
-          { label: 'Nutrition Plan', description: 'Meal planning' },
-          { label: `Schedule ${t('appointment')}`, description: 'Training session' },
+          { label: 'New Reservation', description: 'Book table' },
+          { label: 'Walk-in Seating', description: 'Seat guests' },
+          { label: 'Menu Management', description: 'Update dishes' },
+          { label: 'Table Status', description: 'View availability' },
         ];
 
-      case 'beauty_salon':
-        return [
-          { label: 'Today\'s Schedule', description: 'View appointments' },
-          { label: 'Service Menu', description: 'Update offerings' },
-          { label: 'Client Reviews', description: 'Check feedback' },
-          { label: 'Product Inventory', description: 'Track stock' },
-        ];
-
-      case 'medical':
       case 'dentist':
         return [
           { label: `New ${t('customer')}`, description: 'Add patient' },
@@ -393,23 +305,14 @@ export function TemplateInsights() {
           '📅 Tomorrow has 3 openings - promote walk-in availability',
         ];
 
-      case 'personal_trainer':
+      case 'restaurant':
         return [
-          '💪 15 clients are on track to hit their monthly goals',
-          '📈 Average session attendance is 92% - excellent!',
-          '🎯 Strength training packages are your top seller',
-          '📅 Next week has capacity for 8 more sessions',
+          '🍽️ Dinner service (6-8pm) is your busiest time',
+          '📊 Weekend reservations are 90% booked',
+          '⭐ Your signature dish has excellent reviews!',
+          '📅 Consider offering a weekday lunch special',
         ];
 
-      case 'beauty_salon':
-        return [
-          '✨ Facial treatments bookings up 30% this month',
-          '🌟 Client retention rate is 85% - amazing!',
-          '💅 Manicure & pedicure combo is trending',
-          '📆 Weekend slots filling fast - book ahead',
-        ];
-
-      case 'medical':
       case 'dentist':
         return [
           '📋 12 patients due for 6-month checkups',
