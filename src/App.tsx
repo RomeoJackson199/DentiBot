@@ -89,22 +89,9 @@ const BusinessGate = ({ showBusinessPicker, setShowBusinessPicker }: { showBusin
 
   if (loading) return null;
 
+  // Don't show business selection for patients - removed that flow
   if (memberships.length === 0) {
-    return (
-      <Dialog open={showBusinessPicker} onOpenChange={setShowBusinessPicker}>
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle>Select Your Clinic</DialogTitle>
-          </DialogHeader>
-          <BusinessSelectionForPatients
-            onSelectBusiness={async (businessId) => {
-              await switchBusiness(businessId);
-              setShowBusinessPicker(false);
-            }}
-          />
-        </DialogContent>
-      </Dialog>
-    );
+    return null;
   }
 
   if (memberships.length === 1) {

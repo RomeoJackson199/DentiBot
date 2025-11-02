@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { DentistOnboardingFlow } from "./DentistOnboardingFlow";
-import { PatientOnboardingFlow } from "./PatientOnboardingFlow";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 
@@ -9,6 +9,7 @@ interface OnboardingOrchestratorProps {
 }
 
 export const OnboardingOrchestrator = ({ user }: OnboardingOrchestratorProps) => {
+  const location = useLocation();
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [onboardingType, setOnboardingType] = useState<"dentist" | "patient" | null>(null);
   const [loading, setLoading] = useState(true);
@@ -19,8 +20,14 @@ export const OnboardingOrchestrator = ({ user }: OnboardingOrchestratorProps) =>
       return;
     }
 
+    // Don't show onboarding during business creation flow
+    if (location.pathname === '/create-business') {
+      setLoading(false);
+      return;
+    }
+
     checkOnboardingStatus();
-  }, [user]);
+  }, [user, location.pathname]);
 
   const checkOnboardingStatus = async () => {
     if (!user) return;
@@ -50,12 +57,9 @@ export const OnboardingOrchestrator = ({ user }: OnboardingOrchestratorProps) =>
         if (memberships && memberships.length > 0) {
           // User is a dentist/provider
           setOnboardingType("dentist");
-        } else {
-          // User is a patient
-          setOnboardingType("patient");
+          setShowOnboarding(true);
         }
-
-        setShowOnboarding(true);
+        // Removed patient onboarding flow
       }
     } catch (error) {
       console.error('Error in checkOnboardingStatus:', error);
@@ -81,13 +85,6 @@ export const OnboardingOrchestrator = ({ user }: OnboardingOrchestratorProps) =>
     <>
       {onboardingType === "dentist" && (
         <DentistOnboardingFlow
-          isOpen={showOnboarding}
-          onClose={handleClose}
-          userId={user.id}
-        />
-      )}
-      {onboardingType === "patient" && (
-        <PatientOnboardingFlow
           isOpen={showOnboarding}
           onClose={handleClose}
           userId={user.id}
