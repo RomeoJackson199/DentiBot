@@ -18,7 +18,7 @@ interface TemplateContextType {
 const TemplateContext = createContext<TemplateContextType | undefined>(undefined);
 
 export function TemplateProvider({ children }: { children: ReactNode }) {
-  const { businessId } = useBusinessContext();
+  const { businessId, loading: businessLoading } = useBusinessContext();
   const queryClient = useQueryClient();
   const [template, setTemplate] = useState<TemplateConfig | null>(null);
   const [templateType, setTemplateType] = useState<TemplateType>('generic');
@@ -27,9 +27,15 @@ export function TemplateProvider({ children }: { children: ReactNode }) {
   const [customTerminology, setCustomTerminology] = useState<TemplateTerminology | undefined>();
 
   const loadTemplate = async () => {
+    // Wait until business context finishes loading to avoid flicker
+    if (businessLoading) {
+      setLoading(true);
+      return;
+    }
+
     if (!businessId) {
-      const defaultConfig = getTemplateConfig('generic');
-      setTemplate(defaultConfig);
+      // No business selected - keep template null so features default to disabled
+      setTemplate(null);
       setTemplateType('generic');
       setLoading(false);
       return;
@@ -76,7 +82,7 @@ export function TemplateProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     loadTemplate();
-  }, [businessId]);
+  }, [businessId, businessLoading]);
 
   const hasFeature = (feature: keyof TemplateFeatures): boolean => {
     return template?.features[feature] ?? false;

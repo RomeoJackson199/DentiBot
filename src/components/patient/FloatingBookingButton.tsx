@@ -22,8 +22,12 @@ export const FloatingBookingButton = ({
 }: FloatingBookingButtonProps) => {
   const [isHovered, setIsHovered] = useState(false);
   const navigate = useNavigate();
-  const { hasFeature } = useBusinessTemplate();
-  const hasAIChat = hasFeature('aiChat');
+  const { hasFeature, loading } = useBusinessTemplate();
+  const hasAIChat = !loading && hasFeature('aiChat');
+
+  if (loading) {
+    return null;
+  }
 
   // If AI chat is disabled, just navigate directly without dropdown
   if (!hasAIChat) {

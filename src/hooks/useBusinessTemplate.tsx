@@ -4,13 +4,16 @@
  */
 import { useTemplate } from '@/contexts/TemplateContext';
 import { TemplateConfig } from '@/lib/businessTemplates';
+import { useBusinessContext } from '@/hooks/useBusinessContext';
 
 export function useBusinessTemplate() {
   const { template, loading, hasFeature, t } = useTemplate();
+  const { loading: businessLoading } = useBusinessContext();
+  const combinedLoading = loading || businessLoading;
 
   return {
     template,
-    loading,
+    loading: combinedLoading,
     hasFeature,
     t,
   };

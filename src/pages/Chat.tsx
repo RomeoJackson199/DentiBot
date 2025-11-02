@@ -18,8 +18,8 @@ export default function Chat() {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const isMobile = useIsMobile();
-  const { hasFeature } = useBusinessTemplate();
-  const hasAIChat = hasFeature('aiChat');
+  const { hasFeature, loading } = useBusinessTemplate();
+  const hasAIChat = !loading && hasFeature('aiChat');
 
   useEffect(() => {
     loadUserProfile();
@@ -70,6 +70,14 @@ export default function Chat() {
       console.error('Error loading user profile:', error);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-dental-primary"></div>
+      </div>
+    );
+  }
 
   if (!user || !profile) {
     return (

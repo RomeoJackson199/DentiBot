@@ -81,8 +81,8 @@ export const HomeTab: React.FC<HomeTabProps> = ({
   const [dentistId, setDentistId] = useState<string | null>(null);
   const { t } = useLanguage();
   const { settings: currencySettings } = useCurrency(dentistId || undefined);
-  const { hasFeature } = useBusinessTemplate();
-  const hasAIChat = hasFeature('aiChat');
+  const { hasFeature, loading: templateLoading } = useBusinessTemplate();
+  const hasAIChat = !templateLoading && hasFeature('aiChat');
 
   useEffect(() => {
     (async () => {

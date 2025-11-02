@@ -12,8 +12,8 @@ import { useNavigate } from "react-router-dom";
 import { useBusinessTemplate } from "@/hooks/useBusinessTemplate";
 
 export default function PatientAppointmentsPage() {
-  const { hasFeature } = useBusinessTemplate();
-  const hasAIChat = hasFeature('aiChat');
+  const { hasFeature, loading: templateLoading } = useBusinessTemplate();
+  const hasAIChat = !templateLoading && hasFeature('aiChat');
   const { t } = useLanguage();
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);

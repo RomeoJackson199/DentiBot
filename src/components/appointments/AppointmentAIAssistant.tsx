@@ -21,11 +21,11 @@ interface AppointmentAIAssistantProps {
 }
 
 export function AppointmentAIAssistant({ appointmentData, treatmentContext }: AppointmentAIAssistantProps) {
-  const { hasFeature } = useBusinessTemplate();
-  const hasAIChat = hasFeature('aiChat');
+  const { hasFeature, loading } = useBusinessTemplate();
+  const hasAIChat = !loading && hasFeature('aiChat');
   
-  // If AI chat is disabled, don't render anything
-  if (!hasAIChat) {
+  // If AI chat is disabled or template is still loading, don't render
+  if (loading || !hasAIChat) {
     return null;
   }
 
