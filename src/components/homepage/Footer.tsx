@@ -48,7 +48,7 @@ export const Footer = () => {
                 </Link>
               </li>
               <li>
-                <a href="mailto:support@caberu.com" className="text-gray-600 hover:text-gray-900">
+                <a href="mailto:Romeo@caberu.be" className="text-gray-600 hover:text-gray-900">
                   Contact Us
                 </a>
               </li>

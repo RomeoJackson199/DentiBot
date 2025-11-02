@@ -298,8 +298,8 @@ npm run fix:types
 
 ## 📧 Support
 
-- **Email**: support@caberu.app
-- **Documentation**: [docs.caberu.app](https://docs.caberu.app)
+- **Email**: Romeo@caberu.be
+- **Documentation**: [docs.caberu.be](https://docs.caberu.be)
 - **Issues**: [GitHub Issues](https://github.com/yourusername/Caberu/issues)
 
 ## 📄 License
