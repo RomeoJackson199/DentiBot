@@ -24,6 +24,7 @@ import { TimelineAppointmentCard } from "@/components/patient/TimelineAppointmen
 import { AppointmentStatusBadge } from "@/components/patient/AppointmentStatusBadge";
 import { useBusinessContext } from "@/hooks/useBusinessContext";
 import { logger } from '@/lib/logger';
+import { useBusinessTemplate } from '@/hooks/useBusinessTemplate';
 
 export interface AppointmentsTabProps {
   user: User;
@@ -150,6 +151,8 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({
   const [cancelAppointmentId, setCancelAppointmentId] = useState<string | null>(null);
   const { t } = useLanguage();
   const { businessId } = useBusinessContext();
+  const { hasFeature } = useBusinessTemplate();
+  const hasAIChat = hasFeature('aiChat');
   useEffect(() => {
     if (businessId) {
       fetchAppointments();
@@ -402,8 +405,17 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({
                                 No appointments on this day
                               </p>
                               <Button variant="outline" size="default" className="mt-4 w-full h-11" onClick={onOpenAssistant || (() => setShowBooking(true))}>
-                                <MessageSquare className="h-5 w-5 mr-2" />
-                                Book with AI Assistant
+                                {hasAIChat ? (
+                                  <>
+                                    <MessageSquare className="h-5 w-5 mr-2" />
+                                    Book with AI Assistant
+                                  </>
+                                ) : (
+                                  <>
+                                    <Calendar className="h-5 w-5 mr-2" />
+                                    Book Appointment
+                                  </>
+                                )}
                               </Button>
                             </motion.div>}
                         </AnimatePresence>
@@ -458,8 +470,17 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({
                           Schedule your next dental visit
                         </p>
                         <Button size="lg" className="w-full sm:w-auto px-8 h-12" onClick={onOpenAssistant || (() => setShowBooking(true))}>
-                          <MessageSquare className="h-5 w-5 mr-2" />
-                          Book with AI Assistant
+                          {hasAIChat ? (
+                            <>
+                              <MessageSquare className="h-5 w-5 mr-2" />
+                              Book with AI Assistant
+                            </>
+                          ) : (
+                            <>
+                              <Calendar className="h-5 w-5 mr-2" />
+                              Book Appointment
+                            </>
+                          )}
                         </Button>
                       </CardContent>
                     </Card>

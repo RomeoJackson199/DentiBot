@@ -19,6 +19,7 @@ import { motion } from "framer-motion";
 import { useCurrency } from "@/hooks/useCurrency";
 import { User } from "@supabase/supabase-js";
 import { logger } from '@/lib/logger';
+import { useBusinessTemplate } from '@/hooks/useBusinessTemplate';
 
 interface EnhancedHomeTabProps {
   user: User;
@@ -34,6 +35,8 @@ export const EnhancedHomeTab: React.FC<EnhancedHomeTabProps> = ({
   const { t } = useLanguage();
   const { settings } = useCurrency();
   const formatCurrency = settings.format;
+  const { hasFeature } = useBusinessTemplate();
+  const hasAIChat = hasFeature('aiChat');
   const [greeting, setGreeting] = useState("");
   const [userName, setUserName] = useState("");
   const [nextAppointment, setNextAppointment] = useState<any>(null);
@@ -301,37 +304,39 @@ export const EnhancedHomeTab: React.FC<EnhancedHomeTabProps> = ({
         </motion.div>
 
         {/* AI Assistant Card */}
-        <motion.div
-          custom={3}
-          initial="hidden"
-          animate="visible"
-          variants={cardVariants}
-        >
-          <Card 
-            className="h-full rounded-2xl border-2 border-primary/30 hover:border-primary transition-all cursor-pointer group bg-gradient-to-br from-primary/5 to-secondary/5 hover:shadow-glow"
-            onClick={onOpenAssistant}
+        {hasAIChat && (
+          <motion.div
+            custom={3}
+            initial="hidden"
+            animate="visible"
+            variants={cardVariants}
           >
-            <CardContent className="p-6">
-              <div className="flex items-start justify-between mb-4">
-                <div className="p-3 bg-primary/10 rounded-xl group-hover:scale-110 group-hover:rotate-6 transition-transform">
-                  <MessageSquare className="h-8 w-8 text-primary animate-pulse-soft" />
+            <Card 
+              className="h-full rounded-2xl border-2 border-primary/30 hover:border-primary transition-all cursor-pointer group bg-gradient-to-br from-primary/5 to-secondary/5 hover:shadow-glow"
+              onClick={onOpenAssistant}
+            >
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="p-3 bg-primary/10 rounded-xl group-hover:scale-110 group-hover:rotate-6 transition-transform">
+                    <MessageSquare className="h-8 w-8 text-primary animate-pulse-soft" />
+                  </div>
+                  <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:translate-x-1 transition-transform" />
                 </div>
-                <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:translate-x-1 transition-transform" />
-              </div>
-              <h3 className="font-heading font-semibold text-lg mb-2">AI Assistant</h3>
-              <p className="text-muted-foreground mb-3">
-                Ask questions, book appointments, or get dental advice
-              </p>
-              <Button 
-                size="sm" 
-                variant="gradient"
-                className="w-full"
-              >
-                Chat Now
-              </Button>
-            </CardContent>
-          </Card>
-        </motion.div>
+                <h3 className="font-heading font-semibold text-lg mb-2">AI Assistant</h3>
+                <p className="text-muted-foreground mb-3">
+                  Ask questions, book appointments, or get dental advice
+                </p>
+                <Button 
+                  size="sm" 
+                  variant="gradient"
+                  className="w-full"
+                >
+                  Chat Now
+                </Button>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
       </div>
 
       {/* Quick Actions */}

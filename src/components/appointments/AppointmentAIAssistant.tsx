@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Bot, Send, Loader2, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { logger } from '@/lib/logger';
+import { useBusinessTemplate } from '@/hooks/useBusinessTemplate';
 
 interface Message {
   role: "user" | "assistant";
@@ -20,6 +21,14 @@ interface AppointmentAIAssistantProps {
 }
 
 export function AppointmentAIAssistant({ appointmentData, treatmentContext }: AppointmentAIAssistantProps) {
+  const { hasFeature } = useBusinessTemplate();
+  const hasAIChat = hasFeature('aiChat');
+  
+  // If AI chat is disabled, don't render anything
+  if (!hasAIChat) {
+    return null;
+  }
+
   const [summary, setSummary] = useState<string>("");
   const [loadingSummary, setLoadingSummary] = useState(true);
   const [messages, setMessages] = useState<Message[]>([]);

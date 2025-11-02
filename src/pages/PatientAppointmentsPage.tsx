@@ -9,8 +9,11 @@ import { AppointmentsTab } from "@/components/patient/AppointmentsTab";
 import { supabase } from "@/integrations/supabase/client";
 import { SectionHeader, StatCard, AnimatedBackground } from "@/components/ui/polished-components";
 import { useNavigate } from "react-router-dom";
+import { useBusinessTemplate } from "@/hooks/useBusinessTemplate";
 
 export default function PatientAppointmentsPage() {
+  const { hasFeature } = useBusinessTemplate();
+  const hasAIChat = hasFeature('aiChat');
   const { t } = useLanguage();
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
@@ -94,16 +97,18 @@ export default function PatientAppointmentsPage() {
                 {t.bookAppointment || "Book Appointment"}
               </Button>
 
-              <Button
-                size="lg"
-                variant="outline"
-                className="gap-2"
-                onClick={() => navigate('/chat')}
-                aria-label="AI Assistant"
-              >
-                <Sparkles className="h-4 w-4" />
-                <span className="hidden sm:inline">AI Assistant</span>
-              </Button>
+              {hasAIChat && (
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="gap-2"
+                  onClick={() => navigate('/chat')}
+                  aria-label="AI Assistant"
+                >
+                  <Sparkles className="h-4 w-4" />
+                  <span className="hidden sm:inline">AI Assistant</span>
+                </Button>
+              )}
             </div>
           </div>
 
@@ -183,7 +188,7 @@ export default function PatientAppointmentsPage() {
 
             <TabsContent value="book" className="mt-0">
               {user ? (
-                <AppointmentsTab user={user} onOpenAssistant={() => navigate('/chat')} />
+                <AppointmentsTab user={user} onOpenAssistant={hasAIChat ? () => navigate('/chat') : undefined} />
               ) : (
                 <div className="text-center py-8">
                   <p className="text-muted-foreground">Loading booking form...</p>

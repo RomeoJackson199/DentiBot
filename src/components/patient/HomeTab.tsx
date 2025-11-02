@@ -38,6 +38,7 @@ import { getPatientActiveRecall, RecallRecord } from "@/lib/recalls";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useCurrency } from "@/hooks/useCurrency";
 import { useCurrentDentist } from "@/hooks/useCurrentDentist";
+import { useBusinessTemplate } from '@/hooks/useBusinessTemplate';
 
 export interface HomeTabProps {
   userId: string;
@@ -80,6 +81,8 @@ export const HomeTab: React.FC<HomeTabProps> = ({
   const [dentistId, setDentistId] = useState<string | null>(null);
   const { t } = useLanguage();
   const { settings: currencySettings } = useCurrency(dentistId || undefined);
+  const { hasFeature } = useBusinessTemplate();
+  const hasAIChat = hasFeature('aiChat');
 
   useEffect(() => {
     (async () => {
@@ -333,61 +336,63 @@ export const HomeTab: React.FC<HomeTabProps> = ({
         </motion.div>
 
         {/* 4. AI Assistant Shortcut Card */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="md:col-span-2 lg:col-span-1"
-        >
-          <Card
-            role="button"
-            tabIndex={0}
-            onClick={onOpenAssistant}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter' || event.key === ' ') {
-                event.preventDefault();
-                onOpenAssistant?.();
-              }
-            }}
-            className="h-full bg-gradient-to-br from-emerald-50/50 to-emerald-100/30 dark:from-emerald-900/10 dark:to-emerald-900/5 border-emerald-200/50 hover:shadow-md transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300"
+        {hasAIChat && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="md:col-span-2 lg:col-span-1"
           >
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center justify-between text-base">
-                <span className="flex items-center gap-2">
-                  <MessageSquare className="h-5 w-5 text-emerald-600" />
-                  {t.aiAssistant}
-                </span>
-                <Badge className="bg-emerald-100 text-emerald-700">
-                  <Sparkles className="h-3 w-3 mr-1" />
-                  AI
-                </Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <p className="text-sm font-medium">{t.getInstantHelpWith}</p>
-                <ul className="text-xs text-muted-foreground space-y-1">
-                  <li className="flex items-center gap-1">
-                    <CheckCircle className="h-3 w-3 text-emerald-600" />
-                    {t.bookingAppointments}
-                  </li>
-                  <li className="flex items-center gap-1">
-                    <CheckCircle className="h-3 w-3 text-emerald-600" />
-                    {t.dentalQuestions}
-                  </li>
-                  <li className="flex items-center gap-1">
-                    <CheckCircle className="h-3 w-3 text-emerald-600" />
-                    {t.emergencyTriage}
-                  </li>
-                </ul>
-                <Button variant="secondary" className="w-full mt-3" size="sm">
-                  <MessageSquare className="h-4 w-4 mr-2" />
-                  {t.startChat}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
+            <Card
+              role="button"
+              tabIndex={0}
+              onClick={onOpenAssistant}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault();
+                  onOpenAssistant?.();
+                }
+              }}
+              className="h-full bg-gradient-to-br from-emerald-50/50 to-emerald-100/30 dark:from-emerald-900/10 dark:to-emerald-900/5 border-emerald-200/50 hover:shadow-md transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300"
+            >
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center justify-between text-base">
+                  <span className="flex items-center gap-2">
+                    <MessageSquare className="h-5 w-5 text-emerald-600" />
+                    {t.aiAssistant}
+                  </span>
+                  <Badge className="bg-emerald-100 text-emerald-700">
+                    <Sparkles className="h-3 w-3 mr-1" />
+                    AI
+                  </Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <p className="text-sm font-medium">{t.getInstantHelpWith}</p>
+                  <ul className="text-xs text-muted-foreground space-y-1">
+                    <li className="flex items-center gap-1">
+                      <CheckCircle className="h-3 w-3 text-emerald-600" />
+                      {t.bookingAppointments}
+                    </li>
+                    <li className="flex items-center gap-1">
+                      <CheckCircle className="h-3 w-3 text-emerald-600" />
+                      {t.dentalQuestions}
+                    </li>
+                    <li className="flex items-center gap-1">
+                      <CheckCircle className="h-3 w-3 text-emerald-600" />
+                      {t.emergencyTriage}
+                    </li>
+                  </ul>
+                  <Button variant="secondary" className="w-full mt-3" size="sm">
+                    <MessageSquare className="h-4 w-4 mr-2" />
+                    {t.startChat}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
       </div>
 
       {/* Quick Actions - Optional additional row */}

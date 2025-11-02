@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useBusinessContext } from "@/hooks/useBusinessContext";
@@ -28,6 +28,7 @@ import { ServiceSelector } from "@/components/booking/ServiceSelector";
 import { logger } from '@/lib/logger';
 import { AnimatedBackground, EmptyState } from "@/components/ui/polished-components";
 import { clinicTimeToUtc, createAppointmentDateTimeFromStrings } from "@/lib/timezone";
+import { useBusinessTemplate } from '@/hooks/useBusinessTemplate';
 
 interface Dentist {
   id: string;
@@ -57,6 +58,8 @@ export default function BookAppointmentAI() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { businessId, loading: businessLoading, switchBusiness } = useBusinessContext();
+  const { hasFeature, loading: templateLoading } = useBusinessTemplate();
+  const hasAIChat = hasFeature('aiChat');
   const [bookingData, setBookingData] = useState<any>(null);
   const [dentists, setDentists] = useState<Dentist[]>([]);
   const [recommendedDentists, setRecommendedDentists] = useState<string[]>([]);
@@ -386,7 +389,7 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
     return `${fn.charAt(0)}${ln.charAt(0)}`.toUpperCase();
   };
 
-  if (businessLoading || loading) {
+  if (businessLoading || loading || templateLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-secondary/10 p-4">
         <div className="max-w-6xl mx-auto space-y-6 py-8">
@@ -399,6 +402,11 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
         </div>
       </div>
     );
+  }
+
+  // If AI chat is disabled, redirect to manual booking
+  if (!hasAIChat) {
+    return <Navigate to="/book-appointment" replace />;
   }
 
   if (!businessId) {
