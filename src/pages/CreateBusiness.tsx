@@ -36,7 +36,9 @@ export default function CreateBusiness() {
   const [currentStep, setCurrentStep] = useState(1);
   const [businessData, setBusinessData] = useState<BusinessData>({});
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [showTour, setShowTour] = useState(true);
+  // DISABLED: Auto-show disabled to reduce popup overload during business creation
+  // Users can still access tour help if needed via help buttons
+  const [showTour, setShowTour] = useState(false);
 
   // Check for demo data on mount
   useEffect(() => {
