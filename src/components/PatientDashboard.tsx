@@ -573,25 +573,11 @@ export const PatientDashboard = ({
             </Card>
           </div>
         ) : (
-          <div className="px-4 md:px-6 py-4">
-            <Card>
-              <CardContent className="pt-6">
-                <div className="h-[75vh] overflow-auto">
-                  <AppointmentBooking
-                    user={user}
-                    onCancel={() => setActiveSection('home')}
-                    onComplete={() => {
-                      setActiveSection('appointments');
-                      toast({
-                        title: "Appointment Booked",
-                        description: "Your appointment has been successfully booked."
-                      });
-                    }}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          // Redirect to external booking page
+          (() => {
+            window.location.href = 'https://caberu.be/book-appointment';
+            return null;
+          })()
         )
       )}
 
