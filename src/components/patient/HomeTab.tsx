@@ -335,64 +335,103 @@ export const HomeTab: React.FC<HomeTabProps> = ({
           </Card>
         </motion.div>
 
-        {/* 4. AI Assistant Shortcut Card */}
-        {hasAIChat && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            className="md:col-span-2 lg:col-span-1"
-          >
-            <Card
-              role="button"
-              tabIndex={0}
-              onClick={onOpenAssistant}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter' || event.key === ' ') {
-                  event.preventDefault();
+        {/* 4. AI Assistant / Classic Booking Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="md:col-span-2 lg:col-span-1"
+        >
+          <Card
+            role="button"
+            tabIndex={0}
+            onClick={hasAIChat ? onOpenAssistant : onBookAppointment}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                if (hasAIChat) {
                   onOpenAssistant?.();
+                } else {
+                  onBookAppointment?.();
                 }
-              }}
-              className="h-full bg-gradient-to-br from-emerald-50/50 to-emerald-100/30 dark:from-emerald-900/10 dark:to-emerald-900/5 border-emerald-200/50 hover:shadow-md transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300"
-            >
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center justify-between text-base">
-                  <span className="flex items-center gap-2">
+              }
+            }}
+            className={cn(
+              "h-full hover:shadow-md transition-all cursor-pointer focus:outline-none focus-visible:ring-2",
+              hasAIChat
+                ? "bg-gradient-to-br from-emerald-50/50 to-emerald-100/30 dark:from-emerald-900/10 dark:to-emerald-900/5 border-emerald-200/50 focus-visible:ring-emerald-300"
+                : "bg-gradient-to-br from-orange-50/50 to-orange-100/30 dark:from-orange-900/10 dark:to-orange-900/5 border-orange-200/50 focus-visible:ring-orange-300"
+            )}
+          >
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center justify-between text-base">
+                <span className="flex items-center gap-2">
+                  {hasAIChat ? (
                     <MessageSquare className="h-5 w-5 text-emerald-600" />
-                    {t.aiAssistant}
-                  </span>
+                  ) : (
+                    <Calendar className="h-5 w-5 text-orange-600" />
+                  )}
+                  {hasAIChat ? t.aiAssistant : t.bookAppointment}
+                </span>
+                {hasAIChat && (
                   <Badge className="bg-emerald-100 text-emerald-700">
                     <Sparkles className="h-3 w-3 mr-1" />
                     AI
                   </Badge>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <p className="text-sm font-medium">{t.getInstantHelpWith}</p>
-                  <ul className="text-xs text-muted-foreground space-y-1">
-                    <li className="flex items-center gap-1">
-                      <CheckCircle className="h-3 w-3 text-emerald-600" />
-                      {t.bookingAppointments}
-                    </li>
-                    <li className="flex items-center gap-1">
-                      <CheckCircle className="h-3 w-3 text-emerald-600" />
-                      {t.dentalQuestions}
-                    </li>
-                    <li className="flex items-center gap-1">
-                      <CheckCircle className="h-3 w-3 text-emerald-600" />
-                      {t.emergencyTriage}
-                    </li>
-                  </ul>
-                  <Button variant="secondary" className="w-full mt-3" size="sm">
-                    <MessageSquare className="h-4 w-4 mr-2" />
-                    {t.startChat}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        )}
+                )}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {hasAIChat ? (
+                  <>
+                    <p className="text-sm font-medium">{t.getInstantHelpWith}</p>
+                    <ul className="text-xs text-muted-foreground space-y-1">
+                      <li className="flex items-center gap-1">
+                        <CheckCircle className="h-3 w-3 text-emerald-600" />
+                        {t.bookingAppointments}
+                      </li>
+                      <li className="flex items-center gap-1">
+                        <CheckCircle className="h-3 w-3 text-emerald-600" />
+                        {t.dentalQuestions}
+                      </li>
+                      <li className="flex items-center gap-1">
+                        <CheckCircle className="h-3 w-3 text-emerald-600" />
+                        {t.emergencyTriage}
+                      </li>
+                    </ul>
+                    <Button variant="secondary" className="w-full mt-3" size="sm">
+                      <MessageSquare className="h-4 w-4 mr-2" />
+                      {t.startChat}
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-sm font-medium">Schedule your next visit</p>
+                    <ul className="text-xs text-muted-foreground space-y-1">
+                      <li className="flex items-center gap-1">
+                        <CheckCircle className="h-3 w-3 text-orange-600" />
+                        Choose available times
+                      </li>
+                      <li className="flex items-center gap-1">
+                        <CheckCircle className="h-3 w-3 text-orange-600" />
+                        Select your service
+                      </li>
+                      <li className="flex items-center gap-1">
+                        <CheckCircle className="h-3 w-3 text-orange-600" />
+                        Instant confirmation
+                      </li>
+                    </ul>
+                    <Button variant="secondary" className="w-full mt-3" size="sm">
+                      <Calendar className="h-4 w-4 mr-2" />
+                      {t.bookNow}
+                    </Button>
+                  </>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
       </div>
 
       {/* Quick Actions - Optional additional row */}

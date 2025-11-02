@@ -303,40 +303,59 @@ export const EnhancedHomeTab: React.FC<EnhancedHomeTabProps> = ({
           </Card>
         </motion.div>
 
-        {/* AI Assistant Card */}
-        {hasAIChat && (
-          <motion.div
-            custom={3}
-            initial="hidden"
-            animate="visible"
-            variants={cardVariants}
+        {/* AI Assistant / Classic Booking Card */}
+        <motion.div
+          custom={3}
+          initial="hidden"
+          animate="visible"
+          variants={cardVariants}
+        >
+          <Card
+            className={`h-full rounded-2xl border-2 transition-all cursor-pointer group hover:shadow-glow ${
+              hasAIChat
+                ? 'border-primary/30 hover:border-primary bg-gradient-to-br from-primary/5 to-secondary/5'
+                : 'border-orange-500/30 hover:border-orange-500 bg-gradient-to-br from-orange-50/50 to-orange-100/30 dark:from-orange-900/10 dark:to-orange-900/5'
+            }`}
+            onClick={onOpenAssistant}
           >
-            <Card 
-              className="h-full rounded-2xl border-2 border-primary/30 hover:border-primary transition-all cursor-pointer group bg-gradient-to-br from-primary/5 to-secondary/5 hover:shadow-glow"
-              onClick={onOpenAssistant}
-            >
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="p-3 bg-primary/10 rounded-xl group-hover:scale-110 group-hover:rotate-6 transition-transform">
+            <CardContent className="p-6">
+              <div className="flex items-start justify-between mb-4">
+                <div className={`p-3 rounded-xl group-hover:scale-110 group-hover:rotate-6 transition-transform ${
+                  hasAIChat ? 'bg-primary/10' : 'bg-orange-500/10'
+                }`}>
+                  {hasAIChat ? (
                     <MessageSquare className="h-8 w-8 text-primary animate-pulse-soft" />
-                  </div>
-                  <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:translate-x-1 transition-transform" />
+                  ) : (
+                    <Calendar className="h-8 w-8 text-orange-500" />
+                  )}
                 </div>
-                <h3 className="font-heading font-semibold text-lg mb-2">AI Assistant</h3>
-                <p className="text-muted-foreground mb-3">
-                  Ask questions, book appointments, or get dental advice
-                </p>
-                <Button 
-                  size="sm" 
-                  variant="gradient"
-                  className="w-full"
-                >
-                  Chat Now
-                </Button>
-              </CardContent>
-            </Card>
-          </motion.div>
-        )}
+                <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:translate-x-1 transition-transform" />
+              </div>
+              <h3 className="font-heading font-semibold text-lg mb-2">
+                {hasAIChat ? 'AI Assistant' : 'Classic Booking'}
+              </h3>
+              <p className="text-muted-foreground mb-3">
+                {hasAIChat
+                  ? 'Ask questions, book appointments, or get dental advice'
+                  : 'Schedule your appointment with our easy booking system'}
+              </p>
+              <Button
+                size="sm"
+                variant={hasAIChat ? "gradient" : "default"}
+                className="w-full"
+              >
+                {hasAIChat ? (
+                  <>Chat Now</>
+                ) : (
+                  <>
+                    <Calendar className="h-4 w-4 mr-2" />
+                    Book Now
+                  </>
+                )}
+              </Button>
+            </CardContent>
+          </Card>
+        </motion.div>
       </div>
 
       {/* Quick Actions */}

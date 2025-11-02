@@ -63,12 +63,12 @@ const getNavigationItems = (hasAIChat: boolean) => [{
       icon: Home,
       badge: null
     },
-    ...(hasAIChat ? [{
+    {
       id: 'chat',
-      label: 'AI Assistant',
-      icon: MessageSquare,
-      badge: 'AI'
-    }] : [])
+      label: hasAIChat ? 'AI Assistant' : 'Classic Booking',
+      icon: hasAIChat ? MessageSquare : Calendar,
+      badge: hasAIChat ? 'AI' : null
+    }
   ]
 }, {
   group: "Appointments",
@@ -561,16 +561,39 @@ export const PatientDashboard = ({
       };
     })() : null} activePrescriptions={patientStats.activePrescriptions} activeTreatmentPlans={patientStats.activeTreatmentPlans} totalDueCents={totalDueCents} onNavigateTo={s => setActiveSection(s)} onOpenAssistant={() => setActiveSection('assistant')} onBookAppointment={() => setActiveSection('assistant')} />}
 
-      {activeSection === 'assistant' && hasAIChat && <div className="px-4 md:px-6 py-4">
-          <Card>
-            
-            <CardContent>
-              <div className="h-[70vh]">
-                <InteractiveDentalChat user={user} triggerBooking={triggerBooking} />
-              </div>
-            </CardContent>
-          </Card>
-        </div>}
+      {activeSection === 'assistant' && (
+        hasAIChat ? (
+          <div className="px-4 md:px-6 py-4">
+            <Card>
+              <CardContent>
+                <div className="h-[70vh]">
+                  <InteractiveDentalChat user={user} triggerBooking={triggerBooking} />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        ) : (
+          <div className="px-4 md:px-6 py-4">
+            <Card>
+              <CardContent className="pt-6">
+                <div className="h-[75vh] overflow-auto">
+                  <AppointmentBooking
+                    user={user}
+                    onCancel={() => setActiveSection('home')}
+                    onComplete={() => {
+                      setActiveSection('appointments');
+                      toast({
+                        title: "Appointment Booked",
+                        description: "Your appointment has been successfully booked."
+                      });
+                    }}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )
+      )}
 
       {activeSection === 'messages' && <Messages />}
 

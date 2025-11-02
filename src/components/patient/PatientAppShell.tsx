@@ -38,12 +38,13 @@ const getNavItems = (hasAIChat: boolean): Array<{
   label: 'Home',
   icon: HomeIcon,
   color: 'text-blue-600 bg-blue-100 dark:bg-blue-900/30'
-}, ...(hasAIChat ? [{
+}, {
   id: 'assistant' as PatientSection,
-  label: 'Assistant',
-  icon: Bot,
-  color: 'text-emerald-600 bg-emerald-100 dark:bg-emerald-900/30'
-}] : []), {
+  label: hasAIChat ? 'Assistant' : 'Classic Booking',
+  shortLabel: hasAIChat ? undefined : 'Booking',
+  icon: hasAIChat ? Bot : Calendar,
+  color: hasAIChat ? 'text-emerald-600 bg-emerald-100 dark:bg-emerald-900/30' : 'text-orange-600 bg-orange-100 dark:bg-orange-900/30'
+}, {
   id: 'care',
   label: 'Treatment Records',
   shortLabel: 'Records',
