@@ -23,6 +23,7 @@ import { Separator } from "@/components/ui/separator";
 import { MessageSquare, Calendar, Activity, AlertTriangle, Stethoscope, Clock, BarChart3, User as UserIcon, Shield, Heart, Bell, FileText, Pill, Target, TrendingUp, CheckCircle, XCircle, Loader2, RefreshCw, Plus, Eye, FileImage, ClipboardList as ClipboardListIcon, CreditCard, Settings as SettingsIcon, Home, ChevronRight, ArrowRight, Sparkles, Phone, Video, MessageCircle, CalendarDays, FileCheck, AlertCircle, Zap, Users, BookOpen, HelpCircle } from "lucide-react";
 // Icons imported for patient dashboard navigation
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { MobileOptimizations } from "@/components/mobile/MobileOptimizations";
 import { Prescription, TreatmentPlan, MedicalRecord, PatientNote } from "@/types/dental";
@@ -129,6 +130,7 @@ export const PatientDashboard = ({
   const {
     toast
   } = useToast();
+  const navigate = useNavigate();
   const { hasFeature } = useBusinessTemplate();
   const hasAIChat = hasFeature('aiChat');
   const navigationItems = getNavigationItems(hasAIChat);

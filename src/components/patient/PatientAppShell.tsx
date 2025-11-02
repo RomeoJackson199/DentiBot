@@ -233,7 +233,7 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
             const Icon = item.icon;
             const active = isActive(item.id);
             const hasBadge = badges[item.id];
-            return <button key={item.id} onClick={() => onChangeSection(item.id)} className={cn("flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-all relative touch-target min-h-[44px] min-w-[44px]", active ? "text-primary" : "text-muted-foreground hover:text-foreground")} aria-current={active ? 'page' : undefined} aria-label={item.label}>
+            return <button key={item.id} onClick={() => { if (item.id === 'assistant' && !hasAIChat) { navigate('/book-appointment'); } else { onChangeSection(item.id); } }} className={cn("flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-all relative touch-target min-h-[44px] min-w-[44px]", active ? "text-primary" : "text-muted-foreground hover:text-foreground")} aria-current={active ? 'page' : undefined} aria-label={item.label}>
                   <div className="relative">
                     <Icon className={cn("h-5 w-5", active && "scale-110")} />
                     {hasBadge && <span className="absolute -top-1 -right-1 h-2 w-2 bg-red-500 rounded-full animate-pulse" />}
@@ -275,7 +275,7 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
             const hasBadge = badges[item.id];
             return <Tooltip key={item.id}>
                   <TooltipTrigger asChild>
-                     <button onClick={() => onChangeSection(item.id)} className={cn("w-full flex items-center px-3 py-3 rounded-xl transition-all relative group touch-target min-h-[40px] focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2", active ? "bg-primary text-primary-foreground shadow-md scale-[1.02]" : "text-muted-foreground hover:text-foreground hover:bg-muted/50 hover:scale-[1.01]", collapsed ? "justify-center" : "gap-3")} aria-current={active ? 'page' : undefined} aria-label={item.label}>
+                     <button onClick={() => { if (item.id === 'assistant' && !hasAIChat) { navigate('/book-appointment'); } else { onChangeSection(item.id); } }} className={cn("w-full flex items-center px-3 py-3 rounded-xl transition-all relative group touch-target min-h-[40px] focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2", active ? "bg-primary text-primary-foreground shadow-md scale-[1.02]" : "text-muted-foreground hover:text-foreground hover:bg-muted/50 hover:scale-[1.01]", collapsed ? "justify-center" : "gap-3")} aria-current={active ? 'page' : undefined} aria-label={item.label}>
                       <div className="relative shrink-0">
                         <Icon className="h-5 w-5" />
                         {hasBadge && <span className="absolute -top-1 -right-1 h-2.5 w-2.5 bg-red-500 rounded-full animate-pulse" />}
