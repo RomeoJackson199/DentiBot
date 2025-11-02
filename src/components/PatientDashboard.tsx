@@ -528,7 +528,14 @@ export const PatientDashboard = ({
     settings: !userProfile?.first_name || !userProfile?.last_name
     // messages functionality removed
   } as Record<PatientSection, boolean>;
-  return <PatientAppShell activeSection={activeSection} onChangeSection={setActiveSection} badges={badges} userId={user.id} onBookAppointment={() => setActiveSection('assistant')}>
+  return <PatientAppShell 
+    activeSection={activeSection} 
+    onChangeSection={setActiveSection} 
+    badges={badges} 
+    userId={user.id} 
+    hasAIChat={hasAIChat}
+    onBookAppointment={hasAIChat ? () => setActiveSection('assistant') : () => setShowBooking(true)}
+  >
       {activeSection === 'home' && <HomeTab userId={user.id} firstName={userProfile?.first_name} nextAppointment={nextAppointment ? (() => {
       const appointmentDetails = nextAppointment as unknown as Record<string, any>;
       const joinUrl = appointmentDetails.meeting_url || appointmentDetails.join_url || appointmentDetails.telehealth_url || appointmentDetails.virtual_meeting_url || appointmentDetails.video_url || appointmentDetails.video_meeting_url || appointmentDetails.conference_url || null;

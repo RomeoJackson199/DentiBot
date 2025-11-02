@@ -25,24 +25,25 @@ interface PatientAppShellProps {
   badges?: Partial<Record<PatientSection, boolean>>;
   userId: string;
   onBookAppointment?: () => void;
+  hasAIChat?: boolean;
 }
-const NAV_ITEMS: Array<{
+const getNavItems = (hasAIChat: boolean): Array<{
   id: PatientSection;
   label: string;
   shortLabel?: string;
   icon: React.ComponentType<any>;
   color: string;
-}> = [{
+}> => [{
   id: 'home',
   label: 'Home',
   icon: HomeIcon,
   color: 'text-blue-600 bg-blue-100 dark:bg-blue-900/30'
-}, {
-  id: 'assistant',
+}, ...(hasAIChat ? [{
+  id: 'assistant' as PatientSection,
   label: 'Assistant',
   icon: Bot,
   color: 'text-emerald-600 bg-emerald-100 dark:bg-emerald-900/30'
-}, {
+}] : []), {
   id: 'care',
   label: 'Treatment Records',
   shortLabel: 'Records',
@@ -71,8 +72,10 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
   children,
   badges = {},
   userId,
-  onBookAppointment
+  onBookAppointment,
+  hasAIChat = false
 }) => {
+  const NAV_ITEMS = getNavItems(hasAIChat);
   const {
     toast
   } = useToast();
