@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Settings as SettingsIcon, Calendar, Palette, Shield, User, LogOut } from "lucide-react";
+import { Settings as SettingsIcon, Calendar, Palette, Shield, User, LogOut, Mail, HelpCircle } from "lucide-react";
 import { EnhancedAvailabilitySettings } from "@/components/enhanced/EnhancedAvailabilitySettings";
 import DentistAdminBranding from "./DentistAdminBranding";
 import DentistAdminSecurity from "./DentistAdminSecurity";
@@ -23,7 +23,7 @@ export default function DentistSettings() {
 
   useEffect(() => {
     const tabParam = searchParams.get('tab');
-    if (tabParam && ['profile', 'schedule', 'branding', 'security'].includes(tabParam)) {
+    if (tabParam && ['profile', 'schedule', 'branding', 'security', 'support'].includes(tabParam)) {
       setActiveTab(tabParam);
     }
   }, [searchParams]);
@@ -79,7 +79,7 @@ export default function DentistSettings() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="profile" className="gap-2">
             <User className="h-4 w-4" />
             Profile
@@ -95,6 +95,10 @@ export default function DentistSettings() {
           <TabsTrigger value="security" className="gap-2">
             <Shield className="h-4 w-4" />
             Security
+          </TabsTrigger>
+          <TabsTrigger value="support" className="gap-2">
+            <HelpCircle className="h-4 w-4" />
+            Support
           </TabsTrigger>
         </TabsList>
 
@@ -142,6 +146,78 @@ export default function DentistSettings() {
               <p className="text-sm text-muted-foreground mt-2">
                 You will lose access to all clinic data and appointments.
               </p>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="support" className="space-y-6">
+          <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-background">
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                  <HelpCircle className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <CardTitle>Contact Support</CardTitle>
+                  <CardDescription>
+                    Need help? We're here for you
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-4">
+                <p className="text-muted-foreground">
+                  If you have any questions, issues, or need assistance with the platform, our support team is ready to help.
+                </p>
+                
+                <div className="bg-background/50 border rounded-lg p-4 space-y-3">
+                  <div className="flex items-center gap-2 text-sm font-medium">
+                    <Mail className="h-4 w-4 text-primary" />
+                    <span>Email Support</span>
+                  </div>
+                  <a 
+                    href="mailto:romeo@caberu.be"
+                    className="block text-primary hover:text-primary-glow transition-colors font-medium text-lg"
+                  >
+                    romeo@caberu.be
+                  </a>
+                  <p className="text-sm text-muted-foreground">
+                    We typically respond within 24 hours during business days
+                  </p>
+                </div>
+
+                <Button 
+                  onClick={() => window.location.href = 'mailto:romeo@caberu.be'}
+                  className="w-full gap-2 bg-gradient-to-r from-primary to-primary-glow"
+                  size="lg"
+                >
+                  <Mail className="h-5 w-5" />
+                  Send Email
+                </Button>
+              </div>
+
+              <div className="border-t pt-6">
+                <h3 className="font-semibold mb-3">Common Topics</h3>
+                <ul className="space-y-2 text-sm text-muted-foreground">
+                  <li className="flex items-start gap-2">
+                    <span className="text-primary">•</span>
+                    <span>Account and billing questions</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-primary">•</span>
+                    <span>Technical support and troubleshooting</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-primary">•</span>
+                    <span>Feature requests and feedback</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-primary">•</span>
+                    <span>Data migration and import assistance</span>
+                  </li>
+                </ul>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

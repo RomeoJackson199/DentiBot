@@ -262,173 +262,188 @@ export const AuthForm = ({ compact = false, initialRole = 'patient' }: AuthFormP
   }
 
   return (
-    <div className="w-full">
-      <Card className="shadow-elegant glass-card border border-border/20">
-        <CardHeader className="text-center">
-          <CardTitle>{t.accessDentiBot}</CardTitle>
-          <CardDescription>
+    <div className="w-full max-w-md mx-auto">
+      <Card className="shadow-2xl border-2 border-primary/10 backdrop-blur-sm bg-background/95">
+        <CardHeader className="text-center space-y-2 pb-6">
+          <div className="mx-auto w-16 h-16 bg-gradient-to-br from-primary to-primary-glow rounded-2xl flex items-center justify-center mb-2 shadow-lg">
+            <LogIn className="w-8 h-8 text-primary-foreground" />
+          </div>
+          <CardTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
+            {t.accessDentiBot}
+          </CardTitle>
+          <CardDescription className="text-base">
             {t.signInOrCreate}
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-6 pb-6">
           <Tabs defaultValue="signin" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 glass-card">
-              <TabsTrigger value="signin" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-white">
+            <TabsList className="grid w-full grid-cols-2 p-1 bg-muted/50 rounded-lg">
+              <TabsTrigger 
+                value="signin" 
+                className="rounded-md data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary-glow data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all"
+              >
+                <LogIn className="w-4 h-4 mr-2" />
                 {t.signIn}
               </TabsTrigger>
-              <TabsTrigger value="signup" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-white">
+              <TabsTrigger 
+                value="signup" 
+                className="rounded-md data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary-glow data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all"
+              >
+                <User className="w-4 h-4 mr-2" />
                 {t.signUp}
               </TabsTrigger>
             </TabsList>
             
-            <TabsContent value="signin">
-              <div className="space-y-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleGoogleSignIn}
-                  disabled={isLoading}
-                  className="w-full border-2 border-gray-200 hover:border-blue-300 bg-white hover:bg-gray-50 text-gray-700"
-                >
-                  {isLoading ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
-                    <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
-                      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                    </svg>
-                  )}
-                  Continue with Google
-                </Button>
-                
-                <div className="relative">
-                  <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t border-gray-300" />
-                  </div>
-                  <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-white px-2 text-gray-500">Or continue with email</span>
-                  </div>
+            <TabsContent value="signin" className="space-y-4 mt-6">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleGoogleSignIn}
+                disabled={isLoading}
+                className="w-full h-12 border-2 hover:border-primary/50 hover:bg-primary/5 transition-all shadow-sm"
+              >
+                {isLoading ? (
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                ) : (
+                  <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                  </svg>
+                )}
+                <span className="font-medium">Continue with Google</span>
+              </Button>
+              
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" />
                 </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-background px-3 text-muted-foreground font-medium">Or continue with email</span>
+                </div>
+              </div>
                 
               <form onSubmit={handleSignIn} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="signin-email">{t.email}</Label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="signin-email"
-                      name="email"
-                      type="email"
-                      placeholder={t.enterEmail}
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      className="pl-10"
-                      required
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signin-password">{t.password}</Label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="signin-password"
-                      name="password"
-                      type="password"
-                      placeholder={t.enterPassword}
-                      value={formData.password}
-                      onChange={handleInputChange}
-                      className="pl-10"
-                      required
-                    />
-                  </div>
-                 </div>
-                 {validationErrors.length > 0 && (
-                   <div className="text-sm text-red-600 space-y-1">
-                     {validationErrors.map((error, index) => (
-                       <p key={index}>{error}</p>
-                     ))}
+                 <div className="space-y-2">
+                   <Label htmlFor="signin-email" className="font-medium">{t.email}</Label>
+                   <div className="relative">
+                     <Mail className="absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
+                     <Input
+                       id="signin-email"
+                       name="email"
+                       type="email"
+                       placeholder={t.enterEmail}
+                       value={formData.email}
+                       onChange={handleInputChange}
+                       className="pl-10 h-12 border-2 focus:border-primary transition-colors"
+                       required
+                     />
                    </div>
-                 )}
-                 <Button type="submit" className="w-full" disabled={isLoading}>
-                   {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                   {t.signInButton}
-                 </Button>
-                 <div className="flex justify-center">
-                   <a href={`/claim?email=${encodeURIComponent(formData.email)}`} className="text-sm text-dental-primary underline">
-                     Check if I'm registered at this clinic
-                   </a>
                  </div>
-               </form>
-               </div>
-             </TabsContent>
-            
-            <TabsContent value="signup">
-              <div className="space-y-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleGoogleSignIn}
-                  disabled={isLoading}
-                  className="w-full border-2 border-gray-200 hover:border-blue-300 bg-white hover:bg-gray-50 text-gray-700"
-                >
-                  {isLoading ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
-                    <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
-                      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                    </svg>
+                 <div className="space-y-2">
+                   <Label htmlFor="signin-password" className="font-medium">{t.password}</Label>
+                   <div className="relative">
+                     <Lock className="absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
+                     <Input
+                       id="signin-password"
+                       name="password"
+                       type="password"
+                       placeholder={t.enterPassword}
+                       value={formData.password}
+                       onChange={handleInputChange}
+                       className="pl-10 h-12 border-2 focus:border-primary transition-colors"
+                       required
+                     />
+                   </div>
+                  </div>
+                  {validationErrors.length > 0 && (
+                    <div className="text-sm text-destructive space-y-1 bg-destructive/10 p-3 rounded-lg">
+                      {validationErrors.map((error, index) => (
+                        <p key={index}>• {error}</p>
+                      ))}
+                    </div>
                   )}
-                  Sign up with Google
-                </Button>
-                
-                <div className="relative">
-                  <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t border-gray-300" />
+                  <Button 
+                    type="submit" 
+                    className="w-full h-12 bg-gradient-to-r from-primary to-primary-glow hover:opacity-90 transition-opacity font-semibold text-base shadow-lg" 
+                    disabled={isLoading}
+                  >
+                    {isLoading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
+                    {t.signInButton}
+                  </Button>
+                  <div className="flex justify-center mt-4">
+                    <a href={`/claim?email=${encodeURIComponent(formData.email)}`} className="text-sm text-primary hover:text-primary-glow underline transition-colors">
+                      Check if I'm registered at this clinic
+                    </a>
                   </div>
-                  <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-white px-2 text-gray-500">Or sign up with email</span>
-                  </div>
+                </form>
+              </TabsContent>
+            
+            <TabsContent value="signup" className="space-y-4 mt-6">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleGoogleSignIn}
+                disabled={isLoading}
+                className="w-full h-12 border-2 hover:border-primary/50 hover:bg-primary/5 transition-all shadow-sm"
+              >
+                {isLoading ? (
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                ) : (
+                  <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                  </svg>
+                )}
+                <span className="font-medium">Sign up with Google</span>
+              </Button>
+              
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" />
                 </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-background px-3 text-muted-foreground font-medium">Or sign up with email</span>
+                </div>
+              </div>
                 
               <form onSubmit={handleSignUp} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="signup-firstName">{t.firstName}</Label>
+                    <Label htmlFor="signup-firstName" className="font-medium">{t.firstName}</Label>
                     <div className="relative">
-                      <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <User className="absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
                       <Input
                         id="signup-firstName"
                         name="firstName"
                         placeholder={t.firstName}
                         value={formData.firstName}
                         onChange={handleInputChange}
-                        className="pl-10"
+                        className="pl-10 h-12 border-2 focus:border-primary transition-colors"
                         required
                       />
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="signup-lastName">{t.lastName}</Label>
+                    <Label htmlFor="signup-lastName" className="font-medium">{t.lastName}</Label>
                     <Input
                       id="signup-lastName"
                       name="lastName"
                       placeholder={t.lastName}
                       value={formData.lastName}
                       onChange={handleInputChange}
+                      className="h-12 border-2 focus:border-primary transition-colors"
                       required
                     />
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signup-email">{t.email}</Label>
+                  <Label htmlFor="signup-email" className="font-medium">{t.email}</Label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Mail className="absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="signup-email"
                       name="email"
@@ -436,15 +451,15 @@ export const AuthForm = ({ compact = false, initialRole = 'patient' }: AuthFormP
                       placeholder={t.enterEmail}
                       value={formData.email}
                       onChange={handleInputChange}
-                      className="pl-10"
+                      className="pl-10 h-12 border-2 focus:border-primary transition-colors"
                       required
                     />
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signup-password">{t.password}</Label>
+                  <Label htmlFor="signup-password" className="font-medium">{t.password}</Label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Lock className="absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="signup-password"
                       name="password"
@@ -452,15 +467,15 @@ export const AuthForm = ({ compact = false, initialRole = 'patient' }: AuthFormP
                       placeholder={t.enterPassword}
                       value={formData.password}
                       onChange={handleInputChange}
-                      className="pl-10"
+                      className="pl-10 h-12 border-2 focus:border-primary transition-colors"
                       required
                     />
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signup-phone">{t.phone} ({t.optional})</Label>
+                  <Label htmlFor="signup-phone" className="font-medium">{t.phone} ({t.optional})</Label>
                   <div className="relative">
-                    <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Phone className="absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="signup-phone"
                       name="phone"
@@ -468,18 +483,19 @@ export const AuthForm = ({ compact = false, initialRole = 'patient' }: AuthFormP
                       placeholder={t.enterPhoneNumber}
                       value={formData.phone}
                       onChange={handleInputChange}
-                      className="pl-10"
+                      className="pl-10 h-12 border-2 focus:border-primary transition-colors"
                     />
                   </div>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-3 bg-muted/30 p-4 rounded-lg border">
                 <div className="flex items-start space-x-2">
                   <Checkbox
                     id="tos"
                     checked={acceptTerms}
                     onCheckedChange={(c) => setAcceptTerms(!!c)}
+                    className="mt-1"
                   />
-                  <label htmlFor="tos" className="text-sm">
+                  <label htmlFor="tos" className="text-sm leading-relaxed cursor-pointer">
                     {t.acceptTerms}
                   </label>
                 </div>
@@ -488,33 +504,37 @@ export const AuthForm = ({ compact = false, initialRole = 'patient' }: AuthFormP
                     id="health"
                     checked={healthConsent}
                     onCheckedChange={(c) => setHealthConsent(!!c)}
+                    className="mt-1"
                   />
-                  <label htmlFor="health" className="text-sm">
+                  <label htmlFor="health" className="text-sm leading-relaxed cursor-pointer">
                     {t.consentHealthData}
                   </label>
                 </div>
-                 <p className="text-xs text-muted-foreground">
+                 <p className="text-xs text-muted-foreground italic">
                    {t.childConsentNote}
                  </p>
                </div>
                {validationErrors.length > 0 && (
-                 <div className="text-sm text-red-600 space-y-1">
+                 <div className="text-sm text-destructive space-y-1 bg-destructive/10 p-3 rounded-lg">
                    {validationErrors.map((error, index) => (
-                     <p key={index}>{error}</p>
+                     <p key={index}>• {error}</p>
                    ))}
                  </div>
                )}
-               <Button type="submit" className="w-full" disabled={isLoading || !acceptTerms || !healthConsent}>
-                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+               <Button 
+                 type="submit" 
+                 className="w-full h-12 bg-gradient-to-r from-primary to-primary-glow hover:opacity-90 transition-opacity font-semibold text-base shadow-lg" 
+                 disabled={isLoading || !acceptTerms || !healthConsent}
+               >
+                 {isLoading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
                  {t.createAccountButton}
                </Button>
-               <div className="flex justify-center">
-                 <a href={`/claim?email=${encodeURIComponent(formData.email)}`} className="text-sm text-dental-primary underline">
+               <div className="flex justify-center mt-4">
+                 <a href={`/claim?email=${encodeURIComponent(formData.email)}`} className="text-sm text-primary hover:text-primary-glow underline transition-colors">
                    Check if I'm registered at this clinic
                  </a>
                </div>
             </form>
-            </div>
           </TabsContent>
         </Tabs>
         </CardContent>
