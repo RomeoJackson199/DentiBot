@@ -75,6 +75,7 @@ const PatientAccountProfilePage = lazy(() => import("./pages/PatientAccountProfi
 const PatientAccountInsurancePage = lazy(() => import("./pages/PatientAccountInsurancePage"));
 const PatientAccountPrivacyPage = lazy(() => import("./pages/PatientAccountPrivacyPage"));
 const PatientAccountHelpPage = lazy(() => import("./pages/PatientAccountHelpPage"));
+const AdminHomepageManager = lazy(() => import("./pages/AdminHomepageManager"));
 
 // Dashboard component that handles authentication with lazy loading
 // Business gate component that shows appropriate picker
@@ -304,6 +305,8 @@ const App = () => {
                 <Route path="/claim" element={<Claim />} />
                 <Route path="/pricing" element={<Pricing />} />
                 <Route path="/google-calendar-callback" element={<GoogleCalendarCallback />} />
+                {/* Admin route for homepage management */}
+                <Route path="/admin/homepage-manager" element={<AdminHomepageManager />} />
                 {/* Booking routes */}
                 <Route path="/book-appointment-ai" element={<BookAppointmentAI />} />
                 <Route path="/book-appointment" element={<BookAppointment />} />
