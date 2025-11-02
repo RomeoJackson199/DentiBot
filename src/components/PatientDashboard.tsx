@@ -573,11 +573,17 @@ export const PatientDashboard = ({
             </Card>
           </div>
         ) : (
-          // Redirect to external booking page
-          (() => {
-            window.location.href = 'https://caberu.be/book-appointment';
-            return null;
-          })()
+          <div className="px-4 md:px-6 py-4">
+            <Card className="h-full">
+              <CardContent className="p-0">
+                <iframe
+                  src="https://caberu.be/book-appointment"
+                  className="w-full h-[75vh] border-0 rounded-lg"
+                  title="Book Appointment"
+                />
+              </CardContent>
+            </Card>
+          </div>
         )
       )}
 

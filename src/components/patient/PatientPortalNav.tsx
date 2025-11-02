@@ -80,6 +80,7 @@ function PatientPortalNavContent({ children }: { children: React.ReactNode }) {
   const groups: NavGroup[] = useMemo(() => {
     const careItems = [
       { id: 'care-home', label: t.pnav.care.home, icon: <Home className="h-4 w-4" />, to: '/care' },
+      { id: 'care-booking', label: 'Classic Booking', icon: <Calendar className="h-4 w-4" />, to: '/book-appointment' },
       { id: 'care-appointments', label: t.pnav.care.appointments, icon: <Calendar className="h-4 w-4" />, to: '/care/appointments', badge: counts.upcoming7d },
     ];
 
@@ -148,6 +149,11 @@ function PatientPortalNavContent({ children }: { children: React.ReactNode }) {
     try { localStorage.setItem(STORAGE_KEYS.lastVisited, item.to); } catch {}
     try { emitAnalyticsEvent('pnav_click', '', { role: 'patient', group: groupId, item: item.id, path: item.to }); } catch {}
     if (isMobile) setMoreOpen(false);
+    
+    // Auto-collapse sidebar when navigating to booking
+    if (item.to === '/book-appointment' && state !== 'collapsed') {
+      toggleSidebar();
+    }
   };
 
   // Restore last item on mount
