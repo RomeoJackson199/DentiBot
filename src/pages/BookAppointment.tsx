@@ -16,6 +16,8 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { createAppointmentDateTimeFromStrings } from "@/lib/timezone";
 import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
+import { Header } from "@/components/homepage/Header";
+import { Footer } from "@/components/homepage/Footer";
 
 interface Dentist {
   id: string;
@@ -268,23 +270,30 @@ export default function BookAppointment() {
 
   if (loading || businessLoading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <ModernLoadingSpinner variant="overlay" message="Loading..." />
+      <div className="min-h-screen bg-white">
+        <Header user={user} />
+        <div className="flex items-center justify-center py-20">
+          <ModernLoadingSpinner variant="overlay" message="Loading..." />
+        </div>
       </div>
     );
   }
 
   if (!user) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <Card className="max-w-md">
-          <CardContent className="pt-6">
-            <p>Please log in to book an appointment.</p>
-            <Button onClick={() => navigate('/login')} className="mt-4">
-              Go to Login
-            </Button>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen bg-white">
+        <Header user={user} />
+        <div className="flex items-center justify-center py-20 px-4">
+          <Card className="max-w-md">
+            <CardContent className="pt-6">
+              <p>Please log in to book an appointment.</p>
+              <Button onClick={() => navigate('/login')} className="mt-4">
+                Go to Login
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+        <Footer />
       </div>
     );
   }
@@ -293,52 +302,55 @@ export default function BookAppointment() {
 
   if (currentStep === 'success') {
     return (
-      <>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+        <Header user={user} />
         <ConfirmationDialog />
-        <div className="min-h-screen flex items-center justify-center p-4">
-        <Card className="max-w-md w-full">
-          <CardContent className="pt-6 text-center space-y-4">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-              <CheckCircle2 className="w-8 h-8 text-green-600" />
-            </div>
-            <h2 className="text-2xl font-bold">Appointment Confirmed!</h2>
-            <p className="text-muted-foreground">Your appointment has been successfully booked.</p>
-            
-            <Separator />
-            
-            <div className="space-y-2">
-              <Button onClick={() => navigate('/dashboard')} className="w-full" size="lg">
-                Back to Dashboard
-              </Button>
-              <Button 
-                onClick={handleAddToGoogleCalendar} 
-                variant="outline" 
-                className="w-full"
-                size="lg"
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                Add to Google Calendar
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="flex items-center justify-center py-12 px-4">
+          <Card className="max-w-md w-full">
+            <CardContent className="pt-6 text-center space-y-4">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+                <CheckCircle2 className="w-8 h-8 text-green-600" />
+              </div>
+              <h2 className="text-2xl font-bold">Appointment Confirmed!</h2>
+              <p className="text-muted-foreground">Your appointment has been successfully booked.</p>
+
+              <Separator />
+
+              <div className="space-y-2">
+                <Button onClick={() => navigate('/dashboard')} className="w-full" size="lg">
+                  Back to Dashboard
+                </Button>
+                <Button
+                  onClick={handleAddToGoogleCalendar}
+                  variant="outline"
+                  className="w-full"
+                  size="lg"
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  Add to Google Calendar
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+        <Footer />
       </div>
-      </>
     );
   }
 
   return (
-    <>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      <Header user={user} />
       <ConfirmationDialog />
-      <div className="min-h-screen p-4 md:p-6">
-      <Card className="max-w-4xl mx-auto">
-        <CardHeader>
-          <CardTitle className="text-2xl">Book an Appointment</CardTitle>
-          <CardDescription>
-            Step {currentStep === 'service' ? '1' : currentStep === 'provider' ? '2' : currentStep === 'datetime' ? '3' : '4'} of 4
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+      <div className="py-8 px-4 md:px-6 max-w-5xl mx-auto">
+        <Card className="shadow-lg">
+          <CardHeader>
+            <CardTitle className="text-2xl">Book an Appointment</CardTitle>
+            <CardDescription>
+              Step {currentStep === 'service' ? '1' : currentStep === 'provider' ? '2' : currentStep === 'datetime' ? '3' : '4'} of 4
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
           {currentStep === 'service' && effectiveBusinessId && (
             <div className="space-y-6">
               <div className="space-y-2">
@@ -550,9 +562,10 @@ export default function BookAppointment() {
               </div>
             </div>
           )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
+      <Footer />
     </div>
-    </>
   );
 }
