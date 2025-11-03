@@ -1803,6 +1803,7 @@ export type Database = {
       table_reservations: {
         Row: {
           appointment_id: string
+          business_id: string
           completed_at: string | null
           created_at: string
           id: string
@@ -1815,6 +1816,7 @@ export type Database = {
         }
         Insert: {
           appointment_id: string
+          business_id: string
           completed_at?: string | null
           created_at?: string
           id?: string
@@ -1827,6 +1829,7 @@ export type Database = {
         }
         Update: {
           appointment_id?: string
+          business_id?: string
           completed_at?: string | null
           created_at?: string
           id?: string
@@ -1843,6 +1846,13 @@ export type Database = {
             columns: ["appointment_id"]
             isOneToOne: true
             referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "table_reservations_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
             referencedColumns: ["id"]
           },
           {
