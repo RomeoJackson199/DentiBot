@@ -68,42 +68,48 @@ export default function DentistSettings() {
   }
 
   return (
-    <div className="container max-w-6xl mx-auto p-6 space-y-6">
+    <div className="container max-w-6xl mx-auto p-3 sm:p-6 space-y-4 sm:space-y-6">
       <div className="flex items-center gap-3">
-        <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-          <SettingsIcon className="h-5 w-5 text-primary" />
+        <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+          <SettingsIcon className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
         </div>
-        <div>
-          <h1 className="text-3xl font-bold">Settings</h1>
-          <p className="text-muted-foreground">Manage your practice settings and preferences</p>
+        <div className="min-w-0">
+          <h1 className="text-2xl sm:text-3xl font-bold truncate">Settings</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">Manage your practice settings and preferences</p>
         </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-6">
-          <TabsTrigger value="profile" className="gap-2">
-            <User className="h-4 w-4" />
-            Profile
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 sm:space-y-6">
+        <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6 gap-1">
+          <TabsTrigger value="profile" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3">
+            <User className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">Profile</span>
+            <span className="sm:hidden">Prof</span>
           </TabsTrigger>
-          <TabsTrigger value="schedule" className="gap-2">
-            <Calendar className="h-4 w-4" />
-            Schedule
+          <TabsTrigger value="schedule" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3">
+            <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">Schedule</span>
+            <span className="sm:hidden">Sched</span>
           </TabsTrigger>
-          <TabsTrigger value="branding" className="gap-2">
-            <Palette className="h-4 w-4" />
-            Branding
+          <TabsTrigger value="branding" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3">
+            <Palette className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">Branding</span>
+            <span className="sm:hidden">Brand</span>
           </TabsTrigger>
-          <TabsTrigger value="homepage" className="gap-2">
-            <Globe className="h-4 w-4" />
-            Homepage
+          <TabsTrigger value="homepage" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3">
+            <Globe className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">Homepage</span>
+            <span className="sm:hidden">Home</span>
           </TabsTrigger>
-          <TabsTrigger value="security" className="gap-2">
-            <Shield className="h-4 w-4" />
-            Security
+          <TabsTrigger value="security" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3">
+            <Shield className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">Security</span>
+            <span className="sm:hidden">Sec</span>
           </TabsTrigger>
-          <TabsTrigger value="support" className="gap-2">
-            <HelpCircle className="h-4 w-4" />
-            Support
+          <TabsTrigger value="support" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3">
+            <HelpCircle className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">Support</span>
+            <span className="sm:hidden">Help</span>
           </TabsTrigger>
         </TabsList>
 

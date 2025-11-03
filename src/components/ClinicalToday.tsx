@@ -147,23 +147,23 @@ export function ClinicalToday({ user, dentistId, onOpenPatientsTab, onOpenAppoin
 	}
 
 	return (
-		<div className="space-y-6 p-6">
+		<div className="space-y-4 sm:space-y-6 p-3 sm:p-6">
 			{/* Enhanced Welcome Header with Animated Background */}
-			<div className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950/20 dark:via-indigo-950/20 dark:to-purple-950/20 rounded-2xl p-6 shadow-sm">
+			<div className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950/20 dark:via-indigo-950/20 dark:to-purple-950/20 rounded-2xl p-4 sm:p-6 shadow-sm">
 				<AnimatedBackground />
 
 				<div className="relative z-10 space-y-1">
-					<h1 className="text-3xl sm:text-4xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+					<h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
 						Good {today.getHours() < 12 ? 'morning' : today.getHours() < 18 ? 'afternoon' : 'evening'}
 					</h1>
-					<p className="text-muted-foreground font-medium">
+					<p className="text-sm sm:text-base text-muted-foreground font-medium">
 						{format(today, 'EEEE, MMMM d, yyyy')}
 					</p>
 				</div>
 			</div>
 
 		{/* Quick Stats with Polished Components */}
-		<div className="grid grid-cols-2 lg:grid-cols-4 gap-4" data-tour="stats-cards">
+		<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4" data-tour="stats-cards">
 			<StatCard
 				title="Today's Appointments"
 				value={stats.todayCount.toString()}
@@ -203,12 +203,12 @@ export function ClinicalToday({ user, dentistId, onOpenPatientsTab, onOpenAppoin
 
 			{/* Today's Schedule */}
 			<Card className="border-none shadow-sm" data-tour="appointments-list">
-				<CardContent className="pt-6">
-					<div className="flex items-center justify-between mb-4">
-						<h2 className="text-lg font-semibold">Today's Schedule</h2>
+				<CardContent className="pt-4 sm:pt-6 px-3 sm:px-6">
+					<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
+						<h2 className="text-base sm:text-lg font-semibold">Today's Schedule</h2>
 						<Button
 							onClick={() => onOpenAppointmentsTab?.()}
-							className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-md hover:shadow-lg transition-all"
+							className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-md hover:shadow-lg transition-all"
 							size="sm"
 						>
 							<Plus className="h-4 w-4 mr-2" />
@@ -231,35 +231,35 @@ export function ClinicalToday({ user, dentistId, onOpenPatientsTab, onOpenAppoin
 							}}
 						/>
 					) : (
-						<div className="space-y-3">
+						<div className="space-y-2 sm:space-y-3">
 							{todayAppointments.map((appointment) => (
 								<div
 									key={appointment.id}
-									className="group flex items-center justify-between p-4 rounded-lg border bg-card hover:shadow-lg hover:shadow-blue-500/10 hover:border-blue-500/40 hover:-translate-y-0.5 transition-all duration-300 cursor-pointer"
+									className="group flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-lg border bg-card hover:shadow-lg hover:shadow-blue-500/10 hover:border-blue-500/40 hover:-translate-y-0.5 transition-all duration-300 cursor-pointer"
 									onClick={() => onOpenAppointmentsTab?.()}
 								>
-									<div className="flex items-center gap-4 flex-1">
-										<div className="flex flex-col items-center justify-center min-w-[60px]">
-											<Clock className="h-4 w-4 text-muted-foreground mb-1" />
-											<span className="text-sm font-medium">
+									<div className="flex items-start sm:items-center gap-3 sm:gap-4 flex-1 w-full min-w-0">
+										<div className="flex flex-col items-center justify-center min-w-[50px] sm:min-w-[60px] flex-shrink-0">
+											<Clock className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground mb-1" />
+											<span className="text-xs sm:text-sm font-medium">
 												{format(new Date(appointment.appointment_date), 'HH:mm')}
 											</span>
 										</div>
 										
 										<div className="flex-1 min-w-0">
-											<div className="flex items-center gap-2 mb-1">
-												<p className="font-medium truncate">{getPatientName(appointment)}</p>
+											<div className="flex items-center gap-2 mb-1 flex-wrap">
+												<p className="font-medium text-sm sm:text-base truncate">{getPatientName(appointment)}</p>
 												{appointment.urgency === 'high' && (
-													<Badge variant="destructive" className="text-xs">Urgent</Badge>
+													<Badge variant="destructive" className="text-xs flex-shrink-0">Urgent</Badge>
 												)}
 											</div>
-											<p className="text-sm text-muted-foreground truncate">
+											<p className="text-xs sm:text-sm text-muted-foreground line-clamp-1">
 												{appointment.reason || 'No reason specified'}
 											</p>
 										</div>
 									</div>
 
-									<Badge variant="outline" className={getStatusColor(appointment.status)}>
+									<Badge variant="outline" className={`${getStatusColor(appointment.status)} text-xs flex-shrink-0 self-start sm:self-center`}>
 										{appointment.status}
 									</Badge>
 								</div>
@@ -268,7 +268,7 @@ export function ClinicalToday({ user, dentistId, onOpenPatientsTab, onOpenAppoin
 							<Button 
 								onClick={() => onOpenAppointmentsTab?.()} 
 								variant="outline" 
-								className="w-full mt-4"
+								className="w-full mt-3 sm:mt-4"
 							>
 								View All Appointments
 							</Button>
