@@ -13,20 +13,25 @@ serve(async (req) => {
 
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
-    
-    // Get auth token from request
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Get auth token to verify user
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      throw new Error('Authorization header is required');
+      throw new Error('Authorization required');
     }
 
-    // Create client with user's token for proper RLS
-    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-      global: {
-        headers: { Authorization: authHeader }
-      }
+    // Create client with user token to check permissions
+    const userSupabase = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY')!, {
+      global: { headers: { Authorization: authHeader } }
     });
+
+    // Verify user is authenticated
+    const { data: { user }, error: authError } = await userSupabase.auth.getUser();
+    if (authError || !user) {
+      throw new Error('Unauthorized');
+    }
 
     const { orderId } = await req.json();
 
@@ -34,14 +39,38 @@ serve(async (req) => {
       throw new Error('Order ID is required');
     }
 
-    // Get order details
+    // Get order details and verify user has access
     const { data: order, error: orderError } = await supabase
       .from('restaurant_orders')
-      .select('*')
+      .select('*, business_id')
       .eq('id', orderId)
       .single();
 
     if (orderError) throw orderError;
+    if (!order) throw new Error('Order not found');
+
+    // Verify user is staff member of the business
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('user_id', user.id)
+      .single();
+
+    if (!profile) throw new Error('Profile not found');
+
+    const { data: staffRole } = await supabase
+      .from('restaurant_staff_roles')
+      .select('role')
+      .eq('business_id', order.business_id)
+      .eq('profile_id', profile.id)
+      .eq('is_active', true)
+      .single();
+
+    if (!staffRole) {
+      throw new Error('Not authorized to confirm orders for this business');
+    }
+
+    console.log(`User ${user.email} (${staffRole.role}) confirming order ${orderId}`);
 
     // Update order status to confirmed (sends to kitchen)
     const { error: updateError } = await supabase
