@@ -11,6 +11,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { BusinessTemplateSelector } from "@/components/BusinessTemplateSelector";
 import { TemplateType, getTemplateConfig, TemplateFeatures, TemplateTerminology } from "@/lib/businessTemplates";
 import { useTemplate } from "@/contexts/TemplateContext";
+import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -34,6 +35,7 @@ export default function DentistAdminBranding() {
   const { businessId, loading: businessLoading } = useBusinessContext();
   const { updateTemplate: updateTemplateContext } = useTemplate();
   const [loading, setLoading] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
   const [clinicName, setClinicName] = useState("");
   const [slug, setSlug] = useState("");
   const [slugError, setSlugError] = useState("");
@@ -65,6 +67,20 @@ export default function DentistAdminBranding() {
       ? `${baseOrigin}/${slug}`
       : `/${slug}`
     : baseOrigin;
+  
+  const [initialState, setInitialState] = useState({
+    clinicName,
+    slug,
+    tagline,
+    address,
+    primaryColor,
+    secondaryColor,
+    logoUrl,
+    templateType,
+    aiSystemBehavior,
+    aiGreeting,
+    aiPersonalityTraits,
+  });
 
   useEffect(() => {
     if (businessId) {
@@ -83,22 +99,34 @@ export default function DentistAdminBranding() {
       if (error) throw error;
 
       if (business) {
-        setClinicName(business.name || "");
-        setSlug(business.slug || "");
-        setTagline(business.tagline || "");
-        setAddress(""); // Address is not on businesses table
-        setPrimaryColor(business.primary_color || "#2D5D7B");
-        setSecondaryColor(business.secondary_color || "#8B5CF6");
-        setLogoUrl(business.logo_url || "");
-        setTemplateType((business.template_type as TemplateType) || "dentist");
-        
-        // Load AI behavior settings or use template defaults
         const template = getTemplateConfig((business.template_type as TemplateType) || "dentist");
-        setAiSystemBehavior(business.ai_system_behavior || template.aiBehaviorDefaults.systemBehavior);
-        setAiGreeting(business.ai_greeting || template.aiBehaviorDefaults.greeting);
-        setAiPersonalityTraits(
-          (business.ai_personality_traits as string[]) || template.aiBehaviorDefaults.personalityTraits
-        );
+        const state = {
+          clinicName: business.name || "",
+          slug: business.slug || "",
+          tagline: business.tagline || "",
+          address: "",
+          primaryColor: business.primary_color || "#2D5D7B",
+          secondaryColor: business.secondary_color || "#8B5CF6",
+          logoUrl: business.logo_url || "",
+          templateType: (business.template_type as TemplateType) || "dentist",
+          aiSystemBehavior: business.ai_system_behavior || template.aiBehaviorDefaults.systemBehavior,
+          aiGreeting: business.ai_greeting || template.aiBehaviorDefaults.greeting,
+          aiPersonalityTraits: (business.ai_personality_traits as string[]) || template.aiBehaviorDefaults.personalityTraits,
+        };
+        
+        setClinicName(state.clinicName);
+        setSlug(state.slug);
+        setTagline(state.tagline);
+        setAddress(state.address);
+        setPrimaryColor(state.primaryColor);
+        setSecondaryColor(state.secondaryColor);
+        setLogoUrl(state.logoUrl);
+        setTemplateType(state.templateType);
+        setAiSystemBehavior(state.aiSystemBehavior);
+        setAiGreeting(state.aiGreeting);
+        setAiPersonalityTraits(state.aiPersonalityTraits);
+        setInitialState(state);
+        setHasChanges(false);
       }
     } catch (error: any) {
       console.error('Error loading branding:', error);
@@ -329,6 +357,22 @@ export default function DentistAdminBranding() {
         title: "Settings Saved",
         description: "Your branding settings have been saved successfully. All changes are now active!",
       });
+      
+      // Update initial state after successful save
+      setInitialState({
+        clinicName,
+        slug,
+        tagline,
+        address,
+        primaryColor,
+        secondaryColor,
+        logoUrl,
+        templateType,
+        aiSystemBehavior,
+        aiGreeting,
+        aiPersonalityTraits,
+      });
+      setHasChanges(false);
     } catch (error: any) {
       console.error('Error saving branding:', error);
       toast({
@@ -340,6 +384,28 @@ export default function DentistAdminBranding() {
       setLoading(false);
     }
   };
+  
+  useEffect(() => {
+    const currentState = {
+      clinicName,
+      slug,
+      tagline,
+      address,
+      primaryColor,
+      secondaryColor,
+      logoUrl,
+      templateType,
+      aiSystemBehavior,
+      aiGreeting,
+      aiPersonalityTraits,
+    };
+    setHasChanges(JSON.stringify(currentState) !== JSON.stringify(initialState));
+  }, [clinicName, slug, tagline, address, primaryColor, secondaryColor, logoUrl, templateType, aiSystemBehavior, aiGreeting, aiPersonalityTraits, initialState]);
+
+  const { ConfirmationDialog } = useUnsavedChanges({
+    hasUnsavedChanges: hasChanges,
+    onSave: handleSaveBranding,
+  });
 
   if (businessLoading) {
     return (
@@ -350,7 +416,9 @@ export default function DentistAdminBranding() {
   }
 
   return (
-    <div>
+    <>
+      <ConfirmationDialog />
+      <div>
       <PageHeader 
         title="Branding & Settings"
         subtitle="Customize your business appearance, services, and AI behavior"
@@ -757,6 +825,7 @@ export default function DentistAdminBranding() {
         />
       )}
     </div>
+    </>
   );
 }
 

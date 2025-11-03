@@ -8,12 +8,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Save, User } from "lucide-react";
 import { useCurrentDentist } from "@/hooks/useCurrentDentist";
+import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
 
 export default function DentistAdminProfile() {
   const { dentistId, profileId, loading: dentistLoading } = useCurrentDentist();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
   const [formData, setFormData] = useState({
     first_name: "",
     last_name: "",
@@ -24,6 +26,7 @@ export default function DentistAdminProfile() {
     license_number: "",
     bio: "",
   });
+  const [initialData, setInitialData] = useState(formData);
 
   useEffect(() => {
     if (dentistId && profileId) {
@@ -42,7 +45,7 @@ export default function DentistAdminProfile() {
       ]);
 
       if (dentistData && profileData) {
-        setFormData({
+        const data = {
           first_name: dentistData.first_name || profileData.first_name || "",
           last_name: dentistData.last_name || profileData.last_name || "",
           email: dentistData.email || profileData.email || "",
@@ -51,7 +54,10 @@ export default function DentistAdminProfile() {
           clinic_address: dentistData.clinic_address || "",
           license_number: dentistData.license_number || "",
           bio: profileData.bio || "",
-        });
+        };
+        setFormData(data);
+        setInitialData(data);
+        setHasChanges(false);
       }
     } catch (error: any) {
       toast({
@@ -101,6 +107,8 @@ export default function DentistAdminProfile() {
         title: "Success",
         description: "Profile updated successfully",
       });
+      setInitialData(formData);
+      setHasChanges(false);
     } catch (error: any) {
       toast({
         title: "Error",
@@ -110,6 +118,24 @@ export default function DentistAdminProfile() {
     } finally {
       setSaving(false);
     }
+  };
+
+  useEffect(() => {
+    setHasChanges(JSON.stringify(formData) !== JSON.stringify(initialData));
+  }, [formData, initialData]);
+
+  const handleSave = async () => {
+    const fakeEvent = { preventDefault: () => {} } as React.FormEvent;
+    await handleSubmit(fakeEvent);
+  };
+
+  const { ConfirmationDialog } = useUnsavedChanges({
+    hasUnsavedChanges: hasChanges,
+    onSave: handleSave,
+  });
+
+  const handleInputChange = (field: string, value: string) => {
+    setFormData({ ...formData, [field]: value });
   };
 
   if (dentistLoading || loading) {
@@ -123,6 +149,8 @@ export default function DentistAdminProfile() {
   }
 
   return (
+    <>
+      <ConfirmationDialog />
     <Card>
       <CardHeader>
         <div className="flex items-center gap-3">
@@ -145,7 +173,7 @@ export default function DentistAdminProfile() {
               <Input
                 id="first_name"
                 value={formData.first_name}
-                onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
+                onChange={(e) => handleInputChange('first_name', e.target.value)}
                 placeholder="John"
                 required
               />
@@ -156,7 +184,7 @@ export default function DentistAdminProfile() {
               <Input
                 id="last_name"
                 value={formData.last_name}
-                onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
+                onChange={(e) => handleInputChange('last_name', e.target.value)}
                 placeholder="Smith"
                 required
               />
@@ -168,7 +196,7 @@ export default function DentistAdminProfile() {
                 id="email"
                 type="email"
                 value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                onChange={(e) => handleInputChange('email', e.target.value)}
                 placeholder="john@example.com"
                 required
               />
@@ -180,7 +208,7 @@ export default function DentistAdminProfile() {
                 id="phone"
                 type="tel"
                 value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                onChange={(e) => handleInputChange('phone', e.target.value)}
                 placeholder="+1 (555) 123-4567"
               />
             </div>
@@ -190,7 +218,7 @@ export default function DentistAdminProfile() {
               <Input
                 id="specialization"
                 value={formData.specialization}
-                onChange={(e) => setFormData({ ...formData, specialization: e.target.value })}
+                onChange={(e) => handleInputChange('specialization', e.target.value)}
                 placeholder="General Dentistry, Orthodontics, etc."
               />
             </div>
@@ -200,7 +228,7 @@ export default function DentistAdminProfile() {
               <Input
                 id="license_number"
                 value={formData.license_number}
-                onChange={(e) => setFormData({ ...formData, license_number: e.target.value })}
+                onChange={(e) => handleInputChange('license_number', e.target.value)}
                 placeholder="DDS-12345"
               />
             </div>
@@ -211,7 +239,7 @@ export default function DentistAdminProfile() {
             <Textarea
               id="clinic_address"
               value={formData.clinic_address}
-              onChange={(e) => setFormData({ ...formData, clinic_address: e.target.value })}
+              onChange={(e) => handleInputChange('clinic_address', e.target.value)}
               placeholder="123 Main Street, City, State, ZIP"
               rows={3}
             />
@@ -222,7 +250,7 @@ export default function DentistAdminProfile() {
             <Textarea
               id="bio"
               value={formData.bio}
-              onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+              onChange={(e) => handleInputChange('bio', e.target.value)}
               placeholder="Tell patients about yourself, your experience, and specializations..."
               rows={4}
             />
@@ -246,5 +274,6 @@ export default function DentistAdminProfile() {
         </form>
       </CardContent>
     </Card>
+    </>
   );
 }

@@ -10,12 +10,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useToast } from "@/hooks/use-toast";
 import { Save, Eye, Sparkles } from "lucide-react";
 import { ModernLoadingSpinner } from "@/components/enhanced/ModernLoadingSpinner";
+import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
 
 export function HomepageEditor() {
   const { businessId } = useBusinessContext();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
   const [settings, setSettings] = useState({
     hero_title: "Welcome to Our Practice",
     hero_subtitle: "Quality dental care for your whole family",
@@ -27,6 +29,7 @@ export function HomepageEditor() {
     cta_text: "Book Appointment",
     cta_link: "/book-appointment",
   });
+  const [initialSettings, setInitialSettings] = useState(settings);
 
   useEffect(() => {
     loadSettings();
@@ -47,7 +50,7 @@ export function HomepageEditor() {
       }
 
       if (data) {
-        setSettings({
+        const loaded = {
           hero_title: data.hero_title || settings.hero_title,
           hero_subtitle: data.hero_subtitle || settings.hero_subtitle,
           hero_image_url: data.hero_image_url || "",
@@ -57,7 +60,10 @@ export function HomepageEditor() {
           about_content: data.about_content || settings.about_content,
           cta_text: data.cta_text || settings.cta_text,
           cta_link: data.cta_link || settings.cta_link,
-        });
+        };
+        setSettings(loaded);
+        setInitialSettings(loaded);
+        setHasChanges(false);
       }
     } catch (error) {
       console.error("Error loading homepage settings:", error);
@@ -85,6 +91,8 @@ export function HomepageEditor() {
         title: "Homepage Updated",
         description: "Your homepage settings have been saved successfully.",
       });
+      setInitialSettings(settings);
+      setHasChanges(false);
     } catch (error) {
       console.error("Error saving homepage settings:", error);
       toast({
@@ -96,6 +104,15 @@ export function HomepageEditor() {
       setSaving(false);
     }
   };
+  
+  useEffect(() => {
+    setHasChanges(JSON.stringify(settings) !== JSON.stringify(initialSettings));
+  }, [settings, initialSettings]);
+
+  const { ConfirmationDialog } = useUnsavedChanges({
+    hasUnsavedChanges: hasChanges,
+    onSave: handleSave,
+  });
 
   const handlePreview = async () => {
     const { data: business } = await supabase
@@ -114,7 +131,9 @@ export function HomepageEditor() {
   }
 
   return (
-    <div className="space-y-6 max-w-4xl">
+    <>
+      <ConfirmationDialog />
+      <div className="space-y-6 max-w-4xl">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">Homepage Customization</h2>
@@ -246,5 +265,6 @@ export function HomepageEditor() {
         </CardContent>
       </Card>
     </div>
+    </>
   );
 }

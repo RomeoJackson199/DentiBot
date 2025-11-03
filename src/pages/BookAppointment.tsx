@@ -15,6 +15,7 @@ import { ServiceSelector } from "@/components/booking/ServiceSelector";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { createAppointmentDateTimeFromStrings } from "@/lib/timezone";
+import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
 
 interface Dentist {
   id: string;
@@ -44,6 +45,12 @@ export default function BookAppointment() {
   const [loading, setLoading] = useState(true);
   const [loadingTimes, setLoadingTimes] = useState(false);
   const [bookingId, setBookingId] = useState<string | null>(null);
+  
+  const hasFormData = selectedService !== null || reason !== '' || selectedDentist !== '' || selectedDate !== undefined;
+
+  const { ConfirmationDialog } = useUnsavedChanges({
+    hasUnsavedChanges: hasFormData && currentStep !== 'success',
+  });
 
   useEffect(() => {
     const getUser = async () => {
@@ -286,7 +293,9 @@ export default function BookAppointment() {
 
   if (currentStep === 'success') {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4">
+      <>
+        <ConfirmationDialog />
+        <div className="min-h-screen flex items-center justify-center p-4">
         <Card className="max-w-md w-full">
           <CardContent className="pt-6 text-center space-y-4">
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
@@ -314,11 +323,14 @@ export default function BookAppointment() {
           </CardContent>
         </Card>
       </div>
+      </>
     );
   }
 
   return (
-    <div className="min-h-screen p-4 md:p-6">
+    <>
+      <ConfirmationDialog />
+      <div className="min-h-screen p-4 md:p-6">
       <Card className="max-w-4xl mx-auto">
         <CardHeader>
           <CardTitle className="text-2xl">Book an Appointment</CardTitle>
@@ -541,5 +553,6 @@ export default function BookAppointment() {
         </CardContent>
       </Card>
     </div>
+    </>
   );
 }
