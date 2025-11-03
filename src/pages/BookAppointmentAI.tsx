@@ -406,7 +406,9 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
 
   // If AI chat is disabled, redirect to manual booking
   if (!hasAIChat) {
-    return <Navigate to="/book-appointment" replace />;
+    // Redirect to integrated booking inside dashboard
+    try { localStorage.setItem('pd_section', 'assistant'); } catch {}
+    return <Navigate to="/dashboard" replace />;
   }
 
   if (!businessId) {
@@ -455,7 +457,7 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => navigate('/book-appointment')}
+                  onClick={() => { try { localStorage.setItem('pd_section', 'assistant'); } catch {}; navigate('/dashboard'); }}
                   className="gap-2 text-muted-foreground hover:text-primary hover:bg-white/50"
                 >
                   <CalendarDays className="h-4 w-4" />

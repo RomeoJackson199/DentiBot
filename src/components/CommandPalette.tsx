@@ -265,7 +265,7 @@ export function CommandPalette() {
       id: "action-book",
       label: "Book New Appointment",
       icon: Calendar,
-      action: () => navigate("/book-appointment"),
+      action: () => { try { localStorage.setItem('pd_section', 'assistant'); } catch {}; window.dispatchEvent(new CustomEvent('dashboard:changeSection', { detail: { section: 'assistant' } })); navigate('/dashboard'); },
       keywords: ["book", "appointment", "new", "schedule"],
       group: "Actions",
     },

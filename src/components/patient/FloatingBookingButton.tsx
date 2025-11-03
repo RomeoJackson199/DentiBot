@@ -45,7 +45,12 @@ export const FloatingBookingButton = ({
         <Button
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
-          onClick={() => navigate('/book-appointment')}
+          onClick={() => {
+            if (onBookAppointment) return onBookAppointment();
+            try { localStorage.setItem('pd_section', 'assistant'); } catch {}
+            window.dispatchEvent(new CustomEvent('dashboard:changeSection', { detail: { section: 'assistant' } }));
+            navigate('/dashboard');
+          }}
           size="icon"
           className="touch-target bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-blue-500/50 hover:scale-105 active:scale-95 rounded-full h-14 w-14"
           aria-label="Book appointment"
@@ -87,7 +92,12 @@ export const FloatingBookingButton = ({
             <Bot className="mr-2 h-4 w-4" />
             Book with AI Assistant
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => navigate('/book-appointment')} className="cursor-pointer">
+          <DropdownMenuItem onClick={() => {
+            if (onBookAppointment) return onBookAppointment();
+            try { localStorage.setItem('pd_section', 'assistant'); } catch {}
+            window.dispatchEvent(new CustomEvent('dashboard:changeSection', { detail: { section: 'assistant' } }));
+            navigate('/dashboard');
+          }} className="cursor-pointer">
             <CalendarDays className="mr-2 h-4 w-4" />
             Book Manually
           </DropdownMenuItem>
