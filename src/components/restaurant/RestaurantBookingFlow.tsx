@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Users, Calendar as CalendarIcon, Clock, MessageSquare, CheckCircle } from 'lucide-react';
 import { format } from 'date-fns';
+import { ReservationQRCode } from './ReservationQRCode';
 
 interface RestaurantBookingFlowProps {
   businessId: string;
@@ -35,6 +36,9 @@ export function RestaurantBookingFlow({ businessId, businessSlug }: RestaurantBo
   });
   const [loading, setLoading] = useState(false);
   const [bookingComplete, setBookingComplete] = useState(false);
+  const [completedReservation, setCompletedReservation] = useState<any>(null);
+  const [completedAppointment, setCompletedAppointment] = useState<any>(null);
+  const [businessName, setBusinessName] = useState<string>('');
 
   const availableTimes = [
     '11:00', '11:30', '12:00', '12:30', '13:00', '13:30', '14:00', '14:30',
@@ -46,14 +50,14 @@ export function RestaurantBookingFlow({ businessId, businessSlug }: RestaurantBo
     const loadUserData = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       setUser(user);
-      
+
       if (user) {
         const { data: profileData } = await supabase
           .from('profiles')
           .select('*')
           .eq('user_id', user.id)
           .single();
-        
+
         if (profileData) {
           setProfile(profileData);
           setFormData(prev => ({
@@ -64,9 +68,18 @@ export function RestaurantBookingFlow({ businessId, businessSlug }: RestaurantBo
           }));
         }
       }
+
+      // Load business name
+      const { data: businessData } = await supabase
+        .from('businesses')
+        .select('name')
+        .eq('id', businessId)
+        .single();
+
+      if (businessData) setBusinessName(businessData.name);
     };
     loadUserData();
-  }, []);
+  }, [businessId]);
 
   const handleSubmit = async () => {
     if (!date || !formData.time) {
@@ -129,17 +142,21 @@ export function RestaurantBookingFlow({ businessId, businessSlug }: RestaurantBo
       if (apptError) throw apptError;
 
       // Create table reservation
-      const { error: reservationError } = await supabase
+      const { data: reservationData, error: reservationError } = await supabase
         .from('table_reservations')
         .insert({
           appointment_id: appointment.id,
           party_size: formData.party_size,
           special_requests: formData.special_requests,
-          reservation_status: 'pending',
-        });
+          reservation_status: 'confirmed',
+        })
+        .select()
+        .single();
 
       if (reservationError) throw reservationError;
 
+      setCompletedReservation(reservationData);
+      setCompletedAppointment(appointment);
       setBookingComplete(true);
       toast({ title: 'Reservation created successfully!' });
     } catch (error: any) {
@@ -149,24 +166,37 @@ export function RestaurantBookingFlow({ businessId, businessSlug }: RestaurantBo
     }
   };
 
-  if (bookingComplete) {
+  if (bookingComplete && completedReservation && completedAppointment) {
+    const appointmentDateTime = new Date(completedAppointment.appointment_date);
+
     return (
-      <Card className="max-w-2xl mx-auto">
-        <CardContent className="flex flex-col items-center justify-center py-12">
-          <CheckCircle className="h-16 w-16 text-green-600 mb-4" />
-          <h2 className="text-2xl font-bold mb-2">Reservation Confirmed!</h2>
-          <p className="text-muted-foreground text-center mb-4">
-            We've received your reservation for {formData.party_size} {formData.party_size === 1 ? 'guest' : 'guests'}
-          </p>
-          <div className="text-center space-y-1">
-            <p className="font-semibold">{format(date!, 'PPPP')}</p>
-            <p className="font-semibold">{formData.time}</p>
-          </div>
-          <p className="text-sm text-muted-foreground mt-4">
-            You'll receive a confirmation email shortly.
-          </p>
-        </CardContent>
-      </Card>
+      <div className="max-w-2xl mx-auto space-y-6">
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-8">
+            <CheckCircle className="h-16 w-16 text-green-600 mb-4" />
+            <h2 className="text-2xl font-bold mb-2">Reservation Confirmed!</h2>
+            <p className="text-muted-foreground text-center">
+              We've received your reservation for {formData.party_size} {formData.party_size === 1 ? 'guest' : 'guests'}
+            </p>
+          </CardContent>
+        </Card>
+
+        <ReservationQRCode
+          reservation={completedReservation}
+          appointmentDate={appointmentDateTime}
+          partySize={formData.party_size}
+          customerName={formData.name}
+          businessName={businessName}
+        />
+
+        <Card>
+          <CardContent className="py-4">
+            <p className="text-sm text-center text-muted-foreground">
+              📧 A confirmation email with this QR code has been sent to {formData.email}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
