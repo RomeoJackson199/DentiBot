@@ -307,7 +307,7 @@ function PatientPortalNavContent({ children }: { children: React.ReactNode }) {
         <div className="flex-1">{children ?? <Outlet />}</div>
         
         {/* Floating Book Appointment Button */}
-        <FloatingBookingButton onBookAppointment={() => navigate('/book-appointment')} />
+        <FloatingBookingButton onBookAppointment={() => navigate('/book')} />
         
         <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur border-t">
           <div className="grid grid-cols-4">
@@ -375,7 +375,7 @@ function PatientPortalNavContent({ children }: { children: React.ReactNode }) {
             <div className="flex items-center gap-6">
               {/* Book Appointment Button - Desktop */}
               <Button 
-                onClick={() => navigate('/book-appointment')}
+                onClick={() => navigate('/book')}
                 className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
                 size="sm"
               >

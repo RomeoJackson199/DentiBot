@@ -16,7 +16,6 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { createAppointmentDateTimeFromStrings } from "@/lib/timezone";
 import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
-import { BusinessSelectionForPatients } from "@/components/BusinessSelectionForPatients";
 
 interface Dentist {
   id: string;
@@ -30,7 +29,7 @@ type BookingStep = 'service' | 'provider' | 'datetime' | 'confirm' | 'success';
 export default function BookAppointment() {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { businessId: contextBusinessId, loading: businessLoading, switchBusiness } = useBusinessContext();
+  const { businessId: contextBusinessId, loading: businessLoading } = useBusinessContext();
   const [effectiveBusinessId, setEffectiveBusinessId] = useState<string | null>(null);
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
@@ -269,7 +268,7 @@ export default function BookAppointment() {
 
   if (loading || businessLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
+      <div className="flex items-center justify-center h-screen">
         <ModernLoadingSpinner variant="overlay" message="Loading..." />
       </div>
     );
@@ -277,7 +276,7 @@ export default function BookAppointment() {
 
   if (!user) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
+      <div className="flex items-center justify-center h-screen">
         <Card className="max-w-md">
           <CardContent className="pt-6">
             <p>Please log in to book an appointment.</p>
@@ -290,38 +289,13 @@ export default function BookAppointment() {
     );
   }
 
-  // Show business selection if no business is selected
-  if (!effectiveBusinessId) {
-    return (
-      <div className="p-4 md:p-6">
-        <Card className="max-w-2xl mx-auto">
-          <CardHeader>
-            <CardTitle className="text-2xl">Select Business</CardTitle>
-            <CardDescription>
-              Choose which business you'd like to book an appointment with
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <BusinessSelectionForPatients
-              onSelectBusiness={async (businessId: string, businessName: string) => {
-                await switchBusiness(businessId);
-                setEffectiveBusinessId(businessId);
-              }}
-              selectedBusinessId={effectiveBusinessId || undefined}
-            />
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
   const selectedDentistData = dentists.find(d => d.id === selectedDentist);
 
   if (currentStep === 'success') {
     return (
       <>
         <ConfirmationDialog />
-        <div className="flex items-center justify-center p-4">
+        <div className="min-h-screen flex items-center justify-center p-4">
         <Card className="max-w-md w-full">
           <CardContent className="pt-6 text-center space-y-4">
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
@@ -356,7 +330,7 @@ export default function BookAppointment() {
   return (
     <>
       <ConfirmationDialog />
-      <div className="p-4 md:p-6">
+      <div className="min-h-screen p-4 md:p-6">
       <Card className="max-w-4xl mx-auto">
         <CardHeader>
           <CardTitle className="text-2xl">Book an Appointment</CardTitle>
