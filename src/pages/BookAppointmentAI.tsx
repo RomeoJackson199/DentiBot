@@ -457,7 +457,13 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => { try { localStorage.setItem('pd_section', 'assistant'); } catch {}; navigate('/dashboard'); }}
+                  onClick={() => { 
+                    try { localStorage.setItem('pd_section', 'assistant'); } catch {}; 
+                    window.dispatchEvent(new CustomEvent('dashboard:changeSection', { detail: { section: 'assistant' } }));
+                    if (window.location.pathname !== '/dashboard') {
+                      navigate('/dashboard');
+                    }
+                  }}
                   className="gap-2 text-muted-foreground hover:text-primary hover:bg-white/50"
                 >
                   <CalendarDays className="h-4 w-4" />

@@ -17,7 +17,17 @@ export const BookingReadyWidget = ({ conversationData }: BookingReadyWidgetProps
   const handleProceed = () => {
     // Store conversation data in session storage for the booking page
     sessionStorage.setItem('aiBookingData', JSON.stringify(conversationData));
-    navigate('/book-appointment-ai');
+    
+    // Navigate to the assistant section in the dashboard
+    try {
+      localStorage.setItem('pd_section', 'assistant');
+    } catch {}
+    window.dispatchEvent(new CustomEvent('dashboard:changeSection', { detail: { section: 'assistant' } }));
+    
+    // Only navigate if not already on dashboard
+    if (window.location.pathname !== '/dashboard') {
+      navigate('/dashboard');
+    }
   };
 
   return (

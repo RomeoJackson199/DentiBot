@@ -1551,7 +1551,13 @@ You'll receive a confirmation email shortly.`;
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => { try { localStorage.setItem('pd_section', 'assistant'); } catch {}; window.dispatchEvent(new CustomEvent('dashboard:changeSection', { detail: { section: 'assistant' } })); window.location.href = '/dashboard'; }}
+          onClick={() => { 
+            try { localStorage.setItem('pd_section', 'assistant'); } catch {}; 
+            window.dispatchEvent(new CustomEvent('dashboard:changeSection', { detail: { section: 'assistant' } })); 
+            if (window.location.pathname !== '/dashboard') {
+              window.location.href = '/dashboard';
+            }
+          }}
           className="text-xs text-muted-foreground hover:text-primary"
         >
           Switch to Classic Booking →
