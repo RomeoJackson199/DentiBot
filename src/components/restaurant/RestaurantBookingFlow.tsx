@@ -110,13 +110,14 @@ export function RestaurantBookingFlow({ businessId, businessSlug }: RestaurantBo
         patientId = guestProfile.id;
       }
 
-      // Get a dentist for the business (required by appointments table)
+      // Get an active dentist for the business (required by appointments table)
       const { data: dentist } = await supabase
-        .from('business_members')
-        .select('profile_id')
-        .eq('business_id', businessId)
+        .from('dentists')
+        .select('id, profile_id, business_members!inner(business_id)')
+        .eq('business_members.business_id', businessId)
+        .eq('is_active', true)
         .limit(1)
-        .single();
+        .maybeSingle();
 
       if (!dentist) throw new Error('No staff available');
 
@@ -130,7 +131,7 @@ export function RestaurantBookingFlow({ businessId, businessSlug }: RestaurantBo
         .insert({
           business_id: businessId,
           patient_id: patientId,
-          dentist_id: dentist.profile_id,
+          dentist_id: dentist.id,
           appointment_date: appointmentDateTime.toISOString(),
           reason: 'Dining Reservation',
           duration_minutes: 120,
