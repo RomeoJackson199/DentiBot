@@ -4,7 +4,6 @@ import { format, startOfDay } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useBusinessContext } from "@/hooks/useBusinessContext";
-import { BusinessSelectionForPatients } from "@/components/BusinessSelectionForPatients";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -30,7 +29,7 @@ type BookingStep = 'service' | 'provider' | 'datetime' | 'confirm' | 'success';
 export default function BookAppointment() {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { businessId: contextBusinessId, loading: businessLoading, switchBusiness } = useBusinessContext();
+  const { businessId: contextBusinessId, loading: businessLoading } = useBusinessContext();
   const [effectiveBusinessId, setEffectiveBusinessId] = useState<string | null>(null);
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
@@ -269,7 +268,7 @@ export default function BookAppointment() {
 
   if (loading || businessLoading) {
     return (
-      <div className="flex items-center justify-center py-12">
+      <div className="flex items-center justify-center h-screen">
         <ModernLoadingSpinner variant="overlay" message="Loading..." />
       </div>
     );
@@ -277,7 +276,7 @@ export default function BookAppointment() {
 
   if (!user) {
     return (
-      <div className="flex items-center justify-center py-12">
+      <div className="flex items-center justify-center h-screen">
         <Card className="max-w-md">
           <CardContent className="pt-6">
             <p>Please log in to book an appointment.</p>
@@ -290,58 +289,40 @@ export default function BookAppointment() {
     );
   }
 
-  if (!effectiveBusinessId) {
-    return (
-      <div className="py-8">
-        <div className="max-w-4xl mx-auto">
-          <Card>
-            <CardContent className="p-6">
-              <h2 className="text-2xl font-bold mb-4">Select a Clinic</h2>
-              <p className="text-muted-foreground mb-6">Please select a clinic to view available dentists and book an appointment.</p>
-              <BusinessSelectionForPatients
-                onSelectBusiness={(id, name) => switchBusiness(id)}
-              />
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    );
-  }
-
   const selectedDentistData = dentists.find(d => d.id === selectedDentist);
 
   if (currentStep === 'success') {
     return (
       <>
         <ConfirmationDialog />
-        <div className="flex items-center justify-center py-12">
-          <Card className="max-w-md w-full">
-            <CardContent className="pt-6 text-center space-y-4">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-                <CheckCircle2 className="w-8 h-8 text-green-600" />
-              </div>
-              <h2 className="text-2xl font-bold">Appointment Confirmed!</h2>
-              <p className="text-muted-foreground">Your appointment has been successfully booked.</p>
-              
-              <Separator />
-              
-              <div className="space-y-2">
-                <Button onClick={() => navigate('/dashboard')} className="w-full" size="lg">
-                  Back to Dashboard
-                </Button>
-                <Button 
-                  onClick={handleAddToGoogleCalendar} 
-                  variant="outline" 
-                  className="w-full"
-                  size="lg"
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  Add to Google Calendar
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        <div className="min-h-screen flex items-center justify-center p-4">
+        <Card className="max-w-md w-full">
+          <CardContent className="pt-6 text-center space-y-4">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+              <CheckCircle2 className="w-8 h-8 text-green-600" />
+            </div>
+            <h2 className="text-2xl font-bold">Appointment Confirmed!</h2>
+            <p className="text-muted-foreground">Your appointment has been successfully booked.</p>
+            
+            <Separator />
+            
+            <div className="space-y-2">
+              <Button onClick={() => navigate('/dashboard')} className="w-full" size="lg">
+                Back to Dashboard
+              </Button>
+              <Button 
+                onClick={handleAddToGoogleCalendar} 
+                variant="outline" 
+                className="w-full"
+                size="lg"
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                Add to Google Calendar
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
       </>
     );
   }
@@ -349,14 +330,14 @@ export default function BookAppointment() {
   return (
     <>
       <ConfirmationDialog />
-      <div className="py-8">
-        <Card className="max-w-4xl mx-auto">
-          <CardHeader>
-            <CardTitle className="text-2xl">Book an Appointment</CardTitle>
-            <CardDescription>
-              Step {currentStep === 'service' ? '1' : currentStep === 'provider' ? '2' : currentStep === 'datetime' ? '3' : '4'} of 4
-            </CardDescription>
-          </CardHeader>
+      <div className="min-h-screen p-4 md:p-6">
+      <Card className="max-w-4xl mx-auto">
+        <CardHeader>
+          <CardTitle className="text-2xl">Book an Appointment</CardTitle>
+          <CardDescription>
+            Step {currentStep === 'service' ? '1' : currentStep === 'provider' ? '2' : currentStep === 'datetime' ? '3' : '4'} of 4
+          </CardDescription>
+        </CardHeader>
         <CardContent>
           {currentStep === 'service' && effectiveBusinessId && (
             <div className="space-y-6">
