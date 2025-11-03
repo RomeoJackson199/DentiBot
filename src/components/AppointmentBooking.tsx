@@ -15,6 +15,7 @@ import { createMedicalRecord } from "@/lib/medicalRecords";
 import { showAppointmentConfirmed } from "@/lib/successNotifications";
 import { logger } from '@/lib/logger';
 import { clinicTimeToUtc, createAppointmentDateTimeFromStrings } from "@/lib/timezone";
+import { getCurrentBusinessId } from "@/lib/businessScopedSupabase";
 
 interface AppointmentBookingProps {
   user: User;
@@ -116,11 +117,14 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
         return;
       }
 
+      const businessId = await getCurrentBusinessId();
+
       const { data: allSlots, error } = await supabase
         .from('appointment_slots')
         .select('slot_time, is_available, emergency_only')
         .eq('dentist_id', selectedDentist)
         .eq('slot_date', dateStr)
+        .eq('business_id', businessId)
         .order('slot_time');
 
       if (error) throw error;
