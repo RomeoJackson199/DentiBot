@@ -1552,7 +1552,10 @@ You'll receive a confirmation email shortly.`;
           variant="ghost"
           size="sm"
           onClick={() => { 
-            try { localStorage.setItem('pd_section', 'assistant'); } catch {}; 
+            try { 
+              localStorage.setItem('pd_section', 'assistant'); 
+              localStorage.setItem('pd_forceClassic', '1');
+            } catch {}; 
             window.dispatchEvent(new CustomEvent('dashboard:changeSection', { detail: { section: 'assistant' } })); 
             if (window.location.pathname !== '/dashboard') {
               window.location.href = '/dashboard';

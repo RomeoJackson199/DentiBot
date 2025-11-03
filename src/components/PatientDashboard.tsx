@@ -237,6 +237,18 @@ export const PatientDashboard = ({
       void 0;
     }
   }, [activeSection]);
+
+  // Clear one-time classic booking flag after navigation
+  useEffect(() => {
+    if (activeSection === 'assistant') {
+      try {
+        if (localStorage.getItem('pd_forceClassic') === '1') {
+          localStorage.removeItem('pd_forceClassic');
+        }
+      } catch {}
+    }
+  }, [activeSection]);
+
   const fetchUserProfile = async () => {
     try {
       setLoading(true);
@@ -576,7 +588,7 @@ export const PatientDashboard = ({
     })() : null} activePrescriptions={patientStats.activePrescriptions} activeTreatmentPlans={patientStats.activeTreatmentPlans} totalDueCents={totalDueCents} onNavigateTo={s => setActiveSection(s)} onOpenAssistant={() => setActiveSection('assistant')} onBookAppointment={() => setActiveSection('assistant')} />}
 
       {activeSection === 'assistant' && (
-        hasAIChat ? (
+        (hasAIChat && !(typeof window !== 'undefined' && localStorage.getItem('pd_forceClassic') === '1')) ? (
           <div className="px-4 md:px-6 py-4">
             <Card>
               <CardContent>
@@ -592,6 +604,7 @@ export const PatientDashboard = ({
           </div>
         )
       )}
+
 
       {activeSection === 'messages' && <Messages />}
 

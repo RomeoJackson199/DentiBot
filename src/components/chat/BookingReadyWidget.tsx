@@ -21,6 +21,7 @@ export const BookingReadyWidget = ({ conversationData }: BookingReadyWidgetProps
     // Navigate to the assistant section in the dashboard
     try {
       localStorage.setItem('pd_section', 'assistant');
+      localStorage.setItem('pd_forceClassic', '1');
     } catch {}
     window.dispatchEvent(new CustomEvent('dashboard:changeSection', { detail: { section: 'assistant' } }));
     
