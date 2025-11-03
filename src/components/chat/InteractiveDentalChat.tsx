@@ -1553,8 +1553,7 @@ You'll receive a confirmation email shortly.`;
           size="sm"
           onClick={() => { 
             try { 
-              localStorage.setItem('pd_section', 'assistant'); 
-              localStorage.setItem('pd_forceClassic', '1');
+              localStorage.setItem('pd_section', 'assistant');
             } catch {}; 
             window.dispatchEvent(new CustomEvent('dashboard:changeSection', { detail: { section: 'assistant' } }));
           }}
