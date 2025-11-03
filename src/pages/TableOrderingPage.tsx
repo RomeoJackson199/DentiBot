@@ -11,6 +11,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { ShoppingCart, Plus, Minus, UtensilsCrossed, Clock, Check } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { OrderStatusTracker } from '@/components/restaurant/OrderStatusTracker';
+import { useOrderNotifications } from '@/hooks/useOrderNotifications';
 
 export default function TableOrderingPage() {
   const [searchParams] = useSearchParams();
@@ -31,6 +33,13 @@ export default function TableOrderingPage() {
   useEffect(() => {
     loadTableData();
   }, [tableId, businessSlug]);
+
+  // Set up real-time notifications for customer
+  useOrderNotifications({
+    businessId: business?.id || '',
+    role: 'customer',
+    orderId: order?.id,
+  });
 
   const loadTableData = async () => {
     try {
@@ -280,31 +289,9 @@ export default function TableOrderingPage() {
       )}
 
       {/* Current Order Status */}
-      {order?.order_items && order.order_items.length > 0 && (
+      {order && (
         <div className="container mx-auto px-4 py-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Your Order</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {order.order_items.map((item: any) => (
-                <div key={item.id} className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <p className="font-medium">{item.service?.name}</p>
-                    <p className="text-sm text-muted-foreground">Qty: {item.quantity}</p>
-                  </div>
-                  <Badge variant={
-                    item.item_status === 'served' ? 'default' :
-                    item.item_status === 'ready' ? 'secondary' :
-                    'outline'
-                  }>
-                    {item.item_status === 'served' && <Check className="h-3 w-3 mr-1" />}
-                    {item.item_status}
-                  </Badge>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
+          <OrderStatusTracker orderId={order.id} />
         </div>
       )}
 

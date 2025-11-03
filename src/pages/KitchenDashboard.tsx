@@ -3,12 +3,19 @@ import { useBusinessContext } from '@/hooks/useBusinessContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { KitchenOrderQueue } from '@/components/restaurant/KitchenOrderQueue';
+import { useOrderNotifications } from '@/hooks/useOrderNotifications';
 import { ChefHat } from 'lucide-react';
 
 export default function KitchenDashboard() {
   const { businessId } = useBusinessContext();
   const { toast } = useToast();
   const [refreshKey, setRefreshKey] = useState(0);
+
+  // Set up real-time notifications
+  useOrderNotifications({
+    businessId: businessId || '',
+    role: 'cook',
+  });
 
   useEffect(() => {
     if (!businessId) return;
