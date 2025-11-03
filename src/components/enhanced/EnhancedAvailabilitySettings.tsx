@@ -357,6 +357,28 @@ export function EnhancedAvailabilitySettings({ dentistId }: EnhancedAvailability
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6 p-6">
+              {/* Quick Preset Button */}
+              <div className="flex justify-end">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="h-12 px-6 rounded-xl border-2 border-blue-300 dark:border-blue-700 hover:bg-blue-100 dark:hover:bg-blue-950/30 font-semibold"
+                  onClick={() => {
+                    setAvailability(prev => prev.map(day => ({
+                      ...day,
+                      is_available: day.day_of_week !== 1, // All except Monday
+                      start_time: '10:00',
+                      end_time: '18:00',
+                      break_start_time: '',
+                      break_end_time: ''
+                    })));
+                  }}
+                >
+                  <Clock className="h-5 w-5 mr-2 text-blue-600" />
+                  Tue-Sun 10-18 (No breaks)
+                </Button>
+              </div>
+
               {/* Day Schedule Grid */}
               <div className="grid gap-4">
                 {DAYS_OF_WEEK.map((day, index) => {
