@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { getCurrentBusinessId } from "@/lib/businessScopedSupabase";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -123,12 +124,15 @@ export const RescheduleDialog = ({ appointmentId, open, onOpenChange, onSuccess 
         console.warn('Slot generation warning:', generateError);
       }
 
+      const businessId = await getCurrentBusinessId();
+
       // Fetch available slots
       const { data: slots, error: slotsError } = await supabase
         .from('appointment_slots')
         .select('slot_time, is_available')
         .eq('dentist_id', appointment.dentist_id)
         .eq('slot_date', dateStr)
+        .eq('business_id', businessId)
         .eq('is_available', true)
         .order('slot_time');
 

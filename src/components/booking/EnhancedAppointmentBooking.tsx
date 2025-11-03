@@ -14,6 +14,7 @@ import { CalendarDays, Clock, User as UserIcon, CheckCircle, XCircle, Loader2 } 
 import { cn } from "@/lib/utils";
 import { clinicTimeToUtc, utcToClinicTime, getClinicTimeSlots, formatClinicTime, createAppointmentDateTimeFromStrings } from "@/lib/timezone";
 import { logger } from '@/lib/logger';
+import { getCurrentBusinessId } from "@/lib/businessScopedSupabase";
 
 interface EnhancedAppointmentBookingProps {
   user: User;
@@ -129,12 +130,15 @@ export const EnhancedAppointmentBooking = ({
         p_date: dateStr
       });
 
+      const businessId = await getCurrentBusinessId();
+
       // Fetch ALL slots for comprehensive view
       const { data: slots, error } = await supabase
         .from('appointment_slots')
         .select('slot_time, is_available, emergency_only')
         .eq('dentist_id', selectedDentist)
         .eq('slot_date', dateStr)
+        .eq('business_id', businessId)
         .order('slot_time');
 
       if (error) throw error;
