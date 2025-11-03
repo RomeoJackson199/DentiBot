@@ -157,17 +157,32 @@ export function EnhancedAvailabilitySettings({ dentistId }: EnhancedAvailability
   const saveAvailability = async () => {
     setSaving(true);
     try {
+      // Get current business context
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
+
+      // Get business_id from business_members
+      const { data: memberData, error: memberError } = await supabase
+        .from('business_members')
+        .select('business_id')
+        .eq('profile_id', (await supabase.from('profiles').select('id').eq('user_id', session.user.id).single()).data?.id)
+        .single();
+
+      if (memberError) throw memberError;
+      const businessId = memberData.business_id;
+
       // Delete existing availability for this dentist
       await supabase
         .from('dentist_availability')
         .delete()
         .eq('dentist_id', dentistId);
 
-      // Insert new availability settings
+      // Insert new availability settings with business_id
       const availabilityData = availability
         .filter(day => day.is_available)
         .map(day => ({
           dentist_id: dentistId,
+          business_id: businessId,
           day_of_week: day.day_of_week,
           start_time: day.start_time,
           end_time: day.end_time,
@@ -189,6 +204,7 @@ export function EnhancedAvailabilitySettings({ dentistId }: EnhancedAvailability
         description: t.availabilityUpdated,
       });
     } catch (error) {
+      logger.error('Failed to save availability:', error);
       toast({
         title: t.error,
         description: t.failedToSaveAvailability,
@@ -210,10 +226,23 @@ export function EnhancedAvailabilitySettings({ dentistId }: EnhancedAvailability
     }
 
     try {
+      // Get business_id
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
+
+      const { data: memberData, error: memberError } = await supabase
+        .from('business_members')
+        .select('business_id')
+        .eq('profile_id', (await supabase.from('profiles').select('id').eq('user_id', session.user.id).single()).data?.id)
+        .single();
+
+      if (memberError) throw memberError;
+
       const { data, error } = await supabase
         .from('dentist_vacation_days')
         .insert({
           dentist_id: dentistId,
+          business_id: memberData.business_id,
           ...newVacation
         })
         .select()
@@ -235,6 +264,7 @@ export function EnhancedAvailabilitySettings({ dentistId }: EnhancedAvailability
         description: t.changesSaved,
       });
     } catch (error) {
+      logger.error('Failed to add vacation:', error);
       toast({
         title: t.error,
         description: t.error,
