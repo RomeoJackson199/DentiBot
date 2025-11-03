@@ -4,6 +4,7 @@ import { format, startOfDay } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useBusinessContext } from "@/hooks/useBusinessContext";
+import { BusinessSelectionForPatients } from "@/components/BusinessSelectionForPatients";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -28,7 +29,7 @@ type BookingStep = 'service' | 'provider' | 'datetime' | 'confirm' | 'success';
 export default function BookAppointment() {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { businessId: contextBusinessId, loading: businessLoading } = useBusinessContext();
+  const { businessId: contextBusinessId, loading: businessLoading, switchBusiness } = useBusinessContext();
   const [effectiveBusinessId, setEffectiveBusinessId] = useState<string | null>(null);
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
@@ -278,6 +279,24 @@ export default function BookAppointment() {
             </Button>
           </CardContent>
         </Card>
+      </div>
+    );
+  }
+
+  if (!effectiveBusinessId) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-secondary/10 p-4">
+        <div className="max-w-4xl mx-auto py-8">
+          <Card>
+            <CardContent className="p-6">
+              <h2 className="text-2xl font-bold mb-4">Select a Clinic</h2>
+              <p className="text-muted-foreground mb-6">Please select a clinic to view available dentists and book an appointment.</p>
+              <BusinessSelectionForPatients
+                onSelectBusiness={(id, name) => switchBusiness(id)}
+              />
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
