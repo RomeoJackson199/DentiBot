@@ -6,11 +6,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Trash2, Edit, Table as TableIcon, QrCode } from 'lucide-react';
+import { Plus, Trash2, Edit } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
-import { TableQRCodeGenerator } from './TableQRCodeGenerator';
 
 interface RestaurantTableManagerProps {
   businessId: string;
@@ -19,7 +17,6 @@ interface RestaurantTableManagerProps {
 export function RestaurantTableManager({ businessId }: RestaurantTableManagerProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [businessSlug, setBusinessSlug] = useState<string>('');
   const [isOpen, setIsOpen] = useState(false);
   const [editingTable, setEditingTable] = useState<any>(null);
   const [formData, setFormData] = useState({
@@ -38,16 +35,6 @@ export function RestaurantTableManager({ businessId }: RestaurantTableManagerPro
         .order('table_number');
       
       if (error) throw error;
-      
-      // Load business slug
-      const { data: businessData } = await supabase
-        .from('businesses')
-        .select('slug')
-        .eq('id', businessId)
-        .single();
-      
-      if (businessData) setBusinessSlug(businessData.slug);
-      
       return data;
     },
   });
@@ -128,24 +115,11 @@ export function RestaurantTableManager({ businessId }: RestaurantTableManagerPro
 
   return (
     <div className="space-y-6">
-      <Tabs defaultValue="tables" className="w-full">
-        <TabsList>
-          <TabsTrigger value="tables">
-            <TableIcon className="h-4 w-4 mr-2" />
-            Tables
-          </TabsTrigger>
-          <TabsTrigger value="qr-codes">
-            <QrCode className="h-4 w-4 mr-2" />
-            QR Codes
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="tables" className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-bold">Table Management</h2>
-              <p className="text-muted-foreground">Configure your restaurant tables</p>
-            </div>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold">Table Management</h2>
+          <p className="text-muted-foreground">Configure your restaurant tables</p>
+        </div>
         <Dialog open={isOpen} onOpenChange={(open) => {
           setIsOpen(open);
           if (!open) {
@@ -201,10 +175,10 @@ export function RestaurantTableManager({ businessId }: RestaurantTableManagerPro
               </Button>
             </DialogFooter>
           </DialogContent>
-            </Dialog>
-          </div>
+        </Dialog>
+      </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {tables?.map((table) => (
           <Card key={table.id}>
             <CardHeader>
@@ -231,54 +205,20 @@ export function RestaurantTableManager({ businessId }: RestaurantTableManagerPro
               </CardContent>
             )}
           </Card>
-            ))}
-          </div>
+        ))}
+      </div>
 
-          {tables?.length === 0 && (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-12">
-                <p className="text-muted-foreground mb-4">No tables configured yet</p>
-                <Button onClick={() => setIsOpen(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Your First Table
-                </Button>
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
-
-        <TabsContent value="qr-codes" className="space-y-6">
-          <div>
-            <h2 className="text-2xl font-bold mb-2">Table QR Codes</h2>
-            <p className="text-muted-foreground mb-6">
-              Generate and print QR codes for customers to scan and order from their tables
-            </p>
-          </div>
-
-          {tables && tables.length > 0 ? (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {tables.map((table) => (
-                <TableQRCodeGenerator
-                  key={table.id}
-                  table={table}
-                  businessSlug={businessSlug}
-                />
-              ))}
-            </div>
-          ) : (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-12">
-                <QrCode className="h-12 w-12 text-muted-foreground mb-4" />
-                <p className="text-muted-foreground mb-4">Create tables first to generate QR codes</p>
-                <Button onClick={() => setIsOpen(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Your First Table
-                </Button>
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
-      </Tabs>
+      {tables?.length === 0 && (
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <p className="text-muted-foreground mb-4">No tables configured yet</p>
+            <Button onClick={() => setIsOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Your First Table
+            </Button>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

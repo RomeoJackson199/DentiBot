@@ -68,15 +68,3 @@ verify_jwt = true
 
 [functions.create-business-payment]
 verify_jwt = false
-
-[functions.calculate-order-total]
-verify_jwt = false
-
-[functions.confirm-restaurant-order]
-verify_jwt = true
-
-[functions.process-restaurant-payment]
-verify_jwt = true
-
-[functions.restaurant-payment-webhook]
-verify_jwt = false

@@ -120,11 +120,6 @@ export function WaiterOrderManager({ reservationId, businessId, onNotificationCl
         });
 
       if (error) throw error;
-      
-      // Calculate order totals
-      await supabase.functions.invoke('calculate-order-total', {
-        body: { orderId }
-      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['waiter-order'] });
@@ -136,9 +131,10 @@ export function WaiterOrderManager({ reservationId, businessId, onNotificationCl
 
   const confirmOrderMutation = useMutation({
     mutationFn: async (orderId: string) => {
-      const { error } = await supabase.functions.invoke('confirm-restaurant-order', {
-        body: { orderId }
-      });
+      const { error } = await supabase
+        .from('restaurant_orders')
+        .update({ order_status: 'confirmed' })
+        .eq('id', orderId);
 
       if (error) throw error;
     },
@@ -161,25 +157,6 @@ export function WaiterOrderManager({ reservationId, businessId, onNotificationCl
       queryClient.invalidateQueries({ queryKey: ['waiter-order'] });
       onNotificationClear();
       toast({ title: 'Item marked as served' });
-    },
-  });
-
-  const processPaymentMutation = useMutation({
-    mutationFn: async (orderId: string) => {
-      const { data, error } = await supabase.functions.invoke('process-restaurant-payment', {
-        body: { 
-          orderId,
-          returnUrl: window.location.origin + '/payment-success'
-        }
-      });
-
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: (data) => {
-      if (data.url) {
-        window.location.href = data.url;
-      }
     },
   });
 
@@ -304,7 +281,7 @@ export function WaiterOrderManager({ reservationId, businessId, onNotificationCl
             </div>
 
             {order.order_status === 'served' && (
-              <Button className="w-full" size="lg" onClick={() => processPaymentMutation.mutate(order.id)}>
+              <Button className="w-full" size="lg">
                 <DollarSign className="h-4 w-4 mr-2" />
                 Process Payment
               </Button>

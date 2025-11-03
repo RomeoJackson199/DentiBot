@@ -4,7 +4,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { WaiterTableList } from '@/components/restaurant/WaiterTableList';
 import { WaiterOrderManager } from '@/components/restaurant/WaiterOrderManager';
-import { useOrderNotifications } from '@/hooks/useOrderNotifications';
 import { Bell } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
@@ -14,18 +13,12 @@ export default function WaiterDashboard() {
   const [selectedReservation, setSelectedReservation] = useState<string | null>(null);
   const [notifications, setNotifications] = useState<number>(0);
 
-  // Set up real-time notifications
-  useOrderNotifications({
-    businessId: businessId || '',
-    role: 'waiter',
-  });
-
-  // Track notification count
   useEffect(() => {
     if (!businessId) return;
 
+    // Subscribe to order status changes
     const channel = supabase
-      .channel('waiter-notification-count')
+      .channel('waiter-notifications')
       .on(
         'postgres_changes',
         {
@@ -35,9 +28,11 @@ export default function WaiterDashboard() {
           filter: `item_status=eq.ready`
         },
         (payload) => {
-          if (payload.old.item_status !== 'ready') {
-            setNotifications(prev => prev + 1);
-          }
+          setNotifications(prev => prev + 1);
+          toast({
+            title: 'Order Ready!',
+            description: 'An item is ready to be served',
+          });
         }
       )
       .subscribe();
@@ -45,7 +40,7 @@ export default function WaiterDashboard() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [businessId]);
+  }, [businessId, toast]);
 
   if (!businessId) {
     return <div className="p-6">Loading...</div>;

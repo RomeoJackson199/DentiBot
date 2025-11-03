@@ -12,7 +12,6 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { BusinessSelector } from "@/components/BusinessSelector";
 import { useBusinessTemplate } from "@/hooks/useBusinessTemplate";
 import { useTemplateNavigation } from "@/hooks/useTemplateNavigation";
-import { useNavigate } from "react-router-dom";
 export type DentistSection = 'dashboard' | 'patients' | 'appointments' | 'employees' | 'messages' | 'clinical' | 'schedule' | 'payments' | 'analytics' | 'reports' | 'inventory' | 'imports' | 'branding' | 'security' | 'users' | 'team' | 'settings' | 'services';
 interface DentistAppShellProps {
   activeSection: DentistSection;
@@ -40,8 +39,7 @@ export const DentistAppShell: React.FC<DentistAppShellProps> = ({
   const {
     t
   } = useBusinessTemplate();
-  const { filterNavItems, getRestaurantNavItems, isRestaurant } = useTemplateNavigation();
-  const navigate = useNavigate();
+  const { filterNavItems } = useTemplateNavigation();
   const [userName, setUserName] = useState<string>("");
   const [userInitials, setUserInitials] = useState<string>("?");
   const allNavItems = useMemo(() => [{
@@ -67,17 +65,7 @@ export const DentistAppShell: React.FC<DentistAppShellProps> = ({
   }], [t]);
 
   // Filter navigation items based on template configuration
-  const NAV_ITEMS = useMemo(() => {
-    const baseItems = filterNavItems(allNavItems);
-    const restaurantItems = getRestaurantNavItems;
-    
-    // If restaurant template, prepend restaurant items
-    if (isRestaurant && restaurantItems.length > 0) {
-      return [...restaurantItems, ...baseItems];
-    }
-    
-    return baseItems;
-  }, [filterNavItems, allNavItems, getRestaurantNavItems, isRestaurant]);
+  const NAV_ITEMS = useMemo(() => filterNavItems(allNavItems), [filterNavItems, allNavItems]);
   const isActive = (section: DentistSection) => activeSection === section;
   const handleSignOut = async () => {
     try {
@@ -171,14 +159,7 @@ export const DentistAppShell: React.FC<DentistAppShellProps> = ({
             {NAV_ITEMS.map(item => {
             const Icon = item.icon;
             const active = isActive(item.id);
-             const handleClick = () => {
-               if (item.path) {
-                 navigate(item.path);
-               } else {
-                 onChangeSection(item.id);
-               }
-             };
-             return <button key={item.id} onClick={handleClick} className={cn("flex w-full flex-col items-center justify-center px-3 py-2.5 rounded-lg transition-all", active ? "text-primary bg-primary/10 font-semibold" : "text-muted-foreground")}>
+            return <button key={item.id} onClick={() => onChangeSection(item.id)} className={cn("flex w-full flex-col items-center justify-center px-3 py-2.5 rounded-lg transition-all", active ? "text-primary bg-primary/10 font-semibold" : "text-muted-foreground")}>
                   <Icon className="h-5 w-5" />
                   <span className="text-xs mt-1">{item.label}</span>
                 </button>;
@@ -205,14 +186,7 @@ export const DentistAppShell: React.FC<DentistAppShellProps> = ({
             {NAV_ITEMS.map(item => {
             const Icon = item.icon;
             const active = isActive(item.id);
-            const handleClick = () => {
-              if (item.path) {
-                navigate(item.path);
-              } else {
-                onChangeSection(item.id);
-              }
-            };
-            return <button key={item.id} onClick={handleClick} data-tour={`nav-${item.id}`} className={cn("flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all", active ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground hover:bg-muted")}>
+            return <button key={item.id} onClick={() => onChangeSection(item.id)} data-tour={`nav-${item.id}`} className={cn("flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all", active ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground hover:bg-muted")}>
                   <Icon className="h-4 w-4" />
                   {item.label}
                 </button>;
