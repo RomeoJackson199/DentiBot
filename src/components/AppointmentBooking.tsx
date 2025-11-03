@@ -118,7 +118,14 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
           .eq('day_of_week', dayOfWeek)
           .maybeSingle();
 
-        if (availability && availability.is_available === false) {
+        if (!availability || availability.is_available === false) {
+          // Clean up any stale slots for closed days
+          try {
+            await supabase.rpc('generate_daily_slots', {
+              p_dentist_id: selectedDentist,
+              p_date: dateStr
+            });
+          } catch {}
           setAvailableTimes([]);
           setAllSlots([]);
           setRetryCount(0);

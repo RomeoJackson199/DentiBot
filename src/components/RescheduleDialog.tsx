@@ -126,6 +126,23 @@ export const RescheduleDialog = ({ appointmentId, open, onOpenChange, onSuccess 
 
       const businessId = await getCurrentBusinessId();
 
+      // Check schedule; if closed or missing, return empty
+      try {
+        const dayOfWeek = date.getDay();
+        const { data: availability } = await supabase
+          .from('dentist_availability')
+          .select('is_available')
+          .eq('dentist_id', appointment.dentist_id)
+          .eq('business_id', businessId)
+          .eq('day_of_week', dayOfWeek)
+          .maybeSingle();
+        if (!availability || availability.is_available === false) {
+          setAvailableSlots([]);
+          setLoadingSlots(false);
+          return;
+        }
+      } catch {}
+
       // Fetch available slots
       const { data: slots, error: slotsError } = await supabase
         .from('appointment_slots')

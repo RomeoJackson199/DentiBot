@@ -92,7 +92,11 @@ export const ChatBookingFlow = ({
         .eq('day_of_week', dayOfWeek)
         .maybeSingle();
 
-      if (availability && availability.is_available === false) {
+      if (!availability || availability.is_available === false) {
+        // Clean up any stale slots
+        try {
+          await supabase.rpc('generate_daily_slots', { p_dentist_id: dentistId, p_date: dateStr });
+        } catch {}
         setAvailableSlots([]);
         return;
       }

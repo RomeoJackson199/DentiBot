@@ -122,7 +122,14 @@ export default function PublicBooking() {
           .eq('day_of_week', dayOfWeek)
           .maybeSingle();
 
-        if (availability && availability.is_available === false) {
+        if (!availability || availability.is_available === false) {
+          // Clean up any stale slots for this closed day
+          try {
+            await supabase.rpc('generate_daily_slots', {
+              p_dentist_id: selectedDentist,
+              p_date: dateStr,
+            });
+          } catch {}
           setAvailableTimes([]);
           setLoadingTimes(false);
           return;
@@ -132,13 +139,13 @@ export default function PublicBooking() {
       }
       
       try {
-        // 1. Ensure slots exist for this date (idempotent)
-        await supabase.rpc('ensure_daily_slots', {
+        // 1. Regenerate slots for this date to ensure cleanup and freshness
+        await supabase.rpc('generate_daily_slots', {
           p_dentist_id: selectedDentist,
           p_date: dateStr,
         });
       } catch (e) {
-        console.warn('ensure_daily_slots failed (continuing):', e);
+        console.warn('generate_daily_slots failed (continuing):', e);
       }
 
       // 2. Sync with Google Calendar to block busy times

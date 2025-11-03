@@ -30,20 +30,38 @@ export const SimpleCalendar = ({ selectedDentist, onDateTimeSelect, isEmergency 
     setSelectedTime("");
     
     try {
-      // Generate slots for the selected date
+      // Regenerate slots for the selected date (also cleans stale)
+      const dateStr = date.toISOString().split('T')[0];
       await supabase.rpc('generate_daily_slots', {
         p_dentist_id: selectedDentist,
-        p_date: date.toISOString().split('T')[0]
+        p_date: dateStr
       });
 
       const businessId = await getCurrentBusinessId();
+
+      // Check schedule; if closed or missing row, return empty
+      try {
+        const dayOfWeek = date.getDay();
+        const { data: availability } = await supabase
+          .from('dentist_availability')
+          .select('is_available')
+          .eq('dentist_id', selectedDentist)
+          .eq('business_id', businessId)
+          .eq('day_of_week', dayOfWeek)
+          .maybeSingle();
+        if (!availability || availability.is_available === false) {
+          setAllSlots([]);
+          setLoadingTimes(false);
+          return;
+        }
+      } catch {}
 
       // Fetch ALL slots for the date
       const { data: slots, error } = await supabase
         .from('appointment_slots')
         .select('slot_time, is_available, emergency_only')
         .eq('dentist_id', selectedDentist)
-        .eq('slot_date', date.toISOString().split('T')[0])
+        .eq('slot_date', dateStr)
         .eq('business_id', businessId)
         .order('slot_time');
 

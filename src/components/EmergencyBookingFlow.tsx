@@ -124,14 +124,19 @@ export const EmergencyBookingFlow = ({ user, onComplete, onCancel }: EmergencyBo
         .eq('day_of_week', dayOfWeek)
         .maybeSingle();
 
-      if (availability && availability.is_available === false) {
+      if (!availability || availability.is_available === false) {
+        // Clean up any stale slots
+        try {
+          await supabase.rpc('generate_daily_slots', { p_dentist_id: dentistId, p_date: formattedDate });
+        } catch {}
         setAvailableSlots([]);
         return;
       }
       
-      // First, try to generate slots for the date (idempotent)
-      await supabase.functions.invoke('generate-slots', {
-        body: { dentist_id: dentistId, date: formattedDate }
+      // First, regenerate slots for the date (idempotent and cleans stale)
+      await supabase.rpc('generate_daily_slots', {
+        p_dentist_id: dentistId,
+        p_date: formattedDate
       });
 
       const { data, error } = await supabase
