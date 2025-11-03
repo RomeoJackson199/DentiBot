@@ -265,7 +265,7 @@ export function CommandPalette() {
       id: "action-book",
       label: "Book New Appointment",
       icon: Calendar,
-      action: () => window.location.href = "https://caberu.be/book-appointment",
+      action: () => navigate("/book-appointment"),
       keywords: ["book", "appointment", "new", "schedule"],
       group: "Actions",
     },
