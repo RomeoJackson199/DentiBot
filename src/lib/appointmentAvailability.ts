@@ -1,6 +1,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { format, parseISO, isSameDay, addMinutes } from 'date-fns';
 import { logger } from '@/lib/logger';
+import { getCurrentBusinessId } from '@/lib/businessScopedSupabase';
 
 export interface TimeSlot {
   time: string;
@@ -28,6 +29,7 @@ export async function fetchDentistAvailability(
 ): Promise<TimeSlot[]> {
   const dateStr = format(date, 'yyyy-MM-dd');
   const dayOfWeek = date.getDay();
+  const businessId = await getCurrentBusinessId();
 
   // Parallel fetch of all availability data
   const [
@@ -42,6 +44,7 @@ export async function fetchDentistAvailability(
       .select('*')
       .eq('dentist_id', dentistId)
       .eq('day_of_week', dayOfWeek)
+      .eq('business_id', businessId)
       .maybeSingle(),
     
     // Check if dentist is on vacation
@@ -49,6 +52,7 @@ export async function fetchDentistAvailability(
       .from('dentist_vacation_days')
       .select('*')
       .eq('dentist_id', dentistId)
+      .eq('business_id', businessId)
       .lte('start_date', dateStr)
       .gte('end_date', dateStr)
       .eq('is_approved', true)
@@ -59,6 +63,7 @@ export async function fetchDentistAvailability(
       .from('appointments')
       .select('id, appointment_date, status')
       .eq('dentist_id', dentistId)
+      .eq('business_id', businessId)
       .gte('appointment_date', `${dateStr}T00:00:00`)
       .lte('appointment_date', `${dateStr}T23:59:59`)
       .neq('status', 'cancelled'),
@@ -69,6 +74,7 @@ export async function fetchDentistAvailability(
       .select('*')
       .eq('dentist_id', dentistId)
       .eq('slot_date', dateStr)
+      .eq('business_id', businessId)
   ]);
 
   // Check for errors
@@ -89,6 +95,15 @@ export async function fetchDentistAvailability(
   const vacation = vacationResult.data;
   const appointments = appointmentsResult.data || [];
   const slots = slotsResult.data || [];
+
+  // If the dentist is not working on this day, return closed slots regardless of generated slots
+  if (availability && availability.is_available === false) {
+    return generateTimeSlots(date).map(time => ({
+      time,
+      available: false,
+      reason: 'outside_hours'
+    }));
+  }
 
   // If dentist is on vacation, return empty slots with vacation reason
   if (vacation) {
@@ -237,12 +252,14 @@ export async function isDentistAvailableOnDate(
 ): Promise<{ available: boolean; reason?: string }> {
   const dateStr = format(date, 'yyyy-MM-dd');
   const dayOfWeek = date.getDay();
+  const businessId = await getCurrentBusinessId();
 
   // Check vacation
   const { data: vacation } = await supabase
     .from('dentist_vacation_days')
     .select('vacation_type, reason')
     .eq('dentist_id', dentistId)
+    .eq('business_id', businessId)
     .lte('start_date', dateStr)
     .gte('end_date', dateStr)
     .eq('is_approved', true)
@@ -255,34 +272,37 @@ export async function isDentistAvailableOnDate(
     };
   }
 
-  // PRIORITY 1: Check appointment_slots first
-  const { data: slots } = await supabase
-    .from('appointment_slots')
-    .select('is_available, emergency_only')
-    .eq('dentist_id', dentistId)
-    .eq('slot_date', dateStr);
-
-  if (slots && slots.length > 0) {
-    const hasAvailableSlots = slots.some(s => s.is_available && !s.emergency_only);
-    return { available: hasAvailableSlots };
-  }
-
-  // PRIORITY 2: Fall back to dentist_availability
+  // Check dentist working day first
   const { data: availability } = await supabase
     .from('dentist_availability')
     .select('is_available')
     .eq('dentist_id', dentistId)
+    .eq('business_id', businessId)
     .eq('day_of_week', dayOfWeek)
     .maybeSingle();
 
-  if (!availability || !availability.is_available) {
+  if (availability && availability.is_available === false) {
     return {
       available: false,
       reason: 'Not working on this day'
     };
   }
 
-  return { available: true };
+  // Check appointment slots next
+  const { data: slots } = await supabase
+    .from('appointment_slots')
+    .select('is_available, emergency_only')
+    .eq('dentist_id', dentistId)
+    .eq('slot_date', dateStr)
+    .eq('business_id', businessId);
+
+  if (slots && slots.length > 0) {
+    const hasAvailableSlots = slots.some(s => s.is_available && !s.emergency_only);
+    return { available: hasAvailableSlots };
+  }
+
+  // If no data, default to unavailable
+  return { available: false, reason: 'No slots or schedule' };
 }
 
 /**

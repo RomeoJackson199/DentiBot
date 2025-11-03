@@ -766,7 +766,7 @@ export default function BookAppointment() {
                 >
                   {loading ? (
                     <>
-                      <ModernLoadingSpinner variant="inline" />
+                      <ModernLoadingSpinner variant="minimal" />
                       <span className="ml-2">Booking...</span>
                     </>
                   ) : (

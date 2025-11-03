@@ -22,6 +22,7 @@ import {
 import { format, addDays, isBefore, startOfDay } from "date-fns";
 import { logger } from '@/lib/logger';
 import { clinicTimeToUtc, createAppointmentDateTimeFromStrings } from "@/lib/timezone";
+import { getCurrentBusinessId } from "@/lib/businessScopedSupabase";
 
 interface EmergencyBookingFlowProps {
   user: { id: string; email?: string };
@@ -111,8 +112,24 @@ export const EmergencyBookingFlow = ({ user, onComplete, onCancel }: EmergencyBo
     try {
       setLoading(true);
       const formattedDate = format(date, 'yyyy-MM-dd');
+      const businessId = await getCurrentBusinessId();
+
+      // Check if dentist works on this day
+      const dayOfWeek = date.getDay();
+      const { data: availability } = await supabase
+        .from('dentist_availability')
+        .select('is_available')
+        .eq('dentist_id', dentistId)
+        .eq('business_id', businessId)
+        .eq('day_of_week', dayOfWeek)
+        .maybeSingle();
+
+      if (availability && availability.is_available === false) {
+        setAvailableSlots([]);
+        return;
+      }
       
-      // First, try to generate slots for the date
+      // First, try to generate slots for the date (idempotent)
       await supabase.functions.invoke('generate-slots', {
         body: { dentist_id: dentistId, date: formattedDate }
       });
@@ -122,6 +139,7 @@ export const EmergencyBookingFlow = ({ user, onComplete, onCancel }: EmergencyBo
         .select('slot_time, is_available, emergency_only')
         .eq('dentist_id', dentistId)
         .eq('slot_date', formattedDate)
+        .eq('business_id', businessId)
         .order('slot_time');
 
       if (error) throw error;

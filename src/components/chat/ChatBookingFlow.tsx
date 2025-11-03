@@ -11,6 +11,7 @@ import { CalendarDays, Clock, CheckCircle, User as UserIcon } from "lucide-react
 import { format, addDays, startOfDay } from "date-fns";
 import { logger } from '@/lib/logger';
 import { clinicTimeToUtc, createAppointmentDateTimeFromStrings } from "@/lib/timezone";
+import { getCurrentBusinessId } from "@/lib/businessScopedSupabase";
 
 interface ChatBookingFlowProps {
   user: User;
@@ -79,6 +80,22 @@ export const ChatBookingFlow = ({
     try {
       // Use format to preserve Brussels date without UTC conversion
       const dateStr = format(date, 'yyyy-MM-dd');
+      const businessId = await getCurrentBusinessId();
+
+      // Check if dentist works on this day
+      const dayOfWeek = date.getDay();
+      const { data: availability } = await supabase
+        .from('dentist_availability')
+        .select('is_available')
+        .eq('dentist_id', dentistId)
+        .eq('business_id', businessId)
+        .eq('day_of_week', dayOfWeek)
+        .maybeSingle();
+
+      if (availability && availability.is_available === false) {
+        setAvailableSlots([]);
+        return;
+      }
 
       // Generate slots for the date
       await supabase.rpc('generate_daily_slots', {
@@ -91,6 +108,7 @@ export const ChatBookingFlow = ({
         .select('slot_time, is_available, emergency_only')
         .eq('dentist_id', dentistId)
         .eq('slot_date', dateStr)
+        .eq('business_id', businessId)
         .order('slot_time');
 
       if (error) throw error;
