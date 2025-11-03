@@ -4,9 +4,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { WaiterTableList } from '@/components/restaurant/WaiterTableList';
 import { WaiterOrderManager } from '@/components/restaurant/WaiterOrderManager';
+import { WaiterQRScanner } from '@/components/restaurant/WaiterQRScanner';
+import { WalkInFlow } from '@/components/restaurant/WalkInFlow';
 import { useOrderNotifications } from '@/hooks/useOrderNotifications';
-import { Bell } from 'lucide-react';
+import { Bell, QrCode, UserPlus } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function WaiterDashboard() {
   const { businessId } = useBusinessContext();
@@ -51,6 +54,11 @@ export default function WaiterDashboard() {
     return <div className="p-6">Loading...</div>;
   }
 
+  const handleSeatComplete = () => {
+    // Refresh the page to show newly seated table
+    window.location.reload();
+  };
+
   return (
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
@@ -66,29 +74,57 @@ export default function WaiterDashboard() {
         )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-1">
-          <WaiterTableList
-            businessId={businessId}
-            onSelectReservation={setSelectedReservation}
-            selectedReservation={selectedReservation}
-          />
-        </div>
+      <Tabs defaultValue="tables" className="w-full">
+        <TabsList className="grid w-full grid-cols-3 max-w-2xl">
+          <TabsTrigger value="tables">My Tables</TabsTrigger>
+          <TabsTrigger value="seat">
+            <QrCode className="h-4 w-4 mr-2" />
+            Scan QR
+          </TabsTrigger>
+          <TabsTrigger value="walkin">
+            <UserPlus className="h-4 w-4 mr-2" />
+            Walk-In
+          </TabsTrigger>
+        </TabsList>
 
-        <div className="lg:col-span-2">
-          {selectedReservation ? (
-            <WaiterOrderManager
-              reservationId={selectedReservation}
-              businessId={businessId}
-              onNotificationClear={() => setNotifications(0)}
-            />
-          ) : (
-            <div className="flex items-center justify-center h-96 border-2 border-dashed rounded-lg">
-              <p className="text-muted-foreground">Select a table to manage orders</p>
+        <TabsContent value="tables" className="mt-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-1">
+              <WaiterTableList
+                businessId={businessId}
+                onSelectReservation={setSelectedReservation}
+                selectedReservation={selectedReservation}
+              />
             </div>
-          )}
-        </div>
-      </div>
+
+            <div className="lg:col-span-2">
+              {selectedReservation ? (
+                <WaiterOrderManager
+                  reservationId={selectedReservation}
+                  businessId={businessId}
+                  onNotificationClear={() => setNotifications(0)}
+                />
+              ) : (
+                <div className="flex items-center justify-center h-96 border-2 border-dashed rounded-lg">
+                  <p className="text-muted-foreground">Select a table to manage orders</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="seat" className="mt-6">
+          <div className="max-w-md mx-auto">
+            <WaiterQRScanner businessId={businessId} onSeatComplete={handleSeatComplete} />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="walkin" className="mt-6">
+          <div className="max-w-md mx-auto">
+            <WalkInFlow businessId={businessId} onComplete={handleSeatComplete} />
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
