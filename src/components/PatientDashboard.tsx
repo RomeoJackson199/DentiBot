@@ -40,6 +40,8 @@ import BookAppointment from "@/pages/BookAppointment";
 import Messages from "@/pages/Messages";
 import { logger } from '@/lib/logger';
 import { useBusinessTemplate } from '@/hooks/useBusinessTemplate';
+import { useBusinessContext } from '@/hooks/useBusinessContext';
+import { RestaurantBookingFlow } from '@/components/restaurant/RestaurantBookingFlow';
 
 interface PatientDashboardProps {
   user: User;
@@ -131,9 +133,10 @@ export const PatientDashboard = ({
     toast
   } = useToast();
   const navigate = useNavigate();
-  const { hasFeature } = useBusinessTemplate();
+  const { hasFeature, template } = useBusinessTemplate();
   const hasAIChat = hasFeature('aiChat');
   const navigationItems = getNavigationItems(hasAIChat);
+  const { businessId, businessSlug } = useBusinessContext();
   type Tab = 'overview' | 'chat' | 'appointments' | 'prescriptions' | 'treatment' | 'records' | 'notes' | 'payments' | 'analytics' | 'emergency' | 'test';
   const [activeTab, setActiveTab] = useState<Tab>(() => {
     try {
@@ -600,7 +603,11 @@ export const PatientDashboard = ({
           </div>
         ) : (
           <div className="px-4 md:px-6 py-4">
-            <BookAppointment />
+            {template?.id === 'restaurant' && businessId ? (
+              <RestaurantBookingFlow businessId={businessId} businessSlug={businessSlug || undefined} />
+            ) : (
+              <BookAppointment />
+            )}
           </div>
         )
       )}
