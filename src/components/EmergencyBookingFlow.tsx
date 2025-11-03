@@ -140,6 +140,7 @@ export const EmergencyBookingFlow = ({ user, onComplete, onCancel }: EmergencyBo
         .eq('dentist_id', dentistId)
         .eq('slot_date', formattedDate)
         .eq('business_id', businessId)
+        .eq('is_available', true)
         .order('slot_time');
 
       if (error) throw error;

@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 import { clinicTimeToUtc, utcToClinicTime, getClinicTimeSlots, formatClinicTime, createAppointmentDateTimeFromStrings } from "@/lib/timezone";
 import { logger } from '@/lib/logger';
 import { getCurrentBusinessId } from "@/lib/businessScopedSupabase";
+import { format } from 'date-fns';
 
 interface EnhancedAppointmentBookingProps {
   user: User;
@@ -123,14 +124,34 @@ export const EnhancedAppointmentBooking = ({
     try {
       // Use format to preserve Brussels date without UTC conversion
       const dateStr = format(date, 'yyyy-MM-dd');
+      const businessId = await getCurrentBusinessId();
+
+      // Check schedule before generating slots
+      try {
+        const dayOfWeek = date.getDay();
+        const { data: availability } = await supabase
+          .from('dentist_availability')
+          .select('is_available')
+          .eq('dentist_id', selectedDentist)
+          .eq('business_id', businessId)
+          .eq('day_of_week', dayOfWeek)
+          .maybeSingle();
+
+        if (availability && availability.is_available === false) {
+          setAvailableSlots([]);
+          setAllSlots([]);
+          setLoadingTimes(false);
+          return;
+        }
+      } catch (e) {
+        console.warn('Availability check failed:', e);
+      }
 
       // Generate slots for the date
       await supabase.rpc('generate_daily_slots', {
         p_dentist_id: selectedDentist,
         p_date: dateStr
       });
-
-      const businessId = await getCurrentBusinessId();
 
       // Fetch ALL slots for comprehensive view
       const { data: slots, error } = await supabase

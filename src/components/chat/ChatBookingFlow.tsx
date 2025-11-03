@@ -109,6 +109,7 @@ export const ChatBookingFlow = ({
         .eq('dentist_id', dentistId)
         .eq('slot_date', dateStr)
         .eq('business_id', businessId)
+        .eq('is_available', true)
         .order('slot_time');
 
       if (error) throw error;

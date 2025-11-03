@@ -105,6 +105,29 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
     try {
       // Use format to preserve Brussels date without UTC conversion
       const dateStr = format(date, 'yyyy-MM-dd');
+      const businessId = await getCurrentBusinessId();
+
+      // Check schedule first; if closed, return early with empty slots
+      try {
+        const dayOfWeek = date.getDay();
+        const { data: availability } = await supabase
+          .from('dentist_availability')
+          .select('is_available')
+          .eq('dentist_id', selectedDentist)
+          .eq('business_id', businessId)
+          .eq('day_of_week', dayOfWeek)
+          .maybeSingle();
+
+        if (availability && availability.is_available === false) {
+          setAvailableTimes([]);
+          setAllSlots([]);
+          setRetryCount(0);
+          setLoadingTimes(false);
+          return;
+        }
+      } catch (e) {
+        console.warn('Availability check failed:', e);
+      }
 
       // Generate slots with retry logic
       const { error: slotError } = await supabase.rpc('generate_daily_slots', {
@@ -116,8 +139,6 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
         setTimeout(() => fetchAvailability(date, retry + 1), 1000);
         return;
       }
-
-      const businessId = await getCurrentBusinessId();
 
       const { data: allSlots, error } = await supabase
         .from('appointment_slots')

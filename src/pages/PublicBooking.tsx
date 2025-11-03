@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { useState, useEffect } from "react";
-import { startOfDay } from "date-fns";
+import { startOfDay, format } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -110,6 +110,26 @@ export default function PublicBooking() {
       setSelectedTime("");
       // Use format to preserve Brussels date without UTC conversion
       const dateStr = format(selectedDate, 'yyyy-MM-dd');
+
+      // 0) Check dentist schedule for this day before generating/fetching slots
+      try {
+        const dayOfWeek = selectedDate.getDay();
+        const { data: availability } = await supabase
+          .from('dentist_availability')
+          .select('is_available')
+          .eq('dentist_id', selectedDentist)
+          .eq('business_id', effectiveBusinessId)
+          .eq('day_of_week', dayOfWeek)
+          .maybeSingle();
+
+        if (availability && availability.is_available === false) {
+          setAvailableTimes([]);
+          setLoadingTimes(false);
+          return;
+        }
+      } catch (e) {
+        console.warn('Availability check failed (continuing):', e);
+      }
       
       try {
         // 1. Ensure slots exist for this date (idempotent)

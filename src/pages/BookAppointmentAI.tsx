@@ -199,6 +199,25 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
       // Use format to preserve Brussels date without UTC conversion
       const dateStr = format(date, 'yyyy-MM-dd');
 
+      // Check schedule first; if closed, skip generation/fetch
+      try {
+        const dayOfWeek = date.getDay();
+        const { data: availability } = await supabase
+          .from('dentist_availability')
+          .select('is_available')
+          .eq('dentist_id', dentistId)
+          .eq('business_id', businessId)
+          .eq('day_of_week', dayOfWeek)
+          .maybeSingle();
+
+        if (availability && availability.is_available === false) {
+          setAvailableSlots([]);
+          return;
+        }
+      } catch (e) {
+        console.warn('Availability check failed:', e);
+      }
+
       await supabase.rpc('generate_daily_slots', {
         p_dentist_id: dentistId,
         p_date: dateStr
