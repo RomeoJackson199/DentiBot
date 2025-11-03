@@ -17,7 +17,7 @@ export const BookingReadyWidget = ({ conversationData }: BookingReadyWidgetProps
   const handleProceed = () => {
     // Store conversation data in session storage for the booking page
     sessionStorage.setItem('aiBookingData', JSON.stringify(conversationData));
-    window.location.href = 'https://caberu.be/book-appointment';
+    navigate('/book-appointment-ai');
   };
 
   return (

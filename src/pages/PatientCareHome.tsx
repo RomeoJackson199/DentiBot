@@ -155,7 +155,7 @@ export default function PatientCareHome() {
       icon: Calendar,
       label: t.bookAppointment || "Book Appointment",
       description: "Schedule a new appointment",
-      onClick: () => window.location.href = 'https://caberu.be/book-appointment',
+      onClick: () => navigate('/book-appointment'),
       color: "text-blue-600",
       bgColor: "bg-blue-50 hover:bg-blue-100",
     },
@@ -179,7 +179,7 @@ export default function PatientCareHome() {
       icon: AlertCircle,
       label: "Emergency Care",
       description: "Urgent dental issues",
-      onClick: () => window.location.href = 'https://caberu.be/book-appointment?emergency=true',
+      onClick: () => navigate('/book-appointment?emergency=true'),
       color: "text-red-600",
       bgColor: "bg-red-50 hover:bg-red-100",
     },
@@ -200,7 +200,7 @@ export default function PatientCareHome() {
         <Button
           size="lg"
           className="gap-2"
-          onClick={() => window.location.href = 'https://caberu.be/book-appointment'}
+          onClick={() => navigate('/book-appointment')}
           aria-label={t.bookAppointment}
         >
           <Calendar className="h-4 w-4" />
@@ -377,7 +377,7 @@ export default function PatientCareHome() {
               </Alert>
               <Button
                 className="mt-4 w-full"
-                onClick={() => window.location.href = 'https://caberu.be/book-appointment'}
+                onClick={() => navigate('/book-appointment')}
                 aria-label="Book your first appointment"
               >
                 <Calendar className="h-4 w-4 mr-2" />
