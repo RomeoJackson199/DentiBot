@@ -76,6 +76,9 @@ const PatientAccountPrivacyPage = lazy(() => import("./pages/PatientAccountPriva
 const PatientAccountHelpPage = lazy(() => import("./pages/PatientAccountHelpPage"));
 const AdminHomepageManager = lazy(() => import("./pages/AdminHomepageManager"));
 const SetupMPPage = lazy(() => import("./pages/SetupMPPage"));
+const RestaurantOwnerDashboard = lazy(() => import("./pages/RestaurantOwnerDashboard"));
+const WaiterDashboard = lazy(() => import("./pages/WaiterDashboard"));
+const KitchenDashboard = lazy(() => import("./pages/KitchenDashboard"));
 
 // Dashboard component that handles authentication with lazy loading
 // Business gate component that shows appropriate picker
@@ -308,6 +311,10 @@ const App = () => {
                 {/* Admin route for homepage management */}
                 <Route path="/admin/homepage-manager" element={<AdminHomepageManager />} />
                 <Route path="/admin/setup-mp" element={<SetupMPPage />} />
+                {/* Restaurant management routes */}
+                <Route path="/restaurant/owner" element={<RoleBasedRouter requiredRole='dentist'><RestaurantOwnerDashboard /></RoleBasedRouter>} />
+                <Route path="/restaurant/waiter" element={<RoleBasedRouter requiredRole='dentist'><WaiterDashboard /></RoleBasedRouter>} />
+                <Route path="/restaurant/kitchen" element={<RoleBasedRouter requiredRole='dentist'><KitchenDashboard /></RoleBasedRouter>} />
                 {/* Booking routes */}
                 <Route path="/book-appointment-ai" element={<BookingRouteHandler><BookAppointmentAI /></BookingRouteHandler>} />
                 <Route path="/book-appointment" element={<Navigate to="/dashboard" replace />} />
