@@ -63,37 +63,40 @@ export default function BusinessPortal() {
         setServices(servicesData);
       }
 
-      // Check if user is authenticated
-      const { data: { user: currentUser } } = await supabase.auth.getUser();
-      
-      if (currentUser) {
-        setUser(currentUser);
-        // Set this business as current business
-        await setBusinessContext(currentUser.id, businessData.id);
+      // For restaurant template, keep users on public page (no redirects)
+      if (businessData.template_type !== 'restaurant') {
+        // Check if user is authenticated
+        const { data: { user: currentUser } } = await supabase.auth.getUser();
         
-        // Get user's role to determine redirect
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("id")
-          .eq("user_id", currentUser.id)
-          .single();
-
-        if (profile) {
-          // Check if user is a member of this business
-          const { data: membership } = await supabase
-            .from("business_members")
-            .select("role")
-            .eq("business_id", businessData.id)
-            .eq("profile_id", profile.id)
+        if (currentUser) {
+          setUser(currentUser);
+          // Set this business as current business
+          await setBusinessContext(currentUser.id, businessData.id);
+          
+          // Get user's role to determine redirect
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("id")
+            .eq("user_id", currentUser.id)
             .single();
-
-          if (membership) {
-            // Redirect to dentist portal if they're a business member
-            window.location.href = "/dentist";
-          } else {
-            // Otherwise, they're a patient - redirect to patient portal with full reload
-            // to ensure BusinessContext and TemplateContext load with correct business
-            window.location.href = "/patient";
+  
+          if (profile) {
+            // Check if user is a member of this business
+            const { data: membership } = await supabase
+              .from("business_members")
+              .select("role")
+              .eq("business_id", businessData.id)
+              .eq("profile_id", profile.id)
+              .single();
+  
+            if (membership) {
+              // Redirect to dentist portal if they're a business member
+              window.location.href = "/dentist";
+            } else {
+              // Otherwise, they're a patient - redirect to patient portal with full reload
+              // to ensure BusinessContext and TemplateContext load with correct business
+              window.location.href = "/patient";
+            }
           }
         }
       }
