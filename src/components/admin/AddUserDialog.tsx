@@ -66,11 +66,15 @@ export function AddUserDialog({ onUserAdded }: AddUserDialogProps) {
           return;
         }
 
-        const { error: inviteError } = await supabase.rpc('create_restaurant_staff_invitation', {
+        console.log('Inviting restaurant staff:', { businessId, email, role });
+
+        const { data, error: inviteError } = await supabase.rpc('create_restaurant_staff_invitation', {
           p_business_id: businessId,
           p_email: email.trim(),
           p_role: role,
         });
+
+        console.log('RPC result:', { data, error: inviteError });
 
         if (inviteError) throw inviteError;
 
