@@ -102,21 +102,25 @@ export function TemplateProvider({ children }: { children: ReactNode }) {
       throw new Error('No business ID available');
     }
 
-    // Record template change in history
+    // Record template change in history (best-effort)
     const { data: currentBusiness } = await supabase
       .from('businesses')
       .select('template_type')
       .eq('id', businessId)
-      .single();
+      .maybeSingle();
 
     if (currentBusiness && currentBusiness.template_type !== newTemplateType) {
-      // Insert audit record
-      await supabase.from('template_change_history').insert({
-        business_id: businessId,
-        from_template: currentBusiness.template_type,
-        to_template: newTemplateType,
-        changed_at: new Date().toISOString(),
-      });
+      try {
+        // Optional audit trail; ignore if table doesn't exist or RLS blocks it
+        await supabase.from('template_change_history').insert({
+          business_id: businessId,
+          from_template: currentBusiness.template_type,
+          to_template: newTemplateType,
+          changed_at: new Date().toISOString(),
+        });
+      } catch (e) {
+        logger.warn('Template audit skipped', { reason: 'missing_table_or_rls', error: e });
+      }
     }
 
     // Persist the new template to the database so future sessions load correctly
