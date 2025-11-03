@@ -257,17 +257,14 @@ function PatientPortalNavContent({ children }: { children: React.ReactNode }) {
                       <SidebarMenu>
                         {group.items.map((item) => (
                           <SidebarMenuItem key={item.id}>
-                            <SidebarMenuButton asChild={item.id !== 'care-booking'} data-group-id={group.id} tooltip={item.label}>
-                              {item.id === 'care-booking' ? (
+                            <SidebarMenuButton asChild data-group-id={group.id} tooltip={item.label}>
+                              {item.onClick ? (
                                 <button
                                   onClick={(e) => {
-                                    if (item.onClick) item.onClick(e);
+                                    item.onClick(e);
                                     handleNav(group.id, item, e as any);
                                   }}
                                   aria-label={item.label}
-                                  className={cn(
-                                    "flex items-center gap-2 w-full px-2 py-1.5 text-sm rounded-md transition-colors hover:bg-sidebar-accent/50"
-                                  )}
                                 >
                                   {item.icon}
                                   <span>{item.label}</span>
@@ -276,10 +273,7 @@ function PatientPortalNavContent({ children }: { children: React.ReactNode }) {
                                 <NavLink
                                   to={item.to}
                                   end={item.to === '/care'}
-                                  onClick={(e) => {
-                                    if (item.onClick) item.onClick(e);
-                                    handleNav(group.id, item, e);
-                                  }}
+                                  onClick={(e) => handleNav(group.id, item, e)}
                                   aria-label={item.label}
                                   className={({ isActive }) => cn(
                                     isActive && "bg-sidebar-accent text-sidebar-accent-foreground"
