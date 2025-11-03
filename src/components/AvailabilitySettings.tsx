@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { getCurrentBusinessId } from "@/lib/businessScopedSupabase";
 
 interface DentistAvailability {
   id?: string;
@@ -91,10 +92,12 @@ export function AvailabilitySettings({ dentistId }: AvailabilitySettingsProps) {
 
   const fetchAvailability = async () => {
     try {
+      const businessId = await getCurrentBusinessId();
       const { data, error } = await supabase
         .from('dentist_availability')
         .select('*')
         .eq('dentist_id', dentistId)
+        .eq('business_id', businessId)
         .order('day_of_week');
 
       if (error) throw error;
@@ -107,8 +110,8 @@ export function AvailabilitySettings({ dentistId }: AvailabilitySettingsProps) {
           start_time: '09:00',
           end_time: '17:00',
           is_available: day.value >= 1 && day.value <= 5, // Mon-Fri by default
-          break_start_time: '12:00',
-          break_end_time: '13:00',
+          break_start_time: '',
+          break_end_time: '',
         };
       });
 
@@ -187,25 +190,27 @@ export function AvailabilitySettings({ dentistId }: AvailabilitySettingsProps) {
       if (memberError) throw memberError;
       const businessId = memberData.business_id;
 
-      // Delete existing availability for this dentist
+      // Delete existing availability for this dentist and business
       await supabase
         .from('dentist_availability')
         .delete()
-        .eq('dentist_id', dentistId);
+        .eq('dentist_id', dentistId)
+        .eq('business_id', businessId);
 
-      // Insert new availability settings with business_id
-      const availabilityData = availability
-        .filter(day => day.is_available)
-        .map(day => ({
+      // Insert new availability settings with business_id (store all days)
+      const availabilityData = availability.map(day => {
+        const hasCompleteBreak = !!day.break_start_time && !!day.break_end_time;
+        return {
           dentist_id: dentistId,
           business_id: businessId,
           day_of_week: day.day_of_week,
           start_time: day.start_time,
           end_time: day.end_time,
-          is_available: day.is_available,
-          break_start_time: day.break_start_time || null,
-          break_end_time: day.break_end_time || null,
-        }));
+          is_available: !!day.is_available,
+          break_start_time: hasCompleteBreak ? day.break_start_time : null,
+          break_end_time: hasCompleteBreak ? day.break_end_time : null,
+        };
+      });
 
       if (availabilityData.length > 0) {
         const { error } = await supabase
