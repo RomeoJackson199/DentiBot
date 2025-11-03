@@ -170,44 +170,44 @@ export const PatientPaymentHistory: React.FC<PatientPaymentHistoryProps> = ({ pa
             paymentRequests.map((request) => (
               <div
                 key={request.id}
-                className="flex items-center justify-between p-6 border border-dental-primary/10 rounded-xl bg-white/50 backdrop-blur-sm shadow-sm hover:shadow-md transition-all duration-300 hover:border-dental-accent/30"
+                className="flex flex-col md:flex-row md:items-center md:justify-between p-4 md:p-6 border border-dental-primary/10 rounded-xl bg-white/50 backdrop-blur-sm shadow-sm hover:shadow-md transition-all duration-300 hover:border-dental-accent/30 gap-4"
               >
-                <div className="flex items-center space-x-4">
-                  <div className="p-2 rounded-full bg-dental-primary/10">
+                <div className="flex items-start md:items-center gap-3 md:gap-4 flex-1 min-w-0">
+                  <div className="p-2 rounded-full bg-dental-primary/10 flex-shrink-0">
                     {getStatusIcon(request.status)}
                   </div>
-                  <div>
-                    <h4 className="font-semibold text-dental-primary mb-1">{formatPaymentTitle(request)}</h4>
-                    <p className="text-sm text-dental-text/70 mb-1">
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-semibold text-dental-primary mb-1 text-sm md:text-base break-words">{formatPaymentTitle(request)}</h4>
+                    <p className="text-xs md:text-sm text-dental-text/70 mb-1">
                       Payment request from dentist
                     </p>
                     <p className="text-xs text-dental-text/50 flex items-center">
-                      <Clock className="h-3 w-3 mr-1" />
+                      <Clock className="h-3 w-3 mr-1 flex-shrink-0" />
                       {new Date(request.created_at).toLocaleDateString()}
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center space-x-4">
-                  <div className="text-right">
-                    <p className="font-bold text-xl text-dental-primary mb-2">{formatAmount(request.amount)}</p>
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 md:flex-shrink-0">
+                  <div className="flex items-center justify-between sm:flex-col sm:items-end sm:justify-start gap-2">
+                    <p className="font-bold text-lg md:text-xl text-dental-primary">{formatAmount(request.amount)}</p>
                     {getStatusBadge(request.status)}
                   </div>
                   {request.status === 'pending' && (
                     <Button
-                      size="lg"
+                      size="default"
                       onClick={() => handlePayNow(request.id)}
                       disabled={processingPayment === request.id}
-                      className="bg-gradient-to-r from-dental-accent to-dental-accent/80 hover:from-dental-accent/90 hover:to-dental-accent/70 text-white font-semibold px-6 py-3 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100"
+                      className="w-full sm:w-auto bg-gradient-to-r from-dental-accent to-dental-accent/80 hover:from-dental-accent/90 hover:to-dental-accent/70 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100"
                     >
                       {processingPayment === request.id ? (
                         <>
-                          <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                          Processing...
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          <span className="text-sm">Processing...</span>
                         </>
                       ) : (
                         <>
-                          <ExternalLink className="h-5 w-5 mr-2" />
-                          Pay Now
+                          <ExternalLink className="h-4 w-4 mr-2" />
+                          <span className="text-sm">Pay Now</span>
                         </>
                       )}
                     </Button>
