@@ -1,5 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { UnifiedAuthForm } from "@/components/auth/UnifiedAuthForm";
+import { ImprovedAuthForm } from "@/components/auth/ImprovedAuthForm";
 import { Scissors, Clock, Euro, Calendar, MapPin, Phone, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import heroImage from "@/assets/barbershop-hero.jpg";
@@ -309,7 +309,7 @@ export const BarbershopAuthPage = ({ business, onAuthSuccess }: BarbershopAuthPa
                 </CardDescription>
               </CardHeader>
               <CardContent className="pb-10 px-8">
-                <UnifiedAuthForm onSignInSuccess={onAuthSuccess} />
+                <ImprovedAuthForm onSignInSuccess={onAuthSuccess} />
               </CardContent>
             </Card>
             
