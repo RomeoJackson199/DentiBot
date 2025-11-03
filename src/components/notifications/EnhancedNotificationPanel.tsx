@@ -138,7 +138,7 @@ export function EnhancedNotificationPanel({ userId, onClose }: EnhancedNotificat
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10 }}
       transition={{ duration: 0.2 }}
-      className="fixed top-16 right-4 w-[480px] max-h-[640px] z-[10001] shadow-2xl"
+      className="fixed top-16 right-4 w-[90vw] sm:w-[480px] max-h-[640px] z-[10001] shadow-2xl"
     >
       <Card className="border-primary/20 bg-background shadow-elegant overflow-hidden">
         <CardHeader className="pb-4 border-b bg-gradient-to-br from-primary/5 to-transparent sticky top-0 z-10 backdrop-blur-sm">

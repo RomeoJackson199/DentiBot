@@ -276,9 +276,9 @@ export function EnhancedNotificationCenter({
   const NotificationContent = () => (
     <Card className={cn(
       "shadow-elegant border-primary/10 animate-fade-in",
-      variant === 'popover' && "w-[420px] max-h-[600px]",
+      variant === 'popover' && "w-[90vw] sm:w-[420px] max-h-[600px]",
       variant === 'sidebar' && "w-full h-full",
-      variant === 'modal' && "w-[500px] max-h-[80vh]"
+      variant === 'modal' && "w-[90vw] sm:w-[500px] max-h-[80vh]"
     )}>
       <CardHeader className="pb-3 border-b sticky top-0 bg-background/80 backdrop-blur-sm z-10">
         <div className="flex items-center justify-between">

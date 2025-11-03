@@ -45,12 +45,12 @@ const SidebarProvider = React.forwardRef<
   const mergedStyle = React.useMemo(
     () =>
       ({
-        "--sidebar-width": "18rem",
+        "--sidebar-width": isMobile ? "16rem" : "18rem",
         "--sidebar-width-icon": "4.75rem",
         "--sidebar-transition": "220ms cubic-bezier(0.32, 0.72, 0, 1)",
         ...style,
       }) as React.CSSProperties,
-    [style]
+    [style, isMobile]
   )
 
   const value = React.useMemo<SidebarContext>(

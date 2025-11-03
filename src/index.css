@@ -210,6 +210,12 @@
     @apply border-border;
   }
 
+  html, body {
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100vw;
+  }
+
   body {
     @apply bg-background text-foreground antialiased;
     background-image: var(--gradient-mesh);
@@ -218,6 +224,12 @@
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+  }
+
+  #root {
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100vw;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -236,6 +248,29 @@
 }
 
 @layer components {
+  /* Prevent horizontal overflow */
+  .prevent-overflow {
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+
+  /* Container with proper mobile padding */
+  .container-mobile-safe {
+    width: 100%;
+    max-width: 100vw;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  @media (min-width: 768px) {
+    .container-mobile-safe {
+      padding-left: 2rem;
+      padding-right: 2rem;
+    }
+  }
+
   /* Enhanced z-index hierarchy */
   .z-dropdown { @apply z-[100]; }
   .z-modal { @apply z-[90]; }
