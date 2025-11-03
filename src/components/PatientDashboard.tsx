@@ -36,7 +36,7 @@ import { CareTab, CareItem } from "@/components/patient/CareTab";
 import { AppointmentsTab } from "@/components/patient/AppointmentsTab";
 import { PaymentsTab } from "@/components/patient/PaymentsTab";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { AppointmentBooking } from "@/components/AppointmentBooking";
+import BookAppointment from "@/pages/BookAppointment";
 import Messages from "@/pages/Messages";
 import { logger } from '@/lib/logger';
 import { useBusinessTemplate } from '@/hooks/useBusinessTemplate';
@@ -196,7 +196,6 @@ export const PatientDashboard = ({
     };
   }, [userProfile?.id, toast]);
   const [showAssistant, setShowAssistant] = useState(false);
-  const [showBooking, setShowBooking] = useState(false);
   const [totalDueCents, setTotalDueCents] = useState(0);
   // Messaging functionality removed
 
@@ -536,7 +535,7 @@ export const PatientDashboard = ({
     badges={badges} 
     userId={user.id} 
     hasAIChat={hasAIChat}
-    onBookAppointment={hasAIChat ? () => setActiveSection('assistant') : () => setShowBooking(true)}
+    onBookAppointment={() => setActiveSection('assistant')}
   >
       {activeSection === 'home' && <HomeTab userId={user.id} firstName={userProfile?.first_name} nextAppointment={nextAppointment ? (() => {
       const appointmentDetails = nextAppointment as unknown as Record<string, any>;
@@ -563,21 +562,27 @@ export const PatientDashboard = ({
       };
     })() : null} activePrescriptions={patientStats.activePrescriptions} activeTreatmentPlans={patientStats.activeTreatmentPlans} totalDueCents={totalDueCents} onNavigateTo={s => setActiveSection(s)} onOpenAssistant={() => setActiveSection('assistant')} onBookAppointment={() => setActiveSection('assistant')} />}
 
-      {activeSection === 'assistant' && hasAIChat && (
-        <div className="px-4 md:px-6 py-4">
-          <Card>
-            <CardContent>
-              <div className="h-[70vh]">
-                <InteractiveDentalChat user={user} triggerBooking={triggerBooking} />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+      {activeSection === 'assistant' && (
+        hasAIChat ? (
+          <div className="px-4 md:px-6 py-4">
+            <Card>
+              <CardContent>
+                <div className="h-[70vh]">
+                  <InteractiveDentalChat user={user} triggerBooking={triggerBooking} />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        ) : (
+          <div className="px-4 md:px-6 py-4">
+            <BookAppointment />
+          </div>
+        )
       )}
 
       {activeSection === 'messages' && <Messages />}
 
-      {activeSection === 'care' && <CareTab plans={carePlans} prescriptions={carePrescriptions} visits={careVisits} records={careRecords} user={user} patientId={userProfile?.id || null} onReschedule={() => setShowBooking(true)} />}
+      {activeSection === 'care' && <CareTab plans={carePlans} prescriptions={carePrescriptions} visits={careVisits} records={careRecords} user={user} patientId={userProfile?.id || null} onReschedule={() => setActiveSection('assistant')} />}
 
       {activeSection === 'appointments' && <AppointmentsTab user={user} onOpenAssistant={() => setActiveSection('assistant')} />}
 
@@ -606,14 +611,6 @@ export const PatientDashboard = ({
         <DialogContent className="p-0 max-w-3xl w-full">
           <div className="h-[80vh]">
             {hasAIChat && <InteractiveDentalChat user={user} triggerBooking={triggerBooking} />}
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={showBooking} onOpenChange={setShowBooking}>
-        <DialogContent className="p-0 max-w-4xl w-full">
-          <div className="h-[85vh] overflow-auto">
-            <AppointmentBooking user={user} onCancel={() => setShowBooking(false)} onComplete={() => setShowBooking(false)} />
           </div>
         </DialogContent>
       </Dialog>

@@ -26,6 +26,7 @@ type NavItem = {
   to: string;
   badge?: number;
   tooltip?: string;
+  onClick?: () => void;
 };
 
 type NavGroup = {
@@ -80,7 +81,10 @@ function PatientPortalNavContent({ children }: { children: React.ReactNode }) {
   const groups: NavGroup[] = useMemo(() => {
     const careItems = [
       { id: 'care-home', label: t.pnav.care.home, icon: <Home className="h-4 w-4" />, to: '/care' },
-      { id: 'care-booking', label: 'Classic Booking', icon: <Calendar className="h-4 w-4" />, to: '/book-appointment' },
+      { id: 'care-booking', label: 'Classic Booking', icon: <Calendar className="h-4 w-4" />, to: '/dashboard', onClick: () => {
+        // Set section to assistant in localStorage so dashboard picks it up
+        localStorage.setItem('pd_section', 'assistant');
+      }},
       { id: 'care-appointments', label: t.pnav.care.appointments, icon: <Calendar className="h-4 w-4" />, to: '/care/appointments', badge: counts.upcoming7d },
     ];
 
@@ -151,7 +155,7 @@ function PatientPortalNavContent({ children }: { children: React.ReactNode }) {
     if (isMobile) setMoreOpen(false);
     
     // Auto-collapse sidebar when navigating to booking
-    if (item.to === '/book-appointment' && state !== 'collapsed') {
+    if (item.to === '/dashboard' && item.id === 'care-booking' && state !== 'collapsed') {
       toggleSidebar();
     }
   };
@@ -249,9 +253,15 @@ function PatientPortalNavContent({ children }: { children: React.ReactNode }) {
                               <NavLink
                                 to={item.to}
                                 end={item.to === '/care'}
-                                onClick={(e) => handleNav(group.id, item, e)}
+                                onClick={(e) => {
+                                  if (item.onClick) item.onClick();
+                                  handleNav(group.id, item, e);
+                                }}
                                 aria-label={item.label}
-                                className={({ isActive }) => cn(isActive && "bg-sidebar-accent text-sidebar-accent-foreground")}
+                                className={({ isActive }) => cn(
+                                  isActive && "bg-sidebar-accent text-sidebar-accent-foreground",
+                                  item.id === 'care-booking' && location.pathname === '/dashboard' && "bg-sidebar-accent text-sidebar-accent-foreground"
+                                )}
                               >
                                 {item.icon}
                                 <span>{item.label}</span>
@@ -307,7 +317,10 @@ function PatientPortalNavContent({ children }: { children: React.ReactNode }) {
         <div className="flex-1">{children ?? <Outlet />}</div>
         
         {/* Floating Book Appointment Button */}
-        <FloatingBookingButton onBookAppointment={() => navigate('/book')} />
+        <FloatingBookingButton onBookAppointment={() => {
+          localStorage.setItem('pd_section', 'assistant');
+          navigate('/dashboard');
+        }} />
         
         <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur border-t">
           <div className="grid grid-cols-4">
@@ -375,7 +388,10 @@ function PatientPortalNavContent({ children }: { children: React.ReactNode }) {
             <div className="flex items-center gap-6">
               {/* Book Appointment Button - Desktop */}
               <Button 
-                onClick={() => navigate('/book')}
+                onClick={() => {
+                  localStorage.setItem('pd_section', 'assistant');
+                  navigate('/dashboard');
+                }}
                 className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
                 size="sm"
               >
