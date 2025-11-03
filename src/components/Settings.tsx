@@ -31,6 +31,7 @@ import {
 import { saveProfileData, loadProfileData, testDatabaseConnection, ProfileData } from "@/lib/profileUtils";
 import { DentistManagement } from "@/components/DentistManagement";
 import { logger } from '@/lib/logger';
+import { JoinRestaurantStaff } from "@/components/restaurant/JoinRestaurantStaff";
 
 interface SettingsProps {
   user: User;
@@ -332,6 +333,11 @@ const handleDeleteAccount = async () => {
                     <LanguageSettings />
                   </div>
                 </div>
+                
+                <div>
+                  <JoinRestaurantStaff />
+                </div>
+
                 <div>
                   <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center space-x-2">
                     <Bot className="h-5 w-5" />
