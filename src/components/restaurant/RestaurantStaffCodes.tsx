@@ -38,23 +38,28 @@ export function RestaurantStaffCodes({ businessId }: RestaurantStaffCodesProps) 
 
   const generateCodeMutation = useMutation({
     mutationFn: async (role: string) => {
-      // Generate a random 6-character code
       const code = Math.random().toString(36).substring(2, 8).toUpperCase();
-      
-      const { data: profile } = await supabase
+
+      const { data: authData } = await supabase.auth.getUser();
+      const user = authData.user;
+      if (!user) throw new Error('Not authenticated');
+
+      const { data: profile, error: profileErr } = await supabase
         .from('profiles')
         .select('id')
-        .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
-        .single();
+        .eq('user_id', user.id)
+        .maybeSingle();
+      if (profileErr) throw profileErr;
+      if (!profile?.id) throw new Error('Profile not found');
 
       const { error } = await supabase
         .from('restaurant_staff_codes')
-        .insert({
+        .upsert({
           business_id: businessId,
           role,
           code,
-          created_by_profile_id: profile?.id,
-        });
+          created_by_profile_id: profile.id,
+        }, { onConflict: 'business_id,role' });
       
       if (error) throw error;
       return code;

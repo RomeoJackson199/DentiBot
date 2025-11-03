@@ -2076,6 +2076,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      can_manage_restaurant_staff: {
+        Args: { p_business_id: string }
+        Returns: boolean
+      }
       can_view_profile_in_user_business: {
         Args: { _target_profile_id: string; _viewer_user_id: string }
         Returns: boolean
