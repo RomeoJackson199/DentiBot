@@ -11,8 +11,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/hooks/useLanguage";
-import { GoogleCalendarConnect } from "@/components/GoogleCalendarConnect";
 import { logger } from '@/lib/logger';
+import { getCurrentBusinessId } from "@/lib/businessScopedSupabase";
 interface DentistAvailability {
   id?: string;
   day_of_week: number;
@@ -157,27 +157,18 @@ export function EnhancedAvailabilitySettings({ dentistId }: EnhancedAvailability
   const saveAvailability = async () => {
     setSaving(true);
     try {
-      // Get current business context
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error('Not authenticated');
+      const businessId = await getCurrentBusinessId();
 
-      // Get business_id from business_members
-      const { data: memberData, error: memberError } = await supabase
-        .from('business_members')
-        .select('business_id')
-        .eq('profile_id', (await supabase.from('profiles').select('id').eq('user_id', session.user.id).single()).data?.id)
-        .single();
-
-      if (memberError) throw memberError;
-      const businessId = memberData.business_id;
-
-      // Delete existing availability for this dentist
-      await supabase
+      // Delete existing availability for this dentist and business
+      const { error: deleteError } = await supabase
         .from('dentist_availability')
         .delete()
-        .eq('dentist_id', dentistId);
+        .eq('dentist_id', dentistId)
+        .eq('business_id', businessId);
 
-      // Insert new availability settings with business_id
+      if (deleteError) throw deleteError;
+
+      // Insert new availability settings
       const availabilityData = availability
         .filter(day => day.is_available)
         .map(day => ({
@@ -192,22 +183,25 @@ export function EnhancedAvailabilitySettings({ dentistId }: EnhancedAvailability
         }));
 
       if (availabilityData.length > 0) {
-        const { error } = await supabase
+        const { error: insertError } = await supabase
           .from('dentist_availability')
           .insert(availabilityData);
 
-        if (error) throw error;
+        if (insertError) throw insertError;
       }
+
+      // Refetch to confirm
+      await fetchAvailability();
 
       toast({
         title: t.success,
         description: t.availabilityUpdated,
       });
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to save availability:', error);
       toast({
         title: t.error,
-        description: t.failedToSaveAvailability,
+        description: error?.message || t.failedToSaveAvailability,
         variant: "destructive",
       });
     } finally {
@@ -226,23 +220,13 @@ export function EnhancedAvailabilitySettings({ dentistId }: EnhancedAvailability
     }
 
     try {
-      // Get business_id
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error('Not authenticated');
-
-      const { data: memberData, error: memberError } = await supabase
-        .from('business_members')
-        .select('business_id')
-        .eq('profile_id', (await supabase.from('profiles').select('id').eq('user_id', session.user.id).single()).data?.id)
-        .single();
-
-      if (memberError) throw memberError;
+      const businessId = await getCurrentBusinessId();
 
       const { data, error } = await supabase
         .from('dentist_vacation_days')
         .insert({
           dentist_id: dentistId,
-          business_id: memberData.business_id,
+          business_id: businessId,
           ...newVacation
         })
         .select()
@@ -329,8 +313,6 @@ export function EnhancedAvailabilitySettings({ dentistId }: EnhancedAvailability
         </Button>
       </div>
 
-      <GoogleCalendarConnect />
-
       <Tabs defaultValue="schedule" className="space-y-6">
         <TabsList className="grid w-full grid-cols-2 h-14 bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-950/50 dark:to-purple-950/50 p-1 rounded-xl shadow-inner">
           <TabsTrigger
@@ -358,52 +340,6 @@ export function EnhancedAvailabilitySettings({ dentistId }: EnhancedAvailability
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6 p-6">
-              {/* Quick Preset Buttons - Improved layout */}
-              <div className="p-5 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 rounded-xl space-y-3 border-2 border-blue-100 dark:border-blue-900">
-                <span className="text-base font-bold text-foreground flex items-center gap-2">
-                  <Clock className="h-5 w-5 text-blue-600" />
-                  {t.quickPresets}
-                </span>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    className="h-14 justify-start px-5 rounded-xl border-2 border-blue-300 dark:border-blue-700 hover:bg-blue-100 dark:hover:bg-blue-950/30 font-semibold"
-                    onClick={() => {
-                      setAvailability(prev => prev.map(day => ({
-                        ...day,
-                        is_available: day.day_of_week >= 1 && day.day_of_week <= 5,
-                        start_time: '09:00',
-                        end_time: '17:00',
-                        break_start_time: '12:00',
-                        break_end_time: '13:00'
-                      })));
-                    }}
-                  >
-                    <Clock className="h-5 w-5 mr-2 text-blue-600" />
-                    {t.presetMonFri}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    className="h-14 justify-start px-5 rounded-xl border-2 border-purple-300 dark:border-purple-700 hover:bg-purple-100 dark:hover:bg-purple-950/30 font-semibold"
-                    onClick={() => {
-                      setAvailability(prev => prev.map(day => ({
-                        ...day,
-                        is_available: day.day_of_week >= 1 && day.day_of_week <= 6,
-                        start_time: '08:00',
-                        end_time: '18:00',
-                        break_start_time: '12:00',
-                        break_end_time: '13:00'
-                      })));
-                    }}
-                  >
-                    <Clock className="h-5 w-5 mr-2 text-purple-600" />
-                    {t.presetMonSat}
-                  </Button>
-                </div>
-              </div>
-
               {/* Day Schedule Grid */}
               <div className="grid gap-4">
                 {DAYS_OF_WEEK.map((day, index) => {
