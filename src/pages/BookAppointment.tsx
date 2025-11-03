@@ -16,8 +16,6 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { createAppointmentDateTimeFromStrings } from "@/lib/timezone";
 import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
-import { Header } from "@/components/homepage/Header";
-import { Footer } from "@/components/homepage/Footer";
 
 interface Dentist {
   id: string;
@@ -270,30 +268,23 @@ export default function BookAppointment() {
 
   if (loading || businessLoading) {
     return (
-      <div className="min-h-screen bg-white">
-        <Header user={user} />
-        <div className="flex items-center justify-center py-20">
-          <ModernLoadingSpinner variant="overlay" message="Loading..." />
-        </div>
+      <div className="flex items-center justify-center py-20">
+        <ModernLoadingSpinner variant="overlay" message="Loading..." />
       </div>
     );
   }
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-white">
-        <Header user={user} />
-        <div className="flex items-center justify-center py-20 px-4">
-          <Card className="max-w-md">
-            <CardContent className="pt-6">
-              <p>Please log in to book an appointment.</p>
-              <Button onClick={() => navigate('/login')} className="mt-4">
-                Go to Login
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-        <Footer />
+      <div className="flex items-center justify-center py-20 px-4">
+        <Card className="max-w-md">
+          <CardContent className="pt-6">
+            <p>Please log in to book an appointment.</p>
+            <Button onClick={() => navigate('/login')} className="mt-4">
+              Go to Login
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -302,8 +293,7 @@ export default function BookAppointment() {
 
   if (currentStep === 'success') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-        <Header user={user} />
+      <>
         <ConfirmationDialog />
         <div className="flex items-center justify-center py-12 px-4">
           <Card className="max-w-md w-full">
@@ -317,8 +307,8 @@ export default function BookAppointment() {
               <Separator />
 
               <div className="space-y-2">
-                <Button onClick={() => navigate('/dashboard')} className="w-full" size="lg">
-                  Back to Dashboard
+                <Button onClick={() => navigate('/care/appointments')} className="w-full" size="lg">
+                  View My Appointments
                 </Button>
                 <Button
                   onClick={handleAddToGoogleCalendar}
@@ -333,16 +323,14 @@ export default function BookAppointment() {
             </CardContent>
           </Card>
         </div>
-        <Footer />
-      </div>
+      </>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      <Header user={user} />
+    <>
       <ConfirmationDialog />
-      <div className="py-8 px-4 md:px-6 max-w-5xl mx-auto">
+      <div className="max-w-4xl mx-auto">
         <Card className="shadow-lg">
           <CardHeader>
             <CardTitle className="text-2xl">Book an Appointment</CardTitle>
@@ -565,7 +553,6 @@ export default function BookAppointment() {
           </CardContent>
         </Card>
       </div>
-      <Footer />
-    </div>
+    </>
   );
 }
