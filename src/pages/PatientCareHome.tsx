@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { showEnhancedErrorToast } from "@/lib/enhancedErrorHandling";
 import { useTemplate } from "@/contexts/TemplateContext";
+import { BookingIframeModal } from "@/components/BookingIframeModal";
 
 interface Appointment {
   id: string;
@@ -37,6 +38,8 @@ export default function PatientCareHome() {
   const navigate = useNavigate();
   const { hasFeature } = useTemplate();
   const [loading, setLoading] = useState(true);
+  const [bookingModalOpen, setBookingModalOpen] = useState(false);
+  const [isEmergency, setIsEmergency] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [upcomingAppointments, setUpcomingAppointments] = useState<Appointment[]>([]);
   const [stats, setStats] = useState<PatientStats>({
@@ -155,7 +158,10 @@ export default function PatientCareHome() {
       icon: Calendar,
       label: t.bookAppointment || "Book Appointment",
       description: "Schedule a new appointment",
-      onClick: () => navigate('/book-appointment'),
+      onClick: () => {
+        setIsEmergency(false);
+        setBookingModalOpen(true);
+      },
       color: "text-blue-600",
       bgColor: "bg-blue-50 hover:bg-blue-100",
     },
@@ -179,14 +185,19 @@ export default function PatientCareHome() {
       icon: AlertCircle,
       label: "Emergency Care",
       description: "Urgent dental issues",
-      onClick: () => navigate('/book-appointment?emergency=true'),
+      onClick: () => {
+        setIsEmergency(true);
+        setBookingModalOpen(true);
+      },
       color: "text-red-600",
       bgColor: "bg-red-50 hover:bg-red-100",
     },
   ];
 
   return (
-    <div className="space-y-6">
+    <>
+      <BookingIframeModal open={bookingModalOpen} onOpenChange={setBookingModalOpen} emergency={isEmergency} />
+      <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -200,7 +211,10 @@ export default function PatientCareHome() {
         <Button
           size="lg"
           className="gap-2"
-          onClick={() => navigate('/book-appointment')}
+          onClick={() => {
+            setIsEmergency(false);
+            setBookingModalOpen(true);
+          }}
           aria-label={t.bookAppointment}
         >
           <Calendar className="h-4 w-4" />
@@ -377,7 +391,10 @@ export default function PatientCareHome() {
               </Alert>
               <Button
                 className="mt-4 w-full"
-                onClick={() => navigate('/book-appointment')}
+                onClick={() => {
+                  setIsEmergency(false);
+                  setBookingModalOpen(true);
+                }}
                 aria-label="Book your first appointment"
               >
                 <Calendar className="h-4 w-4 mr-2" />
@@ -403,6 +420,7 @@ export default function PatientCareHome() {
         </CardContent>
       </Card>
     </div>
+    </>
   );
 }
 

@@ -10,12 +10,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Calendar } from "@/components/ui/calendar";
-import { 
-  ArrowLeft, 
-  MapPin, 
-  Phone, 
-  Mail, 
-  Star, 
+import {
+  ArrowLeft,
+  MapPin,
+  Phone,
+  Mail,
+  Star,
   Bot,
   Clock,
   CalendarDays,
@@ -29,6 +29,7 @@ import { logger } from '@/lib/logger';
 import { AnimatedBackground, EmptyState } from "@/components/ui/polished-components";
 import { clinicTimeToUtc, createAppointmentDateTimeFromStrings } from "@/lib/timezone";
 import { useBusinessTemplate } from '@/hooks/useBusinessTemplate';
+import { BookingIframeModal } from "@/components/BookingIframeModal";
 
 interface Dentist {
   id: string;
@@ -73,6 +74,7 @@ export default function BookAppointmentAI() {
 const [bookingStep, setBookingStep] = useState<'dentist' | 'datetime' | 'confirm'>('dentist');
 const [showSuccessDialog, setShowSuccessDialog] = useState(false);
 const [successDetails, setSuccessDetails] = useState<{ date: string; time: string; dentist?: string; reason?: string } | undefined>(undefined);
+const [classicBookingModalOpen, setClassicBookingModalOpen] = useState(false);
 
   useEffect(() => {
     loadBookingData();
@@ -428,7 +430,9 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-secondary/10">
+    <>
+      <BookingIframeModal open={classicBookingModalOpen} onOpenChange={setClassicBookingModalOpen} />
+      <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-secondary/10">
       <AppointmentSuccessDialog 
         open={showSuccessDialog}
         onOpenChange={setShowSuccessDialog}
@@ -455,7 +459,7 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => navigate('/book-appointment')}
+                  onClick={() => setClassicBookingModalOpen(true)}
                   className="gap-2 text-muted-foreground hover:text-primary hover:bg-white/50"
                 >
                   <CalendarDays className="h-4 w-4" />
@@ -860,5 +864,6 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
         </div>
       )}
     </div>
+    </>
   );
 }

@@ -34,6 +34,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useTemplate } from "@/contexts/TemplateContext";
+import { BookingIframeModal } from "@/components/BookingIframeModal";
 
 interface CommandItem {
   id: string;
@@ -46,6 +47,7 @@ interface CommandItem {
 
 export function CommandPalette() {
   const [open, setOpen] = useState(false);
+  const [bookingModalOpen, setBookingModalOpen] = useState(false);
   const [userRole, setUserRole] = useState<string | null>(null);
   const navigate = useNavigate();
   const { hasFeature } = useTemplate();
@@ -265,7 +267,7 @@ export function CommandPalette() {
       id: "action-book",
       label: "Book New Appointment",
       icon: Calendar,
-      action: () => navigate("/book-appointment"),
+      action: () => setBookingModalOpen(true),
       keywords: ["book", "appointment", "new", "schedule"],
       group: "Actions",
     },
@@ -310,7 +312,9 @@ export function CommandPalette() {
   };
 
   return (
-    <CommandDialog open={open} onOpenChange={setOpen}>
+    <>
+      <BookingIframeModal open={bookingModalOpen} onOpenChange={setBookingModalOpen} />
+      <CommandDialog open={open} onOpenChange={setOpen}>
       <CommandInput placeholder="Type a command or search..." />
       <CommandList>
         <CommandEmpty>No results found.</CommandEmpty>
@@ -337,5 +341,6 @@ export function CommandPalette() {
         ))}
       </CommandList>
     </CommandDialog>
+    </>
   );
 }
