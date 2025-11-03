@@ -1,6 +1,12 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { UnifiedAuthForm } from "@/components/auth/UnifiedAuthForm";
-import { Scissors, Clock, Euro } from "lucide-react";
+import { Scissors, Clock, Euro, Calendar, MapPin, Phone } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import heroImage from "@/assets/barbershop-hero.jpg";
+import haircutImage from "@/assets/service-haircut.jpg";
+import beardImage from "@/assets/service-beard.jpg";
+import kidsImage from "@/assets/service-kids.jpg";
+import { useRef } from "react";
 
 interface BarbershopAuthPageProps {
   business: {
@@ -13,98 +19,191 @@ interface BarbershopAuthPageProps {
 }
 
 export const BarbershopAuthPage = ({ business, onAuthSuccess }: BarbershopAuthPageProps) => {
+  const authSectionRef = useRef<HTMLDivElement>(null);
+
+  const scrollToAuth = () => {
+    authSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  const services = [
+    { 
+      name: "Haar", 
+      price: "20€", 
+      description: "Professionele knipbeurt met stijladvies",
+      image: haircutImage,
+      duration: "30 min"
+    },
+    { 
+      name: "Baard", 
+      price: "10€", 
+      description: "Precisie trimmen en vormgeven",
+      image: beardImage,
+      duration: "15 min"
+    },
+    { 
+      name: "Haar en baard", 
+      price: "30€", 
+      description: "Complete verzorging pakket",
+      image: haircutImage,
+      duration: "45 min"
+    },
+    { 
+      name: "Kinderen", 
+      price: "15€", 
+      description: "Kindvriendelijke knipbeurt",
+      image: kidsImage,
+      duration: "20 min"
+    },
+    { 
+      name: "Wassen", 
+      price: "5€", 
+      description: "Haarverzorging met premium producten",
+      image: haircutImage,
+      duration: "10 min"
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-      {/* Hero Section */}
-      <div className="relative overflow-hidden bg-gradient-to-b from-slate-800 to-slate-900 border-b border-slate-700">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wMyI+PHBhdGggZD0iTTM2IDE0YzMuMzE0IDAgNiAyLjY4NiA2IDZzLTIuNjg2IDYtNiA2LTYtMi42ODYtNi02IDIuNjg2LTYgNi02ek0yNCA0MGMzLjMxNCAwIDYgMi42ODYgNiA2cy0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNiAyLjY4Ni02IDYtNnoiLz48L2c+PC9nPjwvc3ZnPg==')] opacity-40"></div>
+      {/* Hero Section with Image */}
+      <div className="relative h-[70vh] min-h-[500px] overflow-hidden">
+        {/* Background Image */}
+        <div className="absolute inset-0">
+          <img 
+            src={heroImage} 
+            alt="ArtBarber Interior" 
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-slate-900/70 via-slate-900/60 to-slate-900"></div>
+        </div>
         
-        <div className="container mx-auto px-4 py-16 relative">
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-12">
-              {business.logo_url && (
-                <img 
-                  src={business.logo_url} 
-                  alt={business.name}
-                  className="w-24 h-24 mx-auto mb-6 rounded-full object-cover border-4 border-slate-700 shadow-xl"
-                />
-              )}
-              <h1 className="text-5xl md:text-6xl font-bold text-white mb-4 tracking-tight">
-                {business.name}
-              </h1>
-              {business.tagline && (
-                <p className="text-xl text-slate-300 mb-8">{business.tagline}</p>
-              )}
-              <div className="flex items-center justify-center gap-3 text-slate-300">
-                <Scissors className="w-6 h-6" />
-                <span className="text-lg">Professional Barbering Services</span>
-              </div>
+        {/* Content */}
+        <div className="relative h-full container mx-auto px-4 flex flex-col justify-center items-center text-center">
+          {business.logo_url && (
+            <img 
+              src={business.logo_url} 
+              alt={business.name}
+              className="w-32 h-32 mb-6 rounded-full object-cover border-4 border-white/20 shadow-2xl"
+            />
+          )}
+          <h1 className="text-6xl md:text-7xl font-bold text-white mb-6 tracking-tight drop-shadow-lg">
+            {business.name}
+          </h1>
+          <p className="text-2xl text-slate-200 mb-8 max-w-2xl drop-shadow-md">
+            Professionele Kappersdiensten in het Hart van de Stad
+          </p>
+          <div className="flex flex-col sm:flex-row items-center gap-4 mb-8">
+            <div className="flex items-center gap-2 text-white bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full">
+              <Clock className="w-5 h-5" />
+              <span className="font-semibold">Di - Zo: 10:00 - 18:30</span>
             </div>
+            <div className="flex items-center gap-2 text-white bg-red-500/80 backdrop-blur-sm px-4 py-2 rounded-full">
+              <Calendar className="w-5 h-5" />
+              <span className="font-semibold">Zonder Afspraak</span>
+            </div>
+          </div>
+          <Button 
+            size="lg"
+            onClick={scrollToAuth}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-6 text-lg font-semibold shadow-2xl"
+          >
+            <Calendar className="w-5 h-5 mr-2" />
+            Boek Nu
+          </Button>
+        </div>
+      </div>
 
-            {/* Opening Hours & Pricing Info */}
-            <div className="grid md:grid-cols-2 gap-6 mb-12">
-              {/* Opening Hours */}
-              <Card className="bg-slate-800/50 border-slate-700 backdrop-blur-sm">
+      {/* Services Section */}
+      <div className="py-20 bg-slate-900">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-white mb-4">Onze Diensten</h2>
+            <p className="text-slate-400 text-lg">Klik op een dienst om te boeken</p>
+          </div>
+          
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+            {services.map((service, index) => (
+              <Card 
+                key={index}
+                className="group bg-slate-800/50 border-slate-700 hover:border-blue-500/50 transition-all duration-300 cursor-pointer overflow-hidden"
+                onClick={scrollToAuth}
+              >
+                <div className="aspect-video overflow-hidden">
+                  <img 
+                    src={service.image} 
+                    alt={service.name}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                  />
+                </div>
                 <CardHeader>
-                  <div className="flex items-center gap-2">
-                    <Clock className="w-5 h-5 text-blue-400" />
-                    <CardTitle className="text-white">Openingsuren</CardTitle>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  <div className="flex justify-between items-center text-slate-300">
-                    <span className="font-medium">Dinsdag tot Zondag</span>
-                    <span className="text-blue-400 font-semibold">10:00 - 18:30</span>
-                  </div>
-                  <div className="mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
-                    <p className="text-red-400 font-semibold text-center">Zonder afspraak</p>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Price List */}
-              <Card className="bg-slate-800/50 border-slate-700 backdrop-blur-sm">
-                <CardHeader>
-                  <div className="flex items-center gap-2">
-                    <Euro className="w-5 h-5 text-green-400" />
-                    <CardTitle className="text-white">Prijslijst</CardTitle>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <CardTitle className="text-white text-xl mb-1">{service.name}</CardTitle>
+                      <CardDescription className="text-slate-400">{service.description}</CardDescription>
+                    </div>
+                    <span className="text-green-400 font-bold text-2xl ml-2">{service.price}</span>
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-3">
-                    {[
-                      { service: "Haar", price: "20€" },
-                      { service: "Baard", price: "10€" },
-                      { service: "Haar en baard", price: "30€" },
-                      { service: "Kinderen", price: "15€" },
-                      { service: "Wassen", price: "5€" },
-                    ].map((item, index) => (
-                      <div 
-                        key={index}
-                        className="flex justify-between items-center py-2 border-b border-slate-700 last:border-0"
-                      >
-                        <span className="text-slate-300 font-medium">{item.service}</span>
-                        <span className="text-green-400 font-bold text-lg">{item.price}</span>
-                      </div>
-                    ))}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-slate-400">
+                      <Clock className="w-4 h-4" />
+                      <span className="text-sm">{service.duration}</span>
+                    </div>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      className="text-blue-400 hover:text-blue-300 hover:bg-blue-500/10"
+                    >
+                      Boek Nu →
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Contact Info Section */}
+      <div className="py-12 bg-slate-800/50 border-y border-slate-700">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto grid md:grid-cols-3 gap-8 text-center">
+            <div className="flex flex-col items-center gap-3">
+              <MapPin className="w-8 h-8 text-blue-400" />
+              <h3 className="text-white font-semibold">Locatie</h3>
+              <p className="text-slate-400">Te Boelaerpark, Antwerpen</p>
+            </div>
+            <div className="flex flex-col items-center gap-3">
+              <Clock className="w-8 h-8 text-blue-400" />
+              <h3 className="text-white font-semibold">Openingstijden</h3>
+              <p className="text-slate-400">Di - Zo: 10:00 - 18:30</p>
+            </div>
+            <div className="flex flex-col items-center gap-3">
+              <Phone className="w-8 h-8 text-blue-400" />
+              <h3 className="text-white font-semibold">Contact</h3>
+              <p className="text-slate-400">Walk-ins welkom!</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Auth Section */}
-      <div className="container mx-auto px-4 py-16">
+      <div ref={authSectionRef} className="container mx-auto px-4 py-20 bg-gradient-to-b from-slate-900 to-slate-800">
         <div className="max-w-md mx-auto">
+          <div className="text-center mb-8">
+            <Scissors className="w-12 h-12 text-blue-400 mx-auto mb-4" />
+            <h2 className="text-3xl font-bold text-white mb-2">Maak een Account</h2>
+            <p className="text-slate-400">Meld je aan om je afspraak te boeken bij ArtBarber</p>
+          </div>
+          
           <Card className="bg-slate-800/70 border-slate-700 backdrop-blur-md shadow-2xl">
             <CardHeader className="text-center space-y-2">
               <CardTitle className="text-2xl text-white">
-                Sign In to Book
+                Login of Registreer
               </CardTitle>
               <CardDescription className="text-slate-400">
-                Create an account or sign in to book your appointment with {business.name}
+                Kies je dienst en boek direct je afspraak
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -112,9 +211,12 @@ export const BarbershopAuthPage = ({ business, onAuthSuccess }: BarbershopAuthPa
             </CardContent>
           </Card>
           
-          <div className="mt-6 text-center">
+          <div className="mt-6 text-center space-y-2">
             <p className="text-slate-400 text-sm">
-              Walk-ins welcome • Professional service • Modern techniques
+              ✂️ Walk-ins welcome • 🏆 Professional service • ⚡ Modern techniques
+            </p>
+            <p className="text-slate-500 text-xs">
+              Door een account aan te maken, ga je akkoord met onze voorwaarden
             </p>
           </div>
         </div>

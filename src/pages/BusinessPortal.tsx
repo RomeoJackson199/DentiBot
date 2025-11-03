@@ -158,8 +158,8 @@ export default function BusinessPortal() {
     return <RestaurantPublicPage business={business} services={services} />;
   }
 
-  // If business slug is ArtBarber and user is not logged in, show barbershop page
-  if (slug === 'ArtBarber' && !user) {
+  // If business slug is artbarber and user is not logged in, show barbershop page
+  if (slug === 'artbarber' && !user) {
     return <BarbershopAuthPage business={business} onAuthSuccess={handleAuthSuccess} />;
   }
 
