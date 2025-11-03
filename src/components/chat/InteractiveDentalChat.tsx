@@ -33,6 +33,7 @@ import { BookingReadyWidget } from "./BookingReadyWidget";
 import { AppointmentSuccessWidget } from "./AppointmentSuccessWidget";
 import { createAppointmentDateTime } from "@/lib/timezone";
 import { logger } from '@/lib/logger';
+import { useNavigate } from "react-router-dom";
 
 // Widget code mapping
 const WIDGET_CODES: Record<string, string> = {
@@ -138,6 +139,7 @@ export const InteractiveDentalChat = ({
   const { t } = useLanguage();
   const { toast } = useToast();
   const { setTheme } = useTheme();
+  const navigate = useNavigate();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -1553,9 +1555,13 @@ You'll receive a confirmation email shortly.`;
           size="sm"
           onClick={() => { 
             try { 
-              localStorage.setItem('pd_section', 'assistant');
+              localStorage.setItem('pd_section', 'assistant'); 
+              localStorage.setItem('pd_forceClassic', '1');
             } catch {}; 
             window.dispatchEvent(new CustomEvent('dashboard:changeSection', { detail: { section: 'assistant' } }));
+            if (window.location.pathname !== '/dashboard') {
+              navigate('/dashboard');
+            }
           }}
           className="text-xs text-muted-foreground hover:text-primary"
         >

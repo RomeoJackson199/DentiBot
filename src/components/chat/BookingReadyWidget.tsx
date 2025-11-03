@@ -18,13 +18,18 @@ export const BookingReadyWidget = ({ conversationData }: BookingReadyWidgetProps
     // Store conversation data in session storage for booking
     sessionStorage.setItem('aiBookingData', JSON.stringify(conversationData));
     
-    // Just ensure we're on the assistant section (booking stays embedded in chat)
+    // Ensure we're on the assistant section (embedded booking)
     try {
       localStorage.setItem('pd_section', 'assistant');
     } catch {}
     
-    // Dispatch event to switch section if needed
+    // Switch section if dashboard is already mounted
     window.dispatchEvent(new CustomEvent('dashboard:changeSection', { detail: { section: 'assistant' } }));
+
+    // If we're not on the dashboard, navigate there so the event/flags take effect
+    if (window.location.pathname !== '/dashboard') {
+      navigate('/dashboard');
+    }
   };
 
   return (
