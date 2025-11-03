@@ -32,7 +32,7 @@ export function DemoAppointments() {
       {/* Calendar */}
       <Card className="p-6">
         <div className="overflow-x-auto">
-          <div className="min-w-[800px]">
+          <div className="w-full md:min-w-[800px]">
             {/* Header */}
             <div className="grid grid-cols-6 gap-2 mb-4">
               <div className="p-3 font-semibold text-muted-foreground">Time</div>

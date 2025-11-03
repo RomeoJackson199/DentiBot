@@ -473,7 +473,7 @@ export function CompletionSheet({ open, onOpenChange, appointment, dentistId, on
 
 	const HeaderBar = (
 		<div className="sticky top-0 z-sticky bg-background/95 backdrop-blur border-b">
-			<div className="max-w-[1200px] mx-auto px-3 py-2 flex items-center justify-between gap-3">
+			<div className="max-w-full sm:max-w-2xl lg:max-w-5xl mx-auto px-3 py-2 flex items-center justify-between gap-3">
 				<Button variant="ghost" size="sm" onClick={() => onOpenChange(false)} aria-label="Close"><X className="h-4 w-4" /></Button>
 				<div className="flex items-center gap-3 min-w-0">
 					<div className="truncate font-semibold">Complete Visit — {patientName || 'Patient'}</div>
@@ -484,14 +484,14 @@ export function CompletionSheet({ open, onOpenChange, appointment, dentistId, on
 					</Button>
 				</div>
 			</div>
-			<div className="max-w-[1200px] mx-auto px-3 pb-2 text-xs text-muted-foreground flex items-center gap-2">
+			<div className="max-w-full sm:max-w-2xl lg:max-w-5xl mx-auto px-3 pb-2 text-xs text-muted-foreground flex items-center gap-2">
 				<Calendar className="h-3 w-3" /> {new Date(appointment.appointment_date).toLocaleString()} • Dr. {dentistName || '—'} • In room
 			</div>
 		</div>
 	);
 
 	const Body = (
-		<div className="max-w-[1200px] mx-auto px-3 py-3 space-y-6">
+		<div className="max-w-full sm:max-w-2xl lg:max-w-5xl mx-auto px-3 py-3 space-y-6">
 			{/* Section A — Procedures */}
 			<div>
 				<div className="flex items-center justify-between">
@@ -664,7 +664,7 @@ export function CompletionSheet({ open, onOpenChange, appointment, dentistId, on
 
 	const Footer = (
 		<div className="sticky bottom-0 z-sticky bg-background/95 backdrop-blur border-t">
-			<div className="max-w-[1200px] mx-auto px-3 py-3 space-y-3">
+			<div className="max-w-full sm:max-w-2xl lg:max-w-5xl mx-auto px-3 py-3 space-y-3">
 				{/* Billing summary */}
 				<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
 					<div className="text-sm space-y-1">
@@ -713,7 +713,7 @@ export function CompletionSheet({ open, onOpenChange, appointment, dentistId, on
 				</Drawer>
 			) : (
 				<Dialog open={open} onOpenChange={onOpenChange}>
-					<DialogContent className="p-0 w-full max-w-[1200px]">
+					<DialogContent className="p-0 w-full max-w-full sm:max-w-2xl lg:max-w-5xl">
 						{HeaderBar}
 						<div className="overflow-y-auto max-h-[70vh]">{Body}</div>
 						{Footer}

@@ -200,7 +200,7 @@ export default function DentistAppointmentsManagement() {
             </Button>
 
             <div className="flex items-center gap-2">
-              <span className="text-base font-semibold min-w-[240px] text-center bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+              <span className="text-base font-semibold text-center bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
                 {getDateRangeLabel()}
               </span>
             </div>
@@ -231,7 +231,7 @@ export default function DentistAppointmentsManagement() {
         {/* Calendar View */}
         <div className={cn(
           "p-4 overflow-auto transition-all duration-300",
-          selectedAppointment ? "w-[22%]" : "flex-1"
+          selectedAppointment ? "hidden md:block md:w-[22%]" : "flex-1"
         )}>
           {dentistLoading ? <div className="flex justify-center items-center h-full">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -241,7 +241,7 @@ export default function DentistAppointmentsManagement() {
         </div>
 
         {/* Sidebar */}
-        {selectedAppointment && <div className={cn("w-[78%] border-l bg-card/95 backdrop-blur-lg transition-all duration-300 shadow-xl")}>
+        {selectedAppointment && <div className={cn("w-full md:w-[78%] border-l bg-card/95 backdrop-blur-lg transition-all duration-300 shadow-xl")}>
             <AppointmentDetailsSidebar appointment={selectedAppointment} onClose={handleBackToWeek} onStatusChange={handleStatusChange} />
           </div>}
       </div>
