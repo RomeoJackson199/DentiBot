@@ -289,6 +289,7 @@ const App = () => {
                   <Route path="/account/insurance" element={<PatientAccountInsurancePage />} />
                   <Route path="/account/privacy" element={<PatientAccountPrivacyPage />} />
                   <Route path="/account/help" element={<PatientAccountHelpPage />} />
+                  <Route path="/book-appointment" element={<BookAppointment />} />
                 </Route>
                 {/* Public routes */}
                 <Route path="/dentists" element={<DentistProfiles />} />
@@ -311,7 +312,6 @@ const App = () => {
                 <Route path="/admin/setup-mp" element={<SetupMPPage />} />
                 {/* Booking routes */}
                 <Route path="/book-appointment-ai" element={<BookingRouteHandler><BookAppointmentAI /></BookingRouteHandler>} />
-                <Route path="/book-appointment" element={<BookAppointment />} />
                 {/* Business portal route - must come before catch-all */}
                 <Route path="/:slug" element={<BusinessPortal />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

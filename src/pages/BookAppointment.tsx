@@ -268,7 +268,7 @@ export default function BookAppointment() {
 
   if (loading || businessLoading) {
     return (
-      <div className="flex items-center justify-center h-screen">
+      <div className="flex items-center justify-center min-h-[400px]">
         <ModernLoadingSpinner variant="overlay" message="Loading..." />
       </div>
     );
@@ -276,7 +276,7 @@ export default function BookAppointment() {
 
   if (!user) {
     return (
-      <div className="flex items-center justify-center h-screen">
+      <div className="flex items-center justify-center min-h-[400px]">
         <Card className="max-w-md">
           <CardContent className="pt-6">
             <p>Please log in to book an appointment.</p>
@@ -295,7 +295,7 @@ export default function BookAppointment() {
     return (
       <>
         <ConfirmationDialog />
-        <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="flex items-center justify-center p-4">
         <Card className="max-w-md w-full">
           <CardContent className="pt-6 text-center space-y-4">
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
@@ -330,7 +330,7 @@ export default function BookAppointment() {
   return (
     <>
       <ConfirmationDialog />
-      <div className="min-h-screen p-4 md:p-6">
+      <div className="p-4 md:p-6">
       <Card className="max-w-4xl mx-auto">
         <CardHeader>
           <CardTitle className="text-2xl">Book an Appointment</CardTitle>
