@@ -157,37 +157,52 @@ export function EnhancedAvailabilitySettings({ dentistId }: EnhancedAvailability
   const saveAvailability = async () => {
     setSaving(true);
     try {
+      console.log('Starting save availability for dentist:', dentistId);
       const businessId = await getCurrentBusinessId();
+      console.log('Got business ID:', businessId);
 
       // Delete existing availability for this dentist and business
+      console.log('Deleting existing availability...');
       const { error: deleteError } = await supabase
         .from('dentist_availability')
         .delete()
         .eq('dentist_id', dentistId)
         .eq('business_id', businessId);
 
-      if (deleteError) throw deleteError;
+      if (deleteError) {
+        console.error('Delete error:', deleteError);
+        throw deleteError;
+      }
+      console.log('Delete successful');
 
-      // Insert new availability settings
+      // Insert new availability settings (only include breaks if both times are set)
       const availabilityData = availability
         .filter(day => day.is_available)
-        .map(day => ({
-          dentist_id: dentistId,
-          business_id: businessId,
-          day_of_week: day.day_of_week,
-          start_time: day.start_time,
-          end_time: day.end_time,
-          is_available: day.is_available,
-          break_start_time: day.break_start_time || null,
-          break_end_time: day.break_end_time || null,
-        }));
+        .map(day => {
+          const hasCompleteBreak = day.break_start_time && day.break_end_time;
+          return {
+            dentist_id: dentistId,
+            business_id: businessId,
+            day_of_week: day.day_of_week,
+            start_time: day.start_time,
+            end_time: day.end_time,
+            is_available: day.is_available,
+            break_start_time: hasCompleteBreak ? day.break_start_time : null,
+            break_end_time: hasCompleteBreak ? day.break_end_time : null,
+          };
+        });
 
+      console.log('Inserting availability data:', availabilityData);
       if (availabilityData.length > 0) {
         const { error: insertError } = await supabase
           .from('dentist_availability')
           .insert(availabilityData);
 
-        if (insertError) throw insertError;
+        if (insertError) {
+          console.error('Insert error:', insertError);
+          throw insertError;
+        }
+        console.log('Insert successful');
       }
 
       // Refetch to confirm
@@ -198,6 +213,7 @@ export function EnhancedAvailabilitySettings({ dentistId }: EnhancedAvailability
         description: t.availabilityUpdated,
       });
     } catch (error: any) {
+      console.error('Save availability failed:', error);
       logger.error('Failed to save availability:', error);
       toast({
         title: t.error,
@@ -403,7 +419,7 @@ export function EnhancedAvailabilitySettings({ dentistId }: EnhancedAvailability
                               <div>
                                 <Label htmlFor={`break-start-${day.value}`} className="text-sm font-medium">
                                   <Coffee className="h-3 w-3 inline mr-1" />
-                                  {t.breakStart}
+                                  {t.breakStart} <span className="text-muted-foreground">(optional)</span>
                                 </Label>
                                 <Input
                                   id={`break-start-${day.value}`}
@@ -413,12 +429,13 @@ export function EnhancedAvailabilitySettings({ dentistId }: EnhancedAvailability
                                     updateAvailability(index, 'break_start_time', e.target.value || null)
                                   }
                                   className="h-10 mt-1"
+                                  placeholder="No break"
                                 />
                               </div>
                               <div>
                                 <Label htmlFor={`break-end-${day.value}`} className="text-sm font-medium">
                                   <Coffee className="h-3 w-3 inline mr-1" />
-                                  {t.breakEnd}
+                                  {t.breakEnd} <span className="text-muted-foreground">(optional)</span>
                                 </Label>
                                 <Input
                                   id={`break-end-${day.value}`}
@@ -428,6 +445,7 @@ export function EnhancedAvailabilitySettings({ dentistId }: EnhancedAvailability
                                     updateAvailability(index, 'break_end_time', e.target.value || null)
                                   }
                                   className="h-10 mt-1"
+                                  placeholder="No break"
                                 />
                               </div>
                             </div>
