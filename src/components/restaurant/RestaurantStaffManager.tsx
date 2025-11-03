@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useToast } from '@/hooks/use-toast';
 import { Trash2, UserCheck, UserX } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { RestaurantStaffCodes } from './RestaurantStaffCodes';
+import { RestaurantStaffInviteByEmail } from './RestaurantStaffInviteByEmail';
 
 interface RestaurantStaffManagerProps {
   businessId: string;
@@ -87,10 +87,10 @@ export function RestaurantStaffManager({ businessId }: RestaurantStaffManagerPro
     <div className="space-y-8">
       <div>
         <h2 className="text-2xl font-bold">Staff Management</h2>
-        <p className="text-muted-foreground">Manage staff codes and view your team members</p>
+        <p className="text-muted-foreground">Invite staff by email and manage your team</p>
       </div>
 
-      <RestaurantStaffCodes businessId={businessId} />
+      <RestaurantStaffInviteByEmail businessId={businessId} />
 
       <div>
         <h3 className="text-lg font-semibold mb-4">Current Staff Members</h3>
@@ -142,7 +142,7 @@ export function RestaurantStaffManager({ businessId }: RestaurantStaffManagerPro
           {staff?.length === 0 && (
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12">
-                <p className="text-muted-foreground">No staff members yet. Generate codes above to invite your team.</p>
+                <p className="text-muted-foreground">No staff members yet. Send an email invitation above to invite your team.</p>
               </CardContent>
             </Card>
           )}

@@ -2066,6 +2066,10 @@ export type Database = {
         Args: { p_business_id: string; p_invitation_id: string }
         Returns: Json
       }
+      accept_restaurant_staff_invitation: {
+        Args: { p_invitation_id: string }
+        Returns: Json
+      }
       assign_provider_role: { Args: never; Returns: undefined }
       book_appointment_slot: {
         Args: {
@@ -2148,6 +2152,10 @@ export type Database = {
         Returns: Json
       }
       leave_clinic: { Args: { p_business_id?: string }; Returns: Json }
+      reject_restaurant_staff_invitation: {
+        Args: { p_invitation_id: string }
+        Returns: Json
+      }
       release_appointment_slot: {
         Args: { p_appointment_id: string }
         Returns: undefined

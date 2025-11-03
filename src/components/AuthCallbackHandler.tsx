@@ -112,6 +112,46 @@ export const AuthCallbackHandler = () => {
                 }).catch(console.warn);
                 localStorage.removeItem('selected_business_id');
               }
+
+              // Prompt user to accept pending restaurant staff invitations
+              try {
+                if (session?.user?.email) {
+                  const email = session.user.email;
+                  const { data: invites, error: invitesError } = await supabase
+                    .from('restaurant_staff_roles')
+                    .select('id, business_id, role')
+                    .eq('invitation_email', email)
+                    .eq('invitation_status', 'pending');
+
+                  if (!invitesError && invites && invites.length > 0) {
+                    for (const inv of invites as any[]) {
+                      let businessName = 'this clinic';
+                      try {
+                        const { data: biz } = await supabase
+                          .from('businesses')
+                          .select('name')
+                          .eq('id', inv.business_id)
+                          .maybeSingle();
+                        if (biz?.name) businessName = biz.name;
+                      } catch {}
+
+                      const accepted = window.confirm(
+                        `You've been invited to join ${businessName} as ${inv.role}. Do you want to accept?`
+                      );
+
+                      if (accepted) {
+                        await supabase.rpc('accept_restaurant_staff_invitation', { p_invitation_id: inv.id });
+                        toast({ title: 'Invitation accepted', description: `Joined ${businessName} as ${inv.role}.` });
+                      } else {
+                        await supabase.rpc('reject_restaurant_staff_invitation', { p_invitation_id: inv.id });
+                        toast({ title: 'Invitation declined', description: `Declined invite to ${businessName}.` });
+                      }
+                    }
+                  }
+                }
+              } catch (e) {
+                logger.error('Error handling staff invitations:', e);
+              }
             } catch (error) {
               console.error("Profile linking error:", error);
             }
