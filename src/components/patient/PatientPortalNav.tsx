@@ -397,7 +397,11 @@ function PatientPortalNavContent({ children }: { children: React.ReactNode }) {
   // Desktop collapsible sidebar
   return (
     <div className="flex min-h-screen w-full">
-      <Sidebar collapsible="icon">
+      <Sidebar 
+        collapsible="icon"
+        onMouseEnter={() => toggleSidebar()}
+        onMouseLeave={() => toggleSidebar()}
+      >
         {navContent}
       </Sidebar>
         <div className="flex-1">
@@ -459,17 +463,8 @@ function PatientPortalNavContent({ children }: { children: React.ReactNode }) {
   }
 
 export function PatientPortalNav({ children }: { children: React.ReactNode }) {
-  const [defaultOpen, setDefaultOpen] = useState(true);
-
-  useEffect(() => {
-    const cookieOpen = readSidebarCookie();
-    const w = window.innerWidth;
-    const computed = w >= 1024 ? true : w >= 768 ? false : false;
-    setDefaultOpen(typeof cookieOpen === 'boolean' ? cookieOpen : computed);
-  }, []);
-
   return (
-    <SidebarProvider defaultOpen={defaultOpen} style={{ ['--sidebar-width' as any]: '17.5rem', ['--sidebar-width-icon' as any]: '4.5rem' }}>
+    <SidebarProvider defaultOpen={false} style={{ ['--sidebar-width' as any]: '17.5rem', ['--sidebar-width-icon' as any]: '4.5rem' }}>
       <PatientPortalNavContent>{children}</PatientPortalNavContent>
     </SidebarProvider>
   );
