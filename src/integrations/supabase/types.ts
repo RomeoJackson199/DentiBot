@@ -1506,6 +1506,54 @@ export type Database = {
           },
         ]
       }
+      restaurant_staff_codes: {
+        Row: {
+          business_id: string
+          code: string
+          created_at: string
+          created_by_profile_id: string
+          id: string
+          is_active: boolean
+          role: string
+          updated_at: string
+        }
+        Insert: {
+          business_id: string
+          code: string
+          created_at?: string
+          created_by_profile_id: string
+          id?: string
+          is_active?: boolean
+          role: string
+          updated_at?: string
+        }
+        Update: {
+          business_id?: string
+          code?: string
+          created_at?: string
+          created_by_profile_id?: string
+          id?: string
+          is_active?: boolean
+          role?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "restaurant_staff_codes_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "restaurant_staff_codes_created_by_profile_id_fkey"
+            columns: ["created_by_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       restaurant_staff_roles: {
         Row: {
           business_id: string
@@ -2086,6 +2134,10 @@ export type Database = {
       is_user_member_of_business: {
         Args: { _business_id: string; _user_id: string }
         Returns: boolean
+      }
+      join_restaurant_staff_with_code: {
+        Args: { p_code: string }
+        Returns: Json
       }
       leave_clinic: { Args: { p_business_id?: string }; Returns: Json }
       release_appointment_slot: {

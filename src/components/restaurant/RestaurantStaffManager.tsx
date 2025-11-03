@@ -2,14 +2,11 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Trash2, UserCheck, UserX } from 'lucide-react';
+import { Trash2, UserCheck, UserX } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { RestaurantStaffCodes } from './RestaurantStaffCodes';
 
 interface RestaurantStaffManagerProps {
   businessId: string;
@@ -18,11 +15,6 @@ interface RestaurantStaffManagerProps {
 export function RestaurantStaffManager({ businessId }: RestaurantStaffManagerProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [isOpen, setIsOpen] = useState(false);
-  const [formData, setFormData] = useState({
-    email: '',
-    role: 'waiter' as 'waiter' | 'cook' | 'host' | 'manager',
-  });
 
   const { data: staff, isLoading } = useQuery({
     queryKey: ['restaurant-staff', businessId],
@@ -38,36 +30,12 @@ export function RestaurantStaffManager({ businessId }: RestaurantStaffManagerPro
           )
         `)
         .eq('business_id', businessId)
+        .eq('is_active', true)
+        .is('invitation_status', null)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
       return data;
-    },
-  });
-
-  const assignRoleMutation = useMutation({
-    mutationFn: async (data: typeof formData) => {
-      const { data: invitationId, error } = await supabase
-        .rpc('create_restaurant_staff_invitation', {
-          p_business_id: businessId,
-          p_email: data.email,
-          p_role: data.role,
-        });
-      
-      if (error) throw error;
-      return invitationId;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['restaurant-staff'] });
-      setIsOpen(false);
-      setFormData({ email: '', role: 'waiter' });
-      toast({ 
-        title: 'Staff invitation sent', 
-        description: 'They will be added when they sign up or log in' 
-      });
-    },
-    onError: (error: any) => {
-      toast({ title: 'Error inviting staff', description: error.message, variant: 'destructive' });
     },
   });
 
@@ -116,96 +84,38 @@ export function RestaurantStaffManager({ businessId }: RestaurantStaffManagerPro
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold">Staff Management</h2>
-          <p className="text-muted-foreground">Assign roles to your team members</p>
-        </div>
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Staff Member
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Add Staff Member</DialogTitle>
-              <DialogDescription>Enter an email address to invite a team member. They'll be automatically added when they sign up or log in.</DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="email">Email Address</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  placeholder="team@example.com"
-                />
-              </div>
-              <div>
-                <Label htmlFor="role">Role</Label>
-                <Select value={formData.role} onValueChange={(value: any) => setFormData({ ...formData, role: value })}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="waiter">Waiter/Server</SelectItem>
-                    <SelectItem value="cook">Cook/Chef</SelectItem>
-                    <SelectItem value="host">Host/Hostess</SelectItem>
-                    <SelectItem value="manager">Manager</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsOpen(false)}>Cancel</Button>
-              <Button onClick={() => assignRoleMutation.mutate(formData)}>
-                Add Staff Member
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+    <div className="space-y-8">
+      <div>
+        <h2 className="text-2xl font-bold">Staff Management</h2>
+        <p className="text-muted-foreground">Manage staff codes and view your team members</p>
       </div>
 
-      <div className="space-y-4">
-        {staff?.map((member: any) => (
-          <Card key={member.id}>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <CardTitle className="flex items-center gap-2">
-                    {member.invitation_status === 'pending' ? (
-                      <>
-                        <span className="text-muted-foreground">Pending: {member.invitation_email}</span>
-                        <Badge variant="outline" className="ml-2">Invited</Badge>
-                      </>
-                    ) : (
-                      <>
-                        {member.profiles?.first_name} {member.profiles?.last_name}
-                        {member.is_active ? (
-                          <Badge variant="default" className="ml-2">Active</Badge>
-                        ) : (
-                          <Badge variant="secondary">Inactive</Badge>
-                        )}
-                      </>
-                    )}
-                  </CardTitle>
-                  <CardDescription className="flex items-center gap-2 mt-1">
-                    {member.invitation_status === 'pending' ? (
-                      <span>Invitation sent - waiting for signup</span>
-                    ) : (
-                      member.profiles?.email
-                    )}
-                    <Badge variant={getRoleBadgeVariant(member.role)}>
-                      {member.role}
-                    </Badge>
-                  </CardDescription>
-                </div>
-                <div className="flex gap-2">
-                  {member.invitation_status !== 'pending' && (
+      <RestaurantStaffCodes businessId={businessId} />
+
+      <div>
+        <h3 className="text-lg font-semibold mb-4">Current Staff Members</h3>
+        <div className="space-y-4">
+          {staff?.map((member: any) => (
+            <Card key={member.id}>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <CardTitle className="flex items-center gap-2">
+                      {member.profiles?.first_name} {member.profiles?.last_name}
+                      {member.is_active ? (
+                        <Badge variant="default" className="ml-2">Active</Badge>
+                      ) : (
+                        <Badge variant="secondary">Inactive</Badge>
+                      )}
+                    </CardTitle>
+                    <CardDescription className="flex items-center gap-2 mt-1">
+                      {member.profiles?.email}
+                      <Badge variant={getRoleBadgeVariant(member.role)}>
+                        {member.role}
+                      </Badge>
+                    </CardDescription>
+                  </div>
+                  <div className="flex gap-2">
                     <Button
                       variant="ghost"
                       size="icon"
@@ -217,32 +127,27 @@ export function RestaurantStaffManager({ businessId }: RestaurantStaffManagerPro
                         <UserCheck className="h-4 w-4" />
                       )}
                     </Button>
-                  )}
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => deleteMutation.mutate(member.id)}
-                  >
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => deleteMutation.mutate(member.id)}
+                    >
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            </CardHeader>
-          </Card>
-        ))}
+              </CardHeader>
+            </Card>
+          ))}
+          {staff?.length === 0 && (
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center py-12">
+                <p className="text-muted-foreground">No staff members yet. Generate codes above to invite your team.</p>
+              </CardContent>
+            </Card>
+          )}
+        </div>
       </div>
-
-      {staff?.length === 0 && (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <p className="text-muted-foreground mb-4">No staff members assigned yet</p>
-            <Button onClick={() => setIsOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add First Staff Member
-            </Button>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }

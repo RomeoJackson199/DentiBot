@@ -12,6 +12,7 @@ import { saveProfileData, loadProfileData, ProfileData } from "@/lib/profileUtil
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
+import { JoinRestaurantStaff } from "@/components/restaurant/JoinRestaurantStaff";
 
 export interface SettingsPageProps {
   user: User;
@@ -306,11 +307,14 @@ const LinkedAccounts: React.FC = () => {
   const { toast } = useToast();
   
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Linked Accounts</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
+    <div className="space-y-6">
+      <JoinRestaurantStaff />
+      
+      <Card>
+        <CardHeader>
+          <CardTitle>Linked Accounts</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
         <div className="space-y-3">
           <div className="flex items-center justify-between p-3 border rounded-lg">
             <div className="flex items-center gap-3">
@@ -390,6 +394,7 @@ const LinkedAccounts: React.FC = () => {
         </div>
       </CardContent>
     </Card>
+    </div>
   );
 };
 
