@@ -9,6 +9,7 @@ import { Building2 } from "lucide-react";
 import { logger } from '@/lib/logger';
 import { CustomizableHomepage } from "@/components/business/CustomizableHomepage";
 import RestaurantPublicPage from "./RestaurantPublicPage";
+import { BarbershopAuthPage } from "@/components/barbershop/BarbershopAuthPage";
 
 export default function BusinessPortal() {
   const { slug } = useParams<{ slug: string }>();
@@ -155,6 +156,11 @@ export default function BusinessPortal() {
   // If business is a restaurant template and user is not logged in, show restaurant page
   if (business.template_type === 'restaurant' && !user) {
     return <RestaurantPublicPage business={business} services={services} />;
+  }
+
+  // If business slug is ArtBarber and user is not logged in, show barbershop page
+  if (slug === 'ArtBarber' && !user) {
+    return <BarbershopAuthPage business={business} onAuthSuccess={handleAuthSuccess} />;
   }
 
   // If homepage settings exist and is active, show customizable homepage
