@@ -157,25 +157,25 @@ export default function DentistAppointmentsManagement() {
         </Card>
       </div>;
   }
-  return <div className="h-screen flex flex-col bg-gradient-to-br from-background via-primary/5 to-secondary/10 pt-6">
+  return <div className="h-screen flex flex-col bg-gradient-to-br from-background via-primary/5 to-secondary/10 pt-3 sm:pt-6">
       {/* Enhanced Header */}
       <div className={cn("border-b bg-card/95 backdrop-blur-lg sticky top-0 z-30 transition-transform duration-300 shadow-md", headerVisible ? "translate-y-0" : "-translate-y-full")}>
         {/* Page Title */}
-        <div className="px-6 pt-4 pb-2">
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+        <div className="px-3 sm:px-6 pt-3 sm:pt-4 pb-2">
+          <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
             My Calendar & Appointments
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">Manage your schedule and appointments</p>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1">Manage your schedule and appointments</p>
         </div>
 
         {/* View Controls */}
-        <div className="flex items-center justify-between px-6 pb-4">
-          <div className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 px-3 sm:px-6 pb-3 sm:pb-4">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
             <Button
               variant={viewMode === "week" ? "default" : "outline"}
               size="sm"
               onClick={() => setViewMode("week")}
-              className={cn(viewMode === "week" && "bg-gradient-to-r from-blue-600 to-purple-600")}
+              className={cn("flex-1 sm:flex-initial text-xs sm:text-sm", viewMode === "week" && "bg-gradient-to-r from-blue-600 to-purple-600")}
             >
               Week View
             </Button>
@@ -183,24 +183,24 @@ export default function DentistAppointmentsManagement() {
               variant={viewMode === "day" ? "default" : "outline"}
               size="sm"
               onClick={() => setViewMode("day")}
-              className={cn(viewMode === "day" && "bg-gradient-to-r from-blue-600 to-purple-600")}
+              className={cn("flex-1 sm:flex-initial text-xs sm:text-sm", viewMode === "day" && "bg-gradient-to-r from-blue-600 to-purple-600")}
             >
               Day View
             </Button>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center justify-between sm:justify-start gap-3 sm:gap-4 w-full sm:w-auto">
             <Button
               variant="ghost"
               size="icon"
               onClick={() => navigateDate("prev")}
-              className="h-9 w-9 hover:bg-primary/10"
+              className="h-8 w-8 sm:h-9 sm:w-9 hover:bg-primary/10"
             >
-              <ChevronLeft className="h-5 w-5" />
+              <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5" />
             </Button>
 
-            <div className="flex items-center gap-2">
-              <span className="text-base font-semibold text-center bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+            <div className="flex items-center gap-2 flex-1 sm:flex-initial justify-center">
+              <span className="text-sm sm:text-base font-semibold text-center bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
                 {getDateRangeLabel()}
               </span>
             </div>
@@ -209,9 +209,9 @@ export default function DentistAppointmentsManagement() {
               variant="ghost"
               size="icon"
               onClick={() => navigateDate("next")}
-              className="h-9 w-9 hover:bg-primary/10"
+              className="h-8 w-8 sm:h-9 sm:w-9 hover:bg-primary/10"
             >
-              <ChevronRight className="h-5 w-5" />
+              <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5" />
             </Button>
           </div>
 
@@ -219,7 +219,7 @@ export default function DentistAppointmentsManagement() {
             variant="outline"
             size="sm"
             onClick={() => setCurrentDate(new Date())}
-            className="border-primary/30 hover:bg-primary/10"
+            className="border-primary/30 hover:bg-primary/10 text-xs sm:text-sm"
           >
             Today
           </Button>

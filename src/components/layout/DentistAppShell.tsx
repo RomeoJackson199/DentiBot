@@ -101,45 +101,38 @@ export const DentistAppShell: React.FC<DentistAppShellProps> = ({
   }, []);
   if (isMobile) {
     return <div className="min-h-screen bg-background">
-        {/* Mobile Header */}
+        {/* Mobile Header - Simplified */}
         <div className="fixed top-0 left-0 right-0 z-50 bg-background border-b">
-          <div className="flex items-center justify-between px-4 py-3">
-            <div className="flex items-center space-x-2">
-              {branding.logoUrl ? <img src={branding.logoUrl} alt="Clinic Logo" className="h-8 w-8 rounded-lg object-cover" /> : <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
+          <div className="flex items-center justify-between px-3 py-3">
+            <div className="flex items-center gap-2 flex-1 min-w-0">
+              {branding.logoUrl ? <img src={branding.logoUrl} alt="Clinic Logo" className="h-8 w-8 rounded-lg object-cover flex-shrink-0" /> : <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center flex-shrink-0">
                   <span className="text-primary-foreground font-bold text-sm">D</span>
                 </div>}
-              <span className="font-semibold text-lg">{branding.clinicName || "Dentist Portal"}</span>
+              <span className="font-semibold text-base truncate">{branding.clinicName || "Dentist Portal"}</span>
             </div>
-            <div className="flex items-center gap-2">
-              <BusinessSelector />
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-9 px-2 gap-2">
-                    <Avatar className="h-7 w-7">
-                      <AvatarFallback className="text-xs">{userInitials}</AvatarFallback>
-                    </Avatar>
-                    <div className="flex flex-col items-start text-left">
-                      <span className="text-xs font-medium truncate max-w-[96px]">{userName || 'Account'}</span>
-                      <span className="text-[10px] text-muted-foreground">Dentist</span>
-                    </div>
-                    <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-44">
-                  <DropdownMenuLabel>Account</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => onChangeSection('settings')} className="gap-2">
-                    <SettingsIcon className="mr-2 h-4 w-4" />
-                    Settings
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleSignOut} className="gap-2 text-destructive">
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Log out
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-9 w-9 flex-shrink-0">
+                  <SettingsIcon className="h-5 w-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuLabel className="flex flex-col">
+                  <span className="text-sm font-medium">{userName || 'Account'}</span>
+                  <span className="text-xs text-muted-foreground">Dentist</span>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => onChangeSection('settings')} className="gap-2">
+                  <SettingsIcon className="h-4 w-4" />
+                  Settings
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleSignOut} className="gap-2 text-destructive">
+                  <LogOut className="h-4 w-4" />
+                  Log out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
 

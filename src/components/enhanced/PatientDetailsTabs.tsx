@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 import {
   Calendar,
   ClipboardList as ClipboardListIcon,
@@ -148,14 +149,14 @@ export function PatientDetailsTabs({ selectedPatient, dentistId, appointments, o
         </TabsList>
 
         {/* Appointments Tab */}
-        <TabsContent value="appointments" className="space-y-6">
+        <TabsContent value="appointments" className="space-y-4 sm:space-y-6">
           {/* Upcoming Appointments */}
-          <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <h3 className="text-lg font-semibold flex items-center gap-2">
-                <Calendar className="h-5 w-5 text-primary" />
-                Upcoming Appointments
-                <Badge variant="secondary" className="rounded-full">{upcomingAppointments.length}</Badge>
+          <div className="space-y-3 sm:space-y-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+              <h3 className="text-base sm:text-lg font-semibold flex items-center gap-2">
+                <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-primary flex-shrink-0" />
+                <span className="truncate">Upcoming Appointments</span>
+                <Badge variant="secondary" className="rounded-full flex-shrink-0">{upcomingAppointments.length}</Badge>
               </h3>
               <SimpleAppointmentBooking 
                 dentistId={dentistId}
@@ -172,51 +173,53 @@ export function PatientDetailsTabs({ selectedPatient, dentistId, appointments, o
                 <p className="text-sm text-muted-foreground/60 mt-1">Schedule a new appointment above</p>
               </Card>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-2 sm:space-y-3">
                 {upcomingAppointments.map((apt) => (
-                  <Card key={apt.id} className="p-4 hover:shadow-elegant transition-all duration-200 border-l-4 border-l-primary">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="space-y-2 flex-1">
-                        <div className="flex items-center gap-3 flex-wrap">
-                          <Badge className="bg-blue-500 text-white">
+                  <Card key={apt.id} className="p-3 sm:p-4 hover:shadow-elegant transition-all duration-200 border-l-4 border-l-primary">
+                    <div className="flex flex-col sm:flex-row items-start justify-between gap-3 sm:gap-4">
+                      <div className="space-y-2 flex-1 w-full min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Badge className="bg-blue-500 text-white text-xs">
                             {apt.status}
                           </Badge>
-                          <Badge variant="outline" className={
+                          <Badge variant="outline" className={cn(
+                            "text-xs",
                             apt.urgency === 'high' ? 'border-red-500 text-red-500' :
                             apt.urgency === 'medium' ? 'border-yellow-500 text-yellow-500' :
                             'border-green-500 text-green-500'
-                          }>
+                          )}>
                             {apt.urgency} urgency
                           </Badge>
-                          <span className="text-base font-semibold">
-                            {format(new Date(apt.appointment_date), 'EEEE, MMM d')}
+                          <span className="text-sm sm:text-base font-semibold">
+                            {format(new Date(apt.appointment_date), 'EEE, MMM d')}
                           </span>
-                          <span className="text-sm text-muted-foreground">
+                          <span className="text-xs sm:text-sm text-muted-foreground">
                             at {format(new Date(apt.appointment_date), 'h:mm a')}
                           </span>
                         </div>
-                        <p className="text-sm font-medium">{apt.reason || 'General consultation'}</p>
+                        <p className="text-xs sm:text-sm font-medium truncate">{apt.reason || 'General consultation'}</p>
                         {apt.consultation_notes && (
                           <p className="text-xs text-muted-foreground line-clamp-2 mt-2 p-2 bg-muted/50 rounded">
                             {apt.consultation_notes}
                           </p>
                         )}
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 w-full sm:w-auto">
                         <Button 
                           size="sm" 
-                          className="gap-2"
+                          className="gap-2 flex-1 sm:flex-initial text-xs sm:text-sm"
                           onClick={() => setCompletingAppointment(apt)}
                         >
-                          <CheckCircle className="h-4 w-4" />
+                          <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4" />
                           Complete
                         </Button>
                         <Button 
                           size="sm" 
                           variant="outline"
+                          className="flex-1 sm:flex-initial"
                           onClick={() => setCancellingAppointment(apt)}
                         >
-                          <X className="h-4 w-4" />
+                          <X className="h-3 w-3 sm:h-4 sm:w-4" />
                         </Button>
                       </div>
                     </div>
