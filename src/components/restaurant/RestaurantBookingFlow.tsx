@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useBusinessTemplate } from '@/hooks/useBusinessTemplate';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -22,10 +22,13 @@ export function RestaurantBookingFlow({ businessId, businessSlug }: RestaurantBo
   const { toast } = useToast();
   const [step, setStep] = useState(1);
   const [date, setDate] = useState<Date | undefined>(undefined);
+  const [user, setUser] = useState<any>(null);
+  const [profile, setProfile] = useState<any>(null);
   const [formData, setFormData] = useState({
     time: '',
     party_size: 2,
     special_requests: '',
+    party_name: '',
     name: '',
     email: '',
     phone: '',
@@ -38,6 +41,33 @@ export function RestaurantBookingFlow({ businessId, businessSlug }: RestaurantBo
     '17:00', '17:30', '18:00', '18:30', '19:00', '19:30', '20:00', '20:30', '21:00'
   ];
 
+  // Load user data on mount
+  useEffect(() => {
+    const loadUserData = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+      
+      if (user) {
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('user_id', user.id)
+          .single();
+        
+        if (profileData) {
+          setProfile(profileData);
+          setFormData(prev => ({
+            ...prev,
+            name: `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim(),
+            email: profileData.email || user.email || '',
+            phone: profileData.phone || '',
+          }));
+        }
+      }
+    };
+    loadUserData();
+  }, []);
+
   const handleSubmit = async () => {
     if (!date || !formData.time) {
       toast({ title: 'Please select date and time', variant: 'destructive' });
@@ -46,19 +76,13 @@ export function RestaurantBookingFlow({ businessId, businessSlug }: RestaurantBo
 
     setLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
       let patientId;
-      if (user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('user_id', user.id)
-          .single();
-        patientId = profile?.id;
+      if (user && profile) {
+        // Use existing profile
+        patientId = profile.id;
       } else {
         // Create guest profile
-        const { data: profile, error: profileError } = await supabase
+        const { data: guestProfile, error: profileError } = await supabase
           .from('profiles')
           .insert({
             first_name: formData.name.split(' ')[0],
@@ -70,7 +94,7 @@ export function RestaurantBookingFlow({ businessId, businessSlug }: RestaurantBo
           .single();
         
         if (profileError) throw profileError;
-        patientId = profile.id;
+        patientId = guestProfile.id;
       }
 
       // Get a dentist for the business (required by appointments table)
@@ -279,36 +303,64 @@ export function RestaurantBookingFlow({ businessId, businessSlug }: RestaurantBo
       {step === 4 && (
         <Card>
           <CardHeader>
-            <CardTitle>Contact Information</CardTitle>
-            <CardDescription>We'll send you a confirmation</CardDescription>
+            <CardTitle>{user ? 'Reservation Name' : 'Contact Information'}</CardTitle>
+            <CardDescription>
+              {user ? "What name should we use for your reservation?" : "We'll send you a confirmation"}
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div>
-              <Label>Full Name</Label>
-              <Input
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="John Doe"
-              />
-            </div>
-            <div>
-              <Label>Email</Label>
-              <Input
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                placeholder="john@example.com"
-              />
-            </div>
-            <div>
-              <Label>Phone</Label>
-              <Input
-                type="tel"
-                value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                placeholder="+1 (555) 123-4567"
-              />
-            </div>
+            {user ? (
+              <>
+                <div>
+                  <Label>Group/Party Name</Label>
+                  <Input
+                    value={formData.party_name}
+                    onChange={(e) => setFormData({ ...formData, party_name: e.target.value })}
+                    placeholder="e.g., Smith Family, Birthday Party, Team Dinner"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Optional: This helps our staff identify your reservation
+                  </p>
+                </div>
+                <div className="border rounded-lg p-3 bg-muted/30">
+                  <p className="text-sm font-medium mb-2">Confirmation will be sent to:</p>
+                  <p className="text-sm">{formData.name}</p>
+                  <p className="text-sm text-muted-foreground">{formData.email}</p>
+                  {formData.phone && <p className="text-sm text-muted-foreground">{formData.phone}</p>}
+                </div>
+              </>
+            ) : (
+              <>
+                <div>
+                  <Label>Full Name *</Label>
+                  <Input
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    placeholder="John Doe"
+                    required
+                  />
+                </div>
+                <div>
+                  <Label>Email *</Label>
+                  <Input
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    placeholder="john@example.com"
+                    required
+                  />
+                </div>
+                <div>
+                  <Label>Phone</Label>
+                  <Input
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    placeholder="+1 (555) 123-4567"
+                  />
+                </div>
+              </>
+            )}
 
             <div className="border-t pt-4 space-y-2">
               <h3 className="font-semibold">Reservation Summary</h3>
@@ -318,13 +370,20 @@ export function RestaurantBookingFlow({ businessId, businessSlug }: RestaurantBo
               {formData.special_requests && (
                 <p className="text-sm"><strong>Special Requests:</strong> {formData.special_requests}</p>
               )}
+              {user && formData.party_name && (
+                <p className="text-sm"><strong>Reservation Name:</strong> {formData.party_name}</p>
+              )}
             </div>
 
             <div className="flex gap-2">
               <Button variant="outline" onClick={() => setStep(3)} className="flex-1">
                 Back
               </Button>
-              <Button onClick={handleSubmit} className="flex-1" disabled={loading || !formData.name || !formData.email}>
+              <Button 
+                onClick={handleSubmit} 
+                className="flex-1" 
+                disabled={loading || (!user && (!formData.name || !formData.email))}
+              >
                 {loading ? 'Creating Reservation...' : 'Confirm Reservation'}
               </Button>
             </div>
