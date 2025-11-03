@@ -47,36 +47,27 @@ export function RestaurantStaffManager({ businessId }: RestaurantStaffManagerPro
 
   const assignRoleMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      // First, find the profile by email
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('email', data.email)
-        .single();
-      
-      if (profileError || !profile) {
-        throw new Error('User not found with that email');
-      }
-
-      // Then assign the role
-      const { error } = await supabase
-        .from('restaurant_staff_roles')
-        .insert({
-          business_id: businessId,
-          profile_id: profile.id,
-          role: data.role,
+      const { data: invitationId, error } = await supabase
+        .rpc('create_restaurant_staff_invitation', {
+          p_business_id: businessId,
+          p_email: data.email,
+          p_role: data.role,
         });
       
       if (error) throw error;
+      return invitationId;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['restaurant-staff'] });
       setIsOpen(false);
       setFormData({ email: '', role: 'waiter' });
-      toast({ title: 'Staff member added successfully' });
+      toast({ 
+        title: 'Staff invitation sent', 
+        description: 'They will be added when they sign up or log in' 
+      });
     },
     onError: (error: any) => {
-      toast({ title: 'Error adding staff', description: error.message, variant: 'destructive' });
+      toast({ title: 'Error inviting staff', description: error.message, variant: 'destructive' });
     },
   });
 
@@ -141,7 +132,7 @@ export function RestaurantStaffManager({ businessId }: RestaurantStaffManagerPro
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Add Staff Member</DialogTitle>
-              <DialogDescription>Assign a role to a team member by their email</DialogDescription>
+              <DialogDescription>Enter an email address to invite a team member. They'll be automatically added when they sign up or log in.</DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <div>
@@ -186,32 +177,47 @@ export function RestaurantStaffManager({ businessId }: RestaurantStaffManagerPro
               <div className="flex items-center justify-between">
                 <div className="flex-1">
                   <CardTitle className="flex items-center gap-2">
-                    {member.profiles?.first_name} {member.profiles?.last_name}
-                    {member.is_active ? (
-                      <Badge variant="default" className="ml-2">Active</Badge>
+                    {member.invitation_status === 'pending' ? (
+                      <>
+                        <span className="text-muted-foreground">Pending: {member.invitation_email}</span>
+                        <Badge variant="outline" className="ml-2">Invited</Badge>
+                      </>
                     ) : (
-                      <Badge variant="secondary">Inactive</Badge>
+                      <>
+                        {member.profiles?.first_name} {member.profiles?.last_name}
+                        {member.is_active ? (
+                          <Badge variant="default" className="ml-2">Active</Badge>
+                        ) : (
+                          <Badge variant="secondary">Inactive</Badge>
+                        )}
+                      </>
                     )}
                   </CardTitle>
                   <CardDescription className="flex items-center gap-2 mt-1">
-                    {member.profiles?.email}
+                    {member.invitation_status === 'pending' ? (
+                      <span>Invitation sent - waiting for signup</span>
+                    ) : (
+                      member.profiles?.email
+                    )}
                     <Badge variant={getRoleBadgeVariant(member.role)}>
                       {member.role}
                     </Badge>
                   </CardDescription>
                 </div>
                 <div className="flex gap-2">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => toggleActiveMutation.mutate({ id: member.id, isActive: member.is_active })}
-                  >
-                    {member.is_active ? (
-                      <UserX className="h-4 w-4" />
-                    ) : (
-                      <UserCheck className="h-4 w-4" />
-                    )}
-                  </Button>
+                  {member.invitation_status !== 'pending' && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => toggleActiveMutation.mutate({ id: member.id, isActive: member.is_active })}
+                    >
+                      {member.is_active ? (
+                        <UserX className="h-4 w-4" />
+                      ) : (
+                        <UserCheck className="h-4 w-4" />
+                      )}
+                    </Button>
+                  )}
                   <Button
                     variant="ghost"
                     size="icon"

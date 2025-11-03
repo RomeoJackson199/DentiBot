@@ -1510,27 +1510,45 @@ export type Database = {
         Row: {
           business_id: string
           created_at: string
+          expires_at: string | null
           id: string
+          invitation_email: string | null
+          invitation_status: string | null
+          invitation_token: string | null
+          invited_at: string | null
+          invited_by_profile_id: string | null
           is_active: boolean
-          profile_id: string
+          profile_id: string | null
           role: string
           updated_at: string
         }
         Insert: {
           business_id: string
           created_at?: string
+          expires_at?: string | null
           id?: string
+          invitation_email?: string | null
+          invitation_status?: string | null
+          invitation_token?: string | null
+          invited_at?: string | null
+          invited_by_profile_id?: string | null
           is_active?: boolean
-          profile_id: string
+          profile_id?: string | null
           role: string
           updated_at?: string
         }
         Update: {
           business_id?: string
           created_at?: string
+          expires_at?: string | null
           id?: string
+          invitation_email?: string | null
+          invitation_status?: string | null
+          invitation_token?: string | null
+          invited_at?: string | null
+          invited_by_profile_id?: string | null
           is_active?: boolean
-          profile_id?: string
+          profile_id?: string | null
           role?: string
           updated_at?: string
         }
@@ -1540,6 +1558,13 @@ export type Database = {
             columns: ["business_id"]
             isOneToOne: false
             referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "restaurant_staff_roles_invited_by_profile_id_fkey"
+            columns: ["invited_by_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
@@ -2014,6 +2039,10 @@ export type Database = {
       check_clinic_registration: {
         Args: { business_slug: string }
         Returns: Json
+      }
+      create_restaurant_staff_invitation: {
+        Args: { p_business_id: string; p_email: string; p_role: string }
+        Returns: string
       }
       ensure_daily_slots: {
         Args: { p_date: string; p_dentist_id: string }
