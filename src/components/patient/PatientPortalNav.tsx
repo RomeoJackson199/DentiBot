@@ -26,7 +26,7 @@ type NavItem = {
   to: string;
   badge?: number;
   tooltip?: string;
-  onClick?: () => void;
+  onClick?: (e?: React.MouseEvent) => void;
 };
 
 type NavGroup = {
@@ -81,9 +81,17 @@ function PatientPortalNavContent({ children }: { children: React.ReactNode }) {
   const groups: NavGroup[] = useMemo(() => {
     const careItems = [
       { id: 'care-home', label: t.pnav.care.home, icon: <Home className="h-4 w-4" />, to: '/care' },
-      { id: 'care-booking', label: 'Classic Booking', icon: <Calendar className="h-4 w-4" />, to: '/dashboard', onClick: () => {
-        // Set section to assistant in localStorage so dashboard picks it up
+      { id: 'care-booking', label: 'Classic Booking', icon: <Calendar className="h-4 w-4" />, to: '/dashboard', onClick: (e?: React.MouseEvent) => {
+        // Prevent default navigation
+        e?.preventDefault();
+        // Set section to assistant in localStorage
         localStorage.setItem('pd_section', 'assistant');
+        // Dispatch custom event for dashboard to pick up
+        window.dispatchEvent(new CustomEvent('dashboard:changeSection', { detail: { section: 'assistant' } }));
+        // Navigate if not already on dashboard
+        if (location.pathname !== '/dashboard') {
+          navigate('/dashboard');
+        }
       }},
       { id: 'care-appointments', label: t.pnav.care.appointments, icon: <Calendar className="h-4 w-4" />, to: '/care/appointments', badge: counts.upcoming7d },
     ];
@@ -249,23 +257,38 @@ function PatientPortalNavContent({ children }: { children: React.ReactNode }) {
                       <SidebarMenu>
                         {group.items.map((item) => (
                           <SidebarMenuItem key={item.id}>
-                            <SidebarMenuButton asChild data-group-id={group.id} tooltip={item.label}>
-                              <NavLink
-                                to={item.to}
-                                end={item.to === '/care'}
-                                onClick={(e) => {
-                                  if (item.onClick) item.onClick();
-                                  handleNav(group.id, item, e);
-                                }}
-                                aria-label={item.label}
-                                className={({ isActive }) => cn(
-                                  isActive && "bg-sidebar-accent text-sidebar-accent-foreground",
-                                  item.id === 'care-booking' && location.pathname === '/dashboard' && "bg-sidebar-accent text-sidebar-accent-foreground"
-                                )}
-                              >
-                                {item.icon}
-                                <span>{item.label}</span>
-                              </NavLink>
+                            <SidebarMenuButton asChild={item.id !== 'care-booking'} data-group-id={group.id} tooltip={item.label}>
+                              {item.id === 'care-booking' ? (
+                                <button
+                                  onClick={(e) => {
+                                    if (item.onClick) item.onClick(e);
+                                    handleNav(group.id, item, e as any);
+                                  }}
+                                  aria-label={item.label}
+                                  className={cn(
+                                    "flex items-center gap-2 w-full px-2 py-1.5 text-sm rounded-md transition-colors hover:bg-sidebar-accent/50"
+                                  )}
+                                >
+                                  {item.icon}
+                                  <span>{item.label}</span>
+                                </button>
+                              ) : (
+                                <NavLink
+                                  to={item.to}
+                                  end={item.to === '/care'}
+                                  onClick={(e) => {
+                                    if (item.onClick) item.onClick(e);
+                                    handleNav(group.id, item, e);
+                                  }}
+                                  aria-label={item.label}
+                                  className={({ isActive }) => cn(
+                                    isActive && "bg-sidebar-accent text-sidebar-accent-foreground"
+                                  )}
+                                >
+                                  {item.icon}
+                                  <span>{item.label}</span>
+                                </NavLink>
+                              )}
                             </SidebarMenuButton>
                             {typeof item.badge !== 'undefined' && item.badge > 0 && (
                               <SidebarMenuBadge aria-label={`${item.label}, ${item.badge} pending`}>{item.badge}</SidebarMenuBadge>
@@ -319,7 +342,10 @@ function PatientPortalNavContent({ children }: { children: React.ReactNode }) {
         {/* Floating Book Appointment Button */}
         <FloatingBookingButton onBookAppointment={() => {
           localStorage.setItem('pd_section', 'assistant');
-          navigate('/dashboard');
+          window.dispatchEvent(new CustomEvent('dashboard:changeSection', { detail: { section: 'assistant' } }));
+          if (location.pathname !== '/dashboard') {
+            navigate('/dashboard');
+          }
         }} />
         
         <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur border-t">
@@ -390,7 +416,10 @@ function PatientPortalNavContent({ children }: { children: React.ReactNode }) {
               <Button 
                 onClick={() => {
                   localStorage.setItem('pd_section', 'assistant');
-                  navigate('/dashboard');
+                  window.dispatchEvent(new CustomEvent('dashboard:changeSection', { detail: { section: 'assistant' } }));
+                  if (location.pathname !== '/dashboard') {
+                    navigate('/dashboard');
+                  }
                 }}
                 className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
                 size="sm"

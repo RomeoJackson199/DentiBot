@@ -169,6 +169,19 @@ export const PatientDashboard = ({
     }
   });
 
+  // Watch for custom section change events
+  useEffect(() => {
+    const handleSectionChange = (e: CustomEvent) => {
+      if (e.detail?.section) {
+        setActiveSection(e.detail.section);
+      }
+    };
+
+    window.addEventListener('dashboard:changeSection' as any, handleSectionChange);
+
+    return () => window.removeEventListener('dashboard:changeSection' as any, handleSectionChange);
+  }, []);
+
   // Subscribe to real-time updates for medical records
   useEffect(() => {
     if (!userProfile?.id) return;
