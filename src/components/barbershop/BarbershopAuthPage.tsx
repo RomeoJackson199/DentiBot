@@ -1,11 +1,12 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { UnifiedAuthForm } from "@/components/auth/UnifiedAuthForm";
-import { Scissors, Clock, Euro, Calendar, MapPin, Phone } from "lucide-react";
+import { Scissors, Clock, Euro, Calendar, MapPin, Phone, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import heroImage from "@/assets/barbershop-hero.jpg";
 import haircutImage from "@/assets/service-haircut.jpg";
 import beardImage from "@/assets/service-beard.jpg";
 import kidsImage from "@/assets/service-kids.jpg";
+import logoImage from "@/assets/artbarber-logo.jpg";
 import { useRef } from "react";
 
 interface BarbershopAuthPageProps {
@@ -64,121 +65,183 @@ export const BarbershopAuthPage = ({ business, onAuthSuccess }: BarbershopAuthPa
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted">
-      {/* Hero Section with Image */}
-      <div className="relative h-[80vh] min-h-[600px] overflow-hidden">
-        {/* Background Image with Parallax Effect */}
+    <div className="min-h-screen bg-[#0a0a0a]">
+      {/* Navigation */}
+      <nav className="absolute top-0 left-0 right-0 z-50 bg-black/40 backdrop-blur-md border-b border-white/5">
+        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+          <img src={logoImage} alt="ART Barber" className="h-16 w-auto" />
+          <div className="hidden md:flex items-center gap-8 text-white/90">
+            <a href="#services" className="hover:text-[#d4af37] transition-colors font-light">Diensten</a>
+            <a href="#about" className="hover:text-[#d4af37] transition-colors font-light">Over Ons</a>
+            <a href="#contact" className="hover:text-[#d4af37] transition-colors font-light">Contact</a>
+            <Button 
+              onClick={scrollToAuth}
+              className="bg-white text-black hover:bg-[#d4af37] hover:text-black transition-all font-semibold px-6"
+            >
+              Boek Nu
+            </Button>
+          </div>
+        </div>
+      </nav>
+
+      {/* Hero Section */}
+      <div className="relative h-screen overflow-hidden">
         <div className="absolute inset-0">
           <img 
             src={heroImage} 
-            alt="ArtBarber Interior" 
-            className="w-full h-full object-cover scale-105 animate-float"
+            alt="ArtBarber" 
+            className="w-full h-full object-cover opacity-70"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/70 to-background"></div>
-          <div className="absolute inset-0 bg-gradient-mesh opacity-30"></div>
+          <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black"></div>
         </div>
         
-        {/* Animated Glow Elements */}
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-3xl animate-glow"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-secondary/20 rounded-full blur-3xl animate-glow" style={{ animationDelay: '1s' }}></div>
-        
-        {/* Content */}
-        <div className="relative h-full container mx-auto px-4 flex flex-col justify-center items-center text-center">
-          {business.logo_url && (
-            <div className="relative mb-8 animate-scale-in">
-              <div className="absolute inset-0 bg-primary/30 rounded-full blur-xl animate-pulse"></div>
-              <img 
-                src={business.logo_url} 
-                alt={business.name}
-                className="relative w-36 h-36 rounded-full object-cover border-4 border-primary/30 shadow-elegant backdrop-blur-sm"
-              />
-            </div>
-          )}
-          <h1 className="text-6xl md:text-8xl font-bold text-foreground mb-6 tracking-tight animate-fade-in bg-gradient-primary bg-clip-text text-transparent">
-            {business.name}
+        <div className="relative h-full container mx-auto px-4 flex flex-col justify-center items-start text-left max-w-4xl pt-20">
+          <div className="mb-6 text-[#d4af37] text-sm tracking-[0.3em] uppercase font-light animate-fade-in">
+            Klassieke Barbier sinds 1975
+          </div>
+          <h1 className="text-6xl md:text-8xl font-serif text-white mb-6 leading-tight animate-fade-in" style={{ animationDelay: '0.1s' }}>
+            Welkom bij<br />
+            <span className="text-[#d4af37]">ART Barber</span>
           </h1>
-          <p className="text-2xl md:text-3xl text-muted-foreground mb-10 max-w-3xl animate-fade-in font-light" style={{ animationDelay: '0.1s' }}>
-            Professionele Kappersdiensten in het Hart van de Stad
+          <p className="text-xl md:text-2xl text-white/80 mb-12 max-w-2xl font-light leading-relaxed animate-fade-in" style={{ animationDelay: '0.2s' }}>
+            Combineren van klassieke technieken met moderne stijl.<br />
+            Ervaar de perfecte knipbeurt, speciaal voor jou op maat gemaakt.
           </p>
-          <div className="flex flex-col sm:flex-row items-center gap-4 mb-10 animate-fade-in" style={{ animationDelay: '0.2s' }}>
-            <div className="glass-card flex items-center gap-3 px-6 py-3 rounded-full hover:scale-105 transition-transform">
-              <Clock className="w-5 h-5 text-primary" />
-              <span className="font-semibold text-foreground">Di - Zo: 10:00 - 18:30</span>
+          <div className="flex gap-6 animate-fade-in" style={{ animationDelay: '0.3s' }}>
+            <Button 
+              size="lg"
+              onClick={scrollToAuth}
+              className="bg-white text-black hover:bg-[#d4af37] hover:text-black px-8 py-6 text-lg font-semibold transition-all"
+            >
+              Boek Afspraak
+            </Button>
+            <Button 
+              size="lg"
+              variant="outline"
+              onClick={scrollToAuth}
+              className="border-2 border-white text-white hover:bg-white hover:text-black px-8 py-6 text-lg font-semibold transition-all"
+            >
+              Meer Info
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* About Section */}
+      <div id="about" className="py-32 bg-white relative">
+        <div className="container mx-auto px-4">
+          <div className="grid md:grid-cols-2 gap-16 items-center max-w-6xl mx-auto">
+            <div>
+              <div className="text-[#d4af37] text-sm tracking-[0.3em] uppercase font-light mb-4">
+                Klassiek
+              </div>
+              <h2 className="text-5xl md:text-6xl font-serif text-black mb-8 leading-tight">
+                Ervaar de Beste<br />Barbier in Tervuren
+              </h2>
+              <p className="text-lg text-gray-700 mb-8 leading-relaxed">
+                Bij ART Barber combineren we traditie met moderne stijl. Onze ervaren barbiers bieden uitzonderlijke service die afgestemd is op jouw behoeften.
+              </p>
+              
+              <div className="grid grid-cols-2 gap-8 mb-8">
+                <div>
+                  <h3 className="text-2xl font-semibold text-black mb-3">Expert Barbiers</h3>
+                  <p className="text-gray-600 leading-relaxed">
+                    Onze professionele barbiers zorgen voor precisie knipbeurten en persoonlijke verzorgingservaringen.
+                  </p>
+                </div>
+                <div>
+                  <h3 className="text-2xl font-semibold text-black mb-3">Premium Producten</h3>
+                  <p className="text-gray-600 leading-relaxed">
+                    We gebruiken alleen de beste producten om je look te verbeteren en gezond haar te behouden.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-4">
+                <Button 
+                  size="lg"
+                  onClick={scrollToAuth}
+                  className="bg-black text-white hover:bg-[#d4af37] hover:text-black px-8 py-6 text-lg font-semibold transition-all"
+                >
+                  Boek Nu
+                </Button>
+                <Button 
+                  size="lg"
+                  variant="outline"
+                  onClick={scrollToAuth}
+                  className="border-2 border-black text-black hover:bg-black hover:text-white px-8 py-6 text-lg font-semibold transition-all"
+                >
+                  Meer Info →
+                </Button>
+              </div>
             </div>
-            <div className="flex items-center gap-3 bg-destructive/90 backdrop-blur-sm px-6 py-3 rounded-full hover:scale-105 transition-transform shadow-glow">
-              <Calendar className="w-5 h-5 text-white" />
-              <span className="font-semibold text-white">Zonder Afspraak</span>
+            
+            <div className="relative">
+              <img 
+                src={haircutImage} 
+                alt="Professional Barbering" 
+                className="w-full h-[600px] object-cover shadow-2xl"
+              />
+              <div className="absolute -bottom-8 -left-8 bg-[#d4af37] text-black p-8 shadow-2xl">
+                <div className="text-5xl font-bold mb-2">48+</div>
+                <div className="text-sm tracking-wider uppercase">Jaren Ervaring</div>
+              </div>
             </div>
           </div>
-          <Button 
-            size="lg"
-            onClick={scrollToAuth}
-            className="btn-glow bg-gradient-primary hover:shadow-glow text-white px-10 py-7 text-xl font-bold rounded-full shadow-elegant hover:scale-105 transition-all duration-300 animate-fade-in border-2 border-primary/20"
-            style={{ animationDelay: '0.3s' }}
-          >
-            <Calendar className="w-6 h-6 mr-2" />
-            Boek Nu
-          </Button>
         </div>
       </div>
 
       {/* Services Section */}
-      <div className="py-24 bg-gradient-to-b from-background to-muted/50 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-mesh opacity-20"></div>
-        <div className="container mx-auto px-4 relative">
-          <div className="text-center mb-16 animate-fade-in">
-            <div className="inline-block mb-4">
-              <Scissors className="w-12 h-12 text-primary mx-auto animate-bounce-gentle" />
-            </div>
-            <h2 className="text-5xl md:text-6xl font-bold text-foreground mb-4 bg-gradient-primary bg-clip-text text-transparent">
+      <div id="services" className="py-32 bg-[#0a0a0a] relative">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-20">
+            <div className="text-[#d4af37] text-sm tracking-[0.3em] uppercase font-light mb-4">
               Onze Diensten
+            </div>
+            <h2 className="text-5xl md:text-6xl font-serif text-white mb-4">
+              Premium Barbier Services
             </h2>
-            <p className="text-muted-foreground text-xl">Klik op een dienst om te boeken</p>
+            <p className="text-white/60 text-xl">Klik op een dienst om direct te boeken</p>
           </div>
           
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
             {services.map((service, index) => (
               <div
                 key={index}
-                className="floating-card group cursor-pointer animate-fade-in"
+                className="group cursor-pointer bg-white/5 backdrop-blur-sm border border-white/10 hover:border-[#d4af37]/50 transition-all duration-500 overflow-hidden"
                 onClick={scrollToAuth}
-                style={{ animationDelay: `${index * 0.1}s` }}
               >
-                <div className="relative aspect-video overflow-hidden rounded-t-2xl">
+                <div className="relative h-64 overflow-hidden">
                   <img 
                     src={service.image} 
                     alt={service.name}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  <div className="absolute top-4 right-4 bg-primary/90 backdrop-blur-sm text-primary-foreground font-bold text-2xl px-4 py-2 rounded-full shadow-glow">
-                    {service.price}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
+                  <div className="absolute bottom-4 left-6 right-6">
+                    <div className="flex items-end justify-between">
+                      <div>
+                        <h3 className="text-white text-2xl font-semibold mb-1">{service.name}</h3>
+                        <div className="flex items-center gap-2 text-white/70">
+                          <Clock className="w-4 h-4" />
+                          <span className="text-sm">{service.duration}</span>
+                        </div>
+                      </div>
+                      <div className="text-[#d4af37] text-3xl font-bold">
+                        {service.price}
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <CardHeader className="space-y-2">
-                  <CardTitle className="text-foreground text-2xl flex items-center gap-2 group-hover:text-primary transition-colors">
-                    {service.name}
-                    <Euro className="w-5 h-5" />
-                  </CardTitle>
-                  <CardDescription className="text-muted-foreground text-base">
+                <div className="p-6">
+                  <p className="text-white/70 mb-4 leading-relaxed">
                     {service.description}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center justify-between pt-2">
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <Clock className="w-5 h-5 text-primary" />
-                      <span className="font-medium">{service.duration}</span>
-                    </div>
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      className="text-primary hover:text-primary hover:bg-primary/10 font-semibold group-hover:translate-x-1 transition-transform"
-                    >
-                      Boek Nu →
-                    </Button>
+                  </p>
+                  <div className="flex items-center text-[#d4af37] group-hover:translate-x-2 transition-transform">
+                    <span className="font-semibold">Boek Nu</span>
+                    <span className="ml-2">→</span>
                   </div>
-                </CardContent>
+                </div>
               </div>
             ))}
           </div>
@@ -186,88 +249,96 @@ export const BarbershopAuthPage = ({ business, onAuthSuccess }: BarbershopAuthPa
       </div>
 
       {/* Contact Info Section */}
-      <div className="py-16 bg-muted/30 border-y border-border/50 backdrop-blur-sm relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-mesh opacity-10"></div>
-        <div className="container mx-auto px-4 relative">
-          <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-10 text-center">
-            <div className="glass-card p-8 rounded-2xl flex flex-col items-center gap-4 hover:scale-105 transition-transform animate-fade-in group">
-              <div className="p-4 bg-primary/10 rounded-full group-hover:bg-primary/20 transition-colors">
-                <MapPin className="w-10 h-10 text-primary" />
+      <div id="contact" className="py-24 bg-[#111111] border-t border-white/10">
+        <div className="container mx-auto px-4">
+          <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-12">
+            <div className="text-center group">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-[#d4af37]/10 rounded-full mb-6 group-hover:bg-[#d4af37]/20 transition-colors">
+                <MapPin className="w-8 h-8 text-[#d4af37]" />
               </div>
-              <h3 className="text-foreground font-bold text-xl">Locatie</h3>
-              <p className="text-muted-foreground text-lg">Te Boelaerpark, Antwerpen</p>
+              <h3 className="text-white font-semibold text-xl mb-3">Locatie</h3>
+              <p className="text-white/60 text-lg">Tervuren, België</p>
+              <p className="text-white/40 text-sm mt-2">Premium Barbershop</p>
             </div>
-            <div className="glass-card p-8 rounded-2xl flex flex-col items-center gap-4 hover:scale-105 transition-transform animate-fade-in group" style={{ animationDelay: '0.1s' }}>
-              <div className="p-4 bg-secondary/10 rounded-full group-hover:bg-secondary/20 transition-colors">
-                <Clock className="w-10 h-10 text-secondary" />
+            <div className="text-center group">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-[#d4af37]/10 rounded-full mb-6 group-hover:bg-[#d4af37]/20 transition-colors">
+                <Clock className="w-8 h-8 text-[#d4af37]" />
               </div>
-              <h3 className="text-foreground font-bold text-xl">Openingstijden</h3>
-              <p className="text-muted-foreground text-lg">Di - Zo: 10:00 - 18:30</p>
+              <h3 className="text-white font-semibold text-xl mb-3">Openingstijden</h3>
+              <p className="text-white/60 text-lg">Di - Zo: 10:00 - 18:30</p>
+              <p className="text-white/40 text-sm mt-2">Maandag Gesloten</p>
             </div>
-            <div className="glass-card p-8 rounded-2xl flex flex-col items-center gap-4 hover:scale-105 transition-transform animate-fade-in group" style={{ animationDelay: '0.2s' }}>
-              <div className="p-4 bg-accent/10 rounded-full group-hover:bg-accent/20 transition-colors">
-                <Phone className="w-10 h-10 text-accent" />
+            <div className="text-center group">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-[#d4af37]/10 rounded-full mb-6 group-hover:bg-[#d4af37]/20 transition-colors">
+                <Star className="w-8 h-8 text-[#d4af37]" />
               </div>
-              <h3 className="text-foreground font-bold text-xl">Contact</h3>
-              <p className="text-muted-foreground text-lg">Walk-ins welkom!</p>
+              <h3 className="text-white font-semibold text-xl mb-3">Service</h3>
+              <p className="text-white/60 text-lg">Walk-ins Welkom</p>
+              <p className="text-white/40 text-sm mt-2">Of Boek Online</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Auth Section */}
-      <div ref={authSectionRef} className="container mx-auto px-4 py-24 bg-gradient-to-b from-background via-muted/30 to-background relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-mesh opacity-20"></div>
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/10 rounded-full blur-3xl"></div>
-        
-        <div className="max-w-lg mx-auto relative">
-          <div className="text-center mb-10 animate-fade-in">
-            <div className="relative inline-block mb-6">
-              <div className="absolute inset-0 bg-primary/30 rounded-full blur-xl animate-pulse"></div>
-              <div className="relative p-4 bg-gradient-primary rounded-full shadow-glow">
-                <Scissors className="w-14 h-14 text-white" />
+      <div ref={authSectionRef} className="py-32 bg-white relative">
+        <div className="container mx-auto px-4">
+          <div className="max-w-xl mx-auto">
+            <div className="text-center mb-12">
+              <div className="inline-flex items-center justify-center w-20 h-20 bg-[#d4af37]/10 rounded-full mb-6">
+                <Scissors className="w-10 h-10 text-[#d4af37]" />
               </div>
+              <h2 className="text-4xl md:text-5xl font-serif text-black mb-4">
+                Boek Je Afspraak
+              </h2>
+              <p className="text-gray-600 text-lg">
+                Maak een account aan om je afspraak bij ART Barber te boeken
+              </p>
             </div>
-            <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-3 bg-gradient-primary bg-clip-text text-transparent">
-              Maak een Account
-            </h2>
-            <p className="text-muted-foreground text-lg">
-              Meld je aan om je afspraak te boeken bij {business.name}
-            </p>
-          </div>
-          
-          <Card className="floating-card bg-card/80 backdrop-blur-2xl shadow-elegant border-2 border-border/50 overflow-hidden animate-scale-in">
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-primary"></div>
-            <CardHeader className="text-center space-y-3 pt-8">
-              <CardTitle className="text-3xl text-foreground font-bold">
-                Login of Registreer
-              </CardTitle>
-              <CardDescription className="text-muted-foreground text-base">
-                Kies je dienst en boek direct je afspraak
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="pb-8">
-              <UnifiedAuthForm onSignInSuccess={onAuthSuccess} />
-            </CardContent>
-          </Card>
-          
-          <div className="mt-8 text-center space-y-3 animate-fade-in" style={{ animationDelay: '0.2s' }}>
-            <div className="flex items-center justify-center gap-6 text-muted-foreground">
-              <div className="flex items-center gap-2">
-                <Scissors className="w-5 h-5 text-primary" />
-                <span className="text-sm font-medium">Walk-ins welkom</span>
+            
+            <Card className="bg-white shadow-2xl border-0 overflow-hidden">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#d4af37] to-black"></div>
+              <CardHeader className="text-center space-y-3 pt-10 pb-6">
+                <CardTitle className="text-2xl text-black font-semibold">
+                  Login of Registreer
+                </CardTitle>
+                <CardDescription className="text-gray-600">
+                  Kies je dienst en boek direct je afspraak
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pb-10 px-8">
+                <UnifiedAuthForm onSignInSuccess={onAuthSuccess} />
+              </CardContent>
+            </Card>
+            
+            <div className="mt-8 text-center space-y-4">
+              <div className="flex items-center justify-center gap-8 text-gray-600">
+                <div className="flex items-center gap-2">
+                  <Scissors className="w-5 h-5 text-[#d4af37]" />
+                  <span className="text-sm font-medium">Walk-ins Welkom</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Star className="w-5 h-5 text-[#d4af37]" />
+                  <span className="text-sm font-medium">Premium Service</span>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Euro className="w-5 h-5 text-secondary" />
-                <span className="text-sm font-medium">Professioneel</span>
-              </div>
+              <p className="text-gray-500 text-xs max-w-md mx-auto">
+                Door een account aan te maken, ga je akkoord met onze algemene voorwaarden
+              </p>
             </div>
-            <p className="text-muted-foreground/70 text-xs max-w-md mx-auto">
-              Door een account aan te maken, ga je akkoord met onze voorwaarden
-            </p>
           </div>
         </div>
       </div>
+
+      {/* Footer */}
+      <footer className="bg-black py-12 border-t border-white/10">
+        <div className="container mx-auto px-4 text-center">
+          <img src={logoImage} alt="ART Barber" className="h-16 w-auto mx-auto mb-6 opacity-80" />
+          <p className="text-white/60 text-sm">
+            © 2024 ART Barber Shop Tervuren. Alle rechten voorbehouden.
+          </p>
+        </div>
+      </footer>
     </div>
   );
 };
