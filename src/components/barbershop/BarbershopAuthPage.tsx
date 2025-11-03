@@ -7,6 +7,8 @@ import haircutImage from "@/assets/service-haircut.jpg";
 import beardImage from "@/assets/service-beard.jpg";
 import kidsImage from "@/assets/service-kids.jpg";
 import logoImage from "@/assets/artbarber-logo.jpg";
+import haircutFade from "@/assets/haircut-fade.jpg";
+import haircutKidsStyle from "@/assets/haircut-kids-style.jpg";
 import { useRef } from "react";
 
 interface BarbershopAuthPageProps {
@@ -31,7 +33,7 @@ export const BarbershopAuthPage = ({ business, onAuthSuccess }: BarbershopAuthPa
       name: "Haar", 
       price: "20€", 
       description: "Professionele knipbeurt met stijladvies",
-      image: haircutImage,
+      image: haircutFade,
       duration: "30 min"
     },
     { 
@@ -52,14 +54,14 @@ export const BarbershopAuthPage = ({ business, onAuthSuccess }: BarbershopAuthPa
       name: "Kinderen", 
       price: "15€", 
       description: "Kindvriendelijke knipbeurt",
-      image: kidsImage,
+      image: haircutKidsStyle,
       duration: "20 min"
     },
     { 
       name: "Wassen", 
       price: "5€", 
       description: "Haarverzorging met premium producten",
-      image: haircutImage,
+      image: haircutFade,
       duration: "10 min"
     },
   ];
@@ -97,7 +99,7 @@ export const BarbershopAuthPage = ({ business, onAuthSuccess }: BarbershopAuthPa
         
         <div className="relative h-full container mx-auto px-4 flex flex-col justify-center items-start text-left max-w-4xl pt-20">
           <div className="mb-6 text-[#d4af37] text-sm tracking-[0.3em] uppercase font-light animate-fade-in">
-            Klassieke Barbier sinds 1975
+            Klassieke Barbier sinds 2020
           </div>
           <h1 className="text-6xl md:text-8xl font-serif text-white mb-6 leading-tight animate-fade-in" style={{ animationDelay: '0.1s' }}>
             Welkom bij<br />
@@ -183,7 +185,7 @@ export const BarbershopAuthPage = ({ business, onAuthSuccess }: BarbershopAuthPa
                 className="w-full h-[600px] object-cover shadow-2xl"
               />
               <div className="absolute -bottom-8 -left-8 bg-[#d4af37] text-black p-8 shadow-2xl">
-                <div className="text-5xl font-bold mb-2">48+</div>
+                <div className="text-5xl font-bold mb-2">4+</div>
                 <div className="text-sm tracking-wider uppercase">Jaren Ervaring</div>
               </div>
             </div>
