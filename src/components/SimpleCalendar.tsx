@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { getCurrentBusinessId } from "@/lib/businessScopedSupabase";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
@@ -35,12 +36,15 @@ export const SimpleCalendar = ({ selectedDentist, onDateTimeSelect, isEmergency 
         p_date: date.toISOString().split('T')[0]
       });
 
+      const businessId = await getCurrentBusinessId();
+
       // Fetch ALL slots for the date
       const { data: slots, error } = await supabase
         .from('appointment_slots')
         .select('slot_time, is_available, emergency_only')
         .eq('dentist_id', selectedDentist)
         .eq('slot_date', date.toISOString().split('T')[0])
+        .eq('business_id', businessId)
         .order('slot_time');
 
       if (error) throw error;
