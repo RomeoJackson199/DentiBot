@@ -79,6 +79,7 @@ const SetupMPPage = lazy(() => import("./pages/SetupMPPage"));
 const RestaurantOwnerDashboard = lazy(() => import("./pages/RestaurantOwnerDashboard"));
 const WaiterDashboard = lazy(() => import("./pages/WaiterDashboard"));
 const KitchenDashboard = lazy(() => import("./pages/KitchenDashboard"));
+const TableOrderingPage = lazy(() => import("./pages/TableOrderingPage"));
 
 // Dashboard component that handles authentication with lazy loading
 // Business gate component that shows appropriate picker
@@ -315,6 +316,8 @@ const App = () => {
                 <Route path="/restaurant/owner" element={<RoleBasedRouter requiredRole='dentist'><RestaurantOwnerDashboard /></RoleBasedRouter>} />
                 <Route path="/restaurant/waiter" element={<RoleBasedRouter requiredRole='dentist'><WaiterDashboard /></RoleBasedRouter>} />
                 <Route path="/restaurant/kitchen" element={<RoleBasedRouter requiredRole='dentist'><KitchenDashboard /></RoleBasedRouter>} />
+                {/* Public table ordering route */}
+                <Route path="/order" element={<TableOrderingPage />} />
                 {/* Booking routes */}
                 <Route path="/book-appointment-ai" element={<BookingRouteHandler><BookAppointmentAI /></BookingRouteHandler>} />
                 <Route path="/book-appointment" element={<Navigate to="/dashboard" replace />} />
