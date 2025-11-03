@@ -10,7 +10,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { SectionHeader, StatCard, AnimatedBackground } from "@/components/ui/polished-components";
 import { useNavigate } from "react-router-dom";
 import { useBusinessTemplate } from "@/hooks/useBusinessTemplate";
-import { BookingIframeModal } from "@/components/BookingIframeModal";
 
 export default function PatientAppointmentsPage() {
   const { hasFeature, loading: templateLoading } = useBusinessTemplate();
@@ -20,7 +19,6 @@ export default function PatientAppointmentsPage() {
   const [user, setUser] = useState<User | null>(null);
   const [tab, setTab] = useState<'upcoming' | 'past' | 'book'>('upcoming');
   const [loading, setLoading] = useState(true);
-  const [bookingModalOpen, setBookingModalOpen] = useState(false);
   const [stats, setStats] = useState({
     upcoming: 0,
     completed: 0,
@@ -69,9 +67,7 @@ export default function PatientAppointmentsPage() {
   }, []);
 
   return (
-    <>
-      <BookingIframeModal open={bookingModalOpen} onOpenChange={setBookingModalOpen} />
-      <div className="space-y-6 pb-8">
+    <div className="space-y-6 pb-8">
       {/* Header with animated background */}
       <div className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 rounded-2xl p-6 border border-blue-100">
         <AnimatedBackground />
@@ -94,7 +90,7 @@ export default function PatientAppointmentsPage() {
               <Button
                 size="lg"
                 className="gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all"
-                onClick={() => setBookingModalOpen(true)}
+                onClick={() => navigate('/book-appointment')}
                 aria-label={t.bookAppointment}
               >
                 <Plus className="h-4 w-4" />
@@ -203,7 +199,6 @@ export default function PatientAppointmentsPage() {
         </CardContent>
       </Card>
     </div>
-    </>
   );
 }
 
