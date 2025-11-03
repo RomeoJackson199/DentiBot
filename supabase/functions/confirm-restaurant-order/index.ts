@@ -50,23 +50,37 @@ serve(async (req) => {
     if (!order) throw new Error('Order not found');
 
     // Verify user is staff member of the business
-    const { data: profile } = await supabase
+    const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('id')
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
 
-    if (!profile) throw new Error('Profile not found');
+    if (profileError) {
+      console.error('Profile lookup error:', profileError);
+      throw new Error('Profile lookup failed');
+    }
+    
+    if (!profile) {
+      console.error('Profile not found for user:', user.id);
+      throw new Error('Profile not found');
+    }
 
-    const { data: staffRole } = await supabase
+    const { data: staffRole, error: staffError } = await supabase
       .from('restaurant_staff_roles')
       .select('role')
       .eq('business_id', order.business_id)
       .eq('profile_id', profile.id)
       .eq('is_active', true)
-      .single();
+      .maybeSingle();
+
+    if (staffError) {
+      console.error('Staff role lookup error:', staffError);
+      throw new Error('Staff role lookup failed');
+    }
 
     if (!staffRole) {
+      console.error(`User ${user.email} (profile: ${profile.id}) not authorized for business ${order.business_id}`);
       throw new Error('Not authorized to confirm orders for this business');
     }
 
