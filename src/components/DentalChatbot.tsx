@@ -198,7 +198,7 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
     if (!user) return; // Don't save messages for non-authenticated users
     
     try {
-      await supabase.from("chat_messages").insert({
+      await supabase.from("messages").insert({
         session_id: message.session_id,
         user_id: user.id,
         message: message.message,

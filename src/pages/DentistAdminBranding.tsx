@@ -213,7 +213,7 @@ export default function DentistAdminBranding() {
     }
   };
 
-  const confirmTemplateChange = () => {
+  const confirmTemplateChange = async () => {
     if (pendingTemplate) {
       setTemplateType(pendingTemplate.type);
       if (pendingTemplate.features) setCustomFeatures(pendingTemplate.features);
@@ -227,11 +227,66 @@ export default function DentistAdminBranding() {
 
       setPendingTemplate(null);
       setShowTemplateWarning(false);
-      toast({
-        title: "Template Changed",
-        description: "Remember to save your changes to apply the new template",
-        duration: 5000,
-      });
+      
+      // Auto-save the template change
+      setLoading(true);
+      try {
+        const updateData: any = {
+          name: clinicName,
+          slug: slug,
+          tagline: tagline,
+          logo_url: logoUrl,
+          primary_color: primaryColor,
+          secondary_color: secondaryColor,
+          template_type: pendingTemplate.type,
+          ai_system_behavior: newTemplateConfig.aiBehaviorDefaults.systemBehavior,
+          ai_greeting: newTemplateConfig.aiBehaviorDefaults.greeting,
+          ai_personality_traits: newTemplateConfig.aiBehaviorDefaults.personalityTraits,
+        };
+
+        if (pendingTemplate.type === 'custom' && (pendingTemplate.features || pendingTemplate.terminology)) {
+          updateData.custom_features = pendingTemplate.features;
+          updateData.custom_terminology = pendingTemplate.terminology;
+        }
+
+        const { error } = await supabase
+          .from('businesses')
+          .update(updateData)
+          .eq('id', businessId);
+
+        if (error) throw error;
+
+        await updateTemplateContext(pendingTemplate.type);
+
+        toast({
+          title: "Template Switched Successfully",
+          description: `Your business is now using the ${newTemplateConfig.name} template`,
+        });
+        
+        // Update initial state to reflect saved changes
+        setInitialState({
+          clinicName,
+          slug,
+          tagline,
+          address,
+          primaryColor,
+          secondaryColor,
+          logoUrl,
+          templateType: pendingTemplate.type,
+          aiSystemBehavior: newTemplateConfig.aiBehaviorDefaults.systemBehavior,
+          aiGreeting: newTemplateConfig.aiBehaviorDefaults.greeting,
+          aiPersonalityTraits: newTemplateConfig.aiBehaviorDefaults.personalityTraits,
+        });
+      } catch (error: any) {
+        console.error('Error saving template:', error);
+        toast({
+          title: "Save Failed",
+          description: error.message || "Failed to save template change",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
     }
   };
 

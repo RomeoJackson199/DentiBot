@@ -149,13 +149,13 @@ export function RealTimeChatSystem({
 
   const setupRealtimeChat = () => {
     chatChannel.current = supabase
-      .channel('chat_messages')
+      .channel('messages')
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
-          table: 'chat_messages'
+          table: 'messages'
         },
         (payload) => {
           handleRealtimeMessage(payload);
@@ -183,7 +183,7 @@ export function RealTimeChatSystem({
     
     setIsLoading(true);
     try {
-      // This would need a proper chat_messages table structure
+      // This would need a proper messages table structure
       // For now, we'll simulate messages
       const simulatedMessages: Message[] = [
         {
@@ -233,7 +233,7 @@ export function RealTimeChatSystem({
       setNewMessage('');
 
       // Here you would save to database
-      // const { data } = await supabase.from('chat_messages').insert(message);
+      // const { data } = await supabase.from('messages').insert(message);
       
       modernToast.success({
         title: 'Message sent',

@@ -218,7 +218,7 @@ export const InteractiveDentalChat = ({
     if (!user) return;
     
     try {
-      await supabase.from("chat_messages").insert({
+      await supabase.from("messages").insert({
         session_id: message.session_id,
         user_id: user.id,
         message: message.message,
