@@ -238,9 +238,9 @@ export const PatientDashboard = ({
     }
   }, [activeSection]);
 
-  // Clear one-time classic booking flag after navigation
+  // Clear classic booking flag when navigating away from assistant section
   useEffect(() => {
-    if (activeSection === 'assistant') {
+    if (activeSection !== 'assistant') {
       try {
         if (localStorage.getItem('pd_forceClassic') === '1') {
           localStorage.removeItem('pd_forceClassic');

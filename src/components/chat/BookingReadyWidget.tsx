@@ -17,12 +17,13 @@ export const BookingReadyWidget = ({ conversationData }: BookingReadyWidgetProps
   const handleProceed = () => {
     // Store conversation data in session storage for booking
     sessionStorage.setItem('aiBookingData', JSON.stringify(conversationData));
-    
-    // Ensure we're on the assistant section (embedded booking)
+
+    // Ensure we're on the assistant section with classic booking (for dentist template)
     try {
       localStorage.setItem('pd_section', 'assistant');
+      localStorage.setItem('pd_forceClassic', '1');
     } catch {}
-    
+
     // Switch section if dashboard is already mounted
     window.dispatchEvent(new CustomEvent('dashboard:changeSection', { detail: { section: 'assistant' } }));
 
