@@ -56,7 +56,7 @@ function PatientPortalNavContent({ children }: { children: React.ReactNode }) {
   const { t } = useLanguage();
   const location = useLocation();
   const navigate = useNavigate();
-  const { state, toggleSidebar, open } = useSidebar();
+  const { state, toggleSidebar, open, setOpen } = useSidebar();
   const { counts } = usePatientBadgeCounts();
   const { branding } = useClinicBranding();
   const { hasFeature } = useBusinessTemplate();
@@ -399,8 +399,8 @@ function PatientPortalNavContent({ children }: { children: React.ReactNode }) {
     <div className="flex min-h-screen w-full">
       <Sidebar 
         collapsible="icon"
-        onMouseEnter={() => toggleSidebar()}
-        onMouseLeave={() => toggleSidebar()}
+        onMouseEnter={() => setOpen(true)}
+        onMouseLeave={() => setOpen(false)}
       >
         {navContent}
       </Sidebar>
