@@ -16,7 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { createAppointmentDateTimeFromStrings } from "@/lib/timezone";
 import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
-
+import { BusinessSelectionForPatients } from "@/components/BusinessSelectionForPatients";
 interface Dentist {
   id: string;
   profiles: any;
@@ -290,6 +290,33 @@ export default function BookAppointment() {
   }
 
   const selectedDentistData = dentists.find(d => d.id === selectedDentist);
+
+  // Require business selection before booking flow
+  if (!effectiveBusinessId) {
+    return (
+      <>
+        <ConfirmationDialog />
+        <div className="p-4 md:p-6">
+          <Card className="max-w-4xl mx-auto">
+            <CardHeader>
+              <CardTitle className="text-2xl">Select Clinic to Continue</CardTitle>
+              <CardDescription>Choose where you want to book your appointment.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <BusinessSelectionForPatients
+                selectedBusinessId={effectiveBusinessId || undefined}
+                onSelectBusiness={(id, name) => {
+                  localStorage.setItem('selected_business_id', id);
+                  setEffectiveBusinessId(id);
+                  toast({ title: 'Clinic selected', description: name });
+                }}
+              />
+            </CardContent>
+          </Card>
+        </div>
+      </>
+    );
+  }
 
   if (currentStep === 'success') {
     return (
