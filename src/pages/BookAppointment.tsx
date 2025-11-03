@@ -322,34 +322,83 @@ export default function BookAppointment() {
     return (
       <>
         <ConfirmationDialog />
-        <div className="flex items-center justify-center p-4 py-12">
-        <Card className="max-w-md w-full">
-          <CardContent className="pt-6 text-center space-y-4">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-              <CheckCircle2 className="w-8 h-8 text-green-600" />
-            </div>
-            <h2 className="text-2xl font-bold">Appointment Confirmed!</h2>
-            <p className="text-muted-foreground">Your appointment has been successfully booked.</p>
-            
-            <Separator />
-            
-            <div className="space-y-2">
-              <Button onClick={() => navigate('/dashboard')} className="w-full" size="lg">
-                Back to Dashboard
-              </Button>
-              <Button 
-                onClick={handleAddToGoogleCalendar} 
-                variant="outline" 
-                className="w-full"
-                size="lg"
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                Add to Google Calendar
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+        <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 flex items-center justify-center p-4 py-12">
+          <Card className="max-w-lg w-full shadow-2xl border-0 bg-white/95 backdrop-blur-sm animate-in zoom-in duration-500">
+            <CardContent className="pt-10 pb-8 text-center space-y-6">
+              {/* Success Icon with Animation */}
+              <div className="relative">
+                <div className="w-24 h-24 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center mx-auto shadow-2xl animate-bounce">
+                  <CheckCircle2 className="w-14 h-14 text-white" />
+                </div>
+                <div className="absolute inset-0 w-24 h-24 mx-auto bg-gradient-to-br from-green-400 to-emerald-400 rounded-full animate-ping opacity-20"></div>
+              </div>
+
+              {/* Success Message */}
+              <div className="space-y-3">
+                <h2 className="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                  All Set! 🎉
+                </h2>
+                <p className="text-xl font-semibold text-gray-700">
+                  Your appointment is confirmed!
+                </p>
+                <p className="text-gray-600">
+                  We've sent a confirmation email with all the details.
+                </p>
+              </div>
+
+              <Separator className="my-6" />
+
+              {/* Appointment Summary */}
+              {selectedDate && selectedTime && (
+                <Card className="bg-gradient-to-br from-blue-50 to-purple-50 border-2 border-blue-200">
+                  <CardContent className="p-4 space-y-2">
+                    <div className="flex items-center justify-center gap-2 text-sm text-gray-600">
+                      <CalendarIcon className="w-4 h-4" />
+                      <span className="font-semibold">{format(selectedDate, 'EEEE, MMMM d, yyyy')}</span>
+                    </div>
+                    <div className="flex items-center justify-center gap-2">
+                      <Clock className="w-5 h-5 text-blue-600" />
+                      <span className="font-bold text-2xl text-blue-600">{selectedTime}</span>
+                    </div>
+                    {selectedDentistData && (
+                      <div className="flex items-center justify-center gap-2 text-sm text-gray-600">
+                        <User className="w-4 h-4" />
+                        <span>with {selectedDentistData.profiles?.first_name} {selectedDentistData.profiles?.last_name}</span>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Action Buttons */}
+              <div className="space-y-3 pt-4">
+                <Button
+                  onClick={() => navigate('/dashboard')}
+                  className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg hover:shadow-xl transition-all"
+                  size="lg"
+                >
+                  Back to Dashboard
+                </Button>
+                <Button
+                  onClick={handleAddToGoogleCalendar}
+                  variant="outline"
+                  className="w-full border-2 border-blue-300 hover:bg-blue-50 hover:border-blue-400 transition-colors"
+                  size="lg"
+                >
+                  <CalendarIcon className="mr-2 h-5 w-5 text-blue-600" />
+                  Add to Google Calendar
+                </Button>
+              </div>
+
+              {/* Additional Info */}
+              <div className="bg-amber-50 border-2 border-amber-200 rounded-lg p-4 mt-6">
+                <p className="text-sm text-amber-800 font-medium">
+                  💡 <strong>Reminder:</strong> Please arrive 10 minutes early for check-in.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </>
     );
   }
@@ -357,39 +406,104 @@ export default function BookAppointment() {
   return (
     <>
       <ConfirmationDialog />
-      <div className="p-4 md:p-6">
-      <Card className="max-w-4xl mx-auto">
-        <CardHeader>
-          <CardTitle className="text-2xl">Book an Appointment</CardTitle>
-          <CardDescription>
-            Step {currentStep === 'service' ? '1' : currentStep === 'provider' ? '2' : currentStep === 'datetime' ? '3' : '4'} of 4
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 p-4 md:p-6">
+      <Card className="max-w-4xl mx-auto shadow-2xl border-0 bg-white/95 backdrop-blur-sm">
+        <CardHeader className="bg-gradient-to-r from-purple-500/10 via-pink-500/10 to-blue-500/10 border-b">
+          <div className="flex items-center justify-center mb-4">
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg">
+              <CalendarIcon className="w-8 h-8 text-white" />
+            </div>
+          </div>
+          <CardTitle className="text-3xl font-bold text-center bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent">
+            Book Your Appointment
+          </CardTitle>
+          <CardDescription className="text-center text-base mt-2">
+            Step {currentStep === 'service' ? '1' : currentStep === 'provider' ? '2' : currentStep === 'datetime' ? '3' : '4'} of 4 - {
+              currentStep === 'service' ? 'Choose Service' :
+              currentStep === 'provider' ? 'Select Provider' :
+              currentStep === 'datetime' ? 'Pick Date & Time' :
+              'Confirm Details'
+            }
           </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {currentStep === 'service' && effectiveBusinessId && (
-            <div className="space-y-6">
-              <div className="space-y-2">
-                <Label>Select Service (Optional)</Label>
-                <ServiceSelector
-                  businessId={effectiveBusinessId}
-                  onSelectService={setSelectedService}
-                  selectedServiceId={selectedService?.id || null}
-                />
+          {/* Step Progress Indicator */}
+          <div className="flex items-center justify-center gap-2 mt-6">
+            {['service', 'provider', 'datetime', 'confirm'].map((step, index) => (
+              <div key={step} className="flex items-center">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-all ${
+                  currentStep === step
+                    ? 'bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-lg scale-110'
+                    : (index < ['service', 'provider', 'datetime', 'confirm'].indexOf(currentStep))
+                      ? 'bg-green-500 text-white'
+                      : 'bg-gray-200 text-gray-500'
+                }`}>
+                  {index < ['service', 'provider', 'datetime', 'confirm'].indexOf(currentStep) ? (
+                    <CheckCircle2 className="w-5 h-5" />
+                  ) : (
+                    index + 1
+                  )}
+                </div>
+                {index < 3 && (
+                  <div className={`w-12 h-1 mx-1 rounded ${
+                    index < ['service', 'provider', 'datetime', 'confirm'].indexOf(currentStep)
+                      ? 'bg-green-500'
+                      : 'bg-gray-200'
+                  }`} />
+                )}
               </div>
-              
-              <div className="space-y-2">
-                <Label>Reason for Visit (Optional)</Label>
+            ))}
+          </div>
+        </CardHeader>
+        <CardContent className="p-6 md:p-8">
+          {currentStep === 'service' && effectiveBusinessId && (
+            <div className="space-y-8 animate-in fade-in duration-500">
+              <div className="space-y-4">
+                <Label className="text-lg font-semibold flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center">
+                    <span className="text-purple-600">✨</span>
+                  </div>
+                  Select Service (Optional)
+                </Label>
+                <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-4 rounded-xl border-2 border-purple-200">
+                  <ServiceSelector
+                    businessId={effectiveBusinessId}
+                    onSelectService={setSelectedService}
+                    selectedServiceId={selectedService?.id || null}
+                  />
+                </div>
+                {selectedService && (
+                  <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-300">
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3">
+                        <CheckCircle2 className="w-6 h-6 text-green-600" />
+                        <div>
+                          <p className="font-semibold text-green-900">{selectedService.name}</p>
+                          <p className="text-sm text-green-700">{selectedService.duration_minutes} minutes</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+
+              <div className="space-y-4">
+                <Label className="text-lg font-semibold flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                    <span className="text-blue-600">📝</span>
+                  </div>
+                  Reason for Visit (Optional)
+                </Label>
                 <Textarea
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
-                  placeholder="Describe your symptoms or reason for visit..."
+                  placeholder="Tell us what brings you in today..."
                   rows={4}
+                  className="border-2 border-blue-200 focus:border-blue-400 bg-blue-50/30 transition-colors"
                 />
               </div>
 
-              <div className="flex justify-end">
-                <Button onClick={handleNext} size="lg">
-                  Next
+              <div className="flex justify-end pt-4">
+                <Button onClick={handleNext} size="lg" className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg hover:shadow-xl transition-all">
+                  Continue
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </div>
@@ -397,55 +511,70 @@ export default function BookAppointment() {
           )}
 
           {currentStep === 'provider' && (
-            <div className="space-y-6">
+            <div className="space-y-6 animate-in fade-in duration-500">
               <div className="space-y-4">
-                <Label>Select Your Provider</Label>
-                {dentists.map((dentist) => (
-                  <Card 
-                    key={dentist.id}
-                    className={`cursor-pointer transition-all ${
-                      selectedDentist === dentist.id 
-                        ? 'ring-2 ring-primary' 
-                        : 'hover:border-primary/50'
-                    }`}
-                    onClick={() => setSelectedDentist(dentist.id)}
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-start gap-4">
-                        <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                          <User className="w-8 h-8 text-primary" />
+                <Label className="text-lg font-semibold flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-pink-100 flex items-center justify-center">
+                    <User className="w-5 h-5 text-pink-600" />
+                  </div>
+                  Select Your Provider
+                </Label>
+                <div className="grid gap-4">
+                  {dentists.map((dentist) => (
+                    <Card
+                      key={dentist.id}
+                      className={`cursor-pointer transition-all hover:shadow-xl ${
+                        selectedDentist === dentist.id
+                          ? 'ring-4 ring-purple-400 shadow-2xl bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-300'
+                          : 'hover:border-purple-300 border-2 hover:scale-[1.02]'
+                      }`}
+                      onClick={() => setSelectedDentist(dentist.id)}
+                    >
+                      <CardContent className="p-5">
+                        <div className="flex items-start gap-4">
+                          <div className={`w-20 h-20 rounded-full flex items-center justify-center flex-shrink-0 font-bold text-xl shadow-lg ${
+                            selectedDentist === dentist.id
+                              ? 'bg-gradient-to-br from-purple-500 to-pink-500 text-white'
+                              : 'bg-gradient-to-br from-purple-200 to-pink-200 text-purple-700'
+                          }`}>
+                            {dentist.profiles?.first_name?.[0]}{dentist.profiles?.last_name?.[0]}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between gap-2">
+                              <h3 className="font-bold text-xl text-gray-900">
+                                {dentist.profiles?.first_name} {dentist.profiles?.last_name}
+                              </h3>
+                              {selectedDentist === dentist.id && (
+                                <div className="bg-green-500 rounded-full p-1">
+                                  <CheckCircle2 className="w-6 h-6 text-white" />
+                                </div>
+                              )}
+                            </div>
+                            {dentist.specialization && (
+                              <Badge variant="secondary" className="mt-2 bg-purple-100 text-purple-700 border-purple-300">
+                                {dentist.specialization}
+                              </Badge>
+                            )}
+                            {dentist.profiles?.bio && (
+                              <p className="text-sm text-gray-600 mt-3 leading-relaxed">
+                                {dentist.profiles.bio}
+                              </p>
+                            )}
+                          </div>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold text-lg">
-                            {dentist.profiles?.first_name} {dentist.profiles?.last_name}
-                          </h3>
-                          {dentist.specialization && (
-                            <Badge variant="secondary" className="mb-2">
-                              {dentist.specialization}
-                            </Badge>
-                          )}
-                          {dentist.profiles?.bio && (
-                            <p className="text-sm text-muted-foreground mt-2">
-                              {dentist.profiles.bio}
-                            </p>
-                          )}
-                        </div>
-                        {selectedDentist === dentist.id && (
-                          <CheckCircle2 className="w-6 h-6 text-primary flex-shrink-0" />
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
               </div>
 
-              <div className="flex gap-2">
-                <Button onClick={handleBack} variant="outline" size="lg">
+              <div className="flex gap-3 pt-4">
+                <Button onClick={handleBack} variant="outline" size="lg" className="border-2">
                   <ArrowLeft className="mr-2 h-4 w-4" />
                   Back
                 </Button>
-                <Button onClick={handleNext} size="lg" className="flex-1">
-                  Next
+                <Button onClick={handleNext} size="lg" className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg hover:shadow-xl transition-all">
+                  Continue
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </div>
@@ -453,58 +582,95 @@ export default function BookAppointment() {
           )}
 
           {currentStep === 'datetime' && (
-            <div className="space-y-6">
-              <div className="space-y-2">
-                <Label>Select Date</Label>
-                <Calendar
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={setSelectedDate}
-                  disabled={(date) => date < new Date() || !selectedDentist}
-                  className="rounded-md border"
-                />
+            <div className="space-y-8 animate-in fade-in duration-500">
+              <div className="space-y-4">
+                <Label className="text-lg font-semibold flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                    <CalendarIcon className="w-5 h-5 text-blue-600" />
+                  </div>
+                  Select Date
+                </Label>
+                <div className="flex justify-center">
+                  <div className="bg-gradient-to-br from-blue-50 to-purple-50 p-6 rounded-2xl border-2 border-blue-200 shadow-lg">
+                    <Calendar
+                      mode="single"
+                      selected={selectedDate}
+                      onSelect={setSelectedDate}
+                      disabled={(date) => date < new Date() || !selectedDentist}
+                      className="rounded-xl bg-white shadow-sm"
+                    />
+                  </div>
+                </div>
               </div>
 
               {selectedDate && (
-                <div className="space-y-2">
-                  <Label>Select Time</Label>
+                <div className="space-y-4">
+                  <Label className="text-lg font-semibold flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full bg-pink-100 flex items-center justify-center">
+                      <Clock className="w-5 h-5 text-pink-600" />
+                    </div>
+                    Select Time
+                  </Label>
                   {loadingTimes ? (
-                    <div className="flex items-center justify-center py-4">
+                    <div className="flex flex-col items-center justify-center py-12 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border-2 border-purple-200">
                       <ModernLoadingSpinner />
+                      <p className="mt-4 text-purple-600 font-medium">Loading available times...</p>
                     </div>
                   ) : availableTimes.length > 0 ? (
-                    <div className="grid grid-cols-4 gap-2">
-                      {availableTimes.map((time) => (
-                        <Button
-                          key={time}
-                          type="button"
-                          variant={selectedTime === time ? "default" : "outline"}
-                          onClick={() => setSelectedTime(time)}
-                          className="w-full"
-                        >
-                          <Clock className="mr-1 h-4 w-4" />
-                          {time}
-                        </Button>
-                      ))}
-                    </div>
+                    <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-300">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          <CheckCircle2 className="w-5 h-5 text-green-600" />
+                          Available Time Slots ({availableTimes.length})
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
+                          {availableTimes.map((time) => (
+                            <Button
+                              key={time}
+                              type="button"
+                              variant={selectedTime === time ? "default" : "outline"}
+                              onClick={() => setSelectedTime(time)}
+                              className={`h-14 text-base font-semibold transition-all ${
+                                selectedTime === time
+                                  ? 'bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-lg scale-105 border-0'
+                                  : 'bg-white hover:bg-green-100 border-2 border-green-300 hover:border-green-500 hover:scale-105'
+                              }`}
+                            >
+                              <Clock className="mr-2 h-4 w-4" />
+                              {time}
+                            </Button>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
                   ) : (
-                    <p className="text-muted-foreground">No available times for this date</p>
+                    <Card className="bg-gradient-to-br from-red-50 to-orange-50 border-2 border-red-300">
+                      <CardContent className="p-8 text-center">
+                        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <Clock className="w-8 h-8 text-red-600" />
+                        </div>
+                        <p className="text-lg font-semibold text-red-900">No Available Times</p>
+                        <p className="text-red-700 mt-2">Please select a different date</p>
+                      </CardContent>
+                    </Card>
                   )}
                 </div>
               )}
 
-              <div className="flex gap-2">
-                <Button onClick={handleBack} variant="outline" size="lg">
+              <div className="flex gap-3 pt-4">
+                <Button onClick={handleBack} variant="outline" size="lg" className="border-2">
                   <ArrowLeft className="mr-2 h-4 w-4" />
                   Back
                 </Button>
-                <Button 
-                  onClick={handleNext} 
-                  size="lg" 
-                  className="flex-1"
+                <Button
+                  onClick={handleNext}
+                  size="lg"
+                  className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg hover:shadow-xl transition-all"
                   disabled={!selectedDate || !selectedTime}
                 >
-                  Next
+                  Continue
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </div>
@@ -512,67 +678,103 @@ export default function BookAppointment() {
           )}
 
           {currentStep === 'confirm' && (
-            <div className="space-y-6">
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold">Confirm Your Appointment</h3>
-                
-                <Card>
-                  <CardContent className="p-4 space-y-3">
+            <div className="space-y-8 animate-in fade-in duration-500">
+              <div className="space-y-6">
+                <div className="text-center">
+                  <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-xl">
+                    <CheckCircle2 className="w-10 h-10 text-white" />
+                  </div>
+                  <h3 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                    Review Your Appointment
+                  </h3>
+                  <p className="text-muted-foreground mt-2">Please confirm the details below</p>
+                </div>
+
+                <Card className="bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 border-2 border-purple-300 shadow-xl">
+                  <CardContent className="p-6 space-y-5">
                     {selectedService && (
-                      <div>
-                        <p className="text-sm text-muted-foreground">Service</p>
-                        <p className="font-medium">{selectedService.name}</p>
+                      <div className="bg-white rounded-xl p-4 shadow-sm">
+                        <div className="flex items-center gap-3 mb-2">
+                          <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
+                            <span className="text-xl">✨</span>
+                          </div>
+                          <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Service</p>
+                        </div>
+                        <p className="font-bold text-xl text-gray-900 ml-13">{selectedService.name}</p>
+                        <p className="text-sm text-purple-600 ml-13">{selectedService.duration_minutes} minutes</p>
                       </div>
                     )}
-                    
-                    {selectedService && <Separator />}
-                    
-                    <div>
-                      <p className="text-sm text-muted-foreground">Provider</p>
-                      <p className="font-medium">
+
+                    <div className="bg-white rounded-xl p-4 shadow-sm">
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="w-10 h-10 rounded-full bg-pink-100 flex items-center justify-center">
+                          <User className="w-6 h-6 text-pink-600" />
+                        </div>
+                        <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Provider</p>
+                      </div>
+                      <p className="font-bold text-xl text-gray-900 ml-13">
                         {selectedDentistData?.profiles?.first_name} {selectedDentistData?.profiles?.last_name}
                       </p>
                       {selectedDentistData?.specialization && (
-                        <Badge variant="secondary" className="mt-1">
+                        <Badge variant="secondary" className="mt-2 ml-13 bg-pink-100 text-pink-700 border-pink-300">
                           {selectedDentistData.specialization}
                         </Badge>
                       )}
                     </div>
-                    
-                    <Separator />
-                    
-                    <div>
-                      <p className="text-sm text-muted-foreground">Date & Time</p>
-                      <p className="font-medium">
-                        {selectedDate && format(selectedDate, 'EEEE, MMMM d, yyyy')} at {selectedTime}
-                      </p>
-                    </div>
-                    
-                    {reason && (
-                      <>
-                        <Separator />
-                        <div>
-                          <p className="text-sm text-muted-foreground">Reason for Visit</p>
-                          <p className="font-medium">{reason}</p>
+
+                    <div className="bg-white rounded-xl p-4 shadow-sm">
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                          <CalendarIcon className="w-6 h-6 text-blue-600" />
                         </div>
-                      </>
+                        <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Date & Time</p>
+                      </div>
+                      <p className="font-bold text-xl text-gray-900 ml-13">
+                        {selectedDate && format(selectedDate, 'EEEE, MMMM d, yyyy')}
+                      </p>
+                      <div className="flex items-center gap-2 ml-13 mt-2">
+                        <Clock className="w-5 h-5 text-blue-600" />
+                        <p className="font-semibold text-lg text-blue-600">{selectedTime}</p>
+                      </div>
+                    </div>
+
+                    {reason && (
+                      <div className="bg-white rounded-xl p-4 shadow-sm">
+                        <div className="flex items-center gap-3 mb-2">
+                          <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                            <span className="text-xl">📝</span>
+                          </div>
+                          <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Reason for Visit</p>
+                        </div>
+                        <p className="text-gray-700 ml-13 leading-relaxed">{reason}</p>
+                      </div>
                     )}
                   </CardContent>
                 </Card>
               </div>
 
-              <div className="flex gap-2">
-                <Button onClick={handleBack} variant="outline" size="lg">
+              <div className="flex gap-3 pt-4">
+                <Button onClick={handleBack} variant="outline" size="lg" className="border-2">
                   <ArrowLeft className="mr-2 h-4 w-4" />
                   Back
                 </Button>
-                <Button 
-                  onClick={handleConfirm} 
-                  size="lg" 
-                  className="flex-1"
+                <Button
+                  onClick={handleConfirm}
+                  size="lg"
+                  className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white shadow-lg hover:shadow-xl transition-all text-lg font-bold"
                   disabled={loading}
                 >
-                  {loading ? "Booking..." : "Confirm Appointment"}
+                  {loading ? (
+                    <>
+                      <ModernLoadingSpinner variant="inline" />
+                      <span className="ml-2">Booking...</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="mr-2 h-5 w-5" />
+                      Confirm Appointment
+                    </>
+                  )}
                 </Button>
               </div>
             </div>
