@@ -2134,6 +2134,10 @@ export type Database = {
         Args: { patient_profile_id: string }
         Returns: boolean
       }
+      is_restaurant_manager: {
+        Args: { p_business_id: string; p_user_id?: string }
+        Returns: boolean
+      }
       is_user_business_member: { Args: { _user_id: string }; Returns: boolean }
       is_user_member_of_business: {
         Args: { _business_id: string; _user_id: string }
