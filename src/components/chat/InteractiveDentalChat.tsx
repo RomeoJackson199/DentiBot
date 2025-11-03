@@ -1556,10 +1556,7 @@ You'll receive a confirmation email shortly.`;
               localStorage.setItem('pd_section', 'assistant'); 
               localStorage.setItem('pd_forceClassic', '1');
             } catch {}; 
-            window.dispatchEvent(new CustomEvent('dashboard:changeSection', { detail: { section: 'assistant' } })); 
-            if (window.location.pathname !== '/dashboard') {
-              window.location.href = '/dashboard';
-            }
+            window.dispatchEvent(new CustomEvent('dashboard:changeSection', { detail: { section: 'assistant' } }));
           }}
           className="text-xs text-muted-foreground hover:text-primary"
         >

@@ -18,17 +18,14 @@ export const BookingReadyWidget = ({ conversationData }: BookingReadyWidgetProps
     // Store conversation data in session storage for the booking page
     sessionStorage.setItem('aiBookingData', JSON.stringify(conversationData));
     
-    // Navigate to the assistant section in the dashboard
+    // Set flags for classic booking mode
     try {
       localStorage.setItem('pd_section', 'assistant');
       localStorage.setItem('pd_forceClassic', '1');
     } catch {}
-    window.dispatchEvent(new CustomEvent('dashboard:changeSection', { detail: { section: 'assistant' } }));
     
-    // Only navigate if not already on dashboard
-    if (window.location.pathname !== '/dashboard') {
-      navigate('/dashboard');
-    }
+    // Dispatch event to switch section (works for dashboard)
+    window.dispatchEvent(new CustomEvent('dashboard:changeSection', { detail: { section: 'assistant' } }));
   };
 
   return (
