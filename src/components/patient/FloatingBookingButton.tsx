@@ -39,13 +39,13 @@ export const FloatingBookingButton = ({
             <div className="absolute top-full right-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-black/90"></div>
           </div>
         )}
-        
+
         <div className="absolute inset-0 bg-blue-500 rounded-full animate-ping opacity-20"></div>
-        
+
         <Button
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
-          onClick={() => navigate('/book-appointment')}
+          onClick={() => onBookAppointment ? onBookAppointment() : navigate('/book-appointment')}
           size="icon"
           className="touch-target bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-blue-500/50 hover:scale-105 active:scale-95 rounded-full h-14 w-14"
           aria-label="Book appointment"
@@ -87,7 +87,7 @@ export const FloatingBookingButton = ({
             <Bot className="mr-2 h-4 w-4" />
             Book with AI Assistant
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => navigate('/book-appointment')} className="cursor-pointer">
+          <DropdownMenuItem onClick={() => onBookAppointment ? onBookAppointment() : navigate('/book-appointment')} className="cursor-pointer">
             <CalendarDays className="mr-2 h-4 w-4" />
             Book Manually
           </DropdownMenuItem>
