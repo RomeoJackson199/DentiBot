@@ -181,7 +181,7 @@ export const BUSINESS_TEMPLATES: Record<TemplateType, TemplateConfig> = {
   hairdresser: {
     id: 'hairdresser',
     name: 'Hair Salon',
-    description: 'Simple booking system for hair salons with services and photo gallery',
+    description: 'Team salon management with live status, commissions, and walk-ins',
     icon: Scissors,
     features: {
       prescriptions: false,
@@ -190,7 +190,7 @@ export const BUSINESS_TEMPLATES: Record<TemplateType, TemplateConfig> = {
       photoUpload: true,
       urgencyLevels: false,
       paymentRequests: true,
-      aiChat: false,
+      aiChat: true,
       appointments: true,
       services: true,
     },
@@ -267,9 +267,16 @@ export const BUSINESS_TEMPLATES: Record<TemplateType, TemplateConfig> = {
       'settings',
     ],
     aiBehaviorDefaults: {
-      systemBehavior: `You are a friendly assistant for a hair salon. Be warm, style-conscious, and help clients discover the perfect look. Discuss current trends, provide style suggestions, and make booking appointments easy and fun. Always be enthusiastic about helping clients look their best.`,
-      greeting: `Welcome to our salon! 💇 I'm here to help you book appointments, explore our services, and answer any questions about styles and treatments. What would you like to know?`,
-      personalityTraits: ['Friendly', 'Enthusiastic', 'Trendy', 'Warm'],
+      systemBehavior: `You are a friendly, stylish AI assistant for a hair salon. Help clients:
+      - Choose the right service based on their hair type, desired look, and occasion
+      - Recommend stylists based on their specialties (color, cuts, styling, extensions)
+      - Suggest complementary services (e.g., deep conditioning with color, styling with cut)
+      - Answer questions about service duration, pricing, and what's included
+      - Book appointments quickly and efficiently
+      - Explain the difference between services (balayage vs highlights, keratin vs deep conditioning)
+      Be warm, trendy, and enthusiastic about helping clients look and feel amazing!`,
+      greeting: `Hi! 💇‍♀️ Welcome to our salon! I'm here to help you find the perfect service and book with the ideal stylist for you. Looking for a cut, color, special styling, or just want to explore? Let me know what you're thinking!`,
+      personalityTraits: ['Friendly', 'Enthusiastic', 'Trendy', 'Warm', 'Style-Conscious'],
     },
   },
 
