@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -9,9 +9,11 @@ import { BusinessCreationAuth } from '@/components/business-creation/BusinessCre
 import { BusinessTemplateStep } from '@/components/business-creation/BusinessTemplateStep';
 import { BusinessDetailsStep } from '@/components/business-creation/BusinessDetailsStep';
 import { BusinessServicesStep } from '@/components/business-creation/BusinessServicesStep';
-import { BusinessPaymentStep } from '@/components/business-creation/BusinessPaymentStep';
+import { BusinessSubscriptionStep } from '@/components/business-creation/BusinessSubscriptionStep';
 import { BusinessCreationTour } from '@/components/business-creation/BusinessCreationTour';
 import { TemplateType } from '@/lib/businessTemplates';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface BusinessData {
   template?: TemplateType;
@@ -28,17 +30,44 @@ const STEPS = [
   { id: 2, name: 'Template', description: 'Choose your business type' },
   { id: 3, name: 'Details', description: 'Enter business information' },
   { id: 4, name: 'Services', description: 'Add your services' },
-  { id: 5, name: 'Payment', description: 'Complete setup ($0.50)' },
+  { id: 5, name: 'Subscription', description: 'Choose your plan' },
 ];
 
 export default function CreateBusiness() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [currentStep, setCurrentStep] = useState(1);
   const [businessData, setBusinessData] = useState<BusinessData>({});
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  // DISABLED: Auto-show disabled to reduce popup overload during business creation
-  // Users can still access tour help if needed via help buttons
   const [showTour, setShowTour] = useState(false);
+
+  // Handle successful subscription return
+  useEffect(() => {
+    const handleSubscriptionSuccess = async () => {
+      const sessionId = searchParams.get('session_id');
+      const subscriptionSuccess = searchParams.get('subscription');
+      
+      if (subscriptionSuccess === 'success' && sessionId) {
+        toast.loading('Creating your business...');
+        
+        try {
+          const { data, error } = await supabase.functions.invoke('complete-business-subscription', {
+            body: { sessionId },
+          });
+
+          if (error) throw error;
+
+          toast.success('Business created successfully!');
+          navigate(`/business/${data.businessSlug}`);
+        } catch (error: any) {
+          console.error('Error completing business:', error);
+          toast.error(error.message || 'Failed to complete business setup');
+        }
+      }
+    };
+
+    handleSubscriptionSuccess();
+  }, [searchParams, navigate]);
 
   // Check for demo data on mount
   useEffect(() => {
@@ -79,8 +108,9 @@ export default function CreateBusiness() {
     handleNext();
   };
 
-  const handlePaymentComplete = (businessId: string) => {
-    navigate(`/dentist-portal`);
+  const handlePaymentComplete = () => {
+    // Redirect will be handled by the edge function after successful payment
+    navigate('/');
   };
 
   return (
@@ -189,7 +219,7 @@ export default function CreateBusiness() {
                 )}
 
                 {currentStep === 5 && (
-                  <BusinessPaymentStep
+                  <BusinessSubscriptionStep
                     businessData={businessData}
                     onComplete={handlePaymentComplete}
                   />
