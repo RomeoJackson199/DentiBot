@@ -30,10 +30,10 @@ const PLANS: Plan[] = [
     name: "Professional",
     price: 250,
     features: [
-      "Up to 2500 customers",
+      "Up to 2,500 customers",
       "AI booking system",
       "Custom training",
-      "2000 emails per month",
+      "2,000 emails per month",
       "Advanced analytics",
       "Priority support"
     ],
@@ -44,11 +44,11 @@ const PLANS: Plan[] = [
     name: "Enterprise",
     price: 999,
     features: [
-      "Up to 7500 patients",
+      "Up to 7,500 customers",
       "Unlimited AI triage system",
       "Custom training",
       "Multi-location system",
-      "7500 emails per month",
+      "7,500 emails per month",
       "Dedicated account manager",
       "24/7 Premium support"
     ]
@@ -81,7 +81,7 @@ export default function Pricing() {
           <h1 className="text-7xl md:text-9xl font-bold mb-4 bg-gradient-to-b from-foreground to-foreground/60 bg-clip-text text-transparent">
             PRICING
           </h1>
-          <p className="text-muted-foreground text-lg">Choose the perfect plan for your practice</p>
+          <p className="text-muted-foreground text-lg">Choose the perfect plan for your dental practice or hair salon</p>
         </div>
 
         {/* Pricing Cards */}
