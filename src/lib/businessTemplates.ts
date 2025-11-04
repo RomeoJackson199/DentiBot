@@ -180,8 +180,8 @@ export const BUSINESS_TEMPLATES: Record<TemplateType, TemplateConfig> = {
   
   hairdresser: {
     id: 'hairdresser',
-    name: 'Hair Salon',
-    description: 'Team salon management with live status, commissions, and walk-ins',
+    name: 'Hair Salon / Barbershop',
+    description: 'Complete salon management with automatic tier detection - from solo stylists to multi-location chains',
     icon: Scissors,
     features: {
       prescriptions: false,
@@ -208,47 +208,30 @@ export const BUSINESS_TEMPLATES: Record<TemplateType, TemplateConfig> = {
     appointmentReasons: [
       'Haircut',
       'Color',
-      'Highlights',
       'Styling',
-      'Treatment',
-      'Consultation',
     ],
     defaultServices: [
       'Haircut',
       'Hair Color',
-      'Highlights',
-      'Blowout',
-      'Hair Treatment',
+      'Styling',
     ],
     serviceCategories: [
       'Haircuts',
       'Coloring',
-      'Highlights & Balayage',
       'Styling',
-      'Hair Treatment',
-      'Extensions',
-      'Bridal Services',
-      'Men\'s Grooming',
-      'Kids Cuts',
     ],
     quickAddServices: [
-      { name: 'Women\'s Haircut', price: 45, duration: 45, description: 'Cut and style for all hair lengths', category: 'Haircuts' },
-      { name: 'Men\'s Haircut', price: 30, duration: 30, description: 'Classic or modern men\'s cut', category: 'Men\'s Grooming' },
-      { name: 'Full Color', price: 85, duration: 90, description: 'All-over permanent or semi-permanent color', category: 'Coloring' },
-      { name: 'Highlights', price: 120, duration: 120, description: 'Foil highlights with toner', category: 'Highlights & Balayage' },
-      { name: 'Balayage', price: 150, duration: 150, description: 'Hand-painted highlights for natural look', category: 'Highlights & Balayage' },
-      { name: 'Blowout', price: 40, duration: 45, description: 'Wash, blow-dry, and style', category: 'Styling' },
-      { name: 'Deep Conditioning', price: 55, duration: 60, description: 'Restorative hair treatment with mask', category: 'Hair Treatment' },
-      { name: 'Keratin Treatment', price: 200, duration: 180, description: 'Smoothing and straightening treatment', category: 'Hair Treatment' },
-      { name: 'Hair Extensions', price: 300, duration: 180, description: 'Tape-in or clip-in extensions', category: 'Extensions' },
-      { name: 'Updo Styling', price: 75, duration: 60, description: 'Formal updo for special occasions', category: 'Bridal Services' },
+      { name: 'Haircut', price: 35, duration: 30, description: 'Standard haircut and style', category: 'Haircuts' },
+      { name: 'Hair Color', price: 75, duration: 90, description: 'Full color service', category: 'Coloring' },
+      { name: 'Highlights', price: 95, duration: 120, description: 'Partial or full highlights', category: 'Coloring' },
+      { name: 'Blow Dry & Style', price: 35, duration: 45, description: 'Wash, dry and style', category: 'Styling' },
     ],
     serviceFieldLabels: {
       serviceName: 'Service Name',
-      serviceNamePlaceholder: 'e.g., Women\'s Haircut, Balayage, Blowout',
-      descriptionPlaceholder: 'Describe the service, hair type suitability, and what\'s included...',
-      categoryLabel: 'Service Category',
-      durationLabel: 'Service Duration (minutes)',
+      serviceNamePlaceholder: 'e.g., Haircut, Color, Styling',
+      descriptionPlaceholder: 'Brief description of the service',
+      categoryLabel: 'Category',
+      durationLabel: 'Duration (minutes)',
     },
     completionSteps: [
       { id: 'overview', title: 'Overview', enabled: true },
@@ -267,16 +250,16 @@ export const BUSINESS_TEMPLATES: Record<TemplateType, TemplateConfig> = {
       'settings',
     ],
     aiBehaviorDefaults: {
-      systemBehavior: `You are a friendly, stylish AI assistant for a hair salon. Help clients:
+      systemBehavior: `You are a friendly, stylish AI assistant for a hair salon or barbershop. Help clients:
       - Choose the right service based on their hair type, desired look, and occasion
       - Recommend stylists based on their specialties (color, cuts, styling, extensions)
       - Suggest complementary services (e.g., deep conditioning with color, styling with cut)
       - Answer questions about service duration, pricing, and what's included
       - Book appointments quickly and efficiently
       - Explain the difference between services (balayage vs highlights, keratin vs deep conditioning)
-      Be warm, trendy, and enthusiastic about helping clients look and feel amazing!`,
-      greeting: `Hi! 💇‍♀️ Welcome to our salon! I'm here to help you find the perfect service and book with the ideal stylist for you. Looking for a cut, color, special styling, or just want to explore? Let me know what you're thinking!`,
-      personalityTraits: ['Friendly', 'Enthusiastic', 'Trendy', 'Warm', 'Style-Conscious'],
+      Be warm, professional, and enthusiastic about helping clients look and feel amazing!`,
+      greeting: `Hi! 💇‍♀️ Welcome! I'm here to help you find the perfect service and book with the ideal stylist for you. Looking for a cut, color, special styling, or just want to explore? Let me know what you're thinking!`,
+      personalityTraits: ['Friendly', 'Enthusiastic', 'Professional', 'Warm', 'Style-Conscious'],
     },
   },
 

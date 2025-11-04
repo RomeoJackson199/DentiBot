@@ -44,6 +44,9 @@ const ProfileCompletionDialog = () => {
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
   const [completed, setCompleted] = useState(false);
 
+  // Don't show profile completion during business creation flow
+  const isBusinessCreationFlow = window.location.pathname === '/create-business';
+
   const checkProfile = async (userId: string) => {
     const { data, error } = await supabase
       .from("profiles")
@@ -126,6 +129,9 @@ const ProfileCompletionDialog = () => {
   };
 
   useEffect(() => {
+    // Skip profile completion check during business creation
+    if (isBusinessCreationFlow) return;
+
     const init = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
@@ -136,7 +142,7 @@ const ProfileCompletionDialog = () => {
     init();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) {
+      if (session?.user && !isBusinessCreationFlow) {
         checkProfile(session.user.id);
       }
     });
@@ -144,7 +150,7 @@ const ProfileCompletionDialog = () => {
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [isBusinessCreationFlow]);
 
   const handleNext = async () => {
     const field = missingFields[currentIndex];

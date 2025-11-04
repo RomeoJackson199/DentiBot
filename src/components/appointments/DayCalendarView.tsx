@@ -16,11 +16,6 @@ interface DayCalendarViewProps {
   googleCalendarEvents?: any[];
 }
 
-const TIME_SLOTS = [
-  "07:00", "08:00", "09:00", "10:00", "11:00", "12:00",
-  "13:00", "14:00", "15:00", "16:00", "17:00", "18:00"
-];
-
 const STATUS_COLORS: Record<string, string> = {
   "completed": "bg-gradient-to-br from-green-50 to-green-100 text-green-900 border-l-green-500 shadow-sm",
   "cancelled": "bg-gradient-to-br from-gray-50 to-gray-100 text-gray-600 border-l-gray-400 shadow-sm",
@@ -42,6 +37,62 @@ export function DayCalendarView({
   selectedAppointmentId,
   googleCalendarEvents = []
 }: DayCalendarViewProps) {
+  // Fetch dentist availability
+  const { data: availability = [] } = useQuery({
+    queryKey: ["dentist-availability", dentistId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("dentist_availability")
+        .select("*")
+        .eq("dentist_id", dentistId)
+        .eq("is_available", true);
+      
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!dentistId
+  });
+
+  // Generate time slots based on availability
+  const TIME_SLOTS = useMemo(() => {
+    if (!availability.length) {
+      // Default to 9 AM - 6 PM if no availability set
+      return Array.from({ length: 10 }, (_, i) => {
+        const hour = 9 + i;
+        return `${hour.toString().padStart(2, '0')}:00`;
+      });
+    }
+
+    // Find earliest start and latest end across all days
+    const times = availability.flatMap((avail: any) => [
+      avail.start_time,
+      avail.end_time
+    ]);
+    
+    const startHour = Math.min(...times.map((time: string) => parseInt(time.split(':')[0])));
+    const endHour = Math.max(...times.map((time: string) => parseInt(time.split(':')[0])));
+    
+    return Array.from({ length: endHour - startHour + 1 }, (_, i) => {
+      const hour = startHour + i;
+      return `${hour.toString().padStart(2, '0')}:00`;
+    });
+  }, [availability]);
+
+  // Check if a time slot is a break time
+  const isBreakTime = (timeSlot: string) => {
+    const dayOfWeek = currentDate.getDay();
+    const dayAvailability = availability.find((a: any) => a.day_of_week === dayOfWeek);
+    
+    if (!dayAvailability) return false;
+    if (!dayAvailability.break_start_time || !dayAvailability.break_end_time) return false;
+    
+    const slotHour = parseInt(timeSlot.split(':')[0]);
+    const breakStart = parseInt(dayAvailability.break_start_time.split(':')[0]);
+    const breakEnd = parseInt(dayAvailability.break_end_time.split(':')[0]);
+    
+    return slotHour >= breakStart && slotHour < breakEnd;
+  };
+
   const { data: appointments = [], isLoading } = useQuery({
     queryKey: ["appointments-day", dentistId, format(currentDate, "yyyy-MM-dd")],
     queryFn: async () => {
@@ -136,11 +187,15 @@ export function DayCalendarView({
         <div className="divide-y">
           {TIME_SLOTS.map((timeSlot) => {
             const slotAppointments = getAppointmentsForSlot(timeSlot);
+            const isBreak = isBreakTime(timeSlot);
 
             return (
               <div
                 key={timeSlot}
-                className="grid grid-cols-[100px_1fr] hover:bg-muted/5 transition-colors"
+                className={cn(
+                  "grid grid-cols-[100px_1fr] transition-colors",
+                  isBreak ? "bg-gray-100 dark:bg-gray-800" : "hover:bg-muted/5"
+                )}
               >
                 {/* Time label */}
                 <div className="p-4 text-sm text-muted-foreground font-medium border-r bg-muted/5">

@@ -52,25 +52,40 @@ export default function DentistAdminUsers() {
       // Fetch user roles for each profile
       const usersWithRoles = await Promise.all(
         (profiles || []).map(async (profile) => {
+          const allRoles: string[] = [];
+          
           if (profile.user_id) {
+            // Fetch app-level roles from user_roles table
             const { data: rolesData } = await supabase
               .from('user_roles' as any)
               .select('role')
               .eq('user_id', profile.user_id);
-
-            return {
-              ...profile,
-              roles: (rolesData || []).map((r: any) => r.role),
-              invitation_status: 'accepted' as const,
-            };
-          } else {
-            return {
-              ...profile,
-              roles: [],
-              invitation_status: undefined,
-              invitation_sent_at: undefined,
-            };
+            
+            if (rolesData) {
+              allRoles.push(...rolesData.map((r: any) => r.role));
+            }
           }
+          
+          // Fetch business-specific roles from business_members table
+          const { data: businessRoles } = await supabase
+            .from('business_members')
+            .select('role')
+            .eq('profile_id', profile.id);
+          
+          if (businessRoles && businessRoles.length > 0) {
+            // Add business roles (admin, provider, patient, etc.)
+            allRoles.push(...businessRoles.map(br => br.role));
+          }
+          
+          // Remove duplicates
+          const uniqueRoles = [...new Set(allRoles)];
+
+          return {
+            ...profile,
+            roles: uniqueRoles,
+            invitation_status: profile.user_id ? 'accepted' as const : undefined,
+            invitation_sent_at: undefined,
+          };
         })
       );
 
@@ -104,6 +119,7 @@ export default function DentistAdminUsers() {
   const getRoleBadgeVariant = (role: string) => {
     switch (role) {
       case 'admin': return 'destructive';
+      case 'provider': return 'default';
       case 'dentist': return 'default';
       case 'staff': return 'secondary';
       case 'patient': return 'outline';

@@ -10,6 +10,7 @@ import { Calendar, Clock, Bell, Shield, Users, CheckCircle2, ArrowRight, Sparkle
 import { useNavigate } from "react-router-dom";
 import { AccessibleLoadingIndicator } from "@/components/ui/skip-to-content";
 import { DemoTourFlow } from "@/components/demo/DemoTourFlow";
+import { ScreenSizeIndicator } from "@/components/ui/screen-size-indicator";
 const Index = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -52,6 +53,7 @@ const Index = () => {
 
   // Homepage for non-authenticated users
   return <div className="min-h-screen bg-white">
+      <ScreenSizeIndicator />
       <Header user={user} minimal />
 
       <main id="main-content">
@@ -84,15 +86,15 @@ const Index = () => {
                 From appointment scheduling to patient records, payments to inventory—manage your entire dental practice with AI-powered efficiency. Built specifically for modern dental professionals.
               </p>
 
-              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
+              <div className="flex flex-col md:flex-row gap-4 justify-center items-center pt-4">
                 <Button size="lg" className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-6 text-lg shadow-lg hover:shadow-xl transition-all group" onClick={() => navigate('/signup')} aria-label="Get started with free account">
                   Get Started Free
                   <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                 </Button>
-                <Button 
-                  size="lg" 
-                  variant="outline" 
-                  className="border-2 border-purple-300 hover:border-purple-600 hover:bg-purple-50 px-8 py-6 text-lg transition-all group" 
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="border-2 border-purple-300 hover:border-purple-600 hover:bg-purple-50 px-8 py-6 text-lg transition-all group"
                   onClick={() => setShowDemoTour(true)}
                   aria-label="Try interactive demo tour"
                 >
@@ -139,16 +141,16 @@ const Index = () => {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {[{
               icon: Calendar,
-              title: "Smart Scheduling",
-              description: "Intelligent appointment calendar with conflict detection, recurring appointments, and multi-provider scheduling",
+              title: "Beautifully Designed Scheduling System",
+              description: "Experience a beautifully designed scheduling system that makes appointment management effortless and intuitive",
               gradient: "from-blue-500 to-cyan-500"
             }, {
               icon: Zap,
-              title: "AI-Powered Triage",
-              description: "AI chatbot assesses patient urgency, symptoms, and recommends appropriate appointment types automatically",
+              title: "AI-Powered Scheduling",
+              description: "This enables your business to know what your client wants before they even come to you, so you can prepare the best experience for your customer",
               gradient: "from-purple-500 to-pink-500"
             }, {
               icon: Bell,
@@ -157,33 +159,33 @@ const Index = () => {
               gradient: "from-orange-500 to-red-500"
             }, {
               icon: Users,
-              title: "Complete Patient Records",
-              description: "Digital health records, treatment history, prescriptions, X-rays, and insurance info in one place",
+              title: "All Your Customer Data in One Place",
+              description: "Access all your customer information, treatment history, and records in one centralized location",
               gradient: "from-green-500 to-emerald-500"
             }, {
               icon: Shield,
-              title: "HIPAA Compliant & Secure",
-              description: "Enterprise-grade encryption, audit logs, and role-based access control for complete data security",
+              title: "We Value Security",
+              description: "Our enterprise-grade security is made for security, protecting your data with the highest standards",
               gradient: "from-indigo-500 to-blue-500"
             }, {
               icon: CheckCircle2,
               title: "Billing & Payments",
-              description: "Track payments, send invoices, record insurance claims, and manage practice revenue effortlessly",
+              description: "We will send notifications if your customer has forgot to pay so that you can work on what matters most",
               gradient: "from-teal-500 to-cyan-500"
-            }].map((feature, index) => <Card key={index} className="group p-6 border-2 border-gray-200 hover:border-transparent hover:shadow-2xl transition-all duration-300 cursor-pointer relative overflow-hidden" style={{
+            }].map((feature, index) => <Card key={index} className="group p-6 border-2 border-gray-200 hover:border-transparent hover:shadow-2xl transition-all duration-300 cursor-pointer relative overflow-hidden h-full flex flex-col" style={{
               animationDelay: `${index * 100}ms`
             }} role="article" tabIndex={0} aria-label={`Feature: ${feature.title}`}>
                   {/* Gradient background on hover */}
                   <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-300`}></div>
 
-                  <div className="relative">
-                    <div className={`inline-flex p-3 rounded-xl bg-gradient-to-br ${feature.gradient} mb-4 group-hover:scale-110 transition-transform duration-300`}>
+                  <div className="relative flex flex-col h-full">
+                    <div className={`inline-flex p-3 rounded-xl bg-gradient-to-br ${feature.gradient} mb-4 group-hover:scale-110 transition-transform duration-300 w-fit`}>
                       <feature.icon className="h-6 w-6 text-white" aria-hidden="true" />
                     </div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
+                    <h3 className="text-xl font-semibold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors">
                       {feature.title}
                     </h3>
-                    <p className="text-gray-600 leading-relaxed">{feature.description}</p>
+                    <p className="text-gray-600 leading-relaxed flex-grow">{feature.description}</p>
                   </div>
                 </Card>)}
             </div>
@@ -249,18 +251,18 @@ const Index = () => {
             </div>
 
             <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-              {/* Free Plan */}
+              {/* Starter Plan */}
               <Card className="p-8 border-2 border-gray-200 hover:border-gray-300 transition-all">
                 <div className="text-center mb-6">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Free</h3>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Starter</h3>
                   <div className="flex items-baseline justify-center gap-1">
-                    <span className="text-5xl font-bold text-gray-900">$0</span>
+                    <span className="text-5xl font-bold text-gray-900">€99</span>
                     <span className="text-gray-600">/month</span>
                   </div>
-                  <p className="text-sm text-gray-600 mt-2">Perfect for getting started</p>
+                  <p className="text-sm text-gray-600 mt-2">Perfect for small practices</p>
                 </div>
                 <ul className="space-y-3 mb-8">
-                  {["Up to 50 patients", "Basic appointment scheduling", "Patient reminders", "Mobile app access", "Email support"].map((feature) => (
+                  {["Up to 500 customers", "Normal booking system", "Patient reminders", "Mobile app access", "Email support"].map((feature) => (
                     <li key={feature} className="flex items-center gap-2 text-gray-700">
                       <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0" />
                       <span className="text-sm">{feature}</span>
@@ -268,15 +270,15 @@ const Index = () => {
                   ))}
                 </ul>
                 <Button
-                  onClick={() => navigate('/signup')}
+                  onClick={() => navigate('/pricing')}
                   variant="outline"
                   className="w-full border-2"
                 >
-                  Get Started Free
+                  Get Started
                 </Button>
               </Card>
 
-              {/* Pro Plan */}
+              {/* Professional Plan */}
               <Card className="p-8 border-2 border-blue-600 bg-gradient-to-br from-blue-50 to-purple-50 relative shadow-xl transform scale-105">
                 <div className="absolute -top-4 left-1/2 -translate-x-1/2">
                   <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-1 rounded-full text-sm font-semibold shadow-lg">
@@ -286,13 +288,13 @@ const Index = () => {
                 <div className="text-center mb-6">
                   <h3 className="text-2xl font-bold text-gray-900 mb-2">Professional</h3>
                   <div className="flex items-baseline justify-center gap-1">
-                    <span className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">$49</span>
+                    <span className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">€250</span>
                     <span className="text-gray-600">/month</span>
                   </div>
                   <p className="text-sm text-gray-600 mt-2">For growing practices</p>
                 </div>
                 <ul className="space-y-3 mb-8">
-                  {["Unlimited patients", "Advanced scheduling & calendar sync", "AI-powered triage", "Patient records & X-rays", "Billing & payments", "Analytics & reporting", "Priority support"].map((feature) => (
+                  {["Up to 2,500 customers", "AI booking system", "Custom training", "2,000 emails per month", "Billing & payments", "Analytics & reporting", "Priority support"].map((feature) => (
                     <li key={feature} className="flex items-center gap-2 text-gray-700">
                       <CheckCircle2 className="h-5 w-5 text-blue-600 flex-shrink-0" />
                       <span className="text-sm font-medium">{feature}</span>
@@ -312,12 +314,13 @@ const Index = () => {
                 <div className="text-center mb-6">
                   <h3 className="text-2xl font-bold text-gray-900 mb-2">Enterprise</h3>
                   <div className="flex items-baseline justify-center gap-1">
-                    <span className="text-4xl font-bold text-gray-900">Custom</span>
+                    <span className="text-5xl font-bold text-gray-900">€999</span>
+                    <span className="text-gray-600">/month</span>
                   </div>
                   <p className="text-sm text-gray-600 mt-2">For large organizations</p>
                 </div>
                 <ul className="space-y-3 mb-8">
-                  {["Everything in Pro", "Multi-location support", "Custom integrations", "Dedicated account manager", "Custom training", "SLA guarantees", "24/7 phone support"].map((feature) => (
+                  {["Up to 7,500 patients", "Unlimited AI triage system", "Custom training", "Multi-location system", "7,500 emails per month", "Dedicated account manager", "24/7 phone support"].map((feature) => (
                     <li key={feature} className="flex items-center gap-2 text-gray-700">
                       <CheckCircle2 className="h-5 w-5 text-purple-600 flex-shrink-0" />
                       <span className="text-sm">{feature}</span>
@@ -325,11 +328,11 @@ const Index = () => {
                   ))}
                 </ul>
                 <Button
-                  onClick={() => navigate('/support')}
+                  onClick={() => navigate('/pricing')}
                   variant="outline"
                   className="w-full border-2"
                 >
-                  Contact Sales
+                  Get Started
                 </Button>
               </Card>
             </div>
@@ -369,12 +372,12 @@ const Index = () => {
               Get started today—no credit card required.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
+            <div className="flex flex-col md:flex-row gap-4 justify-center items-center pt-4">
               <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-6 text-lg shadow-2xl hover:shadow-3xl transition-all group font-semibold" onClick={() => navigate('/signup')} aria-label="Start your free trial today">
                 Start Your Free Trial
                 <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </Button>
-              
+
             </div>
 
             {/* Trust badges */}

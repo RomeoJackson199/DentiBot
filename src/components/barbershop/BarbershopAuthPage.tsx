@@ -1,3 +1,19 @@
+/**
+ * BarbershopAuthPage - Example Reference Implementation
+ *
+ * This is a custom landing page specifically designed for ART Barber in Tervuren.
+ * It serves as a REFERENCE EXAMPLE of what's possible with custom styling.
+ *
+ * For most businesses, we recommend using CustomizableHomepage component instead,
+ * which can be configured through the admin panel without code changes.
+ *
+ * This example demonstrates:
+ * - Custom branding with specific colors (#d4af37 gold accent)
+ * - Multilingual support (Dutch)
+ * - Service showcase with images
+ * - Responsive design
+ * - Call-to-action flows
+ */
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ImprovedAuthForm } from "@/components/auth/ImprovedAuthForm";
 import { Scissors, Clock, Euro, Calendar, MapPin, Phone, Star } from "lucide-react";

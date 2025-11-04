@@ -169,26 +169,7 @@ export default function DentistAppointmentsManagement() {
         </div>
 
         {/* View Controls */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 px-3 sm:px-6 pb-3 sm:pb-4">
-          <div className="flex items-center gap-2 w-full sm:w-auto">
-            <Button
-              variant={viewMode === "week" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setViewMode("week")}
-              className={cn("flex-1 sm:flex-initial text-xs sm:text-sm", viewMode === "week" && "bg-gradient-to-r from-blue-600 to-purple-600")}
-            >
-              Week View
-            </Button>
-            <Button
-              variant={viewMode === "day" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setViewMode("day")}
-              className={cn("flex-1 sm:flex-initial text-xs sm:text-sm", viewMode === "day" && "bg-gradient-to-r from-blue-600 to-purple-600")}
-            >
-              Day View
-            </Button>
-          </div>
-
+        <div className="flex items-center justify-between px-3 sm:px-6 pb-3 sm:pb-4">
           <div className="flex items-center justify-between sm:justify-start gap-3 sm:gap-4 w-full sm:w-auto">
             <Button
               variant="ghost"

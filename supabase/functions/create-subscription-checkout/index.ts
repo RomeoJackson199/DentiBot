@@ -13,7 +13,7 @@ serve(async (req) => {
   }
 
   try {
-    const { planId, billingCycle } = await req.json();
+    const { planId, billingCycle, businessData } = await req.json();
 
     if (!planId || !billingCycle) {
       throw new Error('Plan ID and billing cycle are required');
@@ -38,25 +38,15 @@ serve(async (req) => {
       throw new Error('Unauthorized');
     }
 
-    // Get user's profile and dentist info
+    // Get user's profile
     const { data: profile } = await supabase
       .from('profiles')
-      .select('id')
+      .select('id, email, first_name, last_name')
       .eq('user_id', user.id)
       .single();
 
     if (!profile) {
       throw new Error('Profile not found');
-    }
-
-    const { data: dentist } = await supabase
-      .from('dentists')
-      .select('id, email, first_name, last_name')
-      .eq('profile_id', profile.id)
-      .single();
-
-    if (!dentist) {
-      throw new Error('Dentist profile not found');
     }
 
     // Get plan details
@@ -75,27 +65,15 @@ serve(async (req) => {
       apiVersion: '2023-10-16',
     });
 
-    // Create or get Stripe customer
-    let customerId: string;
-    const { data: existingSub } = await supabase
-      .from('subscriptions')
-      .select('stripe_customer_id')
-      .eq('dentist_id', dentist.id)
-      .single();
-
-    if (existingSub?.stripe_customer_id) {
-      customerId = existingSub.stripe_customer_id;
-    } else {
-      const customer = await stripe.customers.create({
-        email: dentist.email || user.email,
-        name: `${dentist.first_name} ${dentist.last_name}`,
-        metadata: {
-          dentist_id: dentist.id,
-          user_id: user.id,
-        },
-      });
-      customerId = customer.id;
-    }
+    // Create Stripe customer
+    const customer = await stripe.customers.create({
+      email: profile.email || user.email,
+      name: `${profile.first_name} ${profile.last_name}`,
+      metadata: {
+        profile_id: profile.id,
+        user_id: user.id,
+      },
+    });
 
     // Determine price
     const price = billingCycle === 'yearly' ? plan.price_yearly : plan.price_monthly;
@@ -103,16 +81,16 @@ serve(async (req) => {
 
     // Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({
-      customer: customerId,
+      customer: customer.id,
       mode: 'subscription',
       payment_method_types: ['card'],
       line_items: [
         {
           price_data: {
-            currency: 'eur',
+            currency: 'usd',
             product_data: {
               name: `${plan.name} Plan`,
-              description: `DentiBot ${plan.name} subscription`,
+              description: `${plan.name} subscription - ${plan.customer_limit} customers${plan.email_limit_monthly ? `, ${plan.email_limit_monthly} emails/month` : ''}`,
             },
             unit_amount: Math.round(price * 100), // Convert to cents
             recurring: {
@@ -122,12 +100,14 @@ serve(async (req) => {
           quantity: 1,
         },
       ],
-      success_url: `${req.headers.get('origin')}/dentist?subscription=success`,
-      cancel_url: `${req.headers.get('origin')}/pricing?cancelled=true`,
+      success_url: `${req.headers.get('origin')}/create-business?subscription=success&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${req.headers.get('origin')}/create-business?cancelled=true`,
       metadata: {
-        dentist_id: dentist.id,
+        profile_id: profile.id,
+        user_id: user.id,
         plan_id: planId,
         billing_cycle: billingCycle,
+        business_data: businessData ? JSON.stringify(businessData) : null,
       },
     });
 

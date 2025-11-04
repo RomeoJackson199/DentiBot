@@ -80,3 +80,6 @@ verify_jwt = true
 
 [functions.restaurant-payment-webhook]
 verify_jwt = false
+
+[functions.complete-business-subscription]
+verify_jwt = true
