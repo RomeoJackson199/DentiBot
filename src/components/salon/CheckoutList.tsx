@@ -97,18 +97,18 @@ export function CheckoutList({ open, onOpenChange }: CheckoutListProps) {
   const handleCheckoutClick = (customer: InStoreCustomer) => {
     setSelectedCustomer(customer);
     setShowCheckout(true);
+    onOpenChange(false); // Close the list dialog
   };
 
   const handleCheckoutComplete = () => {
     setShowCheckout(false);
     setSelectedCustomer(null);
-    loadInStoreCustomers(); // Refresh the list
+    // Don't reopen the list, just refresh data for next time
+    loadInStoreCustomers();
   };
 
   const handleClose = () => {
-    if (!showCheckout) {
-      onOpenChange(false);
-    }
+    onOpenChange(false);
   };
 
   return (
@@ -193,7 +193,7 @@ export function CheckoutList({ open, onOpenChange }: CheckoutListProps) {
 
       {/* Checkout Modal */}
       {showCheckout && selectedCustomer && (
-        <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <QuickCheckout
               appointmentId={selectedCustomer.appointmentId}
