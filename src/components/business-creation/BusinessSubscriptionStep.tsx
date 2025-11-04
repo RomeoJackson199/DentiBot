@@ -88,18 +88,53 @@ export const BusinessSubscriptionStep = ({ businessData, onComplete }: BusinessS
       return;
     }
 
-    // If promo code makes it free, skip payment
+    // If promo code makes it free, create business directly
     if (validPromo?.discount_type === 'free') {
       setLoading(true);
       try {
-        const { data, error } = await supabase.functions.invoke('create-business-free', {
-          body: {
-            businessData,
-            promoCodeId: validPromo.id,
-          },
-        });
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error('Not authenticated');
 
-        if (error) throw error;
+        // Get profile
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('user_id', user.id)
+          .single();
+
+        if (!profile) throw new Error('Profile not found');
+
+        // Create business
+        const { data: business, error: businessError } = await supabase
+          .from('businesses')
+          .insert({
+            name: businessData.name,
+            slug: businessData.slug,
+            tagline: businessData.tagline || null,
+            bio: businessData.bio || null,
+            owner_profile_id: profile.id,
+            template_type: businessData.templateType || 'dentist',
+          })
+          .select()
+          .single();
+
+        if (businessError) throw businessError;
+
+        // Add owner as business member
+        const { error: memberError } = await supabase
+          .from('business_members')
+          .insert({
+            business_id: business.id,
+            profile_id: profile.id,
+            role: 'owner',
+          });
+
+        if (memberError) throw memberError;
+
+        // Increment promo code usage
+        await supabase.rpc('increment_promo_usage', {
+          promo_id: validPromo.id,
+        });
 
         toast.success('Business created successfully!');
         onComplete();
