@@ -47,6 +47,9 @@ export function QuickCheckout({
   const [customTip, setCustomTip] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [promoCode, setPromoCode] = useState('');
+  const [validatingPromo, setValidatingPromo] = useState(false);
+  const [validPromo, setValidPromo] = useState<{ id: string; code: string; discount_type: string; discount_value: number } | null>(null);
 
   useEffect(() => {
     loadProducts();
@@ -102,7 +105,65 @@ export function QuickCheckout({
     0
   );
   const subtotal = servicePrice + productTotal;
-  const total = subtotal + tipAmount;
+  
+  // Apply promo code discount
+  let discountAmount = 0;
+  if (validPromo) {
+    if (validPromo.discount_type === 'free') {
+      discountAmount = subtotal;
+    } else if (validPromo.discount_type === 'percentage') {
+      discountAmount = Math.round((subtotal * validPromo.discount_value) / 100 * 100) / 100;
+    } else if (validPromo.discount_type === 'fixed') {
+      discountAmount = Math.min(validPromo.discount_value / 100, subtotal);
+    }
+  }
+  
+  const total = subtotal - discountAmount + tipAmount;
+
+  const validatePromoCode = async () => {
+    if (!promoCode.trim()) {
+      toast({
+        title: 'Error',
+        description: 'Please enter a promo code',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setValidatingPromo(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('validate-promo-code', {
+        body: { code: promoCode.trim() },
+      });
+
+      if (error) throw error;
+
+      if (data.valid) {
+        setValidPromo(data.promoCode);
+        toast({
+          title: 'Promo Code Applied!',
+          description: data.promoCode.discount_type === 'free' 
+            ? 'This checkout is now FREE!' 
+            : `Discount applied successfully`,
+        });
+      } else {
+        toast({
+          title: 'Invalid Code',
+          description: data.message || 'This promo code is not valid',
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+      console.error('Promo validation error:', error);
+      toast({
+        title: 'Error',
+        description: 'Could not validate promo code',
+        variant: 'destructive',
+      });
+    } finally {
+      setValidatingPromo(false);
+    }
+  };
 
   const handlePayment = async (method: 'card' | 'cash') => {
     if (!businessId) return;
@@ -158,12 +219,25 @@ export function QuickCheckout({
 
       if (apptError) throw apptError;
 
+      // 4. Update promo code usage if used
+      if (validPromo) {
+        try {
+          await supabase.rpc('increment_promo_usage', {
+            promo_id: validPromo.id
+          });
+        } catch (err) {
+          console.error('Failed to update promo code usage:', err);
+        }
+      }
+
       // Show success
       setShowSuccess(true);
 
       toast({
         title: 'Payment Complete!',
-        description: `€${total.toFixed(2)} charged via ${method}`,
+        description: validPromo?.discount_type === 'free' 
+          ? 'FREE checkout with promo code!' 
+          : `€${total.toFixed(2)} charged via ${method}`,
       });
 
       // Wait a moment then call onComplete
@@ -285,6 +359,48 @@ export function QuickCheckout({
           </div>
         )}
 
+        {/* Promo Code */}
+        <div className="space-y-3 border-t pt-4">
+          <Label className="text-base font-semibold">🎁 Promo Code</Label>
+          
+          {validPromo ? (
+            <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded">
+              <div>
+                <p className="font-semibold text-green-700">{validPromo.code}</p>
+                <p className="text-sm text-green-600">
+                  {validPromo.discount_type === 'free' ? 'FREE Checkout!' : 'Discount Applied'}
+                </p>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setValidPromo(null);
+                  setPromoCode('');
+                }}
+                disabled={isProcessing}
+              >
+                Remove
+              </Button>
+            </div>
+          ) : (
+            <div className="flex gap-2">
+              <Input
+                placeholder="Enter promo code"
+                value={promoCode}
+                onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                disabled={validatingPromo || isProcessing}
+              />
+              <Button
+                onClick={validatePromoCode}
+                disabled={validatingPromo || isProcessing || !promoCode.trim()}
+              >
+                {validatingPromo ? 'Checking...' : 'Apply'}
+              </Button>
+            </div>
+          )}
+        </div>
+
         {/* Tip Selection */}
         <div className="space-y-3">
           <Label className="text-base font-semibold">💵 Tip for {stylistName.split(' ')[0]}?</Label>
@@ -346,6 +462,12 @@ export function QuickCheckout({
               <div className="flex justify-between">
                 <span>Products</span>
                 <span>€{productTotal.toFixed(2)}</span>
+              </div>
+            )}
+            {discountAmount > 0 && (
+              <div className="flex justify-between text-green-600">
+                <span>Discount ({validPromo?.code})</span>
+                <span>-€{discountAmount.toFixed(2)}</span>
               </div>
             )}
             {tipAmount > 0 && (
