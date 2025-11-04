@@ -181,7 +181,7 @@ export const BUSINESS_TEMPLATES: Record<TemplateType, TemplateConfig> = {
   hairdresser: {
     id: 'hairdresser',
     name: 'Hair Salon / Barbershop',
-    description: 'Perfect for salons and barbershops - manage appointments and services easily',
+    description: 'Complete salon management with automatic tier detection - from solo stylists to multi-location chains',
     icon: Scissors,
     features: {
       prescriptions: false,
@@ -190,7 +190,7 @@ export const BUSINESS_TEMPLATES: Record<TemplateType, TemplateConfig> = {
       photoUpload: true,
       urgencyLevels: false,
       paymentRequests: true,
-      aiChat: false,
+      aiChat: true,
       appointments: true,
       services: true,
     },
@@ -250,9 +250,16 @@ export const BUSINESS_TEMPLATES: Record<TemplateType, TemplateConfig> = {
       'settings',
     ],
     aiBehaviorDefaults: {
-      systemBehavior: `You are a helpful assistant for a hair salon or barbershop. Help clients book appointments and answer questions about services clearly and professionally.`,
-      greeting: `Welcome! I'm here to help you book an appointment or answer questions about our services. What can I help you with?`,
-      personalityTraits: ['Friendly', 'Professional', 'Helpful'],
+      systemBehavior: `You are a friendly, stylish AI assistant for a hair salon or barbershop. Help clients:
+      - Choose the right service based on their hair type, desired look, and occasion
+      - Recommend stylists based on their specialties (color, cuts, styling, extensions)
+      - Suggest complementary services (e.g., deep conditioning with color, styling with cut)
+      - Answer questions about service duration, pricing, and what's included
+      - Book appointments quickly and efficiently
+      - Explain the difference between services (balayage vs highlights, keratin vs deep conditioning)
+      Be warm, professional, and enthusiastic about helping clients look and feel amazing!`,
+      greeting: `Hi! 💇‍♀️ Welcome! I'm here to help you find the perfect service and book with the ideal stylist for you. Looking for a cut, color, special styling, or just want to explore? Let me know what you're thinking!`,
+      personalityTraits: ['Friendly', 'Enthusiastic', 'Professional', 'Warm', 'Style-Conscious'],
     },
   },
 
