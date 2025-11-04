@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { format, parseISO } from "date-fns";
-import { X, Calendar, Clock, User, FileText, Phone, Cake, Activity, Shield, ExternalLink, CheckCircle, XCircle, Loader2 } from "lucide-react";
+import { X, Calendar, Clock, User, FileText, Phone, Cake, Activity, Shield, ExternalLink, CheckCircle, XCircle, Loader2, ShoppingBag } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { AppointmentCompletionDialog } from "@/components/appointment/AppointmentCompletionDialog";
+import { QuickCheckout } from "@/components/salon/QuickCheckout";
 import { logger } from '@/lib/logger';
 
 interface AppointmentDetailsSidebarProps {
@@ -22,6 +23,7 @@ interface AppointmentDetailsSidebarProps {
 const STATUS_CONFIG = {
   pending: { label: "Pending", icon: Clock, className: "bg-yellow-100 text-yellow-800 border-yellow-200" },
   confirmed: { label: "Confirmed", icon: CheckCircle, className: "bg-green-100 text-green-800 border-green-200" },
+  in_progress: { label: "In Progress", icon: Activity, className: "bg-blue-100 text-blue-800 border-blue-200" },
   completed: { label: "Completed", icon: CheckCircle, className: "bg-blue-100 text-blue-800 border-blue-200" },
   cancelled: { label: "Cancelled", icon: XCircle, className: "bg-red-100 text-red-800 border-red-200" },
 };
@@ -33,11 +35,13 @@ export function AppointmentDetailsSidebar({
 }: AppointmentDetailsSidebarProps) {
   const navigate = useNavigate();
   const [showCompletionDialog, setShowCompletionDialog] = useState(false);
+  const [showCheckout, setShowCheckout] = useState(false);
   const [summaries, setSummaries] = useState<{ short: string; long: string } | null>(null);
   const [loadingSummaries, setLoadingSummaries] = useState(false);
   const [nextAppointment, setNextAppointment] = useState<any>(null);
+  const [serviceDetails, setServiceDetails] = useState<any>(null);
   
-  const patientName = `${appointment.patient?.first_name || ""} ${appointment.patient?.last_name || ""}`.trim() || "Unknown Patient";
+  const patientName = `${appointment.patient?.first_name || ""} ${appointment.patient?.last_name || ""}`.trim() || appointment.patient_name || "Unknown Patient";
   const appointmentDate = parseISO(appointment.appointment_date);
   const statusConfig = STATUS_CONFIG[appointment.status as keyof typeof STATUS_CONFIG];
   const StatusIcon = statusConfig?.icon || Clock;
@@ -95,7 +99,28 @@ export function AppointmentDetailsSidebar({
 
     generateSummaries();
     fetchNextAppointment();
-  }, [appointment.id, appointment.patient_id, appointment.appointment_date]);
+    
+    // Fetch service details if service_id exists
+    const fetchServiceDetails = async () => {
+      if (!appointment.service_id) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('business_services')
+          .select('name, price_cents')
+          .eq('id', appointment.service_id)
+          .single();
+        
+        if (!error && data) {
+          setServiceDetails(data);
+        }
+      } catch (error) {
+        console.error("Error fetching service details:", error);
+      }
+    };
+    
+    fetchServiceDetails();
+  }, [appointment.id, appointment.patient_id, appointment.appointment_date, appointment.service_id]);
 
   return (
     <Card className="h-full border-none shadow-none bg-background">
@@ -287,7 +312,19 @@ export function AppointmentDetailsSidebar({
 
           {/* Actions */}
           <div className="space-y-3 pt-2">
-            {(appointment.status !== "completed" && appointment.status !== "cancelled") && (
+            {/* Show Checkout for in_progress appointments */}
+            {appointment.status === "in_progress" && serviceDetails && (
+              <Button
+                className="w-full gap-2"
+                size="lg"
+                onClick={() => setShowCheckout(true)}
+              >
+                <ShoppingBag className="h-4 w-4" />
+                Check Out & Complete
+              </Button>
+            )}
+
+            {(appointment.status !== "completed" && appointment.status !== "cancelled" && appointment.status !== "in_progress") && (
               <>
                 <Button
                   className="w-full"
@@ -331,6 +368,31 @@ export function AppointmentDetailsSidebar({
           setShowCompletionDialog(false);
         }}
       />
+      
+      {/* Checkout Dialog */}
+      {showCheckout && serviceDetails && appointment.dentists && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <QuickCheckout
+              appointmentId={appointment.id}
+              clientName={patientName}
+              stylistId={appointment.dentist_id}
+              stylistName={appointment.dentists.profiles 
+                ? `${appointment.dentists.profiles.first_name} ${appointment.dentists.profiles.last_name}`
+                : 'Stylist'
+              }
+              servicePrice={serviceDetails.price_cents / 100}
+              serviceName={serviceDetails.name}
+              onComplete={() => {
+                setShowCheckout(false);
+                onStatusChange(appointment.id, "completed");
+                onClose();
+              }}
+              onCancel={() => setShowCheckout(false)}
+            />
+          </div>
+        </div>
+      )}
     </Card>
   );
 }

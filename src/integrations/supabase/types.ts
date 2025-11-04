@@ -81,6 +81,7 @@ export type Database = {
           appointment_date: string
           booking_source: string | null
           business_id: string
+          completed_at: string | null
           consultation_notes: string | null
           created_at: string
           dentist_id: string
@@ -102,6 +103,7 @@ export type Database = {
           appointment_date: string
           booking_source?: string | null
           business_id: string
+          completed_at?: string | null
           consultation_notes?: string | null
           created_at?: string
           dentist_id: string
@@ -123,6 +125,7 @@ export type Database = {
           appointment_date?: string
           booking_source?: string | null
           business_id?: string
+          completed_at?: string | null
           consultation_notes?: string | null
           created_at?: string
           dentist_id?: string
@@ -237,9 +240,11 @@ export type Database = {
           id: string
           image_url: string | null
           is_active: boolean
+          is_retail: boolean | null
           name: string
           price_cents: number
           requires_upfront_payment: boolean
+          stock_quantity: number | null
           stripe_price_id: string | null
           updated_at: string
         }
@@ -253,9 +258,11 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_active?: boolean
+          is_retail?: boolean | null
           name: string
           price_cents?: number
           requires_upfront_payment?: boolean
+          stock_quantity?: number | null
           stripe_price_id?: string | null
           updated_at?: string
         }
@@ -269,9 +276,11 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_active?: boolean
+          is_retail?: boolean | null
           name?: string
           price_cents?: number
           requires_upfront_payment?: boolean
+          stock_quantity?: number | null
           stripe_price_id?: string | null
           updated_at?: string
         }
@@ -1235,6 +1244,78 @@ export type Database = {
           },
         ]
       }
+      product_sales: {
+        Row: {
+          appointment_id: string
+          business_id: string
+          created_at: string
+          id: string
+          price_cents: number
+          product_id: string
+          quantity: number
+          sold_by_stylist_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          appointment_id: string
+          business_id: string
+          created_at?: string
+          id?: string
+          price_cents: number
+          product_id: string
+          quantity?: number
+          sold_by_stylist_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          appointment_id?: string
+          business_id?: string
+          created_at?: string
+          id?: string
+          price_cents?: number
+          product_id?: string
+          quantity?: number
+          sold_by_stylist_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_sales_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_sales_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_sales_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "business_services"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_sales_sold_by_stylist_id_fkey"
+            columns: ["sold_by_stylist_id"]
+            isOneToOne: false
+            referencedRelation: "dentists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_sales_sold_by_stylist_id_fkey"
+            columns: ["sold_by_stylist_id"]
+            isOneToOne: false
+            referencedRelation: "providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           address: string | null
@@ -1667,6 +1748,68 @@ export type Database = {
             columns: ["business_id"]
             isOneToOne: false
             referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_tips: {
+        Row: {
+          amount_cents: number
+          appointment_id: string
+          business_id: string
+          created_at: string
+          id: string
+          payment_method: string
+          stylist_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount_cents?: number
+          appointment_id: string
+          business_id: string
+          created_at?: string
+          id?: string
+          payment_method: string
+          stylist_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount_cents?: number
+          appointment_id?: string
+          business_id?: string
+          created_at?: string
+          id?: string
+          payment_method?: string
+          stylist_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_tips_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_tips_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_tips_stylist_id_fkey"
+            columns: ["stylist_id"]
+            isOneToOne: false
+            referencedRelation: "dentists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_tips_stylist_id_fkey"
+            columns: ["stylist_id"]
+            isOneToOne: false
+            referencedRelation: "providers"
             referencedColumns: ["id"]
           },
         ]
@@ -2128,6 +2271,10 @@ export type Database = {
       create_restaurant_staff_invitation: {
         Args: { p_business_id: string; p_email: string; p_role: string }
         Returns: string
+      }
+      decrement_product_stock: {
+        Args: { product_id: string; quantity: number }
+        Returns: undefined
       }
       ensure_daily_slots: {
         Args: { p_date: string; p_dentist_id: string }
