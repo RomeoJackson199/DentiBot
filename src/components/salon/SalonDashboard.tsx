@@ -8,6 +8,7 @@ import { TeamStatusBoard } from './TeamStatusBoard';
 import { WalkInManager } from './WalkInManager';
 import { DollarSign, Users, TrendingUp, Clock, Calendar, ShoppingBag } from 'lucide-react';
 import { format } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
 
 interface DailyRevenue {
   serviceRevenue: number;
@@ -27,6 +28,7 @@ interface UpcomingAppointment {
 
 export function SalonDashboard() {
   const { businessId } = useBusinessContext();
+  const navigate = useNavigate();
   const [dailyRevenue, setDailyRevenue] = useState<DailyRevenue>({
     serviceRevenue: 0,
     productRevenue: 0,
@@ -215,11 +217,21 @@ export function SalonDashboard() {
           <Users className="h-6 w-6" />
           <span>Add Walk-in</span>
         </Button>
-        <Button size="lg" variant="outline" className="h-24 flex flex-col gap-2">
+        <Button 
+          size="lg" 
+          variant="outline" 
+          className="h-24 flex flex-col gap-2"
+          onClick={() => navigate('/dentist/appointments')}
+        >
           <ShoppingBag className="h-6 w-6" />
           <span>Check Out</span>
         </Button>
-        <Button size="lg" variant="outline" className="h-24 flex flex-col gap-2">
+        <Button 
+          size="lg" 
+          variant="outline" 
+          className="h-24 flex flex-col gap-2"
+          onClick={() => navigate('/dentist/appointments')}
+        >
           <Calendar className="h-6 w-6" />
           <span>View Day</span>
         </Button>
