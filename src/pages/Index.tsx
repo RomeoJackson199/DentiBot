@@ -249,18 +249,18 @@ const Index = () => {
             </div>
 
             <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-              {/* Free Plan */}
+              {/* Starter Plan */}
               <Card className="p-8 border-2 border-gray-200 hover:border-gray-300 transition-all">
                 <div className="text-center mb-6">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Free</h3>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Starter</h3>
                   <div className="flex items-baseline justify-center gap-1">
-                    <span className="text-5xl font-bold text-gray-900">$0</span>
+                    <span className="text-5xl font-bold text-gray-900">€99</span>
                     <span className="text-gray-600">/month</span>
                   </div>
-                  <p className="text-sm text-gray-600 mt-2">Perfect for getting started</p>
+                  <p className="text-sm text-gray-600 mt-2">Perfect for small practices</p>
                 </div>
                 <ul className="space-y-3 mb-8">
-                  {["Up to 50 patients", "Basic appointment scheduling", "Patient reminders", "Mobile app access", "Email support"].map((feature) => (
+                  {["Up to 500 customers", "Normal booking system", "Patient reminders", "Mobile app access", "Email support"].map((feature) => (
                     <li key={feature} className="flex items-center gap-2 text-gray-700">
                       <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0" />
                       <span className="text-sm">{feature}</span>
@@ -268,15 +268,15 @@ const Index = () => {
                   ))}
                 </ul>
                 <Button
-                  onClick={() => navigate('/signup')}
+                  onClick={() => navigate('/pricing')}
                   variant="outline"
                   className="w-full border-2"
                 >
-                  Get Started Free
+                  Get Started
                 </Button>
               </Card>
 
-              {/* Pro Plan */}
+              {/* Professional Plan */}
               <Card className="p-8 border-2 border-blue-600 bg-gradient-to-br from-blue-50 to-purple-50 relative shadow-xl transform scale-105">
                 <div className="absolute -top-4 left-1/2 -translate-x-1/2">
                   <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-1 rounded-full text-sm font-semibold shadow-lg">
@@ -286,13 +286,13 @@ const Index = () => {
                 <div className="text-center mb-6">
                   <h3 className="text-2xl font-bold text-gray-900 mb-2">Professional</h3>
                   <div className="flex items-baseline justify-center gap-1">
-                    <span className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">$49</span>
+                    <span className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">€250</span>
                     <span className="text-gray-600">/month</span>
                   </div>
                   <p className="text-sm text-gray-600 mt-2">For growing practices</p>
                 </div>
                 <ul className="space-y-3 mb-8">
-                  {["Unlimited patients", "Advanced scheduling & calendar sync", "AI-powered triage", "Patient records & X-rays", "Billing & payments", "Analytics & reporting", "Priority support"].map((feature) => (
+                  {["Up to 2,500 customers", "AI booking system", "Custom training", "2,000 emails per month", "Billing & payments", "Analytics & reporting", "Priority support"].map((feature) => (
                     <li key={feature} className="flex items-center gap-2 text-gray-700">
                       <CheckCircle2 className="h-5 w-5 text-blue-600 flex-shrink-0" />
                       <span className="text-sm font-medium">{feature}</span>
@@ -312,12 +312,13 @@ const Index = () => {
                 <div className="text-center mb-6">
                   <h3 className="text-2xl font-bold text-gray-900 mb-2">Enterprise</h3>
                   <div className="flex items-baseline justify-center gap-1">
-                    <span className="text-4xl font-bold text-gray-900">Custom</span>
+                    <span className="text-5xl font-bold text-gray-900">€999</span>
+                    <span className="text-gray-600">/month</span>
                   </div>
                   <p className="text-sm text-gray-600 mt-2">For large organizations</p>
                 </div>
                 <ul className="space-y-3 mb-8">
-                  {["Everything in Pro", "Multi-location support", "Custom integrations", "Dedicated account manager", "Custom training", "SLA guarantees", "24/7 phone support"].map((feature) => (
+                  {["Up to 7,500 patients", "Unlimited AI triage system", "Custom training", "Multi-location system", "7,500 emails per month", "Dedicated account manager", "24/7 phone support"].map((feature) => (
                     <li key={feature} className="flex items-center gap-2 text-gray-700">
                       <CheckCircle2 className="h-5 w-5 text-purple-600 flex-shrink-0" />
                       <span className="text-sm">{feature}</span>
@@ -325,11 +326,11 @@ const Index = () => {
                   ))}
                 </ul>
                 <Button
-                  onClick={() => navigate('/support')}
+                  onClick={() => navigate('/pricing')}
                   variant="outline"
                   className="w-full border-2"
                 >
-                  Contact Sales
+                  Get Started
                 </Button>
               </Card>
             </div>
