@@ -142,13 +142,13 @@ const Index = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {[{
               icon: Calendar,
-              title: "Smart Scheduling",
-              description: "Intelligent appointment calendar with conflict detection, recurring appointments, and multi-provider scheduling",
+              title: "Beautifully Designed Scheduling System",
+              description: "Experience a beautifully designed scheduling system that makes appointment management effortless and intuitive",
               gradient: "from-blue-500 to-cyan-500"
             }, {
               icon: Zap,
-              title: "AI-Powered Triage",
-              description: "AI chatbot assesses patient urgency, symptoms, and recommends appropriate appointment types automatically",
+              title: "AI-Powered Scheduling",
+              description: "This enables your business to know what your client wants before they even come to you, so you can prepare the best experience for your customer",
               gradient: "from-purple-500 to-pink-500"
             }, {
               icon: Bell,
@@ -157,18 +157,18 @@ const Index = () => {
               gradient: "from-orange-500 to-red-500"
             }, {
               icon: Users,
-              title: "Complete Patient Records",
-              description: "Digital health records, treatment history, prescriptions, X-rays, and insurance info in one place",
+              title: "All Your Customer Data in One Place",
+              description: "Access all your customer information, treatment history, and records in one centralized location",
               gradient: "from-green-500 to-emerald-500"
             }, {
               icon: Shield,
-              title: "HIPAA Compliant & Secure",
-              description: "Enterprise-grade encryption, audit logs, and role-based access control for complete data security",
+              title: "We Value Security",
+              description: "Our enterprise-grade security is made for security, protecting your data with the highest standards",
               gradient: "from-indigo-500 to-blue-500"
             }, {
               icon: CheckCircle2,
               title: "Billing & Payments",
-              description: "Track payments, send invoices, record insurance claims, and manage practice revenue effortlessly",
+              description: "We will send notifications if your customer has forgot to pay so that you can work on what matters most",
               gradient: "from-teal-500 to-cyan-500"
             }].map((feature, index) => <Card key={index} className="group p-6 border-2 border-gray-200 hover:border-transparent hover:shadow-2xl transition-all duration-300 cursor-pointer relative overflow-hidden" style={{
               animationDelay: `${index * 100}ms`
