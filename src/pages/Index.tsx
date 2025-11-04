@@ -86,15 +86,15 @@ const Index = () => {
                 From appointment scheduling to patient records, payments to inventory—manage your entire dental practice with AI-powered efficiency. Built specifically for modern dental professionals.
               </p>
 
-              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
+              <div className="flex flex-col md:flex-row gap-4 justify-center items-center pt-4">
                 <Button size="lg" className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-6 text-lg shadow-lg hover:shadow-xl transition-all group" onClick={() => navigate('/signup')} aria-label="Get started with free account">
                   Get Started Free
                   <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                 </Button>
-                <Button 
-                  size="lg" 
-                  variant="outline" 
-                  className="border-2 border-purple-300 hover:border-purple-600 hover:bg-purple-50 px-8 py-6 text-lg transition-all group" 
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="border-2 border-purple-300 hover:border-purple-600 hover:bg-purple-50 px-8 py-6 text-lg transition-all group"
                   onClick={() => setShowDemoTour(true)}
                   aria-label="Try interactive demo tour"
                 >
@@ -372,12 +372,12 @@ const Index = () => {
               Get started today—no credit card required.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
+            <div className="flex flex-col md:flex-row gap-4 justify-center items-center pt-4">
               <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-6 text-lg shadow-2xl hover:shadow-3xl transition-all group font-semibold" onClick={() => navigate('/signup')} aria-label="Start your free trial today">
                 Start Your Free Trial
                 <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </Button>
-              
+
             </div>
 
             {/* Trust badges */}
