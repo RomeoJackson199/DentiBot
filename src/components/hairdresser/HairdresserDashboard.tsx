@@ -64,11 +64,13 @@ export function HairdresserDashboard() {
           return sum + (service?.price_cents || 0);
         }, 0) || 0;
 
-      // Get total unique clients
-      const { count: totalClients } = await supabase
+      // Get total unique clients (count distinct patient_ids)
+      const { data: uniqueClients } = await supabase
         .from('appointments')
-        .select('patient_id', { count: 'exact', head: true })
+        .select('patient_id')
         .eq('business_id', businessId);
+      
+      const totalClients = new Set(uniqueClients?.map(a => a.patient_id) || []).size;
 
       setStats({
         todayAppointments,
