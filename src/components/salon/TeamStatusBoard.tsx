@@ -116,11 +116,16 @@ export function TeamStatusBoard({ onAssignWalkIn }: TeamStatusBoardProps) {
 
         const status = statusData?.[0];
 
+        const profile = Array.isArray(stylist.profiles) ? stylist.profiles[0] : stylist.profiles;
+        const firstName = profile?.first_name || '';
+        const lastName = profile?.last_name || '';
+        const profilePhoto = profile?.profile_photo_url || null;
+
         return {
           id: stylist.id,
-          firstName: stylist.profiles?.first_name || '',
-          lastName: stylist.profiles?.last_name || '',
-          profilePhoto: stylist.profiles?.profile_photo_url || null,
+          firstName,
+          lastName,
+          profilePhoto,
           status: status?.status || 'free',
           currentClient: status?.current_client,
           finishTime: status?.finish_time ? new Date(status.finish_time) : undefined,

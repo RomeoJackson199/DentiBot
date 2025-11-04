@@ -139,15 +139,19 @@ export function SoloDashboard() {
       if (appointments) {
         const formatted = appointments
           .filter(a => a.appointment_type === 'service')
-          .map(a => ({
-            id: a.id,
-            time: format(new Date(a.appointment_date), 'HH:mm'),
-            clientName: a.patient_name || 'Walk-in',
-            serviceName: a.business_services?.name || 'Service',
-            duration: a.duration_minutes || 60,
-            status: a.status || 'pending',
-            notes: a.profiles?.hair_notes,
-          }));
+          .map(a => {
+            const service = Array.isArray(a.business_services) ? a.business_services[0] : a.business_services;
+            const profile = Array.isArray(a.profiles) ? a.profiles[0] : a.profiles;
+            return {
+              id: a.id,
+              time: format(new Date(a.appointment_date), 'HH:mm'),
+              clientName: a.patient_name || 'Walk-in',
+              serviceName: service?.name || 'Service',
+              duration: a.duration_minutes || 60,
+              status: a.status || 'pending',
+              notes: profile?.hair_notes,
+            };
+          });
         setTodayAppointments(formatted);
       }
     } catch (error) {
@@ -160,7 +164,7 @@ export function SoloDashboard() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <ModernLoadingSpinner variant="gradient" size="lg" message="Loading your dashboard..." />
+        <ModernLoadingSpinner variant="overlay" size="lg" message="Loading your dashboard..." />
       </div>
     );
   }
@@ -354,10 +358,6 @@ export function SoloDashboard() {
         open={showWalkIn}
         onOpenChange={setShowWalkIn}
         preselectedStylistId={stylistId || undefined}
-        onComplete={() => {
-          setShowWalkIn(false);
-          loadDashboard();
-        }}
       />
 
       <BreakManager

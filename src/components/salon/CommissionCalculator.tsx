@@ -115,7 +115,12 @@ export function CommissionCalculator({ weekOffset = 0 }: CommissionCalculatorPro
 
         const servicesRevenue =
           appointmentsData?.reduce(
-            (sum, appt) => sum + (appt.business_services?.price_cents || 0),
+            (sum, appt) => {
+              const service = Array.isArray(appt.business_services) 
+                ? appt.business_services[0] 
+                : appt.business_services;
+              return sum + (service?.price_cents || 0);
+            },
             0
           ) / 100 || 0;
 
@@ -151,11 +156,16 @@ export function CommissionCalculator({ weekOffset = 0 }: CommissionCalculatorPro
         const productsCommission = productsRevenue * rates.product;
         const totalEarnings = servicesCommission + productsCommission + tips;
 
+        const profile = Array.isArray(stylist.profiles) ? stylist.profiles[0] : stylist.profiles;
+        const firstName = profile?.first_name || '';
+        const lastName = profile?.last_name || '';
+        const profilePhoto = profile?.profile_photo_url || null;
+
         return {
           stylistId: stylist.id,
-          stylistName: `${stylist.profiles.first_name} ${stylist.profiles.last_name}`,
+          stylistName: `${firstName} ${lastName}`,
           stylistLevel: stylist.stylist_level || 'stylist',
-          profilePhoto: stylist.profiles.profile_photo_url,
+          profilePhoto,
           servicesRevenue,
           servicesCommission,
           productsRevenue,

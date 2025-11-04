@@ -80,7 +80,7 @@ export function TierUpgradeSettings() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[200px]">
-        <ModernLoadingSpinner variant="gradient" size="md" message="Loading tier info..." />
+        <ModernLoadingSpinner variant="overlay" size="md" message="Loading tier info..." />
       </div>
     );
   }

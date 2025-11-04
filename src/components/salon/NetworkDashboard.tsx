@@ -134,17 +134,25 @@ export function NetworkDashboard() {
               .lte('appointment_date', endOfDay.toISOString());
 
             const revenue = appointments?.reduce(
-              (sum, apt) => sum + (apt.business_services?.price_cents || 0),
+              (sum, apt) => {
+                const service = Array.isArray(apt.business_services)
+                  ? apt.business_services[0]
+                  : apt.business_services;
+                return sum + (service?.price_cents || 0);
+              },
               0
             ) || 0;
+
+            const manager = Array.isArray(loc.manager) ? loc.manager[0] : loc.manager;
+            const managerName = manager
+              ? `${manager.first_name || ''} ${manager.last_name || ''}`
+              : null;
 
             return {
               id: loc.id,
               name: loc.name,
               city: loc.city || '',
-              managerName: loc.manager
-                ? `${loc.manager.first_name} ${loc.manager.last_name}`
-                : null,
+              managerName,
               stylistCount: dentists?.length || 0,
               todayRevenue: revenue / 100,
               todayClients: appointments?.length || 0,
@@ -165,7 +173,7 @@ export function NetworkDashboard() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <ModernLoadingSpinner variant="gradient" size="lg" message="Loading network overview..." />
+        <ModernLoadingSpinner variant="overlay" size="lg" message="Loading network overview..." />
       </div>
     );
   }

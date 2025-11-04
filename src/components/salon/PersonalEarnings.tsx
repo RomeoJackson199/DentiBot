@@ -121,7 +121,12 @@ export function PersonalEarnings() {
       .lte('appointment_date', endDate.toISOString());
 
     const servicesRevenue =
-      appointments?.reduce((sum, apt) => sum + (apt.business_services?.price_cents || 0), 0) || 0;
+      appointments?.reduce((sum, apt) => {
+        const service = Array.isArray(apt.business_services)
+          ? apt.business_services[0]
+          : apt.business_services;
+        return sum + (service?.price_cents || 0);
+      }, 0) || 0;
     const clientCount = appointments?.length || 0;
 
     // Fetch product sales
@@ -158,7 +163,7 @@ export function PersonalEarnings() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <ModernLoadingSpinner variant="gradient" size="lg" message="Loading earnings..." />
+        <ModernLoadingSpinner variant="overlay" size="lg" message="Loading earnings..." />
       </div>
     );
   }

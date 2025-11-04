@@ -132,10 +132,15 @@ export function WalkInManager({ open, onOpenChange, preselectedStylistId }: Walk
 
         const status = statusData?.[0];
 
+        const profile = Array.isArray(stylist.profiles) ? stylist.profiles[0] : stylist.profiles;
+        const firstName = profile?.first_name || '';
+        const lastName = profile?.last_name || '';
+        const profilePhoto = profile?.profile_photo_url || null;
+
         return {
           id: stylist.id,
-          name: `${stylist.profiles.first_name} ${stylist.profiles.last_name}`,
-          profilePhoto: stylist.profiles.profile_photo_url,
+          name: `${firstName} ${lastName}`,
+          profilePhoto,
           status: status?.status || 'free',
           finishTime: status?.finish_time ? new Date(status.finish_time) : undefined,
           specialties: stylist.specialties || [],

@@ -38,7 +38,7 @@ export function SalonRouter({ forceView }: SalonRouterProps) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <ModernLoadingSpinner
-          variant="gradient"
+          variant="overlay"
           size="lg"
           message="Loading your salon dashboard..."
         />

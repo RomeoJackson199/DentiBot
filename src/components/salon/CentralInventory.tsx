@@ -201,7 +201,7 @@ export function CentralInventory() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <ModernLoadingSpinner variant="gradient" size="lg" message="Loading inventory..." />
+        <ModernLoadingSpinner variant="overlay" size="lg" message="Loading inventory..." />
       </div>
     );
   }
