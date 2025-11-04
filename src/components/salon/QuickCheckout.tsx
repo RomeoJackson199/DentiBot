@@ -481,45 +481,28 @@ export function QuickCheckout({
 
         {/* Payment Methods */}
         <div className="space-y-3">
-          {total > 0 ? (
-            <>
-              <Label className="text-base font-semibold">Payment Method</Label>
-              <div className="grid grid-cols-2 gap-3">
-                <Button
-                  size="lg"
-                  onClick={() => handlePayment('card')}
-                  disabled={isProcessing}
-                  className="h-20 flex flex-col gap-2"
-                >
-                  <CreditCard className="h-6 w-6" />
-                  <span>Card</span>
-                </Button>
-                <Button
-                  size="lg"
-                  variant="outline"
-                  onClick={() => handlePayment('cash')}
-                  disabled={isProcessing}
-                  className="h-20 flex flex-col gap-2"
-                >
-                  <Banknote className="h-6 w-6" />
-                  <span>Cash</span>
-                </Button>
-              </div>
-            </>
-          ) : (
-            <>
-              <Label className="text-base font-semibold">🎉 Free Checkout</Label>
-              <Button
-                size="lg"
-                onClick={() => handlePayment('cash')}
-                disabled={isProcessing}
-                className="w-full h-20 flex flex-col gap-2 bg-green-600 hover:bg-green-700"
-              >
-                <CheckCircle className="h-6 w-6" />
-                <span>Complete Free Checkout</span>
-              </Button>
-            </>
-          )}
+          <Label className="text-base font-semibold">Payment Method</Label>
+          <div className="grid grid-cols-2 gap-3">
+            <Button
+              size="lg"
+              onClick={() => handlePayment('card')}
+              disabled={isProcessing}
+              className="h-20 flex flex-col gap-2"
+            >
+              <CreditCard className="h-6 w-6" />
+              <span>Card</span>
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              onClick={() => handlePayment('cash')}
+              disabled={isProcessing}
+              className="h-20 flex flex-col gap-2"
+            >
+              <Banknote className="h-6 w-6" />
+              <span>Cash</span>
+            </Button>
+          </div>
         </div>
 
         {/* Cancel Button */}
