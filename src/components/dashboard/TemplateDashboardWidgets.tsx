@@ -36,8 +36,8 @@ export function TemplateDashboardHeader() {
     switch (template?.id) {
       case 'hairdresser':
         return {
-          title: '✨ Style Dashboard',
-          subtitle: `Manage your ${t('business').toLowerCase()} and track your styling success`,
+          title: '✨ Dashboard',
+          subtitle: `Manage appointments and track your business`,
         };
       case 'restaurant':
         return {
@@ -76,32 +76,32 @@ export function TemplateSpecificMetrics() {
       case 'hairdresser':
         return [
           {
+            icon: Calendar,
+            label: 'Appointments Today',
+            value: '-',
+            description: 'Scheduled',
+            color: 'text-blue-600',
+          },
+          {
             icon: Scissors,
-            label: 'Styles Completed',
+            label: 'Services This Week',
             value: '-',
-            description: 'This week',
-            color: 'text-pink-600',
-          },
-          {
-            icon: Star,
-            label: 'Client Satisfaction',
-            value: '-',
-            description: 'Average rating',
-            color: 'text-yellow-600',
-          },
-          {
-            icon: TrendingUp,
-            label: 'Popular Service',
-            value: 'Haircut & Style',
-            description: 'Most booked',
+            description: 'Completed',
             color: 'text-purple-600',
           },
           {
-            icon: Clock,
-            label: 'Walk-in Availability',
-            value: 'Available',
-            description: 'Today',
+            icon: TrendingUp,
+            label: 'Most Popular',
+            value: 'Haircut',
+            description: 'Top service',
             color: 'text-green-600',
+          },
+          {
+            icon: DollarSign,
+            label: 'Revenue',
+            value: '-',
+            description: 'This month',
+            color: 'text-emerald-600',
           },
         ];
 
@@ -235,10 +235,10 @@ export function TemplateQuickActions() {
     switch (templateType) {
       case 'hairdresser':
         return [
-          { label: 'Add Walk-in', description: 'Quick appointment' },
-          { label: 'View Portfolio', description: 'Style gallery' },
-          { label: 'Popular Styles', description: 'Quick reference' },
-          { label: 'Product Sales', description: 'Track retail' },
+          { label: 'New Appointment', description: 'Book a client' },
+          { label: 'View Schedule', description: 'Today\'s calendar' },
+          { label: 'Manage Services', description: 'Edit services' },
+          { label: 'Client List', description: 'View all clients' },
         ];
 
       case 'restaurant':
@@ -299,10 +299,10 @@ export function TemplateInsights() {
     switch (templateType) {
       case 'hairdresser':
         return [
-          '💡 Your most popular time slot is 2-4pm on Saturdays',
-          '📊 Hair coloring services have increased 25% this month',
-          '⭐ You have 5 new 5-star reviews this week!',
-          '📅 Tomorrow has 3 openings - promote walk-in availability',
+          '📅 Check your upcoming appointments to stay organized',
+          '💡 Most popular: Haircut services are typically booked most',
+          '⭐ Keep clients happy by confirming appointments in advance',
+          '📊 Track your busiest times to optimize your schedule',
         ];
 
       case 'restaurant':

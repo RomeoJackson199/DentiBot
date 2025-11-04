@@ -180,8 +180,8 @@ export const BUSINESS_TEMPLATES: Record<TemplateType, TemplateConfig> = {
   
   hairdresser: {
     id: 'hairdresser',
-    name: 'Hair Salon',
-    description: 'Simple booking system for hair salons with services and photo gallery',
+    name: 'Hair Salon / Barbershop',
+    description: 'Perfect for salons and barbershops - manage appointments and services easily',
     icon: Scissors,
     features: {
       prescriptions: false,
@@ -209,35 +209,29 @@ export const BUSINESS_TEMPLATES: Record<TemplateType, TemplateConfig> = {
       'Haircut',
       'Color',
       'Styling',
-      'Treatment',
     ],
     defaultServices: [
       'Haircut',
       'Hair Color',
-      'Blowout',
-      'Hair Treatment',
+      'Styling',
     ],
     serviceCategories: [
       'Haircuts',
       'Coloring',
       'Styling',
-      'Hair Treatment',
-      'Men\'s Grooming',
     ],
     quickAddServices: [
-      { name: 'Women\'s Haircut', price: 45, duration: 45, description: 'Cut and style for all hair lengths', category: 'Haircuts' },
-      { name: 'Men\'s Haircut', price: 30, duration: 30, description: 'Classic or modern men\'s cut', category: 'Men\'s Grooming' },
-      { name: 'Hair Color', price: 85, duration: 90, description: 'All-over color application', category: 'Coloring' },
-      { name: 'Highlights', price: 120, duration: 120, description: 'Partial or full highlights', category: 'Coloring' },
-      { name: 'Blowout', price: 40, duration: 45, description: 'Wash, blow-dry, and style', category: 'Styling' },
-      { name: 'Hair Treatment', price: 55, duration: 60, description: 'Deep conditioning treatment', category: 'Hair Treatment' },
+      { name: 'Haircut', price: 35, duration: 30, description: 'Standard haircut and style', category: 'Haircuts' },
+      { name: 'Hair Color', price: 75, duration: 90, description: 'Full color service', category: 'Coloring' },
+      { name: 'Highlights', price: 95, duration: 120, description: 'Partial or full highlights', category: 'Coloring' },
+      { name: 'Blow Dry & Style', price: 35, duration: 45, description: 'Wash, dry and style', category: 'Styling' },
     ],
     serviceFieldLabels: {
       serviceName: 'Service Name',
-      serviceNamePlaceholder: 'e.g., Women\'s Haircut, Hair Color, Blowout',
-      descriptionPlaceholder: 'Describe what this service includes...',
-      categoryLabel: 'Service Category',
-      durationLabel: 'Service Duration (minutes)',
+      serviceNamePlaceholder: 'e.g., Haircut, Color, Styling',
+      descriptionPlaceholder: 'Brief description of the service',
+      categoryLabel: 'Category',
+      durationLabel: 'Duration (minutes)',
     },
     completionSteps: [
       { id: 'overview', title: 'Overview', enabled: true },
@@ -256,9 +250,9 @@ export const BUSINESS_TEMPLATES: Record<TemplateType, TemplateConfig> = {
       'settings',
     ],
     aiBehaviorDefaults: {
-      systemBehavior: `You are a friendly assistant for a hair salon. Help clients book appointments and answer questions about services in a warm, professional manner.`,
-      greeting: `Welcome to our salon! I'm here to help you book appointments and answer questions about our services. How can I help you today?`,
-      personalityTraits: ['Friendly', 'Professional', 'Warm'],
+      systemBehavior: `You are a helpful assistant for a hair salon or barbershop. Help clients book appointments and answer questions about services clearly and professionally.`,
+      greeting: `Welcome! I'm here to help you book an appointment or answer questions about our services. What can I help you with?`,
+      personalityTraits: ['Friendly', 'Professional', 'Helpful'],
     },
   },
 
