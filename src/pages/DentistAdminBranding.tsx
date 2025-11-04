@@ -59,6 +59,7 @@ export default function DentistAdminBranding() {
   const [aiGreeting, setAiGreeting] = useState("");
   const [aiPersonalityTraits, setAiPersonalityTraits] = useState<string[]>([]);
   const [showTestChat, setShowTestChat] = useState(false);
+  const [dailyRevenueGoal, setDailyRevenueGoal] = useState(1800);
   const { toast } = useToast();
   const qrCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const baseOrigin = typeof window !== "undefined" ? window.location.origin : "";
@@ -80,6 +81,7 @@ export default function DentistAdminBranding() {
     aiSystemBehavior,
     aiGreeting,
     aiPersonalityTraits,
+    dailyRevenueGoal,
   });
 
   useEffect(() => {
@@ -92,7 +94,7 @@ export default function DentistAdminBranding() {
     try {
       const { data: business, error } = await supabase
         .from('businesses')
-        .select('name, slug, tagline, logo_url, primary_color, secondary_color, template_type, ai_system_behavior, ai_greeting, ai_personality_traits')
+        .select('name, slug, tagline, logo_url, primary_color, secondary_color, template_type, ai_system_behavior, ai_greeting, ai_personality_traits, daily_revenue_goal_cents')
         .eq('id', businessId)
         .single();
 
@@ -112,6 +114,7 @@ export default function DentistAdminBranding() {
           aiSystemBehavior: business.ai_system_behavior || template.aiBehaviorDefaults.systemBehavior,
           aiGreeting: business.ai_greeting || template.aiBehaviorDefaults.greeting,
           aiPersonalityTraits: (business.ai_personality_traits as string[]) || template.aiBehaviorDefaults.personalityTraits,
+          dailyRevenueGoal: (business.daily_revenue_goal_cents || 180000) / 100,
         };
         
         setClinicName(state.clinicName);
@@ -125,6 +128,7 @@ export default function DentistAdminBranding() {
         setAiSystemBehavior(state.aiSystemBehavior);
         setAiGreeting(state.aiGreeting);
         setAiPersonalityTraits(state.aiPersonalityTraits);
+        setDailyRevenueGoal(state.dailyRevenueGoal);
         setInitialState(state);
         setHasChanges(false);
       }
@@ -276,6 +280,7 @@ export default function DentistAdminBranding() {
           aiSystemBehavior: newTemplateConfig.aiBehaviorDefaults.systemBehavior,
           aiGreeting: newTemplateConfig.aiBehaviorDefaults.greeting,
           aiPersonalityTraits: newTemplateConfig.aiBehaviorDefaults.personalityTraits,
+          dailyRevenueGoal,
         });
       } catch (error: any) {
         console.error('Error saving template:', error);
@@ -390,6 +395,7 @@ export default function DentistAdminBranding() {
         ai_system_behavior: aiSystemBehavior,
         ai_greeting: aiGreeting,
         ai_personality_traits: aiPersonalityTraits,
+        daily_revenue_goal_cents: dailyRevenueGoal * 100,
       };
 
       // Store custom configuration if template is custom
@@ -426,6 +432,7 @@ export default function DentistAdminBranding() {
         aiSystemBehavior,
         aiGreeting,
         aiPersonalityTraits,
+        dailyRevenueGoal,
       });
       setHasChanges(false);
     } catch (error: any) {
@@ -453,9 +460,10 @@ export default function DentistAdminBranding() {
       aiSystemBehavior,
       aiGreeting,
       aiPersonalityTraits,
+      dailyRevenueGoal,
     };
     setHasChanges(JSON.stringify(currentState) !== JSON.stringify(initialState));
-  }, [clinicName, slug, tagline, address, primaryColor, secondaryColor, logoUrl, templateType, aiSystemBehavior, aiGreeting, aiPersonalityTraits, initialState]);
+  }, [clinicName, slug, tagline, address, primaryColor, secondaryColor, logoUrl, templateType, aiSystemBehavior, aiGreeting, aiPersonalityTraits, dailyRevenueGoal, initialState]);
 
   const { ConfirmationDialog } = useUnsavedChanges({
     hasUnsavedChanges: hasChanges,
@@ -776,6 +784,22 @@ export default function DentistAdminBranding() {
                   onChange={(e) => setAddress(e.target.value)}
                   placeholder="123 Main St, City, State, ZIP"
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="revenue-goal">Daily Revenue Goal (USD)</Label>
+                <Input
+                  id="revenue-goal"
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={dailyRevenueGoal}
+                  onChange={(e) => setDailyRevenueGoal(Number(e.target.value))}
+                  placeholder="1800"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Set your daily revenue target to track performance on the dashboard
+                </p>
               </div>
             </CardContent>
           </Card>
