@@ -45,7 +45,7 @@ serve(async (req) => {
   }
 
   try {
-    const { message, conversation_history, user_profile, patient_context, mode } = await req.json();
+    const { message, conversation_history, user_profile, patient_context, mode, context_type, patient_id, dentist_id, patient_name } = await req.json();
 
     // Log request in development only
     if (Deno.env.get('ENVIRONMENT') === 'development') {
@@ -381,6 +381,181 @@ You: "I can help with that. Can you describe the pain - is it sharp, throbbing, 
 
     let systemPrompt = '';
     let responseFormat = {};
+
+    // Handle dentist querying about a specific patient
+    if (context_type === 'dentist_patient_query' && patient_id && dentist_id) {
+      try {
+        // Import Supabase client
+        const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2.39.3');
+        const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+        const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+        const supabase = createClient(supabaseUrl, supabaseKey);
+
+        // Fetch patient profile
+        const { data: patient } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', patient_id)
+          .single();
+
+        // Fetch appointments
+        const { data: appointments } = await supabase
+          .from('appointments')
+          .select(`
+            id,
+            appointment_date,
+            duration_minutes,
+            status,
+            urgency,
+            reason,
+            notes,
+            consultation_notes
+          `)
+          .eq('patient_id', patient_id)
+          .order('appointment_date', { ascending: false })
+          .limit(10);
+
+        // Fetch treatment plans
+        const { data: treatmentPlans } = await supabase
+          .from('treatment_plans')
+          .select('*')
+          .eq('patient_id', patient_id)
+          .order('created_at', { ascending: false })
+          .limit(5);
+
+        // Fetch prescriptions
+        const { data: prescriptions } = await supabase
+          .from('prescriptions')
+          .select('*')
+          .eq('patient_id', patient_id)
+          .order('created_at', { ascending: false })
+          .limit(10);
+
+        // Fetch payment requests
+        const { data: paymentRequests } = await supabase
+          .from('payment_requests')
+          .select('*')
+          .eq('patient_id', patient_id)
+          .order('created_at', { ascending: false })
+          .limit(5);
+
+        // Build comprehensive patient context
+        const patientDataContext = `
+PATIENT PROFILE:
+Name: ${patient?.first_name || ''} ${patient?.last_name || ''}
+Email: ${patient?.email || 'Not provided'}
+Phone: ${patient?.phone || 'Not provided'}
+Date of Birth: ${patient?.date_of_birth || 'Not provided'}
+Address: ${patient?.address || 'Not provided'}
+Medical History: ${patient?.medical_history || 'No medical history recorded'}
+Emergency Contact: ${patient?.emergency_contact || 'Not provided'}
+
+APPOINTMENTS (${appointments?.length || 0} total):
+${appointments && appointments.length > 0 ? appointments.map(apt => `
+- Date: ${new Date(apt.appointment_date).toLocaleDateString()} at ${new Date(apt.appointment_date).toLocaleTimeString()}
+- Status: ${apt.status}
+- Urgency: ${apt.urgency}
+- Reason: ${apt.reason || 'Not specified'}
+- Consultation Notes: ${apt.consultation_notes || 'No notes'}
+`).join('\n') : 'No appointments found'}
+
+TREATMENT PLANS (${treatmentPlans?.length || 0} total):
+${treatmentPlans && treatmentPlans.length > 0 ? treatmentPlans.map(plan => `
+- Title: ${plan.title || 'Untitled'}
+- Status: ${plan.status}
+- Priority: ${plan.priority}
+- Description: ${plan.description || 'No description'}
+- Diagnosis: ${plan.diagnosis || 'No diagnosis'}
+- Estimated Duration: ${plan.estimated_duration_weeks || 'Not specified'} weeks
+- Estimated Cost: €${plan.estimated_cost || 'Not specified'}
+- Start Date: ${plan.start_date ? new Date(plan.start_date).toLocaleDateString() : 'Not scheduled'}
+- Treatment Goals: ${plan.treatment_goals ? JSON.stringify(plan.treatment_goals) : 'None specified'}
+`).join('\n') : 'No treatment plans found'}
+
+PRESCRIPTIONS (${prescriptions?.length || 0} total):
+${prescriptions && prescriptions.length > 0 ? prescriptions.map(rx => `
+- Medication: ${rx.medication_name}
+- Dosage: ${rx.dosage}
+- Frequency: ${rx.frequency}
+- Duration: ${rx.duration_days} days
+- Instructions: ${rx.instructions || 'No special instructions'}
+- Side Effects: ${rx.side_effects || 'Not specified'}
+- Status: ${rx.status || 'Active'}
+- Prescribed: ${new Date(rx.created_at).toLocaleDateString()}
+`).join('\n') : 'No prescriptions found'}
+
+PAYMENT INFORMATION (${paymentRequests?.length || 0} payment requests):
+${paymentRequests && paymentRequests.length > 0 ? paymentRequests.map(pay => `
+- Amount: €${pay.amount / 100}
+- Status: ${pay.status}
+- Description: ${pay.description || 'No description'}
+- Due Date: ${pay.due_date ? new Date(pay.due_date).toLocaleDateString() : 'Not specified'}
+- Created: ${new Date(pay.created_at).toLocaleDateString()}
+`).join('\n') : 'No payment requests found'}`;
+
+        systemPrompt = `You are an AI assistant helping a dentist review and understand patient information. The dentist is asking questions about ${patient_name}.
+
+${patientDataContext}
+
+Your role:
+1. Answer the dentist's questions clearly and concisely based on the patient data above
+2. Highlight important medical information that may affect treatment
+3. Summarize patterns in appointment history, treatment compliance, or payment status
+4. Provide professional insights that help the dentist make informed decisions
+5. If asked about upcoming appointments, focus on those with status "pending" or "confirmed"
+6. If asked about active treatment plans, focus on those with status "active" or "pending"
+7. If information is missing or unclear, acknowledge this professionally
+
+Keep responses clear, professional, and focused on the specific question asked. Use bullet points for lists when appropriate.`;
+
+        const messages = [
+          { role: 'system', content: systemPrompt },
+          ...(conversation_history || []).map((msg: any) => ({
+            role: msg.is_bot ? 'assistant' : 'user',
+            content: msg.message
+          })),
+          { role: 'user', content: sanitizedMessage }
+        ];
+
+        const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': 'Bearer ' + lovableApiKey,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'google/gemini-2.5-flash',
+            messages: messages,
+            max_completion_tokens: 500,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error('AI Gateway error: ' + response.status);
+        }
+
+        const data = await response.json();
+        const result = data.choices[0].message.content;
+
+        return new Response(JSON.stringify({
+          response: result,
+          suggestions: [],
+          patient_context_loaded: true
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+
+      } catch (error) {
+        console.error('Error fetching patient context:', error);
+        return new Response(JSON.stringify({
+          response: "I'm sorry, I couldn't retrieve the patient information. Please check the patient records directly.",
+          suggestions: [],
+          patient_context_loaded: false
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+    }
 
     if (mode === 'dentist_consultation') {
       systemPrompt = `You are an advanced dental AI assistant helping a dentist with patient care. You have access to comprehensive patient information and clinical context.

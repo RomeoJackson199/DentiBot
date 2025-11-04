@@ -17,7 +17,8 @@ import {
   CheckCircle,
   X,
   Eye as EyeIcon,
-  AlertCircle
+  AlertCircle,
+  MessageSquare
 } from "lucide-react";
 import SimpleAppointmentBooking from "@/components/SimpleAppointmentBooking";
 import { PatientPaymentHistory } from "@/components/PatientPaymentHistory";
@@ -36,6 +37,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useBusinessTemplate } from "@/hooks/useBusinessTemplate";
 import { logger } from '@/lib/logger';
+import { DentistPatientAIChat } from "@/components/chat/DentistPatientAIChat";
 
 interface Appointment {
   id: string;
@@ -78,6 +80,24 @@ export function PatientDetailsTabs({ selectedPatient, dentistId, appointments, o
   const { hasFeature } = useBusinessTemplate();
   const canShowTreatments = hasFeature('treatmentPlans');
   const canShowPrescriptions = hasFeature('prescriptions');
+  const canShowAIChat = hasFeature('aiChat');
+
+  // Calculate grid columns class based on enabled features
+  const getGridColsClass = () => {
+    const cols = 3 +
+      (canShowTreatments ? 1 : 0) +
+      (canShowPrescriptions ? 1 : 0) +
+      (canShowAIChat ? 1 : 0);
+
+    // Return explicit Tailwind classes (can't use dynamic strings)
+    switch (cols) {
+      case 3: return 'grid-cols-3';
+      case 4: return 'grid-cols-4';
+      case 5: return 'grid-cols-5';
+      case 6: return 'grid-cols-6';
+      default: return 'grid-cols-5';
+    }
+  };
 
   const handleCancelAppointment = async () => {
     if (!cancellingAppointment) return;
@@ -121,7 +141,7 @@ export function PatientDetailsTabs({ selectedPatient, dentistId, appointments, o
   return (
     <>
       <Tabs defaultValue="appointments" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className={`grid w-full ${getGridColsClass()}`}>
           <TabsTrigger value="appointments" className="text-xs sm:text-sm">
             <Calendar className="h-4 w-4 mr-1" />
             Appointments
@@ -142,6 +162,12 @@ export function PatientDetailsTabs({ selectedPatient, dentistId, appointments, o
             <CreditCard className="h-4 w-4 mr-1" />
             Payments
           </TabsTrigger>
+          {canShowAIChat && (
+            <TabsTrigger value="ai-chat" className="text-xs sm:text-sm">
+              <MessageSquare className="h-4 w-4 mr-1" />
+              AI Chat
+            </TabsTrigger>
+          )}
           <TabsTrigger value="info" className="text-xs sm:text-sm">
             <User className="h-4 w-4 mr-1" />
             Info
@@ -305,10 +331,21 @@ export function PatientDetailsTabs({ selectedPatient, dentistId, appointments, o
 
         {/* Payments Tab */}
         <TabsContent value="payments" className="space-y-4">
-          <PatientPaymentHistory 
+          <PatientPaymentHistory
             patientId={selectedPatient.id}
           />
         </TabsContent>
+
+        {/* AI Chat Tab */}
+        {canShowAIChat && (
+          <TabsContent value="ai-chat" className="space-y-4">
+            <DentistPatientAIChat
+              patientId={selectedPatient.id}
+              dentistId={dentistId}
+              patientName={`${selectedPatient.first_name} ${selectedPatient.last_name}`}
+            />
+          </TabsContent>
+        )}
 
         {/* Patient Info Tab */}
         <TabsContent value="info" className="space-y-4">
