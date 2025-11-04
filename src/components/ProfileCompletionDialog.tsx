@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Dialog,
@@ -37,7 +36,6 @@ interface ProfileData {
 }
 
 const ProfileCompletionDialog = () => {
-  const location = useLocation();
   const [open, setOpen] = useState(false);
   const [profileId, setProfileId] = useState<string>("");
   const [missingFields, setMissingFields] = useState<MissingField[]>([]);
@@ -47,7 +45,7 @@ const ProfileCompletionDialog = () => {
   const [completed, setCompleted] = useState(false);
 
   // Don't show profile completion during business creation flow
-  const isBusinessCreationFlow = location.pathname === '/create-business';
+  const isBusinessCreationFlow = window.location.pathname === '/create-business';
 
   const checkProfile = async (userId: string) => {
     const { data, error } = await supabase
