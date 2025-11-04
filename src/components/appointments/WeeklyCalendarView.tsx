@@ -24,11 +24,6 @@ interface WeeklyCalendarViewProps {
   googleCalendarEvents?: any[];
 }
 
-const TIME_SLOTS = [
-  "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", 
-  "13:00", "14:00", "15:00", "16:00", "17:00", "18:00"
-];
-
 const STATUS_COLORS: Record<string, string> = {
   "completed": "bg-gradient-to-br from-green-50 to-green-100 text-green-900 border-l-green-500 shadow-sm",
   "cancelled": "bg-gradient-to-br from-gray-50 to-gray-100 text-gray-600 border-l-gray-400 shadow-sm",
@@ -59,6 +54,64 @@ export function WeeklyCalendarView({
   const [completionDialogOpen, setCompletionDialogOpen] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
   const [mobileCurrentDay, setMobileCurrentDay] = useState(0); // Index of current day (0-6)
+  
+  // Fetch dentist availability
+  const { data: availability = [] } = useQuery({
+    queryKey: ["dentist-availability", dentistId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("dentist_availability")
+        .select("*")
+        .eq("dentist_id", dentistId)
+        .eq("is_available", true);
+      
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!dentistId
+  });
+
+  // Generate time slots based on availability
+  const generateTimeSlots = () => {
+    if (!availability.length) {
+      // Default to 9 AM - 6 PM if no availability set
+      return Array.from({ length: 10 }, (_, i) => {
+        const hour = 9 + i;
+        return `${hour.toString().padStart(2, '0')}:00`;
+      });
+    }
+
+    // Find earliest start and latest end across all days
+    const times = availability.flatMap(avail => [
+      avail.start_time,
+      avail.end_time
+    ]);
+    
+    const startHour = Math.min(...times.map((time: string) => parseInt(time.split(':')[0])));
+    const endHour = Math.max(...times.map((time: string) => parseInt(time.split(':')[0])));
+    
+    return Array.from({ length: endHour - startHour + 1 }, (_, i) => {
+      const hour = startHour + i;
+      return `${hour.toString().padStart(2, '0')}:00`;
+    });
+  };
+
+  const TIME_SLOTS = generateTimeSlots();
+
+  // Check if a time slot is a break time for a specific day
+  const isBreakTime = (day: Date, timeSlot: string) => {
+    const dayOfWeek = day.getDay();
+    const dayAvailability = availability.find(a => a.day_of_week === dayOfWeek);
+    
+    if (!dayAvailability) return false;
+    if (!dayAvailability.break_start_time || !dayAvailability.break_end_time) return false;
+    
+    const slotHour = parseInt(timeSlot.split(':')[0]);
+    const breakStart = parseInt(dayAvailability.break_start_time.split(':')[0]);
+    const breakEnd = parseInt(dayAvailability.break_end_time.split(':')[0]);
+    
+    return slotHour >= breakStart && slotHour < breakEnd;
+  };
   
   // On mobile, only show one day
   const displayDays = isMobile ? [weekDays[mobileCurrentDay]] : weekDays;
@@ -258,14 +311,25 @@ export function WeeklyCalendarView({
               {/* Slots for each day */}
               {displayDays.map((day) => {
                 const slotAppointments = getAppointmentsForSlot(day, timeSlot);
+                const isBreak = isBreakTime(day, timeSlot);
                 
                 return (
                   <div
                     key={`${day.toISOString()}-${timeSlot}`}
-                    className="p-2 border-r border-b last:border-r-0 min-h-[80px] bg-background hover:bg-muted/5 transition-colors"
+                    className={cn(
+                      "p-2 border-r border-b last:border-r-0 min-h-[80px] transition-colors",
+                      isBreak 
+                        ? "bg-gray-100 dark:bg-gray-800" 
+                        : "bg-background hover:bg-muted/5"
+                    )}
                   >
-                    <div className="space-y-1">
-                      {slotAppointments.map((apt) => {
+                    {isBreak ? (
+                      <div className="flex items-center justify-center h-full">
+                        <span className="text-xs text-muted-foreground italic">Break</span>
+                      </div>
+                    ) : (
+                      <div className="space-y-1">
+                        {slotAppointments.map((apt) => {
                         const patientName = `${apt.patient?.first_name || ""} ${apt.patient?.last_name || ""}`.trim() || "Unknown";
                         const isSelected = apt.id === selectedAppointmentId;
                         const startTime = parseISO(apt.appointment_date);
@@ -408,6 +472,7 @@ export function WeeklyCalendarView({
                         );
                       })}
                     </div>
+                    )}
                   </div>
                 );
               })}
