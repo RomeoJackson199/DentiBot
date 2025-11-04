@@ -237,8 +237,11 @@ export default function CreateBusiness() {
                       Back
                     </Button>
 
-                    {currentStep < STEPS.length && (
-                      <Button onClick={handleNext}>
+                    {currentStep < STEPS.length && currentStep !== 5 && (
+                      <Button 
+                        onClick={handleNext}
+                        disabled={currentStep === 4 && (!businessData.services || businessData.services.length === 0 || !businessData.services.some((s: any) => s.name.trim() && s.price > 0))}
+                      >
                         Next
                         <ArrowRight className="w-4 h-4 ml-2" />
                       </Button>

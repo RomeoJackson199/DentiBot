@@ -5,10 +5,18 @@ import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Trash2, AlertCircle } from 'lucide-react';
+import { Plus, Trash2, AlertCircle, Info } from 'lucide-react';
 import { TemplateType, getTemplateConfig } from '@/lib/businessTemplates';
 import { serviceCreationSchema } from '@/lib/validationSchemas';
 import { z } from 'zod';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 interface Service {
   name: string;
@@ -26,7 +34,7 @@ interface BusinessServicesStepProps {
 
 export function BusinessServicesStep({ services, template, onUpdate }: BusinessServicesStepProps) {
   const [localServices, setLocalServices] = useState<Service[]>(
-    services.length > 0 ? services : [{ name: '', price: 0, duration: 30, description: '', category: '' }]
+    services.length > 0 ? services : []
   );
   const [errors, setErrors] = useState<Record<number, Record<string, string>>>({});
 
@@ -113,11 +121,42 @@ export function BusinessServicesStep({ services, template, onUpdate }: BusinessS
 
   const servicePlural = templateConfig?.terminology.servicePlural || 'Services';
 
+  const hasValidServices = localServices.some(s => s.name.trim() && s.price > 0);
+
   return (
     <div className="space-y-6">
       <div className="text-center mb-6">
-        <h2 className="text-2xl font-bold">Add Your {servicePlural}</h2>
-        <p className="text-muted-foreground mt-2">
+        <div className="flex items-center justify-center gap-2 mb-2">
+          <h2 className="text-2xl font-bold">Add Your {servicePlural}</h2>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-6 w-6">
+                <Info className="h-4 w-4 text-muted-foreground" />
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>About {servicePlural}</DialogTitle>
+                <DialogDescription className="space-y-2 text-left">
+                  <p>
+                    Define the {servicePlural.toLowerCase()} or offerings you provide to your customers.
+                    Each service should include:
+                  </p>
+                  <ul className="list-disc list-inside space-y-1 ml-2">
+                    <li><strong>Name:</strong> Clear, descriptive title</li>
+                    <li><strong>Price:</strong> How much you charge</li>
+                    <li><strong>Duration:</strong> Estimated time needed (optional)</li>
+                    <li><strong>Description:</strong> What's included or what to expect</li>
+                  </ul>
+                  <p className="mt-3">
+                    You can always add or modify services later from your dashboard.
+                  </p>
+                </DialogDescription>
+              </DialogHeader>
+            </DialogContent>
+          </Dialog>
+        </div>
+        <p className="text-muted-foreground">
           Define the {servicePlural.toLowerCase()} you offer and their pricing
         </p>
       </div>
@@ -142,13 +181,32 @@ export function BusinessServicesStep({ services, template, onUpdate }: BusinessS
         </div>
       )}
 
-      <div className="space-y-4">
-        {localServices.map((service, index) => (
-          <Card key={index} className="p-4">
-            <div className="flex items-start gap-4">
-              <div className="flex-1 space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor={`service-name-${index}`}>{fieldLabels.serviceName} *</Label>
+      {localServices.length === 0 ? (
+        <Card className="p-8 text-center border-dashed">
+          <div className="space-y-3">
+            <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+              <Plus className="h-6 w-6 text-primary" />
+            </div>
+            <div>
+              <h3 className="font-semibold">No services added yet</h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                Start by adding your first service or use quick add options above
+              </p>
+            </div>
+            <Button onClick={addService} className="mt-2">
+              <Plus className="w-4 h-4 mr-2" />
+              Add Your First Service
+            </Button>
+          </div>
+        </Card>
+      ) : (
+        <div className="space-y-4">
+          {localServices.map((service, index) => (
+            <Card key={index} className="p-4 hover:shadow-md transition-shadow">
+              <div className="flex items-start gap-4">
+                <div className="flex-1 space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor={`service-name-${index}`}>{fieldLabels.serviceName} *</Label>
                   <Input
                     id={`service-name-${index}`}
                     placeholder={fieldLabels.serviceNamePlaceholder}
@@ -260,23 +318,36 @@ export function BusinessServicesStep({ services, template, onUpdate }: BusinessS
                 </div>
               </div>
 
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => removeService(index)}
-                className="text-destructive hover:text-destructive"
-              >
-                <Trash2 className="w-4 h-4" />
-              </Button>
-            </div>
-          </Card>
-        ))}
-      </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => removeService(index)}
+                  className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                  disabled={localServices.length === 1}
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
 
-      <Button onClick={addService} variant="outline" className="w-full">
-        <Plus className="w-4 h-4 mr-2" />
-        Add Another {templateConfig?.terminology.service || 'Service'}
-      </Button>
+      {localServices.length > 0 && (
+        <Button onClick={addService} variant="outline" className="w-full">
+          <Plus className="w-4 h-4 mr-2" />
+          Add Another {templateConfig?.terminology.service || 'Service'}
+        </Button>
+      )}
+
+      {!hasValidServices && localServices.length > 0 && (
+        <div className="flex items-center gap-2 p-3 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900 rounded-lg">
+          <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-500 flex-shrink-0" />
+          <p className="text-sm text-amber-800 dark:text-amber-400">
+            Please add at least one service with a name and price to continue
+          </p>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,6 +16,28 @@ export function BusinessCreationAuth({ onComplete }: BusinessCreationAuthProps) 
   const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(true);
+  const [checking, setChecking] = useState(true);
+
+  // Check if user is already logged in
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        onComplete();
+      } else {
+        setChecking(false);
+      }
+    };
+    checkAuth();
+  }, [onComplete]);
+
+  if (checking) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   const handleAuth = async () => {
     if (!email || !password) {
@@ -26,18 +48,32 @@ export function BusinessCreationAuth({ onComplete }: BusinessCreationAuthProps) 
     setLoading(true);
     try {
       if (isSignUp) {
+        const nameParts = fullName.trim().split(' ');
+        const firstName = nameParts[0] || '';
+        const lastName = nameParts.slice(1).join(' ') || '';
+
         const { error } = await supabase.auth.signUp({
           email,
           password,
           options: {
-            data: { full_name: fullName },
+            data: { 
+              first_name: firstName,
+              last_name: lastName,
+            },
             emailRedirectTo: `${window.location.origin}/create-business`,
           },
         });
 
         if (error) throw error;
-        toast.success('Account created! Please check your email to verify.');
-        onComplete();
+        
+        // Wait for session to be established
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          toast.success('Account created successfully!');
+          onComplete();
+        } else {
+          toast.info('Please check your email to verify your account');
+        }
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email,
