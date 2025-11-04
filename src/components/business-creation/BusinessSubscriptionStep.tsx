@@ -192,7 +192,7 @@ export const BusinessSubscriptionStep = ({ businessData, onComplete }: BusinessS
                     setSelectedPlan(plan.id);
                   }}
                 >
-                  {isSelected ? 'Selected' : isPopular ? 'Start Free Trial' : 'Get Started'}
+                  {isSelected ? 'Selected' : 'Get Started'}
                 </Button>
               </div>
             </Card>
@@ -202,10 +202,6 @@ export const BusinessSubscriptionStep = ({ businessData, onComplete }: BusinessS
 
       {/* Bottom Info */}
       <div className="text-center space-y-4 pt-6">
-        <p className="text-muted-foreground">
-          All plans include a 14-day free trial. No credit card required.
-        </p>
-        
         <Button
           size="lg"
           onClick={handleSubscribe}
