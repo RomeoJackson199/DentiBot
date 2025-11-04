@@ -141,7 +141,7 @@ const Index = () => {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {[{
               icon: Calendar,
               title: "Beautifully Designed Scheduling System",
@@ -172,20 +172,20 @@ const Index = () => {
               title: "Billing & Payments",
               description: "We will send notifications if your customer has forgot to pay so that you can work on what matters most",
               gradient: "from-teal-500 to-cyan-500"
-            }].map((feature, index) => <Card key={index} className="group p-6 border-2 border-gray-200 hover:border-transparent hover:shadow-2xl transition-all duration-300 cursor-pointer relative overflow-hidden" style={{
+            }].map((feature, index) => <Card key={index} className="group p-6 border-2 border-gray-200 hover:border-transparent hover:shadow-2xl transition-all duration-300 cursor-pointer relative overflow-hidden h-full flex flex-col" style={{
               animationDelay: `${index * 100}ms`
             }} role="article" tabIndex={0} aria-label={`Feature: ${feature.title}`}>
                   {/* Gradient background on hover */}
                   <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-300`}></div>
 
-                  <div className="relative">
-                    <div className={`inline-flex p-3 rounded-xl bg-gradient-to-br ${feature.gradient} mb-4 group-hover:scale-110 transition-transform duration-300`}>
+                  <div className="relative flex flex-col h-full">
+                    <div className={`inline-flex p-3 rounded-xl bg-gradient-to-br ${feature.gradient} mb-4 group-hover:scale-110 transition-transform duration-300 w-fit`}>
                       <feature.icon className="h-6 w-6 text-white" aria-hidden="true" />
                     </div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
+                    <h3 className="text-xl font-semibold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors">
                       {feature.title}
                     </h3>
-                    <p className="text-gray-600 leading-relaxed">{feature.description}</p>
+                    <p className="text-gray-600 leading-relaxed flex-grow">{feature.description}</p>
                   </div>
                 </Card>)}
             </div>
