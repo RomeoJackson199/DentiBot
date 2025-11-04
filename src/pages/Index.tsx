@@ -10,6 +10,7 @@ import { Calendar, Clock, Bell, Shield, Users, CheckCircle2, ArrowRight, Sparkle
 import { useNavigate } from "react-router-dom";
 import { AccessibleLoadingIndicator } from "@/components/ui/skip-to-content";
 import { DemoTourFlow } from "@/components/demo/DemoTourFlow";
+import { ScreenSizeIndicator } from "@/components/ui/screen-size-indicator";
 const Index = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -52,6 +53,7 @@ const Index = () => {
 
   // Homepage for non-authenticated users
   return <div className="min-h-screen bg-white">
+      <ScreenSizeIndicator />
       <Header user={user} minimal />
 
       <main id="main-content">
