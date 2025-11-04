@@ -116,7 +116,7 @@ export function WalkInManager({ open, onOpenChange, preselectedStylistId }: Walk
 
     const { data: stylistsData } = await supabase
       .from('dentists')
-      .select('id, specialties, profiles(first_name, last_name, profile_photo_url)')
+      .select('id, specialization, profiles(first_name, last_name)')
       .in('profile_id', membersData.map((m) => m.profile_id))
       .eq('is_active', true);
 
@@ -135,15 +135,14 @@ export function WalkInManager({ open, onOpenChange, preselectedStylistId }: Walk
         const profile = Array.isArray(stylist.profiles) ? stylist.profiles[0] : stylist.profiles;
         const firstName = profile?.first_name || '';
         const lastName = profile?.last_name || '';
-        const profilePhoto = profile?.profile_photo_url || null;
 
         return {
           id: stylist.id,
           name: `${firstName} ${lastName}`,
-          profilePhoto,
+          profilePhoto: null,
           status: status?.status || 'free',
           finishTime: status?.finish_time ? new Date(status.finish_time) : undefined,
-          specialties: stylist.specialties || [],
+          specialties: [stylist.specialization].filter(Boolean),
           isPreferred: selectedClient?.preferredStylistId === stylist.id,
         };
       })
@@ -175,10 +174,7 @@ export function WalkInManager({ open, onOpenChange, preselectedStylistId }: Walk
           first_name,
           last_name,
           phone,
-          email,
-          last_visit_date,
-          preferred_stylist_id,
-          lifetime_value_cents
+          email
         `)
         .or(
           `first_name.ilike.%${searchQuery}%,last_name.ilike.%${searchQuery}%,phone.ilike.%${searchQuery}%`
@@ -187,19 +183,32 @@ export function WalkInManager({ open, onOpenChange, preselectedStylistId }: Walk
 
       if (error) throw error;
 
-      setSearchResults(
-        data.map((p) => ({
-          id: p.id,
-          firstName: p.first_name || '',
-          lastName: p.last_name || '',
-          phone: p.phone,
-          email: p.email,
-          lastVisit: p.last_visit_date ? new Date(p.last_visit_date) : null,
-          lastService: null,
-          preferredStylistId: p.preferred_stylist_id,
-          lifetimeValue: (p.lifetime_value_cents || 0) / 100,
-        }))
+      // Get last appointment date for each profile
+      const profilesWithHistory = await Promise.all(
+        data.map(async (p) => {
+          const { data: lastAppt } = await supabase
+            .from('appointments')
+            .select('appointment_date')
+            .eq('patient_id', p.id)
+            .order('appointment_date', { ascending: false })
+            .limit(1)
+            .single();
+
+          return {
+            id: p.id,
+            firstName: p.first_name || '',
+            lastName: p.last_name || '',
+            phone: p.phone,
+            email: p.email,
+            lastVisit: lastAppt?.appointment_date ? new Date(lastAppt.appointment_date) : null,
+            lastService: null,
+            preferredStylistId: null,
+            lifetimeValue: 0,
+          };
+        })
       );
+
+      setSearchResults(profilesWithHistory);
     } catch (error) {
       console.error('Search error:', error);
       toast({
