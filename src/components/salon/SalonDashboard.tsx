@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useBusinessContext } from '@/hooks/useBusinessContext';
 import { TeamStatusBoard } from './TeamStatusBoard';
 import { WalkInManager } from './WalkInManager';
+import { CheckoutList } from './CheckoutList';
 import { DollarSign, Users, TrendingUp, Clock, Calendar, ShoppingBag } from 'lucide-react';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
@@ -38,6 +39,7 @@ export function SalonDashboard() {
   });
   const [dailyGoal, setDailyGoal] = useState(1800); // €1,800 default
   const [showWalkInDialog, setShowWalkInDialog] = useState(false);
+  const [showCheckoutList, setShowCheckoutList] = useState(false);
   const [selectedStylistForWalkIn, setSelectedStylistForWalkIn] = useState<string | undefined>();
   const [upcomingAppointments, setUpcomingAppointments] = useState<UpcomingAppointment[]>([]);
 
@@ -217,11 +219,11 @@ export function SalonDashboard() {
           <Users className="h-6 w-6" />
           <span>Add Walk-in</span>
         </Button>
-        <Button 
-          size="lg" 
-          variant="outline" 
+        <Button
+          size="lg"
+          variant="outline"
           className="h-24 flex flex-col gap-2"
-          onClick={() => navigate('/dentist/appointments')}
+          onClick={() => setShowCheckoutList(true)}
         >
           <ShoppingBag className="h-6 w-6" />
           <span>Check Out</span>
@@ -281,6 +283,12 @@ export function SalonDashboard() {
         open={showWalkInDialog}
         onOpenChange={setShowWalkInDialog}
         preselectedStylistId={selectedStylistForWalkIn}
+      />
+
+      {/* Checkout List Dialog */}
+      <CheckoutList
+        open={showCheckoutList}
+        onOpenChange={setShowCheckoutList}
       />
     </div>
   );
