@@ -37,7 +37,12 @@ export const BusinessSubscriptionStep = ({ businessData, onComplete }: BusinessS
         .order('price_monthly', { ascending: true });
       
       if (error) throw error;
-      return data as SubscriptionPlan[];
+      
+      // Ensure features is properly parsed as an array
+      return (data || []).map(plan => ({
+        ...plan,
+        features: Array.isArray(plan.features) ? plan.features : []
+      })) as SubscriptionPlan[];
     },
   });
 
@@ -132,7 +137,7 @@ export const BusinessSubscriptionStep = ({ businessData, onComplete }: BusinessS
                 <div className="space-y-2 text-sm">
                   <div className="flex items-center gap-2">
                     <Check className="h-4 w-4 text-primary" />
-                    <span>{plan.customer_limit.toLocaleString()} customers</span>
+                    <span>{(plan.customer_limit || 0).toLocaleString()} customers</span>
                   </div>
                   {plan.email_limit_monthly && (
                     <div className="flex items-center gap-2">
@@ -140,7 +145,7 @@ export const BusinessSubscriptionStep = ({ businessData, onComplete }: BusinessS
                       <span>{plan.email_limit_monthly.toLocaleString()} emails/month</span>
                     </div>
                   )}
-                  {plan.features.map((feature, index) => (
+                  {Array.isArray(plan.features) && plan.features.map((feature, index) => (
                     <div key={index} className="flex items-center gap-2">
                       <Check className="h-4 w-4 text-primary" />
                       <span>{feature}</span>
