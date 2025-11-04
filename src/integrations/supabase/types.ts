@@ -301,6 +301,7 @@ export type Database = {
           currency: string
           custom_features: Json | null
           custom_terminology: Json | null
+          daily_revenue_goal_cents: number | null
           emergency_keywords: string[]
           id: string
           logo_url: string | null
@@ -333,6 +334,7 @@ export type Database = {
           currency?: string
           custom_features?: Json | null
           custom_terminology?: Json | null
+          daily_revenue_goal_cents?: number | null
           emergency_keywords?: string[]
           id?: string
           logo_url?: string | null
@@ -365,6 +367,7 @@ export type Database = {
           currency?: string
           custom_features?: Json | null
           custom_terminology?: Json | null
+          daily_revenue_goal_cents?: number | null
           emergency_keywords?: string[]
           id?: string
           logo_url?: string | null
@@ -2285,6 +2288,16 @@ export type Database = {
         Returns: undefined
       }
       get_current_business_id: { Args: never; Returns: string }
+      get_daily_revenue: {
+        Args: { business_id_param: string; date_param: string }
+        Returns: {
+          clients_served: number
+          product_revenue_cents: number
+          service_revenue_cents: number
+          tips_cents: number
+          total_revenue_cents: number
+        }[]
+      }
       has_restaurant_role: {
         Args: { _business_id: string; _profile_id: string; _role: string }
         Returns: boolean

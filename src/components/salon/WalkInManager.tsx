@@ -285,7 +285,26 @@ export function WalkInManager({ open, onOpenChange, preselectedStylistId }: Walk
 
       // Create appointment for NOW
       const appointmentTime = new Date();
-      const endTime = addMinutes(appointmentTime, selectedService.duration);
+
+      // Check if stylist has any conflicting appointments right now
+      const { data: conflictingAppts } = await supabase
+        .from('appointments')
+        .select('id, status')
+        .eq('dentist_id', selectedStylist)
+        .eq('business_id', businessId)
+        .in('status', ['confirmed', 'in_progress'])
+        .gte('appointment_date', new Date(Date.now() - 30 * 60 * 1000).toISOString()) // Started in last 30 mins
+        .lte('appointment_date', appointmentTime.toISOString());
+
+      if (conflictingAppts && conflictingAppts.length > 0) {
+        toast({
+          title: 'Stylist Busy',
+          description: 'This stylist has an active appointment. Please select another stylist or wait.',
+          variant: 'destructive',
+        });
+        setIsProcessing(false);
+        return;
+      }
 
       const { data: appointment, error: apptError } = await supabase
         .from('appointments')

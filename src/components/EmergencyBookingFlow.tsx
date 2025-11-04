@@ -316,6 +316,18 @@ export const EmergencyBookingFlow = ({ user, onComplete, onCancel }: EmergencyBo
       const urgencyConfig = getUrgencyConfig(urgencyLevel);
       const urgencyValue = urgencyConfig.priority as 'low' | 'medium' | 'high' | 'emergency';
 
+      // Try to book the slot first to ensure availability
+      const { error: slotBookingError } = await supabase.rpc('book_appointment_slot', {
+        p_dentist_id: selectedDentist.id,
+        p_slot_date: dateStr,
+        p_slot_time: selectedTime,
+        p_appointment_id: 'temp-emergency-id'
+      });
+
+      if (slotBookingError) {
+        throw new Error("This time slot is no longer available");
+      }
+
       const { data: appointmentData, error: appointmentError } = await supabase
         .from('appointments')
         .insert({
@@ -329,17 +341,21 @@ export const EmergencyBookingFlow = ({ user, onComplete, onCancel }: EmergencyBo
         .select()
         .single();
 
-      if (appointmentError) throw appointmentError;
+      if (appointmentError) {
+        // Release the slot if appointment creation fails
+        await supabase.rpc('release_appointment_slot', {
+          p_appointment_id: 'temp-emergency-id'
+        });
+        throw appointmentError;
+      }
 
-      // Book the slot
-      const { error: slotError } = await supabase.rpc('book_appointment_slot', {
+      // Update slot with actual appointment ID
+      await supabase.rpc('book_appointment_slot', {
         p_dentist_id: selectedDentist.id,
-        p_slot_date: format(selectedDate, 'yyyy-MM-dd'),
+        p_slot_date: dateStr,
         p_slot_time: selectedTime,
         p_appointment_id: appointmentData.id
       });
-
-      if (slotError) throw slotError;
 
       // Create urgency assessment record
       await supabase
