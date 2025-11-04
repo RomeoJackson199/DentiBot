@@ -48,12 +48,11 @@ export function useSalonTier(businessId: string | null): {
 
       if (businessError) throw businessError;
 
-      // Count active stylists
+      // Count active stylists (from business_members)
       const { data: stylists, error: stylistsError } = await supabase
-        .from('dentists')
+        .from('business_members')
         .select('id')
-        .eq('business_id', businessId)
-        .eq('is_active', true);
+        .eq('business_id', businessId);
 
       if (stylistsError) throw stylistsError;
 
@@ -132,7 +131,7 @@ export function useSalonTier(businessId: string | null): {
   useEffect(() => {
     loadTierInfo();
 
-    // Set up real-time subscription to dentists table
+    // Set up real-time subscription to business_members table
     const channel = supabase
       .channel(`salon_tier_${businessId}`)
       .on(
@@ -140,7 +139,7 @@ export function useSalonTier(businessId: string | null): {
         {
           event: '*',
           schema: 'public',
-          table: 'dentists',
+          table: 'business_members',
           filter: `business_id=eq.${businessId}`,
         },
         () => {

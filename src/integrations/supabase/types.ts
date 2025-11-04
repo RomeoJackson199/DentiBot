@@ -295,9 +295,11 @@ export type Database = {
           emergency_keywords: string[]
           id: string
           logo_url: string | null
+          manual_tier_override: boolean | null
           name: string
           owner_profile_id: string
           primary_color: string
+          salon_tier: string | null
           secondary_color: string
           show_branding_in_emails: boolean
           show_logo_in_chat: boolean
@@ -325,9 +327,11 @@ export type Database = {
           emergency_keywords?: string[]
           id?: string
           logo_url?: string | null
+          manual_tier_override?: boolean | null
           name: string
           owner_profile_id: string
           primary_color?: string
+          salon_tier?: string | null
           secondary_color?: string
           show_branding_in_emails?: boolean
           show_logo_in_chat?: boolean
@@ -355,9 +359,11 @@ export type Database = {
           emergency_keywords?: string[]
           id?: string
           logo_url?: string | null
+          manual_tier_override?: boolean | null
           name?: string
           owner_profile_id?: string
           primary_color?: string
+          salon_tier?: string | null
           secondary_color?: string
           show_branding_in_emails?: boolean
           show_logo_in_chat?: boolean
@@ -2099,6 +2105,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      calculate_salon_tier: {
+        Args: { business_id_param: string }
+        Returns: string
+      }
       can_manage_restaurant_staff: {
         Args: { p_business_id: string }
         Returns: boolean
@@ -2187,6 +2197,14 @@ export type Database = {
           p_user_id: string
         }
         Returns: boolean
+      }
+      reset_to_auto_tier: {
+        Args: { business_id_param: string }
+        Returns: undefined
+      }
+      upgrade_to_enterprise: {
+        Args: { business_id_param: string }
+        Returns: undefined
       }
       viewer_profile_id: { Args: { _viewer_user_id: string }; Returns: string }
     }
