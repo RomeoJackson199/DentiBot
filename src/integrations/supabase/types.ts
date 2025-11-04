@@ -1694,12 +1694,15 @@ export type Database = {
       subscription_plans: {
         Row: {
           created_at: string
+          customer_limit: number
+          email_limit_monthly: number | null
           features: Json
           id: string
           is_active: boolean
           name: string
           price_monthly: number
           price_yearly: number
+          slug: string | null
           stripe_price_id_monthly: string | null
           stripe_price_id_yearly: string | null
           stripe_product_id: string | null
@@ -1707,12 +1710,15 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          customer_limit?: number
+          email_limit_monthly?: number | null
           features?: Json
           id?: string
           is_active?: boolean
           name: string
           price_monthly: number
           price_yearly: number
+          slug?: string | null
           stripe_price_id_monthly?: string | null
           stripe_price_id_yearly?: string | null
           stripe_product_id?: string | null
@@ -1720,12 +1726,15 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          customer_limit?: number
+          email_limit_monthly?: number | null
           features?: Json
           id?: string
           is_active?: boolean
           name?: string
           price_monthly?: number
           price_yearly?: number
+          slug?: string | null
           stripe_price_id_monthly?: string | null
           stripe_price_id_yearly?: string | null
           stripe_product_id?: string | null
