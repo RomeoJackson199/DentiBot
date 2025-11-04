@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Check, Loader2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Check, Loader2, Tag, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
@@ -26,6 +27,9 @@ export const BusinessSubscriptionStep = ({ businessData, onComplete }: BusinessS
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const [loading, setLoading] = useState(false);
+  const [promoCode, setPromoCode] = useState('');
+  const [validatingPromo, setValidatingPromo] = useState(false);
+  const [validPromo, setValidPromo] = useState<any>(null);
 
   const { data: plans, isLoading } = useQuery({
     queryKey: ['subscription-plans'],
@@ -48,9 +52,62 @@ export const BusinessSubscriptionStep = ({ businessData, onComplete }: BusinessS
     },
   });
 
+  const validatePromoCode = async () => {
+    if (!promoCode.trim()) {
+      toast.error('Please enter a promo code');
+      return;
+    }
+
+    setValidatingPromo(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('validate-promo-code', {
+        body: { code: promoCode },
+      });
+
+      if (error) throw error;
+
+      if (data.valid) {
+        setValidPromo(data.promoCode);
+        toast.success('Promo code applied!');
+      } else {
+        toast.error(data.message || 'Invalid promo code');
+        setValidPromo(null);
+      }
+    } catch (error: any) {
+      console.error('Error validating promo code:', error);
+      toast.error('Failed to validate promo code');
+      setValidPromo(null);
+    } finally {
+      setValidatingPromo(false);
+    }
+  };
+
   const handleSubscribe = async () => {
     if (!selectedPlan) {
       toast.error('Please select a plan');
+      return;
+    }
+
+    // If promo code makes it free, skip payment
+    if (validPromo?.discount_type === 'free') {
+      setLoading(true);
+      try {
+        const { data, error } = await supabase.functions.invoke('create-business-free', {
+          body: {
+            businessData,
+            promoCodeId: validPromo.id,
+          },
+        });
+
+        if (error) throw error;
+
+        toast.success('Business created successfully!');
+        onComplete();
+      } catch (error: any) {
+        console.error('Error creating business:', error);
+        toast.error(error.message || 'Failed to create business');
+        setLoading(false);
+      }
       return;
     }
 
@@ -61,6 +118,7 @@ export const BusinessSubscriptionStep = ({ businessData, onComplete }: BusinessS
           planId: selectedPlan,
           billingCycle,
           businessData,
+          promoCodeId: validPromo?.id,
         },
       });
 
@@ -200,6 +258,66 @@ export const BusinessSubscriptionStep = ({ businessData, onComplete }: BusinessS
         })}
       </div>
 
+      {/* Promo Code Section */}
+      <Card className="max-w-md mx-auto p-6 space-y-4">
+        <div className="flex items-center gap-2">
+          <Tag className="h-5 w-5 text-primary" />
+          <h3 className="font-semibold">Have a Promo Code?</h3>
+        </div>
+        
+        {validPromo ? (
+          <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+            <div className="flex items-center gap-2">
+              <Check className="h-5 w-5 text-green-600" />
+              <div>
+                <p className="font-medium text-green-900 dark:text-green-100">
+                  {validPromo.code}
+                </p>
+                <p className="text-sm text-green-700 dark:text-green-300">
+                  {validPromo.discount_type === 'free' && 'Free activation!'}
+                  {validPromo.discount_type === 'percentage' && `${validPromo.discount_value}% off`}
+                  {validPromo.discount_type === 'fixed' && `$${validPromo.discount_value} off`}
+                </p>
+              </div>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setValidPromo(null);
+                setPromoCode('');
+              }}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        ) : (
+          <div className="flex gap-2">
+            <Input
+              placeholder="Enter promo code"
+              value={promoCode}
+              onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  validatePromoCode();
+                }
+              }}
+            />
+            <Button
+              onClick={validatePromoCode}
+              disabled={validatingPromo || !promoCode.trim()}
+              variant="outline"
+            >
+              {validatingPromo ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                'Apply'
+              )}
+            </Button>
+          </div>
+        )}
+      </Card>
+
       {/* Bottom Info */}
       <div className="text-center space-y-4 pt-6">
         <Button
@@ -213,6 +331,8 @@ export const BusinessSubscriptionStep = ({ businessData, onComplete }: BusinessS
               <Loader2 className="mr-2 h-5 w-5 animate-spin" />
               Processing...
             </>
+          ) : validPromo?.discount_type === 'free' ? (
+            'Create Business Free'
           ) : (
             'Continue to Payment'
           )}
