@@ -1,22 +1,32 @@
 /**
  * Salon Components - Type A (Solo), Type B (Team), Type C (Enterprise)
  * Optimized for salons of all sizes
+ *
+ * IMPORTANT: Use SalonRouter for automatic tier detection!
+ * It will show the right dashboard based on your team size.
  */
 
-// Type A: Solo Stylist Components (1 person)
+// ===== AUTOMATIC TIER DETECTION =====
+// Use this component - it handles everything automatically!
+export { SalonRouter, SalonNavItems } from './SalonRouter';
+
+// Tier Management
+export { TierUpgradeSettings } from './TierUpgradeSettings';
+
+// ===== TYPE A: SOLO STYLIST (1 person) =====
 export { SoloDashboard } from './SoloDashboard';
 export { QuickBooking } from './QuickBooking';
 export { BreakManager } from './BreakManager';
 export { PersonalEarnings } from './PersonalEarnings';
 
-// Type B: Team Salon Components (2-10 stylists)
+// ===== TYPE B: TEAM SALON (2-10 stylists) =====
 export { SalonDashboard } from './SalonDashboard';
 export { TeamStatusBoard } from './TeamStatusBoard';
 export { QuickCheckout } from './QuickCheckout';
 export { WalkInManager } from './WalkInManager';
 export { CommissionCalculator } from './CommissionCalculator';
 
-// Type C: Enterprise Multi-Location Components (unlimited)
+// ===== TYPE C: ENTERPRISE (unlimited) =====
 export { NetworkDashboard } from './NetworkDashboard';
 export { NetworkLeaderboard } from './NetworkLeaderboard';
 export { LocationAnalytics } from './LocationAnalytics';
