@@ -260,14 +260,15 @@ export function ServiceDialog({ open, onClose, service, businessId, defaultCateg
           <DialogDescription>
             {service
               ? 'Update service details and pricing'
-              : 'Create a new service or product for customers to book'}
+              : 'Add a service with a name, price, and duration. Everything else is optional.'}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Image Upload */}
           <div className="space-y-2">
-            <Label>Service Image (Optional)</Label>
+            <Label>Service Image</Label>
+            <p className="text-xs text-muted-foreground">Optional - Add a photo to make your service more appealing</p>
             <div className="border-2 border-dashed rounded-lg p-4 text-center">
               {imagePreview ? (
                 <div className="relative">
@@ -336,7 +337,7 @@ export function ServiceDialog({ open, onClose, service, businessId, defaultCateg
 
           {/* Description */}
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description">Description (Optional)</Label>
             <Textarea
               id="description"
               value={formData.description}
@@ -356,10 +357,10 @@ export function ServiceDialog({ open, onClose, service, businessId, defaultCateg
             )}
           </div>
 
-          {/* Price and Currency */}
+          {/* Price and Duration */}
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="price">Price *</Label>
+              <Label htmlFor="price">Price (EUR) *</Label>
               <Input
                 id="price"
                 type="number"
@@ -370,10 +371,11 @@ export function ServiceDialog({ open, onClose, service, businessId, defaultCateg
                   setFormData({ ...formData, price: e.target.value });
                   if (errors.price) setErrors({ ...errors, price: '' });
                 }}
-                placeholder="0.00"
+                placeholder="35.00"
                 required
                 className={errors.price ? 'border-red-500' : ''}
               />
+              <p className="text-xs text-muted-foreground">Set your service price in euros</p>
               {errors.price && (
                 <div className="flex items-center gap-1 text-sm text-red-500">
                   <AlertCircle className="h-3 w-3" />
@@ -382,18 +384,7 @@ export function ServiceDialog({ open, onClose, service, businessId, defaultCateg
               )}
             </div>
             <div className="space-y-2">
-              <Label>Currency</Label>
-              <Input value="EUR" disabled className="bg-muted/40" />
-              <p className="text-xs text-muted-foreground">
-                All prices are standardised in Euro for a consistent patient experience.
-              </p>
-            </div>
-          </div>
-
-          {/* Duration and Category */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="duration">{fieldLabels.durationLabel}</Label>
+              <Label htmlFor="duration">{fieldLabels.durationLabel} *</Label>
               <Input
                 id="duration"
                 type="number"
@@ -404,9 +395,11 @@ export function ServiceDialog({ open, onClose, service, businessId, defaultCateg
                   setFormData({ ...formData, duration_minutes: e.target.value });
                   if (errors.duration) setErrors({ ...errors, duration: '' });
                 }}
-                placeholder="60"
+                placeholder="30"
+                required
                 className={errors.duration ? 'border-red-500' : ''}
               />
+              <p className="text-xs text-muted-foreground">How long does this service take?</p>
               {errors.duration && (
                 <div className="flex items-center gap-1 text-sm text-red-500">
                   <AlertCircle className="h-3 w-3" />
@@ -414,71 +407,59 @@ export function ServiceDialog({ open, onClose, service, businessId, defaultCateg
                 </div>
               )}
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="category">{fieldLabels.categoryLabel}</Label>
-              {categories.length > 0 ? (
-                <Select
-                  value={formData.category}
-                  onValueChange={(value) => {
-                    setFormData({ ...formData, category: value });
-                    if (errors.category) setErrors({ ...errors, category: '' });
-                  }}
-                >
-                  <SelectTrigger className={errors.category ? 'border-red-500' : ''}>
-                    <SelectValue placeholder="Select a category..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map((cat) => (
-                      <SelectItem key={cat} value={cat}>
-                        {cat}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              ) : (
-                <Input
-                  id="category"
-                  value={formData.category}
-                  onChange={(e) => {
-                    setFormData({ ...formData, category: e.target.value });
-                    if (errors.category) setErrors({ ...errors, category: '' });
-                  }}
-                  placeholder="e.g., Standard, Premium"
-                  className={errors.category ? 'border-red-500' : ''}
-                />
-              )}
-              {errors.category && (
-                <div className="flex items-center gap-1 text-sm text-red-500">
-                  <AlertCircle className="h-3 w-3" />
-                  <span>{errors.category}</span>
-                </div>
-              )}
-            </div>
+          </div>
+
+          {/* Category */}
+          <div className="space-y-2">
+            <Label htmlFor="category">{fieldLabels.categoryLabel} (Optional)</Label>
+            <p className="text-xs text-muted-foreground">Organize services into categories for easier browsing</p>
+            {categories.length > 0 ? (
+              <Select
+                value={formData.category}
+                onValueChange={(value) => {
+                  setFormData({ ...formData, category: value });
+                  if (errors.category) setErrors({ ...errors, category: '' });
+                }}
+              >
+                <SelectTrigger className={errors.category ? 'border-red-500' : ''}>
+                  <SelectValue placeholder="Select a category..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map((cat) => (
+                    <SelectItem key={cat} value={cat}>
+                      {cat}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : (
+              <Input
+                id="category"
+                value={formData.category}
+                onChange={(e) => {
+                  setFormData({ ...formData, category: e.target.value });
+                  if (errors.category) setErrors({ ...errors, category: '' });
+                }}
+                placeholder="e.g., Standard, Premium"
+                className={errors.category ? 'border-red-500' : ''}
+              />
+            )}
+            {errors.category && (
+              <div className="flex items-center gap-1 text-sm text-red-500">
+                <AlertCircle className="h-3 w-3" />
+                <span>{errors.category}</span>
+              </div>
+            )}
           </div>
 
           {/* Switches */}
-          <div className="space-y-4">
+          <div className="space-y-4 pt-4 border-t">
+            <p className="text-sm font-medium">Advanced Options</p>
             <div className="flex items-center justify-between">
               <div>
-                <Label htmlFor="upfront-payment">Require Upfront Payment</Label>
-                <p className="text-sm text-muted-foreground">
-                  Customers must pay before booking (requires Stripe)
-                </p>
-              </div>
-              <Switch
-                id="upfront-payment"
-                checked={formData.requires_upfront_payment}
-                onCheckedChange={(checked) =>
-                  setFormData({ ...formData, requires_upfront_payment: checked })
-                }
-              />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div>
-                <Label htmlFor="is-active">Active</Label>
-                <p className="text-sm text-muted-foreground">
-                  Make this service available for booking
+                <Label htmlFor="is-active">Available for Booking</Label>
+                <p className="text-xs text-muted-foreground">
+                  Turn off to hide this service temporarily
                 </p>
               </div>
               <Switch
@@ -486,6 +467,22 @@ export function ServiceDialog({ open, onClose, service, businessId, defaultCateg
                 checked={formData.is_active}
                 onCheckedChange={(checked) =>
                   setFormData({ ...formData, is_active: checked })
+                }
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div>
+                <Label htmlFor="upfront-payment">Require Upfront Payment</Label>
+                <p className="text-xs text-muted-foreground">
+                  Customers pay before booking (requires Stripe setup)
+                </p>
+              </div>
+              <Switch
+                id="upfront-payment"
+                checked={formData.requires_upfront_payment}
+                onCheckedChange={(checked) =>
+                  setFormData({ ...formData, requires_upfront_payment: checked })
                 }
               />
             </div>

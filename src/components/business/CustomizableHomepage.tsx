@@ -80,23 +80,30 @@ export function CustomizableHomepage({ business, settings, services = [], onCTAC
             <h3 className="text-3xl font-bold text-center mb-12">Our Services</h3>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {services.map((service) => (
-                <Card key={service.id} className="p-6 hover:shadow-lg transition-shadow">
+                <Card key={service.id} className="p-6 hover:shadow-lg transition-shadow cursor-pointer" onClick={onCTAClick}>
                   {service.image_url && (
-                    <img 
-                      src={service.image_url} 
+                    <img
+                      src={service.image_url}
                       alt={service.name}
                       className="w-full h-48 object-cover rounded-lg mb-4"
                     />
                   )}
                   <h4 className="text-xl font-semibold mb-2">{service.name}</h4>
                   {service.description && (
-                    <p className="text-muted-foreground mb-4">{service.description}</p>
+                    <p className="text-muted-foreground text-sm mb-4">{service.description}</p>
                   )}
-                  {service.price_cents > 0 && (
-                    <p className="text-lg font-bold text-primary">
-                      ${(service.price_cents / 100).toFixed(2)}
-                    </p>
-                  )}
+                  <div className="flex items-center justify-between">
+                    {service.price_cents > 0 && (
+                      <p className="text-lg font-bold text-primary">
+                        €{(service.price_cents / 100).toFixed(2)}
+                      </p>
+                    )}
+                    {service.duration_minutes && (
+                      <p className="text-sm text-muted-foreground">
+                        {service.duration_minutes} min
+                      </p>
+                    )}
+                  </div>
                 </Card>
               ))}
             </div>
