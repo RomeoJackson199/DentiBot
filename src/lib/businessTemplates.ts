@@ -201,7 +201,7 @@ export const BUSINESS_TEMPLATES: Record<TemplateType, TemplateConfig> = {
       photoUpload: true,
       urgencyLevels: false,
       paymentRequests: true,
-      aiChat: true,
+      aiChat: false,
       appointments: true,
       services: true,
     },
