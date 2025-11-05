@@ -75,10 +75,64 @@ export type Database = {
           },
         ]
       }
+      appointment_types: {
+        Row: {
+          buffer_time_after_minutes: number
+          business_id: string
+          category: Database["public"]["Enums"]["appointment_type_category"]
+          color: string | null
+          created_at: string
+          default_duration_minutes: number
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          requires_followup: boolean | null
+          updated_at: string
+        }
+        Insert: {
+          buffer_time_after_minutes?: number
+          business_id: string
+          category: Database["public"]["Enums"]["appointment_type_category"]
+          color?: string | null
+          created_at?: string
+          default_duration_minutes?: number
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          requires_followup?: boolean | null
+          updated_at?: string
+        }
+        Update: {
+          buffer_time_after_minutes?: number
+          business_id?: string
+          category?: Database["public"]["Enums"]["appointment_type_category"]
+          color?: string | null
+          created_at?: string
+          default_duration_minutes?: number
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          requires_followup?: boolean | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointment_types_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       appointments: {
         Row: {
           amount_paid_cents: number | null
           appointment_date: string
+          appointment_type_id: string | null
           booking_source: string | null
           business_id: string
           completed_at: string | null
@@ -101,6 +155,7 @@ export type Database = {
         Insert: {
           amount_paid_cents?: number | null
           appointment_date: string
+          appointment_type_id?: string | null
           booking_source?: string | null
           business_id: string
           completed_at?: string | null
@@ -123,6 +178,7 @@ export type Database = {
         Update: {
           amount_paid_cents?: number | null
           appointment_date?: string
+          appointment_type_id?: string | null
           booking_source?: string | null
           business_id?: string
           completed_at?: string | null
@@ -143,6 +199,13 @@ export type Database = {
           urgency?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "appointments_appointment_type_id_fkey"
+            columns: ["appointment_type_id"]
+            isOneToOne: false
+            referencedRelation: "appointment_types"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "appointments_business_id_fkey"
             columns: ["business_id"]
@@ -500,6 +563,82 @@ export type Database = {
           },
           {
             foreignKeyName: "dentist_availability_dentist_id_fkey"
+            columns: ["dentist_id"]
+            isOneToOne: false
+            referencedRelation: "providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dentist_capacity_settings: {
+        Row: {
+          buffer_after_lunch_minutes: number | null
+          buffer_before_lunch_minutes: number | null
+          business_id: string
+          created_at: string
+          default_buffer_minutes: number | null
+          dentist_id: string
+          emergency_slot_release_hours: number | null
+          emergency_slots_per_day: number | null
+          expertise_categories:
+            | Database["public"]["Enums"]["appointment_type_category"][]
+            | null
+          id: string
+          max_appointments_per_day: number | null
+          max_appointments_per_hour: number | null
+          updated_at: string
+        }
+        Insert: {
+          buffer_after_lunch_minutes?: number | null
+          buffer_before_lunch_minutes?: number | null
+          business_id: string
+          created_at?: string
+          default_buffer_minutes?: number | null
+          dentist_id: string
+          emergency_slot_release_hours?: number | null
+          emergency_slots_per_day?: number | null
+          expertise_categories?:
+            | Database["public"]["Enums"]["appointment_type_category"][]
+            | null
+          id?: string
+          max_appointments_per_day?: number | null
+          max_appointments_per_hour?: number | null
+          updated_at?: string
+        }
+        Update: {
+          buffer_after_lunch_minutes?: number | null
+          buffer_before_lunch_minutes?: number | null
+          business_id?: string
+          created_at?: string
+          default_buffer_minutes?: number | null
+          dentist_id?: string
+          emergency_slot_release_hours?: number | null
+          emergency_slots_per_day?: number | null
+          expertise_categories?:
+            | Database["public"]["Enums"]["appointment_type_category"][]
+            | null
+          id?: string
+          max_appointments_per_day?: number | null
+          max_appointments_per_hour?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dentist_capacity_settings_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dentist_capacity_settings_dentist_id_fkey"
+            columns: ["dentist_id"]
+            isOneToOne: false
+            referencedRelation: "dentists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dentist_capacity_settings_dentist_id_fkey"
             columns: ["dentist_id"]
             isOneToOne: false
             referencedRelation: "providers"
@@ -1056,6 +1195,95 @@ export type Database = {
           },
         ]
       }
+      patient_preferences: {
+        Row: {
+          average_booking_lead_time_days: number | null
+          business_id: string
+          cancelled_appointments: number | null
+          completed_appointments: number | null
+          created_at: string
+          id: string
+          last_calculated_at: string | null
+          no_show_count: number | null
+          no_show_rate: number | null
+          patient_id: string
+          preferred_days_of_week: number[] | null
+          preferred_dentist_id: string | null
+          preferred_reminder_hours: number | null
+          preferred_time_of_day: string[] | null
+          reliability_score: number | null
+          total_appointments: number | null
+          updated_at: string
+        }
+        Insert: {
+          average_booking_lead_time_days?: number | null
+          business_id: string
+          cancelled_appointments?: number | null
+          completed_appointments?: number | null
+          created_at?: string
+          id?: string
+          last_calculated_at?: string | null
+          no_show_count?: number | null
+          no_show_rate?: number | null
+          patient_id: string
+          preferred_days_of_week?: number[] | null
+          preferred_dentist_id?: string | null
+          preferred_reminder_hours?: number | null
+          preferred_time_of_day?: string[] | null
+          reliability_score?: number | null
+          total_appointments?: number | null
+          updated_at?: string
+        }
+        Update: {
+          average_booking_lead_time_days?: number | null
+          business_id?: string
+          cancelled_appointments?: number | null
+          completed_appointments?: number | null
+          created_at?: string
+          id?: string
+          last_calculated_at?: string | null
+          no_show_count?: number | null
+          no_show_rate?: number | null
+          patient_id?: string
+          preferred_days_of_week?: number[] | null
+          preferred_dentist_id?: string | null
+          preferred_reminder_hours?: number | null
+          preferred_time_of_day?: string[] | null
+          reliability_score?: number | null
+          total_appointments?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_preferences_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_preferences_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_preferences_preferred_dentist_id_fkey"
+            columns: ["preferred_dentist_id"]
+            isOneToOne: false
+            referencedRelation: "dentists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_preferences_preferred_dentist_id_fkey"
+            columns: ["preferred_dentist_id"]
+            isOneToOne: false
+            referencedRelation: "providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payment_items: {
         Row: {
           code: string | null
@@ -1519,6 +1747,57 @@ export type Database = {
           },
         ]
       }
+      reschedule_suggestions: {
+        Row: {
+          accepted_at: string | null
+          accepted_slot: string | null
+          business_id: string
+          created_at: string
+          id: string
+          original_appointment_id: string
+          reason: string | null
+          suggested_slots: Json
+          was_auto_rescheduled: boolean | null
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_slot?: string | null
+          business_id: string
+          created_at?: string
+          id?: string
+          original_appointment_id: string
+          reason?: string | null
+          suggested_slots: Json
+          was_auto_rescheduled?: boolean | null
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_slot?: string | null
+          business_id?: string
+          created_at?: string
+          id?: string
+          original_appointment_id?: string
+          reason?: string | null
+          suggested_slots?: Json
+          was_auto_rescheduled?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reschedule_suggestions_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reschedule_suggestions_original_appointment_id_fkey"
+            columns: ["original_appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       restaurant_orders: {
         Row: {
           business_id: string
@@ -1839,6 +2118,78 @@ export type Database = {
             columns: ["business_id"]
             isOneToOne: false
             referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      slot_recommendations: {
+        Row: {
+          appointment_id: string | null
+          business_id: string
+          created_at: string
+          dentist_id: string
+          id: string
+          patient_id: string
+          recommended_slots: Json
+          selected_slot: string | null
+          was_recommended: boolean | null
+        }
+        Insert: {
+          appointment_id?: string | null
+          business_id: string
+          created_at?: string
+          dentist_id: string
+          id?: string
+          patient_id: string
+          recommended_slots: Json
+          selected_slot?: string | null
+          was_recommended?: boolean | null
+        }
+        Update: {
+          appointment_id?: string | null
+          business_id?: string
+          created_at?: string
+          dentist_id?: string
+          id?: string
+          patient_id?: string
+          recommended_slots?: Json
+          selected_slot?: string | null
+          was_recommended?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "slot_recommendations_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "slot_recommendations_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "slot_recommendations_dentist_id_fkey"
+            columns: ["dentist_id"]
+            isOneToOne: false
+            referencedRelation: "dentists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "slot_recommendations_dentist_id_fkey"
+            columns: ["dentist_id"]
+            isOneToOne: false
+            referencedRelation: "providers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "slot_recommendations_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -2251,6 +2602,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      calculate_patient_preferences: {
+        Args: { p_business_id: string; p_patient_id: string }
+        Returns: undefined
+      }
       calculate_salon_tier: {
         Args: { business_id_param: string }
         Returns: string
@@ -2296,6 +2651,17 @@ export type Database = {
           service_revenue_cents: number
           tips_cents: number
           total_revenue_cents: number
+        }[]
+      }
+      get_dentist_capacity_usage: {
+        Args: { p_business_id: string; p_date: string; p_dentist_id: string }
+        Returns: {
+          available_slots: number
+          booked_slots: number
+          capacity_percentage: number
+          is_near_capacity: boolean
+          is_overbooked: boolean
+          total_slots: number
         }[]
       }
       has_restaurant_role: {
@@ -2379,6 +2745,18 @@ export type Database = {
         | "cook"
         | "host"
         | "manager"
+      appointment_type_category:
+        | "checkup"
+        | "cleaning"
+        | "filling"
+        | "extraction"
+        | "root_canal"
+        | "crown"
+        | "whitening"
+        | "orthodontics"
+        | "emergency"
+        | "consultation"
+        | "other"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2516,6 +2894,19 @@ export const Constants = {
         "cook",
         "host",
         "manager",
+      ],
+      appointment_type_category: [
+        "checkup",
+        "cleaning",
+        "filling",
+        "extraction",
+        "root_canal",
+        "crown",
+        "whitening",
+        "orthodontics",
+        "emergency",
+        "consultation",
+        "other",
       ],
     },
   },
