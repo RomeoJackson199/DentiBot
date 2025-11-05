@@ -196,6 +196,7 @@ export default function BookAppointment() {
               dentist_id: selectedDentist
             }));
 
+            console.log('📊 Fetching AI recommendations for', times.length, 'slots');
             const recommendations = await getRecommendedSlots(
               selectedDentist,
               profile.id,
@@ -204,16 +205,41 @@ export default function BookAppointment() {
               selectedService?.id
             );
 
+            console.log('✅ Received', recommendations.length, 'recommendations');
+            const promoted = recommendations.filter(r => r.shouldPromote);
+            console.log('⭐ AI is promoting', promoted.length, 'slots:', promoted.map(r => r.time).join(', '));
+
             setRecommendedSlots(recommendations);
 
             // Show AI summary if available
             const topRec = recommendations.find(r => r.shouldPromote);
             if (topRec?.aiReasoning) {
               setAiSummary(topRec.aiReasoning);
+              console.log('💡 AI Summary:', topRec.aiReasoning);
+            } else {
+              // If no AI reasoning but we have recommendations, create a summary
+              const topSlots = recommendations
+                .filter(r => r.score >= 70)
+                .slice(0, 3)
+                .map(r => r.time);
+
+              if (topSlots.length > 0) {
+                setAiSummary(`Based on scheduling patterns, these times work well: ${topSlots.join(', ')}`);
+              }
             }
           } catch (aiError) {
-            console.warn('AI recommendations failed:', aiError);
-            setRecommendedSlots([]);
+            console.error('❌ AI recommendations failed:', aiError);
+            // Even if AI fails, create basic recommendations
+            const fallbackRecs = times.map(time => ({
+              time,
+              available: true,
+              dentist_id: selectedDentist,
+              score: 50,
+              reasons: ['Available slot'],
+              isRecommended: false,
+              shouldPromote: false
+            }));
+            setRecommendedSlots(fallbackRecs);
           } finally {
             setLoadingAI(false);
           }
@@ -685,25 +711,72 @@ export default function BookAppointment() {
                     Select Time
                   </Label>
 
-                  {/* AI Summary */}
-                  {aiSummary && !loadingAI && (
-                    <Card className="bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 border-2 border-blue-300 shadow-lg">
-                      <CardContent className="p-4">
-                        <div className="flex items-start gap-3">
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center flex-shrink-0 shadow-md">
-                            <Sparkles className="w-5 h-5 text-white" />
-                          </div>
-                          <div className="flex-1">
-                            <p className="text-sm font-semibold text-blue-900 mb-1 flex items-center gap-2">
-                              🤖 AI Recommendation
-                            </p>
-                            <p className="text-sm text-blue-800 leading-relaxed">
-                              {aiSummary}
-                            </p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
+                  {/* AI Summary and Recommended Times */}
+                  {!loadingAI && recommendedSlots.length > 0 && (
+                    <>
+                      {aiSummary && (
+                        <Card className="bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 border-2 border-blue-300 shadow-lg">
+                          <CardContent className="p-4">
+                            <div className="flex items-start gap-3">
+                              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center flex-shrink-0 shadow-md">
+                                <Sparkles className="w-5 h-5 text-white" />
+                              </div>
+                              <div className="flex-1">
+                                <p className="text-sm font-semibold text-blue-900 mb-1 flex items-center gap-2">
+                                  🤖 AI Recommendation
+                                </p>
+                                <p className="text-sm text-blue-800 leading-relaxed">
+                                  {aiSummary}
+                                </p>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      )}
+
+                      {/* Show AI-picked times prominently */}
+                      {(() => {
+                        const aiPicks = recommendedSlots.filter(r => r.shouldPromote);
+                        if (aiPicks.length > 0) {
+                          return (
+                            <Card className="bg-gradient-to-br from-purple-50 to-blue-50 border-2 border-purple-300 shadow-lg">
+                              <CardContent className="p-4">
+                                <div className="flex items-start gap-3">
+                                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center flex-shrink-0 shadow-md animate-pulse">
+                                    <TrendingUp className="w-5 h-5 text-white" />
+                                  </div>
+                                  <div className="flex-1">
+                                    <p className="text-sm font-semibold text-purple-900 mb-2">
+                                      ✨ AI-Picked Best Times
+                                    </p>
+                                    <div className="flex flex-wrap gap-2">
+                                      {aiPicks.slice(0, 5).map((pick) => (
+                                        <Button
+                                          key={pick.time}
+                                          type="button"
+                                          size="sm"
+                                          variant={selectedTime === pick.time ? "default" : "outline"}
+                                          onClick={() => setSelectedTime(pick.time)}
+                                          className={`font-semibold ${
+                                            selectedTime === pick.time
+                                              ? 'bg-gradient-to-r from-purple-500 to-blue-500'
+                                              : 'bg-white border-purple-400 text-purple-700 hover:bg-purple-50'
+                                          }`}
+                                        >
+                                          <Clock className="w-4 h-4 mr-1" />
+                                          {pick.time}
+                                        </Button>
+                                      ))}
+                                    </div>
+                                  </div>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          );
+                        }
+                        return null;
+                      })()}
+                    </>
                   )}
 
                   {loadingTimes ? (
