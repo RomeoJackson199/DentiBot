@@ -109,8 +109,7 @@ export default function CreateBusiness() {
   };
 
   const handlePaymentComplete = () => {
-    // Redirect will be handled by the edge function after successful payment
-    navigate('/');
+    // Payment complete - user will be redirected by Stripe, then edge function handles the rest
   };
 
   return (

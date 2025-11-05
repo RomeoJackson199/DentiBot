@@ -131,13 +131,18 @@ export const BusinessSubscriptionStep = ({ businessData, onComplete }: BusinessS
 
         if (memberError) throw memberError;
 
+        // Set as current business
+        await supabase.functions.invoke('set-current-business', {
+          body: { businessId: business.id },
+        });
+
         // Increment promo code usage
         await supabase.rpc('increment_promo_usage', {
           promo_id: validPromo.id,
         });
 
         toast.success('Business created successfully!');
-        onComplete();
+        window.location.href = `/business/${business.slug}`;
       } catch (error: any) {
         console.error('Error creating business:', error);
         toast.error(error.message || 'Failed to create business');
