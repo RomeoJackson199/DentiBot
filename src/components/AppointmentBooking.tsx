@@ -99,6 +99,13 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
     }
   }, [dentists, selectedDentist, preSelectedDentist]);
 
+  // Refetch availability when dentist changes (if a date is already selected)
+  useEffect(() => {
+    if (selectedDentist && selectedDate) {
+      fetchAvailability(selectedDate);
+    }
+  }, [selectedDentist]);
+
   const fetchAvailability = async (date: Date, retry = 0) => {
     if (!selectedDentist) return;
     
@@ -252,6 +259,8 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
           show.map((t: string) => [t, detailsFromAI[t] || { score: 80, reason: detailsFromAI[t]?.reason || 'Recommended time' }])
         );
         setAiSlotCode({ showSlots: show, slotDetails: details });
+        // Auto-select the top AI suggestion for clear visual feedback
+        setSelectedTime(prev => (prev && show.includes(prev) ? prev : show[0] || prev));
         setShowAllSlots(false);
       }
     } catch (error) {
@@ -504,12 +513,15 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
                     {/* Time Slots Grid - AI Code-based Display */}
                     {allSlots.length > 0 && (
                       <div className="bg-gray-50 rounded-lg p-4">
-                        <h4 className="font-semibold text-gray-700 mb-3">
+                        <h4 className="font-semibold text-gray-700 mb-1">
                           {!showAllSlots && aiSlotCode.showSlots.length > 0
                             ? `✨ AI Recommended Slots (${aiSlotCode.showSlots.length})`
                             : `Available Time Slots (${allSlots.filter(s => s.is_available && !s.emergency_only).length})`
                           }
                         </h4>
+                        {loadingAI && (
+                          <div className="text-xs text-gray-500 mb-2">Analyzing best times…</div>
+                        )}
                           <div className="grid grid-cols-3 xs:grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-1 sm:gap-2">
                            {allSlots
                              .filter(slot => {
