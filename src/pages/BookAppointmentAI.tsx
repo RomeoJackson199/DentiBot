@@ -74,6 +74,7 @@ export default function BookAppointmentAI() {
   const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingAI, setLoadingAI] = useState(false);
+  const [showAllSlots, setShowAllSlots] = useState(false);
 const [bookingStep, setBookingStep] = useState<'dentist' | 'datetime' | 'confirm'>('dentist');
 const [showSuccessDialog, setShowSuccessDialog] = useState(false);
 const [successDetails, setSuccessDetails] = useState<{ date: string; time: string; dentist?: string; reason?: string } | undefined>(undefined);
@@ -853,7 +854,10 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
                       <div className="flex items-center gap-2 mb-2">
                         <CheckCircle className="h-4 w-4 text-green-600" />
                         <span className="text-sm text-muted-foreground">
-                          Available Time Slots ({availableSlots.filter(slot => slot.available).length})
+                          {showAllSlots 
+                            ? `Available Time Slots (${availableSlots.filter(slot => slot.available).length})`
+                            : `AI Recommended Slots (${availableSlots.filter(slot => slot.available && slot.isRecommended).length})`
+                          }
                         </span>
                       </div>
                       
@@ -863,7 +867,10 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
                         ) : availableSlots.filter(slot => slot.available).length === 0 ? (
                           <p className="text-center text-muted-foreground py-8">No available slots for this date</p>
                         ) : (
-                          availableSlots.filter(slot => slot.available).map((slot) => (
+                          availableSlots
+                            .filter(slot => slot.available)
+                            .filter(slot => showAllSlots || slot.isRecommended)
+                            .map((slot) => (
                             <button
                               key={slot.time}
                               onClick={() => handleTimeSelect(slot.time)}
@@ -901,6 +908,17 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
                           ))
                         )}
                       </div>
+                      
+                      {/* Show All Slots Button */}
+                      {!showAllSlots && availableSlots.filter(slot => slot.available && !slot.isRecommended).length > 0 && (
+                        <Button
+                          variant="outline"
+                          className="w-full mt-2"
+                          onClick={() => setShowAllSlots(true)}
+                        >
+                          Show rest of available times ({availableSlots.filter(slot => slot.available && !slot.isRecommended).length} more)
+                        </Button>
+                      )}
                     </div>
                   )}
 
