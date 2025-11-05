@@ -314,3 +314,156 @@ export function formatTimeSlot(time: string): string {
   const displayHours = hours % 12 || 12;
   return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
 }
+
+/**
+ * Enhanced availability check that considers buffer times between appointments
+ * This prevents back-to-back bookings without proper buffer time
+ */
+export async function fetchDentistAvailabilityWithBuffers(
+  dentistId: string,
+  date: Date,
+  appointmentTypeId?: string
+): Promise<TimeSlot[]> {
+  const dateStr = format(date, 'yyyy-MM-dd');
+  const businessId = await getCurrentBusinessId();
+
+  // Get base availability
+  const baseSlots = await fetchDentistAvailability(dentistId, date);
+
+  if (!appointmentTypeId) {
+    return baseSlots;
+  }
+
+  // Get appointment type details for buffer time
+  const { data: appointmentType, error: typeError } = await supabase
+    .from('appointment_types')
+    .select('default_duration_minutes, buffer_time_after_minutes')
+    .eq('id', appointmentTypeId)
+    .maybeSingle();
+
+  if (typeError || !appointmentType) {
+    return baseSlots;
+  }
+
+  const requestedDuration = appointmentType.default_duration_minutes;
+  const bufferTime = appointmentType.buffer_time_after_minutes;
+
+  // Get all appointments for this dentist on this day with their buffer times
+  const { data: appointments, error: aptError } = await supabase
+    .from('appointments')
+    .select(`
+      id,
+      appointment_date,
+      duration_minutes,
+      appointment_type_id,
+      appointment_types (
+        buffer_time_after_minutes
+      )
+    `)
+    .eq('dentist_id', dentistId)
+    .eq('business_id', businessId)
+    .gte('appointment_date', `${dateStr}T00:00:00`)
+    .lte('appointment_date', `${dateStr}T23:59:59`)
+    .neq('status', 'cancelled');
+
+  if (aptError || !appointments) {
+    return baseSlots;
+  }
+
+  // Mark slots as unavailable if they conflict with buffer times
+  return baseSlots.map(slot => {
+    if (!slot.available) {
+      return slot; // Already marked unavailable
+    }
+
+    const slotDateTime = new Date(`${dateStr}T${slot.time}`);
+    const slotEndTime = addMinutes(slotDateTime, requestedDuration + bufferTime);
+
+    // Check if this slot conflicts with any existing appointment + its buffer
+    for (const apt of appointments) {
+      const aptStart = parseISO(apt.appointment_date);
+      const aptDuration = apt.duration_minutes || 30;
+      const aptBufferTime = (apt.appointment_types as any)?.buffer_time_after_minutes || 0;
+      const aptEndWithBuffer = addMinutes(aptStart, aptDuration + aptBufferTime);
+
+      // Check for any overlap
+      const hasConflict =
+        (slotDateTime >= aptStart && slotDateTime < aptEndWithBuffer) ||
+        (slotEndTime > aptStart && slotEndTime <= aptEndWithBuffer) ||
+        (slotDateTime <= aptStart && slotEndTime >= aptEndWithBuffer);
+
+      if (hasConflict) {
+        return {
+          ...slot,
+          available: false,
+          reason: 'booked' as const,
+          appointmentId: apt.id
+        };
+      }
+    }
+
+    return slot;
+  });
+}
+
+/**
+ * Checks if a specific time slot is available considering buffer times
+ */
+export async function isSlotAvailableWithBuffer(
+  dentistId: string,
+  dateTime: Date,
+  durationMinutes: number,
+  bufferMinutes: number = 0
+): Promise<{ available: boolean; reason?: string }> {
+  const dateStr = format(dateTime, 'yyyy-MM-dd');
+  const businessId = await getCurrentBusinessId();
+
+  // Calculate the full time span including buffer
+  const slotEnd = addMinutes(dateTime, durationMinutes + bufferMinutes);
+
+  // Get nearby appointments (within 3 hours window)
+  const windowStart = addMinutes(dateTime, -180);
+  const windowEnd = addMinutes(dateTime, 180);
+
+  const { data: appointments, error } = await supabase
+    .from('appointments')
+    .select(`
+      id,
+      appointment_date,
+      duration_minutes,
+      appointment_types (
+        buffer_time_after_minutes
+      )
+    `)
+    .eq('dentist_id', dentistId)
+    .eq('business_id', businessId)
+    .gte('appointment_date', windowStart.toISOString())
+    .lte('appointment_date', windowEnd.toISOString())
+    .neq('status', 'cancelled');
+
+  if (error || !appointments) {
+    return { available: false, reason: 'Error checking availability' };
+  }
+
+  // Check for conflicts with existing appointments and their buffers
+  for (const apt of appointments) {
+    const aptStart = parseISO(apt.appointment_date);
+    const aptDuration = apt.duration_minutes || 30;
+    const aptBuffer = (apt.appointment_types as any)?.buffer_time_after_minutes || 0;
+    const aptEnd = addMinutes(aptStart, aptDuration + aptBuffer);
+
+    // Check for overlap
+    if (
+      (dateTime >= aptStart && dateTime < aptEnd) ||
+      (slotEnd > aptStart && slotEnd <= aptEnd) ||
+      (dateTime <= aptStart && slotEnd >= aptEnd)
+    ) {
+      return {
+        available: false,
+        reason: `Conflicts with appointment at ${format(aptStart, 'HH:mm')} (${aptBuffer}min buffer)`
+      };
+    }
+  }
+
+  return { available: true };
+}
