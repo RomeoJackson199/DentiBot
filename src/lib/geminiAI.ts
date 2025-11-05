@@ -43,13 +43,15 @@ export async function getGeminiSlotRecommendations(
   availableSlots: TimeSlot[],
   patientPreferences: PatientPreferences | null
 ): Promise<GeminiAnalysis> {
+  const dayOfWeek = getDay(date);
+  let slotStats: SlotUsageStats[] = [];
+
   try {
     // Get slot usage statistics
-    const slotStats = await getSlotUsageStatistics(dentistId);
+    slotStats = await getSlotUsageStatistics(dentistId);
     const underutilizedSlots = await getUnderutilizedSlots(dentistId, 50);
 
     // Prepare data for Gemini
-    const dayOfWeek = getDay(date);
     const dayName = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][dayOfWeek];
 
     // Build context for AI

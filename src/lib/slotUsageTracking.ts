@@ -252,6 +252,27 @@ export async function updateSlotStatisticsAfterBooking(
   const hour = getHours(appointmentDate);
   const timeSlot = format(appointmentDate, 'HH:mm');
 
+  let totalBookings = 1;
+  let recentBookings = 1;
+
+  const { data: existingStat, error: fetchError } = await supabase
+    .from('slot_usage_statistics')
+    .select('id, total_bookings, recent_bookings')
+    .eq('business_id', businessId)
+    .eq('dentist_id', dentistId)
+    .eq('day_of_week', dayOfWeek)
+    .eq('time_slot', timeSlot)
+    .maybeSingle();
+
+  if (fetchError) {
+    console.error('Error fetching existing slot statistics:', fetchError);
+  }
+
+  if (existingStat) {
+    totalBookings = (existingStat.total_bookings || 0) + 1;
+    recentBookings = (existingStat.recent_bookings || 0) + 1;
+  }
+
   // Increment booking count for this slot
   const { error } = await supabase
     .from('slot_usage_statistics')
@@ -261,8 +282,8 @@ export async function updateSlotStatisticsAfterBooking(
       day_of_week: dayOfWeek,
       hour_of_day: hour,
       time_slot: timeSlot,
-      total_bookings: 1,
-      recent_bookings: 1,
+      total_bookings: totalBookings,
+      recent_bookings: recentBookings,
       last_calculated_at: new Date().toISOString()
     }, {
       onConflict: 'business_id,dentist_id,day_of_week,time_slot',
