@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useLanguage } from "@/hooks/useLanguage";
+import { useNavigate } from "react-router-dom";
 import { 
   Calendar, 
   Pill, 
@@ -12,7 +13,8 @@ import {
   Heart,
   Gift,
   ChevronRight,
-  Sparkles
+  Sparkles,
+  Bot
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
@@ -32,6 +34,7 @@ export const EnhancedHomeTab: React.FC<EnhancedHomeTabProps> = ({
   onNavigate,
   onOpenAssistant
 }) => {
+  const navigate = useNavigate();
   const { t } = useLanguage();
   const { settings } = useCurrency();
   const formatCurrency = settings.format;
@@ -366,6 +369,16 @@ export const EnhancedHomeTab: React.FC<EnhancedHomeTabProps> = ({
       >
         <h3 className="font-heading font-semibold text-lg mb-4">Quick Actions</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {hasAIChat && (
+            <Button
+              variant="outline"
+              className="h-20 flex flex-col items-center justify-center gap-2 hover:bg-primary/10 hover:border-primary transition-all"
+              onClick={() => navigate('/smart-book-appointment')}
+            >
+              <Bot className="h-5 w-5" />
+              <span className="text-xs font-medium">Smart Booking</span>
+            </Button>
+          )}
           <Button
             variant="outline"
             className="h-auto py-4 flex-col gap-2"

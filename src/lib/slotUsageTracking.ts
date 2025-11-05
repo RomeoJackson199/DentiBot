@@ -138,15 +138,16 @@ export async function trackSlotRecommendation(
 ): Promise<void> {
   const businessId = await getCurrentBusinessId();
 
-  await supabase.rpc('increment_slot_recommendation', {
-    p_business_id: businessId,
-    p_dentist_id: dentistId,
-    p_day_of_week: dayOfWeek,
-    p_time_slot: timeSlot
-  }).catch(err => {
-    // Silently fail if function doesn't exist yet
+  try {
+    await supabase.rpc('increment_slot_recommendation', {
+      p_business_id: businessId,
+      p_dentist_id: dentistId,
+      p_day_of_week: dayOfWeek,
+      p_time_slot: timeSlot
+    });
+  } catch (err) {
     console.debug('Could not track recommendation:', err);
-  });
+  }
 }
 
 /**
@@ -159,15 +160,16 @@ export async function trackRecommendationSelection(
 ): Promise<void> {
   const businessId = await getCurrentBusinessId();
 
-  await supabase.rpc('increment_slot_recommendation_selection', {
-    p_business_id: businessId,
-    p_dentist_id: dentistId,
-    p_day_of_week: dayOfWeek,
-    p_time_slot: timeSlot
-  }).catch(err => {
-    // Silently fail if function doesn't exist yet
+  try {
+    await supabase.rpc('increment_slot_recommendation_selection', {
+      p_business_id: businessId,
+      p_dentist_id: dentistId,
+      p_day_of_week: dayOfWeek,
+      p_time_slot: timeSlot
+    });
+  } catch (err) {
     console.debug('Could not track selection:', err);
-  });
+  }
 }
 
 /**

@@ -362,6 +362,7 @@ export type Database = {
           business_hours: Json
           created_at: string
           currency: string
+          custom_config: Json | null
           custom_features: Json | null
           custom_terminology: Json | null
           daily_revenue_goal_cents: number | null
@@ -395,6 +396,7 @@ export type Database = {
           business_hours?: Json
           created_at?: string
           currency?: string
+          custom_config?: Json | null
           custom_features?: Json | null
           custom_terminology?: Json | null
           daily_revenue_goal_cents?: number | null
@@ -428,6 +430,7 @@ export type Database = {
           business_hours?: Json
           created_at?: string
           currency?: string
+          custom_config?: Json | null
           custom_features?: Json | null
           custom_terminology?: Json | null
           daily_revenue_goal_cents?: number | null

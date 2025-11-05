@@ -116,6 +116,32 @@ export function TemplateProvider({ children }: { children: ReactNode }) {
     loadTemplate();
   }, [businessId, businessLoading]);
 
+  // Subscribe to real-time template changes
+  useEffect(() => {
+    if (!businessId) return;
+
+    const channel = supabase
+      .channel(`business-template-${businessId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'businesses',
+          filter: `id=eq.${businessId}`,
+        },
+        (payload) => {
+          logger.info('Template changed in database, reloading...', { businessId });
+          loadTemplate();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [businessId]);
+
   const hasFeature = (feature: keyof TemplateFeatures): boolean => {
     return template?.features[feature] ?? false;
   };
