@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { format, parseISO } from "date-fns";
-import { X, Calendar, Clock, User, FileText, Phone, Cake, Activity, Shield, ExternalLink, CheckCircle, XCircle, Loader2, ShoppingBag } from "lucide-react";
+import { X, Calendar, Clock, User, FileText, Phone, Cake, Activity, Shield, ExternalLink, CheckCircle, XCircle, Loader2, ShoppingBag, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { AppointmentCompletionDialog } from "@/components/appointment/AppointmentCompletionDialog";
 import { QuickCheckout } from "@/components/salon/QuickCheckout";
+import { RescheduleAssistant } from "@/components/RescheduleAssistant";
 import { logger } from '@/lib/logger';
 
 interface AppointmentDetailsSidebarProps {
@@ -28,14 +29,15 @@ const STATUS_CONFIG = {
   cancelled: { label: "Cancelled", icon: XCircle, className: "bg-red-100 text-red-800 border-red-200" },
 };
 
-export function AppointmentDetailsSidebar({ 
-  appointment, 
+export function AppointmentDetailsSidebar({
+  appointment,
   onClose,
-  onStatusChange 
+  onStatusChange
 }: AppointmentDetailsSidebarProps) {
   const navigate = useNavigate();
   const [showCompletionDialog, setShowCompletionDialog] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
+  const [showReschedule, setShowReschedule] = useState(false);
   const [summaries, setSummaries] = useState<{ short: string; long: string } | null>(null);
   const [loadingSummaries, setLoadingSummaries] = useState(false);
   const [nextAppointment, setNextAppointment] = useState<any>(null);
@@ -334,6 +336,17 @@ export function AppointmentDetailsSidebar({
                   Mark as Completed
                 </Button>
 
+                {/* Smart Reschedule Button */}
+                <Button
+                  variant="outline"
+                  className="w-full gap-2 border-purple-300 hover:bg-purple-50"
+                  size="lg"
+                  onClick={() => setShowReschedule(true)}
+                >
+                  <Sparkles className="h-4 w-4 text-purple-600" />
+                  Smart Reschedule
+                </Button>
+
                 <Button
                   variant="outline"
                   className="w-full"
@@ -345,8 +358,8 @@ export function AppointmentDetailsSidebar({
               </>
             )}
 
-            <Button 
-              variant="secondary" 
+            <Button
+              variant="secondary"
               className="w-full gap-2"
               size="lg"
               onClick={() => navigate(`/dentist/patients?patient=${appointment.patient_id}`)}
@@ -368,7 +381,7 @@ export function AppointmentDetailsSidebar({
           setShowCompletionDialog(false);
         }}
       />
-      
+
       {/* Checkout Dialog */}
       {showCheckout && serviceDetails && appointment.dentists && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
@@ -377,7 +390,7 @@ export function AppointmentDetailsSidebar({
               appointmentId={appointment.id}
               clientName={patientName}
               stylistId={appointment.dentist_id}
-              stylistName={appointment.dentists.profiles 
+              stylistName={appointment.dentists.profiles
                 ? `${appointment.dentists.profiles.first_name} ${appointment.dentists.profiles.last_name}`
                 : 'Stylist'
               }
@@ -393,6 +406,19 @@ export function AppointmentDetailsSidebar({
           </div>
         </div>
       )}
+
+      {/* Smart Reschedule Assistant */}
+      <RescheduleAssistant
+        appointmentId={appointment.id}
+        open={showReschedule}
+        onOpenChange={setShowReschedule}
+        onRescheduled={() => {
+          setShowReschedule(false);
+          // Refresh the appointment data
+          onClose();
+        }}
+        reason="patient_requested"
+      />
     </Card>
   );
 }
