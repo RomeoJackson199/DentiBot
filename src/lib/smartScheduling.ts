@@ -2,11 +2,19 @@ import { supabase } from '@/integrations/supabase/client';
 import { format, parseISO, addMinutes, getHours, getDay } from 'date-fns';
 import { getCurrentBusinessId } from '@/lib/businessScopedSupabase';
 import { TimeSlot } from './appointmentAvailability';
+import { getGeminiSlotRecommendations, GeminiSlotRecommendation } from './geminiAI';
+import { isSlotUnderutilized, updateSlotStatisticsAfterBooking, calculateSlotUsageStatistics } from './slotUsageTracking';
+
+// Re-export for convenience
+export { updateSlotStatisticsAfterBooking, calculateSlotUsageStatistics } from './slotUsageTracking';
 
 export interface RecommendedSlot extends TimeSlot {
   score: number; // 0-100, higher is better
   reasons: string[]; // Why this slot is recommended
   isRecommended?: boolean;
+  aiReasoning?: string; // Gemini AI's explanation
+  isUnderutilized?: boolean; // Is this an under-utilized slot?
+  shouldPromote?: boolean; // Should we actively promote this slot?
 }
 
 export interface PatientPreferences {
@@ -28,7 +36,8 @@ export interface CapacityInfo {
 
 /**
  * Gets intelligent slot recommendations for a patient
- * Considers: patient preferences, dentist capacity, historical patterns, expertise matching
+ * NOW POWERED BY GEMINI AI to promote under-utilized slots and balance schedules
+ * Considers: patient preferences, dentist capacity, historical patterns, slot usage patterns
  */
 export async function getRecommendedSlots(
   dentistId: string,
@@ -68,29 +77,105 @@ export async function getRecommendedSlots(
   const capacity = capacityResult.data?.[0] as CapacityInfo | null;
   const appointmentType = appointmentTypeResult.data;
 
-  // Score each available slot
-  const scoredSlots: RecommendedSlot[] = availableSlots
-    .filter(slot => slot.available)
-    .map(slot => {
-      const score = calculateSlotScore(
-        slot,
-        date,
-        preferences,
-        capacity,
-        appointmentType
-      );
-      return {
-        ...slot,
-        score: score.total,
-        reasons: score.reasons,
-        isRecommended: score.total >= 70 // Threshold for "recommended"
-      };
+  // Try to get AI-powered recommendations first
+  try {
+    const aiAnalysis = await getGeminiSlotRecommendations(
+      dentistId,
+      patientId,
+      date,
+      availableSlots,
+      preferences
+    );
+
+    // Map AI recommendations to our slot format
+    const aiRecommendedSlots: RecommendedSlot[] = availableSlots
+      .filter(slot => slot.available)
+      .map(slot => {
+        const aiRec = aiAnalysis.recommendations.find(r => r.time === slot.time);
+
+        if (aiRec) {
+          // This slot was recommended by AI
+          return {
+            ...slot,
+            score: aiRec.score,
+            reasons: aiRec.reasons,
+            aiReasoning: aiRec.aiReasoning,
+            isRecommended: aiRec.shouldPromote || aiRec.score >= 70,
+            isUnderutilized: aiRec.isUnderutilized,
+            shouldPromote: aiRec.shouldPromote
+          };
+        } else {
+          // Slot not in AI recommendations, use fallback scoring
+          const score = calculateSlotScore(slot, date, preferences, capacity, appointmentType);
+          return {
+            ...slot,
+            score: score.total,
+            reasons: score.reasons,
+            isRecommended: score.total >= 70
+          };
+        }
+      });
+
+    // Sort: prioritize AI-recommended under-utilized slots
+    aiRecommendedSlots.sort((a, b) => {
+      // First priority: AI says to promote
+      if (a.shouldPromote && !b.shouldPromote) return -1;
+      if (!a.shouldPromote && b.shouldPromote) return 1;
+
+      // Second priority: under-utilized slots
+      if (a.isUnderutilized && !b.isUnderutilized) return -1;
+      if (!a.isUnderutilized && b.isUnderutilized) return 1;
+
+      // Third priority: score
+      return b.score - a.score;
     });
 
-  // Sort by score descending
-  scoredSlots.sort((a, b) => b.score - a.score);
+    console.log('🤖 AI-powered recommendations:', {
+      summary: aiAnalysis.summary,
+      strategy: aiAnalysis.distributionStrategy,
+      balanceScore: aiAnalysis.balanceScore,
+      topSlots: aiRecommendedSlots.slice(0, 3).map(s => s.time)
+    });
 
-  return scoredSlots;
+    return aiRecommendedSlots;
+
+  } catch (error) {
+    console.warn('AI recommendations failed, using fallback:', error);
+
+    // Fallback to rule-based scoring with under-utilization detection
+    const scoredSlots: RecommendedSlot[] = await Promise.all(
+      availableSlots
+        .filter(slot => slot.available)
+        .map(async slot => {
+          const score = calculateSlotScore(slot, date, preferences, capacity, appointmentType);
+          const isUnderutilized = await isSlotUnderutilized(dentistId, date, slot.time);
+
+          // Boost score for under-utilized slots
+          const finalScore = isUnderutilized ? Math.min(100, score.total + 20) : score.total;
+          const finalReasons = isUnderutilized
+            ? [...score.reasons, '📊 Helps balance schedule (under-utilized)']
+            : score.reasons;
+
+          return {
+            ...slot,
+            score: finalScore,
+            reasons: finalReasons,
+            isRecommended: finalScore >= 70,
+            isUnderutilized,
+            shouldPromote: isUnderutilized
+          };
+        })
+    );
+
+    // Sort by score descending, prioritizing under-utilized
+    scoredSlots.sort((a, b) => {
+      if (a.isUnderutilized && !b.isUnderutilized) return -1;
+      if (!a.isUnderutilized && b.isUnderutilized) return 1;
+      return b.score - a.score;
+    });
+
+    return scoredSlots;
+  }
 }
 
 /**
