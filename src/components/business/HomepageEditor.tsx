@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Save, Eye, Sparkles } from "lucide-react";
+import { Save, Eye, Sparkles, Edit } from "lucide-react";
 import { ModernLoadingSpinner } from "@/components/enhanced/ModernLoadingSpinner";
 import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
 
@@ -126,6 +126,18 @@ export function HomepageEditor() {
     }
   };
 
+  const handleEditInline = async () => {
+    const { data: business } = await supabase
+      .from("businesses")
+      .select("slug")
+      .eq("id", businessId)
+      .single();
+
+    if (business?.slug) {
+      window.open(`/${business.slug}?edit=homepage`, "_blank");
+    }
+  };
+
   if (loading) {
     return <ModernLoadingSpinner />;
   }
@@ -145,6 +157,10 @@ export function HomepageEditor() {
           <Button variant="outline" onClick={handlePreview}>
             <Eye className="mr-2 h-4 w-4" />
             Preview
+          </Button>
+          <Button variant="outline" onClick={handleEditInline}>
+            <Edit className="mr-2 h-4 w-4" />
+            Edit Inline
           </Button>
           <Button onClick={handleSave} disabled={saving}>
             <Save className="mr-2 h-4 w-4" />

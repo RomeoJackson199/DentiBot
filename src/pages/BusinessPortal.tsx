@@ -20,6 +20,7 @@ export default function BusinessPortal() {
   const [error, setError] = useState<string | null>(null);
   const [homepageSettings, setHomepageSettings] = useState<any>(null);
   const [services, setServices] = useState<any[]>([]);
+  const [isOwner, setIsOwner] = useState(false);
 
   useEffect(() => {
     checkBusinessAndAuth();
@@ -66,12 +67,12 @@ export default function BusinessPortal() {
 
       // Check if user is authenticated
       const { data: { user: currentUser } } = await supabase.auth.getUser();
-      
+
       if (currentUser) {
         setUser(currentUser);
         // Set this business as current business
         await setBusinessContext(currentUser.id, businessData.id);
-        
+
         // Get user's role to determine redirect
         const { data: profile } = await supabase
           .from("profiles")
@@ -80,6 +81,10 @@ export default function BusinessPortal() {
           .single();
 
         if (profile) {
+          // Check if user is the owner
+          const isBusinessOwner = businessData.owner_profile_id === profile.id;
+          setIsOwner(isBusinessOwner);
+
           // Check if user is a member of this business
           const { data: membership } = await supabase
             .from("business_members")
@@ -89,6 +94,16 @@ export default function BusinessPortal() {
             .single();
 
           if (membership) {
+            // Don't redirect if on homepage with edit parameter
+            const urlParams = new URLSearchParams(window.location.search);
+            const editMode = urlParams.get('edit');
+
+            if (editMode === 'homepage' && isBusinessOwner) {
+              // Stay on homepage to allow editing
+              setLoading(false);
+              return;
+            }
+
             // Redirect to dentist portal if they're a business member
             window.location.href = "/dentist";
           } else {
@@ -172,23 +187,26 @@ export default function BusinessPortal() {
           settings={homepageSettings}
           services={services}
           onCTAClick={handleCTAClick}
+          isOwner={isOwner}
         />
         {/* Auth section for booking */}
-        <div id="auth-section" className="py-16 px-4 bg-muted/30">
-          <div className="container mx-auto max-w-md">
-            <Card className="border-2">
-              <CardHeader className="text-center">
-                <CardTitle>Sign In to Book</CardTitle>
-                <CardDescription>
-                  Create an account or sign in to book your appointment
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <UnifiedAuthForm onSignInSuccess={handleAuthSuccess} />
-              </CardContent>
-            </Card>
+        {!user && (
+          <div id="auth-section" className="py-16 px-4 bg-muted/30">
+            <div className="container mx-auto max-w-md">
+              <Card className="border-2">
+                <CardHeader className="text-center">
+                  <CardTitle>Sign In to Book</CardTitle>
+                  <CardDescription>
+                    Create an account or sign in to book your appointment
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <UnifiedAuthForm onSignInSuccess={handleAuthSuccess} />
+                </CardContent>
+              </Card>
+            </div>
           </div>
-        </div>
+        )}
       </>
     );
   }
