@@ -77,6 +77,9 @@ export class EventEmailService {
         tenant_id: contextData.clinic_id
       });
 
+      // Create matching in-app notification
+      await this.createInAppNotification(event, template, contextData, renderedEmail);
+
       return { success: true };
     } catch (error) {
       console.error('Error processing email event:', error);
@@ -307,6 +310,78 @@ END:VCALENDAR`;
         message_type: logData.event_type,
         status: 'sent'
       }]);
+  }
+
+  /**
+   * Create in-app notification matching the email sent
+   */
+  private async createInAppNotification(
+    event: EmailEvent,
+    template: EmailTemplate,
+    context: any,
+    renderedEmail: { subject: string; body: string }
+  ) {
+    try {
+      // Get user_id from patient profile
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('user_id')
+        .eq('id', event.patient_id)
+        .maybeSingle();
+
+      if (!profile?.user_id) {
+        console.warn('No user_id found for patient, skipping in-app notification');
+        return;
+      }
+
+      // Map event type to notification type and category
+      const notificationType = this.mapEventToNotificationType(event.event);
+      const category = template.priority === 'essential' ? 'urgent' : 
+                      template.priority === 'important' ? 'warning' : 'info';
+
+      // Create the in-app notification
+      await supabase.from('notifications').insert({
+        user_id: profile.user_id,
+        type: notificationType,
+        category: category,
+        title: renderedEmail.subject,
+        message: this.stripHtmlTags(renderedEmail.body).substring(0, 500), // Plain text, max 500 chars
+        action_url: event.appointment_id ? `/appointments/${event.appointment_id}` : undefined,
+        metadata: {
+          email_sent: true,
+          event_type: event.event,
+          appointment_id: event.appointment_id,
+          idempotency_key: event.idempotency_key
+        },
+        is_read: false,
+        created_at: new Date().toISOString()
+      });
+
+      console.log(`✅ Created in-app notification for ${event.event}`);
+    } catch (error) {
+      console.error('Error creating in-app notification:', error);
+      // Don't fail the whole email process if notification creation fails
+    }
+  }
+
+  /**
+   * Map email event type to notification type
+   */
+  private mapEventToNotificationType(eventType: string): string {
+    if (eventType.includes('Appointment')) return 'appointment';
+    if (eventType.includes('Prescription')) return 'prescription';
+    if (eventType.includes('Treatment')) return 'treatment_plan';
+    return 'system';
+  }
+
+  /**
+   * Strip HTML tags from email body for notification message
+   */
+  private stripHtmlTags(html: string): string {
+    return html
+      .replace(/<[^>]*>/g, '') // Remove HTML tags
+      .replace(/\s+/g, ' ') // Collapse whitespace
+      .trim();
   }
 
   /**
