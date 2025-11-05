@@ -41,7 +41,7 @@ serve(async (req) => {
         // Compose copy
         const subject = template_key === 'firm'
           ? `Reminder: invoice #${pr.id} is past due`
-          : `Payment reminder from your dentist`;
+          : `Payment reminder from your healthcare provider`;
         const link = pr.stripe_session_id ? `${supabaseUrl}/functions/v1/create-payment-request?payment_request_id=${pr.id}` : '';
         const message = template_key === 'firm'
           ? `A quick reminder: invoice #${pr.id} is now past due. You can pay securely here: ${link}.`

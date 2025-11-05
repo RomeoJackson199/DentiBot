@@ -47,7 +47,7 @@ export default function DentistAdminBranding() {
   const [primaryColor, setPrimaryColor] = useState("#0EA5E9");
   const [secondaryColor, setSecondaryColor] = useState("#10B981");
   const [logoUrl, setLogoUrl] = useState("");
-  const [templateType, setTemplateType] = useState<TemplateType>("dentist");
+  const [templateType, setTemplateType] = useState<TemplateType>("healthcare");
   const [customConfig, setCustomConfig] = useState<FullTemplateConfig | undefined>();
   const [showTemplateWarning, setShowTemplateWarning] = useState(false);
   const [pendingTemplate, setPendingTemplate] = useState<{
@@ -100,7 +100,7 @@ export default function DentistAdminBranding() {
       if (error) throw error;
 
       if (business) {
-        const template = getTemplateConfig((business.template_type as TemplateType) || "dentist");
+        const template = getTemplateConfig((business.template_type as TemplateType) || "healthcare");
         const state = {
           clinicName: business.name || "",
           slug: business.slug || "",
@@ -109,7 +109,7 @@ export default function DentistAdminBranding() {
           primaryColor: business.primary_color || "#2D5D7B",
           secondaryColor: business.secondary_color || "#8B5CF6",
           logoUrl: business.logo_url || "",
-          templateType: (business.template_type as TemplateType) || "dentist",
+          templateType: (business.template_type as TemplateType) || "healthcare",
           aiSystemBehavior: business.ai_system_behavior || template.aiBehaviorDefaults.systemBehavior,
           aiGreeting: business.ai_greeting || template.aiBehaviorDefaults.greeting,
           aiPersonalityTraits: (business.ai_personality_traits as string[]) || template.aiBehaviorDefaults.personalityTraits,

@@ -2,9 +2,9 @@ import {
   Scissors, Stethoscope, UtensilsCrossed, Briefcase, Settings 
 } from 'lucide-react';
 
-export type TemplateType = 
-  | 'dentist' 
-  | 'hairdresser' 
+export type TemplateType =
+  | 'healthcare'
+  | 'hairdresser'
   | 'restaurant'
   | 'generic'
   | 'custom';
@@ -90,10 +90,10 @@ export interface TemplateConfig {
 }
 
 export const BUSINESS_TEMPLATES: Record<TemplateType, TemplateConfig> = {
-  dentist: {
-    id: 'dentist',
-    name: 'Dental Clinic',
-    description: 'Full-featured dental practice with prescriptions, treatment plans, and medical records',
+  healthcare: {
+    id: 'healthcare',
+    name: 'Healthcare Clinic',
+    description: 'Full-featured healthcare practice with prescriptions, treatment plans, and medical records',
     icon: Stethoscope,
     features: {
       prescriptions: true,
@@ -109,8 +109,8 @@ export const BUSINESS_TEMPLATES: Record<TemplateType, TemplateConfig> = {
     terminology: {
       customer: 'Patient',
       customerPlural: 'Patients',
-      provider: 'Dentist',
-      providerPlural: 'Dentists',
+      provider: 'Provider',
+      providerPlural: 'Providers',
       appointment: 'Appointment',
       appointmentPlural: 'Appointments',
       service: 'Treatment',
@@ -183,8 +183,8 @@ export const BUSINESS_TEMPLATES: Record<TemplateType, TemplateConfig> = {
       'settings',
     ],
     aiBehaviorDefaults: {
-      systemBehavior: `You are a helpful AI assistant for a dental clinic. Be professional, empathetic, and provide clear information about dental services. Always prioritize patient comfort and address any concerns about pain or anxiety. When discussing treatments, explain procedures in simple, non-technical terms. If someone mentions pain or emergency, prioritize urgent care options.`,
-      greeting: `Hi! I'm your dental clinic's AI assistant. I'm here to help you book appointments, answer questions about our services, and provide general dental health information. How can I assist you today?`,
+      systemBehavior: `You are a helpful AI assistant for a healthcare clinic. Be professional, empathetic, and provide clear information about healthcare services. Always prioritize patient comfort and address any concerns about pain or anxiety. When discussing treatments, explain procedures in simple, non-technical terms. If someone mentions pain or emergency, prioritize urgent care options.`,
+      greeting: `Hi! I'm your healthcare clinic's AI assistant. I'm here to help you book appointments, answer questions about our services, and provide general health information. How can I assist you today?`,
       personalityTraits: ['Professional', 'Empathetic', 'Patient', 'Clear'],
     },
   },

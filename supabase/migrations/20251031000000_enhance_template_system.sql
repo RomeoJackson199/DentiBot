@@ -11,7 +11,7 @@ COMMENT ON COLUMN businesses.custom_terminology IS 'Custom terminology configura
 ALTER TABLE businesses DROP CONSTRAINT IF EXISTS valid_template_type;
 ALTER TABLE businesses
 ADD CONSTRAINT valid_template_type
-CHECK (template_type IN ('dentist', 'hairdresser', 'personal_trainer', 'beauty_salon', 'medical', 'generic', 'custom'));
+CHECK (template_type IN ('healthcare', 'hairdresser', 'personal_trainer', 'beauty_salon', 'medical', 'generic', 'custom'));
 
 -- Part 2: Template Change Audit Trail
 CREATE TABLE IF NOT EXISTS template_change_history (
