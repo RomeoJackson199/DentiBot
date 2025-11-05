@@ -6,7 +6,7 @@ import { UtensilsCrossed, ChefHat, Users as UsersIcon, Table } from 'lucide-reac
 export function useTemplateNavigation() {
   const { template, hasFeature } = useBusinessTemplate();
   const { role: restaurantRole, loading: roleLoading } = useRestaurantRole();
-  const templateType = template?.id || 'dentist';
+  const templateType = template?.id || 'healthcare';
 
   // Filter navigation items based on template features
   const filterNavItems = <T extends { id: string }>(items: T[]): T[] => {

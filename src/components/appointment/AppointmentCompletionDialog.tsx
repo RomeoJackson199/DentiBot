@@ -89,7 +89,7 @@ export function AppointmentCompletionDialog({
     ];
     return defs.map(d => ({ id: d.id as any, title: (allStepMeta[d.id]?.title ?? d.title), icon: (allStepMeta[d.id]?.icon ?? FileText) }));
   }, [template]);
-  const showToothInput = template?.id === 'dentist' || !!template?.features.medicalRecords;
+  const showToothInput = template?.id === 'healthcare' || !!template?.features.medicalRecords;
   const serviceLabel = template?.terminology.service || 'Treatment';
   const serviceLabelPlural = template?.terminology.servicePlural || 'Treatments';
   // Form data

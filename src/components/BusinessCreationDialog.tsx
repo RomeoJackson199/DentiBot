@@ -19,7 +19,7 @@ interface BusinessCreationDialogProps {
 
 export function BusinessCreationDialog({ open, onOpenChange, onSuccess }: BusinessCreationDialogProps) {
   const [step, setStep] = useState<'template' | 'details'>('template');
-  const [selectedTemplate, setSelectedTemplate] = useState<TemplateType>('dentist');
+  const [selectedTemplate, setSelectedTemplate] = useState<TemplateType>('healthcare');
   const [customConfig, setCustomConfig] = useState<FullTemplateConfig | undefined>();
   const [businessName, setBusinessName] = useState('');
   const [tagline, setTagline] = useState('');
@@ -137,10 +137,10 @@ export function BusinessCreationDialog({ open, onOpenChange, onSuccess }: Busine
       toast.success('Business created successfully!');
       onSuccess(business.id);
       onOpenChange(false);
-      
+
       // Reset form
       setStep('template');
-      setSelectedTemplate('dentist');
+      setSelectedTemplate('healthcare');
       setBusinessName('');
       setTagline('');
     } catch (error: any) {

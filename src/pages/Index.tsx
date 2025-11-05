@@ -76,14 +76,14 @@ const Index = () => {
               </div>
 
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 tracking-tight">
-                Your Complete Dental
+                Your Complete Healthcare
                 <span className="block bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mt-2">
                   Practice Management System
                 </span>
               </h1>
 
               <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-                From appointment scheduling to patient records, payments to inventory—manage your entire dental practice with AI-powered efficiency. Built specifically for modern dental professionals.
+                From appointment scheduling to patient records, payments to inventory—manage your entire healthcare practice with AI-powered efficiency. Built specifically for modern healthcare professionals.
               </p>
 
               <div className="flex flex-col md:flex-row gap-4 justify-center items-center pt-4">
@@ -134,10 +134,10 @@ const Index = () => {
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-16 animate-fade-in">
               <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
-                Everything Your Dental Practice Needs
+                Everything Your Healthcare Practice Needs
               </h2>
               <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                Comprehensive practice management tools designed for dentists, by healthcare professionals
+                Comprehensive practice management tools designed by healthcare professionals, for healthcare professionals
               </p>
             </div>
 
@@ -210,10 +210,10 @@ const Index = () => {
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-12">
               <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
-                Why Dental Practices Choose Caberu
+                Why Healthcare Practices Choose Caberu
               </h2>
               <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                Built specifically for dental professionals with the features you actually need
+                Built specifically for healthcare professionals with the features you actually need
               </p>
             </div>
             <div className="grid md:grid-cols-3 gap-8">
@@ -365,10 +365,10 @@ const Index = () => {
             </div>
 
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight">
-              Ready to Transform Your Dental Practice?
+              Ready to Transform Your Healthcare Practice?
             </h2>
             <p className="text-xl text-blue-100 max-w-2xl mx-auto">
-              Join modern dental practices using Caberu to save time, reduce no-shows, and provide better patient care.
+              Join modern healthcare practices using Caberu to save time, reduce no-shows, and provide better patient care.
               Get started today—no credit card required.
             </p>
 

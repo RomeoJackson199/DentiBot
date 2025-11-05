@@ -86,7 +86,7 @@ export const EMAIL_TEMPLATES = {
 {{t.date}}: {{appointment_date}}
 {{t.time}}: {{appointment_time}}
 {{t.location}}: {{clinic_address}}
-{{t.dentist}}: {{dentist_name}}
+{{t.provider}}: {{provider_name}}
 
 {{t.preparation_notes}}
 
@@ -96,12 +96,12 @@ export const EMAIL_TEMPLATES = {
 — {{t.team_signature}} {{clinic_name}}`,
     localization_keys: [
       "reminder_subject",
-      "greeting", 
+      "greeting",
       "reminder_message",
       "date",
       "time",
       "location",
-      "dentist",
+      "provider",
       "preparation_notes",
       "need_reschedule",
       "closing",
@@ -332,12 +332,12 @@ export const EVENT_SCHEMAS = {
     event: "AppointmentRescheduled",
     occurred_at: "ISO_8601_TIMESTAMP",
     patient_id: "string",
-    appointment_id: "string", 
+    appointment_id: "string",
     payload: {
       old_start: "ISO_8601_TIMESTAMP",
       new_start: "ISO_8601_TIMESTAMP",
       location: "string",
-      dentist_name: "string",
+      provider_name: "string",
       language: "string",
       reason: "string"
     },
@@ -346,13 +346,13 @@ export const EVENT_SCHEMAS = {
 
   AppointmentCancelled: {
     event: "AppointmentCancelled",
-    occurred_at: "ISO_8601_TIMESTAMP", 
+    occurred_at: "ISO_8601_TIMESTAMP",
     patient_id: "string",
     appointment_id: "string",
     payload: {
       cancelled_start: "ISO_8601_TIMESTAMP",
       cancellation_reason: "string",
-      cancelled_by: "patient|dentist|system",
+      cancelled_by: "patient|provider|system",
       language: "string"
     },
     idempotency_key: "evt_{appointment_id}_cancelled_{timestamp}"
@@ -361,11 +361,11 @@ export const EVENT_SCHEMAS = {
   AppointmentReminderDue: {
     event: "AppointmentReminderDue",
     occurred_at: "ISO_8601_TIMESTAMP",
-    patient_id: "string", 
+    patient_id: "string",
     appointment_id: "string",
     payload: {
       appointment_start: "ISO_8601_TIMESTAMP",
-      dentist_name: "string",
+      provider_name: "string",
       location: "string",
       reminder_type: "24h|2h|1h",
       preparation_notes: "string",

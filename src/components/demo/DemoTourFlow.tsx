@@ -14,19 +14,19 @@ interface DemoTourFlowProps {
 
 export function DemoTourFlow({ isOpen, onClose }: DemoTourFlowProps) {
   const [businessName, setBusinessName] = useState("");
-  const [template, setTemplate] = useState("dentist");
+  const [template, setTemplate] = useState("healthcare");
   const navigate = useNavigate();
 
   const handleStartDemo = () => {
     if (!businessName.trim()) return;
-    
+
     // Store demo data
     sessionStorage.setItem('demo_business_name', businessName);
     sessionStorage.setItem('demo_template', template);
-    
+
     // Navigate to demo dashboard
     onClose();
-    navigate('/demo/dentist');
+    navigate(`/demo/${template}`);
   };
 
   return (
@@ -63,10 +63,10 @@ export function DemoTourFlow({ isOpen, onClose }: DemoTourFlowProps) {
             <Label>Business Type</Label>
             <RadioGroup value={template} onValueChange={setTemplate}>
               <div className="flex items-center space-x-2">
-                <RadioGroupItem value="dentist" id="dentist" />
-                <Label htmlFor="dentist" className="flex items-center gap-2 cursor-pointer">
+                <RadioGroupItem value="healthcare" id="healthcare" />
+                <Label htmlFor="healthcare" className="flex items-center gap-2 cursor-pointer">
                   <Building2 className="w-4 h-4" />
-                  Dental Practice
+                  Healthcare Practice
                 </Label>
               </div>
               <div className="flex items-center space-x-2">
