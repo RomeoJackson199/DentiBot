@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { BusinessTemplateSelector } from './BusinessTemplateSelector';
-import { TemplateType, TemplateFeatures, TemplateTerminology } from '@/lib/businessTemplates';
+import { TemplateType } from '@/lib/businessTemplates';
+import { FullTemplateConfig } from './CustomTemplateConfigurator';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
@@ -19,20 +20,17 @@ interface BusinessCreationDialogProps {
 export function BusinessCreationDialog({ open, onOpenChange, onSuccess }: BusinessCreationDialogProps) {
   const [step, setStep] = useState<'template' | 'details'>('template');
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateType>('dentist');
-  const [customFeatures, setCustomFeatures] = useState<TemplateFeatures | undefined>();
-  const [customTerminology, setCustomTerminology] = useState<TemplateTerminology | undefined>();
+  const [customConfig, setCustomConfig] = useState<FullTemplateConfig | undefined>();
   const [businessName, setBusinessName] = useState('');
   const [tagline, setTagline] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleTemplateSelect = (
     templateId: string,
-    features?: TemplateFeatures,
-    terminology?: TemplateTerminology
+    config?: FullTemplateConfig
   ) => {
     setSelectedTemplate(templateId as TemplateType);
-    if (features) setCustomFeatures(features);
-    if (terminology) setCustomTerminology(terminology);
+    if (config) setCustomConfig(config);
   };
 
   const handleTemplateNext = () => {
@@ -98,9 +96,10 @@ export function BusinessCreationDialog({ open, onOpenChange, onSuccess }: Busine
       };
 
       // Store custom configuration if template is custom
-      if (selectedTemplate === 'custom' && (customFeatures || customTerminology)) {
-        businessData.custom_features = customFeatures;
-        businessData.custom_terminology = customTerminology;
+      if (selectedTemplate === 'custom' && customConfig) {
+        businessData.custom_features = customConfig.features;
+        businessData.custom_terminology = customConfig.terminology;
+        businessData.custom_config = customConfig;
       }
 
       const { data: business, error: businessError } = await supabase

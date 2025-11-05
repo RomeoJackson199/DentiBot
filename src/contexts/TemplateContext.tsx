@@ -5,13 +5,26 @@ import { TemplateType, TemplateConfig, getTemplateConfig, TemplateFeatures, Temp
 import { useQueryClient } from '@tanstack/react-query';
 import { logger } from '@/lib/logger';
 
+export interface CustomTemplateConfig {
+  features?: TemplateFeatures;
+  terminology?: TemplateTerminology;
+  layoutCustomization?: any; // LayoutCustomization from businessTemplates
+  appointmentReasons?: string[];
+  serviceCategories?: string[];
+  quickAddServices?: any[]; // QuickAddService[]
+  completionSteps?: any[]; // CompletionStep[]
+  navigationItems?: string[];
+  aiBehaviorDefaults?: any; // AIBehaviorDefaults
+  serviceFieldLabels?: any; // ServiceFieldLabels
+}
+
 interface TemplateContextType {
   template: TemplateConfig | null;
   templateType: TemplateType;
   loading: boolean;
   hasFeature: (feature: keyof TemplateFeatures) => boolean;
   t: (key: keyof TemplateTerminology) => string;
-  updateTemplate: (newTemplateType: TemplateType, customFeatures?: TemplateFeatures, customTerminology?: TemplateTerminology) => Promise<void>;
+  updateTemplate: (newTemplateType: TemplateType, customConfig?: CustomTemplateConfig) => Promise<void>;
   refreshTemplate: () => Promise<void>;
 }
 
@@ -23,8 +36,7 @@ export function TemplateProvider({ children }: { children: ReactNode }) {
   const [template, setTemplate] = useState<TemplateConfig | null>(null);
   const [templateType, setTemplateType] = useState<TemplateType>('generic');
   const [loading, setLoading] = useState(true);
-  const [customFeatures, setCustomFeatures] = useState<TemplateFeatures | undefined>();
-  const [customTerminology, setCustomTerminology] = useState<TemplateTerminology | undefined>();
+  const [customConfig, setCustomConfig] = useState<CustomTemplateConfig | undefined>();
 
   const loadTemplate = async () => {
     // Wait until business context finishes loading to avoid flicker
@@ -45,7 +57,7 @@ export function TemplateProvider({ children }: { children: ReactNode }) {
       setLoading(true);
       const { data, error } = await supabase
         .from('businesses')
-        .select('template_type, custom_features, custom_terminology')
+        .select('template_type, custom_features, custom_terminology, custom_config')
         .eq('id', businessId)
         .single();
 
@@ -58,18 +70,37 @@ export function TemplateProvider({ children }: { children: ReactNode }) {
       setTemplateType(type);
 
       // If custom template, merge custom configuration
-      if (type === 'custom' && (data?.custom_features || data?.custom_terminology)) {
+      if (type === 'custom') {
         const baseConfig = getTemplateConfig('custom');
+
+        // Check if there's a full custom_config (new format)
+        const fullConfig = data?.custom_config as CustomTemplateConfig | null;
+
+        // Fallback to old format if custom_config doesn't exist
+        const config: CustomTemplateConfig = fullConfig || {
+          features: data?.custom_features as TemplateFeatures,
+          terminology: data?.custom_terminology as TemplateTerminology,
+        };
+
         const mergedConfig: TemplateConfig = {
           ...baseConfig,
-          features: { ...baseConfig.features, ...(data.custom_features as TemplateFeatures) },
-          terminology: { ...baseConfig.terminology, ...(data.custom_terminology as TemplateTerminology) },
+          features: { ...baseConfig.features, ...(config.features || {}) },
+          terminology: { ...baseConfig.terminology, ...(config.terminology || {}) },
+          layoutCustomization: { ...baseConfig.layoutCustomization, ...(config.layoutCustomization || {}) },
+          appointmentReasons: config.appointmentReasons || baseConfig.appointmentReasons,
+          serviceCategories: config.serviceCategories || baseConfig.serviceCategories,
+          quickAddServices: config.quickAddServices || baseConfig.quickAddServices,
+          completionSteps: config.completionSteps || baseConfig.completionSteps,
+          navigationItems: config.navigationItems || baseConfig.navigationItems,
+          aiBehaviorDefaults: { ...baseConfig.aiBehaviorDefaults, ...(config.aiBehaviorDefaults || {}) },
+          serviceFieldLabels: { ...baseConfig.serviceFieldLabels, ...(config.serviceFieldLabels || {}) },
         };
+
         setTemplate(mergedConfig);
-        setCustomFeatures(data.custom_features as TemplateFeatures);
-        setCustomTerminology(data.custom_terminology as TemplateTerminology);
+        setCustomConfig(config);
       } else {
         setTemplate(getTemplateConfig(type));
+        setCustomConfig(undefined);
       }
     } catch (error) {
       logger.error('Failed to load template', { error, businessId });
@@ -95,8 +126,7 @@ export function TemplateProvider({ children }: { children: ReactNode }) {
 
   const updateTemplate = async (
     newTemplateType: TemplateType,
-    newCustomFeatures?: TemplateFeatures,
-    newCustomTerminology?: TemplateTerminology
+    newCustomConfig?: CustomTemplateConfig
   ) => {
     if (!businessId) {
       throw new Error('No business ID available');
@@ -128,8 +158,9 @@ export function TemplateProvider({ children }: { children: ReactNode }) {
       .from('businesses')
       .update({
         template_type: newTemplateType,
-        custom_features: newTemplateType === 'custom' ? (newCustomFeatures ?? null) : null,
-        custom_terminology: newTemplateType === 'custom' ? (newCustomTerminology ?? null) : null,
+        custom_features: newTemplateType === 'custom' ? (newCustomConfig?.features ?? null) : null,
+        custom_terminology: newTemplateType === 'custom' ? (newCustomConfig?.terminology ?? null) : null,
+        custom_config: newTemplateType === 'custom' ? (newCustomConfig ?? null) : null,
         updated_at: new Date().toISOString(),
       })
       .eq('id', businessId);
@@ -142,20 +173,26 @@ export function TemplateProvider({ children }: { children: ReactNode }) {
     // Update template in state immediately for instant UI update
     setTemplateType(newTemplateType);
 
-    if (newTemplateType === 'custom' && (newCustomFeatures || newCustomTerminology)) {
+    if (newTemplateType === 'custom' && newCustomConfig) {
       const baseConfig = getTemplateConfig('custom');
       const mergedConfig: TemplateConfig = {
         ...baseConfig,
-        features: { ...baseConfig.features, ...newCustomFeatures },
-        terminology: { ...baseConfig.terminology, ...newCustomTerminology },
+        features: { ...baseConfig.features, ...(newCustomConfig.features || {}) },
+        terminology: { ...baseConfig.terminology, ...(newCustomConfig.terminology || {}) },
+        layoutCustomization: { ...baseConfig.layoutCustomization, ...(newCustomConfig.layoutCustomization || {}) },
+        appointmentReasons: newCustomConfig.appointmentReasons || baseConfig.appointmentReasons,
+        serviceCategories: newCustomConfig.serviceCategories || baseConfig.serviceCategories,
+        quickAddServices: newCustomConfig.quickAddServices || baseConfig.quickAddServices,
+        completionSteps: newCustomConfig.completionSteps || baseConfig.completionSteps,
+        navigationItems: newCustomConfig.navigationItems || baseConfig.navigationItems,
+        aiBehaviorDefaults: { ...baseConfig.aiBehaviorDefaults, ...(newCustomConfig.aiBehaviorDefaults || {}) },
+        serviceFieldLabels: { ...baseConfig.serviceFieldLabels, ...(newCustomConfig.serviceFieldLabels || {}) },
       };
       setTemplate(mergedConfig);
-      setCustomFeatures(newCustomFeatures);
-      setCustomTerminology(newCustomTerminology);
+      setCustomConfig(newCustomConfig);
     } else {
       setTemplate(getTemplateConfig(newTemplateType));
-      setCustomFeatures(undefined);
-      setCustomTerminology(undefined);
+      setCustomConfig(undefined);
     }
 
     // Invalidate all queries to refetch with new template context
@@ -164,7 +201,7 @@ export function TemplateProvider({ children }: { children: ReactNode }) {
     logger.info('Template updated successfully', {
       businessId,
       newTemplateType,
-      hasCustomConfig: !!(newCustomFeatures || newCustomTerminology),
+      hasCustomConfig: !!newCustomConfig,
     });
   };
 
