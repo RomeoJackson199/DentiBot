@@ -76,6 +76,7 @@ const PatientAccountPrivacyPage = lazy(() => import("./pages/PatientAccountPriva
 const PatientAccountHelpPage = lazy(() => import("./pages/PatientAccountHelpPage"));
 const AdminHomepageManager = lazy(() => import("./pages/AdminHomepageManager"));
 const SetupMPPage = lazy(() => import("./pages/SetupMPPage"));
+const SetupMPMaisonPage = lazy(() => import("./pages/SetupMPMaisonPage"));
 const RestaurantOwnerDashboard = lazy(() => import("./pages/RestaurantOwnerDashboard"));
 const WaiterDashboard = lazy(() => import("./pages/WaiterDashboard"));
 const KitchenDashboard = lazy(() => import("./pages/KitchenDashboard"));
@@ -315,6 +316,7 @@ const App = () => {
                 {/* Admin route for homepage management */}
                 <Route path="/admin/homepage-manager" element={<AdminHomepageManager />} />
                 <Route path="/admin/setup-mp" element={<SetupMPPage />} />
+                <Route path="/admin/setup-mp-maison" element={<SetupMPMaisonPage />} />
                 {/* Restaurant management routes */}
                 <Route path="/restaurant/owner" element={<RoleBasedRouter requiredRole='dentist'><RestaurantOwnerDashboard /></RoleBasedRouter>} />
                 <Route path="/restaurant/waiter" element={<RoleBasedRouter requiredRole='dentist'><WaiterDashboard /></RoleBasedRouter>} />
