@@ -50,6 +50,7 @@ export default function BookAppointment() {
   const [loading, setLoading] = useState(true);
   const [loadingTimes, setLoadingTimes] = useState(false);
   const [loadingAI, setLoadingAI] = useState(false);
+  const [showAllTimes, setShowAllTimes] = useState(false);
   const [bookingId, setBookingId] = useState<string | null>(null);
   
   const hasFormData = selectedService !== null || reason !== '' || selectedDentist !== '' || selectedDate !== undefined;
@@ -87,6 +88,7 @@ export default function BookAppointment() {
     setSelectedTime("");
     setRecommendedSlots([]);
     setAiSummary("");
+    setShowAllTimes(false);
   }, [selectedDentist, selectedDate]);
 
   useEffect(() => {
@@ -723,7 +725,7 @@ export default function BookAppointment() {
                               </div>
                               <div className="flex-1">
                                 <p className="text-sm font-semibold text-blue-900 mb-1 flex items-center gap-2">
-                                  🤖 AI Recommendation
+                                  💡 Recommendation
                                 </p>
                                 <p className="text-sm text-blue-800 leading-relaxed">
                                   {aiSummary}
@@ -734,10 +736,10 @@ export default function BookAppointment() {
                         </Card>
                       )}
 
-                      {/* Show AI-picked times prominently */}
+                      {/* Show recommended times prominently */}
                       {(() => {
-                        const aiPicks = recommendedSlots.filter(r => r.shouldPromote);
-                        if (aiPicks.length > 0) {
+                        const recommendedPicks = recommendedSlots.filter(r => r.shouldPromote);
+                        if (recommendedPicks.length > 0) {
                           return (
                             <Card className="bg-gradient-to-br from-purple-50 to-blue-50 border-2 border-purple-300 shadow-lg">
                               <CardContent className="p-4">
@@ -747,10 +749,10 @@ export default function BookAppointment() {
                                   </div>
                                   <div className="flex-1">
                                     <p className="text-sm font-semibold text-purple-900 mb-2">
-                                      ✨ AI-Picked Best Times
+                                      ✨ Best Times for You
                                     </p>
                                     <div className="flex flex-wrap gap-2">
-                                      {aiPicks.slice(0, 5).map((pick) => (
+                                      {recommendedPicks.slice(0, 5).map((pick) => (
                                         <Button
                                           key={pick.time}
                                           type="button"
@@ -782,7 +784,9 @@ export default function BookAppointment() {
                   {loadingTimes ? (
                     <div className="flex flex-col items-center justify-center py-12 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border-2 border-purple-200">
                       <ModernLoadingSpinner />
-                      <p className="mt-4 text-purple-600 font-medium">Loading available times...</p>
+                      <p className="mt-4 text-purple-600 font-medium">
+                        {loadingAI ? 'Analyzing the best time options...' : 'Loading available times...'}
+                      </p>
                     </div>
                   ) : availableTimes.length > 0 ? (
                     <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-300">
@@ -794,15 +798,27 @@ export default function BookAppointment() {
                         {loadingAI && (
                           <p className="text-sm text-blue-600 flex items-center gap-2 mt-2">
                             <Sparkles className="w-4 h-4 animate-pulse" />
-                            AI is analyzing best times for you...
+                            Analyzing the best time options...
                           </p>
                         )}
                       </CardHeader>
                       <CardContent>
                         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
-                          {availableTimes.map((time) => {
+                          {availableTimes
+                            .filter((time) => {
+                              // If showing all times, show everything
+                              if (showAllTimes) return true;
+
+                              // If we have recommendations, only show recommended times
+                              const recommendation = recommendedSlots.find(r => r.time === time);
+                              const isRecommended = recommendation?.shouldPromote || false;
+
+                              // Show recommended times, or if no recommendations exist, show all
+                              return isRecommended || recommendedSlots.filter(r => r.shouldPromote).length === 0;
+                            })
+                            .map((time) => {
                             const recommendation = recommendedSlots.find(r => r.time === time);
-                            const isAIRecommended = recommendation?.shouldPromote || false;
+                            const isRecommended = recommendation?.shouldPromote || false;
                             const isUnderutilized = recommendation?.isUnderutilized || false;
                             const score = recommendation?.score || 0;
 
@@ -815,7 +831,7 @@ export default function BookAppointment() {
                                   className={`h-14 w-full text-base font-semibold transition-all ${
                                     selectedTime === time
                                       ? 'bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-lg scale-105 border-0'
-                                      : isAIRecommended
+                                      : isRecommended
                                         ? 'bg-gradient-to-br from-blue-50 to-purple-50 hover:from-blue-100 hover:to-purple-100 border-2 border-blue-400 hover:border-blue-600 hover:scale-105 shadow-md'
                                         : 'bg-white hover:bg-green-100 border-2 border-green-300 hover:border-green-500 hover:scale-105'
                                   }`}
@@ -825,14 +841,14 @@ export default function BookAppointment() {
                                       <Clock className="h-4 w-4" />
                                       <span>{time}</span>
                                     </div>
-                                    {isAIRecommended && selectedTime !== time && (
+                                    {isRecommended && selectedTime !== time && (
                                       <Badge variant="secondary" className="text-[10px] px-1 py-0 h-4 bg-blue-500 text-white border-0">
-                                        AI
+                                        Top
                                       </Badge>
                                     )}
                                   </div>
                                 </Button>
-                                {isAIRecommended && selectedTime !== time && (
+                                {isRecommended && selectedTime !== time && (
                                   <div className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center shadow-lg animate-pulse">
                                     <Sparkles className="w-3 h-3 text-white" />
                                   </div>
@@ -841,6 +857,20 @@ export default function BookAppointment() {
                             );
                           })}
                         </div>
+
+                        {/* Show More Button */}
+                        {!showAllTimes && recommendedSlots.filter(r => r.shouldPromote).length > 0 && availableTimes.length > recommendedSlots.filter(r => r.shouldPromote).length && (
+                          <div className="mt-4 text-center">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={() => setShowAllTimes(true)}
+                              className="w-full border-2 border-purple-300 hover:border-purple-400 hover:bg-purple-50"
+                            >
+                              Show all {availableTimes.length} available times
+                            </Button>
+                          </div>
+                        )}
 
                         {/* Show reasoning for selected time */}
                         {selectedTime && recommendedSlots.find(r => r.time === selectedTime) && (
