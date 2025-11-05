@@ -571,6 +571,7 @@ export default function DentistAdminBranding() {
               <BusinessTemplateSelector 
                 selectedTemplate={templateType}
                 onSelect={handleTemplateSelect}
+                customConfig={customConfig}
               />
               <div className="mt-4 p-4 bg-muted/50 rounded-lg">
                 <h4 className="font-medium mb-2">Current Template Features:</h4>

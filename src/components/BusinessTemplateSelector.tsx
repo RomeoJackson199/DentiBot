@@ -13,12 +13,14 @@ interface BusinessTemplateSelectorProps {
   selectedTemplate?: string;
   onSelect: (templateId: string, customConfig?: FullTemplateConfig) => void;
   disabled?: boolean;
+  customConfig?: FullTemplateConfig;
 }
 
 export function BusinessTemplateSelector({ 
   selectedTemplate, 
   onSelect,
-  disabled = false 
+  disabled = false,
+  customConfig 
 }: BusinessTemplateSelectorProps) {
   const templates = getAllTemplates();
   const [hoveredTemplate, setHoveredTemplate] = useState<string | null>(null);
@@ -196,7 +198,19 @@ export function BusinessTemplateSelector({
               Customize Your Template
             </DialogTitle>
           </DialogHeader>
-          <CustomTemplateConfigurator onSave={handleCustomSave} />
+          <CustomTemplateConfigurator 
+            initialFeatures={customConfig?.features}
+            initialTerminology={customConfig?.terminology}
+            initialLayoutCustomization={customConfig?.layoutCustomization}
+            initialAppointmentReasons={customConfig?.appointmentReasons}
+            initialServiceCategories={customConfig?.serviceCategories}
+            initialQuickAddServices={customConfig?.quickAddServices}
+            initialCompletionSteps={customConfig?.completionSteps}
+            initialNavigationItems={customConfig?.navigationItems}
+            initialAIBehavior={customConfig?.aiBehaviorDefaults}
+            initialServiceFieldLabels={customConfig?.serviceFieldLabels}
+            onSave={handleCustomSave} 
+          />
         </DialogContent>
       </Dialog>
     </>
