@@ -1,5 +1,5 @@
 import React from "react";
-import { CreditCard, DollarSign, Receipt, FileText } from "lucide-react";
+import { CreditCard, DollarSign, Receipt, FileText, AlertCircle } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -9,9 +9,13 @@ import { User } from "@supabase/supabase-js";
 import { PaymentsTab } from "@/components/patient/PaymentsTab";
 import { emitAnalyticsEvent } from "@/lib/analyticsEvents";
 import { AnimatedBackground, SectionHeader, EmptyState } from "@/components/ui/polished-components";
+import { useBusinessTemplate } from "@/hooks/useBusinessTemplate";
+import { useNavigate } from "react-router-dom";
 
 export default function PatientBillingPage() {
   const { t } = useLanguage();
+  const { hasFeature } = useBusinessTemplate();
+  const navigate = useNavigate();
   const [user, setUser] = React.useState<User | null>(null);
   const [patientId, setPatientId] = React.useState<string | null>(null);
   const [tab, setTab] = React.useState<'unpaid' | 'paid' | 'statements'>('unpaid');
@@ -53,6 +57,27 @@ export default function PatientBillingPage() {
       try { emitAnalyticsEvent('pnav_funnel_unpaid_open', '', { path: '/billing', status: 'unpaid' }); } catch {}
     }
   }, [tab]);
+
+  // Feature gate: redirect if payment requests are disabled
+  if (!hasFeature('paymentRequests')) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Card className="max-w-md">
+          <CardContent className="pt-6">
+            <EmptyState
+              icon={AlertCircle}
+              title="Billing Not Available"
+              description="Payment requests are not enabled for this practice. Please contact your provider for payment information."
+              action={{
+                label: "Go to Care Home",
+                onClick: () => navigate('/care')
+              }}
+            />
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

@@ -106,37 +106,46 @@ function PatientPortalNavContent({ children }: { children: React.ReactNode }) {
       careItems.push({ id: 'care-history', label: t.pnav.care.history, icon: <FileText className="h-4 w-4" />, to: '/care/history' });
     }
 
-    return [
+    const allGroups: NavGroup[] = [
       {
         id: 'care',
         label: t.pnav.group.care,
         items: careItems,
       },
-    {
-      id: 'billing',
-      label: t.pnav.group.billing,
-      items: [
-        { id: 'billing-main', label: t.pnav.billing.main, icon: <CreditCard className="h-4 w-4" />, to: '/billing', badge: counts.unpaid },
-      ],
-    },
-    {
-      id: 'documents',
-      label: t.pnav.group.documents,
-      items: [
-        { id: 'docs-main', label: t.pnav.docs.main, icon: <Folder className="h-4 w-4" />, to: '/docs' },
-      ],
-    },
-    {
-      id: 'account',
-      label: t.pnav.group.account,
-      items: [
-        { id: 'account-profile', label: t.pnav.account.profile, icon: <User className="h-4 w-4" />, to: '/account/profile' },
-        { id: 'account-insurance', label: t.pnav.account.insurance, icon: <IdCard className="h-4 w-4" />, to: '/account/insurance' },
-        { id: 'account-privacy', label: t.pnav.account.privacy, icon: <Shield className="h-4 w-4" />, to: '/account/privacy' },
-        { id: 'account-help', label: t.pnav.account.help, icon: <HelpCircle className="h-4 w-4" />, to: '/account/help' },
-      ],
-    },
-  ];
+    ];
+
+    // Only add billing group if payment requests feature is enabled
+    if (hasFeature('paymentRequests')) {
+      allGroups.push({
+        id: 'billing',
+        label: t.pnav.group.billing,
+        items: [
+          { id: 'billing-main', label: t.pnav.billing.main, icon: <CreditCard className="h-4 w-4" />, to: '/billing', badge: counts.unpaid },
+        ],
+      });
+    }
+
+    allGroups.push(
+      {
+        id: 'documents',
+        label: t.pnav.group.documents,
+        items: [
+          { id: 'docs-main', label: t.pnav.docs.main, icon: <Folder className="h-4 w-4" />, to: '/docs' },
+        ],
+      },
+      {
+        id: 'account',
+        label: t.pnav.group.account,
+        items: [
+          { id: 'account-profile', label: t.pnav.account.profile, icon: <User className="h-4 w-4" />, to: '/account/profile' },
+          { id: 'account-insurance', label: t.pnav.account.insurance, icon: <IdCard className="h-4 w-4" />, to: '/account/insurance' },
+          { id: 'account-privacy', label: t.pnav.account.privacy, icon: <Shield className="h-4 w-4" />, to: '/account/privacy' },
+          { id: 'account-help', label: t.pnav.account.help, icon: <HelpCircle className="h-4 w-4" />, to: '/account/help' },
+        ],
+      }
+    );
+
+    return allGroups;
   }, [t, counts.upcoming7d, counts.unpaid, hasFeature]);
 
   // Deep link behavior: /billing?status=unpaid expands Billing
