@@ -45,6 +45,8 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
   const [isLoading, setIsLoading] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [aiRecommendations, setAiRecommendations] = useState<any[]>([]);
+  const [loadingAI, setLoadingAI] = useState(false);
   const { toast } = useToast();
 
   const fetchDentists = useCallback(async () => {
@@ -164,6 +166,11 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
       setAllSlots(allSlots || []);
       setRetryCount(0); // Reset retry count on success
 
+      // Get AI recommendations
+      if (availableSlots.length > 0) {
+        fetchAIRecommendations(date, availableSlots);
+      }
+
     } catch (error) {
       console.error('Failed to fetch availability:', error);
       
@@ -189,6 +196,44 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
   };
 
 
+
+  const fetchAIRecommendations = async (date: Date, availableSlots: string[]) => {
+    setLoadingAI(true);
+    try {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (!profile) return;
+
+      const dateStr = format(date, 'yyyy-MM-dd');
+      const slots = availableSlots.map(time => ({ time, available: true }));
+
+      const { data, error } = await supabase.functions.invoke('ai-slot-recommendations', {
+        body: {
+          dentistId: selectedDentist,
+          patientId: profile.id,
+          date: dateStr,
+          availableSlots: slots
+        }
+      });
+
+      if (error) {
+        console.warn('AI recommendations failed:', error);
+        setAiRecommendations([]);
+      } else {
+        console.log('AI recommendations:', data);
+        setAiRecommendations(data.recommendations || []);
+      }
+    } catch (error) {
+      console.warn('AI recommendations error:', error);
+      setAiRecommendations([]);
+    } finally {
+      setLoadingAI(false);
+    }
+  };
 
   const handleBookAppointment = async () => {
     if (!selectedDentist || !selectedDate || !selectedTime) {
@@ -430,22 +475,35 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
                         <h4 className="font-semibold text-gray-700 mb-3">
                           All Time Slots ({allSlots.length} total)
                         </h4>
-                         <div className="grid grid-cols-3 xs:grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-1 sm:gap-2">
-                           {allSlots.map((slot) => (
+                          <div className="grid grid-cols-3 xs:grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-1 sm:gap-2">
+                           {allSlots.map((slot) => {
+                             const timeStr = slot.slot_time.substring(0, 5);
+                             const aiRec = aiRecommendations.find(r => r.time === timeStr);
+                             const isRecommended = aiRec?.shouldPromote || false;
+                             
+                             return (
                             <button
                               key={slot.slot_time}
-                              onClick={() => slot.is_available && !slot.emergency_only ? setSelectedTime(slot.slot_time.substring(0, 5)) : null}
+                              onClick={() => slot.is_available && !slot.emergency_only ? setSelectedTime(timeStr) : null}
                               disabled={!slot.is_available || slot.emergency_only}
-                              className={`p-2 sm:p-3 rounded-lg text-xs sm:text-sm text-center font-medium transition-all border-2 ${
+                              className={cn(
+                                "relative p-2 sm:p-3 rounded-lg text-xs sm:text-sm text-center font-medium transition-all border-2",
                                 slot.is_available && !slot.emergency_only
-                                  ? selectedTime === slot.slot_time.substring(0, 5)
+                                  ? selectedTime === timeStr
                                     ? 'bg-blue-600 text-white border-blue-600 shadow-md'
+                                    : isRecommended
+                                    ? 'bg-purple-50 border-purple-300 text-purple-700 hover:bg-purple-100 cursor-pointer ring-2 ring-purple-200'
                                     : 'bg-green-50 border-green-200 text-green-700 hover:bg-green-100 cursor-pointer'
                                   : 'bg-red-50 border-red-200 text-red-700 cursor-not-allowed'
-                              }`}
+                              )}
                             >
+                              {isRecommended && slot.is_available && !slot.emergency_only && (
+                                <span className="absolute -top-1 -right-1 bg-purple-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">
+                                  ✨AI
+                                </span>
+                              )}
                               <div className="font-bold text-xs sm:text-sm">
-                                {slot.slot_time.substring(0, 5)}
+                                {timeStr}
                               </div>
                               <div className="flex items-center justify-center mt-0.5 sm:mt-1">
                                 {slot.is_available && !slot.emergency_only ? (
@@ -454,8 +512,14 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
                                   <XCircle className="h-2 w-2 sm:h-3 sm:w-3" />
                                 )}
                               </div>
+                              {aiRec && isRecommended && slot.is_available && (
+                                <div className="text-[9px] text-purple-600 font-semibold">
+                                  Score: {aiRec.score}
+                                </div>
+                              )}
                             </button>
-                          ))}
+                             );
+                           })}
                          </div>
                           <div className="flex flex-col sm:flex-row justify-center gap-2 sm:gap-8 mt-4 text-xs sm:text-sm font-medium">
                             <div className="flex items-center justify-center bg-green-50 px-2 sm:px-3 py-1 sm:py-2 rounded-full border border-green-200">
