@@ -205,29 +205,86 @@ function getFallbackRecommendations(
       const isUnderutilized = stats ? stats.recent_booking_rate < 50 : false;
       const bookingRate = stats ? stats.recent_booking_rate : 0;
 
-      // Prioritize under-utilized slots
-      const score = isUnderutilized ? 80 : 50;
+      // Parse hour from time string (e.g., "09:00" -> 9)
+      const hour = parseInt(slot.time.split(':')[0], 10);
+
+      // If no historical data, use time-of-day heuristics
+      let score = 50;
+      let reasons: string[] = [];
+      let shouldPromote = false;
+
+      if (isUnderutilized) {
+        // Has stats and is underutilized
+        score = 80;
+        reasons = ['Under-utilized time slot', 'Helps balance schedule'];
+        shouldPromote = true;
+      } else if (!stats) {
+        // No historical data - use smart defaults based on time of day
+        if (hour >= 9 && hour <= 11) {
+          // Morning slots are generally popular
+          score = 75;
+          reasons = ['Popular morning time', 'Good for most patients'];
+          shouldPromote = true;
+        } else if (hour >= 14 && hour <= 16) {
+          // Early afternoon is also good
+          score = 70;
+          reasons = ['Convenient afternoon time', 'Good availability'];
+          shouldPromote = true;
+        } else if (hour >= 8 && hour < 9) {
+          // Early morning
+          score = 60;
+          reasons = ['Early morning slot', 'Beat the rush'];
+          shouldPromote = false;
+        } else if (hour >= 16 && hour < 18) {
+          // Late afternoon
+          score = 65;
+          reasons = ['After-work hours', 'Convenient for working professionals'];
+          shouldPromote = false;
+        } else {
+          score = 50;
+          reasons = ['Available slot'];
+          shouldPromote = false;
+        }
+      } else {
+        // Has stats but well-utilized
+        score = 50;
+        reasons = ['Available slot'];
+        shouldPromote = false;
+      }
 
       return {
         time: slot.time,
         score,
-        reasons: isUnderutilized
-          ? ['Under-utilized time slot', 'Helps balance schedule']
-          : ['Available slot'],
-        aiReasoning: isUnderutilized
-          ? `This time slot is not frequently booked and would help balance the schedule.`
+        reasons,
+        aiReasoning: shouldPromote
+          ? `This ${slot.time} slot is recommended based on scheduling patterns and is a convenient time for most patients.`
           : `This is an available time slot.`,
         isUnderutilized,
         bookingRate,
-        shouldPromote: isUnderutilized
+        shouldPromote
       };
     })
     .sort((a, b) => b.score - a.score);
 
+  // Ensure at least top 3 slots are promoted if we have that many
+  const promotedCount = recommendations.filter(r => r.shouldPromote).length;
+  if (promotedCount === 0 && recommendations.length > 0) {
+    // Force promote top 3 slots
+    recommendations.slice(0, Math.min(3, recommendations.length)).forEach(rec => {
+      rec.shouldPromote = true;
+      rec.score = Math.max(rec.score, 70);
+      if (!rec.reasons.includes('Recommended time')) {
+        rec.reasons.unshift('Recommended time');
+      }
+    });
+  }
+
   return {
     recommendations,
-    summary: 'Showing available slots with under-utilized times prioritized.',
-    distributionStrategy: 'Promoting less frequently booked time slots to balance the schedule.',
+    summary: promotedCount > 0 || recommendations.length > 0
+      ? `I've highlighted ${Math.max(promotedCount, Math.min(3, recommendations.length))} time slots that work well based on scheduling patterns.`
+      : 'Showing available slots.',
+    distributionStrategy: 'Recommending optimal time slots based on time-of-day preferences and scheduling patterns.',
     balanceScore: 50
   };
 }
