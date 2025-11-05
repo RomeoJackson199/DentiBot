@@ -1,77 +1,87 @@
 import { useState } from "react";
-import { Check, Sparkles } from "lucide-react";
+import { Check, Sparkles, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 
-interface Plan {
+interface SubscriptionPlan {
   id: string;
   name: string;
-  price: number;
+  slug: string;
+  price_monthly: number;
+  price_yearly: number;
+  customer_limit: number;
   features: string[];
   isPopular?: boolean;
 }
 
-const PLANS: Plan[] = [
-  {
-    id: "starter",
-    name: "Starter",
-    price: 99,
-    features: [
-      "Normal booking system",
-      "Up to 500 customers",
-      "Basic appointment scheduling",
-      "Email support"
-    ]
-  },
-  {
-    id: "professional",
-    name: "Professional",
-    price: 250,
-    features: [
-      "Up to 2500 customers",
-      "AI booking system",
-      "Custom training",
-      "2000 emails per month",
-      "Advanced analytics",
-      "Priority support"
-    ],
-    isPopular: true
-  },
-  {
-    id: "enterprise",
-    name: "Enterprise",
-    price: 999,
-    features: [
-      "Up to 7500 patients",
-      "Unlimited AI triage system",
-      "Custom training",
-      "Multi-location system",
-      "7500 emails per month",
-      "Dedicated account manager",
-      "24/7 Premium support"
-    ]
-  }
-];
-
 export default function Pricing() {
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<string | null>(null);
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const navigate = useNavigate();
 
+  const { data: plans, isLoading } = useQuery({
+    queryKey: ['subscription-plans'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('subscription_plans')
+        .select('*')
+        .eq('is_active', true)
+        .order('price_monthly', { ascending: true });
+      
+      if (error) throw error;
+      
+      return (data || []).map(plan => ({
+        ...plan,
+        features: Array.isArray(plan.features) ? plan.features : [],
+        isPopular: plan.slug === 'professional'
+      })) as SubscriptionPlan[];
+    },
+  });
+
   const handleSubscribe = async (planId: string) => {
-    setLoading(true);
+    setLoading(planId);
     try {
-      toast.success("Redirecting to checkout...");
-      // Here you would integrate with your payment system
-      // For now, just navigate to create business
-      navigate("/create-business");
+      // Check if user is logged in
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast.error("Please sign in to subscribe");
+        navigate("/sign-in?redirect=/pricing");
+        setLoading(null);
+        return;
+      }
+
+      // Create Stripe checkout session
+      const { data, error } = await supabase.functions.invoke('create-subscription-checkout', {
+        body: {
+          planId,
+          billingCycle,
+        },
+      });
+
+      if (error) throw error;
+
+      if (data?.url) {
+        window.location.href = data.url;
+      }
     } catch (error: any) {
+      console.error('Subscription error:', error);
       toast.error(error.message || "Failed to start checkout");
-    } finally {
-      setLoading(false);
+      setLoading(null);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20">
@@ -84,9 +94,28 @@ export default function Pricing() {
           <p className="text-muted-foreground text-lg">Choose the perfect plan for your practice</p>
         </div>
 
+        {/* Billing Cycle Toggle */}
+        <div className="flex justify-center gap-2 p-1 bg-muted/50 rounded-xl max-w-xs mx-auto border mb-12">
+          <Button
+            variant={billingCycle === 'monthly' ? 'default' : 'ghost'}
+            onClick={() => setBillingCycle('monthly')}
+            className="flex-1 rounded-lg"
+          >
+            Monthly
+          </Button>
+          <Button
+            variant={billingCycle === 'yearly' ? 'default' : 'ghost'}
+            onClick={() => setBillingCycle('yearly')}
+            className="flex-1 rounded-lg"
+          >
+            Yearly <span className="ml-1 text-xs">(Save 17%)</span>
+          </Button>
+        </div>
+
         {/* Pricing Cards */}
         <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          {PLANS.map((plan) => {
+          {plans?.map((plan) => {
+            const price = billingCycle === 'monthly' ? plan.price_monthly : plan.price_yearly;
             const isPro = plan.isPopular;
             
             return (
@@ -111,8 +140,8 @@ export default function Pricing() {
                   <div>
                     <h3 className="text-2xl font-semibold mb-2">{plan.name}</h3>
                     <div className="flex items-baseline gap-1">
-                      <span className="text-5xl font-bold">€{plan.price}</span>
-                      <span className="text-muted-foreground">/month</span>
+                      <span className="text-5xl font-bold">€{price}</span>
+                      <span className="text-muted-foreground">/{billingCycle === 'monthly' ? 'month' : 'year'}</span>
                     </div>
                   </div>
 
@@ -133,14 +162,21 @@ export default function Pricing() {
 
                   <Button
                     onClick={() => handleSubscribe(plan.id)}
-                    disabled={loading}
+                    disabled={loading === plan.id}
                     className={`w-full ${
                       isPro
                         ? "bg-gradient-to-r from-primary to-primary-glow hover:opacity-90 text-primary-foreground shadow-lg"
                         : "bg-background border-2 border-border hover:bg-muted text-foreground"
                     }`}
                   >
-                    Get Started
+                    {loading === plan.id ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      'Get Started'
+                    )}
                   </Button>
                 </div>
               </Card>
