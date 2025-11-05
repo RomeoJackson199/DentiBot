@@ -33,6 +33,16 @@ export interface TemplateTerminology {
   business: string;
 }
 
+export interface LayoutCustomization {
+  primaryColor?: string;
+  dashboardLayout?: 'default' | 'compact' | 'detailed';
+  showQuickStats?: boolean;
+  showUpcomingAppointments?: boolean;
+  showRecentActivity?: boolean;
+  showRevenueChart?: boolean;
+  cardStyle?: 'elevated' | 'flat' | 'outlined';
+}
+
 export interface QuickAddService {
   name: string;
   price: number;
@@ -76,6 +86,7 @@ export interface TemplateConfig {
   completionSteps: CompletionStep[];
   navigationItems: string[];
   aiBehaviorDefaults: AIBehaviorDefaults;
+  layoutCustomization?: LayoutCustomization;
 }
 
 export const BUSINESS_TEMPLATES: Record<TemplateType, TemplateConfig> = {

@@ -1,9 +1,10 @@
 import { TemplateType } from '@/lib/businessTemplates';
 import { BusinessTemplateSelector } from '@/components/BusinessTemplateSelector';
+import { FullTemplateConfig } from '@/components/CustomTemplateConfigurator';
 
 interface BusinessTemplateStepProps {
   selectedTemplate?: TemplateType;
-  onSelect: (template: TemplateType, customFeatures?: any, customTerminology?: any) => void;
+  onSelect: (template: TemplateType, customConfig?: FullTemplateConfig) => void;
 }
 
 export function BusinessTemplateStep({ selectedTemplate, onSelect }: BusinessTemplateStepProps) {

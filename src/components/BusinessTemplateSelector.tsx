@@ -4,14 +4,14 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Check, Info, Settings } from 'lucide-react';
-import { getAllTemplates, TemplateConfig, TemplateFeatures, TemplateTerminology } from '@/lib/businessTemplates';
+import { getAllTemplates, TemplateConfig } from '@/lib/businessTemplates';
 import { cn } from '@/lib/utils';
 import { TemplateFeatureExplainer } from './TemplateFeatureExplainer';
-import { CustomTemplateConfigurator } from './CustomTemplateConfigurator';
+import { CustomTemplateConfigurator, FullTemplateConfig } from './CustomTemplateConfigurator';
 
 interface BusinessTemplateSelectorProps {
   selectedTemplate?: string;
-  onSelect: (templateId: string, customFeatures?: TemplateFeatures, customTerminology?: TemplateTerminology) => void;
+  onSelect: (templateId: string, customConfig?: FullTemplateConfig) => void;
   disabled?: boolean;
 }
 
@@ -59,8 +59,8 @@ export function BusinessTemplateSelector({
     }
   };
 
-  const handleCustomSave = (features: TemplateFeatures, terminology: TemplateTerminology) => {
-    onSelect('custom', features, terminology);
+  const handleCustomSave = (config: FullTemplateConfig) => {
+    onSelect('custom', config);
     setCustomizingCustom(false);
   };
 

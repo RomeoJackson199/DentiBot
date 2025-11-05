@@ -9,8 +9,9 @@ import { Label } from "@/components/ui/label";
 import { Loader2, Palette, Upload, Image as ImageIcon, Briefcase, Package, Copy, Check, QrCode, Download } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { BusinessTemplateSelector } from "@/components/BusinessTemplateSelector";
-import { TemplateType, getTemplateConfig, TemplateFeatures, TemplateTerminology } from "@/lib/businessTemplates";
-import { useTemplate } from "@/contexts/TemplateContext";
+import { TemplateType, getTemplateConfig } from "@/lib/businessTemplates";
+import { FullTemplateConfig } from "@/components/CustomTemplateConfigurator";
+import { useTemplate, CustomTemplateConfig } from "@/contexts/TemplateContext";
 import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
 import {
   AlertDialog,
@@ -47,13 +48,11 @@ export default function DentistAdminBranding() {
   const [secondaryColor, setSecondaryColor] = useState("#10B981");
   const [logoUrl, setLogoUrl] = useState("");
   const [templateType, setTemplateType] = useState<TemplateType>("dentist");
-  const [customFeatures, setCustomFeatures] = useState<TemplateFeatures | undefined>();
-  const [customTerminology, setCustomTerminology] = useState<TemplateTerminology | undefined>();
+  const [customConfig, setCustomConfig] = useState<FullTemplateConfig | undefined>();
   const [showTemplateWarning, setShowTemplateWarning] = useState(false);
   const [pendingTemplate, setPendingTemplate] = useState<{
     type: TemplateType;
-    features?: TemplateFeatures;
-    terminology?: TemplateTerminology;
+    config?: FullTemplateConfig;
   } | null>(null);
   const [aiSystemBehavior, setAiSystemBehavior] = useState("");
   const [aiGreeting, setAiGreeting] = useState("");
@@ -202,15 +201,13 @@ export default function DentistAdminBranding() {
 
   const handleTemplateSelect = (
     newTemplateType: string,
-    features?: TemplateFeatures,
-    terminology?: TemplateTerminology
+    config?: FullTemplateConfig
   ) => {
     const newType = newTemplateType as TemplateType;
     if (newType !== templateType) {
       setPendingTemplate({
         type: newType,
-        features,
-        terminology,
+        config,
       });
       // Show preview dialog instead of basic warning
       setShowTemplateWarning(true);
@@ -220,18 +217,19 @@ export default function DentistAdminBranding() {
   const confirmTemplateChange = async () => {
     if (pendingTemplate) {
       setTemplateType(pendingTemplate.type);
-      if (pendingTemplate.features) setCustomFeatures(pendingTemplate.features);
-      if (pendingTemplate.terminology) setCustomTerminology(pendingTemplate.terminology);
+      if (pendingTemplate.config) setCustomConfig(pendingTemplate.config);
 
-      // Load AI defaults from new template
+      // Load AI defaults from new template or custom config
       const newTemplateConfig = getTemplateConfig(pendingTemplate.type);
-      setAiSystemBehavior(newTemplateConfig.aiBehaviorDefaults.systemBehavior);
-      setAiGreeting(newTemplateConfig.aiBehaviorDefaults.greeting);
-      setAiPersonalityTraits(newTemplateConfig.aiBehaviorDefaults.personalityTraits);
+      const aiConfig = pendingTemplate.config?.aiBehaviorDefaults || newTemplateConfig.aiBehaviorDefaults;
+
+      setAiSystemBehavior(aiConfig.systemBehavior);
+      setAiGreeting(aiConfig.greeting);
+      setAiPersonalityTraits(aiConfig.personalityTraits);
 
       setPendingTemplate(null);
       setShowTemplateWarning(false);
-      
+
       // Auto-save the template change
       setLoading(true);
       try {
@@ -243,14 +241,15 @@ export default function DentistAdminBranding() {
           primary_color: primaryColor,
           secondary_color: secondaryColor,
           template_type: pendingTemplate.type,
-          ai_system_behavior: newTemplateConfig.aiBehaviorDefaults.systemBehavior,
-          ai_greeting: newTemplateConfig.aiBehaviorDefaults.greeting,
-          ai_personality_traits: newTemplateConfig.aiBehaviorDefaults.personalityTraits,
+          ai_system_behavior: aiConfig.systemBehavior,
+          ai_greeting: aiConfig.greeting,
+          ai_personality_traits: aiConfig.personalityTraits,
         };
 
-        if (pendingTemplate.type === 'custom' && (pendingTemplate.features || pendingTemplate.terminology)) {
-          updateData.custom_features = pendingTemplate.features;
-          updateData.custom_terminology = pendingTemplate.terminology;
+        if (pendingTemplate.type === 'custom' && pendingTemplate.config) {
+          updateData.custom_features = pendingTemplate.config.features;
+          updateData.custom_terminology = pendingTemplate.config.terminology;
+          updateData.custom_config = pendingTemplate.config;
         }
 
         const { error } = await supabase
@@ -260,13 +259,27 @@ export default function DentistAdminBranding() {
 
         if (error) throw error;
 
-        await updateTemplateContext(pendingTemplate.type);
+        // Convert FullTemplateConfig to CustomTemplateConfig for updateTemplateContext
+        const customTemplateConfig: CustomTemplateConfig | undefined = pendingTemplate.config ? {
+          features: pendingTemplate.config.features,
+          terminology: pendingTemplate.config.terminology,
+          layoutCustomization: pendingTemplate.config.layoutCustomization,
+          appointmentReasons: pendingTemplate.config.appointmentReasons,
+          serviceCategories: pendingTemplate.config.serviceCategories,
+          quickAddServices: pendingTemplate.config.quickAddServices,
+          completionSteps: pendingTemplate.config.completionSteps,
+          navigationItems: pendingTemplate.config.navigationItems,
+          aiBehaviorDefaults: pendingTemplate.config.aiBehaviorDefaults,
+          serviceFieldLabels: pendingTemplate.config.serviceFieldLabels,
+        } : undefined;
+
+        await updateTemplateContext(pendingTemplate.type, customTemplateConfig);
 
         toast({
           title: "Template Switched Successfully",
           description: `Your business is now using the ${newTemplateConfig.name} template`,
         });
-        
+
         // Update initial state to reflect saved changes
         setInitialState({
           clinicName,
@@ -277,9 +290,9 @@ export default function DentistAdminBranding() {
           secondaryColor,
           logoUrl,
           templateType: pendingTemplate.type,
-          aiSystemBehavior: newTemplateConfig.aiBehaviorDefaults.systemBehavior,
-          aiGreeting: newTemplateConfig.aiBehaviorDefaults.greeting,
-          aiPersonalityTraits: newTemplateConfig.aiBehaviorDefaults.personalityTraits,
+          aiSystemBehavior: aiConfig.systemBehavior,
+          aiGreeting: aiConfig.greeting,
+          aiPersonalityTraits: aiConfig.personalityTraits,
           dailyRevenueGoal,
         });
       } catch (error: any) {
@@ -399,9 +412,10 @@ export default function DentistAdminBranding() {
       };
 
       // Store custom configuration if template is custom
-      if (templateType === 'custom' && (customFeatures || customTerminology)) {
-        updateData.custom_features = customFeatures;
-        updateData.custom_terminology = customTerminology;
+      if (templateType === 'custom' && customConfig) {
+        updateData.custom_features = customConfig.features;
+        updateData.custom_terminology = customConfig.terminology;
+        updateData.custom_config = customConfig;
       }
 
       const { error } = await supabase
@@ -411,8 +425,22 @@ export default function DentistAdminBranding() {
 
       if (error) throw error;
 
+      // Convert FullTemplateConfig to CustomTemplateConfig for updateTemplateContext
+      const customTemplateConfig: CustomTemplateConfig | undefined = customConfig ? {
+        features: customConfig.features,
+        terminology: customConfig.terminology,
+        layoutCustomization: customConfig.layoutCustomization,
+        appointmentReasons: customConfig.appointmentReasons,
+        serviceCategories: customConfig.serviceCategories,
+        quickAddServices: customConfig.quickAddServices,
+        completionSteps: customConfig.completionSteps,
+        navigationItems: customConfig.navigationItems,
+        aiBehaviorDefaults: customConfig.aiBehaviorDefaults,
+        serviceFieldLabels: customConfig.serviceFieldLabels,
+      } : undefined;
+
       // Update template in context without page reload
-      await updateTemplateContext(templateType, customFeatures, customTerminology);
+      await updateTemplateContext(templateType, customTemplateConfig);
 
       toast({
         title: "Settings Saved",
