@@ -16,6 +16,7 @@ import { showAppointmentConfirmed } from "@/lib/successNotifications";
 import { logger } from '@/lib/logger';
 import { clinicTimeToUtc, createAppointmentDateTimeFromStrings } from "@/lib/timezone";
 import { getCurrentBusinessId } from "@/lib/businessScopedSupabase";
+import { format } from "date-fns";
 
 interface AppointmentBookingProps {
   user: User;
@@ -221,36 +222,46 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
         }
       });
 
+      const buildFallback = () => {
+        const fallbackShow = availableSlots.slice(0, Math.min(3, availableSlots.length));
+        const fallbackDetails: Record<string, { score: number; reason: string }> = Object.fromEntries(
+          fallbackShow.map(t => [t, { score: 75, reason: 'Good availability' }])
+        );
+        return { showSlots: fallbackShow, slotDetails: fallbackDetails };
+      };
+
       if (error) {
         console.warn('AI recommendations failed:', error);
-        
-        // Handle rate limit and payment errors
+
         if (error.message?.includes('429')) {
-          toast({
-            title: "High Traffic",
-            description: "We're getting a lot of requests right now. Please try again in a moment.",
-            variant: "destructive"
-          });
+          toast({ title: 'High Traffic', description: "We're getting a lot of requests right now. Please try again in a moment.", variant: 'destructive' });
         } else if (error.message?.includes('402')) {
-          toast({
-            title: "AI Quota Exceeded",
-            description: "AI quota exhausted. Please add credits to your workspace.",
-            variant: "destructive"
-          });
+          toast({ title: 'AI Quota Exceeded', description: 'AI quota exhausted. Please add credits to your workspace.', variant: 'destructive' });
         }
-        
-        setAiSlotCode({ showSlots: [], slotDetails: {} });
+
+        const fb = buildFallback();
+        setAiSlotCode(fb);
+        setShowAllSlots(false);
       } else {
         console.log('AI slot code:', data);
-        setAiSlotCode({
-          showSlots: data.showSlots || [],
-          slotDetails: data.slotDetails || {}
-        });
+        const show = Array.isArray(data?.showSlots) && data.showSlots.length > 0
+          ? data.showSlots.slice(0, Math.min(3, data.showSlots.length))
+          : availableSlots.slice(0, Math.min(3, availableSlots.length));
+        const detailsFromAI = data?.slotDetails || {};
+        const details: Record<string, { score: number; reason: string }> = Object.fromEntries(
+          show.map((t: string) => [t, detailsFromAI[t] || { score: 80, reason: detailsFromAI[t]?.reason || 'Recommended time' }])
+        );
+        setAiSlotCode({ showSlots: show, slotDetails: details });
         setShowAllSlots(false);
       }
     } catch (error) {
       console.warn('AI recommendations error:', error);
-      setAiSlotCode({ showSlots: [], slotDetails: {} });
+      const fallbackShow = availableSlots.slice(0, Math.min(3, availableSlots.length));
+      const fallbackDetails: Record<string, { score: number; reason: string }> = Object.fromEntries(
+        fallbackShow.map(t => [t, { score: 70, reason: 'Available and convenient' }])
+      );
+      setAiSlotCode({ showSlots: fallbackShow, slotDetails: fallbackDetails });
+      setShowAllSlots(false);
     } finally {
       setLoadingAI(false);
     }
