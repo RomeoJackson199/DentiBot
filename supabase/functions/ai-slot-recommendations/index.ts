@@ -72,6 +72,7 @@ Analyze the available time slots and recommend which ones to promote to the pati
 
 **Output Format (JSON only):**
 {
+  "topSlots": ["10:00", "10:30", "11:00"],
   "recommendations": [
     {
       "time": "10:00",
@@ -84,7 +85,8 @@ Analyze the available time slots and recommend which ones to promote to the pati
   "summary": "Your dentist's schedule shows that morning slots are under-utilized."
 }
 
-Provide 3-5 top recommendations. Give HIGHER scores (80-95) to under-utilized slots.`;
+**IMPORTANT:** Return EXACTLY 3 slots in the "topSlots" array - these are the TOP 3 recommended slots to show first.
+Provide 3 recommendations matching the topSlots. Give HIGHER scores (80-95) to under-utilized slots.`;
 
     console.log('Calling Lovable AI with prompt length:', prompt.length);
 
@@ -165,6 +167,7 @@ Provide 3-5 top recommendations. Give HIGHER scores (80-95) to under-utilized sl
 
     return new Response(
       JSON.stringify({
+        topSlots: aiAnalysis.topSlots || [],
         recommendations: enrichedRecommendations,
         summary: aiAnalysis.summary
       }),

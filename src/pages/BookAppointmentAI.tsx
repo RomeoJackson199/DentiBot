@@ -288,13 +288,16 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
       if (error) {
         console.warn('AI recommendations failed:', error);
       } else if (data?.recommendations) {
-        // Merge AI recommendations into slots
+        // Use topSlots to mark ONLY the top 3 as recommended
+        const topSlotTimes = data.topSlots || [];
         const enrichedSlots = availableSlots.map(slot => {
           const aiRec = data.recommendations.find((r: any) => r.time === slot.time);
-          if (aiRec) {
+          const isTopSlot = topSlotTimes.includes(slot.time);
+          
+          if (isTopSlot && aiRec) {
             return {
               ...slot,
-              isRecommended: aiRec.shouldPromote || false,
+              isRecommended: true,
               aiScore: aiRec.score,
               aiReason: aiRec.aiReasoning
             };
@@ -302,6 +305,7 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
           return slot;
         });
         setAvailableSlots(enrichedSlots);
+        setShowAllSlots(false); // Reset to show only top 3
       }
     } catch (error) {
       console.warn('AI recommendations error:', error);
