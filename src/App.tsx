@@ -80,6 +80,7 @@ const RestaurantOwnerDashboard = lazy(() => import("./pages/RestaurantOwnerDashb
 const WaiterDashboard = lazy(() => import("./pages/WaiterDashboard"));
 const KitchenDashboard = lazy(() => import("./pages/KitchenDashboard"));
 const TableOrderingPage = lazy(() => import("./pages/TableOrderingPage"));
+const SmartBookAppointment = lazy(() => import("./pages/SmartBookAppointment"));
 
 // Dashboard component that handles authentication with lazy loading
 // Business gate component that shows appropriate picker
@@ -323,6 +324,7 @@ const App = () => {
                 {/* Booking routes */}
                 <Route path="/book-appointment-ai" element={<BookingRouteHandler><BookAppointmentAI /></BookingRouteHandler>} />
                 <Route path="/book-appointment" element={<Navigate to="/dashboard" replace />} />
+                <Route path="/smart-book-appointment" element={<SmartBookAppointment />} />
                 {/* Business portal route - must come before catch-all */}
                 <Route path="/:slug" element={<BusinessPortal />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
