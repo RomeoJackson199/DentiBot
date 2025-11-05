@@ -9,13 +9,16 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
-import { Clock, CheckCircle2, ArrowLeft, ArrowRight, Calendar as CalendarIcon, User } from "lucide-react";
+import { Clock, CheckCircle2, ArrowLeft, ArrowRight, Calendar as CalendarIcon, User, Sparkles, TrendingUp } from "lucide-react";
 import { ModernLoadingSpinner } from "@/components/enhanced/ModernLoadingSpinner";
 import { ServiceSelector } from "@/components/booking/ServiceSelector";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { createAppointmentDateTimeFromStrings } from "@/lib/timezone";
 import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
+import { getRecommendedSlots, updateSlotStatisticsAfterBooking } from "@/lib/smartScheduling";
+import { getPatientPreferences } from "@/lib/smartScheduling";
+import type { RecommendedSlot } from "@/lib/smartScheduling";
 import { BusinessSelectionForPatients } from "@/components/BusinessSelectionForPatients";
 interface Dentist {
   id: string;
@@ -41,9 +44,12 @@ export default function BookAppointment() {
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [selectedTime, setSelectedTime] = useState("");
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
+  const [recommendedSlots, setRecommendedSlots] = useState<RecommendedSlot[]>([]);
+  const [aiSummary, setAiSummary] = useState<string>("");
   const [reason, setReason] = useState("");
   const [loading, setLoading] = useState(true);
   const [loadingTimes, setLoadingTimes] = useState(false);
+  const [loadingAI, setLoadingAI] = useState(false);
   const [bookingId, setBookingId] = useState<string | null>(null);
   
   const hasFormData = selectedService !== null || reason !== '' || selectedDentist !== '' || selectedDate !== undefined;
@@ -79,6 +85,8 @@ export default function BookAppointment() {
 
   useEffect(() => {
     setSelectedTime("");
+    setRecommendedSlots([]);
+    setAiSummary("");
   }, [selectedDentist, selectedDate]);
 
   useEffect(() => {
@@ -175,14 +183,49 @@ export default function BookAppointment() {
         .order('slot_time');
 
       if (!error && data) {
-        setAvailableTimes(data.map(s => (s.slot_time.length === 8 ? s.slot_time.slice(0,5) : s.slot_time)));
+        const times = data.map(s => (s.slot_time.length === 8 ? s.slot_time.slice(0,5) : s.slot_time));
+        setAvailableTimes(times);
+
+        // Get AI-powered recommendations
+        if (profile?.id && times.length > 0) {
+          setLoadingAI(true);
+          try {
+            const timeSlots = times.map(time => ({
+              time,
+              available: true,
+              dentist_id: selectedDentist
+            }));
+
+            const recommendations = await getRecommendedSlots(
+              selectedDentist,
+              profile.id,
+              selectedDate,
+              timeSlots,
+              selectedService?.id
+            );
+
+            setRecommendedSlots(recommendations);
+
+            // Show AI summary if available
+            const topRec = recommendations.find(r => r.shouldPromote);
+            if (topRec?.aiReasoning) {
+              setAiSummary(topRec.aiReasoning);
+            }
+          } catch (aiError) {
+            console.warn('AI recommendations failed:', aiError);
+            setRecommendedSlots([]);
+          } finally {
+            setLoadingAI(false);
+          }
+        }
       } else {
         setAvailableTimes([]);
+        setRecommendedSlots([]);
       }
       setLoadingTimes(false);
     };
     fetchTimes();
-  }, [selectedDentist, selectedDate, effectiveBusinessId]);
+  }, [selectedDentist, selectedDate, effectiveBusinessId, profile, selectedService]);
 
   const handleNext = () => {
     if (currentStep === 'service') {
@@ -252,6 +295,16 @@ export default function BookAppointment() {
         .single();
 
       if (appointmentError) throw appointmentError;
+
+      // Update slot usage statistics for AI learning
+      try {
+        await updateSlotStatisticsAfterBooking(
+          selectedDentist,
+          new Date(appointmentDateTime)
+        );
+      } catch (statsError) {
+        console.warn('Failed to update slot statistics:', statsError);
+      }
 
       setBookingId(appointment.id);
       setCurrentStep('success');
@@ -631,6 +684,28 @@ export default function BookAppointment() {
                     </div>
                     Select Time
                   </Label>
+
+                  {/* AI Summary */}
+                  {aiSummary && !loadingAI && (
+                    <Card className="bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 border-2 border-blue-300 shadow-lg">
+                      <CardContent className="p-4">
+                        <div className="flex items-start gap-3">
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center flex-shrink-0 shadow-md">
+                            <Sparkles className="w-5 h-5 text-white" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm font-semibold text-blue-900 mb-1 flex items-center gap-2">
+                              🤖 AI Recommendation
+                            </p>
+                            <p className="text-sm text-blue-800 leading-relaxed">
+                              {aiSummary}
+                            </p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+
                   {loadingTimes ? (
                     <div className="flex flex-col items-center justify-center py-12 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border-2 border-purple-200">
                       <ModernLoadingSpinner />
@@ -643,26 +718,86 @@ export default function BookAppointment() {
                           <CheckCircle2 className="w-5 h-5 text-green-600" />
                           Available Time Slots ({availableTimes.length})
                         </CardTitle>
+                        {loadingAI && (
+                          <p className="text-sm text-blue-600 flex items-center gap-2 mt-2">
+                            <Sparkles className="w-4 h-4 animate-pulse" />
+                            AI is analyzing best times for you...
+                          </p>
+                        )}
                       </CardHeader>
                       <CardContent>
                         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
-                          {availableTimes.map((time) => (
-                            <Button
-                              key={time}
-                              type="button"
-                              variant={selectedTime === time ? "default" : "outline"}
-                              onClick={() => setSelectedTime(time)}
-                              className={`h-14 text-base font-semibold transition-all ${
-                                selectedTime === time
-                                  ? 'bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-lg scale-105 border-0'
-                                  : 'bg-white hover:bg-green-100 border-2 border-green-300 hover:border-green-500 hover:scale-105'
-                              }`}
-                            >
-                              <Clock className="mr-2 h-4 w-4" />
-                              {time}
-                            </Button>
-                          ))}
+                          {availableTimes.map((time) => {
+                            const recommendation = recommendedSlots.find(r => r.time === time);
+                            const isAIRecommended = recommendation?.shouldPromote || false;
+                            const isUnderutilized = recommendation?.isUnderutilized || false;
+                            const score = recommendation?.score || 0;
+
+                            return (
+                              <div key={time} className="relative">
+                                <Button
+                                  type="button"
+                                  variant={selectedTime === time ? "default" : "outline"}
+                                  onClick={() => setSelectedTime(time)}
+                                  className={`h-14 w-full text-base font-semibold transition-all ${
+                                    selectedTime === time
+                                      ? 'bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-lg scale-105 border-0'
+                                      : isAIRecommended
+                                        ? 'bg-gradient-to-br from-blue-50 to-purple-50 hover:from-blue-100 hover:to-purple-100 border-2 border-blue-400 hover:border-blue-600 hover:scale-105 shadow-md'
+                                        : 'bg-white hover:bg-green-100 border-2 border-green-300 hover:border-green-500 hover:scale-105'
+                                  }`}
+                                >
+                                  <div className="flex flex-col items-center gap-1">
+                                    <div className="flex items-center gap-1">
+                                      <Clock className="h-4 w-4" />
+                                      <span>{time}</span>
+                                    </div>
+                                    {isAIRecommended && selectedTime !== time && (
+                                      <Badge variant="secondary" className="text-[10px] px-1 py-0 h-4 bg-blue-500 text-white border-0">
+                                        AI
+                                      </Badge>
+                                    )}
+                                  </div>
+                                </Button>
+                                {isAIRecommended && selectedTime !== time && (
+                                  <div className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center shadow-lg animate-pulse">
+                                    <Sparkles className="w-3 h-3 text-white" />
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
                         </div>
+
+                        {/* Show reasoning for selected time */}
+                        {selectedTime && recommendedSlots.find(r => r.time === selectedTime) && (
+                          <Card className="mt-4 bg-gradient-to-br from-blue-50 to-purple-50 border-2 border-blue-200">
+                            <CardContent className="p-3">
+                              <div className="space-y-2">
+                                {recommendedSlots.find(r => r.time === selectedTime)?.shouldPromote && (
+                                  <div className="flex items-center gap-2">
+                                    <TrendingUp className="w-4 h-4 text-blue-600" />
+                                    <span className="text-sm font-semibold text-blue-900">
+                                      Helps Balance Schedule
+                                    </span>
+                                  </div>
+                                )}
+                                {recommendedSlots.find(r => r.time === selectedTime)?.aiReasoning && (
+                                  <p className="text-xs text-blue-800 leading-relaxed">
+                                    {recommendedSlots.find(r => r.time === selectedTime)?.aiReasoning}
+                                  </p>
+                                )}
+                                <div className="flex flex-wrap gap-1 mt-2">
+                                  {recommendedSlots.find(r => r.time === selectedTime)?.reasons.map((reason, idx) => (
+                                    <Badge key={idx} variant="secondary" className="text-[10px] bg-blue-100 text-blue-700">
+                                      {reason}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        )}
                       </CardContent>
                     </Card>
                   ) : (
