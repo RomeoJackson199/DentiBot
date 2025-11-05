@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Loader2, Palette, Upload, Image as ImageIcon, Briefcase, Package, Copy, Check, QrCode, Download } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { BusinessTemplateSelector } from "@/components/BusinessTemplateSelector";
-import { TemplateType, getTemplateConfig } from "@/lib/businessTemplates";
+import { TemplateType, getTemplateConfig, TemplateFeatures, TemplateTerminology } from "@/lib/businessTemplates";
 import { FullTemplateConfig } from "@/components/CustomTemplateConfigurator";
 import { useTemplate, CustomTemplateConfig } from "@/contexts/TemplateContext";
 import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
@@ -93,7 +93,7 @@ export default function DentistAdminBranding() {
     try {
       const { data: business, error } = await supabase
         .from('businesses')
-        .select('name, slug, tagline, logo_url, primary_color, secondary_color, template_type, ai_system_behavior, ai_greeting, ai_personality_traits, daily_revenue_goal_cents')
+        .select('name, slug, tagline, logo_url, primary_color, secondary_color, template_type, ai_system_behavior, ai_greeting, ai_personality_traits, daily_revenue_goal_cents, custom_config, custom_features, custom_terminology')
         .eq('id', businessId)
         .single();
 
@@ -128,6 +128,32 @@ export default function DentistAdminBranding() {
         setAiGreeting(state.aiGreeting);
         setAiPersonalityTraits(state.aiPersonalityTraits);
         setDailyRevenueGoal(state.dailyRevenueGoal);
+        
+        // Load custom config if it's a custom template
+        if (state.templateType === 'custom') {
+          const fullConfig = business.custom_config as FullTemplateConfig | null;
+          
+          if (fullConfig) {
+            // Use the full custom_config
+            setCustomConfig(fullConfig);
+          } else if (business.custom_features || business.custom_terminology) {
+            // Fallback to old format (custom_features and custom_terminology)
+            const baseTemplate = getTemplateConfig('custom');
+            setCustomConfig({
+              features: (business.custom_features as TemplateFeatures) || baseTemplate.features,
+              terminology: (business.custom_terminology as TemplateTerminology) || baseTemplate.terminology,
+              layoutCustomization: baseTemplate.layoutCustomization,
+              appointmentReasons: baseTemplate.appointmentReasons,
+              serviceCategories: baseTemplate.serviceCategories,
+              quickAddServices: baseTemplate.quickAddServices,
+              completionSteps: baseTemplate.completionSteps,
+              navigationItems: baseTemplate.navigationItems,
+              aiBehaviorDefaults: baseTemplate.aiBehaviorDefaults,
+              serviceFieldLabels: baseTemplate.serviceFieldLabels,
+            });
+          }
+        }
+        
         setInitialState(state);
         setHasChanges(false);
       }
