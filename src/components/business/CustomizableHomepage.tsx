@@ -76,33 +76,40 @@ export function CustomizableHomepage({ business, settings, services = [], onCTAC
       {/* Services Section */}
       {settings.show_services && services.length > 0 && (
         <section className="py-16 px-4 bg-muted/30">
-          <div className="container mx-auto max-w-6xl">
-            <h3 className="text-3xl font-bold text-center mb-12">Our Services</h3>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="container mx-auto max-w-4xl">
+            <h3 className="text-3xl font-bold text-center mb-12">Nos Prestations</h3>
+            <div className="space-y-4">
               {services.map((service) => (
-                <Card key={service.id} className="p-6 hover:shadow-lg transition-shadow cursor-pointer" onClick={onCTAClick}>
-                  {service.image_url && (
-                    <img
-                      src={service.image_url}
-                      alt={service.name}
-                      className="w-full h-48 object-cover rounded-lg mb-4"
-                    />
-                  )}
-                  <h4 className="text-xl font-semibold mb-2">{service.name}</h4>
-                  {service.description && (
-                    <p className="text-muted-foreground text-sm mb-4">{service.description}</p>
-                  )}
-                  <div className="flex items-center justify-between">
-                    {service.price_cents > 0 && (
-                      <p className="text-lg font-bold text-primary">
-                        €{(service.price_cents / 100).toFixed(2)}
-                      </p>
-                    )}
-                    {service.duration_minutes && (
-                      <p className="text-sm text-muted-foreground">
-                        {service.duration_minutes} min
-                      </p>
-                    )}
+                <Card key={service.id} className="hover:shadow-md transition-shadow">
+                  <div className="p-6 flex items-center justify-between gap-4">
+                    <div className="flex-1">
+                      <h4 className="text-lg font-semibold mb-1">{service.name}</h4>
+                      {service.description && (
+                        <p className="text-muted-foreground text-sm">{service.description}</p>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-6">
+                      <div className="text-right">
+                        {service.duration_minutes && (
+                          <p className="text-sm text-muted-foreground whitespace-nowrap">
+                            {Math.floor(service.duration_minutes / 60) > 0 && `${Math.floor(service.duration_minutes / 60)}h`}
+                            {service.duration_minutes % 60 > 0 && ` ${service.duration_minutes % 60}min`}
+                          </p>
+                        )}
+                        {service.price_cents > 0 && (
+                          <p className="text-base font-semibold whitespace-nowrap">
+                            à partir de {(service.price_cents / 100).toFixed(0)} €
+                          </p>
+                        )}
+                      </div>
+                      <Button 
+                        onClick={onCTAClick}
+                        className="whitespace-nowrap"
+                        size="default"
+                      >
+                        Choisir
+                      </Button>
+                    </div>
                   </div>
                 </Card>
               ))}
