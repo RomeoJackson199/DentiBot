@@ -75,6 +75,7 @@ export default function BookAppointmentAI() {
   const [loading, setLoading] = useState(true);
   const [loadingAI, setLoadingAI] = useState(false);
   const [showAllSlots, setShowAllSlots] = useState(false);
+  const [aiSlotCode, setAiSlotCode] = useState<{showSlots: string[], slotDetails: Record<string, {score: number, reason: string}>}>({ showSlots: [], slotDetails: {} });
 const [bookingStep, setBookingStep] = useState<'dentist' | 'datetime' | 'confirm'>('dentist');
 const [showSuccessDialog, setShowSuccessDialog] = useState(false);
 const [successDetails, setSuccessDetails] = useState<{ date: string; time: string; dentist?: string; reason?: string } | undefined>(undefined);
@@ -287,25 +288,14 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
 
       if (error) {
         console.warn('AI recommendations failed:', error);
-      } else if (data?.recommendations) {
-        // Use topSlots to mark ONLY the top 3 as recommended
-        const topSlotTimes = data.topSlots || [];
-        const enrichedSlots = availableSlots.map(slot => {
-          const aiRec = data.recommendations.find((r: any) => r.time === slot.time);
-          const isTopSlot = topSlotTimes.includes(slot.time);
-          
-          if (isTopSlot && aiRec) {
-            return {
-              ...slot,
-              isRecommended: true,
-              aiScore: aiRec.score,
-              aiReason: aiRec.aiReasoning
-            };
-          }
-          return slot;
+      } else if (data?.showSlots) {
+        // AI returned a code with slots to show
+        console.log('AI Code received - show these slots:', data.showSlots);
+        setAiSlotCode({
+          showSlots: data.showSlots,
+          slotDetails: data.slotDetails || {}
         });
-        setAvailableSlots(enrichedSlots);
-        setShowAllSlots(false); // Reset to show only top 3
+        setShowAllSlots(false); // Reset to show only AI-selected slots
       }
     } catch (error) {
       console.warn('AI recommendations error:', error);
@@ -859,8 +849,10 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
                         <CheckCircle className="h-4 w-4 text-green-600" />
                         <span className="text-sm text-muted-foreground">
                           {showAllSlots 
-                            ? `Available Time Slots (${availableSlots.filter(slot => slot.available).length})`
-                            : `AI Recommended Slots (${availableSlots.filter(slot => slot.available && slot.isRecommended).length})`
+                            ? `All Available Time Slots (${availableSlots.filter(slot => slot.available).length})`
+                            : aiSlotCode.showSlots.length > 0
+                            ? `✨ AI Recommended Slots (${aiSlotCode.showSlots.length})`
+                            : `Available Time Slots (${availableSlots.filter(slot => slot.available).length})`
                           }
                         </span>
                       </div>
@@ -873,54 +865,64 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
                         ) : (
                           availableSlots
                             .filter(slot => slot.available)
-                            .filter(slot => showAllSlots || slot.isRecommended)
-                            .map((slot) => (
-                            <button
-                              key={slot.time}
-                              onClick={() => handleTimeSelect(slot.time)}
-                              className={`relative w-full p-4 rounded-xl border-2 text-left font-medium transition-all ${
-                                selectedTime === slot.time
-                                  ? 'bg-primary text-primary-foreground border-primary shadow-lg'
-                                  : slot.isRecommended
-                                  ? 'bg-purple-50 border-purple-300 hover:border-purple-400 hover:bg-purple-100 ring-2 ring-purple-200'
-                                  : 'border-muted hover:border-primary/50 hover:bg-muted/50'
-                              }`}
-                            >
-                              {slot.isRecommended && (
-                                <span className="absolute top-2 right-2 bg-purple-500 text-white text-[10px] px-2 py-0.5 rounded-full flex items-center gap-1">
-                                  <Clock className="h-3 w-3" />
-                                  ✨ AI Pick
-                                </span>
-                              )}
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                  <Clock className="h-5 w-5" />
-                                  <span className="text-lg">{slot.time}</span>
-                                </div>
-                                {slot.aiScore && (
-                                  <span className="text-sm text-purple-600 font-semibold">
-                                    Score: {slot.aiScore}
+                            .filter(slot => {
+                              // If AI code exists and not showing all, only show AI-selected slots
+                              if (!showAllSlots && aiSlotCode.showSlots.length > 0) {
+                                return aiSlotCode.showSlots.includes(slot.time);
+                              }
+                              return true;
+                            })
+                            .map((slot) => {
+                              const aiDetail = aiSlotCode.slotDetails[slot.time];
+                              const isAISelected = aiSlotCode.showSlots.includes(slot.time);
+                              return (
+                              <button
+                                key={slot.time}
+                                onClick={() => handleTimeSelect(slot.time)}
+                                className={`relative w-full p-4 rounded-xl border-2 text-left font-medium transition-all ${
+                                  selectedTime === slot.time
+                                    ? 'bg-primary text-primary-foreground border-primary shadow-lg'
+                                    : isAISelected
+                                    ? 'bg-purple-50 border-purple-300 hover:border-purple-400 hover:bg-purple-100 ring-2 ring-purple-200'
+                                    : 'border-muted hover:border-primary/50 hover:bg-muted/50'
+                                }`}
+                              >
+                                {isAISelected && (
+                                  <span className="absolute top-2 right-2 bg-purple-500 text-white text-[10px] px-2 py-0.5 rounded-full flex items-center gap-1">
+                                    <Clock className="h-3 w-3" />
+                                    ✨ AI Pick
                                   </span>
                                 )}
-                              </div>
-                              {slot.isRecommended && slot.aiReason && (
-                                <p className="text-xs text-muted-foreground mt-2 pl-7">
-                                  {slot.aiReason}
-                                </p>
-                              )}
-                            </button>
-                          ))
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2">
+                                    <Clock className="h-5 w-5" />
+                                    <span className="text-lg">{slot.time}</span>
+                                  </div>
+                                  {aiDetail?.score && (
+                                    <span className="text-sm text-purple-600 font-semibold">
+                                      Score: {aiDetail.score}
+                                    </span>
+                                  )}
+                                </div>
+                                {isAISelected && aiDetail?.reason && (
+                                  <p className="text-xs text-muted-foreground mt-2 pl-7">
+                                    {aiDetail.reason}
+                                  </p>
+                                )}
+                              </button>
+                            );
+                          })
                         )}
                       </div>
                       
                       {/* Show All Slots Button */}
-                      {!showAllSlots && availableSlots.filter(slot => slot.available && !slot.isRecommended).length > 0 && (
+                      {!showAllSlots && aiSlotCode.showSlots.length > 0 && availableSlots.filter(slot => slot.available).length > aiSlotCode.showSlots.length && (
                         <Button
                           variant="outline"
                           className="w-full mt-2"
                           onClick={() => setShowAllSlots(true)}
                         >
-                          Show rest of available times ({availableSlots.filter(slot => slot.available && !slot.isRecommended).length} more)
+                          Show rest of available times ({availableSlots.filter(slot => slot.available).length - aiSlotCode.showSlots.length} more)
                         </Button>
                       )}
                     </div>

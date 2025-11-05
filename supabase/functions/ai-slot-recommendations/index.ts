@@ -72,21 +72,16 @@ Analyze the available time slots and recommend which ones to promote to the pati
 
 **Output Format (JSON only):**
 {
-  "topSlots": ["10:00", "10:30", "11:00"],
-  "recommendations": [
-    {
-      "time": "10:00",
-      "score": 85,
-      "reasons": ["Under-utilized slot", "Helps balance schedule"],
-      "aiReasoning": "This 10 AM slot is rarely booked and would help balance your schedule.",
-      "shouldPromote": true
-    }
-  ],
-  "summary": "Your dentist's schedule shows that morning slots are under-utilized."
+  "showSlots": ["10:00", "10:30", "11:00"],
+  "slotDetails": {
+    "10:00": {"score": 85, "reason": "Under-utilized slot, helps balance schedule"},
+    "10:30": {"score": 82, "reason": "Less frequently booked"},
+    "11:00": {"score": 80, "reason": "Balances morning schedule"}
+  },
+  "summary": "Morning slots are under-utilized"
 }
 
-**IMPORTANT:** Return EXACTLY 3 slots in the "topSlots" array - these are the TOP 3 recommended slots to show first.
-Provide 3 recommendations matching the topSlots. Give HIGHER scores (80-95) to under-utilized slots.`;
+**CRITICAL:** Return EXACTLY 3 time slots in "showSlots" - these are the ONLY slots the UI should display initially.`;
 
     console.log('Calling Lovable AI with prompt length:', prompt.length);
 
@@ -136,39 +131,24 @@ Provide 3 recommendations matching the topSlots. Give HIGHER scores (80-95) to u
 
     const aiAnalysis = JSON.parse(jsonMatch[0]);
 
-    // Enrich recommendations with slot data
-    const enrichedRecommendations = aiAnalysis.recommendations.map((rec: any) => {
-      const slot = availableSlots.find((s: any) => s.time === rec.time);
-      const stats = (slotStats || []).find((s: any) =>
-        s.time_slot === rec.time && s.day_of_week === dayOfWeek
-      );
-
-      return {
-        ...rec,
-        isUnderutilized: stats ? stats.recent_booking_rate < 50 : false,
-        bookingRate: stats ? stats.recent_booking_rate : 0,
-        available: slot?.available || false
-      };
-    });
-
     // Log recommendation for analytics
     await supabaseClient
       .from('ai_slot_recommendations')
       .insert({
         patient_id: patientId,
         dentist_id: dentistId,
-        recommended_slots: enrichedRecommendations,
+        recommended_slots: aiAnalysis.showSlots || [],
         ai_model_used: 'google/gemini-2.5-flash',
         ai_reasoning: aiAnalysis.summary,
         selected_date: date
       });
 
-    console.log('Successfully generated AI recommendations:', enrichedRecommendations.length);
+    console.log('AI code generated - show these slots:', aiAnalysis.showSlots);
 
     return new Response(
       JSON.stringify({
-        topSlots: aiAnalysis.topSlots || [],
-        recommendations: enrichedRecommendations,
+        showSlots: aiAnalysis.showSlots || [],
+        slotDetails: aiAnalysis.slotDetails || {},
         summary: aiAnalysis.summary
       }),
       {
