@@ -52,6 +52,9 @@ interface Dentist {
 interface TimeSlot {
   time: string;
   available: boolean;
+  isRecommended?: boolean;
+  aiScore?: number;
+  aiReason?: string;
 }
 
 export default function BookAppointmentAI() {
@@ -70,6 +73,7 @@ export default function BookAppointmentAI() {
   const [selectedTime, setSelectedTime] = useState<string>();
   const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingAI, setLoadingAI] = useState(false);
 const [bookingStep, setBookingStep] = useState<'dentist' | 'datetime' | 'confirm'>('dentist');
 const [showSuccessDialog, setShowSuccessDialog] = useState(false);
 const [successDetails, setSuccessDetails] = useState<{ date: string; time: string; dentist?: string; reason?: string } | undefined>(undefined);
@@ -239,6 +243,12 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
       }));
 
       setAvailableSlots(slots);
+
+      // Get AI recommendations
+      const availableSlotsList = slots.filter(s => s.available);
+      if (availableSlotsList.length > 0) {
+        fetchAIRecommendations(date, dentistId, availableSlotsList);
+      }
     } catch (error) {
       logger.error("Error fetching slots:", error);
       toast({
@@ -246,6 +256,56 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
         description: "Failed to load available times",
         variant: "destructive",
       });
+    }
+  };
+
+  const fetchAIRecommendations = async (date: Date, dentistId: string, slots: TimeSlot[]) => {
+    setLoadingAI(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (!profile) return;
+
+      const dateStr = format(date, 'yyyy-MM-dd');
+
+      const { data, error } = await supabase.functions.invoke('ai-slot-recommendations', {
+        body: {
+          dentistId,
+          patientId: profile.id,
+          date: dateStr,
+          availableSlots: slots
+        }
+      });
+
+      if (error) {
+        console.warn('AI recommendations failed:', error);
+      } else if (data?.recommendations) {
+        // Merge AI recommendations into slots
+        const enrichedSlots = availableSlots.map(slot => {
+          const aiRec = data.recommendations.find((r: any) => r.time === slot.time);
+          if (aiRec) {
+            return {
+              ...slot,
+              isRecommended: aiRec.shouldPromote || false,
+              aiScore: aiRec.score,
+              aiReason: aiRec.aiReasoning
+            };
+          }
+          return slot;
+        });
+        setAvailableSlots(enrichedSlots);
+      }
+    } catch (error) {
+      console.warn('AI recommendations error:', error);
+    } finally {
+      setLoadingAI(false);
     }
   };
 
@@ -789,26 +849,58 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
 
                   {/* Time Slots */}
                   {selectedDate && (
-                    <div className="space-y-3 max-h-[400px] overflow-y-auto">
-                      {availableSlots.length === 0 ? (
-                        <p className="text-center text-muted-foreground py-8">Loading time slots...</p>
-                      ) : availableSlots.filter(slot => slot.available).length === 0 ? (
-                        <p className="text-center text-muted-foreground py-8">No available slots for this date</p>
-                      ) : (
-                        availableSlots.filter(slot => slot.available).map((slot) => (
-                          <button
-                            key={slot.time}
-                            onClick={() => handleTimeSelect(slot.time)}
-                            className={`w-full p-4 rounded-xl border-2 text-center font-medium transition-all ${
-                              selectedTime === slot.time
-                                ? 'bg-primary/10 border-primary text-primary'
-                                : 'border-muted hover:border-primary/50 hover:bg-muted/50'
-                            }`}
-                          >
-                            {slot.time}
-                          </button>
-                        ))
-                      )}
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2 mb-2">
+                        <CheckCircle className="h-4 w-4 text-green-600" />
+                        <span className="text-sm text-muted-foreground">
+                          Available Time Slots ({availableSlots.filter(slot => slot.available).length})
+                        </span>
+                      </div>
+                      
+                      <div className="max-h-[400px] overflow-y-auto space-y-2">
+                        {availableSlots.length === 0 ? (
+                          <p className="text-center text-muted-foreground py-8">Loading time slots...</p>
+                        ) : availableSlots.filter(slot => slot.available).length === 0 ? (
+                          <p className="text-center text-muted-foreground py-8">No available slots for this date</p>
+                        ) : (
+                          availableSlots.filter(slot => slot.available).map((slot) => (
+                            <button
+                              key={slot.time}
+                              onClick={() => handleTimeSelect(slot.time)}
+                              className={`relative w-full p-4 rounded-xl border-2 text-left font-medium transition-all ${
+                                selectedTime === slot.time
+                                  ? 'bg-primary text-primary-foreground border-primary shadow-lg'
+                                  : slot.isRecommended
+                                  ? 'bg-purple-50 border-purple-300 hover:border-purple-400 hover:bg-purple-100 ring-2 ring-purple-200'
+                                  : 'border-muted hover:border-primary/50 hover:bg-muted/50'
+                              }`}
+                            >
+                              {slot.isRecommended && (
+                                <span className="absolute top-2 right-2 bg-purple-500 text-white text-[10px] px-2 py-0.5 rounded-full flex items-center gap-1">
+                                  <Clock className="h-3 w-3" />
+                                  ✨ AI Pick
+                                </span>
+                              )}
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <Clock className="h-5 w-5" />
+                                  <span className="text-lg">{slot.time}</span>
+                                </div>
+                                {slot.aiScore && (
+                                  <span className="text-sm text-purple-600 font-semibold">
+                                    Score: {slot.aiScore}
+                                  </span>
+                                )}
+                              </div>
+                              {slot.isRecommended && slot.aiReason && (
+                                <p className="text-xs text-muted-foreground mt-2 pl-7">
+                                  {slot.aiReason}
+                                </p>
+                              )}
+                            </button>
+                          ))
+                        )}
+                      </div>
                     </div>
                   )}
 
