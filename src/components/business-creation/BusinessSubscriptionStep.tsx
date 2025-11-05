@@ -104,12 +104,29 @@ export const BusinessSubscriptionStep = ({ businessData, onComplete }: BusinessS
 
         if (!profile) throw new Error('Profile not found');
 
+        // Generate unique slug
+        let uniqueSlug = businessData.slug;
+        let slugCounter = 1;
+        
+        while (true) {
+          const { data: existingBusiness } = await supabase
+            .from('businesses')
+            .select('id')
+            .eq('slug', uniqueSlug)
+            .maybeSingle();
+          
+          if (!existingBusiness) break;
+          
+          uniqueSlug = `${businessData.slug}-${slugCounter}`;
+          slugCounter++;
+        }
+
         // Create business
         const { data: business, error: businessError } = await supabase
           .from('businesses')
           .insert({
             name: businessData.name,
-            slug: businessData.slug,
+            slug: uniqueSlug,
             tagline: businessData.tagline || null,
             bio: businessData.bio || null,
             owner_profile_id: profile.id,

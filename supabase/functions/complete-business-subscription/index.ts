@@ -67,12 +67,29 @@ serve(async (req) => {
       throw new Error('Business data not found in session');
     }
 
+    // Generate unique slug
+    let uniqueSlug = businessData.slug;
+    let slugCounter = 1;
+    
+    while (true) {
+      const { data: existingBusiness } = await supabase
+        .from('businesses')
+        .select('id')
+        .eq('slug', uniqueSlug)
+        .maybeSingle();
+      
+      if (!existingBusiness) break;
+      
+      uniqueSlug = `${businessData.slug}-${slugCounter}`;
+      slugCounter++;
+    }
+
     // Create business
     const { data: business, error: businessError } = await supabase
       .from('businesses')
       .insert({
         name: businessData.name,
-        slug: businessData.slug,
+        slug: uniqueSlug,
         owner_profile_id: metadata.profile_id,
         tagline: businessData.tagline || 'Your Practice, Your Way',
         primary_color: businessData.primaryColor || '#0F3D91',
