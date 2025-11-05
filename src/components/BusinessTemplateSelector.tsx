@@ -22,7 +22,7 @@ export function BusinessTemplateSelector({
   disabled = false,
   customConfig 
 }: BusinessTemplateSelectorProps) {
-  const templates = getAllTemplates().filter(t => t.id === 'dentist' || t.id === 'hairdresser');
+  const templates = getAllTemplates().filter(t => t.id === 'healthcare');
   const [hoveredTemplate, setHoveredTemplate] = useState<string | null>(null);
   const [previewTemplate, setPreviewTemplate] = useState<string | null>(null);
   const [customizingCustom, setCustomizingCustom] = useState(false);
