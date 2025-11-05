@@ -45,7 +45,8 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
   const [isLoading, setIsLoading] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [aiRecommendations, setAiRecommendations] = useState<any[]>([]);
+  const [aiSlotCode, setAiSlotCode] = useState<{ showSlots: string[]; slotDetails: Record<string, { score: number; reason: string }> }>({ showSlots: [], slotDetails: {} });
+  const [showAllSlots, setShowAllSlots] = useState(false);
   const [loadingAI, setLoadingAI] = useState(false);
   const { toast } = useToast();
 
@@ -222,14 +223,34 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
 
       if (error) {
         console.warn('AI recommendations failed:', error);
-        setAiRecommendations([]);
+        
+        // Handle rate limit and payment errors
+        if (error.message?.includes('429')) {
+          toast({
+            title: "High Traffic",
+            description: "We're getting a lot of requests right now. Please try again in a moment.",
+            variant: "destructive"
+          });
+        } else if (error.message?.includes('402')) {
+          toast({
+            title: "AI Quota Exceeded",
+            description: "AI quota exhausted. Please add credits to your workspace.",
+            variant: "destructive"
+          });
+        }
+        
+        setAiSlotCode({ showSlots: [], slotDetails: {} });
       } else {
-        console.log('AI recommendations:', data);
-        setAiRecommendations(data.recommendations || []);
+        console.log('AI slot code:', data);
+        setAiSlotCode({
+          showSlots: data.showSlots || [],
+          slotDetails: data.slotDetails || {}
+        });
+        setShowAllSlots(false);
       }
     } catch (error) {
       console.warn('AI recommendations error:', error);
-      setAiRecommendations([]);
+      setAiSlotCode({ showSlots: [], slotDetails: {} });
     } finally {
       setLoadingAI(false);
     }
@@ -469,35 +490,47 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {/* Time Slots Grid - Clickable green/red slots */}
+                    {/* Time Slots Grid - AI Code-based Display */}
                     {allSlots.length > 0 && (
                       <div className="bg-gray-50 rounded-lg p-4">
                         <h4 className="font-semibold text-gray-700 mb-3">
-                          All Time Slots ({allSlots.length} total)
+                          {!showAllSlots && aiSlotCode.showSlots.length > 0
+                            ? `✨ AI Recommended Slots (${aiSlotCode.showSlots.length})`
+                            : `Available Time Slots (${allSlots.filter(s => s.is_available && !s.emergency_only).length})`
+                          }
                         </h4>
                           <div className="grid grid-cols-3 xs:grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-1 sm:gap-2">
-                           {allSlots.map((slot) => {
+                           {allSlots
+                             .filter(slot => {
+                               // If showing all, include all available slots
+                               if (showAllSlots) return slot.is_available && !slot.emergency_only;
+                               // If AI code exists, show only AI-recommended slots
+                               if (aiSlotCode.showSlots.length > 0) {
+                                 const timeStr = slot.slot_time.substring(0, 5);
+                                 return aiSlotCode.showSlots.includes(timeStr) && slot.is_available && !slot.emergency_only;
+                               }
+                               // Fallback: show all available
+                               return slot.is_available && !slot.emergency_only;
+                             })
+                             .map((slot) => {
                              const timeStr = slot.slot_time.substring(0, 5);
-                             const aiRec = aiRecommendations.find(r => r.time === timeStr);
-                             const isRecommended = aiRec?.shouldPromote || false;
+                             const aiDetails = aiSlotCode.slotDetails[timeStr];
+                             const isAIPick = aiSlotCode.showSlots.includes(timeStr);
                              
                              return (
                             <button
                               key={slot.slot_time}
-                              onClick={() => slot.is_available && !slot.emergency_only ? setSelectedTime(timeStr) : null}
-                              disabled={!slot.is_available || slot.emergency_only}
+                              onClick={() => setSelectedTime(timeStr)}
                               className={cn(
                                 "relative p-2 sm:p-3 rounded-lg text-xs sm:text-sm text-center font-medium transition-all border-2",
-                                slot.is_available && !slot.emergency_only
-                                  ? selectedTime === timeStr
-                                    ? 'bg-blue-600 text-white border-blue-600 shadow-md'
-                                    : isRecommended
-                                    ? 'bg-purple-50 border-purple-300 text-purple-700 hover:bg-purple-100 cursor-pointer ring-2 ring-purple-200'
-                                    : 'bg-green-50 border-green-200 text-green-700 hover:bg-green-100 cursor-pointer'
-                                  : 'bg-red-50 border-red-200 text-red-700 cursor-not-allowed'
+                                selectedTime === timeStr
+                                  ? 'bg-blue-600 text-white border-blue-600 shadow-md'
+                                  : isAIPick
+                                  ? 'bg-purple-50 border-purple-300 text-purple-700 hover:bg-purple-100 cursor-pointer ring-2 ring-purple-200'
+                                  : 'bg-green-50 border-green-200 text-green-700 hover:bg-green-100 cursor-pointer'
                               )}
                             >
-                              {isRecommended && slot.is_available && !slot.emergency_only && (
+                              {isAIPick && (
                                 <span className="absolute -top-1 -right-1 bg-purple-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">
                                   ✨AI
                                 </span>
@@ -506,21 +539,32 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
                                 {timeStr}
                               </div>
                               <div className="flex items-center justify-center mt-0.5 sm:mt-1">
-                                {slot.is_available && !slot.emergency_only ? (
-                                  <CheckCircle className="h-2 w-2 sm:h-3 sm:w-3" />
-                                ) : (
-                                  <XCircle className="h-2 w-2 sm:h-3 sm:w-3" />
-                                )}
+                                <CheckCircle className="h-2 w-2 sm:h-3 sm:w-3" />
                               </div>
-                              {aiRec && isRecommended && slot.is_available && (
+                              {aiDetails && isAIPick && (
                                 <div className="text-[9px] text-purple-600 font-semibold">
-                                  Score: {aiRec.score}
+                                  Score: {aiDetails.score}
                                 </div>
                               )}
                             </button>
                              );
                            })}
                          </div>
+                         
+                         {/* Show rest button */}
+                         {!showAllSlots && aiSlotCode.showSlots.length > 0 && (
+                           <div className="mt-4 text-center">
+                             <Button
+                               variant="outline"
+                               size="sm"
+                               onClick={() => setShowAllSlots(true)}
+                               className="border-purple-200 text-purple-700 hover:bg-purple-50"
+                             >
+                               Show rest of available times ({allSlots.filter(s => s.is_available && !s.emergency_only).length - aiSlotCode.showSlots.length} more)
+                             </Button>
+                           </div>
+                         )}
+                         
                           <div className="flex flex-col sm:flex-row justify-center gap-2 sm:gap-8 mt-4 text-xs sm:text-sm font-medium">
                             <div className="flex items-center justify-center bg-green-50 px-2 sm:px-3 py-1 sm:py-2 rounded-full border border-green-200">
                               <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-green-600 mr-1 sm:mr-2" />

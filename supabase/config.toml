@@ -57,6 +57,9 @@ verify_jwt = true
 [functions.appointment-ai-assistant]
 verify_jwt = true
 
+[functions.ai-slot-recommendations]
+verify_jwt = true
+
 [functions.create-subscription-checkout]
 verify_jwt = true
 
