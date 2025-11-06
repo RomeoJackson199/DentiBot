@@ -36,12 +36,22 @@ export default function DentistSettings() {
       if (error) throw error;
 
       const remaining = (data as any)?.remaining_businesses ?? null;
-      toast({
-        title: "Left clinic",
-        description: remaining === 0
-          ? "You left the clinic and your provider role was removed."
-          : "You left the clinic. You still belong to other clinics.",
-      });
+      const businessDeleted = (data as any)?.business_deleted ?? false;
+
+      if (businessDeleted) {
+        toast({
+          title: "Business deleted",
+          description: "You were the last member. The business has been permanently deleted.",
+          variant: "default",
+        });
+      } else {
+        toast({
+          title: "Left clinic",
+          description: remaining === 0
+            ? "You left the clinic and your provider role was removed."
+            : "You left the clinic. You still belong to other clinics.",
+        });
+      }
 
       // Force reload to update role and UI
       window.location.href = '/';
@@ -160,6 +170,8 @@ export default function DentistSettings() {
               </Button>
               <p className="text-sm text-muted-foreground mt-2">
                 You will lose access to all clinic data and appointments.
+                <br />
+                <strong>Warning:</strong> If you are the last member, the entire business will be permanently deleted.
               </p>
             </CardContent>
           </Card>

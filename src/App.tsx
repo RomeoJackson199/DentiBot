@@ -79,6 +79,7 @@ const SetupMPPage = lazy(() => import("./pages/SetupMPPage"));
 const SetupMPMaisonPage = lazy(() => import("./pages/SetupMPMaisonPage"));
 const SetupMPMaisonServicesPage = lazy(() => import("./pages/SetupMPMaisonServicesPage"));
 const DeleteNonDentistBusinessesPage = lazy(() => import("./pages/DeleteNonDentistBusinessesPage"));
+const DeleteBusinessPage = lazy(() => import("./pages/DeleteBusinessPage"));
 const RestaurantOwnerDashboard = lazy(() => import("./pages/RestaurantOwnerDashboard"));
 const WaiterDashboard = lazy(() => import("./pages/WaiterDashboard"));
 const KitchenDashboard = lazy(() => import("./pages/KitchenDashboard"));
@@ -321,6 +322,7 @@ const App = () => {
                 <Route path="/admin/setup-mp-maison" element={<SetupMPMaisonPage />} />
                 <Route path="/admin/setup-mp-maison-services" element={<SetupMPMaisonServicesPage />} />
                 <Route path="/admin/delete-non-dentist-businesses" element={<DeleteNonDentistBusinessesPage />} />
+                <Route path="/admin/delete-business" element={<DeleteBusinessPage />} />
                 {/* Restaurant management routes */}
                 <Route path="/restaurant/owner" element={<RoleBasedRouter requiredRole='dentist'><RestaurantOwnerDashboard /></RoleBasedRouter>} />
                 <Route path="/restaurant/waiter" element={<RoleBasedRouter requiredRole='dentist'><WaiterDashboard /></RoleBasedRouter>} />
