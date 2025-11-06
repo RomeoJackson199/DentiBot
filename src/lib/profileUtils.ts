@@ -11,6 +11,7 @@ export interface ProfileData {
   address: string;
   emergency_contact: string;
   ai_opt_out?: boolean;
+  profile_picture_url?: string;
 }
 
 export const saveProfileData = async (user: User, profileData: ProfileData) => {
@@ -40,6 +41,9 @@ export const saveProfileData = async (user: User, profileData: ProfileData) => {
     // Re-enabled after migration applied
     if (profileData.ai_opt_out !== undefined) {
       cleanData.ai_opt_out = profileData.ai_opt_out;
+    }
+    if (profileData.profile_picture_url !== undefined) {
+      cleanData.profile_picture_url = profileData.profile_picture_url || null;
     }
 
     // Save to database (update, then insert if missing)
@@ -90,7 +94,7 @@ export const loadProfileData = async (user: User): Promise<ProfileData> => {
     // Try to load from database first
     const { data, error } = await supabase
       .from('profiles')
-      .select('first_name, last_name, phone, date_of_birth, medical_history, address, emergency_contact, ai_opt_out')
+      .select('first_name, last_name, phone, date_of_birth, medical_history, address, emergency_contact, ai_opt_out, profile_picture_url')
       .eq('user_id', user.id)
       .maybeSingle();
 
@@ -107,7 +111,8 @@ export const loadProfileData = async (user: User): Promise<ProfileData> => {
       medical_history: data?.medical_history || '',
       address: data?.address || '',
       emergency_contact: data?.emergency_contact || '',
-      ai_opt_out: data?.ai_opt_out || false
+      ai_opt_out: data?.ai_opt_out || false,
+      profile_picture_url: data?.profile_picture_url || ''
     };
 
     return profileData;

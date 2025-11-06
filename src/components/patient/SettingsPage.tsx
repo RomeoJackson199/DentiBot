@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { JoinRestaurantStaff } from "@/components/restaurant/JoinRestaurantStaff";
+import { ProfilePictureUpload } from "@/components/ProfilePictureUpload";
 
 export interface SettingsPageProps {
   user: User;
@@ -74,7 +75,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ user }) => {
       <AccordionItem value="profile">
         <AccordionTrigger>Profile & Personal Info</AccordionTrigger>
         <AccordionContent>
-          <ProfileForm profile={profile} setProfile={setProfile} onSave={handleSave} saving={saving} email={user.email || ''} />
+          <ProfileForm profile={profile} setProfile={setProfile} onSave={handleSave} saving={saving} email={user.email || ''} userId={user.id} />
         </AccordionContent>
       </AccordionItem>
       <AccordionItem value="medical">
@@ -121,7 +122,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ user }) => {
       </div>
       <div className="flex-1 overflow-auto p-4">
         {active === 'Profile & Personal Info' && (
-          <ProfileForm profile={profile} setProfile={setProfile} onSave={handleSave} saving={saving} email={user.email || ''} />
+          <ProfileForm profile={profile} setProfile={setProfile} onSave={handleSave} saving={saving} email={user.email || ''} userId={user.id} />
         )}
         {active === 'Medical & Insurance Info' && (
           <MedicalForm medical={medical} setMedical={setMedical} onSave={() => {}} />
@@ -151,15 +152,21 @@ interface ProfileFormProps {
   setProfile: (p: ProfileData) => void;
   onSave: () => Promise<void> | void;
   saving: boolean;
+  userId: string;
 }
 
-const ProfileForm: React.FC<ProfileFormProps> = ({ email, profile, setProfile, onSave, saving }) => {
+const ProfileForm: React.FC<ProfileFormProps> = ({ email, profile, setProfile, onSave, saving, userId }) => {
   return (
     <Card>
       <CardHeader>
         <CardTitle>Profile & Personal Info</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
+        <ProfilePictureUpload 
+          currentUrl={profile.profile_picture_url}
+          userId={userId}
+          onUploadComplete={(url) => setProfile({ ...profile, profile_picture_url: url })}
+        />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <Label>First Name</Label>
@@ -194,8 +201,9 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ email, profile, setProfile, o
           <Label>Medical History</Label>
           <Textarea value={profile.medical_history} onChange={(e) => setProfile({ ...profile, medical_history: e.target.value })} />
         </div>
-        <div className="flex justify-end">
-          <Button onClick={onSave} disabled={saving}>{saving ? 'Saving...' : 'Save Changes'}</Button>
+        <div className="flex justify-end gap-2">
+          <Button type="button" variant="outline" onClick={() => window.location.reload()}>Reset</Button>
+          <Button type="button" onClick={onSave} disabled={saving}>{saving ? 'Saving...' : 'Save Changes'}</Button>
         </div>
       </CardContent>
     </Card>

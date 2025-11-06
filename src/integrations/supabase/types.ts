@@ -838,6 +838,7 @@ export type Database = {
           last_name: string | null
           license_number: string | null
           profile_id: string
+          profile_picture_url: string | null
           specialization: string | null
           total_ratings: number
           updated_at: string
@@ -859,6 +860,7 @@ export type Database = {
           last_name?: string | null
           license_number?: string | null
           profile_id: string
+          profile_picture_url?: string | null
           specialization?: string | null
           total_ratings?: number
           updated_at?: string
@@ -880,6 +882,7 @@ export type Database = {
           last_name?: string | null
           license_number?: string | null
           profile_id?: string
+          profile_picture_url?: string | null
           specialization?: string | null
           total_ratings?: number
           updated_at?: string
@@ -1616,6 +1619,7 @@ export type Database = {
           onboarding_completed: boolean | null
           phone: string | null
           profile_completion_status: string
+          profile_picture_url: string | null
           role: string | null
           updated_at: string
           user_id: string
@@ -1638,6 +1642,7 @@ export type Database = {
           onboarding_completed?: boolean | null
           phone?: string | null
           profile_completion_status?: string
+          profile_picture_url?: string | null
           role?: string | null
           updated_at?: string
           user_id: string
@@ -1660,6 +1665,7 @@ export type Database = {
           onboarding_completed?: boolean | null
           phone?: string | null
           profile_completion_status?: string
+          profile_picture_url?: string | null
           role?: string | null
           updated_at?: string
           user_id?: string

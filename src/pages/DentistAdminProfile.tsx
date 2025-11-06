@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, Save, User } from "lucide-react";
 import { useCurrentDentist } from "@/hooks/useCurrentDentist";
 import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
+import { ProfilePictureUpload } from "@/components/ProfilePictureUpload";
 
 export default function DentistAdminProfile() {
   const { dentistId, profileId, loading: dentistLoading } = useCurrentDentist();
@@ -25,6 +26,7 @@ export default function DentistAdminProfile() {
     clinic_address: "",
     license_number: "",
     bio: "",
+    profile_picture_url: "",
   });
   const [initialData, setInitialData] = useState(formData);
 
@@ -54,6 +56,7 @@ export default function DentistAdminProfile() {
           clinic_address: dentistData.clinic_address || "",
           license_number: dentistData.license_number || "",
           bio: profileData.bio || "",
+          profile_picture_url: dentistData.profile_picture_url || profileData.profile_picture_url || "",
         };
         setFormData(data);
         setInitialData(data);
@@ -86,6 +89,7 @@ export default function DentistAdminProfile() {
             specialization: formData.specialization,
             clinic_address: formData.clinic_address,
             license_number: formData.license_number,
+            profile_picture_url: formData.profile_picture_url,
           })
           .eq('id', dentistId),
         supabase
@@ -96,6 +100,7 @@ export default function DentistAdminProfile() {
             email: formData.email,
             phone: formData.phone,
             bio: formData.bio,
+            profile_picture_url: formData.profile_picture_url,
           })
           .eq('id', profileId),
       ]);
@@ -167,6 +172,11 @@ export default function DentistAdminProfile() {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
+          <ProfilePictureUpload 
+            currentUrl={formData.profile_picture_url}
+            userId={dentistId || ''}
+            onUploadComplete={(url) => handleInputChange('profile_picture_url', url)}
+          />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="first_name">First Name</Label>
