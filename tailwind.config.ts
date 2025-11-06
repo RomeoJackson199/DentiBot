@@ -281,6 +281,54 @@ export default {
 					'50%': {
 						transform: 'translateY(-4px)'
 					}
+				},
+				// New delightful animations
+				'confetti': {
+					'0%': {
+						transform: 'translateY(-100vh) rotate(0deg)',
+						opacity: '1',
+					},
+					'100%': {
+						transform: 'translateY(100vh) rotate(720deg)',
+						opacity: '0',
+					}
+				},
+				'shimmer': {
+					'0%': {
+						backgroundPosition: '-200% 0'
+					},
+					'100%': {
+						backgroundPosition: '200% 0'
+					}
+				},
+				'pulse-ring': {
+					'0%': {
+						transform: 'scale(0.8)',
+						opacity: '1'
+					},
+					'100%': {
+						transform: 'scale(1.5)',
+						opacity: '0'
+					}
+				},
+				'success-check': {
+					'0%': {
+						strokeDashoffset: '100'
+					},
+					'100%': {
+						strokeDashoffset: '0'
+					}
+				},
+				'shake': {
+					'0%, 100%': {
+						transform: 'translateX(0)'
+					},
+					'10%, 30%, 50%, 70%, 90%': {
+						transform: 'translateX(-4px)'
+					},
+					'20%, 40%, 60%, 80%': {
+						transform: 'translateX(4px)'
+					}
 				}
 			},
 			animation: {
@@ -294,6 +342,12 @@ export default {
 				'mobile-slide-up': 'mobile-slide-up 0.4s ease-out',
 				'mobile-scale': 'mobile-scale 0.2s ease-out',
 				'bounce-gentle': 'bounce-gentle 2s ease-in-out infinite',
+				// New animations
+				'confetti': 'confetti 3s ease-in forwards',
+				'shimmer': 'shimmer 2s linear infinite',
+				'pulse-ring': 'pulse-ring 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+				'success-check': 'success-check 0.6s ease-out forwards',
+				'shake': 'shake 0.5s ease-in-out',
 			},
 			// Touch-friendly sizing
 			minHeight: {
