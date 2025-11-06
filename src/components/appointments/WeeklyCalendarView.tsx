@@ -230,28 +230,28 @@ export function WeeklyCalendarView({
 
   return (
     <TooltipProvider>
-      <div className="border-2 rounded-2xl bg-background overflow-hidden shadow-lg">
+      <div className="border rounded-xl bg-card overflow-hidden shadow-sm">
         {/* Mobile day navigation */}
         {isMobile && (
-          <div className="flex items-center justify-between p-3 border-b bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/30 dark:to-purple-950/30">
+          <div className="flex items-center justify-between px-4 py-3 border-b bg-muted/30">
             <Button
               variant="ghost"
               size="icon"
               onClick={handlePreviousDay}
               disabled={mobileCurrentDay === 0}
-              className="hover:bg-white/50"
+              className="h-9 w-9"
             >
               <ChevronLeft className="h-5 w-5" />
             </Button>
             <div className="text-center">
-              <div className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
+              <div className="text-sm text-muted-foreground font-medium">
                 {format(displayDays[0], "EEEE")}
               </div>
               <div className={cn(
-                "text-lg font-semibold mt-1",
+                "text-lg font-semibold",
                 isSameDay(displayDays[0], new Date()) && "text-primary"
               )}>
-                {format(displayDays[0], "MMMM dd, yyyy")}
+                {format(displayDays[0], "d MMMM yyyy")}
               </div>
             </div>
             <Button
@@ -259,51 +259,59 @@ export function WeeklyCalendarView({
               size="icon"
               onClick={handleNextDay}
               disabled={mobileCurrentDay === 6}
-              className="hover:bg-white/50"
+              className="h-9 w-9"
             >
               <ChevronRight className="h-5 w-5" />
             </Button>
           </div>
         )}
 
-        {/* Header with days (desktop only) */}
+        {/* Header with days (desktop only) - Compact horizontal layout */}
         {!isMobile && (
-          <div className="grid grid-cols-[80px_repeat(7,1fr)] border-b bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 dark:from-blue-950/30 dark:via-purple-950/30 dark:to-pink-950/30">
-            <div className="p-3 border-r"></div>
-            {weekDays.map((day) => (
-              <div
-                key={day.toISOString()}
-                className="p-3 text-center border-r last:border-r-0"
-              >
-                <div className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
-                  {format(day, "EEE")}
-                </div>
-                <div
-                  className={cn(
-                    "text-lg font-semibold mt-1",
-                    isSameDay(day, new Date()) &&
-                      "bg-gradient-to-br from-blue-500 to-purple-500 text-white rounded-full w-8 h-8 flex items-center justify-center mx-auto shadow-md"
-                  )}
-                >
-                  {format(day, "dd")}
-                </div>
-              </div>
-            ))}
+          <div className="sticky top-0 z-10 bg-card border-b">
+            <div className="grid grid-cols-[100px_repeat(7,1fr)]">
+              <div className="px-4 py-3"></div>
+              {weekDays.map((day) => {
+                const isToday = isSameDay(day, new Date());
+                return (
+                  <div
+                    key={day.toISOString()}
+                    className="px-2 py-3 text-center"
+                  >
+                    <div className="space-y-1">
+                      <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                        {format(day, "EEE")}
+                      </div>
+                      <div
+                        className={cn(
+                          "text-2xl font-semibold inline-flex items-center justify-center transition-all",
+                          isToday
+                            ? "bg-primary text-primary-foreground rounded-full w-10 h-10 shadow-sm"
+                            : "text-foreground"
+                        )}
+                      >
+                        {format(day, "dd")}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
 
       {/* Time slots and appointments */}
-      <ScrollArea className="h-[600px]">
+      <ScrollArea className="h-[calc(100vh-280px)]">
         <div className={cn(
           "grid",
-          isMobile ? "grid-cols-[80px_1fr]" : "grid-cols-[80px_repeat(7,1fr)]"
+          isMobile ? "grid-cols-[100px_1fr]" : "grid-cols-[100px_repeat(7,1fr)]"
         )}>
           {TIME_SLOTS.map((timeSlot) => (
             <>
               {/* Time label */}
               <div
                 key={`time-${timeSlot}`}
-                className="p-3 border-r border-b text-sm text-muted-foreground font-medium bg-muted/10"
+                className="px-4 py-3 border-r border-b text-sm text-muted-foreground font-medium bg-muted/5"
               >
                 {timeSlot}
               </div>
@@ -312,15 +320,18 @@ export function WeeklyCalendarView({
               {displayDays.map((day) => {
                 const slotAppointments = getAppointmentsForSlot(day, timeSlot);
                 const isBreak = isBreakTime(day, timeSlot);
+                const isToday = isSameDay(day, new Date());
                 
                 return (
                   <div
                     key={`${day.toISOString()}-${timeSlot}`}
                     className={cn(
-                      "p-2 border-r border-b last:border-r-0 min-h-[80px] transition-colors",
+                      "p-2 border-r border-b last:border-r-0 min-h-[90px] transition-colors",
                       isBreak 
-                        ? "bg-gray-100 dark:bg-gray-800" 
-                        : "bg-background hover:bg-muted/5"
+                        ? "bg-muted/20" 
+                        : isToday
+                          ? "bg-primary/5 hover:bg-primary/10"
+                          : "bg-background hover:bg-muted/5"
                     )}
                   >
                     {isBreak ? (

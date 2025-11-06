@@ -157,31 +157,31 @@ export default function DentistAppointmentsManagement() {
         </Card>
       </div>;
   }
-  return <div className="h-screen flex flex-col bg-gradient-to-br from-background via-primary/5 to-secondary/10 pt-3 sm:pt-6">
-      {/* Enhanced Header */}
-      <div className={cn("border-b bg-card/95 backdrop-blur-lg sticky top-0 z-30 transition-transform duration-300 shadow-md", headerVisible ? "translate-y-0" : "-translate-y-full")}>
+  return <div className="h-screen flex flex-col bg-background">
+      {/* Simplified Header */}
+      <div className={cn("border-b bg-card sticky top-0 z-30 transition-transform duration-300", headerVisible ? "translate-y-0" : "-translate-y-full")}>
         {/* Page Title */}
-        <div className="px-3 sm:px-6 pt-3 sm:pt-4 pb-2">
-          <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+        <div className="px-4 sm:px-6 pt-4 sm:pt-5 pb-3">
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
             My Calendar & Appointments
           </h1>
-          <p className="text-xs sm:text-sm text-muted-foreground mt-1">Manage your schedule and appointments</p>
+          <p className="text-sm text-muted-foreground mt-1">Manage your schedule and appointments</p>
         </div>
 
         {/* View Controls */}
-        <div className="flex items-center justify-between px-3 sm:px-6 pb-3 sm:pb-4">
-          <div className="flex items-center justify-between sm:justify-start gap-3 sm:gap-4 w-full sm:w-auto">
+        <div className="flex items-center justify-between px-4 sm:px-6 pb-4">
+          <div className="flex items-center gap-3">
             <Button
               variant="ghost"
               size="icon"
               onClick={() => navigateDate("prev")}
-              className="h-8 w-8 sm:h-9 sm:w-9 hover:bg-primary/10"
+              className="h-9 w-9 hover:bg-muted"
             >
-              <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5" />
+              <ChevronLeft className="h-5 w-5" />
             </Button>
 
-            <div className="flex items-center gap-2 flex-1 sm:flex-initial justify-center">
-              <span className="text-sm sm:text-base font-semibold text-center bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+            <div className="flex items-center gap-2">
+              <span className="text-base font-semibold text-foreground min-w-[200px] text-center">
                 {getDateRangeLabel()}
               </span>
             </div>
@@ -190,9 +190,9 @@ export default function DentistAppointmentsManagement() {
               variant="ghost"
               size="icon"
               onClick={() => navigateDate("next")}
-              className="h-8 w-8 sm:h-9 sm:w-9 hover:bg-primary/10"
+              className="h-9 w-9 hover:bg-muted"
             >
-              <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5" />
+              <ChevronRight className="h-5 w-5" />
             </Button>
           </div>
 
@@ -200,7 +200,7 @@ export default function DentistAppointmentsManagement() {
             variant="outline"
             size="sm"
             onClick={() => setCurrentDate(new Date())}
-            className="border-primary/30 hover:bg-primary/10 text-xs sm:text-sm"
+            className="hover:bg-muted"
           >
             Today
           </Button>
@@ -208,11 +208,11 @@ export default function DentistAppointmentsManagement() {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-hidden bg-muted/10">
         {/* Calendar View */}
         <div className={cn(
           "p-4 overflow-auto transition-all duration-300",
-          selectedAppointment ? "hidden md:block md:w-[22%]" : "flex-1"
+          selectedAppointment ? "hidden md:block md:w-[65%]" : "flex-1"
         )}>
           {dentistLoading ? <div className="flex justify-center items-center h-full">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -222,7 +222,7 @@ export default function DentistAppointmentsManagement() {
         </div>
 
         {/* Sidebar */}
-        {selectedAppointment && <div className={cn("w-full md:w-[78%] border-l bg-card/95 backdrop-blur-lg transition-all duration-300 shadow-xl")}>
+        {selectedAppointment && <div className={cn("w-full md:w-[35%] border-l bg-card transition-all duration-300")}>
             <AppointmentDetailsSidebar appointment={selectedAppointment} onClose={handleBackToWeek} onStatusChange={handleStatusChange} />
           </div>}
       </div>
