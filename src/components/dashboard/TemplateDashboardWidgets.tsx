@@ -44,7 +44,7 @@ export function TemplateDashboardHeader() {
           title: '🍽️ Restaurant Dashboard',
           subtitle: `Manage reservations and track your dining service`,
         };
-      case 'dentist':
+      case 'healthcare':
         return {
           title: '🦷 Dental Dashboard',
           subtitle: `Comprehensive dental practice overview`,
@@ -137,7 +137,7 @@ export function TemplateSpecificMetrics() {
           },
         ];
 
-      case 'dentist':
+      case 'healthcare':
         return [
           {
             icon: Users,
@@ -249,7 +249,7 @@ export function TemplateQuickActions() {
           { label: 'Table Status', description: 'View availability' },
         ];
 
-      case 'dentist':
+      case 'healthcare':
         return [
           { label: `New ${t('customer')}`, description: 'Add patient' },
           { label: 'Write Prescription', description: 'Quick Rx' },
@@ -313,7 +313,7 @@ export function TemplateInsights() {
           '📅 Consider offering a weekday lunch special',
         ];
 
-      case 'dentist':
+      case 'healthcare':
         return [
           '📋 12 patients due for 6-month checkups',
           '📊 Your practice is running 15% ahead of schedule today',
