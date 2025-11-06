@@ -23,6 +23,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/hooks/useLanguage";
 import { AppointmentAIAssistant } from "@/components/appointments/AppointmentAIAssistant";
+import { AppointmentChatSummary } from "@/components/appointments/AppointmentChatSummary";
 import { logger } from '@/lib/logger';
 
 interface AppointmentDetailsProps {
@@ -127,6 +128,9 @@ export function AppointmentDetailsDialog({ appointmentId, open, onOpenChange }: 
         ) : appointment ? (
           <ScrollArea className="max-h-[70vh]">
             <div className="space-y-6 pr-6">
+              {/* Patient AI Chat Conversation */}
+              <AppointmentChatSummary appointmentId={appointmentId} />
+              
               {/* AI Assistant Section */}
               <AppointmentAIAssistant 
                 appointmentData={appointment}

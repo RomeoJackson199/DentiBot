@@ -462,6 +462,53 @@ export type Database = {
           },
         ]
       }
+      chat_messages: {
+        Row: {
+          appointment_id: string | null
+          created_at: string
+          id: string
+          is_bot: boolean
+          message: string
+          message_type: string
+          metadata: Json | null
+          session_id: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          appointment_id?: string | null
+          created_at?: string
+          id?: string
+          is_bot?: boolean
+          message: string
+          message_type?: string
+          metadata?: Json | null
+          session_id: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          appointment_id?: string | null
+          created_at?: string
+          id?: string
+          is_bot?: boolean
+          message?: string
+          message_type?: string
+          metadata?: Json | null
+          session_id?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clinic_settings: {
         Row: {
           address: string | null

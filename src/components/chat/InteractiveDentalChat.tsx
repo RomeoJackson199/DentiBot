@@ -220,14 +220,14 @@ export const InteractiveDentalChat = ({
     if (!user) return;
     
     try {
-      await supabase.from("messages").insert({
+      await supabase.from("chat_messages").insert({
         session_id: message.session_id,
         user_id: user.id,
         message: message.message,
         is_bot: message.is_bot,
         message_type: message.message_type,
         metadata: message.metadata as any,
-      } as any);
+      });
     } catch (error) {
       console.error("Error saving message:", error);
     }
@@ -834,6 +834,18 @@ Just type what you need! 😊
         .single();
 
       if (appointmentError) throw appointmentError;
+
+      // Link all chat messages from this session to the appointment
+      try {
+        await supabase
+          .from('chat_messages')
+          .update({ appointment_id: appointmentData.id })
+          .eq('session_id', sessionId)
+          .eq('user_id', user.id);
+      } catch (linkError) {
+        console.error('Error linking chat messages to appointment:', linkError);
+        // Don't throw - appointment was successful, linking is supplementary
+      }
 
       const { error: slotError } = await supabase.rpc('book_appointment_slot', {
         p_dentist_id: bookingFlow.selectedDentist.id,
