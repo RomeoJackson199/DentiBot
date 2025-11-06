@@ -167,7 +167,7 @@ export default function DentistAppointmentsManagement() {
         
 
         {/* View Controls */}
-        <div className="flex items-center justify-between px-4 sm:px-6 pb-4">
+        <div className="flex items-center justify-between px-4 sm:px-6 pb-2">
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="icon" onClick={() => navigateDate("prev")} className="h-9 w-9 hover:bg-muted">
               <ChevronLeft className="h-5 w-5" />
@@ -193,7 +193,7 @@ export default function DentistAppointmentsManagement() {
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden bg-muted/10">
         {/* Calendar View */}
-        <div className={cn("p-4 overflow-auto transition-all duration-300", selectedAppointment ? "hidden md:block md:w-[65%]" : "flex-1")}>
+        <div className={cn("px-4 pt-0 pb-4 overflow-auto transition-all duration-300", selectedAppointment ? "hidden md:block md:w-[65%]" : "flex-1")}>
           {dentistLoading ? <div className="flex justify-center items-center h-full">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div> : !dentistId ? <div className="flex justify-center items-center h-full">
