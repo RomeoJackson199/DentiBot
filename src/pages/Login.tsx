@@ -56,7 +56,7 @@ const Login = () => {
         const { data, error } = await supabase
           .from("businesses")
           .select("id, name, tagline, logo_url, template_type")
-          .eq('template_type', 'healthcare')
+          .in('template_type', ['healthcare', 'dentist'])
           .order("name");
 
         if (error) throw error;

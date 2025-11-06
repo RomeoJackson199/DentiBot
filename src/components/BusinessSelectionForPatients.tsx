@@ -33,7 +33,7 @@ export function BusinessSelectionForPatients({ onSelectBusiness, selectedBusines
         const { data, error } = await supabase
           .from('businesses')
           .select('id, name, slug, tagline, logo_url, primary_color, template_type')
-          .eq('template_type', 'healthcare')
+          .in('template_type', ['healthcare', 'dentist'])
           .order('name');
 
         if (error) throw error;

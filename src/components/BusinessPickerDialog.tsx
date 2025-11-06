@@ -54,7 +54,10 @@ export function BusinessPickerDialog({ open, onOpenChange }: BusinessPickerDialo
         
         <div className="space-y-3 mt-4">
           {memberships
-            .filter((m) => (m as any).business?.template_type ? (m as any).business.template_type === 'healthcare' : true)
+            .filter((m) => {
+              const templateType = (m as any).business?.template_type;
+              return !templateType || templateType === 'healthcare' || templateType === 'dentist';
+            })
             .map((membership) => (
             <Card
               key={membership.id}

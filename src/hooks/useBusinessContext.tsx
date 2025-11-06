@@ -71,7 +71,8 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
         const { data: businessesData, error: businessesError } = await supabase
           .from('businesses')
           .select('id, name, slug, template_type')
-          .in('id', businessIds);
+          .in('id', businessIds)
+          .in('template_type', ['healthcare', 'dentist']);
 
         if (businessesError) throw businessesError;
         businessMap = Object.fromEntries((businessesData || []).map((b: any) => [b.id, b]));
