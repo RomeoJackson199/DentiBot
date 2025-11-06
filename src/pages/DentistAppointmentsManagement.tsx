@@ -32,30 +32,31 @@ export default function DentistAppointmentsManagement() {
   const queryClient = useQueryClient();
 
   // Fetch Google Calendar events
-  const { data: googleCalendarEvents } = useQuery({
+  const {
+    data: googleCalendarEvents
+  } = useQuery({
     queryKey: ['google-calendar-events', dentistId, currentDate],
     queryFn: async () => {
       if (!dentistId) return [];
-      
       const startDate = startOfWeek(currentDate);
       const endDate = endOfWeek(addDays(currentDate, 7));
-      
-      const { data, error } = await supabase.functions.invoke('google-calendar-sync', {
+      const {
+        data,
+        error
+      } = await supabase.functions.invoke('google-calendar-sync', {
         body: {
           startDate: startDate.toISOString(),
-          endDate: endDate.toISOString(),
+          endDate: endDate.toISOString()
         }
       });
-
       if (error) {
         logger.error('Error fetching Google Calendar events:', error);
         return [];
       }
-
       return data?.events || [];
     },
     enabled: !!dentistId,
-    refetchInterval: 300000, // Refresh every 5 minutes
+    refetchInterval: 300000 // Refresh every 5 minutes
   });
   useEffect(() => {
     const handleScroll = () => {
@@ -101,12 +102,14 @@ export default function DentistAppointmentsManagement() {
       try {
         const action = newStatus === 'cancelled' ? 'delete' : 'update';
         await supabase.functions.invoke('google-calendar-create-event', {
-          body: { appointmentId, action }
+          body: {
+            appointmentId,
+            action
+          }
         });
       } catch (calendarError) {
         logger.error('Failed to sync status change to Google Calendar:', calendarError);
       }
-
       toast({
         title: "Success",
         description: "Appointment status updated successfully"
@@ -161,22 +164,12 @@ export default function DentistAppointmentsManagement() {
       {/* Simplified Header */}
       <div className={cn("border-b bg-card sticky top-0 z-30 transition-transform duration-300", headerVisible ? "translate-y-0" : "-translate-y-full")}>
         {/* Page Title */}
-        <div className="px-4 sm:px-6 pt-4 sm:pt-5 pb-3">
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
-            My Calendar & Appointments
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">Manage your schedule and appointments</p>
-        </div>
+        
 
         {/* View Controls */}
         <div className="flex items-center justify-between px-4 sm:px-6 pb-4">
           <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => navigateDate("prev")}
-              className="h-9 w-9 hover:bg-muted"
-            >
+            <Button variant="ghost" size="icon" onClick={() => navigateDate("prev")} className="h-9 w-9 hover:bg-muted">
               <ChevronLeft className="h-5 w-5" />
             </Button>
 
@@ -186,22 +179,12 @@ export default function DentistAppointmentsManagement() {
               </span>
             </div>
 
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => navigateDate("next")}
-              className="h-9 w-9 hover:bg-muted"
-            >
+            <Button variant="ghost" size="icon" onClick={() => navigateDate("next")} className="h-9 w-9 hover:bg-muted">
               <ChevronRight className="h-5 w-5" />
             </Button>
           </div>
 
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setCurrentDate(new Date())}
-            className="hover:bg-muted"
-          >
+          <Button variant="outline" size="sm" onClick={() => setCurrentDate(new Date())} className="hover:bg-muted">
             Today
           </Button>
         </div>
@@ -210,10 +193,7 @@ export default function DentistAppointmentsManagement() {
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden bg-muted/10">
         {/* Calendar View */}
-        <div className={cn(
-          "p-4 overflow-auto transition-all duration-300",
-          selectedAppointment ? "hidden md:block md:w-[65%]" : "flex-1"
-        )}>
+        <div className={cn("p-4 overflow-auto transition-all duration-300", selectedAppointment ? "hidden md:block md:w-[65%]" : "flex-1")}>
           {dentistLoading ? <div className="flex justify-center items-center h-full">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div> : !dentistId ? <div className="flex justify-center items-center h-full">
