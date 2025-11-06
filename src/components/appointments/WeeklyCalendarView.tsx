@@ -301,7 +301,7 @@ export function WeeklyCalendarView({
         )}
 
       {/* Time slots and appointments */}
-      <ScrollArea className="h-[calc(100vh-280px)]">
+      <ScrollArea className="h-[calc(100vh-320px)]">
         <div className={cn(
           "grid",
           isMobile ? "grid-cols-[100px_1fr]" : "grid-cols-[100px_repeat(7,1fr)]"
@@ -311,7 +311,7 @@ export function WeeklyCalendarView({
               {/* Time label */}
               <div
                 key={`time-${timeSlot}`}
-                className="px-4 py-3 border-r border-b text-sm text-muted-foreground font-medium bg-muted/5"
+                className="px-4 py-2 border-r border-b text-sm text-muted-foreground font-medium bg-muted/5"
               >
                 {timeSlot}
               </div>
@@ -326,7 +326,7 @@ export function WeeklyCalendarView({
                   <div
                     key={`${day.toISOString()}-${timeSlot}`}
                     className={cn(
-                      "p-2 border-r border-b last:border-r-0 min-h-[90px] transition-colors",
+                      "p-2 border-r border-b last:border-r-0 min-h-[70px] transition-colors",
                       isBreak 
                         ? "bg-muted/20" 
                         : isToday
