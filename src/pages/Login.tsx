@@ -15,6 +15,7 @@ type Business = {
   name: string;
   tagline: string | null;
   logo_url: string | null;
+  template_type?: string | null;
 };
 
 const loginHeroImage = "/lovable-uploads/dd1b725d-745a-4f59-a31a-2b7df6e48a1c.png";
@@ -54,7 +55,8 @@ const Login = () => {
       try {
         const { data, error } = await supabase
           .from("businesses")
-          .select("id, name, tagline, logo_url")
+          .select("id, name, tagline, logo_url, template_type")
+          .eq('template_type', 'healthcare')
           .order("name");
 
         if (error) throw error;

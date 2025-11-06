@@ -70,7 +70,7 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
       if (businessIds.length > 0) {
         const { data: businessesData, error: businessesError } = await supabase
           .from('businesses')
-          .select('id, name, slug')
+          .select('id, name, slug, template_type')
           .in('id', businessIds);
 
         if (businessesError) throw businessesError;

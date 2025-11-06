@@ -53,7 +53,9 @@ export function BusinessPickerDialog({ open, onOpenChange }: BusinessPickerDialo
         </DialogHeader>
         
         <div className="space-y-3 mt-4">
-          {memberships.map((membership) => (
+          {memberships
+            .filter((m) => (m as any).business?.template_type ? (m as any).business.template_type === 'healthcare' : true)
+            .map((membership) => (
             <Card
               key={membership.id}
               className={`cursor-pointer transition-all hover:shadow-md ${
