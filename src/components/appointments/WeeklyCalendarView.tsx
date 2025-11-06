@@ -301,7 +301,7 @@ export function WeeklyCalendarView({
         )}
 
       {/* Time slots and appointments */}
-      <ScrollArea className="h-[calc(100vh-320px)]">
+      <ScrollArea className="max-h-[calc(100vh-320px)]">
         <div className={cn(
           "grid",
           isMobile ? "grid-cols-[100px_1fr]" : "grid-cols-[100px_repeat(7,1fr)]"
