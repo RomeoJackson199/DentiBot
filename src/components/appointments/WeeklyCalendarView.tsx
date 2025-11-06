@@ -3,7 +3,7 @@ import { format, startOfWeek, addDays, addHours, isSameDay, parseISO } from "dat
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
+// ScrollArea removed to avoid double scroll
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -230,7 +230,7 @@ export function WeeklyCalendarView({
 
   return (
     <TooltipProvider>
-      <div className="border rounded-xl bg-card overflow-hidden shadow-sm">
+      <div className="border rounded-xl bg-card overflow-hidden shadow-sm min-h-[calc(100vh-140px)]">
         {/* Mobile day navigation */}
         {isMobile && (
           <div className="flex items-center justify-between px-4 py-3 border-b bg-muted/30">
@@ -301,7 +301,7 @@ export function WeeklyCalendarView({
         )}
 
       {/* Time slots and appointments */}
-      <ScrollArea className="max-h-[calc(100vh-320px)]">
+      <div className="pt-2">
         <div className={cn(
           "grid",
           isMobile ? "grid-cols-[100px_1fr]" : "grid-cols-[100px_repeat(7,1fr)]"
@@ -326,7 +326,7 @@ export function WeeklyCalendarView({
                   <div
                     key={`${day.toISOString()}-${timeSlot}`}
                     className={cn(
-                      "p-2 border-r border-b last:border-r-0 min-h-[70px] transition-colors",
+                      "p-2 border-r border-b last:border-r-0 min-h-[100px] transition-colors",
                       isBreak 
                         ? "bg-muted/20" 
                         : isToday
@@ -490,7 +490,7 @@ export function WeeklyCalendarView({
             </>
           ))}
         </div>
-        </ScrollArea>
+        </div>
       </div>
 
       {selectedAppointment && (
