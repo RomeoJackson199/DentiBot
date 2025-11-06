@@ -121,16 +121,22 @@ export function BusinessCreationDialog({ open, onOpenChange, onSuccess }: Busine
 
       if (memberError) throw memberError;
 
-      // Assign provider role
+      // Assign admin and provider roles
       const { error: roleError } = await supabase
         .from('user_roles')
-        .insert({
-          user_id: user.id,
-          role: 'provider',
-        });
+        .insert([
+          {
+            user_id: user.id,
+            role: 'admin',
+          },
+          {
+            user_id: user.id,
+            role: 'provider',
+          }
+        ]);
 
-      // Ignore if role already exists
-      if (roleError && !roleError.message.includes('duplicate')) {
+      // Ignore if roles already exist
+      if (roleError && !roleError.message.includes('duplicate') && !roleError.message.includes('unique')) {
         throw roleError;
       }
 

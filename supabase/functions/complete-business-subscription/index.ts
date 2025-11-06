@@ -95,6 +95,7 @@ serve(async (req) => {
         primary_color: businessData.primaryColor || '#0F3D91',
         secondary_color: businessData.secondaryColor || '#66D2D6',
         currency: 'USD',
+        template_type: businessData.template || 'healthcare', // Always set to healthcare
       })
       .select()
       .single();
@@ -112,6 +113,25 @@ serve(async (req) => {
         business_id: business.id,
         role: 'owner',
       });
+
+    // Assign admin and provider roles to business owner (ignore duplicates)
+    const { error: roleError } = await supabase
+      .from('user_roles')
+      .insert([
+        {
+          user_id: user.id,
+          role: 'admin',
+        },
+        {
+          user_id: user.id,
+          role: 'provider',
+        }
+      ]);
+    
+    // Ignore duplicate key errors
+    if (roleError && !roleError.message.includes('duplicate') && !roleError.message.includes('unique')) {
+      console.error('Role assignment error:', roleError);
+    }
 
     // Get subscription details from Stripe
     const stripeSubscription = await stripe.subscriptions.retrieve(session.subscription as string);
