@@ -10,6 +10,9 @@ import { Calendar, Clock, Bell, Shield, Users, CheckCircle2, ArrowRight, Sparkle
 import { useNavigate } from "react-router-dom";
 import { AccessibleLoadingIndicator } from "@/components/ui/skip-to-content";
 import { DemoTourFlow } from "@/components/demo/DemoTourFlow";
+import { AnimatedBackground } from "@/components/homepage/AnimatedBackground";
+import { ScrollAnimatedSection } from "@/components/homepage/ScrollAnimatedSection";
+import { motion } from "framer-motion";
 const Index = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -57,34 +60,49 @@ const Index = () => {
       <main id="main-content">
         {/* Hero Section */}
         <section className="relative pt-20 pb-32 px-4 sm:px-6 lg:px-8 overflow-hidden bg-gradient-to-br from-blue-50 via-white to-purple-50">
-          {/* Background decoration */}
-          <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-float"></div>
-            <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-float" style={{
-            animationDelay: '2s'
-          }}></div>
-          </div>
+          {/* Animated Background */}
+          <AnimatedBackground />
 
-          <div className="max-w-7xl mx-auto relative">
-            <div className="text-center space-y-8 animate-fade-in">
+          <div className="max-w-7xl mx-auto relative z-10">
+            <div className="text-center space-y-8">
               {/* Badge */}
-              <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-blue-100 text-blue-700 text-xl font-medium">
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
+                className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-blue-100 text-blue-700 text-xl font-medium"
+              >
                 <Sparkles className="h-6 w-6" />
                 <span>AI-Powered Appointment Management</span>
-              </div>
+              </motion.div>
 
-              <h1 className="text-7xl font-bold text-gray-900 tracking-tight">
+              <motion.h1 
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.2 }}
+                className="text-7xl font-bold text-gray-900 tracking-tight"
+              >
                 Your Complete Healthcare
                 <span className="block bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mt-4">
                   Practice Management System
                 </span>
-              </h1>
+              </motion.h1>
 
-              <p className="text-3xl text-gray-600 max-w-5xl mx-auto leading-relaxed">
+              <motion.p 
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.4 }}
+                className="text-3xl text-gray-600 max-w-5xl mx-auto leading-relaxed"
+              >
                 From appointment scheduling to patient records, payments to inventory—manage your entire healthcare practice with AI-powered efficiency. Built specifically for modern healthcare professionals.
-              </p>
+              </motion.p>
 
-              <div className="flex flex-row gap-6 justify-center items-center pt-8">
+              <motion.div 
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.6 }}
+                className="flex flex-row gap-6 justify-center items-center pt-8"
+              >
                 <Button size="lg" className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-12 py-8 text-2xl shadow-lg hover:shadow-xl transition-all group" onClick={() => navigate('/signup')} aria-label="Get started with free account">
                   Get Started Free
                   <ArrowRight className="ml-3 h-7 w-7 group-hover:translate-x-1 transition-transform" />
@@ -102,10 +120,15 @@ const Index = () => {
                 <Button size="lg" variant="outline" className="border-2 border-gray-300 hover:border-blue-600 hover:bg-blue-50 px-12 py-8 text-2xl transition-all" onClick={() => navigate('/login')} aria-label="Sign in to existing account">
                   Sign In
                 </Button>
-              </div>
+              </motion.div>
 
               {/* Trust indicators */}
-              <div className="flex flex-wrap justify-center items-center gap-12 pt-12 text-xl text-gray-600">
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.8, delay: 0.8 }}
+                className="flex flex-wrap justify-center items-center gap-12 pt-12 text-xl text-gray-600"
+              >
                 <div className="flex items-center gap-3">
                   <Shield className="h-8 w-8 text-blue-600" />
                   <span>HIPAA Compliant</span>
@@ -122,7 +145,7 @@ const Index = () => {
                   <Users className="h-8 w-8 text-green-600" />
                   <span>Multi-Location Support</span>
                 </div>
-              </div>
+              </motion.div>
             </div>
           </div>
         </section>
@@ -130,17 +153,17 @@ const Index = () => {
         {/* Features Section */}
         <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
           <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-16 animate-fade-in">
+            <ScrollAnimatedSection className="text-center mb-16">
               <h2 className="text-5xl font-bold text-gray-900 mb-6">
                 Everything Your Healthcare Practice Needs
               </h2>
               <p className="text-2xl text-gray-600 max-w-4xl mx-auto">
                 Comprehensive practice management tools designed by healthcare professionals, for healthcare professionals
               </p>
-            </div>
+            </ScrollAnimatedSection>
 
             <div className="grid grid-cols-3 gap-6">
-              {[{
+              {([{
               icon: Calendar,
               title: "Beautifully Designed Scheduling System",
               description: "Experience a beautifully designed scheduling system that makes appointment management effortless and intuitive",
@@ -170,9 +193,8 @@ const Index = () => {
               title: "Billing & Payments",
               description: "We will send notifications if your customer has forgot to pay so that you can work on what matters most",
               gradient: "from-teal-500 to-cyan-500"
-            }].map((feature, index) => <Card key={index} className="group p-6 border-2 border-gray-200 hover:border-transparent hover:shadow-2xl transition-all duration-300 cursor-pointer relative overflow-hidden h-full flex flex-col" style={{
-              animationDelay: `${index * 100}ms`
-            }} role="article" tabIndex={0} aria-label={`Feature: ${feature.title}`}>
+            }] as const).map((feature, index) => <ScrollAnimatedSection key={index} delay={index * 0.1} direction="up">
+                <Card className="group p-6 border-2 border-gray-200 hover:border-transparent hover:shadow-2xl transition-all duration-300 cursor-pointer relative overflow-hidden h-full flex flex-col" role="article" tabIndex={0} aria-label={`Feature: ${feature.title}`}>
                   {/* Gradient background on hover */}
                   <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-300`}></div>
 
@@ -185,11 +207,12 @@ const Index = () => {
                     </h3>
                     <p className="text-xl text-gray-600 leading-relaxed flex-grow">{feature.description}</p>
                   </div>
-                </Card>)}
+                </Card>
+              </ScrollAnimatedSection>)}
             </div>
 
             {/* Additional features list */}
-            <div className="mt-16 bg-gradient-to-br from-gray-50 to-blue-50 rounded-2xl p-8 md:p-12">
+            <ScrollAnimatedSection className="mt-16 bg-gradient-to-br from-gray-50 to-blue-50 rounded-2xl p-8 md:p-12" delay={0.3}>
               <h3 className="text-4xl font-bold text-gray-900 mb-8 text-center">Plus Much More</h3>
               <div className="grid grid-cols-2 gap-8">
                 {["Multi-location & multi-provider support", "Inventory management with low-stock alerts", "Comprehensive analytics & reporting", "Mobile-responsive PWA design", "Customizable clinic templates", "Real-time notifications & messaging", "Prescription management system", "Treatment plan tracking", "Staff & team management", "Data import/export tools", "Custom branding & white-labeling", "Google Calendar synchronization"].map((feature, index) => <div key={index} className="flex items-center gap-4">
@@ -199,21 +222,21 @@ const Index = () => {
                     <span className="text-gray-700 font-medium text-xl">{feature}</span>
                   </div>)}
               </div>
-            </div>
+            </ScrollAnimatedSection>
           </div>
         </section>
 
         {/* Benefits Section */}
         <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-gray-50 to-blue-50">
           <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-16">
+            <ScrollAnimatedSection className="text-center mb-16">
               <h2 className="text-5xl font-bold text-gray-900 mb-6">
                 Why Healthcare Practices Choose Caberu
               </h2>
               <p className="text-2xl text-gray-600 max-w-4xl mx-auto">
                 Built specifically for healthcare professionals with the features you actually need
               </p>
-            </div>
+            </ScrollAnimatedSection>
             <div className="grid grid-cols-3 gap-10">
               {[{
               title: "Save Time",
@@ -227,11 +250,13 @@ const Index = () => {
               title: "Better Patient Care",
               description: "Access complete patient histories instantly, track treatment plans, and provide more personalized care",
               stat: "100% organized records"
-            }].map((benefit, index) => <Card key={index} className="p-10 text-center bg-white border-2 border-blue-100 hover:border-blue-300 transition-all">
+            }].map((benefit, index) => <ScrollAnimatedSection key={index} delay={index * 0.15}>
+                <Card className="p-10 text-center bg-white border-2 border-blue-100 hover:border-blue-300 transition-all hover:scale-105 duration-300">
                   <div className="text-5xl font-bold text-blue-600 mb-4">{benefit.stat}</div>
                   <h3 className="text-3xl font-bold text-gray-900 mb-4">{benefit.title}</h3>
                   <p className="text-xl text-gray-600">{benefit.description}</p>
-                </Card>)}
+                </Card>
+              </ScrollAnimatedSection>)}
             </div>
           </div>
         </section>
@@ -239,18 +264,19 @@ const Index = () => {
         {/* Pricing Preview Section */}
         <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
           <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-16">
+            <ScrollAnimatedSection className="text-center mb-16">
               <h2 className="text-5xl font-bold text-gray-900 mb-6">
                 Simple, Transparent Pricing
               </h2>
               <p className="text-2xl text-gray-600 max-w-4xl mx-auto">
                 Start free, upgrade when you're ready. No hidden fees, cancel anytime.
               </p>
-            </div>
+            </ScrollAnimatedSection>
 
             <div className="grid grid-cols-3 gap-8 max-w-5xl mx-auto">
               {/* Starter Plan */}
-              <Card className="p-8 border-2 border-gray-200 hover:border-gray-300 transition-all">
+              <ScrollAnimatedSection delay={0} direction="up">
+                <Card className="p-8 border-2 border-gray-200 hover:border-gray-300 transition-all hover:scale-105 duration-300 h-full">
                 <div className="text-center mb-6">
                   <h3 className="text-2xl font-bold text-gray-900 mb-2">Starter</h3>
                   <div className="flex items-baseline justify-center gap-1">
@@ -275,9 +301,11 @@ const Index = () => {
                   Get Started
                 </Button>
               </Card>
+              </ScrollAnimatedSection>
 
               {/* Professional Plan */}
-              <Card className="p-8 border-2 border-blue-600 bg-gradient-to-br from-blue-50 to-purple-50 relative shadow-xl transform scale-105">
+              <ScrollAnimatedSection delay={0.15} direction="up">
+                <Card className="p-8 border-2 border-blue-600 bg-gradient-to-br from-blue-50 to-purple-50 relative shadow-xl transform scale-105 hover:scale-110 duration-300 h-full">
                 <div className="absolute -top-4 left-1/2 -translate-x-1/2">
                   <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-1 rounded-full text-sm font-semibold shadow-lg">
                     Most Popular
@@ -306,9 +334,11 @@ const Index = () => {
                   Start Free Trial
                 </Button>
               </Card>
+              </ScrollAnimatedSection>
 
               {/* Enterprise Plan */}
-              <Card className="p-8 border-2 border-gray-200 hover:border-gray-300 transition-all">
+              <ScrollAnimatedSection delay={0.3} direction="up">
+                <Card className="p-8 border-2 border-gray-200 hover:border-gray-300 transition-all hover:scale-105 duration-300 h-full">
                 <div className="text-center mb-6">
                   <h3 className="text-2xl font-bold text-gray-900 mb-2">Enterprise</h3>
                   <div className="flex items-baseline justify-center gap-1">
@@ -333,6 +363,7 @@ const Index = () => {
                   Get Started
                 </Button>
               </Card>
+              </ScrollAnimatedSection>
             </div>
 
             <div className="text-center mt-12">
