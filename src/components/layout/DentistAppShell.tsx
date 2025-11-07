@@ -6,7 +6,6 @@ import { LayoutDashboard, Users, Calendar, UserCog, Settings as SettingsIcon, Lo
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useMobileOptimizations } from "@/components/mobile/MobileOptimizations";
 import { useClinicBranding } from "@/hooks/useClinicBranding";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { BusinessSelector } from "@/components/BusinessSelector";
@@ -31,9 +30,6 @@ export const DentistAppShell: React.FC<DentistAppShellProps> = ({
   const {
     toast
   } = useToast();
-  const {
-    isMobile
-  } = useMobileOptimizations();
   const {
     branding
   } = useClinicBranding();
@@ -113,82 +109,6 @@ export const DentistAppShell: React.FC<DentistAppShellProps> = ({
       setUserProfilePicture(data?.profile_picture_url || null);
     })();
   }, []);
-  if (isMobile) {
-    return <div className="min-h-screen bg-background">
-        {/* Mobile Header - Simplified */}
-        <div className="fixed top-0 left-0 right-0 z-50 bg-background border-b">
-          <div className="flex items-center justify-between px-3 py-3">
-            <div className="flex items-center gap-2 flex-1 min-w-0">
-              {branding.logoUrl ? <img src={branding.logoUrl} alt="Clinic Logo" className="h-8 w-8 rounded-lg object-cover flex-shrink-0" /> : <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center flex-shrink-0">
-                  <span className="text-primary-foreground font-bold text-sm">D</span>
-                </div>}
-              <span className="font-semibold text-base truncate">{branding.clinicName || "Dentist Portal"}</span>
-            </div>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-9 w-9 flex-shrink-0">
-                  <SettingsIcon className="h-5 w-5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuLabel className="flex flex-col">
-                  <span className="text-sm font-medium">{userName || 'Account'}</span>
-                  <span className="text-xs text-muted-foreground">Dentist</span>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => onChangeSection('settings')} className="gap-2">
-                  <SettingsIcon className="h-4 w-4" />
-                  Settings
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleSignOut} className="gap-2 text-destructive">
-                  <LogOut className="h-4 w-4" />
-                  Log out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </div>
-
-        {/* Main Content */}
-        <div className="pt-16 min-h-screen">
-          <AnimatePresence mode="wait">
-            <motion.div key={activeSection} initial={{
-            opacity: 0
-          }} animate={{
-            opacity: 1
-          }} exit={{
-            opacity: 0
-          }} transition={{
-            duration: 0.2
-          }}>
-              {children}
-            </motion.div>
-          </AnimatePresence>
-        </div>
-
-        {/* Mobile Bottom Navigation */}
-        <div className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t">
-          <div className="grid grid-cols-5 gap-2 p-2">
-            {NAV_ITEMS.map(item => {
-            const Icon = item.icon;
-            const active = isActive(item.id);
-             const handleClick = () => {
-               if (item.path) {
-                 navigate(item.path);
-               } else {
-                 onChangeSection(item.id);
-               }
-             };
-             return <button key={item.id} onClick={handleClick} className={cn("flex w-full flex-col items-center justify-center px-3 py-2.5 rounded-lg transition-all", active ? "text-primary bg-primary/10 font-semibold" : "text-muted-foreground")}>
-                  <Icon className="h-5 w-5" />
-                  <span className="text-xs mt-1">{item.label}</span>
-                </button>;
-          })}
-          </div>
-        </div>
-      </div>;
-  }
 
   // Desktop Layout
   return <div className="min-h-screen bg-background flex flex-col">

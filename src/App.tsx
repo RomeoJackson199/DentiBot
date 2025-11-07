@@ -30,7 +30,6 @@ import { DentistInvitationDialog } from "@/components/DentistInvitationDialog";
 import { CommandPalette } from "@/components/CommandPalette";
 import { CookieConsent } from "@/components/CookieConsent";
 import { OnboardingOrchestrator } from "@/components/onboarding/OnboardingOrchestrator";
-import { DesktopOnly } from "@/components/DesktopOnly";
 
 const Invite = lazy(() => import("./pages/Invite"));
 const Login = lazy(() => import("./pages/Login"));
@@ -258,7 +257,6 @@ const App = () => {
                 <PWAInstallPrompt />
                 <ProfileCompletionDialog />
                 <BrowserRouter>
-                  <DesktopOnly>
                     <DentistInvitationDialog />
                     <CommandPalette />
                     <CookieConsent />
@@ -347,7 +345,6 @@ const App = () => {
                       showBusinessPicker={showBusinessPicker}
                       setShowBusinessPicker={setShowBusinessPicker}
                     />
-                  </DesktopOnly>
                 </BrowserRouter>
             </TooltipProvider>
             </TemplateProvider>
