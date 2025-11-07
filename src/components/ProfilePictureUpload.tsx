@@ -41,9 +41,16 @@ export const ProfilePictureUpload = ({ currentUrl, userId, onUploadComplete }: P
 
     setUploading(true);
     try {
-      // Create file path
+      // Ensure we're using the authenticated user's ID to satisfy RLS
+      const { data: authData, error: authError } = await supabase.auth.getUser();
+      if (authError || !authData?.user) {
+        throw new Error('You must be signed in to upload a profile picture');
+      }
+      const folderId = authData.user.id;
+
+      // Create file path under user's folder (matches storage RLS)
       const fileExt = file.name.split('.').pop();
-      const fileName = `${userId}/${Date.now()}.${fileExt}`;
+      const fileName = `${folderId}/${Date.now()}.${fileExt}`;
 
       // Upload to Supabase storage
       const { error: uploadError } = await supabase.storage
