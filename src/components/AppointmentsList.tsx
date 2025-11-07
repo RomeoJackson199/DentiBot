@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CalendarDays, Clock, User as UserIcon, Plus, X } from "lucide-react";
 import { toast } from "sonner";
 import { useLanguage } from "@/hooks/useLanguage";
@@ -36,6 +37,7 @@ interface Appointment {
       first_name: string;
       last_name: string;
       phone?: string;
+      profile_picture_url?: string;
     };
   };
 }
@@ -97,7 +99,8 @@ export const AppointmentsList = ({ user }: AppointmentsListProps) => {
               id,
               first_name,
               last_name,
-              phone
+              phone,
+              profile_picture_url
             )
           )
         `)
@@ -335,7 +338,12 @@ export const AppointmentsList = ({ user }: AppointmentsListProps) => {
                         </div>
                       </div>
                       <div className="flex items-center gap-2 text-sm">
-                        <UserIcon className="h-4 w-4 text-muted-foreground" />
+                        <Avatar className="h-6 w-6">
+                          <AvatarImage src={appointment.dentist.profile.profile_picture_url || undefined} />
+                          <AvatarFallback className="text-xs">
+                            {appointment.dentist.profile.first_name?.[0]}{appointment.dentist.profile.last_name?.[0]}
+                          </AvatarFallback>
+                        </Avatar>
                         <span>
                           Dr. {appointment.dentist.profile.first_name} {appointment.dentist.profile.last_name}
                         </span>

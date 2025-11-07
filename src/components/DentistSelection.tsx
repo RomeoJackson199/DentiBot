@@ -22,6 +22,7 @@ interface Dentist {
     first_name?: string;
     last_name?: string;
     email?: string;
+    profile_picture_url?: string;
   };
 }
 
@@ -49,7 +50,8 @@ export const DentistSelection = ({ onSelectDentist, selectedDentistId, recommend
             is_active,
             first_name,
             last_name,
-            email
+            email,
+            profiles:profile_id(profile_picture_url)
           `)
           .eq("is_active", true);
 
@@ -63,7 +65,13 @@ export const DentistSelection = ({ onSelectDentist, selectedDentistId, recommend
           return;
         }
 
-        setDentists(data || []);
+        // Transform the data to flatten profiles structure
+        const transformedData = (data || []).map(d => ({
+          ...d,
+          profiles: Array.isArray(d.profiles) && d.profiles.length > 0 ? d.profiles[0] : (d.profiles || undefined)
+        })) as Dentist[];
+
+        setDentists(transformedData);
       } catch (error) {
         console.error("Error:", error);
         toast({
@@ -214,7 +222,7 @@ export const DentistSelection = ({ onSelectDentist, selectedDentistId, recommend
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-3">
                   <Avatar className="h-12 w-12">
-                    <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${getDentistInitials(dentist)}`} />
+                    <AvatarImage src={dentist.profiles?.profile_picture_url || undefined} />
                     <AvatarFallback className={`${specialtyInfo.color} text-white font-semibold`}>
                       {getDentistInitials(dentist)}
                     </AvatarFallback>

@@ -4,7 +4,7 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupActio
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useLanguage } from "@/hooks/useLanguage";
 import { Home, Calendar, Pill, FileText, CreditCard, Folder, User, IdCard, Shield, HelpCircle, ChevronDown, MoreHorizontal, PanelLeft, LogOut, Info } from "lucide-react";
@@ -62,6 +62,17 @@ function PatientPortalNavContent({ children }: { children: React.ReactNode }) {
   const { hasFeature } = useBusinessTemplate();
   const [openGroupId, setOpenGroupId] = useState<string | null>(() => localStorage.getItem(STORAGE_KEYS.lastGroup));
   const [moreOpen, setMoreOpen] = useState(false);
+  const [userProfilePicture, setUserProfilePicture] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadUserProfile = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data } = await supabase.from('profiles').select('profile_picture_url').eq('user_id', user.id).maybeSingle();
+      setUserProfilePicture(data?.profile_picture_url || null);
+    };
+    loadUserProfile();
+  }, []);
 
   const handleSignOut = async () => {
     try {
@@ -442,6 +453,7 @@ function PatientPortalNavContent({ children }: { children: React.ReactNode }) {
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm" className="gap-2" aria-label="Open profile menu" title="Profile">
                     <Avatar className="h-5 w-5">
+                      <AvatarImage src={userProfilePicture || undefined} />
                       <AvatarFallback className="text-xs">P</AvatarFallback>
                     </Avatar>
                     <span className="hidden sm:inline">Profile</span>

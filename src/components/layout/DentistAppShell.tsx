@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useMobileOptimizations } from "@/components/mobile/MobileOptimizations";
 import { useClinicBranding } from "@/hooks/useClinicBranding";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { BusinessSelector } from "@/components/BusinessSelector";
 import { useBusinessTemplate } from "@/hooks/useBusinessTemplate";
 import { useTemplateNavigation } from "@/hooks/useTemplateNavigation";
@@ -44,6 +44,7 @@ export const DentistAppShell: React.FC<DentistAppShellProps> = ({
   const navigate = useNavigate();
   const [userName, setUserName] = useState<string>("");
   const [userInitials, setUserInitials] = useState<string>("?");
+  const [userProfilePicture, setUserProfilePicture] = useState<string | null>(null);
   const allNavItems = useMemo(() => [{
     id: 'dashboard' as DentistSection,
     label: 'Dashboard',
@@ -103,12 +104,13 @@ export const DentistAppShell: React.FC<DentistAppShellProps> = ({
       if (!user) return;
       const {
         data
-      } = await supabase.from('profiles').select('first_name, last_name, email').eq('user_id', user.id).maybeSingle();
+      } = await supabase.from('profiles').select('first_name, last_name, email, profile_picture_url').eq('user_id', user.id).maybeSingle();
       const full = `${data?.first_name ?? ''} ${data?.last_name ?? ''}`.trim();
       setUserName(full || data?.email || '');
       const fi = (data?.first_name?.[0] || '').toUpperCase();
       const li = (data?.last_name?.[0] || '').toUpperCase();
       setUserInitials((fi + li || user.email?.[0] || '?').toString().toUpperCase());
+      setUserProfilePicture(data?.profile_picture_url || null);
     })();
   }, []);
   if (isMobile) {
@@ -226,6 +228,7 @@ export const DentistAppShell: React.FC<DentistAppShellProps> = ({
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="h-9 px-2 gap-2" data-tour="user-menu">
                   <Avatar className="h-7 w-7">
+                    <AvatarImage src={userProfilePicture || undefined} />
                     <AvatarFallback className="text-xs">{userInitials}</AvatarFallback>
                   </Avatar>
                   <div className="flex flex-col items-start text-left">

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
@@ -61,6 +62,7 @@ interface Patient {
   address?: string;
   medical_history?: string;
   emergency_contact?: string;
+  profile_picture_url?: string;
 }
 
 interface Appointment {
@@ -234,7 +236,8 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
             date_of_birth,
             address,
             medical_history,
-            emergency_contact
+            emergency_contact,
+            profile_picture_url
           )
         `)
         .eq('dentist_id', dentistId);
@@ -712,9 +715,12 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
                 onClick={() => setSelectedPatient(patient)}
               >
                 <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 bg-dental-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
-                    <User className="h-6 w-6 text-dental-primary" />
-                  </div>
+                  <Avatar className="h-12 w-12 flex-shrink-0">
+                    <AvatarImage src={patient.profile_picture_url || undefined} />
+                    <AvatarFallback className="bg-dental-primary/10 text-dental-primary">
+                      {patient.first_name?.[0]}{patient.last_name?.[0]}
+                    </AvatarFallback>
+                  </Avatar>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <p className="font-medium truncate">
@@ -762,9 +768,12 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-dental-primary/10 rounded-full flex items-center justify-center">
-                      <User className="h-5 w-5 text-dental-primary" />
-                    </div>
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src={selectedPatient.profile_picture_url || undefined} />
+                      <AvatarFallback className="bg-dental-primary/10 text-dental-primary">
+                        {selectedPatient.first_name?.[0]}{selectedPatient.last_name?.[0]}
+                      </AvatarFallback>
+                    </Avatar>
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="font-semibold">{selectedPatient.first_name} {selectedPatient.last_name}</span>
