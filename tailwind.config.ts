@@ -31,9 +31,9 @@ export default {
 		},
 		extend: {
 		fontFamily: {
-			sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
-			heading: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
-			body: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+			sans: ['Poppins', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
+			heading: ['"DM Sans"', 'Poppins', 'system-ui', '-apple-system', 'sans-serif'],
+			body: ['Poppins', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
 			mono: ['"SF Mono"', '"Roboto Mono"', 'Consolas', 'monospace'],
 		},
 			screens: {
@@ -50,33 +50,18 @@ export default {
 				'tablet-sm': '768px',
 				'tablet-lg': '1024px',
 			},
-		spacing: {
-			// 8pt grid system
-			'0': '0px',
-			'0.5': '4px',
-			'1': '8px',
-			'2': '16px',
-			'3': '24px',
-			'4': '32px',
-			'5': '40px',
-			'6': '48px',
-			'7': '56px',
-			'8': '64px',
-			'9': '72px',
-			'10': '80px',
-			'12': '96px',
-			'14': '112px',
-			'16': '128px',
-			'20': '160px',
-			'24': '192px',
-			'28': '224px',
-			'32': '256px',
-			// Safe area support
-			'safe-top': 'env(safe-area-inset-top)',
-			'safe-bottom': 'env(safe-area-inset-bottom)',
-			'safe-left': 'env(safe-area-inset-left)',
-			'safe-right': 'env(safe-area-inset-right)',
-		},
+			spacing: {
+				'18': '4.5rem',
+				'88': '22rem',
+				'112': '28rem',
+				'128': '32rem',
+				'144': '36rem',
+				// Mobile-friendly spacing
+				'safe-top': 'env(safe-area-inset-top)',
+				'safe-bottom': 'env(safe-area-inset-bottom)',
+				'safe-left': 'env(safe-area-inset-left)',
+				'safe-right': 'env(safe-area-inset-right)',
+			},
 			fontSize: {
 				'2xs': ['0.625rem', { lineHeight: '0.875rem' }],
 				// Mobile-optimized font scales
@@ -196,17 +181,13 @@ export default {
 				'medium': 'var(--shadow-medium)',
 				'large': 'var(--shadow-large)',
 			},
-		borderRadius: {
-			none: '0px',
-			sm: '8px',
-			DEFAULT: '16px',
-			md: '16px',
-			lg: '24px',
-			xl: '32px',
-			'2xl': '40px',
-			'3xl': '48px',
-			full: '9999px',
-		},
+			borderRadius: {
+				lg: 'var(--radius-card)',
+				md: 'calc(var(--radius-card) - 2px)',
+				sm: 'calc(var(--radius-card) - 4px)',
+				'4xl': '2rem',
+				'5xl': '2.5rem',
+			},
 			backdropBlur: {
 				'4xl': '72px',
 				'5xl': '96px',

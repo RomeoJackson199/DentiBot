@@ -13,10 +13,6 @@
      All colors in HSL format for proper theming
      ============================================================================ */
   :root {
-    /* Design System Base - 8pt Grid & 16px Radius */
-    --spacing-base: 8px;
-    --radius-base: 16px;
-    
     /* Core UI Colors - Dark Mode */
     --background: 240 10% 3.9%;
     --foreground: 0 0% 98%;
@@ -75,9 +71,8 @@
     --info-bg: 214 95% 93%;
     --info-foreground: 0 0% 100%;
     
-    /* Border Radius - 16px System */
-    --radius: 16px;
-    --radius-card: 16px;
+    /* Border Radius */
+    --radius: 0.5rem;
     
     /* Gradients */
     --gradient-primary: linear-gradient(135deg, hsl(199 89% 48%), hsl(142 71% 45%), hsl(217 91% 60%));
@@ -120,10 +115,6 @@
      All colors in HSL format for proper theming
      ============================================================================ */
   .light {
-    /* Design System Base - 8pt Grid & 16px Radius */
-    --spacing-base: 8px;
-    --radius-base: 16px;
-    
     /* Core UI Colors - Light Mode */
     --background: 0 0% 100%;
     --foreground: 240 10% 3.9%;
@@ -182,9 +173,8 @@
     --info-bg: 214 95% 93%;
     --info-foreground: 0 0% 100%;
     
-    /* Border Radius - 16px System */
-    --radius: 16px;
-    --radius-card: 16px;
+    /* Border Radius */
+    --radius: 0.5rem;
     
     /* Gradients */
     --gradient-primary: linear-gradient(135deg, hsl(199 89% 48%), hsl(142 71% 45%), hsl(217 91% 60%));
@@ -230,27 +220,20 @@
     @apply bg-background text-foreground antialiased;
     background-image: var(--gradient-mesh);
     background-attachment: fixed;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: 'Poppins', 'Inter', system-ui, -apple-system, sans-serif;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    /* Flex-first layout */
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
   }
 
   #root {
     overflow-x: hidden;
     width: 100%;
     max-width: 100vw;
-    display: flex;
-    flex-direction: column;
-    flex: 1;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: 'DM Sans', 'Poppins', system-ui, -apple-system, sans-serif;
     font-weight: 700;
   }
 

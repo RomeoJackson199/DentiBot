@@ -76,20 +76,20 @@ export function ModernHeroSection({
               </div>
             </div>}
 
-          <div className="flex items-center gap-3">
-            <AppButton variant="gradient" size="lg" onClick={onOpenAIChat} className="bg-white text-primary hover:bg-white/90 hover:scale-105 transition-all shadow-2xl border-0 h-12 px-6 text-base font-semibold group">
-              <Brain className="h-5 w-5 mr-2 group-hover:rotate-12 transition-transform" />
-              {language === 'fr' ? 'Commencer avec l\'IA' : language === 'nl' ? 'Begin met AI' : 'Start with AI'}
+          <div className="space-y-5">
+            <AppButton variant="gradient" size="lg" onClick={onOpenAIChat} className="w-full bg-white text-primary hover:bg-white/90 hover:scale-105 transition-all shadow-2xl border-0 h-20 text-xl font-semibold group">
+              <Brain className="h-7 w-7 mr-3 group-hover:rotate-12 transition-transform" />
+              {language === 'fr' ? '✨ Commencer avec l\'IA' : language === 'nl' ? '✨ Begin met AI' : '✨ Start with AI Assistant'}
             </AppButton>
             
             <AppButton 
               variant="outline" 
               size="lg" 
               onClick={() => window.location.href = '/signup'}
-              className="bg-white/10 backdrop-blur-md text-white border-white/30 hover:bg-white/20 h-12 px-6 text-base font-semibold"
+              className="w-full bg-white/10 backdrop-blur-md text-white border-white/30 hover:bg-white/20 h-16 text-lg font-semibold"
             >
-              <Users className="h-5 w-5 mr-2" />
-              {language === 'fr' ? 'Créer Votre Clinique' : language === 'nl' ? 'Maak Uw Kliniek' : 'Create Your Business'}
+              <Users className="h-6 w-6 mr-2" />
+              {language === 'fr' ? '🏥 Créer Votre Clinique' : language === 'nl' ? '🏥 Maak Uw Kliniek' : '🏥 Create Your Business'}
             </AppButton>
           </div>
         </div>
