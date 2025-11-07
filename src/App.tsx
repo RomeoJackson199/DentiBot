@@ -30,6 +30,7 @@ import { DentistInvitationDialog } from "@/components/DentistInvitationDialog";
 import { CommandPalette } from "@/components/CommandPalette";
 import { CookieConsent } from "@/components/CookieConsent";
 import { OnboardingOrchestrator } from "@/components/onboarding/OnboardingOrchestrator";
+import { DesktopOnly } from "@/components/DesktopOnly";
 
 const Invite = lazy(() => import("./pages/Invite"));
 const Login = lazy(() => import("./pages/Login"));
@@ -257,13 +258,14 @@ const App = () => {
                 <PWAInstallPrompt />
                 <ProfileCompletionDialog />
                 <BrowserRouter>
-                  <DentistInvitationDialog />
-                  <CommandPalette />
-                  <CookieConsent />
-                  <OnboardingOrchestrator user={user} />
-                  <SeoManager />
-                <Suspense fallback={<ModernLoadingSpinner variant="overlay" message="Loading..." /> }>
-                <Routes>
+                  <DesktopOnly>
+                    <DentistInvitationDialog />
+                    <CommandPalette />
+                    <CookieConsent />
+                    <OnboardingOrchestrator user={user} />
+                    <SeoManager />
+                    <Suspense fallback={<ModernLoadingSpinner variant="overlay" message="Loading..." /> }>
+                      <Routes>
                   <Route path="/" element={<Index />} />
                 {/* Demo routes */}
                 <Route path="/demo/dentist" element={<DemoDentistDashboard />} />
@@ -337,15 +339,16 @@ const App = () => {
                 <Route path="/:slug" element={<BusinessPortal />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
-              </Routes>
-              </Suspense>
-              
-              {/* Business Picker Dialog */}
-            <BusinessGate 
-              showBusinessPicker={showBusinessPicker}
-              setShowBusinessPicker={setShowBusinessPicker}
-            />
-            </BrowserRouter>
+                      </Routes>
+                    </Suspense>
+                    
+                    {/* Business Picker Dialog */}
+                    <BusinessGate 
+                      showBusinessPicker={showBusinessPicker}
+                      setShowBusinessPicker={setShowBusinessPicker}
+                    />
+                  </DesktopOnly>
+                </BrowserRouter>
             </TooltipProvider>
             </TemplateProvider>
           </BusinessProvider>
