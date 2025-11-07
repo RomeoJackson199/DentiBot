@@ -170,7 +170,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
       )}
 
       {/* Primary Cards Section - In specified order */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         
         {/* 1. Next Appointment Card */}
         <motion.div
@@ -439,7 +439,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.7 }}
-        className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6"
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-6"
       >
         <Button 
           variant="outline" 

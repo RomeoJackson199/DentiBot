@@ -25,7 +25,7 @@ export const AppointmentStats = React.memo<AppointmentStatsProps>(({ appointment
   }, [appointments]);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
       <Card>
         <CardContent className="p-4 text-center">
           <div className="text-2xl font-bold text-dental-primary">{stats.total}</div>

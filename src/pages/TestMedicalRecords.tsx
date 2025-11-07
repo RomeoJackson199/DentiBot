@@ -153,7 +153,7 @@ export const TestMedicalRecords = ({ user }: TestMedicalRecordsProps) => {
           <CardTitle>Medical Records Persistence Test</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="address">Test Address</Label>
               <Input
@@ -212,7 +212,7 @@ export const TestMedicalRecords = ({ user }: TestMedicalRecordsProps) => {
           {currentProfile && (
             <div className="mt-6">
               <h3 className="font-semibold mb-2">Current Profile Data:</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                 <div>
                   <strong>Address:</strong> {currentProfile.address || 'Not set'}
                 </div>

@@ -6,7 +6,7 @@ export function DemoClinicalToday() {
   return (
     <div className="p-6 space-y-6">
       {/* Stats Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4" data-tour="stats-cards">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4" data-tour="stats-cards">
         <StatCard
           title="Today's Appointments"
           value="12"

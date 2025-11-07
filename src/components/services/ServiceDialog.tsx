@@ -358,7 +358,7 @@ export function ServiceDialog({ open, onClose, service, businessId, defaultCateg
           </div>
 
           {/* Price and Duration */}
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="price">Price (EUR) *</Label>
               <Input

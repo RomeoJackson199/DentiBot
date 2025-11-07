@@ -348,7 +348,7 @@ export function InventoryManager({ dentistId, userId }: InventoryManagerProps) {
         <CardHeader>
           <CardTitle>{editId ? 'Edit Item' : 'Add Item'}</CardTitle>
         </CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-6 gap-3">
+        <CardContent className="grid grid-cols-1 gap-3">
           <Input placeholder="Name" value={name} onChange={e => setName(e.target.value)} />
           <Select value={category} onValueChange={(v: any) => setCategory(v)}>
             <SelectTrigger><SelectValue placeholder="Category" /></SelectTrigger>
@@ -371,7 +371,7 @@ export function InventoryManager({ dentistId, userId }: InventoryManagerProps) {
         <CardHeader>
           <CardTitle>Manual Adjustments</CardTitle>
         </CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-5 gap-3">
+        <CardContent className="grid grid-cols-1 gap-3">
           <Select value={adjustItemId || ''} onValueChange={(v: any) => setAdjustItemId(v)}>
             <SelectTrigger><SelectValue placeholder="Select item" /></SelectTrigger>
             <SelectContent>
@@ -405,7 +405,7 @@ export function InventoryManager({ dentistId, userId }: InventoryManagerProps) {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-center">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 items-center">
             <Select value={selectedTreatmentTypeId || ''} onValueChange={(v: any) => setSelectedTreatmentTypeId(v)}>
               <SelectTrigger><SelectValue placeholder="Select treatment type" /></SelectTrigger>
               <SelectContent>
@@ -450,7 +450,7 @@ export function InventoryManager({ dentistId, userId }: InventoryManagerProps) {
         <CardHeader>
           <CardTitle>Analytics (Last 30 days)</CardTitle>
         </CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <div className="space-y-2">
             <div className="font-semibold">Most used</div>
             {Object.entries(usageLast30)

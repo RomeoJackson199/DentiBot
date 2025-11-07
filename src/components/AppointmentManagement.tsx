@@ -255,7 +255,7 @@ export function AppointmentManagement({ dentistId }: AppointmentManagementProps)
                   <DialogTitle>Create New Appointment</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="text-sm font-medium">Patient</label>
                       <Select>
@@ -285,7 +285,7 @@ export function AppointmentManagement({ dentistId }: AppointmentManagementProps)
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="text-sm font-medium">Date</label>
                       <Input type="date" />

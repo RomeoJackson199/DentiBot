@@ -82,7 +82,7 @@ const Terms = () => {
 
           <div className="space-y-3">
             <h3 className="text-xl font-semibold text-gray-800">3.2 Account Types</h3>
-            <div className="grid md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Card className="p-4">
                 <h4 className="font-semibold text-gray-800 mb-2">Patient Accounts</h4>
                 <p className="text-gray-700 text-sm">

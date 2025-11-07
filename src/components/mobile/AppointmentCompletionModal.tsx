@@ -949,7 +949,7 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 										<div>Mutuality share: €{totals.mutuality.toFixed(2)}</div>
 										<div>VAT: €{totals.vat.toFixed(2)}</div>
 									</div>
-									<div className="grid grid-cols-1 md:grid-cols-2 gap-2 items-center">
+									<div className="grid grid-cols-1 sm:grid-cols-2 gap-2 items-center">
 										<Input type="number" placeholder="Final total override (EUR)" value={finalTotalOverride ?? ''} onChange={e => setFinalTotalOverride(e.target.value ? parseFloat(e.target.value) : undefined)} />
 										<div className="text-xs text-muted-foreground">Optional: set a final total to override calculated patient due.</div>
 									</div>
@@ -981,7 +981,7 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 							<Card>
 								<CardContent className="space-y-3 p-4">
 									<h3 className="font-semibold">G. Follow-Up & Predictive Scheduling</h3>
-									<div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+									<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
 										<div className="space-y-2">
 											<Label>Follow-up</Label>
 											<Select value={followUpNeeded ? 'yes' : 'no'} onValueChange={v => setFollowUpNeeded(v === 'yes')}>
@@ -1063,7 +1063,7 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 									</Select>
 									<div className="space-y-2">
 										<div className="text-sm font-medium">Supplies used</div>
-										<div className="grid grid-cols-1 md:grid-cols-3 gap-2 items-center">
+										<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 items-center">
 											<Select onValueChange={(v: any) => addManualSupply(v, 1)}>
 												<SelectTrigger><SelectValue placeholder="Add item" /></SelectTrigger>
 												<SelectContent>
@@ -1097,7 +1097,7 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 							<Card>
 								<CardContent className="space-y-3 p-4">
 									<h3 className="font-semibold">Review & Confirm</h3>
-									<div className="text-sm grid grid-cols-1 md:grid-cols-2 gap-3">
+									<div className="text-sm grid grid-cols-1 sm:grid-cols-2 gap-3">
 										<div>
 											<div className="font-medium">Treatments</div>
 											<div className="text-muted-foreground text-xs">{treatments.length} items{treatments.length ? ` — ${treatments.slice(0,3).map(t => t.code).join(', ')}${treatments.length>3 ? '…' : ''}` : ''}</div>

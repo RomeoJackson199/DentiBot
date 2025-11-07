@@ -77,7 +77,7 @@ export function ImportFieldMapper({ csvHeaders, fieldMapping, onChange, importTy
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           {/* CSV Fields */}
           <div>
             <h3 className="font-medium mb-4">CSV Fields</h3>
@@ -175,7 +175,7 @@ export function ImportFieldMapper({ csvHeaders, fieldMapping, onChange, importTy
         {/* Mapping Summary */}
         <div className="border-t pt-4">
           <h4 className="font-medium mb-2">Mapping Summary</h4>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
             <div>
               <span className="text-muted-foreground">Total Fields:</span>
               <span className="ml-2 font-medium">{csvHeaders.length}</span>

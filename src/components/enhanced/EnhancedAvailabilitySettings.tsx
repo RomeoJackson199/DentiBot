@@ -414,7 +414,7 @@ export function EnhancedAvailabilitySettings({ dentistId }: EnhancedAvailability
 
                           {/* Time Settings - Improved responsive grid */}
                           {dayAvailability.is_available && (
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                               <div>
                                 <Label htmlFor={`start-${day.value}`} className="text-sm font-medium">{t.startTime}</Label>
                                 <Input
@@ -494,7 +494,7 @@ export function EnhancedAvailabilitySettings({ dentistId }: EnhancedAvailability
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   <div>
                     <Label htmlFor="start-date">{t.startDate}</Label>
                     <Input

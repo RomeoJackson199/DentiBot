@@ -208,7 +208,7 @@ const Analytics = () => {
       <div className="p-6">
         <div className="animate-pulse space-y-6">
           <div className="h-8 bg-muted rounded w-1/3"></div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {Array.from({ length: 4 }).map((_, i) => (
               <div key={i} className="h-28 bg-muted rounded"></div>
             ))}
@@ -282,7 +282,7 @@ const Analytics = () => {
         </div>
 
       {/* Top Priority KPIs */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 mb-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6 mb-4">
         {/* Revenue */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

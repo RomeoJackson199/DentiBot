@@ -220,7 +220,7 @@ export function PersonalEarnings() {
       </Card>
 
       {/* Breakdown Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {/* Services Revenue */}
         <Card>
           <CardHeader className="pb-3">
@@ -279,7 +279,7 @@ export function PersonalEarnings() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-center">
               <div>
                 <div className="text-sm text-muted-foreground">Total</div>
                 <div className="text-xl font-semibold">

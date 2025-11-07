@@ -184,7 +184,7 @@ export function AvailabilityManager({ dentistId }: AvailabilityManagerProps) {
                 </div>
 
                 {dayAvailability.is_available && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pl-4">
                     <div className="space-y-2">
                       <Label className="text-sm">{t.workingHours}</Label>
                       <div className="flex gap-2 items-center">

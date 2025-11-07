@@ -85,7 +85,7 @@ const PrivacyPolicy = () => {
           <h2 className="text-2xl font-bold text-gray-900">3. How We Use Your Information</h2>
           <p className="text-gray-700 leading-relaxed">We use your information for the following purposes:</p>
 
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Card className="p-4">
               <h3 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
                 <Calendar className="h-5 w-5 text-blue-600" />

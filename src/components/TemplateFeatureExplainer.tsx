@@ -105,7 +105,7 @@ export function TemplateFeatureExplainer({ features }: TemplateFeatureExplainerP
             <CheckCircle2 className="h-5 w-5 text-green-600" />
             Enabled Features
           </h3>
-          <div className="grid gap-3 md:grid-cols-2">
+          <div className="grid gap-3 sm:grid-cols-2">
             {enabledFeatures.map((feature) => (
               <Card key={feature.id} className="border-green-200 bg-green-50/50">
                 <CardHeader className="pb-3">
@@ -129,7 +129,7 @@ export function TemplateFeatureExplainer({ features }: TemplateFeatureExplainerP
             <XCircle className="h-5 w-5 text-muted-foreground" />
             Not Included
           </h3>
-          <div className="grid gap-3 md:grid-cols-2">
+          <div className="grid gap-3 sm:grid-cols-2">
             {disabledFeatures.map((feature) => (
               <Card key={feature.id} className="opacity-60">
                 <CardHeader className="pb-3">

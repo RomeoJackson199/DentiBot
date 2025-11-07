@@ -150,7 +150,7 @@ export const EnhancedHomeTab: React.FC<EnhancedHomeTabProps> = ({
     return (
       <div className="space-y-4 animate-pulse">
         <div className="h-20 bg-muted rounded-2xl" />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {[1, 2, 3, 4].map(i => (
             <div key={i} className="h-48 bg-muted rounded-2xl" />
           ))}
@@ -368,7 +368,7 @@ export const EnhancedHomeTab: React.FC<EnhancedHomeTabProps> = ({
         transition={{ delay: 0.5 }}
       >
         <h3 className="font-heading font-semibold text-lg mb-4">Quick Actions</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           {hasAIChat && (
             <Button
               variant="outline"

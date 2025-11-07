@@ -155,7 +155,7 @@ export const DentistSelection = ({ onSelectDentist, selectedDentistId, recommend
             <Skeleton key={specialty.key} className="h-10 w-24 rounded-full" />
           ))}
         </div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {[1, 2, 3, 4, 5].map((i) => (
             <Card key={i} className="overflow-hidden">
               <CardHeader className="pb-3">
@@ -196,7 +196,7 @@ export const DentistSelection = ({ onSelectDentist, selectedDentistId, recommend
       </div>
 
       {/* Dentists Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {filteredDentists.map((dentist) => {
           const specialtyInfo = getSpecialtyInfo(dentist.specialization);
           const isSelected = selectedDentistId === dentist.id;

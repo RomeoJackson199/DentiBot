@@ -669,7 +669,7 @@ const DashboardOverview = ({
   setActiveTab: (tab: any) => void;
 }) => <div className="space-y-6">
     {/* Quick Actions */}
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       <Card className="group hover:shadow-lg transition-all duration-300 cursor-pointer border-primary/20 hover:border-primary/40" onClick={() => setActiveTab('appointments')}>
         <CardContent className="p-6">
           <div className="flex items-center justify-between mb-4">
@@ -724,7 +724,7 @@ const DashboardOverview = ({
     </div>
 
     {/* Stats Overview */}
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       <Card>
         <CardContent className="p-6">
           <div className="flex items-center justify-between">

@@ -148,7 +148,7 @@ export const BarbershopAuthPage = ({ business, onAuthSuccess }: BarbershopAuthPa
       {/* About Section */}
       <div id="about" className="py-32 bg-white relative">
         <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-2 gap-16 items-center max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-16 items-center max-w-6xl mx-auto">
             <div>
               <div className="text-[#d4af37] text-sm tracking-[0.3em] uppercase font-light mb-4">
                 Klassiek
@@ -222,7 +222,7 @@ export const BarbershopAuthPage = ({ business, onAuthSuccess }: BarbershopAuthPa
             <p className="text-white/60 text-xl">Klik op een dienst om direct te boeken</p>
           </div>
           
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
             {services.map((service, index) => (
               <div
                 key={index}
@@ -269,7 +269,7 @@ export const BarbershopAuthPage = ({ business, onAuthSuccess }: BarbershopAuthPa
       {/* Contact Info Section */}
       <div id="contact" className="py-24 bg-[#111111] border-t border-white/10">
         <div className="container mx-auto px-4">
-          <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-12">
+          <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-12">
             <div className="text-center group">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-[#d4af37]/10 rounded-full mb-6 group-hover:bg-[#d4af37]/20 transition-colors">
                 <MapPin className="w-8 h-8 text-[#d4af37]" />

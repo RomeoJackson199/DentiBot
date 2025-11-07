@@ -130,7 +130,7 @@ export const PatientAnalytics = ({ userId }: PatientAnalyticsProps) => {
 
   if (loading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         {[...Array(4)].map((_, i) => (
           <Card key={i} className="glass-card animate-pulse">
             <CardContent className="p-6">
@@ -176,7 +176,7 @@ export const PatientAnalytics = ({ userId }: PatientAnalyticsProps) => {
       </Card>
 
       {/* Key Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Total Appointments */}
         <Card className="glass-card hover:shadow-elegant transition-all duration-300">
           <CardContent className="p-6">

@@ -81,7 +81,7 @@ export default function RestaurantPublicPage({ business, services }: RestaurantP
 
         {categories.length > 1 ? (
           <Tabs defaultValue={categories[0]} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 lg:grid-cols-6 mb-8">
+            <TabsList className="grid w-full grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 lg:grid-cols-6 mb-8">
               {categories.map((category) => (
                 <TabsTrigger key={category} value={category}>
                   {category}
@@ -90,7 +90,7 @@ export default function RestaurantPublicPage({ business, services }: RestaurantP
             </TabsList>
             {categories.map((category) => (
               <TabsContent key={category} value={category}>
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                   {groupedServices[category].map((service) => (
                     <Card key={service.id} className="hover:shadow-lg transition-shadow">
                       {service.image_url && (
@@ -126,7 +126,7 @@ export default function RestaurantPublicPage({ business, services }: RestaurantP
             ))}
           </Tabs>
         ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {services.map((service) => (
               <Card key={service.id} className="hover:shadow-lg transition-shadow">
                 {service.image_url && (

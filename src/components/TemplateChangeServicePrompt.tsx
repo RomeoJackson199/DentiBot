@@ -46,7 +46,7 @@ export function TemplateChangeServicePrompt({
 
         <div className="space-y-4">
           <div className="text-sm font-medium">Suggested {template.terminology.servicePlural}:</div>
-          <div className="grid gap-3 md:grid-cols-2">
+          <div className="grid gap-3 sm:grid-cols-2">
             {template.quickAddServices.slice(0, 6).map((service, index) => (
               <Card key={index} className="hover:shadow-md transition-shadow">
                 <CardContent className="p-4 flex items-center justify-between">

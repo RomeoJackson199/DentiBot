@@ -318,7 +318,7 @@ const FeatureDetail = () => {
                  language === 'nl' ? 'Belangrijke Functies' : 
                  'Key Features'}
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {content.details.map((detail, index) => (
                   <div key={index} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
                     <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
@@ -336,7 +336,7 @@ const FeatureDetail = () => {
                  language === 'nl' ? 'Voordelen' : 
                  'Benefits'}
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {content.benefits.map((benefit, index) => (
                   <div key={index} className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg">
                     <div className="w-2 h-2 bg-green-600 rounded-full"></div>
