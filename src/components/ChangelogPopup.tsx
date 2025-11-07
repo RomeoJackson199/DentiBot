@@ -182,7 +182,7 @@ export function ChangelogPopup({ isOpen, onClose }: ChangelogPopupProps) {
 
         <div className="space-y-6">
           {/* Summary Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <Card className="glass-card border-blue-200">
               <CardContent className="p-4 text-center">
                 <div className="text-2xl font-bold text-blue-600">

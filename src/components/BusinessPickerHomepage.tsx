@@ -126,7 +126,7 @@ export function BusinessPickerHomepage({ onBusinessSelected }: BusinessPickerHom
               Choose your business to get started with booking appointments
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
             {[1, 2, 3].map((i) => (
               <Card key={i}>
                 <CardHeader>
@@ -226,7 +226,7 @@ export function BusinessPickerHomepage({ onBusinessSelected }: BusinessPickerHom
             </CardHeader>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
             {filteredBusinesses.map((business) => (
               <Card
                 key={business.id}

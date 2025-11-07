@@ -67,7 +67,7 @@ export function ServiceSelector({
     return (
       <div className="space-y-4">
         <h3 className="text-lg font-semibold">Select a Service</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {[1, 2].map((i) => (
             <Card key={i} className="animate-pulse">
               <CardHeader>
@@ -106,7 +106,7 @@ export function ServiceSelector({
         )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {services.map((service) => {
           const isSelected = selectedServiceId === service.id;
           

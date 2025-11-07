@@ -314,7 +314,7 @@ export function PatientDetailsTabs({ selectedPatient, dentistId, appointments, o
         <TabsContent value="info" className="space-y-4">
           <Card className="p-6">
             <h3 className="text-lg font-semibold mb-4">Patient Information</h3>
-            <div className="grid md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div className="space-y-4">
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Full Name</label>

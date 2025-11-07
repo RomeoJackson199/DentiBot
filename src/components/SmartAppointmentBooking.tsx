@@ -334,7 +334,7 @@ export const SmartAppointmentBooking = ({ user, onComplete, onCancel }: SmartApp
                 Loading available slots...
               </div>
             ) : (
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                 {recommendedSlots.slice(0, 12).map((slot) => {
                   const isSelected = selectedTime === slot.time;
                   const isRecommended = slot.isRecommended;

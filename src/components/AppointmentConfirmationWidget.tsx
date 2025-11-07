@@ -198,7 +198,7 @@ export function AppointmentConfirmationWidget({
 
       <CardContent className="space-y-4">
         {/* Date and Time */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="flex items-center space-x-3 p-3 bg-blue-50 rounded-lg">
             <Calendar className="h-5 w-5 text-blue-600" />
             <div>
@@ -225,7 +225,7 @@ export function AppointmentConfirmationWidget({
         </div>
 
         {/* Patient/Dentist Info */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="flex items-center space-x-3 p-3 bg-purple-50 rounded-lg">
             <User className="h-5 w-5 text-purple-600" />
             <div>
@@ -256,7 +256,7 @@ export function AppointmentConfirmationWidget({
         {(appointment.patient_email || appointment.patient_phone) && (
           <div className="space-y-2">
             <h4 className="font-medium text-gray-900">Contact Information</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {appointment.patient_email && (
                 <div className="flex items-center space-x-2 p-2 bg-gray-50 rounded-md">
                   <Mail className="h-4 w-4 text-gray-600" />

@@ -113,7 +113,7 @@ export function ReservationQRCode({
         </div>
 
         {/* Action Buttons */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
           <Button variant="outline" onClick={downloadQR} className="w-full">
             <Download className="h-4 w-4 mr-2" />
             Download

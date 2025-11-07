@@ -200,7 +200,7 @@ export function PatientAppointments({ patientId, dentistId }: PatientAppointment
                 </div>
 
                 {/* Appointment Details */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                   {appointment.reason && (
                     <div>
                       <h4 className="font-medium text-sm text-muted-foreground mb-1">Reason for Visit</h4>

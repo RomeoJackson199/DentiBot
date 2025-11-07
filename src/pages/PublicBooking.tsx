@@ -314,7 +314,7 @@ export default function PublicBooking() {
                       <User className="mr-2 h-5 w-5" />
                       {t.personalInformation}
                     </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <Label htmlFor="firstName">{t.firstName} *</Label>
                         <Input
@@ -409,7 +409,7 @@ export default function PublicBooking() {
                       {loadingTimes ? (
                         <ModernLoadingSpinner variant="minimal" size="sm" message={t.loading} />
                       ) : availableTimes.length > 0 ? (
-                        <div className="grid grid-cols-3 md:grid-cols-4 gap-2">
+                        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                           {availableTimes.map((time) => (
                             <Button
                               key={time}

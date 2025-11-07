@@ -803,7 +803,7 @@ export default function BookAppointment() {
                         )}
                       </CardHeader>
                       <CardContent>
-                        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
+                        <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
                           {availableTimes
                             .filter((time) => {
                               // If showing all times, show everything

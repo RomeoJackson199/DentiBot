@@ -206,7 +206,7 @@ export function TemplateSpecificMetrics() {
   const metrics = getTemplateMetrics();
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-6">
       {metrics.map((metric, index) => (
         <Card key={index}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -276,7 +276,7 @@ export function TemplateQuickActions() {
         <CardDescription>Common tasks for your {template?.name.toLowerCase()}</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {actions.map((action, index) => (
             <button
               key={index}

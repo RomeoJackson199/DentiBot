@@ -468,7 +468,7 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
       <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-secondary/10 p-4">
         <div className="max-w-6xl mx-auto space-y-6 py-8">
           <Skeleton className="h-12 w-48" />
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {[1, 2, 3].map((i) => (
               <Skeleton key={i} className="h-64 rounded-lg" />
             ))}

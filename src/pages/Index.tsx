@@ -141,7 +141,7 @@ const Index = () => {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {[{
               icon: Calendar,
               title: "Beautifully Designed Scheduling System",
@@ -193,7 +193,7 @@ const Index = () => {
             {/* Additional features list */}
             <div className="mt-16 bg-gradient-to-br from-gray-50 to-blue-50 rounded-2xl p-8 md:p-12">
               <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">Plus Much More</h3>
-              <div className="grid md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 {["Multi-location & multi-provider support", "Inventory management with low-stock alerts", "Comprehensive analytics & reporting", "Mobile-responsive PWA design", "Customizable clinic templates", "Real-time notifications & messaging", "Prescription management system", "Treatment plan tracking", "Staff & team management", "Data import/export tools", "Custom branding & white-labeling", "Google Calendar synchronization"].map((feature, index) => <div key={index} className="flex items-center gap-3">
                     <div className="flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center">
                       <CheckCircle2 className="h-4 w-4 text-white" aria-hidden="true" />
@@ -216,7 +216,7 @@ const Index = () => {
                 Built specifically for healthcare professionals with the features you actually need
               </p>
             </div>
-            <div className="grid md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
               {[{
               title: "Save Time",
               description: "Reduce administrative work by up to 60% with automated scheduling, reminders, and patient communications",
@@ -250,7 +250,7 @@ const Index = () => {
               </p>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
               {/* Starter Plan */}
               <Card className="p-8 border-2 border-gray-200 hover:border-gray-300 transition-all">
                 <div className="text-center mb-6">

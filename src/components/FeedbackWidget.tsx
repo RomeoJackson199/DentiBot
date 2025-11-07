@@ -197,7 +197,7 @@ export function FeedbackWidget({
                 {/* Feedback type selection */}
                 <div className="space-y-3">
                   <Label>What would you like to share?</Label>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {feedbackTypes.map((type) => (
                       <button
                         key={type.value}

@@ -280,7 +280,7 @@ export const DentistNotificationSender: React.FC<DentistNotificationSenderProps>
                 <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900"></div>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-32 overflow-y-auto">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-32 overflow-y-auto">
                 {filteredPatients.map((patient) => (
                   <Card
                     key={patient.id}
@@ -313,7 +313,7 @@ export const DentistNotificationSender: React.FC<DentistNotificationSenderProps>
           {/* Notification Type */}
           <div className="space-y-2">
             <Label>Notification Type</Label>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
               {notificationTypes.map((type) => {
                 const Icon = type.icon;
                 return (

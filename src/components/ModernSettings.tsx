@@ -407,7 +407,7 @@ export const ModernSettings = ({ user }: ModernSettingsProps) => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="firstName">{t.firstName}</Label>
                       <Input
@@ -428,7 +428,7 @@ export const ModernSettings = ({ user }: ModernSettingsProps) => {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="phone" className="flex items-center gap-2">
                         <Phone className="h-4 w-4" />
@@ -497,7 +497,7 @@ export const ModernSettings = ({ user }: ModernSettingsProps) => {
                         Dentist Information
                       </h3>
                       
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-2">
                           <Label htmlFor="specialty">Specialty</Label>
                           <Input

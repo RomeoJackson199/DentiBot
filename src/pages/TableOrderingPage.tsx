@@ -299,7 +299,7 @@ export default function TableOrderingPage() {
       <div className="container mx-auto px-4 py-6">
         <h2 className="text-2xl font-bold mb-6">Menu</h2>
         <Tabs defaultValue={categories[0]} className="w-full">
-          <TabsList className="w-full grid grid-cols-2 md:grid-cols-4 mb-6">
+          <TabsList className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mb-6">
             {categories.map((category) => (
               <TabsTrigger key={category} value={category}>
                 {category}

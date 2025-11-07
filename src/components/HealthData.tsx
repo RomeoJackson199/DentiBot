@@ -371,7 +371,7 @@ if (treatmentPlansResult.status === 'fulfilled') {
         
         <CardContent className="p-6">
           {/* Enhanced Patient Info Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="flex items-center gap-3">
               <UserIcon className="h-5 w-5 text-primary" />
               <div>
@@ -414,7 +414,7 @@ if (treatmentPlansResult.status === 'fulfilled') {
           </div>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 pt-6 border-t">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6 pt-6 border-t">
             <div className="text-center">
               <div className="text-2xl font-bold text-primary">{appointments.length}</div>
               <div className="text-sm text-muted-foreground">Total Appointments</div>
@@ -475,7 +475,7 @@ if (treatmentPlansResult.status === 'fulfilled') {
                             {prescription.status}
                           </Badge>
                         </div>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
                           <div>
                             <span className="font-medium">Dosage:</span> {prescription.dosage}
                           </div>
@@ -600,7 +600,7 @@ if (treatmentPlansResult.status === 'fulfilled') {
                         {plan.description && (
                           <p className="text-sm text-muted-foreground mb-3">{plan.description}</p>
                         )}
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
                           <div>
                             <span className="font-medium">Duration:</span> {plan.estimated_duration}
                           </div>

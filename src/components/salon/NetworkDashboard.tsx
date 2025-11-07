@@ -195,7 +195,7 @@ export function NetworkDashboard() {
       </div>
 
       {/* Network-Wide Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Total Revenue */}
         <Card>
           <CardHeader className="pb-3">
@@ -297,7 +297,7 @@ export function NetworkDashboard() {
       {/* Location Cards */}
       <div>
         <h2 className="text-2xl font-bold mb-4">All Locations</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {locations.map((location) => (
             <Card
               key={location.id}

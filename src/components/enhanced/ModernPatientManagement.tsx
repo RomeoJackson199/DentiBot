@@ -514,7 +514,7 @@ export function ModernPatientManagement({ dentistId }: ModernPatientManagementPr
                         </div>
                         
                         {/* Contact Info */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
                           <div className="flex items-center gap-2 text-sm">
                             <Mail className="h-4 w-4 text-muted-foreground" />
                             <span className="truncate">{selectedPatient.email}</span>

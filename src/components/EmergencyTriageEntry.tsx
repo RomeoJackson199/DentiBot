@@ -65,7 +65,7 @@ export const EmergencyTriageEntry = ({ onComplete, onCancel }: EmergencyTriageEn
             </div>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <div className="flex items-center space-x-3 p-3 bg-white/10 rounded-lg backdrop-blur-sm">
                 <Clock className="h-6 w-6 text-white" />
                 <div>
@@ -101,7 +101,7 @@ export const EmergencyTriageEntry = ({ onComplete, onCancel }: EmergencyTriageEn
         </Card>
 
         {/* How It Works */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
             {
               step: "1",

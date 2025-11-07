@@ -575,7 +575,7 @@ export default function DentistAdminBranding() {
               />
               <div className="mt-4 p-4 bg-muted/50 rounded-lg">
                 <h4 className="font-medium mb-2">Current Template Features:</h4>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 text-sm">
                   {Object.entries(getTemplateConfig(templateType).features).map(([feature, enabled]) => (
                     <div key={feature} className="flex items-center gap-2">
                       <div className={`w-2 h-2 rounded-full ${enabled ? 'bg-green-500' : 'bg-gray-300'}`} />
@@ -660,7 +660,7 @@ export default function DentistAdminBranding() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label htmlFor="primary-color">Primary Color</Label>
                   <div className="flex items-center gap-3">

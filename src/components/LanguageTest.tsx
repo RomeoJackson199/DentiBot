@@ -62,7 +62,7 @@ export const LanguageTest = () => {
           </div>
 
           {/* Translation Examples */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="p-4 bg-gray-50 rounded-lg">
               <h4 className="font-semibold mb-2">Common Translations:</h4>
               <ul className="space-y-1 text-sm">

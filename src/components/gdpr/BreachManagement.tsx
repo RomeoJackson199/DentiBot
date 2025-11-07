@@ -381,7 +381,7 @@ export default function BreachManagement() {
                     <p className="text-muted-foreground">{incident.description}</p>
                   )}
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
                     <div>
                       <div className="font-medium flex items-center gap-1">
                         <Clock className="w-3 h-3" />

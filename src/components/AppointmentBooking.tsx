@@ -522,7 +522,7 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
                         {loadingAI && (
                           <div className="text-xs text-gray-500 mb-2">Analyzing best times…</div>
                         )}
-                          <div className="grid grid-cols-3 xs:grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-1 sm:gap-2">
+                          <div className="grid grid-cols-3 xs:grid-cols-4 sm:grid-cols-6 gap-1 sm:gap-2">
                            {allSlots
                              .filter(slot => {
                                // If showing all, include all available slots

@@ -69,7 +69,7 @@ export function DemoStaff() {
       </div>
 
       {/* Staff Grid */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {staff.map((member, idx) => (
           <Card key={idx} className="p-6 hover:shadow-lg transition-shadow cursor-pointer">
             <div className="flex items-center gap-4 mb-4">

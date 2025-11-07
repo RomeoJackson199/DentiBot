@@ -145,7 +145,7 @@ const Support = () => {
       </div>
 
       {/* Support Channels */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {supportChannels.map((channel, index) => (
           <Card key={index} className="hover:shadow-lg transition-shadow">
             <CardContent className="p-6">
@@ -213,7 +213,7 @@ const Support = () => {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleContactSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium">Name</label>
                   <Input
@@ -268,7 +268,7 @@ const Support = () => {
           <CardTitle>Helpful Resources</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {resources.map((resource, index) => (
               <div key={index} className="flex items-start gap-4 p-4 border rounded-lg hover:bg-muted/50 transition-colors">
                 <div className="p-2 bg-primary/10 rounded-lg">

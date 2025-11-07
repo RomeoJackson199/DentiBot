@@ -611,7 +611,7 @@ export const DentistAnalytics = ({ dentistId, onOpenPatientsTab, onOpenClinicalT
     return (
       <div className="space-y-4 px-4">
         <div className="h-10 bg-muted rounded animate-pulse" />
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           {Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="h-28 bg-muted rounded animate-pulse" />
           ))}
@@ -785,7 +785,7 @@ export const DentistAnalytics = ({ dentistId, onOpenPatientsTab, onOpenClinicalT
           </CardContent>
         </Card>
       </div>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 mb-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6 mb-4">
         <Card onClick={() => onOpenPaymentsTab?.()} className="cursor-pointer">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Revenue — {rangeLabel(range)}</CardTitle>

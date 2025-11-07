@@ -54,7 +54,7 @@ export function RestaurantStaffInviteByEmail({ businessId }: Props) {
         <CardDescription>Enter an email and select a role. The user will be prompted to accept on next sign in.</CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={onSubmit} className="grid gap-4 md:grid-cols-3">
+        <form onSubmit={onSubmit} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <div className="space-y-2 md:col-span-2">
             <Label htmlFor="staff-email">Email</Label>
             <Input

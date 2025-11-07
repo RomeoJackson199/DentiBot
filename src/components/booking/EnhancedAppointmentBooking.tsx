@@ -518,7 +518,7 @@ export const EnhancedAppointmentBooking = ({
                               className="max-h-56 overflow-y-auto scrollbar-visible p-2"
                               style={{ scrollbarWidth: 'thin' }}
                             >
-                              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
+                              <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
                                 {availableSlots.map((slot) => (
                                   <Button
                                     key={slot.time}
@@ -560,7 +560,7 @@ export const EnhancedAppointmentBooking = ({
                           </CardTitle>
                         </CardHeader>
                         <CardContent>
-                          <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 gap-1">
+                          <div className="grid grid-cols-6 sm:grid-cols-80 gap-1">
                             {allSlots.map((slot) => (
                               <div
                                 key={`status-${slot.time}`}

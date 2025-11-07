@@ -187,7 +187,7 @@ export const PaymentsTab: React.FC<PaymentsTabProps> = ({ patientId, totalDueCen
               <CardContent>
                 <div className="space-y-4">
                   {/* Payment Summary Chart */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <Card>
                       <CardContent className="p-4">
                         <div className="text-center">
