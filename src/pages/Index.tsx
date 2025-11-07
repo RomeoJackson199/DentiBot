@@ -86,7 +86,7 @@ const Index = () => {
                 From appointment scheduling to patient records, payments to inventory—manage your entire healthcare practice with AI-powered efficiency. Built specifically for modern healthcare professionals.
               </p>
 
-              <div className="flex flex-col md:flex-row gap-4 justify-center items-center pt-4">
+              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
                 <Button size="lg" className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-6 text-lg shadow-lg hover:shadow-xl transition-all group" onClick={() => navigate('/signup')} aria-label="Get started with free account">
                   Get Started Free
                   <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
