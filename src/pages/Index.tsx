@@ -68,58 +68,58 @@ const Index = () => {
           <div className="max-w-7xl mx-auto relative">
             <div className="text-center space-y-8 animate-fade-in">
               {/* Badge */}
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100 text-blue-700 text-sm font-medium">
-                <Sparkles className="h-4 w-4" />
+              <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-blue-100 text-blue-700 text-xl font-medium">
+                <Sparkles className="h-6 w-6" />
                 <span>AI-Powered Appointment Management</span>
               </div>
 
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 tracking-tight">
+              <h1 className="text-7xl font-bold text-gray-900 tracking-tight">
                 Your Complete Healthcare
-                <span className="block bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mt-2">
+                <span className="block bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mt-4">
                   Practice Management System
                 </span>
               </h1>
 
-              <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+              <p className="text-3xl text-gray-600 max-w-5xl mx-auto leading-relaxed">
                 From appointment scheduling to patient records, payments to inventory—manage your entire healthcare practice with AI-powered efficiency. Built specifically for modern healthcare professionals.
               </p>
 
-              <div className="flex flex-row gap-4 justify-center items-center pt-4">
-                <Button size="lg" className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-6 text-lg shadow-lg hover:shadow-xl transition-all group" onClick={() => navigate('/signup')} aria-label="Get started with free account">
+              <div className="flex flex-row gap-6 justify-center items-center pt-8">
+                <Button size="lg" className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-12 py-8 text-2xl shadow-lg hover:shadow-xl transition-all group" onClick={() => navigate('/signup')} aria-label="Get started with free account">
                   Get Started Free
-                  <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                  <ArrowRight className="ml-3 h-7 w-7 group-hover:translate-x-1 transition-transform" />
                 </Button>
                 <Button
                   size="lg"
                   variant="outline"
-                  className="border-2 border-purple-300 hover:border-purple-600 hover:bg-purple-50 px-8 py-6 text-lg transition-all group"
+                  className="border-2 border-purple-300 hover:border-purple-600 hover:bg-purple-50 px-12 py-8 text-2xl transition-all group"
                   onClick={() => setShowDemoTour(true)}
                   aria-label="Try interactive demo tour"
                 >
-                  <PlayCircle className="mr-2 h-5 w-5 group-hover:scale-110 transition-transform" />
+                  <PlayCircle className="mr-3 h-7 w-7 group-hover:scale-110 transition-transform" />
                   Try Demo Tour
                 </Button>
-                <Button size="lg" variant="outline" className="border-2 border-gray-300 hover:border-blue-600 hover:bg-blue-50 px-8 py-6 text-lg transition-all" onClick={() => navigate('/login')} aria-label="Sign in to existing account">
+                <Button size="lg" variant="outline" className="border-2 border-gray-300 hover:border-blue-600 hover:bg-blue-50 px-12 py-8 text-2xl transition-all" onClick={() => navigate('/login')} aria-label="Sign in to existing account">
                   Sign In
                 </Button>
               </div>
 
               {/* Trust indicators */}
-              <div className="flex flex-wrap justify-center items-center gap-8 pt-8 text-sm text-gray-600">
-                <div className="flex items-center gap-2">
-                  <Shield className="h-5 w-5 text-blue-600" />
+              <div className="flex flex-wrap justify-center items-center gap-12 pt-12 text-xl text-gray-600">
+                <div className="flex items-center gap-3">
+                  <Shield className="h-8 w-8 text-blue-600" />
                   <span>HIPAA Compliant</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-5 w-5 text-green-600" />
+                <div className="flex items-center gap-3">
+                  <CheckCircle2 className="h-8 w-8 text-green-600" />
                   <span>No credit card required</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Sparkles className="h-5 w-5 text-purple-600" />
+                <div className="flex items-center gap-3">
+                  <Sparkles className="h-8 w-8 text-purple-600" />
                   <span>AI-Powered Features</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Users className="h-5 w-5 text-green-600" />
+                <div className="flex items-center gap-3">
+                  <Users className="h-8 w-8 text-green-600" />
                   <span>Multi-Location Support</span>
                 </div>
               </div>
@@ -131,10 +131,10 @@ const Index = () => {
         <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-16 animate-fade-in">
-              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+              <h2 className="text-5xl font-bold text-gray-900 mb-6">
                 Everything Your Healthcare Practice Needs
               </h2>
-              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              <p className="text-2xl text-gray-600 max-w-4xl mx-auto">
                 Comprehensive practice management tools designed by healthcare professionals, for healthcare professionals
               </p>
             </div>
@@ -177,26 +177,26 @@ const Index = () => {
                   <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-300`}></div>
 
                   <div className="relative flex flex-col h-full">
-                    <div className={`inline-flex p-3 rounded-xl bg-gradient-to-br ${feature.gradient} mb-4 group-hover:scale-110 transition-transform duration-300 w-fit`}>
-                      <feature.icon className="h-6 w-6 text-white" aria-hidden="true" />
+                    <div className={`inline-flex p-4 rounded-xl bg-gradient-to-br ${feature.gradient} mb-6 group-hover:scale-110 transition-transform duration-300 w-fit`}>
+                      <feature.icon className="h-10 w-10 text-white" aria-hidden="true" />
                     </div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors">
+                    <h3 className="text-2xl font-semibold text-gray-900 mb-4 group-hover:text-blue-600 transition-colors">
                       {feature.title}
                     </h3>
-                    <p className="text-gray-600 leading-relaxed flex-grow">{feature.description}</p>
+                    <p className="text-xl text-gray-600 leading-relaxed flex-grow">{feature.description}</p>
                   </div>
                 </Card>)}
             </div>
 
             {/* Additional features list */}
             <div className="mt-16 bg-gradient-to-br from-gray-50 to-blue-50 rounded-2xl p-8 md:p-12">
-              <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">Plus Much More</h3>
-              <div className="grid grid-cols-2 gap-6">
-                {["Multi-location & multi-provider support", "Inventory management with low-stock alerts", "Comprehensive analytics & reporting", "Mobile-responsive PWA design", "Customizable clinic templates", "Real-time notifications & messaging", "Prescription management system", "Treatment plan tracking", "Staff & team management", "Data import/export tools", "Custom branding & white-labeling", "Google Calendar synchronization"].map((feature, index) => <div key={index} className="flex items-center gap-3">
-                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center">
-                      <CheckCircle2 className="h-4 w-4 text-white" aria-hidden="true" />
+              <h3 className="text-4xl font-bold text-gray-900 mb-8 text-center">Plus Much More</h3>
+              <div className="grid grid-cols-2 gap-8">
+                {["Multi-location & multi-provider support", "Inventory management with low-stock alerts", "Comprehensive analytics & reporting", "Mobile-responsive PWA design", "Customizable clinic templates", "Real-time notifications & messaging", "Prescription management system", "Treatment plan tracking", "Staff & team management", "Data import/export tools", "Custom branding & white-labeling", "Google Calendar synchronization"].map((feature, index) => <div key={index} className="flex items-center gap-4">
+                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center">
+                      <CheckCircle2 className="h-5 w-5 text-white" aria-hidden="true" />
                     </div>
-                    <span className="text-gray-700 font-medium">{feature}</span>
+                    <span className="text-gray-700 font-medium text-xl">{feature}</span>
                   </div>)}
               </div>
             </div>
@@ -206,15 +206,15 @@ const Index = () => {
         {/* Benefits Section */}
         <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-gray-50 to-blue-50">
           <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+            <div className="text-center mb-16">
+              <h2 className="text-5xl font-bold text-gray-900 mb-6">
                 Why Healthcare Practices Choose Caberu
               </h2>
-              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              <p className="text-2xl text-gray-600 max-w-4xl mx-auto">
                 Built specifically for healthcare professionals with the features you actually need
               </p>
             </div>
-            <div className="grid grid-cols-3 gap-8">
+            <div className="grid grid-cols-3 gap-10">
               {[{
               title: "Save Time",
               description: "Reduce administrative work by up to 60% with automated scheduling, reminders, and patient communications",
@@ -227,10 +227,10 @@ const Index = () => {
               title: "Better Patient Care",
               description: "Access complete patient histories instantly, track treatment plans, and provide more personalized care",
               stat: "100% organized records"
-            }].map((benefit, index) => <Card key={index} className="p-8 text-center bg-white border-2 border-blue-100 hover:border-blue-300 transition-all">
-                  <div className="text-4xl font-bold text-blue-600 mb-2">{benefit.stat}</div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-3">{benefit.title}</h3>
-                  <p className="text-gray-600">{benefit.description}</p>
+            }].map((benefit, index) => <Card key={index} className="p-10 text-center bg-white border-2 border-blue-100 hover:border-blue-300 transition-all">
+                  <div className="text-5xl font-bold text-blue-600 mb-4">{benefit.stat}</div>
+                  <h3 className="text-3xl font-bold text-gray-900 mb-4">{benefit.title}</h3>
+                  <p className="text-xl text-gray-600">{benefit.description}</p>
                 </Card>)}
             </div>
           </div>
@@ -239,11 +239,11 @@ const Index = () => {
         {/* Pricing Preview Section */}
         <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
           <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+            <div className="text-center mb-16">
+              <h2 className="text-5xl font-bold text-gray-900 mb-6">
                 Simple, Transparent Pricing
               </h2>
-              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              <p className="text-2xl text-gray-600 max-w-4xl mx-auto">
                 Start free, upgrade when you're ready. No hidden fees, cancel anytime.
               </p>
             </div>
