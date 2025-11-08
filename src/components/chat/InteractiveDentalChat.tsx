@@ -1575,27 +1575,10 @@ You'll receive a confirmation email shortly.`;
       
       {/* Header with booking toggle */}
       <div className="border-b bg-card/80 backdrop-blur-sm p-3 flex items-center justify-between">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between">
           <Bot className="h-5 w-5 text-primary" />
           <h2 className="font-semibold text-base">AI Dental Assistant</h2>
         </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => { 
-            try { 
-              localStorage.setItem('pd_section', 'assistant'); 
-              localStorage.setItem('pd_forceClassic', '1');
-            } catch {}; 
-            window.dispatchEvent(new CustomEvent('dashboard:changeSection', { detail: { section: 'assistant' } }));
-            if (window.location.pathname !== '/dashboard') {
-              navigate('/dashboard');
-            }
-          }}
-          className="text-xs text-muted-foreground hover:text-primary"
-        >
-          Switch to Classic Booking →
-        </Button>
       </div>
       
       <ScrollArea className="flex-1 p-4 bg-gradient-to-b from-background to-muted/20">

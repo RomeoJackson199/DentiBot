@@ -591,21 +591,15 @@ export const PatientDashboard = ({
     })() : null} activePrescriptions={patientStats.activePrescriptions} activeTreatmentPlans={patientStats.activeTreatmentPlans} totalDueCents={totalDueCents} onNavigateTo={s => setActiveSection(s)} onOpenAssistant={() => setActiveSection('assistant')} onBookAppointment={() => setActiveSection('assistant')} />}
 
       {activeSection === 'assistant' && (
-        (hasAIChat && !(typeof window !== 'undefined' && localStorage.getItem('pd_forceClassic') === '1')) ? (
-          <div className="px-4 md:px-6 py-4">
-            <Card>
-              <CardContent>
-                <div className="h-[70vh]">
-                  <InteractiveDentalChat user={user} triggerBooking={triggerBooking} />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        ) : (
-          <div className="px-4 md:px-6 py-4">
-            <BookAppointment />
-          </div>
-        )
+        <div className="px-4 md:px-6 py-4">
+          <Card>
+            <CardContent>
+              <div className="h-[70vh]">
+                <InteractiveDentalChat user={user} triggerBooking={triggerBooking} />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       )}
 
 
