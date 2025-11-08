@@ -150,8 +150,12 @@ serve(async (req) => {
         console.log('Detected language:', detectedLanguage);
       }
 
-    // Fetch AI knowledge documents if business_id is provided
+    // Fetch AI settings and knowledge documents if business_id is provided
     let knowledgeBaseContent = '';
+    let customGreeting = '';
+    let customSystemBehavior = '';
+    let customPersonalityTraits: string[] = [];
+    
     if (business_id) {
       try {
         const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
@@ -159,6 +163,24 @@ serve(async (req) => {
         const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
         const supabase = createClient(supabaseUrl, supabaseKey);
 
+        // Fetch business AI settings
+        const { data: business, error: businessError } = await supabase
+          .from('businesses')
+          .select('ai_greeting, ai_system_behavior, ai_personality_traits')
+          .eq('id', business_id)
+          .single();
+
+        if (!businessError && business) {
+          customGreeting = business.ai_greeting || '';
+          customSystemBehavior = business.ai_system_behavior || '';
+          customPersonalityTraits = (business.ai_personality_traits as string[]) || [];
+          
+          if (Deno.env.get('ENVIRONMENT') === 'development') {
+            console.log('Loaded custom AI settings from business');
+          }
+        }
+
+        // Fetch knowledge documents
         const { data: documents, error: docError } = await supabase
           .from('ai_knowledge_documents')
           .select('file_name, content')
@@ -173,17 +195,27 @@ serve(async (req) => {
           }
         }
       } catch (error) {
-        console.error('Error fetching knowledge documents:', error);
-        // Continue without knowledge base if there's an error
+        console.error('Error fetching AI settings or knowledge documents:', error);
+        // Continue with defaults if there's an error
       }
     }
 
     // Language-specific content
     const getLanguageContent = (lang: string) => {
+      // Build personality traits section
+      const personalitySection = customPersonalityTraits.length > 0 
+        ? `\n\nPERSONALITY TRAITS:\nEmbody these characteristics in your responses: ${customPersonalityTraits.join(', ')}.`
+        : '';
+      
+      // Build custom behavior section
+      const customBehaviorSection = customSystemBehavior 
+        ? `\n\nCUSTOM BEHAVIOR INSTRUCTIONS:\n${customSystemBehavior}`
+        : '';
+        
       switch(lang) {
         case 'nl':
           return {
-            persona: `Je bent DentiBot, een professionele Nederlandse tandheelkundige virtuele assistent. Je kent de patiënt ${user_profile?.first_name} ${user_profile?.last_name} en kunt hen helpen met het boeken, wijzigen of annuleren van afspraken.`,
+            persona: customGreeting || `Je bent DentiBot, een professionele Nederlandse tandheelkundige virtuele assistent. Je kent de patiënt ${user_profile?.first_name} ${user_profile?.last_name} en kunt hen helpen met het boeken, wijzigen of annuleren van afspraken.`,
             guidelines: `
 BELANGRIJKE INSTRUCTIES:
 - Je kent de patiënt: ${user_profile?.first_name} ${user_profile?.last_name}
@@ -254,12 +286,12 @@ PROFESSIONELE TAALVOORBEELDEN:
 - "Voor orthodontische behandeling kan ik u helpen een specialist te vinden. Welke specifieke zorgen heeft u over de uitlijning van uw tanden?"
 - "Voor het wijzigen van afspraken kunt u naar uw afsprakenlijst gaan"
 - "Voor annuleren van afspraken bekijkt u uw afsprakenlijst bovenaan"
-- "Is er nog iets anders dat u me zou willen vertellen over uw tandheelkundige situatie?"`
+- "Is er nog iets anders dat u me zou willen vertellen over uw tandheelkundige situatie?"${personalitySection}${customBehaviorSection}`
           };
           
         case 'fr':
           return {
-            persona: `Vous êtes DentiBot, un assistant virtuel dentaire professionnel français. Vous connaissez le patient ${user_profile?.first_name} ${user_profile?.last_name} et pouvez l'aider à réserver, modifier ou annuler des rendez-vous.`,
+            persona: customGreeting || `Vous êtes DentiBot, un assistant virtuel dentaire professionnel français. Vous connaissez le patient ${user_profile?.first_name} ${user_profile?.last_name} et pouvez l'aider à réserver, modifier ou annuler des rendez-vous.`,
             guidelines: `
 INSTRUCTIONS IMPORTANTES:
 - Vous connaissez le patient: ${user_profile?.first_name} ${user_profile?.last_name}
@@ -330,12 +362,12 @@ EXEMPLES DE LANGAGE PROFESSIONNEL:
 - "Pour un traitement orthodontique, je peux vous aider à trouver un spécialiste. Quelles préoccupations spécifiques avez-vous concernant l'alignement de vos dents?"
 - "Pour modifier des rendez-vous, consultez votre liste de rendez-vous en haut"
 - "Pour annuler un rendez-vous, allez dans votre liste de rendez-vous"
-- "Y a-t-il autre chose que vous aimeriez me dire concernant votre situation dentaire?"`
+- "Y a-t-il autre chose que vous aimeriez me dire concernant votre situation dentaire?"${personalitySection}${customBehaviorSection}`
           };
           
         default: // English
           return {
-            persona: `You are DentiBot, a friendly and professional dental assistant. You know the patient ${user_profile?.first_name} ${user_profile?.last_name}. You help patients book appointments with the right dentist based on their needs.`,
+            persona: customGreeting || `You are DentiBot, a friendly and professional dental assistant. You know the patient ${user_profile?.first_name} ${user_profile?.last_name}. You help patients book appointments with the right dentist based on their needs.`,
             guidelines: `
 CORE RULES:
 - Keep responses SHORT and CONVERSATIONAL (2-3 sentences max)
@@ -402,7 +434,7 @@ User: "Her tooth hurts"
 You: "How old is your daughter, and when did the pain start?"
 
 User: "I have a toothache"
-You: "I can help with that. Can you describe the pain - is it sharp, throbbing, or constant?"`
+You: "I can help with that. Can you describe the pain - is it sharp, throbbing, or constant?"${personalitySection}${customBehaviorSection}`
           };
       }
     };
