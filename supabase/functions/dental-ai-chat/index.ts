@@ -45,7 +45,7 @@ serve(async (req) => {
   }
 
   try {
-    const { message, conversation_history, user_profile, patient_context, mode } = await req.json();
+    const { message, conversation_history, user_profile, patient_context, mode, business_id } = await req.json();
 
     // Log request in development only
     if (Deno.env.get('ENVIRONMENT') === 'development') {
@@ -149,6 +149,34 @@ serve(async (req) => {
       if (Deno.env.get('ENVIRONMENT') === 'development') {
         console.log('Detected language:', detectedLanguage);
       }
+
+    // Fetch AI knowledge documents if business_id is provided
+    let knowledgeBaseContent = '';
+    if (business_id) {
+      try {
+        const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
+        const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+        const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+        const supabase = createClient(supabaseUrl, supabaseKey);
+
+        const { data: documents, error: docError } = await supabase
+          .from('ai_knowledge_documents')
+          .select('file_name, content')
+          .eq('business_id', business_id)
+          .eq('status', 'active');
+
+        if (!docError && documents && documents.length > 0) {
+          knowledgeBaseContent = `\n\nKNOWLEDGE BASE:\nYou have access to the following business documentation. Use this information to provide accurate and specific answers:\n\n${documents.map(doc => `Document: ${doc.file_name}\n${doc.content || '[Content pending extraction]'}`).join('\n\n---\n\n')}`;
+          
+          if (Deno.env.get('ENVIRONMENT') === 'development') {
+            console.log(`Loaded ${documents.length} knowledge documents`);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching knowledge documents:', error);
+        // Continue without knowledge base if there's an error
+      }
+    }
 
     // Language-specific content
     const getLanguageContent = (lang: string) => {
@@ -483,6 +511,7 @@ ${patient_context.recent_payments.slice(0, 3).map((p: any) => `- €${p.amount} 
         content.guidelines,
         content.dentists,
         content.examples,
+        knowledgeBaseContent,
         `Patient Information: ${JSON.stringify(user_profile)}`,
         patientContextString,
         `Conversation History:\n${conversation_history.map((msg: any) => (msg.is_bot ? 'Assistant' : 'Patient') + ': ' + msg.message).join('\n')}`

@@ -885,6 +885,7 @@ export default function DentistAdminBranding() {
             systemBehavior={aiSystemBehavior}
             greeting={aiGreeting}
             personalityTraits={aiPersonalityTraits}
+            businessId={businessId}
             onSystemBehaviorChange={setAiSystemBehavior}
             onGreetingChange={setAiGreeting}
             onPersonalityTraitsChange={setAiPersonalityTraits}

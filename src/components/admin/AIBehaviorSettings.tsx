@@ -1,18 +1,21 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Bot, Sparkles, X } from 'lucide-react';
+import { Bot, Sparkles, X, Upload, FileText, Loader2, Trash2 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useAIKnowledgeDocuments } from '@/hooks/useAIKnowledgeDocuments';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface AIBehaviorSettingsProps {
   systemBehavior: string;
   greeting: string;
   personalityTraits: string[];
+  businessId?: string;
   onSystemBehaviorChange: (value: string) => void;
   onGreetingChange: (value: string) => void;
   onPersonalityTraitsChange: (traits: string[]) => void;
@@ -23,12 +26,26 @@ export function AIBehaviorSettings({
   systemBehavior,
   greeting,
   personalityTraits,
+  businessId,
   onSystemBehaviorChange,
   onGreetingChange,
   onPersonalityTraitsChange,
   onTestChat,
 }: AIBehaviorSettingsProps) {
   const [newTrait, setNewTrait] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { documents, isLoading, isUploading, uploadDocument, deleteDocument } = useAIKnowledgeDocuments(businessId);
+
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      await uploadDocument(file);
+      // Reset input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
 
   const addTrait = () => {
     if (newTrait.trim() && !personalityTraits.includes(newTrait.trim())) {
@@ -75,10 +92,11 @@ export function AIBehaviorSettings({
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="greeting" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="greeting">Greeting</TabsTrigger>
             <TabsTrigger value="behavior">Behavior</TabsTrigger>
             <TabsTrigger value="personality">Personality</TabsTrigger>
+            <TabsTrigger value="knowledge">Knowledge Base</TabsTrigger>
           </TabsList>
 
           <TabsContent value="greeting" className="space-y-4 mt-4">
@@ -191,6 +209,91 @@ export function AIBehaviorSettings({
                   ))}
               </div>
             </div>
+          </TabsContent>
+
+          <TabsContent value="knowledge" className="space-y-4 mt-4">
+            <div className="space-y-2">
+              <Label>Knowledge Base Documents</Label>
+              <p className="text-xs text-muted-foreground">
+                Upload documents that the AI will use as reference when talking to users. Supported formats: PDF, TXT, MD, DOC, DOCX (max 10MB)
+              </p>
+            </div>
+
+            <Alert>
+              <FileText className="h-4 w-4" />
+              <AlertDescription>
+                The AI will automatically reference information from these documents when responding to user queries, providing more accurate and context-aware answers.
+              </AlertDescription>
+            </Alert>
+
+            <div className="flex gap-2">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".pdf,.txt,.md,.doc,.docx"
+                onChange={handleFileSelect}
+                className="hidden"
+              />
+              <Button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploading}
+                variant="outline"
+                className="gap-2"
+              >
+                {isUploading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Uploading...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="h-4 w-4" />
+                    Upload Document
+                  </>
+                )}
+              </Button>
+            </div>
+
+            {isLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              </div>
+            ) : documents.length > 0 ? (
+              <ScrollArea className="h-64 rounded-md border">
+                <div className="p-4 space-y-3">
+                  {documents.map((doc) => (
+                    <div
+                      key={doc.id}
+                      className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
+                    >
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                        <FileText className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{doc.file_name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            Uploaded {new Date(doc.created_at).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => deleteDocument(doc.id, doc.file_path)}
+                        className="flex-shrink-0 hover:bg-destructive/10 hover:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                <FileText className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                <p className="text-sm">No documents uploaded yet</p>
+                <p className="text-xs">Upload documents to enhance AI responses</p>
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </CardContent>

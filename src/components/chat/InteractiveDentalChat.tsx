@@ -289,6 +289,22 @@ export const InteractiveDentalChat = ({
     history: ChatMessage[]
   ): Promise<{ message: ChatMessage; fallback: boolean; suggestions: string[]; recommendedDentists: string[] }> => {
     try {
+      // Get business_id from current URL or settings
+      let businessId = null;
+      try {
+        const { data: businesses } = await supabase
+          .from('businesses')
+          .select('id')
+          .limit(1)
+          .single();
+        
+        if (businesses) {
+          businessId = businesses.id;
+        }
+      } catch (businessError) {
+        console.log('Could not fetch business ID:', businessError);
+      }
+
       const aiResponse = await supabase.functions.invoke('dental-ai-chat', {
         body: {
           message: userMessage,
@@ -299,7 +315,8 @@ export const InteractiveDentalChat = ({
           } : {
             name: 'Guest',
             email: null
-          })
+          }),
+          business_id: businessId
         }
       });
 

@@ -14,6 +14,50 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_knowledge_documents: {
+        Row: {
+          business_id: string
+          content: string | null
+          created_at: string | null
+          file_name: string
+          file_path: string
+          file_type: string
+          id: string
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          business_id: string
+          content?: string | null
+          created_at?: string | null
+          file_name: string
+          file_path: string
+          file_type: string
+          id?: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          business_id?: string
+          content?: string | null
+          created_at?: string | null
+          file_name?: string
+          file_path?: string
+          file_type?: string
+          id?: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_knowledge_documents_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       appointment_slots: {
         Row: {
           appointment_id: string | null

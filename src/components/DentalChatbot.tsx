@@ -213,6 +213,22 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
 
   const generateBotResponse = async (userMessage: string): Promise<ChatMessage> => {
     try {
+      // Get business_id from current URL or settings
+      let businessId = null;
+      try {
+        const { data: businesses } = await supabase
+          .from('businesses')
+          .select('id')
+          .limit(1)
+          .single();
+        
+        if (businesses) {
+          businessId = businesses.id;
+        }
+      } catch (businessError) {
+        console.log('Could not fetch business ID:', businessError);
+      }
+
       // Get patient context if user is logged in
       let patientContext = null;
       if (user) {
@@ -249,7 +265,8 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
             name: 'Guest',
             email: null
           }),
-          patient_context: patientContext // Add patient context here
+          patient_context: patientContext,
+          business_id: businessId
         }
       });
 
