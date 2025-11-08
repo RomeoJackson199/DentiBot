@@ -34,7 +34,7 @@ export function TemplateProvider({ children }: { children: ReactNode }) {
   const { businessId, loading: businessLoading } = useBusinessContext();
   const queryClient = useQueryClient();
   const [template, setTemplate] = useState<TemplateConfig | null>(null);
-  const [templateType, setTemplateType] = useState<TemplateType>('generic');
+  const [templateType, setTemplateType] = useState<TemplateType>('healthcare');
   const [loading, setLoading] = useState(true);
   const [customConfig, setCustomConfig] = useState<CustomTemplateConfig | undefined>();
 
@@ -48,7 +48,7 @@ export function TemplateProvider({ children }: { children: ReactNode }) {
     if (!businessId) {
       // No business selected - keep template null so features default to disabled
       setTemplate(null);
-      setTemplateType('generic');
+      setTemplateType('healthcare');
       setLoading(false);
       return;
     }
@@ -66,47 +66,16 @@ export function TemplateProvider({ children }: { children: ReactNode }) {
         throw error;
       }
 
-      const type = (data?.template_type || 'generic') as TemplateType;
+      const type = (data?.template_type || 'healthcare') as TemplateType;
       setTemplateType(type);
 
-      // If custom template, merge custom configuration
-      if (type === 'custom') {
-        const baseConfig = getTemplateConfig('custom');
-
-        // Check if there's a full custom_config (new format)
-        const fullConfig = data?.custom_config as CustomTemplateConfig | null;
-
-        // Fallback to old format if custom_config doesn't exist
-        const config: CustomTemplateConfig = fullConfig || {
-          features: data?.custom_features as TemplateFeatures,
-          terminology: data?.custom_terminology as TemplateTerminology,
-        };
-
-        const mergedConfig: TemplateConfig = {
-          ...baseConfig,
-          features: { ...baseConfig.features, ...(config.features || {}) },
-          terminology: { ...baseConfig.terminology, ...(config.terminology || {}) },
-          layoutCustomization: { ...baseConfig.layoutCustomization, ...(config.layoutCustomization || {}) },
-          appointmentReasons: config.appointmentReasons || baseConfig.appointmentReasons,
-          serviceCategories: config.serviceCategories || baseConfig.serviceCategories,
-          quickAddServices: config.quickAddServices || baseConfig.quickAddServices,
-          completionSteps: config.completionSteps || baseConfig.completionSteps,
-          navigationItems: config.navigationItems || baseConfig.navigationItems,
-          aiBehaviorDefaults: { ...baseConfig.aiBehaviorDefaults, ...(config.aiBehaviorDefaults || {}) },
-          serviceFieldLabels: { ...baseConfig.serviceFieldLabels, ...(config.serviceFieldLabels || {}) },
-        };
-
-        setTemplate(mergedConfig);
-        setCustomConfig(config);
-      } else {
-        setTemplate(getTemplateConfig(type));
-        setCustomConfig(undefined);
-      }
+      setTemplate(getTemplateConfig(type));
+      setCustomConfig(undefined);
     } catch (error) {
       logger.error('Failed to load template', { error, businessId });
-      // Fail closed: hide gated features instead of defaulting to generic
+      // Fail closed: hide gated features instead of defaulting to healthcare
       setTemplate(null);
-      setTemplateType('generic');
+      setTemplateType('healthcare');
     } finally {
       setLoading(false);
     }
@@ -184,9 +153,6 @@ export function TemplateProvider({ children }: { children: ReactNode }) {
       .from('businesses')
       .update({
         template_type: newTemplateType,
-        custom_features: newTemplateType === 'custom' ? (newCustomConfig?.features ?? null) : null,
-        custom_terminology: newTemplateType === 'custom' ? (newCustomConfig?.terminology ?? null) : null,
-        custom_config: newTemplateType === 'custom' ? (newCustomConfig ?? null) : null,
         updated_at: new Date().toISOString(),
       })
       .eq('id', businessId);
@@ -198,28 +164,8 @@ export function TemplateProvider({ children }: { children: ReactNode }) {
 
     // Update template in state immediately for instant UI update
     setTemplateType(newTemplateType);
-
-    if (newTemplateType === 'custom' && newCustomConfig) {
-      const baseConfig = getTemplateConfig('custom');
-      const mergedConfig: TemplateConfig = {
-        ...baseConfig,
-        features: { ...baseConfig.features, ...(newCustomConfig.features || {}) },
-        terminology: { ...baseConfig.terminology, ...(newCustomConfig.terminology || {}) },
-        layoutCustomization: { ...baseConfig.layoutCustomization, ...(newCustomConfig.layoutCustomization || {}) },
-        appointmentReasons: newCustomConfig.appointmentReasons || baseConfig.appointmentReasons,
-        serviceCategories: newCustomConfig.serviceCategories || baseConfig.serviceCategories,
-        quickAddServices: newCustomConfig.quickAddServices || baseConfig.quickAddServices,
-        completionSteps: newCustomConfig.completionSteps || baseConfig.completionSteps,
-        navigationItems: newCustomConfig.navigationItems || baseConfig.navigationItems,
-        aiBehaviorDefaults: { ...baseConfig.aiBehaviorDefaults, ...(newCustomConfig.aiBehaviorDefaults || {}) },
-        serviceFieldLabels: { ...baseConfig.serviceFieldLabels, ...(newCustomConfig.serviceFieldLabels || {}) },
-      };
-      setTemplate(mergedConfig);
-      setCustomConfig(newCustomConfig);
-    } else {
-      setTemplate(getTemplateConfig(newTemplateType));
-      setCustomConfig(undefined);
-    }
+    setTemplate(getTemplateConfig(newTemplateType));
+    setCustomConfig(undefined);
 
     // Invalidate all queries to refetch with new template context
     await queryClient.invalidateQueries();

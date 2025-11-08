@@ -72,10 +72,10 @@ export function ServiceDialog({ open, onClose, service, businessId, defaultCateg
           .single();
 
         if (error) throw error;
-        setTemplateType((data?.template_type as TemplateType) || 'generic');
+        setTemplateType((data?.template_type as TemplateType) || 'healthcare');
       } catch (error) {
         console.error('Error fetching business template:', error);
-        setTemplateType('generic');
+        setTemplateType('healthcare');
       }
     };
 

@@ -196,12 +196,8 @@ export default function CreateBusiness() {
                 {currentStep === 2 && (
                   <BusinessTemplateStep
                     selectedTemplate={businessData.template}
-                    onSelect={(template, customConfig) => {
-                      updateBusinessData({ 
-                        template, 
-                        customFeatures: customConfig?.features, 
-                        customTerminology: customConfig?.terminology 
-                      });
+                    onSelect={(template) => {
+                      updateBusinessData({ template });
                     }}
                   />
                 )}

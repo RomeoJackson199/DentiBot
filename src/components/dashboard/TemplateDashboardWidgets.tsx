@@ -33,28 +33,10 @@ export function TemplateDashboardHeader() {
   const { template, t } = useTemplate();
 
   const getWelcomeMessage = () => {
-    switch (template?.id) {
-      case 'hairdresser':
-        return {
-          title: '✨ Dashboard',
-          subtitle: `Manage appointments and track your business`,
-        };
-      case 'restaurant':
-        return {
-          title: '🍽️ Restaurant Dashboard',
-          subtitle: `Manage reservations and track your dining service`,
-        };
-      case 'healthcare':
-        return {
-          title: '🦷 Dental Dashboard',
-          subtitle: `Comprehensive dental practice overview`,
-        };
-      default:
-        return {
-          title: '📊 Business Dashboard',
-          subtitle: `Manage your ${t('business').toLowerCase()} efficiently`,
-        };
-    }
+    return {
+      title: '🦷 Dental Dashboard',
+      subtitle: `Comprehensive dental practice overview`,
+    };
   };
 
   const { title, subtitle } = getWelcomeMessage();
@@ -70,137 +52,38 @@ export function TemplateDashboardHeader() {
 export function TemplateSpecificMetrics() {
   const { template, templateType, t } = useTemplate();
 
-  // Template-specific metrics suggestions
+  // Healthcare metrics
   const getTemplateMetrics = (): DashboardMetric[] => {
-    switch (templateType) {
-      case 'hairdresser':
-        return [
-          {
-            icon: Calendar,
-            label: 'Appointments Today',
-            value: '-',
-            description: 'Scheduled',
-            color: 'text-blue-600',
-          },
-          {
-            icon: Scissors,
-            label: 'Services This Week',
-            value: '-',
-            description: 'Completed',
-            color: 'text-purple-600',
-          },
-          {
-            icon: TrendingUp,
-            label: 'Most Popular',
-            value: 'Haircut',
-            description: 'Top service',
-            color: 'text-green-600',
-          },
-          {
-            icon: DollarSign,
-            label: 'Revenue',
-            value: '-',
-            description: 'This month',
-            color: 'text-emerald-600',
-          },
-        ];
-
-      case 'restaurant':
-        return [
-          {
-            icon: UtensilsCrossed,
-            label: 'Reservations Today',
-            value: '-',
-            description: 'Tables booked',
-            color: 'text-orange-600',
-          },
-          {
-            icon: Users,
-            label: 'Covers Today',
-            value: '-',
-            description: 'Guests served',
-            color: 'text-blue-600',
-          },
-          {
-            icon: Star,
-            label: 'Popular Dish',
-            value: '-',
-            description: 'Most ordered',
-            color: 'text-yellow-600',
-          },
-          {
-            icon: ShoppingBag,
-            label: 'Revenue Today',
-            value: '-',
-            description: 'Total sales',
-            color: 'text-green-600',
-          },
-        ];
-
-      case 'healthcare':
-        return [
-          {
-            icon: Users,
-            label: `${t('customerPlural')} Today`,
-            value: '-',
-            description: 'Scheduled',
-            color: 'text-blue-600',
-          },
-          {
-            icon: Calendar,
-            label: 'Procedures This Week',
-            value: '-',
-            description: 'Treatments',
-            color: 'text-green-600',
-          },
-          {
-            icon: Star,
-            label: 'Treatment Plans Active',
-            value: '-',
-            description: 'In progress',
-            color: 'text-yellow-600',
-          },
-          {
-            icon: TrendingUp,
-            label: 'Recall Due',
-            value: '-',
-            description: '6-month checkups',
-            color: 'text-purple-600',
-          },
-        ];
-
-      default:
-        return [
-          {
-            icon: Calendar,
-            label: `${t('appointmentPlural')} Today`,
-            value: '-',
-            description: 'Scheduled',
-            color: 'text-blue-600',
-          },
-          {
-            icon: Users,
-            label: `Active ${t('customerPlural')}`,
-            value: '-',
-            description: 'Total clients',
-            color: 'text-green-600',
-          },
-          {
-            icon: DollarSign,
-            label: 'Revenue This Month',
-            value: '-',
-            description: 'Total earnings',
-            color: 'text-purple-600',
-          },
-          {
-            icon: TrendingUp,
-            label: 'Growth',
-            value: '-',
-            description: 'vs last month',
-            color: 'text-orange-600',
-          },
-        ];
-    }
+    return [
+      {
+        icon: Users,
+        label: `${t('customerPlural')} Today`,
+        value: '-',
+        description: 'Scheduled',
+        color: 'text-blue-600',
+      },
+      {
+        icon: Calendar,
+        label: 'Procedures This Week',
+        value: '-',
+        description: 'Treatments',
+        color: 'text-green-600',
+      },
+      {
+        icon: Star,
+        label: 'Treatment Plans Active',
+        value: '-',
+        description: 'In progress',
+        color: 'text-yellow-600',
+      },
+      {
+        icon: TrendingUp,
+        label: 'Recall Due',
+        value: '-',
+        description: '6-month checkups',
+        color: 'text-purple-600',
+      },
+    ];
   };
 
   const metrics = getTemplateMetrics();
@@ -232,39 +115,12 @@ export function TemplateQuickActions() {
   const { template, templateType, t } = useTemplate();
 
   const getQuickActions = () => {
-    switch (templateType) {
-      case 'hairdresser':
-        return [
-          { label: 'New Appointment', description: 'Book a client' },
-          { label: 'View Schedule', description: 'Today\'s calendar' },
-          { label: 'Manage Services', description: 'Edit services' },
-          { label: 'Client List', description: 'View all clients' },
-        ];
-
-      case 'restaurant':
-        return [
-          { label: 'New Reservation', description: 'Book table' },
-          { label: 'Walk-in Seating', description: 'Seat guests' },
-          { label: 'Menu Management', description: 'Update dishes' },
-          { label: 'Table Status', description: 'View availability' },
-        ];
-
-      case 'healthcare':
-        return [
-          { label: `New ${t('customer')}`, description: 'Add patient' },
-          { label: 'Write Prescription', description: 'Quick Rx' },
-          { label: 'Emergency Slot', description: 'Urgent care' },
-          { label: 'Lab Results', description: 'View reports' },
-        ];
-
-      default:
-        return [
-          { label: `New ${t('appointment')}`, description: 'Book now' },
-          { label: `Add ${t('customer')}`, description: 'New client' },
-          { label: 'View Schedule', description: 'Today\'s agenda' },
-          { label: 'Reports', description: 'Analytics' },
-        ];
-    }
+    return [
+      { label: `New ${t('customer')}`, description: 'Add patient' },
+      { label: 'Write Prescription', description: 'Quick Rx' },
+      { label: 'Emergency Slot', description: 'Urgent care' },
+      { label: 'Lab Results', description: 'View reports' },
+    ];
   };
 
   const actions = getQuickActions();
@@ -296,39 +152,12 @@ export function TemplateInsights() {
   const { templateType, t } = useTemplate();
 
   const getInsights = () => {
-    switch (templateType) {
-      case 'hairdresser':
-        return [
-          '📅 Check your upcoming appointments to stay organized',
-          '💡 Most popular: Haircut services are typically booked most',
-          '⭐ Keep clients happy by confirming appointments in advance',
-          '📊 Track your busiest times to optimize your schedule',
-        ];
-
-      case 'restaurant':
-        return [
-          '🍽️ Dinner service (6-8pm) is your busiest time',
-          '📊 Weekend reservations are 90% booked',
-          '⭐ Your signature dish has excellent reviews!',
-          '📅 Consider offering a weekday lunch special',
-        ];
-
-      case 'healthcare':
-        return [
-          '📋 12 patients due for 6-month checkups',
-          '📊 Your practice is running 15% ahead of schedule today',
-          '💊 3 prescription refills pending approval',
-          '🎯 Follow-up compliance rate is 88%',
-        ];
-
-      default:
-        return [
-          `📊 You have ${Math.floor(Math.random() * 10) + 5} ${t('appointmentPlural').toLowerCase()} this week`,
-          '⭐ Your business rating has improved to 4.8 stars',
-          `💰 Revenue is up compared to last month`,
-          '📅 Tomorrow has availability - consider promoting it',
-        ];
-    }
+    return [
+      '📋 12 patients due for 6-month checkups',
+      '📊 Your practice is running 15% ahead of schedule today',
+      '💊 3 prescription refills pending approval',
+      '🎯 Follow-up compliance rate is 88%',
+    ];
   };
 
   const insights = getInsights();

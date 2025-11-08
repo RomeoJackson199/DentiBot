@@ -23,55 +23,10 @@ export function useTemplateNavigation() {
     });
   };
 
-  // Get restaurant-specific navigation items based on role
-  const getRestaurantNavItems = useMemo(() => {
-    if (templateType !== 'restaurant' || roleLoading) return [];
-
-    const items = [];
-
-    // Owner/Manager gets all access
-    if (restaurantRole === 'owner' || restaurantRole === 'manager') {
-      items.push(
-        {
-          id: 'restaurant-owner',
-          label: 'Restaurant Management',
-          icon: UtensilsCrossed,
-          path: '/restaurant/owner',
-        }
-      );
-    }
-
-    // Waiter dashboard
-    if (restaurantRole === 'waiter') {
-      items.push(
-        {
-          id: 'restaurant-waiter',
-          label: 'My Tables',
-          icon: Table,
-          path: '/restaurant/waiter',
-        }
-      );
-    }
-
-    // Kitchen dashboard
-    if (restaurantRole === 'cook') {
-      items.push(
-        {
-          id: 'restaurant-kitchen',
-          label: 'Kitchen',
-          icon: ChefHat,
-          path: '/restaurant/kitchen',
-        }
-      );
-    }
-
-    return items;
-  }, [templateType, restaurantRole, roleLoading]);
-
   return {
     filterNavItems,
-    getRestaurantNavItems,
-    isRestaurant: templateType === 'restaurant',
+    getRestaurantNavItems: [],
+    isRestaurant: false,
     restaurantRole,
     isNavItemVisible: (navItemId: string) => true, // Backward compatibility
     shouldShowFeatureNav: (navItemId: string) => true, // Backward compatibility

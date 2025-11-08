@@ -5,7 +5,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { BusinessTemplateSelector } from './BusinessTemplateSelector';
 import { TemplateType } from '@/lib/businessTemplates';
-import { FullTemplateConfig } from './CustomTemplateConfigurator';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
@@ -20,17 +19,12 @@ interface BusinessCreationDialogProps {
 export function BusinessCreationDialog({ open, onOpenChange, onSuccess }: BusinessCreationDialogProps) {
   const [step, setStep] = useState<'template' | 'details'>('template');
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateType>('healthcare');
-  const [customConfig, setCustomConfig] = useState<FullTemplateConfig | undefined>();
   const [businessName, setBusinessName] = useState('');
   const [tagline, setTagline] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleTemplateSelect = (
-    templateId: string,
-    config?: FullTemplateConfig
-  ) => {
+  const handleTemplateSelect = (templateId: string) => {
     setSelectedTemplate(templateId as TemplateType);
-    if (config) setCustomConfig(config);
   };
 
   const handleTemplateNext = () => {
@@ -94,13 +88,6 @@ export function BusinessCreationDialog({ open, onOpenChange, onSuccess }: Busine
         owner_profile_id: profile.id,
         template_type: selectedTemplate,
       };
-
-      // Store custom configuration if template is custom
-      if (selectedTemplate === 'custom' && customConfig) {
-        businessData.custom_features = customConfig.features;
-        businessData.custom_terminology = customConfig.terminology;
-        businessData.custom_config = customConfig;
-      }
 
       const { data: business, error: businessError } = await supabase
         .from('businesses')

@@ -31,7 +31,6 @@ import { UserTour, useUserTour } from "@/components/UserTour";
 import { DentistDemoTour } from "@/components/DentistDemoTour";
 import { HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { SalonRouter } from "@/components/salon/SalonRouter";
 
 interface DentistPortalProps {
   user?: User | null;
@@ -209,9 +208,7 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
 
     switch (activeSection) {
       case 'dashboard':
-        return template?.id === 'hairdresser'
-          ? <SalonRouter />
-          : <ClinicalToday dentistId={dentistId} user={user} onOpenPatientsTab={() => setActiveSection('patients')} onOpenAppointmentsTab={() => setActiveSection('appointments')} />;
+        return <ClinicalToday dentistId={dentistId} user={user} onOpenPatientsTab={() => setActiveSection('patients')} onOpenAppointmentsTab={() => setActiveSection('appointments')} />;
       case 'patients':
         return <ModernPatientManagement dentistId={dentistId} />;
       case 'appointments':

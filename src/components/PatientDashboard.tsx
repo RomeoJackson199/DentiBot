@@ -603,11 +603,7 @@ export const PatientDashboard = ({
           </div>
         ) : (
           <div className="px-4 md:px-6 py-4">
-            {template?.id === 'restaurant' && businessId ? (
-              <RestaurantBookingFlow businessId={businessId} businessSlug={businessSlug || undefined} />
-            ) : (
-              <BookAppointment />
-            )}
+            <BookAppointment />
           </div>
         )
       )}

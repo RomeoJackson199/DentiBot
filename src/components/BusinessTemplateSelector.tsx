@@ -7,25 +7,21 @@ import { Check, Info, Settings } from 'lucide-react';
 import { getAllTemplates, TemplateConfig } from '@/lib/businessTemplates';
 import { cn } from '@/lib/utils';
 import { TemplateFeatureExplainer } from './TemplateFeatureExplainer';
-import { CustomTemplateConfigurator, FullTemplateConfig } from './CustomTemplateConfigurator';
 
 interface BusinessTemplateSelectorProps {
   selectedTemplate?: string;
-  onSelect: (templateId: string, customConfig?: FullTemplateConfig) => void;
+  onSelect: (templateId: string) => void;
   disabled?: boolean;
-  customConfig?: FullTemplateConfig;
 }
 
 export function BusinessTemplateSelector({ 
   selectedTemplate, 
   onSelect,
-  disabled = false,
-  customConfig 
+  disabled = false
 }: BusinessTemplateSelectorProps) {
   const templates = getAllTemplates().filter(t => t.id === 'healthcare');
   const [hoveredTemplate, setHoveredTemplate] = useState<string | null>(null);
   const [previewTemplate, setPreviewTemplate] = useState<string | null>(null);
-  const [customizingCustom, setCustomizingCustom] = useState(false);
 
   const renderFeaturesList = (template: TemplateConfig) => {
     const enabledFeatures = Object.entries(template.features)
@@ -53,17 +49,7 @@ export function BusinessTemplateSelector({
 
   const handleTemplateClick = (templateId: string) => {
     if (disabled) return;
-    
-    if (templateId === 'custom') {
-      setCustomizingCustom(true);
-    } else {
-      onSelect(templateId);
-    }
-  };
-
-  const handleCustomSave = (config: FullTemplateConfig) => {
-    onSelect('custom', config);
-    setCustomizingCustom(false);
+    onSelect(templateId);
   };
 
   return (
@@ -142,24 +128,11 @@ export function BusinessTemplateSelector({
                       className="w-full"
                       onClick={(e) => {
                         e.stopPropagation();
-                        if (template.id === 'custom') {
-                          setCustomizingCustom(true);
-                        } else {
-                          setPreviewTemplate(template.id);
-                        }
+                        setPreviewTemplate(template.id);
                       }}
                     >
-                      {template.id === 'custom' ? (
-                        <>
-                          <Settings className="h-4 w-4 mr-2" />
-                          Customize
-                        </>
-                      ) : (
-                        <>
-                          <Info className="h-4 w-4 mr-2" />
-                          View All Features
-                        </>
-                      )}
+                      <Info className="h-4 w-4 mr-2" />
+                      View All Features
                     </Button>
                   </div>
                 </CardContent>
@@ -187,30 +160,6 @@ export function BusinessTemplateSelector({
               </div>
             </>
           )}
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={customizingCustom} onOpenChange={setCustomizingCustom}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Settings className="h-6 w-6 text-primary" />
-              Customize Your Template
-            </DialogTitle>
-          </DialogHeader>
-          <CustomTemplateConfigurator 
-            initialFeatures={customConfig?.features}
-            initialTerminology={customConfig?.terminology}
-            initialLayoutCustomization={customConfig?.layoutCustomization}
-            initialAppointmentReasons={customConfig?.appointmentReasons}
-            initialServiceCategories={customConfig?.serviceCategories}
-            initialQuickAddServices={customConfig?.quickAddServices}
-            initialCompletionSteps={customConfig?.completionSteps}
-            initialNavigationItems={customConfig?.navigationItems}
-            initialAIBehavior={customConfig?.aiBehaviorDefaults}
-            initialServiceFieldLabels={customConfig?.serviceFieldLabels}
-            onSave={handleCustomSave} 
-          />
         </DialogContent>
       </Dialog>
     </>

@@ -6,12 +6,7 @@
  * It will show the right dashboard based on your team size.
  */
 
-// ===== AUTOMATIC TIER DETECTION =====
-// Use this component - it handles everything automatically!
-export { SalonRouter, SalonNavItems } from './SalonRouter';
-
-// Tier Management
-export { TierUpgradeSettings } from './TierUpgradeSettings';
+// Note: Salon components have been removed as only healthcare template is supported
 
 // ===== TYPE A: SOLO STYLIST (1 person) =====
 export { SoloDashboard } from './SoloDashboard';
