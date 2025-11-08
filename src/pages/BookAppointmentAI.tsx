@@ -527,6 +527,16 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
                   <ArrowLeft className="h-4 w-4" />
                   Back to chat
                 </Button>
+                
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigate('/book-appointment')}
+                  className="gap-2 text-muted-foreground hover:text-primary hover:bg-white/50"
+                >
+                  <CalendarDays className="h-4 w-4" />
+                  <span className="hidden sm:inline">Switch to Classic Booking</span>
+                </Button>
               </div>
 
               <div className="text-center space-y-3">

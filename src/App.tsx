@@ -61,6 +61,7 @@ const About = lazy(() => import("./pages/About"));
 const Claim = lazy(() => import("./pages/Claim"));
 const PublicBooking = lazy(() => import("./pages/PublicBooking"));
 const BookAppointmentAI = lazy(() => import("./pages/BookAppointmentAI"));
+const BookAppointment = lazy(() => import("./pages/BookAppointment"));
 const BusinessPortal = lazy(() => import("./pages/BusinessPortal"));
 import { BookingRouteHandler } from "./components/booking/BookingRouteHandler";
 import { logger } from '@/lib/logger';
@@ -331,7 +332,7 @@ const App = () => {
                 <Route path="/order" element={<TableOrderingPage />} />
                 {/* Booking routes */}
                 <Route path="/book-appointment-ai" element={<BookingRouteHandler><BookAppointmentAI /></BookingRouteHandler>} />
-                <Route path="/book-appointment" element={<Navigate to="/dashboard" replace />} />
+                <Route path="/book-appointment" element={<BookingRouteHandler><BookAppointment /></BookingRouteHandler>} />
                 <Route path="/smart-book-appointment" element={<SmartBookAppointment />} />
                 {/* Business portal route - must come before catch-all */}
                 <Route path="/:slug" element={<BusinessPortal />} />
