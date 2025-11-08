@@ -288,30 +288,7 @@ BELANGRIJK:
 - Voor algemene vragen en informatie verzamelen: GEEN code
 - Codes zijn onzichtbaar voor de gebruiker`,
             
-            dentists: `
-BESCHIKBARE ${terms.providers.toUpperCase()} & HUN SPECIALISATIES:
-${templateType === 'hairdresser' ? `
-Stylisten beschikbaar - het systeem zal de beste match aanbevelen op basis van de behoeften van de klant.
-` : `
-Dr. Virginie Pauwels - Kindertandarts
-  * Gespecialiseerd in: Tandheelkunde voor kinderen, pediatrische spoedgevallen, preventieve zorg voor kinderen
-  * Het beste voor: Patiënten onder de 16 jaar, kinderen met tandheelkundige angst, pediatrische behandelingen
-
-Dr. Emeline Hubin - Kindertandarts
-  * Gespecialiseerd in: Pediatrische procedures, kindvriendelijke benadering, gedragsbeheer
-  * Het beste voor: Jonge kinderen, eerste tandheelkundige bezoeken, kinderen met speciale behoeften
-
-Dr. Firdaws Benhsain - Algemeen tandarts
-  * Gespecialiseerd in: Algemene tandheelkunde, routinereiniging, vullingen, extracties, spoedzorg
-  * Het beste voor: Volwassen patiënten, algemeen onderhoud, tandheelkundige spoedgevallen, routinecontroles
-
-Dr. Justine Peters - Orthodontist
-  * Gespecialiseerd in: Traditionele beugels, tandenuitlijning, beetcorrectie, orthodontische consulten
-  * Het beste voor: Tieners en volwassenen die beugels nodig hebben, beetproblemen, tanden rechtzetten
-
-Dr. Anne-Sophie Haas - Orthodontist
-  * Gespecialiseerd in: Volwassen orthodontie, Invisalign, complexe uitlijningscases, esthetische behandelingen
-  * Het beste voor: Volwassenen die discrete behandeling zoeken, complexe gevallen, professionele uitstraling`}`,
+            dentists: ``,
             
             examples: `
 PROFESSIONELE TAALVOORBEELDEN:
@@ -364,30 +341,7 @@ IMPORTANT:
 - Pour les questions générales et la collecte d'informations: PAS de code
 - Les codes sont invisibles pour l'utilisateur`,
             
-            dentists: `
-${terms.providers.toUpperCase()} DISPONIBLES & LEURS SPÉCIALISATIONS:
-${templateType === 'hairdresser' ? `
-Stylistes disponibles - le système recommandera le meilleur match selon les besoins du client.
-` : `
-Dr. Virginie Pauwels - Pédodontiste
-  * Spécialisée en: Soins dentaires pour enfants, urgences pédiatriques, soins préventifs pour enfants
-  * Idéale pour: Patients de moins de 16 ans, enfants avec anxiété dentaire, traitements pédiatriques
-
-Dr. Emeline Hubin - Pédodontiste
-  * Spécialisée en: Procédures pédiatriques, approche adaptée aux enfants, gestion comportementale
-  * Idéale pour: Jeunes enfants, premières visites dentaires, enfants avec besoins spéciaux
-
-Dr. Firdaws Benhsain - Dentiste généraliste
-  * Spécialisée en: Soins dentaires généraux, nettoyages de routine, plombages, extractions, soins d'urgence
-  * Idéale pour: Patients adultes, maintenance générale, urgences dentaires, contrôles de routine
-
-Dr. Justine Peters - Orthodontiste
-  * Spécialisée en: Appareils orthodontiques traditionnels, alignement des dents, correction de l'occlusion
-  * Idéale pour: Adolescents et adultes nécessitant des appareils, problèmes d'occlusion, redressement des dents
-
-Dr. Anne-Sophie Haas - Orthodontiste
-  * Spécialisée en: Orthodontie pour adultes, Invisalign, cas d'alignement complexes, traitements esthétiques
-  * Idéale pour: Adultes cherchant un traitement discret, cas complexes, besoins d'apparence professionnelle`}`,
+            dentists: ``,
             
             examples: `
 EXEMPLES DE LANGAGE PROFESSIONNEL:
@@ -447,17 +401,7 @@ RESPONSE STYLE:
 ✓ "89902 Perfect! Based on that, I can recommend the right ${terms.provider}."
 ✗ "I understand you are experiencing ${templateType === 'hairdresser' ? 'styling' : 'dental'} concerns and would like to schedule..."`,
             
-            dentists: `
-AVAILABLE ${terms.providers.toUpperCase()}:
-${templateType === 'hairdresser' ? `
-Stylists available - the system will recommend the best match based on customer needs.
-` : `
-- Dr. Romeo Jackson - General dentist (routine care, cleanings, fillings, emergencies)
-- Dr. Virginie Pauwels - Pediatric dentist (children under 16)
-- Dr. Emeline Hubin - Pediatric dentist (young children, first visits)
-- Dr. Firdaws Benhsain - General dentist (adult patients, emergencies)
-- Dr. Justine Peters - Orthodontist (braces, alignment, teens/adults)
-- Dr. Anne-Sophie Haas - Orthodontist (adult ortho, Invisalign)`}`,
+            dentists: ``,
             
             examples: `
 CONVERSATION EXAMPLES:
@@ -578,7 +522,6 @@ ${patient_context.recent_payments.slice(0, 3).map((p: any) => `- €${p.amount} 
       systemPrompt = [
         content.persona,
         content.guidelines,
-        content.dentists,
         content.examples,
         knowledgeBaseContent,
         `Patient Information: ${JSON.stringify(user_profile)}`,
