@@ -1,6 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useTiltEffect } from "@/hooks/useTiltEffect";
 import { 
   Brain, 
   Calendar, 
@@ -15,6 +16,70 @@ import {
   ArrowRight,
   Sparkles
 } from "lucide-react";
+
+function FeatureCard({ feature, index }: { feature: any; index: number }) {
+  const { ref, tiltStyle, onMouseMove, onMouseLeave } = useTiltEffect({
+    maxTilt: 8,
+    scale: 1.05,
+  });
+
+  return (
+    <Card
+      ref={ref}
+      variant="elevated"
+      className="group overflow-hidden border-0 bg-card/80 backdrop-blur-sm cursor-pointer"
+      style={{ 
+        animationDelay: `${index * 0.1}s`,
+        ...tiltStyle,
+        transformStyle: 'preserve-3d',
+      }}
+      onMouseMove={onMouseMove}
+      onMouseLeave={onMouseLeave}
+    >
+      {/* Card Header with Icon */}
+      <CardHeader className="relative pb-4" style={{ transform: 'translateZ(50px)' }}>
+        <div className="flex items-start justify-between mb-4">
+          <div className={`p-3 rounded-xl ${feature.bgColor} group-hover:scale-110 transition-transform duration-300`}>
+            <feature.icon className={`h-6 w-6 ${feature.color}`} />
+          </div>
+          <Badge variant="outline" size="sm" className="text-xs">
+            {feature.badge}
+          </Badge>
+        </div>
+        
+        <CardTitle className="text-xl mb-2 group-hover:gradient-text transition-all duration-300">
+          {feature.title}
+        </CardTitle>
+        
+        <CardDescription className="text-base leading-relaxed">
+          {feature.description}
+        </CardDescription>
+      </CardHeader>
+
+      {/* Benefits List */}
+      <CardContent className="pt-0" style={{ transform: 'translateZ(30px)' }}>
+        <div className="space-y-3 mb-6">
+          {feature.benefits.map((benefit: string) => (
+            <div key={benefit} className="flex items-center space-x-3">
+              <div className={`w-2 h-2 rounded-full ${feature.bgColor} border-2 ${feature.color.replace('text', 'border')}`} />
+              <span className="text-sm text-muted-foreground">{benefit}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Learn More Button */}
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="w-full group-hover:bg-accent/50 transition-colors"
+        >
+          Learn More
+          <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
 
 export function ModernFeatureCards() {
   const features = [
@@ -100,58 +165,9 @@ export function ModernFeatureCards() {
         </div>
 
         {/* Features Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-3 gap-8">
           {features.map((feature, index) => (
-            <Card
-              key={feature.title}
-              variant="elevated"
-              className="group hover:scale-105 transition-all duration-500 overflow-hidden border-0 bg-card/80 backdrop-blur-sm"
-              style={{ 
-                animationDelay: `${index * 0.1}s`,
-              }}
-            >
-              {/* Card Header with Icon */}
-              <CardHeader className="relative pb-4">
-                <div className="flex items-start justify-between mb-4">
-                  <div className={`p-3 rounded-xl ${feature.bgColor} group-hover:scale-110 transition-transform duration-300`}>
-                    <feature.icon className={`h-6 w-6 ${feature.color}`} />
-                  </div>
-                  <Badge variant="outline" size="sm" className="text-xs">
-                    {feature.badge}
-                  </Badge>
-                </div>
-                
-                <CardTitle className="text-xl mb-2 group-hover:gradient-text transition-all duration-300">
-                  {feature.title}
-                </CardTitle>
-                
-                <CardDescription className="text-base leading-relaxed">
-                  {feature.description}
-                </CardDescription>
-              </CardHeader>
-
-              {/* Benefits List */}
-              <CardContent className="pt-0">
-                <div className="space-y-3 mb-6">
-                  {feature.benefits.map((benefit) => (
-                    <div key={benefit} className="flex items-center space-x-3">
-                      <div className={`w-2 h-2 rounded-full ${feature.bgColor} border-2 ${feature.color.replace('text', 'border')}`} />
-                      <span className="text-sm text-muted-foreground">{benefit}</span>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Learn More Button */}
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="w-full group-hover:bg-accent/50 transition-colors"
-                >
-                  Learn More
-                  <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                </Button>
-              </CardContent>
-            </Card>
+            <FeatureCard key={feature.title} feature={feature} index={index} />
           ))}
         </div>
 

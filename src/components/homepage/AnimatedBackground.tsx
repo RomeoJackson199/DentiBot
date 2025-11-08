@@ -1,4 +1,5 @@
-import { motion } from "framer-motion";
+import { motion, useMotionValue, useTransform } from "framer-motion";
+import { useEffect } from "react";
 
 interface Particle {
   id: number;
@@ -10,7 +11,7 @@ interface Particle {
   gradient: string;
 }
 
-const particles: Particle[] = Array.from({ length: 12 }, (_, i) => ({
+const particles: Particle[] = Array.from({ length: 20 }, (_, i) => ({
   id: i,
   size: Math.random() * 300 + 150,
   x: Math.random() * 100,
@@ -26,33 +27,61 @@ const particles: Particle[] = Array.from({ length: 12 }, (_, i) => ({
 }));
 
 export function AnimatedBackground() {
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      mouseX.set(e.clientX);
+      mouseY.set(e.clientY);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, [mouseX, mouseY]);
+
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {/* Animated gradient orbs */}
-      {particles.map((particle) => (
-        <motion.div
-          key={particle.id}
-          className={`absolute rounded-full bg-gradient-to-br ${particle.gradient} blur-3xl`}
-          style={{
-            width: particle.size,
-            height: particle.size,
-            left: `${particle.x}%`,
-            top: `${particle.y}%`,
-          }}
-          animate={{
-            x: [0, 30, -30, 0],
-            y: [0, -40, 40, 0],
-            scale: [1, 1.1, 0.9, 1],
-            opacity: [0.3, 0.5, 0.3],
-          }}
-          transition={{
-            duration: particle.duration,
-            delay: particle.delay,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
-      ))}
+      {/* Mouse-reactive animated gradient orbs */}
+      {particles.map((particle) => {
+        const offsetX = useTransform(
+          mouseX,
+          [0, window.innerWidth],
+          [-20, 20]
+        );
+        const offsetY = useTransform(
+          mouseY,
+          [0, window.innerHeight],
+          [-20, 20]
+        );
+
+        return (
+          <motion.div
+            key={particle.id}
+            className={`absolute rounded-full bg-gradient-to-br ${particle.gradient} blur-3xl`}
+            style={{
+              width: particle.size,
+              height: particle.size,
+              left: `${particle.x}%`,
+              top: `${particle.y}%`,
+              x: offsetX,
+              y: offsetY,
+            }}
+            animate={{
+              x: [0, 30, -30, 0],
+              y: [0, -40, 40, 0],
+              scale: [1, 1.1, 0.9, 1],
+              opacity: [0.3, 0.5, 0.3],
+            }}
+            transition={{
+              duration: particle.duration,
+              delay: particle.delay,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+          />
+        );
+      })}
 
       {/* Geometric shapes */}
       <motion.div
