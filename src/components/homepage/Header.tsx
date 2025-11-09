@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { User } from "@supabase/supabase-js";
+import { useNavigate } from "react-router-dom";
 import { Calendar, Menu, X, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
@@ -12,6 +13,7 @@ interface HeaderProps {
 export const Header = ({ user, minimal = false }: HeaderProps) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { theme, setTheme } = useTheme();
+  const navigate = useNavigate();
 
   const navigation = [
     { name: "About", href: "/about" },
@@ -68,14 +70,14 @@ export const Header = ({ user, minimal = false }: HeaderProps) => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => (window.location.href = "/login")}
+                  onClick={() => navigate("/login")}
                   className="hidden sm:inline-flex"
                 >
                   Sign In
                 </Button>
                 <Button
                   size="sm"
-                  onClick={() => (window.location.href = "/signup")}
+                  onClick={() => navigate("/signup")}
                   className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
                 >
                   Get Started
@@ -86,7 +88,7 @@ export const Header = ({ user, minimal = false }: HeaderProps) => {
             {user && (
               <Button
                 size="sm"
-                onClick={() => (window.location.href = "/dashboard")}
+                onClick={() => navigate("/dashboard")}
                 className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
               >
                 Dashboard

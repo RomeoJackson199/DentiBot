@@ -47,7 +47,9 @@ function readSidebarCookie(): boolean {
     if (match) {
       return match[1] === 'true';
     }
-  } catch {}
+  } catch (error) {
+    console.debug('Failed to read sidebar cookie:', error);
+  }
   return true;
 }
 
@@ -77,7 +79,7 @@ function PatientPortalNavContent({ children }: { children: React.ReactNode }) {
   const handleSignOut = async () => {
     try {
       await supabase.auth.signOut();
-      window.location.href = '/';
+      navigate('/', { replace: true });
     } catch (error) {
       console.error('Failed to sign out', error);
     }
@@ -178,8 +180,8 @@ function PatientPortalNavContent({ children }: { children: React.ReactNode }) {
   }, [location.pathname]);
 
   const handleNav = (groupId: string, item: NavItem, e: React.MouseEvent) => {
-    try { localStorage.setItem(STORAGE_KEYS.lastVisited, item.to); } catch {}
-    try { emitAnalyticsEvent('pnav_click', '', { role: 'patient', group: groupId, item: item.id, path: item.to }); } catch {}
+    try { localStorage.setItem(STORAGE_KEYS.lastVisited, item.to); } catch (error) { console.debug('Failed to save last visited:', error); }
+    try { emitAnalyticsEvent('pnav_click', '', { role: 'patient', group: groupId, item: item.id, path: item.to }); } catch (error) { console.debug('Failed to emit analytics:', error); }
     if (isMobile) setMoreOpen(false);
     
     // Auto-collapse sidebar when navigating to booking
@@ -331,7 +333,7 @@ function PatientPortalNavContent({ children }: { children: React.ReactNode }) {
 
   // Mobile: bottom tabs with More opening full-height drawer showing same content
   if (isMobile) {
-    const haptic = () => { try { (navigator as any)?.vibrate?.(10); } catch {} };
+    const haptic = () => { try { (navigator as any)?.vibrate?.(10); } catch (error) { console.debug('Haptic feedback failed:', error); } };
     return (
       <div className="min-h-screen flex flex-col">
         {/* Mobile top header with menu toggle */}

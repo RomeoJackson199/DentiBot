@@ -136,7 +136,9 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
               p_dentist_id: selectedDentist,
               p_date: dateStr
             });
-          } catch {}
+          } catch (slotError) {
+            console.error('Failed to generate daily slots:', slotError);
+          }
           setAvailableTimes([]);
           setAllSlots([]);
           setRetryCount(0);

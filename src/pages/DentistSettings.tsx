@@ -53,8 +53,9 @@ export default function DentistSettings() {
         });
       }
 
-      // Force reload to update role and UI
-      window.location.href = '/';
+      // Navigate home to update role and UI
+      navigate('/', { replace: true });
+      window.location.reload(); // Force reload to ensure clean state
     } catch (error) {
       logger.error('Error leaving clinic:', error);
       toast({

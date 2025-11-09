@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -45,6 +45,7 @@ const Schedule = () => {
   const [loading, setLoading] = useState(true);
   const [appointments, setAppointments] = useState<RealAppointment[]>([]);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   // Load user and dentist info
   useEffect(() => {
@@ -189,7 +190,7 @@ const Schedule = () => {
         <Card>
           <CardContent className="p-8 text-center">
             <p className="text-muted-foreground">You need dentist access to view schedules.</p>
-            <Button onClick={() => window.location.href = '/dashboard'} className="mt-4">
+            <Button onClick={() => navigate('/dashboard')} className="mt-4">
               Go to Dashboard
             </Button>
           </CardContent>

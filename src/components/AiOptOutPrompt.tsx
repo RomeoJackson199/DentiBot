@@ -1,14 +1,13 @@
-// @ts-nocheck
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle 
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle
 } from "@/components/ui/dialog";
 import { Bot, X, Check } from "lucide-react";
 import { logger } from '@/lib/logger';
@@ -22,11 +21,7 @@ export const AiOptOutPrompt = ({ user }: AiOptOutPromptProps) => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
-  useEffect(() => {
-    checkAiOptOutStatus();
-  }, [user]);
-
-  const checkAiOptOutStatus = async () => {
+  const checkAiOptOutStatus = useCallback(async () => {
     try {
       // Use local preference to avoid DB column mismatch
       const disabled = localStorage.getItem(`ai_features_disabled_${user.id}`) === 'true';
@@ -38,7 +33,11 @@ export const AiOptOutPrompt = ({ user }: AiOptOutPromptProps) => {
     } catch (error) {
       console.error('Error checking AI opt-out status:', error);
     }
-  };
+  }, [user.id]);
+
+  useEffect(() => {
+    checkAiOptOutStatus();
+  }, [checkAiOptOutStatus]);
 
   const handleEnableAi = async () => {
     setLoading(true);
