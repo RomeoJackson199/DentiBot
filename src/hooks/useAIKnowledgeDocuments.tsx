@@ -97,9 +97,19 @@ export const useAIKnowledgeDocuments = (businessId: string | undefined) => {
       let content = '';
       if (file.type === 'text/plain' || file.type === 'text/markdown') {
         content = await file.text();
+      } else if (file.type === 'application/pdf' ||
+                 file.type === 'application/msword' ||
+                 file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+        // For PDF/DOC files, show a helpful message
+        toast({
+          title: 'Note',
+          description: 'PDF and Word documents are uploaded successfully. For best results, also upload a TXT version with the key information extracted.',
+          duration: 8000,
+        });
+        content = `[${file.name} uploaded - For full AI integration, please also upload a text (.txt) version with key information extracted from this document]`;
       } else {
         // For other file types, we'll store just the file reference
-        content = `[${file.type} document - content to be extracted]`;
+        content = `[${file.type} document - content pending extraction]`;
       }
 
       // Create database record
