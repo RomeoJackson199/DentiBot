@@ -86,3 +86,6 @@ verify_jwt = false
 
 [functions.complete-business-subscription]
 verify_jwt = true
+
+[functions.create-healthcare-business]
+verify_jwt = true

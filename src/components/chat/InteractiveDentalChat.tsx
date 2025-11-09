@@ -128,6 +128,7 @@ export const InteractiveDentalChat = ({
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [hasCustomAI, setHasCustomAI] = useState(false);
   const [customGreeting, setCustomGreeting] = useState<string | null>(null);
+  const [isAIConfigLoaded, setIsAIConfigLoaded] = useState(false);
 
   // Booking flow state
   const [bookingFlow, setBookingFlow] = useState<BookingFlowState>({
@@ -168,7 +169,7 @@ export const InteractiveDentalChat = ({
     } else {
       setShowConsentWidget(true);
     }
-  }, [user]);
+  }, [user, isAIConfigLoaded, customGreeting]);
 
   useEffect(() => {
     if (triggerBooking && hasConsented) {
@@ -183,38 +184,65 @@ export const InteractiveDentalChat = ({
 
   // Check if business has custom AI settings
   useEffect(() => {
-    const checkCustomAI = async () => {
-      if (!businessId) {
-        setHasCustomAI(false);
-        return;
-      }
-
+    const loadAIConfig = async () => {
       try {
-        const { data, error } = await supabase
-          .from('businesses')
-          .select('ai_greeting, ai_system_behavior, ai_personality_traits')
-          .eq('id', businessId)
-          .single();
-
-        if (!error && data) {
-          const hasCustomization = !!(
-            data.ai_greeting ||
-            data.ai_system_behavior ||
-            (data.ai_personality_traits && (data.ai_personality_traits as string[]).length > 0)
-          );
-          setHasCustomAI(hasCustomization);
+        // Resolve effective business ID
+        let effectiveBusinessId = businessId;
+        
+        // If no businessId from context, try to get from URL slug
+        if (!effectiveBusinessId) {
+          const pathSegments = window.location.pathname.split('/').filter(Boolean);
+          const slug = pathSegments[0];
           
-          // Store custom greeting for initial message
-          if (data.ai_greeting) {
-            setCustomGreeting(data.ai_greeting);
+          if (slug && slug !== 'chat' && slug !== 'dashboard') {
+            const { data: businessBySlug } = await supabase
+              .from('businesses')
+              .select('id')
+              .eq('slug', slug)
+              .single();
+            effectiveBusinessId = businessBySlug?.id || null;
+          }
+          
+          // Final fallback to first active business
+          if (!effectiveBusinessId) {
+            const { data: firstBusiness } = await supabase
+              .from('businesses')
+              .select('id')
+              .limit(1)
+              .single();
+            effectiveBusinessId = firstBusiness?.id || null;
+          }
+        }
+
+        if (effectiveBusinessId) {
+          const { data, error } = await supabase
+            .from('businesses')
+            .select('ai_greeting, ai_system_behavior, ai_personality_traits')
+            .eq('id', effectiveBusinessId)
+            .single();
+
+          if (!error && data) {
+            const hasCustomization = !!(
+              data.ai_greeting ||
+              data.ai_system_behavior ||
+              (data.ai_personality_traits && (data.ai_personality_traits as string[]).length > 0)
+            );
+            setHasCustomAI(hasCustomization);
+            
+            // Store custom greeting for initial message
+            if (data.ai_greeting) {
+              setCustomGreeting(data.ai_greeting);
+            }
           }
         }
       } catch (error) {
         console.log('Could not check AI customization:', error);
+      } finally {
+        setIsAIConfigLoaded(true);
       }
     };
 
-    checkCustomAI();
+    loadAIConfig();
   }, [businessId]);
 
   const scrollToBottom = () => {
@@ -241,7 +269,8 @@ export const InteractiveDentalChat = ({
   };
 
   const initializeChat = () => {
-    if (messages.length === 0) {
+    // Only initialize if AI config is loaded and no messages yet
+    if (messages.length === 0 && isAIConfigLoaded) {
       // Use custom greeting if available, otherwise use default
       const defaultGreeting = user && userProfile ? 
         `Hello ${userProfile.first_name}! 👋 I'm your dental assistant. How can I help you today?` : 

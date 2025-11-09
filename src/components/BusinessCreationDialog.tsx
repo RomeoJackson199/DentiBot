@@ -35,110 +35,40 @@ export function BusinessCreationDialog({ open, onOpenChange, onSuccess }: Busine
 
   const handleCreate = async () => {
     if (!businessName.trim()) {
-      toast.error('Please enter a business name');
+      toast.error("Business name is required");
       return;
     }
 
     setLoading(true);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
-
-      // Get profile
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
-
-      if (!profile) throw new Error('Profile not found');
-
-      // Generate slug
-      const baseSlug = businessName
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-+|-+$/g, '');
-
-      let slug = baseSlug;
-      let slugExists = true;
-      let counter = 1;
-
-      // Find unique slug
-      while (slugExists) {
-        const { data } = await supabase
-          .from('businesses')
-          .select('id')
-          .eq('slug', slug)
-          .maybeSingle();
-
-        if (!data) {
-          slugExists = false;
-        } else {
-          slug = `${baseSlug}-${counter}`;
-          counter++;
+      // Call edge function to create business atomically
+      const { data, error } = await supabase.functions.invoke('create-healthcare-business', {
+        body: {
+          name: businessName,
+          tagline: tagline || 'Your Practice, Your Way',
+          template_type: selectedTemplate || 'healthcare',
         }
+      });
+
+      if (error) throw error;
+
+      if (data?.success) {
+        toast.success("Business created successfully!");
+        onSuccess(data.business_id);
+        onOpenChange(false);
+        
+        // Reset form
+        setBusinessName("");
+        setTagline("");
+        setSelectedTemplate('healthcare');
+        setStep('template');
+      } else {
+        throw new Error(data?.error || 'Failed to create business');
       }
-
-      // Create business
-      const businessData: any = {
-        name: businessName,
-        slug,
-        tagline: tagline || null,
-        owner_profile_id: profile.id,
-        template_type: selectedTemplate,
-      };
-
-      const { data: business, error: businessError } = await supabase
-        .from('businesses')
-        .insert(businessData)
-        .select()
-        .single();
-
-      if (businessError) throw businessError;
-
-      // Add owner as business member
-      const { error: memberError } = await supabase
-        .from('business_members')
-        .insert({
-          business_id: business.id,
-          profile_id: profile.id,
-          role: 'owner',
-        });
-
-      if (memberError) throw memberError;
-
-      // Assign admin and provider roles
-      const { error: roleError } = await supabase
-        .from('user_roles')
-        .insert([
-          {
-            user_id: user.id,
-            role: 'admin',
-          },
-          {
-            user_id: user.id,
-            role: 'provider',
-          }
-        ]);
-
-      // Ignore if roles already exist
-      if (roleError && !roleError.message.includes('duplicate') && !roleError.message.includes('unique')) {
-        throw roleError;
-      }
-
-      toast.success('Business created successfully!');
-      onSuccess(business.id);
-      onOpenChange(false);
-
-      // Reset form
-      setStep('template');
-      setSelectedTemplate('healthcare');
-      setBusinessName('');
-      setTagline('');
     } catch (error: any) {
       console.error('Error creating business:', error);
-      toast.error(error.message || 'Failed to create business');
+      toast.error(error.message || "Failed to create business");
     } finally {
       setLoading(false);
     }
