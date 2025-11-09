@@ -76,11 +76,11 @@ const Index = () => {
                 <span>AI-Powered Appointment Management</span>
               </motion.div>
 
-              <motion.h1 
+              <motion.h1
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.2 }}
-                className="text-7xl font-bold text-gray-900 tracking-tight"
+                className="text-4xl sm:text-5xl lg:text-7xl font-bold text-gray-900 tracking-tight"
               >
                 Your Complete Healthcare
                 <span className="block bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mt-4">
@@ -88,11 +88,11 @@ const Index = () => {
                 </span>
               </motion.h1>
 
-              <motion.p 
+              <motion.p
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.4 }}
-                className="text-3xl text-gray-600 max-w-5xl mx-auto leading-relaxed"
+                className="text-lg sm:text-xl lg:text-3xl text-gray-600 max-w-5xl mx-auto leading-relaxed"
               >
                 From appointment scheduling to patient records, payments to inventory—manage your entire healthcare practice with AI-powered efficiency. Built specifically for modern healthcare professionals.
               </motion.p>
@@ -101,24 +101,21 @@ const Index = () => {
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.6 }}
-                className="flex flex-row gap-6 justify-center items-center pt-8"
+                className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center items-center pt-8"
               >
-                <Button size="lg" className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-12 py-8 text-2xl shadow-lg hover:shadow-xl transition-all group" onClick={() => navigate('/signup')} aria-label="Get started with free account">
-                  Get Started Free
-                  <ArrowRight className="ml-3 h-7 w-7 group-hover:translate-x-1 transition-transform" />
+                <Button size="lg" className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 sm:px-12 py-6 sm:py-8 text-lg sm:text-2xl shadow-lg hover:shadow-xl transition-all group w-full sm:w-auto" onClick={() => navigate('/signup')} aria-label="Book your first appointment free">
+                  Book Your First Appointment Free
+                  <ArrowRight className="ml-3 h-5 w-5 sm:h-7 sm:w-7 group-hover:translate-x-1 transition-transform" />
                 </Button>
                 <Button
                   size="lg"
                   variant="outline"
-                  className="border-2 border-purple-300 hover:border-purple-600 hover:bg-purple-50 px-12 py-8 text-2xl transition-all group"
+                  className="border-2 border-purple-300 hover:border-purple-600 hover:bg-purple-50 px-8 sm:px-12 py-6 sm:py-8 text-lg sm:text-2xl transition-all group w-full sm:w-auto"
                   onClick={() => setShowDemoTour(true)}
-                  aria-label="Try interactive demo tour"
+                  aria-label="Watch interactive demo"
                 >
-                  <PlayCircle className="mr-3 h-7 w-7 group-hover:scale-110 transition-transform" />
-                  Try Demo Tour
-                </Button>
-                <Button size="lg" variant="outline" className="border-2 border-gray-300 hover:border-blue-600 hover:bg-blue-50 px-12 py-8 text-2xl transition-all" onClick={() => navigate('/login')} aria-label="Sign in to existing account">
-                  Sign In
+                  <PlayCircle className="mr-3 h-5 w-5 sm:h-7 sm:w-7 group-hover:scale-110 transition-transform" />
+                  Watch Demo
                 </Button>
               </motion.div>
 
@@ -162,36 +159,36 @@ const Index = () => {
               </p>
             </ScrollAnimatedSection>
 
-            <div className="grid grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {([{
               icon: Calendar,
-              title: "Beautifully Designed Scheduling System",
-              description: "Experience a beautifully designed scheduling system that makes appointment management effortless and intuitive",
+              title: "Smart Appointment Scheduling",
+              description: "Reduce no-shows by 40% with intelligent scheduling that sends automated SMS and email reminders to patients",
               gradient: "from-blue-500 to-cyan-500"
             }, {
               icon: Zap,
-              title: "AI-Powered Scheduling",
-              description: "This enables your business to know what your client wants before they even come to you, so you can prepare the best experience for your customer",
+              title: "AI-Powered Patient Insights",
+              description: "Predict patient needs and preferences before appointments, enabling personalized care and better preparation",
               gradient: "from-purple-500 to-pink-500"
             }, {
               icon: Bell,
-              title: "Patient Reminders",
-              description: "Automated appointment reminders and recall systems reduce no-shows by up to 40%",
+              title: "Automated Reminders & Recalls",
+              description: "Cut no-shows by 40% with automated appointment reminders via SMS, email, and recall systems for follow-ups",
               gradient: "from-orange-500 to-red-500"
             }, {
               icon: Users,
-              title: "All Your Customer Data in One Place",
-              description: "Access all your customer information, treatment history, and records in one centralized location",
+              title: "Centralized Patient Records",
+              description: "Access complete patient history, treatment plans, and medical records instantly from one unified dashboard",
               gradient: "from-green-500 to-emerald-500"
             }, {
               icon: Shield,
-              title: "We Value Security",
-              description: "Our enterprise-grade security is made for security, protecting your data with the highest standards",
+              title: "HIPAA-Compliant Security",
+              description: "Enterprise-grade encryption and HIPAA compliance keeps patient data secure with bank-level protection",
               gradient: "from-indigo-500 to-blue-500"
             }, {
               icon: CheckCircle2,
-              title: "Billing & Payments",
-              description: "We will send notifications if your customer has forgot to pay so that you can work on what matters most",
+              title: "Streamlined Billing & Payments",
+              description: "Automated payment reminders reduce outstanding balances, with integrated billing that saves 3+ hours per week",
               gradient: "from-teal-500 to-cyan-500"
             }] as const).map((feature, index) => <ScrollAnimatedSection key={index} delay={index * 0.1} direction="up">
                 <Card className="group p-6 border-2 border-gray-200 hover:border-transparent hover:shadow-2xl transition-all duration-300 cursor-pointer relative overflow-hidden h-full flex flex-col" role="article" tabIndex={0} aria-label={`Feature: ${feature.title}`}>
@@ -237,7 +234,7 @@ const Index = () => {
                 Built specifically for healthcare professionals with the features you actually need
               </p>
             </ScrollAnimatedSection>
-            <div className="grid grid-cols-3 gap-10">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-10">
               {[{
               title: "Save Time",
               description: "Reduce administrative work by up to 60% with automated scheduling, reminders, and patient communications",
@@ -251,7 +248,7 @@ const Index = () => {
               description: "Access complete patient histories instantly, track treatment plans, and provide more personalized care",
               stat: "100% organized records"
             }].map((benefit, index) => <ScrollAnimatedSection key={index} delay={index * 0.15}>
-                <Card className="p-10 text-center bg-white border-2 border-blue-100 hover:border-blue-300 transition-all hover:scale-105 duration-300">
+                <Card className="p-8 lg:p-10 text-center bg-white border-2 border-blue-100 hover:border-blue-300 hover:shadow-xl transition-all duration-300">
                   <div className="text-5xl font-bold text-blue-600 mb-4">{benefit.stat}</div>
                   <h3 className="text-3xl font-bold text-gray-900 mb-4">{benefit.title}</h3>
                   <p className="text-xl text-gray-600">{benefit.description}</p>
@@ -273,10 +270,10 @@ const Index = () => {
               </p>
             </ScrollAnimatedSection>
 
-            <div className="grid grid-cols-3 gap-8 max-w-5xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 max-w-6xl mx-auto">
               {/* Starter Plan */}
               <ScrollAnimatedSection delay={0} direction="up">
-                <Card className="p-8 border-2 border-gray-200 hover:border-gray-300 transition-all hover:scale-105 duration-300 h-full">
+                <Card className="p-6 lg:p-8 border-2 border-gray-200 hover:border-gray-300 hover:shadow-lg transition-all duration-300 h-full">
                 <div className="text-center mb-6">
                   <h3 className="text-2xl font-bold text-gray-900 mb-2">Starter</h3>
                   <div className="flex items-baseline justify-center gap-1">
@@ -305,7 +302,7 @@ const Index = () => {
 
               {/* Professional Plan */}
               <ScrollAnimatedSection delay={0.15} direction="up">
-                <Card className="p-8 border-2 border-blue-600 bg-gradient-to-br from-blue-50 to-purple-50 relative shadow-xl transform scale-105 hover:scale-110 duration-300 h-full">
+                <Card className="p-6 lg:p-8 border-2 border-blue-600 bg-gradient-to-br from-blue-50 to-purple-50 relative shadow-xl hover:shadow-2xl duration-300 h-full">
                 <div className="absolute -top-4 left-1/2 -translate-x-1/2">
                   <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-1 rounded-full text-sm font-semibold shadow-lg">
                     Most Popular
@@ -338,7 +335,7 @@ const Index = () => {
 
               {/* Enterprise Plan */}
               <ScrollAnimatedSection delay={0.3} direction="up">
-                <Card className="p-8 border-2 border-gray-200 hover:border-gray-300 transition-all hover:scale-105 duration-300 h-full">
+                <Card className="p-6 lg:p-8 border-2 border-gray-200 hover:border-gray-300 hover:shadow-lg transition-all duration-300 h-full">
                 <div className="text-center mb-6">
                   <h3 className="text-2xl font-bold text-gray-900 mb-2">Enterprise</h3>
                   <div className="flex items-baseline justify-center gap-1">

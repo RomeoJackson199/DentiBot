@@ -280,14 +280,6 @@ const App = () => {
                 <Route path="/dentist-services" element={<RoleBasedRouter requiredRole='dentist'><DentistServices /></RoleBasedRouter>} />
                 {/* Hairdresser routes */}
                 <Route path="/hairdresser/*" element={<RoleBasedRouter requiredRole='dentist'><DentistPortal /></RoleBasedRouter>} />
-                {/* Legacy route alias */}
-                <Route path="/dentist-portal/*" element={<Navigate to="/dentist" replace />} />
-                {/* Old routes for backward compatibility */}
-                <Route path="/clinical" element={<Navigate to="/dentist/clinical/dashboard" replace />} />
-                <Route path="/clinical/*" element={<Navigate to="/dentist/clinical/dashboard" replace />} />
-                <Route path="/business/*" element={<Navigate to="/dentist/business/payments" replace />} />
-                <Route path="/ops/*" element={<Navigate to="/dentist/ops/inventory" replace />} />
-                <Route path="/admin/*" element={<Navigate to="/dentist/settings" replace />} />
                 {/* Patient portal routes with patient nav */}
                 <Route element={<PatientPortalNav><></></PatientPortalNav>}>
                   <Route path="/care" element={<PatientCareHome />} />
@@ -330,10 +322,11 @@ const App = () => {
                 <Route path="/restaurant/kitchen" element={<RoleBasedRouter requiredRole='dentist'><KitchenDashboard /></RoleBasedRouter>} />
                 {/* Public table ordering route */}
                 <Route path="/order" element={<TableOrderingPage />} />
-                {/* Booking routes */}
-                <Route path="/book-appointment-ai" element={<BookingRouteHandler><BookAppointmentAI /></BookingRouteHandler>} />
+                {/* Unified booking route with AI enhancement */}
                 <Route path="/book-appointment" element={<BookingRouteHandler><BookAppointment /></BookingRouteHandler>} />
-                <Route path="/smart-book-appointment" element={<SmartBookAppointment />} />
+                {/* Legacy booking routes - redirect to main booking */}
+                <Route path="/book-appointment-ai" element={<Navigate to="/book-appointment" replace />} />
+                <Route path="/smart-book-appointment" element={<Navigate to="/book-appointment" replace />} />
                 {/* Business portal route - must come before catch-all */}
                 <Route path="/:slug" element={<BusinessPortal />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
