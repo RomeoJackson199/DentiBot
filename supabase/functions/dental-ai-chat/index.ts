@@ -202,20 +202,25 @@ serve(async (req) => {
 
     // Language-specific content
     const getLanguageContent = (lang: string) => {
-      // Build personality traits section
-      const personalitySection = customPersonalityTraits.length > 0 
-        ? `\n\nPERSONALITY TRAITS:\nEmbody these characteristics in your responses: ${customPersonalityTraits.join(', ')}.`
+      // Build personality traits intro for persona
+      const personalityIntro = customPersonalityTraits.length > 0
+        ? ` You are ${customPersonalityTraits.join(', ').toLowerCase()}.`
         : '';
-      
+
+      // Build personality traits section (reinforced)
+      const personalitySection = customPersonalityTraits.length > 0
+        ? `\n\nPERSONALITY TRAITS (IMPORTANT - embody these in EVERY response):\n${customPersonalityTraits.map(trait => `- ${trait}: Ensure your tone and language reflects this characteristic`).join('\n')}\n\nRemember: ALWAYS maintain these personality traits throughout the entire conversation.`
+        : '';
+
       // Build custom behavior section
-      const customBehaviorSection = customSystemBehavior 
+      const customBehaviorSection = customSystemBehavior
         ? `\n\nCUSTOM BEHAVIOR INSTRUCTIONS:\n${customSystemBehavior}`
         : '';
-        
+
       switch(lang) {
         case 'nl':
           return {
-            persona: customGreeting || `Je bent DentiBot, een professionele tandheelkundige virtuele assistent. Je kent de patiënt ${user_profile?.first_name} ${user_profile?.last_name} en kunt hen helpen met het boeken, wijzigen of annuleren van afspraken.`,
+            persona: customGreeting || `Je bent DentiBot, een professionele tandheelkundige virtuele assistent.${personalityIntro} Je kent de patiënt ${user_profile?.first_name} ${user_profile?.last_name} en kunt hen helpen met het boeken, wijzigen of annuleren van afspraken.`,
             guidelines: `
 BELANGRIJKE INSTRUCTIES:
 - Je kent de patiënt: ${user_profile?.first_name} ${user_profile?.last_name}
@@ -268,7 +273,7 @@ PROFESSIONELE TAALVOORBEELDEN:
           
         case 'fr':
           return {
-            persona: customGreeting || `Vous êtes DentiBot, un assistant virtuel dentaire professionnel. Vous connaissez le patient ${user_profile?.first_name} ${user_profile?.last_name} et pouvez l'aider à réserver, modifier ou annuler des rendez-vous.`,
+            persona: customGreeting || `Vous êtes DentiBot, un assistant virtuel dentaire professionnel.${personalityIntro} Vous connaissez le patient ${user_profile?.first_name} ${user_profile?.last_name} et pouvez l'aider à réserver, modifier ou annuler des rendez-vous.`,
             guidelines: `
 INSTRUCTIONS IMPORTANTES:
 - Vous connaissez le patient: ${user_profile?.first_name} ${user_profile?.last_name}
@@ -321,7 +326,7 @@ EXEMPLES DE LANGAGE PROFESSIONNEL:
           
         default: // English
           return {
-            persona: customGreeting || `You are DentiBot, a friendly and professional dental assistant. You know the patient ${user_profile?.first_name} ${user_profile?.last_name}. You help patients book appointments with the right dentist based on their needs.`,
+            persona: customGreeting || `You are DentiBot, a friendly and professional dental assistant.${personalityIntro} You know the patient ${user_profile?.first_name} ${user_profile?.last_name}. You help patients book appointments with the right dentist based on their needs.`,
             guidelines: `
 CORE RULES:
 - Keep responses SHORT and CONVERSATIONAL (2-3 sentences max)

@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useLanguage, changeLanguage } from "@/hooks/useLanguage";
 import { useToast } from "@/hooks/use-toast";
 import { useTheme } from "next-themes";
+import { useBusinessContext } from "@/hooks/useBusinessContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -13,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Send, Bot, User as UserIcon, Mic, MicOff, CheckCircle, Calendar } from "lucide-react";
 import { ChatMessage } from "@/types/chat";
 import { format } from "date-fns";
-import { 
+import {
   PrivacyConsentWidget,
   InlineCalendarWidget,
   TimeSlotsWidget,
@@ -125,7 +126,8 @@ export const InteractiveDentalChat = ({
   const [widgetData, setWidgetData] = useState<WidgetData>({});
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
-  
+  const [hasCustomAI, setHasCustomAI] = useState(false);
+
   // Booking flow state
   const [bookingFlow, setBookingFlow] = useState<BookingFlowState>({
     reason: '',
@@ -140,6 +142,7 @@ export const InteractiveDentalChat = ({
   const { toast } = useToast();
   const { setTheme } = useTheme();
   const navigate = useNavigate();
+  const { businessId, businessName } = useBusinessContext();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -176,6 +179,37 @@ export const InteractiveDentalChat = ({
       onBookingTriggered?.();
     }
   }, [triggerBooking, hasConsented, onBookingTriggered]);
+
+  // Check if business has custom AI settings
+  useEffect(() => {
+    const checkCustomAI = async () => {
+      if (!businessId) {
+        setHasCustomAI(false);
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from('businesses')
+          .select('ai_greeting, ai_system_behavior, ai_personality_traits')
+          .eq('id', businessId)
+          .single();
+
+        if (!error && data) {
+          const hasCustomization = !!(
+            data.ai_greeting ||
+            data.ai_system_behavior ||
+            (data.ai_personality_traits && (data.ai_personality_traits as string[]).length > 0)
+          );
+          setHasCustomAI(hasCustomization);
+        }
+      } catch (error) {
+        console.log('Could not check AI customization:', error);
+      }
+    };
+
+    checkCustomAI();
+  }, [businessId]);
 
   const scrollToBottom = () => {
     setTimeout(() => {
@@ -289,22 +323,7 @@ export const InteractiveDentalChat = ({
     history: ChatMessage[]
   ): Promise<{ message: ChatMessage; fallback: boolean; suggestions: string[]; recommendedDentists: string[] }> => {
     try {
-      // Get business_id from current URL or settings
-      let businessId = null;
-      try {
-        const { data: businesses } = await supabase
-          .from('businesses')
-          .select('id')
-          .limit(1)
-          .single();
-        
-        if (businesses) {
-          businessId = businesses.id;
-        }
-      } catch (businessError) {
-        console.log('Could not fetch business ID:', businessError);
-      }
-
+      // Use business context for AI customization
       const aiResponse = await supabase.functions.invoke('dental-ai-chat', {
         body: {
           message: userMessage,
@@ -1578,6 +1597,12 @@ You'll receive a confirmation email shortly.`;
         <div className="flex items-center gap-2">
           <Bot className="h-5 w-5 text-primary" />
           <h2 className="font-semibold text-base">AI Dental Assistant</h2>
+          {hasCustomAI && businessName && (
+            <Badge variant="secondary" className="text-xs px-2 py-0.5 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800">
+              <Bot className="h-3 w-3 mr-1" />
+              Powered by {businessName}
+            </Badge>
+          )}
         </div>
         <Button
           variant="ghost"
