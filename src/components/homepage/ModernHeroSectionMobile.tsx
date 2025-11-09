@@ -1,6 +1,7 @@
 import { AppButton } from "@/components/ui/AppButton";
 import { Calendar, Shield, Star } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
+import { useNavigate } from "react-router-dom";
 
 type HeroVariant = "default" | "ctaFocused";
 
@@ -12,6 +13,7 @@ interface ModernHeroSectionMobileProps {
 
 export function ModernHeroSectionMobile({ onBookAppointment, onStartTriage, variant = "default" }: ModernHeroSectionMobileProps) {
         const { t, language } = useLanguage();
+        const navigate = useNavigate();
         const isCtaFocused = variant === "ctaFocused";
 
 	return (
@@ -85,7 +87,7 @@ export function ModernHeroSectionMobile({ onBookAppointment, onStartTriage, vari
                                                 <AppButton
                                                         variant="gradient"
                                                         size="mobile"
-                                                        onClick={() => window.location.href = '/chat'}
+                                                        onClick={() => navigate('/chat')}
                                                         className="w-full bg-white text-primary hover:bg-white/90 border-0 h-14 text-base font-semibold group"
                                                 >
                                                         <Star className="h-5 w-5 mr-2 group-hover:rotate-12 transition-transform" />
@@ -98,7 +100,7 @@ export function ModernHeroSectionMobile({ onBookAppointment, onStartTriage, vari
                                                 <AppButton
                                                         variant="outline"
                                                         size="mobile"
-                                                        onClick={() => window.location.href = '/signup'}
+                                                        onClick={() => navigate('/signup')}
                                                         className="w-full bg-white/10 backdrop-blur-md border-white/30 hover:bg-white/20 text-white h-12 mt-2"
                                                 >
                                                         <Shield className="h-5 w-5 mr-2" />

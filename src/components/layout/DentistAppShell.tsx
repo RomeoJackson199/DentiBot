@@ -79,7 +79,7 @@ export const DentistAppShell: React.FC<DentistAppShellProps> = ({
   const handleSignOut = async () => {
     try {
       await supabase.auth.signOut();
-      window.location.href = '/';
+      navigate('/', { replace: true });
     } catch (error) {
       toast({
         title: "Error",

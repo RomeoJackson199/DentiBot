@@ -133,7 +133,9 @@ export const AuthCallbackHandler = () => {
                           .eq('id', inv.business_id)
                           .maybeSingle();
                         if (biz?.name) businessName = biz.name;
-                      } catch {}
+                      } catch (bizError) {
+                        console.debug('Failed to fetch business name:', bizError);
+                      }
 
                       const accepted = window.confirm(
                         `You've been invited to join ${businessName} as ${inv.role}. Do you want to accept?`

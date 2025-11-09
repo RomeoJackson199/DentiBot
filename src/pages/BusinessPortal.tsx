@@ -90,11 +90,10 @@ export default function BusinessPortal() {
 
           if (membership) {
             // Redirect to dentist portal if they're a business member
-            window.location.href = "/dentist";
+            navigate("/dentist", { replace: true });
           } else {
-            // Otherwise, they're a patient - redirect to patient portal with full reload
-            // to ensure BusinessContext and TemplateContext load with correct business
-            window.location.href = "/patient";
+            // Otherwise, they're a patient - redirect to patient portal
+            navigate("/patient", { replace: true });
           }
         }
       }

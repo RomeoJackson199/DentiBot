@@ -1,6 +1,7 @@
 import { AppButton } from "@/components/ui/AppButton";
 import { Calendar, Shield, Users, Brain, Star } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
+import { useNavigate } from "react-router-dom";
 type HeroVariant = "default" | "ctaFocused";
 interface ModernHeroSectionProps {
   onBookAppointment: () => void;
@@ -18,6 +19,7 @@ export function ModernHeroSection({
     t,
     language
   } = useLanguage();
+  const navigate = useNavigate();
   const isCtaFocused = variant === "ctaFocused";
   return <section className="relative min-h-screen flex overflow-hidden bg-gradient-to-br from-blue-400 via-purple-400 to-pink-400">
       <div className="absolute inset-0 bg-gradient-to-br from-blue-500/90 via-purple-500/90 to-pink-500/90" />
@@ -82,10 +84,10 @@ export function ModernHeroSection({
               {language === 'fr' ? '✨ Commencer avec l\'IA' : language === 'nl' ? '✨ Begin met AI' : '✨ Start with AI Assistant'}
             </AppButton>
             
-            <AppButton 
-              variant="outline" 
-              size="lg" 
-              onClick={() => window.location.href = '/signup'}
+            <AppButton
+              variant="outline"
+              size="lg"
+              onClick={() => navigate('/signup')}
               className="w-full bg-white/10 backdrop-blur-md text-white border-white/30 hover:bg-white/20 h-16 text-lg font-semibold"
             >
               <Users className="h-6 w-6 mr-2" />
