@@ -417,12 +417,15 @@ function PatientPortalNavContent({ children }: { children: React.ReactNode }) {
   }
 
   // Desktop collapsible sidebar
+  // Only enable hover on non-touch devices to prevent janky mobile experience
+  const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
   return (
     <div className="flex min-h-screen w-full">
-      <Sidebar 
+      <Sidebar
         collapsible="icon"
-        onMouseEnter={() => setOpen(true)}
-        onMouseLeave={() => setOpen(false)}
+        onMouseEnter={!isTouchDevice ? () => setOpen(true) : undefined}
+        onMouseLeave={!isTouchDevice ? () => setOpen(false) : undefined}
       >
         {navContent}
       </Sidebar>

@@ -471,6 +471,15 @@ export const AuthForm = ({ compact = false, initialRole = 'patient' }: AuthFormP
                       required
                     />
                   </div>
+                  <div className="text-xs text-muted-foreground space-y-1 bg-muted/30 p-3 rounded-lg">
+                    <p className="font-medium">Password must contain:</p>
+                    <ul className="space-y-1 ml-4">
+                      <li className={formData.password.length >= 8 ? "text-green-600" : ""}>• At least 8 characters</li>
+                      <li className={/[A-Z]/.test(formData.password) ? "text-green-600" : ""}>• One uppercase letter</li>
+                      <li className={/[a-z]/.test(formData.password) ? "text-green-600" : ""}>• One lowercase letter</li>
+                      <li className={/[0-9]/.test(formData.password) ? "text-green-600" : ""}>• One number</li>
+                    </ul>
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="signup-phone" className="font-medium">{t.phone} ({t.optional})</Label>

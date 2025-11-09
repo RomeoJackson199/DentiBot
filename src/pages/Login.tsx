@@ -144,7 +144,7 @@ const Login = () => {
       }
 
       toast({
-        title: "❌ Sign in failed",
+        title: "Sign in failed",
         description: userFriendlyMessage,
         variant: "destructive",
         duration: 6000,
@@ -166,7 +166,7 @@ const Login = () => {
       if (error) throw error;
     } catch (error: any) {
       toast({
-        title: "❌ Google sign in failed",
+        title: "Google sign in failed",
         description: "Unable to sign in with Google. Please try again or use email/password.",
         variant: "destructive",
         duration: 6000,
