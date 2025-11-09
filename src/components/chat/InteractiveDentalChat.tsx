@@ -127,6 +127,7 @@ export const InteractiveDentalChat = ({
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [hasCustomAI, setHasCustomAI] = useState(false);
+  const [customGreeting, setCustomGreeting] = useState<string | null>(null);
 
   // Booking flow state
   const [bookingFlow, setBookingFlow] = useState<BookingFlowState>({
@@ -202,6 +203,11 @@ export const InteractiveDentalChat = ({
             (data.ai_personality_traits && (data.ai_personality_traits as string[]).length > 0)
           );
           setHasCustomAI(hasCustomization);
+          
+          // Store custom greeting for initial message
+          if (data.ai_greeting) {
+            setCustomGreeting(data.ai_greeting);
+          }
         }
       } catch (error) {
         console.log('Could not check AI customization:', error);
@@ -236,12 +242,15 @@ export const InteractiveDentalChat = ({
 
   const initializeChat = () => {
     if (messages.length === 0) {
+      // Use custom greeting if available, otherwise use default
+      const defaultGreeting = user && userProfile ? 
+        `Hello ${userProfile.first_name}! 👋 I'm your dental assistant. How can I help you today?` : 
+        `Hello! 👋 Welcome to First Smile AI. I'm your dental assistant. How can I help you today?`;
+      
       const welcomeMessage: ChatMessage = {
         id: crypto.randomUUID(),
         session_id: sessionId as any,
-        message: user && userProfile ? 
-          `Hello ${userProfile.first_name}! 👋 I'm your dental assistant. How can I help you today?` : 
-          `Hello! 👋 Welcome to First Smile AI. I'm your dental assistant. How can I help you today?`,
+        message: customGreeting || defaultGreeting,
         is_bot: true,
         message_type: "text",
         created_at: new Date().toISOString(),
@@ -323,6 +332,19 @@ export const InteractiveDentalChat = ({
     history: ChatMessage[]
   ): Promise<{ message: ChatMessage; fallback: boolean; suggestions: string[]; recommendedDentists: string[] }> => {
     try {
+      // Get business_id - fallback to first available business if not in context
+      let effectiveBusinessId = businessId;
+      if (!effectiveBusinessId) {
+        const { data: businesses } = await supabase
+          .from('businesses')
+          .select('id')
+          .limit(1)
+          .single();
+        effectiveBusinessId = businesses?.id || null;
+      }
+
+      console.log('Sending AI request with business_id:', effectiveBusinessId);
+
       // Use business context for AI customization
       const aiResponse = await supabase.functions.invoke('dental-ai-chat', {
         body: {
@@ -335,7 +357,7 @@ export const InteractiveDentalChat = ({
             name: 'Guest',
             email: null
           }),
-          business_id: businessId
+          business_id: effectiveBusinessId
         }
       });
 
