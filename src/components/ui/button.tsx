@@ -5,21 +5,21 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-2xl text-sm font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 relative overflow-hidden touch-target",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-2xl text-sm font-medium ring-offset-background transition-all duration-300 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 relative overflow-hidden touch-target before:absolute before:inset-0 before:bg-white/0 before:transition-all before:duration-300 hover:before:bg-white/10 active:before:bg-black/10",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground shadow-soft hover:shadow-elegant hover:scale-[1.02] active:scale-[0.98] active:shadow-inner",
-        destructive: "bg-destructive text-destructive-foreground shadow-soft hover:shadow-elegant hover:scale-[1.02] active:scale-[0.98]",
-        outline: "border-2 border-input bg-background shadow-soft hover:bg-accent/10 hover:border-primary hover:scale-[1.02] active:scale-[0.98]",
-        secondary: "bg-secondary text-secondary-foreground shadow-soft hover:bg-secondary/80 hover:scale-[1.02] active:scale-[0.98]",
-        ghost: "hover:bg-accent/10 hover:text-accent-foreground",
-        link: "text-primary underline-offset-4 hover:underline",
+        default: "bg-primary text-primary-foreground shadow-soft hover:shadow-elegant hover:scale-[1.03] hover:-translate-y-0.5 active:scale-[0.98] active:translate-y-0 active:shadow-inner transition-transform",
+        destructive: "bg-destructive text-destructive-foreground shadow-soft hover:shadow-elegant hover:shadow-destructive/50 hover:scale-[1.03] hover:-translate-y-0.5 active:scale-[0.98] active:translate-y-0",
+        outline: "border-2 border-input bg-background shadow-soft hover:bg-accent/10 hover:border-primary hover:shadow-md hover:scale-[1.03] hover:-translate-y-0.5 active:scale-[0.98] active:translate-y-0",
+        secondary: "bg-secondary text-secondary-foreground shadow-soft hover:bg-secondary/90 hover:shadow-elegant hover:shadow-secondary/50 hover:scale-[1.03] hover:-translate-y-0.5 active:scale-[0.98] active:translate-y-0",
+        ghost: "hover:bg-accent/10 hover:text-accent-foreground active:bg-accent/20",
+        link: "text-primary underline-offset-4 hover:underline hover:text-primary/80",
         // Modern DentiBot variants
-        gradient: "bg-gradient-primary text-white shadow-elegant hover:shadow-glow hover:scale-[1.02] active:scale-[0.98]",
-        aqua: "bg-secondary text-white shadow-soft hover:shadow-elegant hover:scale-[1.02] active:scale-[0.98]",
-        lilac: "bg-accent text-accent-foreground shadow-soft hover:shadow-elegant hover:scale-[1.02] active:scale-[0.98]",
-        glass: "bg-white/10 backdrop-blur-sm border-2 border-white/20 text-foreground hover:bg-white/20 hover:scale-[1.02] active:scale-[0.98]",
+        gradient: "bg-gradient-primary text-white shadow-elegant hover:shadow-glow hover:shadow-primary/50 hover:scale-[1.03] hover:-translate-y-0.5 active:scale-[0.98] active:translate-y-0",
+        aqua: "bg-secondary text-white shadow-soft hover:shadow-elegant hover:shadow-secondary/50 hover:scale-[1.03] hover:-translate-y-0.5 active:scale-[0.98] active:translate-y-0",
+        lilac: "bg-accent text-accent-foreground shadow-soft hover:shadow-elegant hover:shadow-accent/50 hover:scale-[1.03] hover:-translate-y-0.5 active:scale-[0.98] active:translate-y-0",
+        glass: "bg-white/10 backdrop-blur-sm border-2 border-white/20 text-foreground hover:bg-white/20 hover:border-white/40 hover:scale-[1.03] hover:-translate-y-0.5 active:scale-[0.98] active:translate-y-0",
       },
       size: {
         default: "h-10 px-5 py-2",
@@ -53,17 +53,17 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     const content = (
       <>
         {loading && (
-          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current" />
+          <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent" />
         )}
-        {!loading && icon && icon}
-        {children}
-        {!loading && rightIcon && rightIcon}
+        {!loading && icon && <span className="transition-transform duration-300 group-hover:scale-110">{icon}</span>}
+        <span className={cn("transition-all duration-300", loading && "opacity-70")}>{children}</span>
+        {!loading && rightIcon && <span className="transition-transform duration-300 group-hover:translate-x-0.5">{rightIcon}</span>}
       </>
     )
 
     return (
       <Comp
-        className={cn(buttonVariants({ variant, size, className }))}
+        className={cn(buttonVariants({ variant, size, className }), "group")}
         ref={ref}
         disabled={disabled || loading}
         {...props}
