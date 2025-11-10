@@ -2768,6 +2768,13 @@ export type Database = {
         Args: { _business_id: string; _profile_id: string; _role: string }
         Returns: boolean
       }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       increment_promo_usage: { Args: { promo_id: string }; Returns: undefined }
       is_active_dentist_profile: {
         Args: { p_profile_id: string }
@@ -2797,6 +2804,7 @@ export type Database = {
         Args: { p_business_id: string; p_user_id?: string }
         Returns: boolean
       }
+      is_super_admin: { Args: never; Returns: boolean }
       is_user_business_member: { Args: { _user_id: string }; Returns: boolean }
       is_user_member_of_business: {
         Args: { _business_id: string; _user_id: string }
