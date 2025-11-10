@@ -2845,6 +2845,7 @@ export type Database = {
         | "cook"
         | "host"
         | "manager"
+        | "super_admin"
       appointment_type_category:
         | "checkup"
         | "cleaning"
@@ -2994,6 +2995,7 @@ export const Constants = {
         "cook",
         "host",
         "manager",
+        "super_admin",
       ],
       appointment_type_category: [
         "checkup",
