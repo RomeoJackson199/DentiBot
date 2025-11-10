@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import { ROICalculator } from "@/components/pricing/ROICalculator";
 
 interface SubscriptionPlan {
   id: string;
@@ -186,6 +187,11 @@ export default function Pricing() {
 
         <div className="text-center mt-12 text-sm text-muted-foreground">
           <p>All plans include free updates and can be cancelled anytime.</p>
+        </div>
+
+        {/* ROI Calculator Section */}
+        <div className="mt-24 mb-12">
+          <ROICalculator />
         </div>
       </div>
     </div>
