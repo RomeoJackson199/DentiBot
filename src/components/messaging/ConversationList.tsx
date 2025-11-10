@@ -291,16 +291,16 @@ export function ConversationList({ currentUserId, onSelectRecipient }: Conversat
   return (
     <div className="h-full flex flex-col bg-gradient-to-b from-background to-muted/10">
       {/* Header */}
-      <div className="p-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="p-4 border-b bg-gradient-to-br from-background/95 via-background/95 to-muted/20 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-md">
         <div className="flex justify-between items-center mb-3">
-          <h2 className="text-xl font-bold">Messages</h2>
+          <h2 className="text-xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">Messages</h2>
           <div className="flex gap-1">
             <Button
               variant="ghost"
               size="icon"
               onClick={detectRoleAndLoad}
               disabled={loading}
-              className="h-8 w-8"
+              className="h-8 w-8 hover:bg-primary/10 transition-all duration-300"
             >
               <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />
             </Button>
@@ -309,7 +309,7 @@ export function ConversationList({ currentUserId, onSelectRecipient }: Conversat
                 variant="ghost"
                 size="icon"
                 onClick={() => setShowNewConversation(!showNewConversation)}
-                className="h-8 w-8"
+                className="h-8 w-8 hover:bg-primary/10 transition-all duration-300"
               >
                 <Plus className="h-4 w-4" />
               </Button>
@@ -324,7 +324,7 @@ export function ConversationList({ currentUserId, onSelectRecipient }: Conversat
             placeholder="Search conversations..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 h-9 bg-muted/50"
+            className="pl-9 h-10 bg-muted/50 border-border/50 focus-visible:border-primary/50 focus-visible:ring-2 focus-visible:ring-primary/20 transition-all duration-300"
           />
         </div>
       </div>
@@ -364,23 +364,25 @@ export function ConversationList({ currentUserId, onSelectRecipient }: Conversat
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: 20 }}
+                    whileHover={{ scale: 1.01 }}
+                    transition={{ duration: 0.2 }}
                     onClick={() => {
                       onSelectRecipient(contact);
                       setShowNewConversation(false);
                     }}
-                    className="w-full p-3 rounded-xl hover:bg-primary/5 transition-all text-left group"
+                    className="w-full p-3 rounded-xl hover:bg-primary/5 hover:shadow-md transition-all duration-300 text-left group"
                   >
                     <div className="flex items-center gap-3">
-                      <Avatar className="h-10 w-10 border-2 border-primary/10">
-                        <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-primary font-semibold">
+                      <Avatar className="h-12 w-12 ring-2 ring-white dark:ring-gray-800 shadow-md border-2 border-primary/10">
+                        <AvatarFallback className="bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 text-white font-bold">
                           {contact.name.split(' ').map((n) => n[0]).join('').toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1">
-                        <span className="font-medium group-hover:text-primary transition-colors">
+                        <span className="font-bold group-hover:text-primary transition-colors">
                           {contact.name}
                         </span>
-                        <p className="text-xs text-muted-foreground">Start conversation</p>
+                        <p className="text-xs text-muted-foreground font-medium">Start conversation</p>
                       </div>
                     </div>
                   </motion.button>
@@ -397,6 +399,8 @@ export function ConversationList({ currentUserId, onSelectRecipient }: Conversat
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
+                  whileHover={{ scale: 1.01 }}
+                  transition={{ duration: 0.2 }}
                   onClick={() =>
                     onSelectRecipient({
                       id: conv.profileId,
@@ -404,12 +408,17 @@ export function ConversationList({ currentUserId, onSelectRecipient }: Conversat
                       businessId: conv.businessId
                     })
                   }
-                  className="w-full p-3 rounded-xl hover:bg-primary/5 transition-all text-left group relative"
+                  className={cn(
+                    "w-full p-3 rounded-xl transition-all duration-300 text-left group relative",
+                    conv.unreadCount > 0
+                      ? "bg-primary/5 hover:bg-primary/10 shadow-sm hover:shadow-md border-l-4 border-l-primary"
+                      : "hover:bg-primary/5 hover:shadow-md"
+                  )}
                 >
                   <div className="flex items-start gap-3">
                     <div className="relative">
-                      <Avatar className="h-12 w-12 border-2 border-primary/10">
-                        <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-primary font-semibold">
+                      <Avatar className="h-12 w-12 ring-2 ring-white dark:ring-gray-800 shadow-md border-2 border-primary/10">
+                        <AvatarFallback className="bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 text-white font-bold">
                           {conv.name.split(' ').map((n) => n[0]).join('').toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
@@ -417,7 +426,7 @@ export function ConversationList({ currentUserId, onSelectRecipient }: Conversat
                         <div className="absolute -top-1 -right-1">
                           <Badge
                             variant="default"
-                            className="h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs font-bold animate-pulse"
+                            className="h-6 w-6 rounded-full p-0 flex items-center justify-center text-xs font-bold animate-pulse shadow-lg bg-gradient-to-br from-red-500 to-pink-500"
                           >
                             {conv.unreadCount}
                           </Badge>
@@ -426,10 +435,10 @@ export function ConversationList({ currentUserId, onSelectRecipient }: Conversat
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-baseline justify-between gap-2 mb-1">
-                        <span className="font-semibold truncate group-hover:text-primary transition-colors">
+                        <span className="font-bold truncate group-hover:text-primary transition-colors">
                           {conv.name}
                         </span>
-                        <span className="text-xs text-muted-foreground shrink-0">
+                        <span className="text-xs text-muted-foreground shrink-0 font-medium">
                           {formatDistanceToNow(new Date(conv.lastMessageTime), { addSuffix: true })}
                         </span>
                       </div>
@@ -437,7 +446,7 @@ export function ConversationList({ currentUserId, onSelectRecipient }: Conversat
                         className={cn(
                           "text-sm truncate",
                           conv.unreadCount > 0
-                            ? "text-foreground font-medium"
+                            ? "text-foreground font-semibold"
                             : "text-muted-foreground"
                         )}
                       >
@@ -451,11 +460,11 @@ export function ConversationList({ currentUserId, onSelectRecipient }: Conversat
           </div>
         ) : (
           <div className="p-8 text-center">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
-              <MessageSquare className="h-8 w-8 text-primary" />
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-pink-500/10 mb-4 shadow-md">
+              <MessageSquare className="h-10 w-10 text-primary" />
             </div>
-            <p className="text-sm font-medium mb-2">No conversations yet</p>
-            <p className="text-xs text-muted-foreground mb-4 max-w-[250px] mx-auto">
+            <p className="text-sm font-bold mb-2">No conversations yet</p>
+            <p className="text-xs text-muted-foreground mb-4 max-w-[250px] mx-auto font-medium">
               {roleDetected
                 ? isDentist
                   ? 'Your patients will appear here once you have appointments'
@@ -467,7 +476,7 @@ export function ConversationList({ currentUserId, onSelectRecipient }: Conversat
                 variant="outline"
                 size="sm"
                 onClick={() => setShowNewConversation(true)}
-                className="gap-2"
+                className="gap-2 shadow-md hover:shadow-lg transition-all duration-300 border-primary/20 hover:border-primary/40"
               >
                 <Plus className="h-4 w-4" />
                 Start New Conversation

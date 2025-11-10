@@ -201,24 +201,24 @@ export function ChatWindow({
   return (
     <div className="flex flex-col h-full bg-gradient-to-b from-background to-muted/20">
       {/* Header */}
-      <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="border-b bg-gradient-to-br from-background/95 via-background/95 to-muted/20 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-md">
         <div className="p-4 flex items-center gap-3">
           {onBack && (
-            <Button variant="ghost" size="icon" onClick={onBack} className="shrink-0">
+            <Button variant="ghost" size="icon" onClick={onBack} className="shrink-0 hover:bg-primary/10 transition-all duration-300">
               <ArrowLeft className="h-5 w-5" />
             </Button>
           )}
-          <Avatar className="h-10 w-10 border-2 border-primary/10">
-            <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-primary font-semibold">
+          <Avatar className="h-12 w-12 ring-2 ring-white dark:ring-gray-800 shadow-md border-2 border-primary/10">
+            <AvatarFallback className="bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 text-white font-bold">
               {recipient.name.split(' ').map((n) => n[0]).join('').toUpperCase()}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold truncate">{recipient.name}</h3>
-            <p className="text-xs text-muted-foreground flex items-center gap-1">
+            <h3 className="font-bold truncate">{recipient.name}</h3>
+            <p className="text-xs text-muted-foreground flex items-center gap-1.5 font-medium">
               <span className={cn(
-                "inline-block w-2 h-2 rounded-full",
-                isOnline ? "bg-green-500" : "bg-gray-400"
+                "inline-block w-2 h-2 rounded-full shadow-sm",
+                isOnline ? "bg-green-500 animate-pulse" : "bg-gray-400"
               )} />
               {isOnline ? 'Online' : 'Offline'}
             </p>
@@ -233,11 +233,11 @@ export function ChatWindow({
             <div key={date} className="space-y-4">
               {/* Date divider */}
               <div className="flex items-center gap-3">
-                <div className="flex-1 h-px bg-border" />
-                <span className="text-xs text-muted-foreground font-medium px-3 py-1 rounded-full bg-muted/50">
+                <div className="flex-1 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+                <span className="text-xs text-muted-foreground font-bold px-4 py-1.5 rounded-full bg-gradient-to-br from-muted/80 to-muted shadow-sm border border-border/50 uppercase tracking-wider">
                   {formatMessageDate(msgs[0].created_at)}
                 </span>
-                <div className="flex-1 h-px bg-border" />
+                <div className="flex-1 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
               </div>
 
               <AnimatePresence initial={false}>
@@ -260,8 +260,8 @@ export function ChatWindow({
                       {!isOwnMessage && (
                         <div className="w-8 shrink-0">
                           {showAvatar && (
-                            <Avatar className="h-8 w-8 border border-border">
-                              <AvatarFallback className="bg-muted text-xs">
+                            <Avatar className="h-8 w-8 ring-2 ring-white dark:ring-gray-800 shadow-sm border border-primary/10">
+                              <AvatarFallback className="bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 text-white text-xs font-bold">
                                 {recipient.name.split(' ').map((n) => n[0]).join('').toUpperCase()}
                               </AvatarFallback>
                             </Avatar>
@@ -271,26 +271,27 @@ export function ChatWindow({
                       
                       <motion.div
                         whileHover={{ scale: 1.02 }}
+                        transition={{ duration: 0.2 }}
                         className={cn(
-                          'group relative max-w-[70%] rounded-2xl px-4 py-2.5 shadow-sm',
+                          'group relative max-w-[70%] rounded-2xl px-4 py-2.5 shadow-md hover:shadow-lg transition-all duration-300',
                           isOwnMessage
-                            ? 'bg-primary text-primary-foreground rounded-br-sm'
-                            : 'bg-card border rounded-bl-sm'
+                            ? 'bg-gradient-to-br from-primary via-primary to-primary/90 text-primary-foreground rounded-br-sm'
+                            : 'bg-card border border-border/50 rounded-bl-sm backdrop-blur-sm'
                         )}
                       >
                         <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
                           {msg.message_text}
                         </p>
                         <div className={cn(
-                          "flex items-center gap-1 mt-1 text-xs",
+                          "flex items-center gap-1.5 mt-1.5 text-xs",
                           isOwnMessage ? "text-primary-foreground/70 justify-end" : "text-muted-foreground"
                         )}>
-                          <span>{format(new Date(msg.created_at), 'HH:mm')}</span>
+                          <span className="font-medium">{format(new Date(msg.created_at), 'HH:mm')}</span>
                           {isOwnMessage && (
                             msg.is_read ? (
-                              <CheckCheck className="h-3 w-3" />
+                              <CheckCheck className="h-3.5 w-3.5" />
                             ) : (
-                              <Check className="h-3 w-3" />
+                              <Check className="h-3.5 w-3.5" />
                             )
                           )}
                         </div>
@@ -308,9 +309,9 @@ export function ChatWindow({
       </ScrollArea>
 
       {/* Input */}
-      <div className="border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-4">
+      <div className="border-t bg-gradient-to-br from-background/95 via-background/95 to-muted/20 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-4 shadow-lg">
         <div className="mx-auto max-w-4xl">
-          <div className="rounded-2xl border bg-background shadow-sm hover:shadow-md transition-shadow">
+          <div className="rounded-2xl border-2 border-border/50 bg-background shadow-md hover:shadow-xl focus-within:shadow-xl focus-within:border-primary/50 transition-all duration-300">
             <div className="flex items-end gap-3 p-3">
               <Textarea
                 ref={textareaRef}
@@ -327,18 +328,18 @@ export function ChatWindow({
                 onClick={sendMessage}
                 disabled={!newMessage.trim() || sending}
                 size="icon"
-                className="shrink-0 h-10 w-10 rounded-xl"
+                className="shrink-0 h-11 w-11 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 bg-gradient-to-br from-primary via-primary to-primary/90"
               >
                 {sending ? (
-                  <Clock className="h-4 w-4 animate-spin" />
+                  <Clock className="h-5 w-5 animate-spin" />
                 ) : (
-                  <Send className="h-4 w-4" />
+                  <Send className="h-5 w-5" />
                 )}
               </Button>
             </div>
           </div>
-          <p className="text-xs text-muted-foreground text-center mt-2">
-            Press Enter to send, Shift + Enter for new line
+          <p className="text-xs text-muted-foreground text-center mt-2 font-medium">
+            Press <kbd className="px-1.5 py-0.5 rounded bg-muted text-muted-foreground border border-border">Enter</kbd> to send, <kbd className="px-1.5 py-0.5 rounded bg-muted text-muted-foreground border border-border">Shift + Enter</kbd> for new line
           </p>
         </div>
       </div>

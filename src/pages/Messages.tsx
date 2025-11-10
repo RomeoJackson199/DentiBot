@@ -65,9 +65,14 @@ export default function Messages() {
       <div className="min-h-screen bg-gradient-subtle">
         {!selectedRecipient ? (
           <div className="p-4">
-            <div className="mb-4">
-              <h1 className="text-2xl font-bold">Messages</h1>
-              <p className="text-muted-foreground">Chat with your dentist or patients</p>
+            <div className="mb-4 bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 dark:from-blue-950/30 dark:via-purple-950/30 dark:to-pink-950/30 px-4 py-4 rounded-xl -mx-4">
+              <div className="text-xs text-muted-foreground font-semibold uppercase tracking-widest mb-1">
+                Communication Hub
+              </div>
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+                Messages
+              </h1>
+              <p className="text-sm text-muted-foreground mt-1">Chat with your dentist or patients</p>
             </div>
             <ConversationList
               currentUserId={currentUserId}
@@ -88,16 +93,19 @@ export default function Messages() {
   return (
     <div className="min-h-screen bg-gradient-subtle p-6">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold bg-gradient-text bg-clip-text text-transparent">
+        <div className="mb-6 bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 dark:from-blue-950/30 dark:via-purple-950/30 dark:to-pink-950/30 px-6 py-5 rounded-xl">
+          <div className="text-xs text-muted-foreground font-semibold uppercase tracking-widest mb-2">
+            Communication Hub
+          </div>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
             Messages
           </h1>
-          <p className="text-muted-foreground mt-1">
+          <p className="text-muted-foreground mt-2">
             Communicate with your dentist or patients
           </p>
         </div>
 
-        <Card className="overflow-hidden">
+        <Card className="overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300 border-l-[6px] border-l-primary">
           <div className="grid grid-cols-12 h-[calc(100vh-16rem)]">
             <div className="col-span-4 border-r border-border">
               <ConversationList
@@ -115,8 +123,11 @@ export default function Messages() {
               ) : (
                 <div className="h-full flex items-center justify-center text-muted-foreground">
                   <div className="text-center">
-                    <MessageSquare className="h-16 w-16 mx-auto mb-4 opacity-50" />
-                    <p>Select a conversation to start messaging</p>
+                    <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-pink-500/10 mb-4 shadow-md">
+                      <MessageSquare className="h-10 w-10 text-primary" />
+                    </div>
+                    <p className="font-semibold text-foreground mb-1">Select a conversation</p>
+                    <p className="text-sm text-muted-foreground">Choose a conversation from the list to start messaging</p>
                   </div>
                 </div>
               )}
