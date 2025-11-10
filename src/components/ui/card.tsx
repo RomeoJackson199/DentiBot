@@ -55,8 +55,9 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
       ref={ref}
       className={cn(
         cardVariants({ variant, padding, rounded }),
-        hover && "hover:shadow-elegant hover:-translate-y-1",
+        hover && "hover:shadow-elegant hover:-translate-y-1 cursor-pointer",
         glow && "hover:shadow-glow",
+        "group",
         className
       )}
       {...props}
