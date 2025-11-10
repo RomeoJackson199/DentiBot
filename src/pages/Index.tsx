@@ -11,7 +11,6 @@ import { AccessibleLoadingIndicator } from "@/components/ui/skip-to-content";
 import { DemoTourFlow } from "@/components/demo/DemoTourFlow";
 import { AnimatedBackground } from "@/components/homepage/AnimatedBackground";
 import { ScrollAnimatedSection } from "@/components/homepage/ScrollAnimatedSection";
-import { RotatingBenefitsCarousel } from "@/components/homepage/RotatingBenefitsCarousel";
 import { motion } from "framer-motion";
 const Index = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -95,14 +94,14 @@ const Index = () => {
                 </span>
               </motion.h1>
 
-              <motion.div
+              <motion.p
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.4 }}
-                className="w-full"
+                className="text-lg sm:text-xl lg:text-3xl text-gray-600 max-w-5xl mx-auto leading-relaxed"
               >
-                <RotatingBenefitsCarousel />
-              </motion.div>
+                From appointment scheduling to patient records, payments to inventory—manage your entire healthcare practice with AI-powered efficiency. Built specifically for modern healthcare professionals.
+              </motion.p>
 
               <motion.div 
                 initial={{ opacity: 0, y: 30 }}
