@@ -20,15 +20,39 @@ import {
 } from '@/components/ui/dialog';
 import { useSystemErrors, useResolveError } from '@/hooks/useSuperAdmin';
 import { ModernLoadingSpinner } from '@/components/enhanced/ModernLoadingSpinner';
-import { AlertCircle, CheckCircle2, Calendar, ExternalLink } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Calendar, ExternalLink, TestTube } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import type { SystemError } from '@/types/super-admin';
+import { reportError } from '@/lib/errorReporting';
+import { useToast } from '@/hooks/use-toast';
 
 export function ErrorsTab() {
   const [showResolved, setShowResolved] = useState(false);
-  const { data: errors, isLoading } = useSystemErrors(!showResolved ? false : undefined);
+  const { data: errors, isLoading, refetch } = useSystemErrors(!showResolved ? false : undefined);
   const resolveError = useResolveError();
   const [selectedError, setSelectedError] = useState<SystemError | null>(null);
+  const { toast } = useToast();
+
+  const handleCreateTestError = async () => {
+    const severities: Array<'low' | 'medium' | 'high' | 'critical'> = ['low', 'medium', 'high', 'critical'];
+    const randomSeverity = severities[Math.floor(Math.random() * severities.length)];
+    
+    await reportError({
+      error_type: 'TestError',
+      error_message: `Test error created at ${new Date().toLocaleTimeString()}`,
+      stack_trace: 'at TestComponent.render (test.tsx:42:15)\nat handleClick (test.tsx:18:5)',
+      severity: randomSeverity,
+      metadata: { test: true, timestamp: Date.now() },
+    });
+
+    toast({
+      title: 'Test Error Created',
+      description: 'A sample error has been logged to the system',
+    });
+
+    // Refetch errors after a short delay
+    setTimeout(() => refetch(), 500);
+  };
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
@@ -66,12 +90,23 @@ export function ErrorsTab() {
               <CardTitle>System Errors ({errors?.length || 0})</CardTitle>
               <CardDescription>Track bugs and exceptions</CardDescription>
             </div>
-            <Tabs value={showResolved ? 'all' : 'unresolved'} onValueChange={(v) => setShowResolved(v === 'all')}>
-              <TabsList>
-                <TabsTrigger value="unresolved">Unresolved</TabsTrigger>
-                <TabsTrigger value="all">All</TabsTrigger>
-              </TabsList>
-            </Tabs>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleCreateTestError}
+                className="gap-2"
+              >
+                <TestTube className="h-4 w-4" />
+                Create Test Error
+              </Button>
+              <Tabs value={showResolved ? 'all' : 'unresolved'} onValueChange={(v) => setShowResolved(v === 'all')}>
+                <TabsList>
+                  <TabsTrigger value="unresolved">Unresolved</TabsTrigger>
+                  <TabsTrigger value="all">All</TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
