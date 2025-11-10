@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { logger } from "@/lib/logger";
 import { X, Cookie, Shield, Settings } from "lucide-react";
 import {
   Dialog,
@@ -54,11 +55,11 @@ export function CookieConsent() {
     // Here you would typically initialize analytics/marketing scripts based on preferences
     if (prefs.analytics) {
       // Initialize analytics (e.g., Google Analytics)
-      console.log("Analytics enabled");
+      logger.info("Analytics enabled");
     }
     if (prefs.marketing) {
       // Initialize marketing scripts
-      console.log("Marketing cookies enabled");
+      logger.info("Marketing cookies enabled");
     }
   };
 

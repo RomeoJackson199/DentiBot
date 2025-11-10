@@ -157,15 +157,6 @@ export const InteractiveDentalChat = ({
       setShowConsentWidget(false);
       loadUserProfile();
       initializeChat();
-
-      // DISABLED: AI Chat onboarding auto-show to reduce popup overload
-      // Users get comprehensive onboarding via OnboardingOrchestrator instead
-      // Keep this disabled to prevent overwhelming new users
-      // const hasSeenOnboarding = localStorage.getItem('ai-chat-onboarding-seen');
-      // if (!hasSeenOnboarding) {
-      //   // Show onboarding after a short delay
-      //   setTimeout(() => setShowOnboarding(true), 500);
-      // }
     } else {
       setShowConsentWidget(true);
     }

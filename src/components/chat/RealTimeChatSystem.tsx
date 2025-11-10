@@ -232,9 +232,8 @@ export function RealTimeChatSystem({
       setMessages(prev => [...prev, tempMessage]);
       setNewMessage('');
 
-      // Here you would save to database
-      // const { data } = await supabase.from('messages').insert(message);
-      
+      // TODO: Save message to database
+
       modernToast.success({
         title: 'Message sent',
         description: 'Your message has been delivered'
