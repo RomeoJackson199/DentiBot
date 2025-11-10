@@ -29,6 +29,7 @@ import Messages from "./Messages";
 import { ServiceManager } from "@/components/services/ServiceManager";
 import { UserTour, useUserTour } from "@/components/UserTour";
 import { DentistDemoTour } from "@/components/DentistDemoTour";
+import { OnboardingProgressTracker } from "@/components/onboarding/OnboardingProgressTracker";
 import { HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -50,10 +51,20 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
   const [showDemoTour, setShowDemoTour] = useState(false);
   const [tourCompleted, setTourCompleted] = useState(false);
 
-  // Check if tour has been completed
+  // Check if tour has been completed and if it should auto-start
   useEffect(() => {
     const completed = localStorage.getItem('dentist-tour-completed') === 'true';
     setTourCompleted(completed);
+
+    // Check if we should auto-start the tour (after demo data generation)
+    const shouldStartTour = localStorage.getItem('should-start-tour') === 'true';
+    if (shouldStartTour && !completed) {
+      // Small delay to ensure the page is fully loaded
+      setTimeout(() => {
+        setShowDemoTour(true);
+        localStorage.removeItem('should-start-tour'); // Clear the flag
+      }, 1000);
+    }
   }, []);
 
   // Handle URL-based section navigation
@@ -314,6 +325,15 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
         }}
         onChangeSection={(section) => setActiveSection(section as DentistSection)}
       />
+
+      {/* Onboarding Progress Tracker */}
+      {user && businessInfo && (
+        <OnboardingProgressTracker
+          userId={user.id}
+          businessId={businessInfo.id}
+          onStartTour={() => setShowDemoTour(true)}
+        />
+      )}
     </DentistAppShell>
   );
 }
