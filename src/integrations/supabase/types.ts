@@ -2834,6 +2834,30 @@ export type Database = {
         Args: { p_date: string; p_dentist_id: string }
         Returns: undefined
       }
+      get_all_businesses_admin: {
+        Args: never
+        Returns: {
+          appointments_count: number
+          created_at: string
+          id: string
+          members_count: number
+          name: string
+          owner_email: string
+          patients_count: number
+          slug: string
+        }[]
+      }
+      get_all_users_admin: {
+        Args: { search_query?: string }
+        Returns: {
+          businesses: Json
+          email: string
+          first_name: string
+          last_name: string
+          roles: Database["public"]["Enums"]["app_role"][]
+          user_id: string
+        }[]
+      }
       get_current_business_id: { Args: never; Returns: string }
       get_daily_revenue: {
         Args: { business_id_param: string; date_param: string }
@@ -2854,6 +2878,17 @@ export type Database = {
           is_near_capacity: boolean
           is_overbooked: boolean
           total_slots: number
+        }[]
+      }
+      get_system_stats: {
+        Args: never
+        Returns: {
+          last_24h_errors: number
+          total_businesses: number
+          total_patients: number
+          total_providers: number
+          total_users: number
+          unresolved_errors: number
         }[]
       }
       has_restaurant_role: {
