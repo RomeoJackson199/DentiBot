@@ -30,6 +30,7 @@ import { DentistInvitationDialog } from "@/components/DentistInvitationDialog";
 import { CommandPalette } from "@/components/CommandPalette";
 import { CookieConsent } from "@/components/CookieConsent";
 import { OnboardingOrchestrator } from "@/components/onboarding/OnboardingOrchestrator";
+import { initializeErrorReporting } from "@/lib/errorReporting";
 
 const Invite = lazy(() => import("./pages/Invite"));
 const Login = lazy(() => import("./pages/Login"));
@@ -186,6 +187,11 @@ const queryClient = new QueryClient({
 const App = () => {
   const [showBusinessPicker, setShowBusinessPicker] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+
+  // Initialize error reporting on mount
+  useEffect(() => {
+    initializeErrorReporting();
+  }, []);
 
   useEffect(() => {
     // Check auth and show business picker if multi-business user or no business selected

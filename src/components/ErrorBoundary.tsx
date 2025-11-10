@@ -3,6 +3,7 @@ import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { logger } from '@/lib/logger';
+import { reportError } from '@/lib/errorReporting';
 
 interface Props {
   children: ReactNode;
@@ -37,6 +38,17 @@ export class ErrorBoundary extends Component<Props, State> {
     console.error('Full error:', error);
     console.error('Component stack:', errorInfo.componentStack);
     console.groupEnd();
+    
+    // Report to system errors table
+    reportError({
+      error_type: error.name || 'ReactError',
+      error_message: error.message,
+      stack_trace: error.stack,
+      severity: 'high',
+      metadata: {
+        componentStack: errorInfo.componentStack,
+      },
+    });
     
     this.setState({ error, errorInfo });
   }
