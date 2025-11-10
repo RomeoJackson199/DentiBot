@@ -87,6 +87,7 @@ const KitchenDashboard = lazy(() => import("./pages/KitchenDashboard"));
 const TableOrderingPage = lazy(() => import("./pages/TableOrderingPage"));
 const SmartBookAppointment = lazy(() => import("./pages/SmartBookAppointment"));
 const SuperAdminDashboard = lazy(() => import("./pages/SuperAdminDashboard"));
+const AuthRedirect = lazy(() => import("./pages/AuthRedirect"));
 
 // Dashboard component that handles authentication with lazy loading
 // Business gate component that shows appropriate picker
@@ -273,6 +274,8 @@ const App = () => {
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<Signup />} />
                 <Route path="/create-business" element={<CreateBusiness />} />
+                {/* Post-auth redirect handler */}
+                <Route path="/auth-redirect" element={<AuthRedirect />} />
                 {/* Role-based dashboard routing */}
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/patient/*" element={<Dashboard />} />

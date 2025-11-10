@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
-import { UnifiedDashboard } from "@/components/UnifiedDashboard";
 import { Header } from "@/components/homepage/Header";
 import { Footer } from "@/components/homepage/Footer";
 import { Button } from "@/components/ui/button";
@@ -25,8 +24,14 @@ const Index = () => {
         session
       }
     }) => {
-      setUser(session?.user ?? null);
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
       setLoading(false);
+      
+      // Redirect authenticated users to auth redirect handler
+      if (currentUser) {
+        navigate('/auth-redirect', { replace: true });
+      }
     }).catch(() => {
       setLoading(false);
     });
@@ -37,20 +42,21 @@ const Index = () => {
         subscription
       }
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
       setLoading(false);
+      
+      // Redirect authenticated users to auth redirect handler
+      if (currentUser) {
+        navigate('/auth-redirect', { replace: true });
+      }
     });
     return () => subscription.unsubscribe();
-  }, []);
+  }, [navigate]);
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50">
         <AccessibleLoadingIndicator message="Loading Caberu" size="lg" />
       </div>;
-  }
-
-  // If user is authenticated, show the dashboard
-  if (user) {
-    return <UnifiedDashboard user={user} />;
   }
 
   // Homepage for non-authenticated users
