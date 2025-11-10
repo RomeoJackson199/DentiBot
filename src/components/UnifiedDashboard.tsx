@@ -6,6 +6,7 @@ import { PatientDashboard } from "./PatientDashboard";
 import { AiOptOutPrompt } from "./AiOptOutPrompt";
 import { ModernLoadingSpinner } from "@/components/enhanced/ModernLoadingSpinner";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useIsSuperAdmin } from "@/hooks/useSuperAdmin";
 
 interface UnifiedDashboardProps {
   user: User;
@@ -14,15 +15,16 @@ interface UnifiedDashboardProps {
 export const UnifiedDashboard = memo(({ user }: UnifiedDashboardProps) => {
   const { loading: roleLoading, isDentist } = useUserRole();
   const navigate = useNavigate();
+  const { data: isSuperAdmin, isLoading: superAdminLoading } = useIsSuperAdmin();
 
   React.useEffect(() => {
-    if (!roleLoading && isDentist) {
-      // Redirect business owners/providers to their dashboard
+    if (!roleLoading && !superAdminLoading && isDentist && !isSuperAdmin) {
+      // Redirect business owners/providers (who are not super admins) to their dashboard
       navigate('/dentist/dashboard', { replace: true });
     }
-  }, [roleLoading, isDentist, navigate]);
+  }, [roleLoading, superAdminLoading, isDentist, isSuperAdmin, navigate]);
 
-  if (roleLoading) {
+  if (roleLoading || superAdminLoading) {
     return (
       <ModernLoadingSpinner 
         variant="overlay" 
