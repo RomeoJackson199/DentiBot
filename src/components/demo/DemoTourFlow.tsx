@@ -24,9 +24,9 @@ export function DemoTourFlow({ isOpen, onClose }: DemoTourFlowProps) {
     sessionStorage.setItem('demo_business_name', businessName);
     sessionStorage.setItem('demo_template', template);
 
-    // Navigate to demo dashboard
+    // Navigate to demo dashboard (always use dentist for now)
     onClose();
-    navigate(`/demo/${template}`);
+    navigate('/demo/dentist');
   };
 
   return (

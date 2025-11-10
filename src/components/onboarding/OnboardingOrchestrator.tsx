@@ -18,7 +18,7 @@ export const OnboardingOrchestrator = ({ user }: OnboardingOrchestratorProps) =>
   const [userRole, setUserRole] = useState<string | null>(null);
   const location = useLocation();
   const navigate = useNavigate();
-  const { business } = useBusinessContext();
+  const { businessId } = useBusinessContext();
 
   useEffect(() => {
     if (!user) return;
@@ -119,11 +119,11 @@ export const OnboardingOrchestrator = ({ user }: OnboardingOrchestratorProps) =>
         />
       )}
 
-      {showDemoPrompt && business && (
+      {showDemoPrompt && businessId && (
         <DemoDataPrompt
           isOpen={showDemoPrompt}
           onClose={() => setShowDemoPrompt(false)}
-          businessId={business.id}
+          businessId={businessId}
           userId={user.id}
           onDemoDataGenerated={handleDemoDataComplete}
         />
