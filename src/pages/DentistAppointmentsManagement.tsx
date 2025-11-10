@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useCurrentDentist } from "@/hooks/useCurrentDentist";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ChevronLeft, ChevronRight, Plus, ArrowLeft } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar, Grid3x3, CalendarDays } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/hooks/useLanguage";
 import { WeeklyCalendarView } from "@/components/appointments/WeeklyCalendarView";
@@ -160,51 +160,160 @@ export default function DentistAppointmentsManagement() {
         </Card>
       </div>;
   }
-  return <div className="h-screen flex flex-col bg-background">
-      {/* Simplified Header */}
-      <div className={cn("border-b bg-card sticky top-0 z-30 transition-transform duration-300", headerVisible ? "translate-y-0" : "-translate-y-full")}>
-        {/* Page Title */}
-        
+  return <div className="h-screen flex flex-col bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30 dark:from-gray-950 dark:via-blue-950/30 dark:to-purple-950/30">
+      {/* Enhanced Header */}
+      <div className={cn(
+        "border-b bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl sticky top-0 z-30 transition-all duration-300 shadow-sm",
+        headerVisible ? "translate-y-0" : "-translate-y-full"
+      )}>
+        {/* Page Title Section */}
+        <div className="px-4 sm:px-6 pt-4 pb-3 border-b border-gray-100 dark:border-gray-800">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl shadow-lg">
+              <Calendar className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-gray-100 dark:to-gray-400 bg-clip-text text-transparent">
+                Appointment Calendar
+              </h1>
+              <p className="text-sm text-muted-foreground">Manage your daily schedule and appointments</p>
+            </div>
+          </div>
+        </div>
 
         {/* View Controls */}
-        <div className="flex items-center justify-between px-4 sm:px-6 pb-2">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 px-4 sm:px-6 py-3">
+          {/* Date Navigation */}
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={() => navigateDate("prev")} className="h-9 w-9 hover:bg-muted">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => navigateDate("prev")}
+              className="h-10 w-10 rounded-xl border-2 hover:bg-blue-50 hover:border-blue-200 dark:hover:bg-blue-950 transition-all shadow-sm"
+            >
               <ChevronLeft className="h-5 w-5" />
             </Button>
 
-            <div className="flex items-center gap-2">
-              <span className="text-base font-semibold text-foreground min-w-[200px] text-center">
+            <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/50 dark:to-purple-950/50 rounded-xl border border-blue-100 dark:border-blue-900">
+              <Calendar className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+              <span className="text-base font-semibold text-foreground min-w-[180px] text-center">
                 {getDateRangeLabel()}
               </span>
             </div>
 
-            <Button variant="ghost" size="icon" onClick={() => navigateDate("next")} className="h-9 w-9 hover:bg-muted">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => navigateDate("next")}
+              className="h-10 w-10 rounded-xl border-2 hover:bg-blue-50 hover:border-blue-200 dark:hover:bg-blue-950 transition-all shadow-sm"
+            >
               <ChevronRight className="h-5 w-5" />
             </Button>
           </div>
 
-          <Button variant="outline" size="sm" onClick={() => setCurrentDate(new Date())} className="hover:bg-muted">
-            Today
-          </Button>
+          {/* View Mode & Today Button */}
+          <div className="flex items-center gap-2">
+            {/* View Mode Toggle */}
+            <div className="flex items-center gap-1 p-1 bg-gray-100 dark:bg-gray-800 rounded-xl">
+              <Button
+                variant={viewMode === "week" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setViewMode("week")}
+                className={cn(
+                  "h-9 px-3 rounded-lg transition-all",
+                  viewMode === "week"
+                    ? "bg-white dark:bg-gray-900 shadow-sm"
+                    : "hover:bg-gray-200 dark:hover:bg-gray-700"
+                )}
+              >
+                <Grid3x3 className="h-4 w-4 mr-2" />
+                Week
+              </Button>
+              <Button
+                variant={viewMode === "day" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setViewMode("day")}
+                className={cn(
+                  "h-9 px-3 rounded-lg transition-all",
+                  viewMode === "day"
+                    ? "bg-white dark:bg-gray-900 shadow-sm"
+                    : "hover:bg-gray-200 dark:hover:bg-gray-700"
+                )}
+              >
+                <CalendarDays className="h-4 w-4 mr-2" />
+                Day
+              </Button>
+            </div>
+
+            {/* Today Button */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentDate(new Date())}
+              className="h-9 rounded-xl border-2 hover:bg-blue-50 hover:border-blue-200 dark:hover:bg-blue-950 transition-all shadow-sm font-semibold"
+            >
+              Today
+            </Button>
+          </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden bg-muted/10">
+      <div className="flex-1 flex overflow-hidden">
         {/* Calendar View */}
-        <div className={cn("px-4 pt-0 pb-4 overflow-auto transition-all duration-300", selectedAppointment ? "hidden md:block md:w-[65%]" : "flex-1")}>
-          {dentistLoading ? <div className="flex justify-center items-center h-full">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            </div> : !dentistId ? <div className="flex justify-center items-center h-full">
-              <p className="text-muted-foreground">{t.notRegisteredDentist}</p>
-            </div> : viewMode === "week" ? <WeeklyCalendarView dentistId={dentistId} currentDate={currentDate} onAppointmentClick={handleAppointmentClick} selectedAppointmentId={selectedAppointment?.id} googleCalendarEvents={googleCalendarEvents} /> : <DayCalendarView dentistId={dentistId} currentDate={currentDate} onAppointmentClick={setSelectedAppointment} selectedAppointmentId={selectedAppointment?.id} googleCalendarEvents={googleCalendarEvents} />}
+        <div className={cn(
+          "px-4 sm:px-6 pt-4 pb-4 overflow-auto transition-all duration-300",
+          selectedAppointment ? "hidden md:block md:w-[65%]" : "flex-1"
+        )}>
+          {dentistLoading ? (
+            <div className="flex justify-center items-center h-full">
+              <div className="text-center space-y-4">
+                <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent mx-auto"></div>
+                <p className="text-sm text-muted-foreground">Loading your schedule...</p>
+              </div>
+            </div>
+          ) : !dentistId ? (
+            <div className="flex justify-center items-center h-full">
+              <Card className="max-w-md">
+                <CardContent className="pt-6 text-center space-y-4">
+                  <div className="mx-auto w-16 h-16 bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900 dark:to-purple-900 rounded-full flex items-center justify-center">
+                    <Calendar className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <p className="text-muted-foreground">{t.notRegisteredDentist}</p>
+                </CardContent>
+              </Card>
+            </div>
+          ) : viewMode === "week" ? (
+            <WeeklyCalendarView
+              dentistId={dentistId}
+              currentDate={currentDate}
+              onAppointmentClick={handleAppointmentClick}
+              selectedAppointmentId={selectedAppointment?.id}
+              googleCalendarEvents={googleCalendarEvents}
+            />
+          ) : (
+            <DayCalendarView
+              dentistId={dentistId}
+              currentDate={currentDate}
+              onAppointmentClick={setSelectedAppointment}
+              selectedAppointmentId={selectedAppointment?.id}
+              googleCalendarEvents={googleCalendarEvents}
+            />
+          )}
         </div>
 
         {/* Sidebar */}
-        {selectedAppointment && <div className={cn("w-full md:w-[35%] border-l bg-card transition-all duration-300")}>
-            <AppointmentDetailsSidebar appointment={selectedAppointment} onClose={handleBackToWeek} onStatusChange={handleStatusChange} />
-          </div>}
+        {selectedAppointment && (
+          <div className={cn(
+            "w-full md:w-[35%] border-l bg-white dark:bg-gray-900 transition-all duration-300 shadow-lg"
+          )}>
+            <AppointmentDetailsSidebar
+              appointment={selectedAppointment}
+              onClose={handleBackToWeek}
+              onStatusChange={handleStatusChange}
+            />
+          </div>
+        )}
       </div>
     </div>;
 }
