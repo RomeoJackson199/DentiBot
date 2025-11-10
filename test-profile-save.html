@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Profile Save Test</title>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <h1>Profile Save Test</h1>
+    <div id="status">Loading...</div>
+    <button onclick="testProfileSave()">Test Profile Save</button>
+    <button onclick="testAIFunction()">Test AI Function</button>
+    
+    <script>
+        const SUPABASE_URL = "https://gjvxcisbaxhhblhsytar.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdqdnhjaXNiYXhoaGJsaHN5dGFyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIwNjU4MDUsImV4cCI6MjA2NzY0MTgwNX0.p4HO2McB5IqP9iQ_p_Z6yHKCkKyDXuIm7ono6UJZcmM";
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        async function testProfileSave() {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = 'Testing profile save...';
+            
+            try {
+                // First, try to sign in anonymously
+                const { data: authData, error: authError } = await supabase.auth.signInAnonymously();
+                
+                if (authError) {
+                    statusDiv.innerHTML = 'Auth error: ' + authError.message;
+                    return;
+                }
+                
+                console.log('Authenticated as:', authData.user);
+                
+                // Try to create a profile
+                const { data: profileData, error: profileError } = await supabase
+                    .from('profiles')
+                    .insert({
+                        user_id: authData.user.id,
+                        email: 'test@example.com',
+                        first_name: 'Test',
+                        last_name: 'User',
+                        phone: '+1234567890',
+                        date_of_birth: '1990-01-01',
+                        medical_history: 'None',
+                        address: '123 Test St',
+                        emergency_contact: 'Emergency Contact'
+                    })
+                    .select();
+                
+                if (profileError) {
+                    statusDiv.innerHTML = 'Profile create error: ' + profileError.message;
+                    return;
+                }
+                
+                console.log('Profile created:', profileData);
+                
+                // Try to update the profile
+                const { data: updateData, error: updateError } = await supabase
+                    .from('profiles')
+                    .update({
+                        first_name: 'Updated',
+                        last_name: 'User',
+                        phone: '+0987654321'
+                    })
+                    .eq('user_id', authData.user.id)
+                    .select();
+                
+                if (updateError) {
+                    statusDiv.innerHTML = 'Profile update error: ' + updateError.message;
+                    return;
+                }
+                
+                console.log('Profile updated:', updateData);
+                statusDiv.innerHTML = 'Profile save test successful!';
+                
+            } catch (error) {
+                statusDiv.innerHTML = 'Error: ' + error.message;
+                console.error('Test error:', error);
+            }
+        }
+        
+        async function testAIFunction() {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = 'Testing AI function...';
+            
+            try {
+                const response = await fetch(`${SUPABASE_URL}/functions/v1/dental-ai-chat`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: "Hello, I have a toothache",
+                        conversation_history: [],
+                        user_profile: {
+                            first_name: "Test",
+                            last_name: "User",
+                            email: "test@example.com"
+                        }
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    statusDiv.innerHTML = 'AI function error: ' + response.status + ' - ' + errorText;
+                    return;
+                }
+
+                const data = await response.json();
+                console.log('AI function response:', data);
+                statusDiv.innerHTML = 'AI function test successful! Response: ' + data.response;
+                
+            } catch (error) {
+                statusDiv.innerHTML = 'AI test error: ' + error.message;
+                console.error('AI test error:', error);
+            }
+        }
+    </script>
+</body>
+</html>

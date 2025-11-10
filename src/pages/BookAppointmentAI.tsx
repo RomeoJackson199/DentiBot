@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useNavigate, Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { logger } from "@/lib/logger";
 import { useBusinessContext } from "@/hooks/useBusinessContext";
 import { BusinessSelectionForPatients } from "@/components/BusinessSelectionForPatients";
 import { Button } from "@/components/ui/button";
@@ -288,10 +287,10 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
       });
 
       if (error) {
-        logger.warn('AI recommendations failed:', error);
+        console.warn('AI recommendations failed:', error);
       } else if (data?.showSlots) {
         // AI returned a code with slots to show
-        logger.debug('AI Code received - show these slots:', data.showSlots);
+        console.log('AI Code received - show these slots:', data.showSlots);
         setAiSlotCode({
           showSlots: data.showSlots,
           slotDetails: data.slotDetails || {}

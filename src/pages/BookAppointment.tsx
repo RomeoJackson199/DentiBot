@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { format, startOfDay } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
-import { logger } from "@/lib/logger";
 import { useToast } from "@/hooks/use-toast";
 import { useBusinessContext } from "@/hooks/useBusinessContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -199,7 +198,7 @@ export default function BookAppointment() {
               dentist_id: selectedDentist
             }));
 
-            logger.debug('📊 Fetching AI recommendations for', times.length, 'slots');
+            console.log('📊 Fetching AI recommendations for', times.length, 'slots');
             const recommendations = await getRecommendedSlots(
               selectedDentist,
               profile.id,
@@ -208,9 +207,9 @@ export default function BookAppointment() {
               selectedService?.id
             );
 
-            logger.debug('✅ Received', recommendations.length, 'recommendations');
+            console.log('✅ Received', recommendations.length, 'recommendations');
             const promoted = recommendations.filter(r => r.shouldPromote);
-            logger.debug('⭐ AI is promoting', promoted.length, 'slots:', promoted.map(r => r.time).join(', '));
+            console.log('⭐ AI is promoting', promoted.length, 'slots:', promoted.map(r => r.time).join(', '));
 
             setRecommendedSlots(recommendations);
 
@@ -218,7 +217,7 @@ export default function BookAppointment() {
             const topRec = recommendations.find(r => r.shouldPromote);
             if (topRec?.aiReasoning) {
               setAiSummary(topRec.aiReasoning);
-              logger.debug('💡 AI Summary:', topRec.aiReasoning);
+              console.log('💡 AI Summary:', topRec.aiReasoning);
             } else {
               // If no AI reasoning but we have recommendations, create a summary
               const topSlots = recommendations

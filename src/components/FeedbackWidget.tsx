@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { logger } from "@/lib/logger";
 import {
   Dialog,
   DialogContent,
@@ -130,7 +129,7 @@ export function FeedbackWidget({
       // For now, just simulate an API call
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      logger.info("Feedback submitted:", {
+      console.log("Feedback submitted:", {
         ...formData,
         timestamp: new Date().toISOString(),
         userAgent: navigator.userAgent,

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Emergency Triage Test</title>
+</head>
+<body>
+    <h1>Emergency Triage Test</h1>
+    <div id="status"></div>
+    
+    <script>
+        async function testEmergencyTriage() {
+            const statusDiv = document.getElementById('status');
+            
+            try {
+                statusDiv.innerHTML = 'Testing emergency triage page...';
+                
+                const response = await fetch('/emergency-triage');
+                
+                if (response.ok) {
+                    const html = await response.text();
+                    
+                    if (html.includes('Something went wrong')) {
+                        statusDiv.innerHTML = '❌ ERROR: Page shows "Something went wrong"';
+                        statusDiv.style.color = 'red';
+                    } else if (html.includes('SmartTriage') || html.includes('Emergency Dental Triage')) {
+                        statusDiv.innerHTML = '✅ SUCCESS: Emergency triage page loaded correctly';
+                        statusDiv.style.color = 'green';
+                    } else {
+                        statusDiv.innerHTML = '⚠️ WARNING: Page loaded but content unclear';
+                        statusDiv.style.color = 'orange';
+                    }
+                } else {
+                    statusDiv.innerHTML = `❌ ERROR: HTTP ${response.status}`;
+                    statusDiv.style.color = 'red';
+                }
+            } catch (error) {
+                statusDiv.innerHTML = `❌ ERROR: ${error.message}`;
+                statusDiv.style.color = 'red';
+            }
+        }
+        
+        testEmergencyTriage();
+    </script>
+</body>
+</html>
