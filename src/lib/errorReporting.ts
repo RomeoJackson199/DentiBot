@@ -39,6 +39,80 @@ export async function reportError(params: ReportErrorParams) {
 
 // Initialize global error handlers
 export function initializeErrorReporting() {
+  // Prevent double-initialization
+  if ((window as any).__error_reporting_initialized__) return;
+  (window as any).__error_reporting_initialized__ = true;
+
+  // Simple dedupe to avoid spammy duplicates (30s window)
+  const DEDUPE_WINDOW_MS = 30_000;
+  const seen = new Map<string, number>();
+  const shouldReport = (key: string) => {
+    const now = Date.now();
+    const last = seen.get(key) || 0;
+    if (now - last < DEDUPE_WINDOW_MS) return false;
+    seen.set(key, now);
+    return true;
+  };
+
+  const safeSerialize = (values: any[]) => {
+    try {
+      return values.map((v) => {
+        if (v instanceof Error) {
+          return { name: v.name, message: v.message, stack: v.stack };
+        }
+        if (typeof v === 'string') return v;
+        try { return JSON.parse(JSON.stringify(v)); } catch { return String(v); }
+      });
+    } catch {
+      return ['[unserializable args]'];
+    }
+  };
+
+  // Patch console methods to capture console errors/warnings as system errors
+  const originalError = console.error.bind(console);
+  const originalWarn = console.warn.bind(console);
+
+  console.error = (...args: any[]) => {
+    try {
+      const message = args
+        .map((a) => (a instanceof Error ? a.message : typeof a === 'string' ? a : (() => { try { return JSON.stringify(a); } catch { return String(a); } })()))
+        .join(' ');
+      const stack = (args.find((a) => a instanceof Error) as Error | undefined)?.stack;
+      const key = `console.error:${message}`;
+
+      // Avoid recursion on our own reporting failures
+      if (shouldReport(key) && !message?.includes('Failed to report error')) {
+        reportError({
+          error_type: 'ConsoleError',
+          error_message: message || 'console.error called',
+          stack_trace: stack,
+          severity: 'high',
+          metadata: { consoleArgs: safeSerialize(args) },
+        });
+      }
+    } catch {}
+    // Always forward to original console
+    originalError(...args);
+  };
+
+  console.warn = (...args: any[]) => {
+    try {
+      const message = args
+        .map((a) => (a instanceof Error ? a.message : typeof a === 'string' ? a : (() => { try { return JSON.stringify(a); } catch { return String(a); } })()))
+        .join(' ');
+      const key = `console.warn:${message}`;
+      if (shouldReport(key)) {
+        reportError({
+          error_type: 'ConsoleWarning',
+          error_message: message || 'console.warn called',
+          severity: 'medium',
+          metadata: { consoleArgs: safeSerialize(args) },
+        });
+      }
+    } catch {}
+    originalWarn(...args);
+  };
+
   // Catch unhandled promise rejections
   window.addEventListener('unhandledrejection', (event) => {
     reportError({
