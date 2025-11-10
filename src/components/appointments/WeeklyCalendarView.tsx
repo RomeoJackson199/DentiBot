@@ -25,11 +25,11 @@ interface WeeklyCalendarViewProps {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  "completed": "bg-gradient-to-br from-green-50 to-green-100 text-green-900 border-l-green-500 shadow-sm",
-  "cancelled": "bg-gradient-to-br from-gray-50 to-gray-100 text-gray-600 border-l-gray-400 shadow-sm",
-  "confirmed": "bg-gradient-to-br from-blue-50 to-blue-100 text-blue-900 border-l-blue-500 shadow-sm",
-  "pending": "bg-gradient-to-br from-yellow-50 to-yellow-100 text-yellow-900 border-l-yellow-500 shadow-sm",
-  "google-calendar": "bg-gradient-to-br from-purple-50 to-purple-100 text-purple-900 border-l-purple-500 shadow-sm",
+  "completed": "bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 dark:from-emerald-900/40 dark:via-green-900/40 dark:to-teal-900/40 text-emerald-900 dark:text-emerald-100 border-l-emerald-500 shadow-md hover:shadow-lg",
+  "cancelled": "bg-gradient-to-br from-gray-50 via-slate-50 to-gray-100 dark:from-gray-800/40 dark:via-slate-800/40 dark:to-gray-800/40 text-gray-600 dark:text-gray-400 border-l-gray-400 shadow-md hover:shadow-lg",
+  "confirmed": "bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-100 dark:from-blue-900/40 dark:via-indigo-900/40 dark:to-blue-900/40 text-blue-900 dark:text-blue-100 border-l-blue-500 shadow-md hover:shadow-lg",
+  "pending": "bg-gradient-to-br from-amber-50 via-yellow-50 to-orange-50 dark:from-amber-900/40 dark:via-yellow-900/40 dark:to-orange-900/40 text-amber-900 dark:text-amber-100 border-l-amber-500 shadow-md hover:shadow-lg",
+  "google-calendar": "bg-gradient-to-br from-purple-50 via-violet-50 to-fuchsia-50 dark:from-purple-900/40 dark:via-violet-900/40 dark:to-fuchsia-900/40 text-purple-900 dark:text-purple-100 border-l-purple-500 shadow-md hover:shadow-lg",
 };
 
 const URGENCY_LABELS: Record<string, string> = {
@@ -230,64 +230,64 @@ export function WeeklyCalendarView({
 
   return (
     <TooltipProvider>
-      <div className="border rounded-xl bg-card overflow-hidden shadow-sm min-h-[calc(100vh-140px)]">
+      <div className="border-2 rounded-2xl bg-white dark:bg-gray-900 overflow-hidden shadow-xl min-h-[calc(100vh-140px)] transition-all duration-300">
         {/* Mobile day navigation */}
         {isMobile && (
-          <div className="flex items-center justify-between px-4 py-3 border-b bg-muted/30">
+          <div className="flex items-center justify-between px-4 py-3 border-b bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 dark:from-blue-950/30 dark:via-purple-950/30 dark:to-pink-950/30">
             <Button
-              variant="ghost"
+              variant="outline"
               size="icon"
               onClick={handlePreviousDay}
               disabled={mobileCurrentDay === 0}
-              className="h-9 w-9"
+              className="h-9 w-9 rounded-xl border-2"
             >
               <ChevronLeft className="h-5 w-5" />
             </Button>
             <div className="text-center">
-              <div className="text-sm text-muted-foreground font-medium">
+              <div className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
                 {format(displayDays[0], "EEEE")}
               </div>
               <div className={cn(
-                "text-lg font-semibold",
-                isSameDay(displayDays[0], new Date()) && "text-primary"
+                "text-lg font-bold",
+                isSameDay(displayDays[0], new Date()) && "text-blue-600 dark:text-blue-400"
               )}>
                 {format(displayDays[0], "d MMMM yyyy")}
               </div>
             </div>
             <Button
-              variant="ghost"
+              variant="outline"
               size="icon"
               onClick={handleNextDay}
               disabled={mobileCurrentDay === 6}
-              className="h-9 w-9"
+              className="h-9 w-9 rounded-xl border-2"
             >
               <ChevronRight className="h-5 w-5" />
             </Button>
           </div>
         )}
 
-        {/* Header with days (desktop only) - Compact horizontal layout */}
+        {/* Header with days (desktop only) - Enhanced layout */}
         {!isMobile && (
-          <div className="sticky top-0 z-10 bg-card border-b">
+          <div className="sticky top-0 z-10 bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 dark:from-blue-950/30 dark:via-purple-950/30 dark:to-pink-950/30 border-b-2 border-gray-200 dark:border-gray-700">
             <div className="grid grid-cols-[100px_repeat(7,1fr)]">
-              <div className="px-4 py-3"></div>
+              <div className="px-4 py-4"></div>
               {weekDays.map((day) => {
                 const isToday = isSameDay(day, new Date());
                 return (
                   <div
                     key={day.toISOString()}
-                    className="px-2 py-3 text-center"
+                    className="px-2 py-4 text-center"
                   >
-                    <div className="space-y-1">
-                      <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    <div className="space-y-2">
+                      <div className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
                         {format(day, "EEE")}
                       </div>
                       <div
                         className={cn(
-                          "text-2xl font-semibold inline-flex items-center justify-center transition-all",
+                          "text-2xl font-bold inline-flex items-center justify-center transition-all duration-300",
                           isToday
-                            ? "bg-primary text-primary-foreground rounded-full w-10 h-10 shadow-sm"
-                            : "text-foreground"
+                            ? "bg-gradient-to-br from-blue-500 to-purple-600 text-white rounded-2xl w-12 h-12 shadow-lg scale-110"
+                            : "text-foreground hover:bg-gray-100 dark:hover:bg-gray-800 rounded-2xl w-12 h-12"
                         )}
                       >
                         {format(day, "dd")}
@@ -311,7 +311,7 @@ export function WeeklyCalendarView({
               {/* Time label */}
               <div
                 key={`time-${timeSlot}`}
-                className="px-4 py-2 border-r border-b text-sm text-muted-foreground font-medium bg-muted/5"
+                className="px-4 py-3 border-r-2 border-b text-sm text-muted-foreground font-semibold bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900"
               >
                 {timeSlot}
               </div>
@@ -321,25 +321,28 @@ export function WeeklyCalendarView({
                 const slotAppointments = getAppointmentsForSlot(day, timeSlot);
                 const isBreak = isBreakTime(day, timeSlot);
                 const isToday = isSameDay(day, new Date());
-                
+
                 return (
                   <div
                     key={`${day.toISOString()}-${timeSlot}`}
                     className={cn(
-                      "p-2 border-r border-b last:border-r-0 min-h-[100px] transition-colors",
-                      isBreak 
-                        ? "bg-muted/20" 
+                      "p-3 border-r border-b last:border-r-0 min-h-[110px] transition-all duration-200",
+                      isBreak
+                        ? "bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 pattern-dots pattern-gray-300 pattern-bg-transparent pattern-size-2 pattern-opacity-30"
                         : isToday
-                          ? "bg-primary/5 hover:bg-primary/10"
-                          : "bg-background hover:bg-muted/5"
+                          ? "bg-gradient-to-br from-blue-50/50 to-purple-50/50 dark:from-blue-950/20 dark:to-purple-950/20 hover:from-blue-100/50 hover:to-purple-100/50"
+                          : "bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800/50"
                     )}
                   >
                     {isBreak ? (
                       <div className="flex items-center justify-center h-full">
-                        <span className="text-xs text-muted-foreground italic">Break</span>
+                        <div className="text-center space-y-1">
+                          <div className="text-xs text-muted-foreground font-semibold italic">Break Time</div>
+                          <div className="text-[10px] text-muted-foreground/60">No appointments</div>
+                        </div>
                       </div>
                     ) : (
-                      <div className="space-y-1">
+                      <div className="space-y-2">
                         {slotAppointments.map((apt) => {
                         const patientName = `${apt.patient?.first_name || ""} ${apt.patient?.last_name || ""}`.trim() || "Unknown";
                         const isSelected = apt.id === selectedAppointmentId;
@@ -351,32 +354,32 @@ export function WeeklyCalendarView({
                             <TooltipTrigger asChild>
                               <Card
                                 className={cn(
-                                  "p-2 cursor-pointer hover:shadow-md transition-all border-l-4",
+                                  "p-3 cursor-pointer transition-all duration-300 border-l-[6px] rounded-xl backdrop-blur-sm",
                                   getStatusColor(apt.status),
-                                  isSelected && "ring-2 ring-primary shadow-lg scale-105"
+                                  isSelected && "ring-4 ring-blue-500 ring-offset-2 shadow-2xl scale-105 z-10"
                                 )}
                                 onClick={() => onAppointmentClick(apt)}
                               >
                                 <div className="flex items-start gap-2">
-                                  <Avatar className="h-6 w-6 flex-shrink-0">
-                                    <AvatarFallback className="text-xs">
+                                  <Avatar className="h-8 w-8 flex-shrink-0 ring-2 ring-white dark:ring-gray-800 shadow-sm">
+                                    <AvatarFallback className="text-xs font-bold bg-gradient-to-br from-blue-500 to-purple-600 text-white">
                                       {getPatientInitials(apt.patient?.first_name, apt.patient?.last_name)}
                                     </AvatarFallback>
                                   </Avatar>
                                   <div className="flex-1 min-w-0">
-                                    <div className="font-medium text-xs truncate">
+                                    <div className="font-semibold text-xs truncate mb-1">
                                       {patientName}
                                     </div>
-                                    <div className="text-xs text-muted-foreground">
-                                      {format(startTime, "h a")} - {format(endTime, "h a")}
+                                    <div className="text-[11px] text-muted-foreground font-medium">
+                                      {format(startTime, "h:mm a")} - {format(endTime, "h:mm a")}
                                     </div>
                                   </div>
                                   {apt.urgency !== "low" && (
                                     <Badge
                                       variant="outline"
                                       className={cn(
-                                        "text-xs px-1 h-5",
-                                        apt.urgency === "high" && "bg-red-100 text-red-700 border-red-300"
+                                        "text-[10px] px-2 h-5 font-bold",
+                                        apt.urgency === "high" && "bg-red-100 text-red-700 border-red-300 animate-pulse"
                                       )}
                                     >
                                       {URGENCY_LABELS[apt.urgency]}
@@ -385,16 +388,16 @@ export function WeeklyCalendarView({
                                 </div>
                               </Card>
                             </TooltipTrigger>
-                            <TooltipContent side="right" className="w-[320px] p-0 border-l-4 border-l-primary shadow-lg">
-                              <div className="p-4 space-y-4">
-                                <div className="flex items-center gap-3 pb-3 border-b">
-                                  <Avatar className="h-12 w-12 bg-primary text-primary-foreground">
-                                    <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
+                            <TooltipContent side="right" className="w-[340px] p-0 border-l-[6px] border-l-blue-500 shadow-2xl rounded-xl">
+                              <div className="p-5 space-y-4 bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
+                                <div className="flex items-center gap-3 pb-4 border-b-2 border-gray-200 dark:border-gray-700">
+                                  <Avatar className="h-14 w-14 ring-4 ring-blue-100 dark:ring-blue-900 shadow-lg">
+                                    <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-bold text-lg">
                                       {getPatientInitials(apt.patient?.first_name, apt.patient?.last_name)}
                                     </AvatarFallback>
                                   </Avatar>
                                   <div className="flex-1 min-w-0">
-                                    <p className="font-semibold text-base">{patientName}</p>
+                                    <p className="font-bold text-lg">{patientName}</p>
                                     <p className="text-sm text-muted-foreground truncate">{apt.patient?.email}</p>
                                   </div>
                                 </div>
@@ -457,10 +460,10 @@ export function WeeklyCalendarView({
                                 </div>
 
                                 {apt.status !== "completed" && apt.status !== "cancelled" && (
-                                  <div className="flex gap-2 pt-3 border-t">
+                                  <div className="flex gap-2 pt-4 border-t-2 border-gray-200 dark:border-gray-700">
                                     <Button
                                       size="sm"
-                                      className="flex-1"
+                                      className="flex-1 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 shadow-md rounded-xl font-semibold"
                                       onClick={(e) => handleCompleteAppointment(apt, e)}
                                     >
                                       <CheckCircle2 className="h-4 w-4 mr-1" />
@@ -469,7 +472,7 @@ export function WeeklyCalendarView({
                                     <Button
                                       size="sm"
                                       variant="outline"
-                                      className="flex-1"
+                                      className="flex-1 border-2 hover:bg-red-50 hover:border-red-300 hover:text-red-700 dark:hover:bg-red-950 rounded-xl font-semibold"
                                       onClick={(e) => handleCancelAppointment(apt.id, e)}
                                     >
                                       <XCircle className="h-4 w-4 mr-1" />
