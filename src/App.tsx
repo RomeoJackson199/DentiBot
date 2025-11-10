@@ -86,6 +86,7 @@ const WaiterDashboard = lazy(() => import("./pages/WaiterDashboard"));
 const KitchenDashboard = lazy(() => import("./pages/KitchenDashboard"));
 const TableOrderingPage = lazy(() => import("./pages/TableOrderingPage"));
 const SmartBookAppointment = lazy(() => import("./pages/SmartBookAppointment"));
+const SuperAdminDashboard = lazy(() => import("./pages/SuperAdminDashboard"));
 
 // Dashboard component that handles authentication with lazy loading
 // Business gate component that shows appropriate picker
@@ -316,6 +317,8 @@ const App = () => {
                 <Route path="/admin/setup-mp-maison-services" element={<SetupMPMaisonServicesPage />} />
                 <Route path="/admin/delete-non-dentist-businesses" element={<DeleteNonDentistBusinessesPage />} />
                 <Route path="/admin/delete-business" element={<DeleteBusinessPage />} />
+                {/* Super Admin Dashboard */}
+                <Route path="/super-admin" element={<SuperAdminDashboard />} />
                 {/* Restaurant management routes */}
                 <Route path="/restaurant/owner" element={<RoleBasedRouter requiredRole='dentist'><RestaurantOwnerDashboard /></RoleBasedRouter>} />
                 <Route path="/restaurant/waiter" element={<RoleBasedRouter requiredRole='dentist'><WaiterDashboard /></RoleBasedRouter>} />

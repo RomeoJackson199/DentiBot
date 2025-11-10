@@ -22,7 +22,7 @@ export interface FormData {
 export interface User {
   id: string;
   email: string;
-  role: 'patient' | 'dentist' | 'admin';
+  role: 'patient' | 'dentist' | 'admin' | 'super_admin';
   created_at: string;
   updated_at: string;
 }
