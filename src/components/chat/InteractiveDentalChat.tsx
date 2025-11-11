@@ -717,16 +717,22 @@ Just type what you need! 😊
         .eq("is_active", true);
 
       if (error) throw error;
-      
+
       if (autoSelect && data && data.length > 0) {
         handleDentistSelection(data[0]);
       } else {
         setBookingFlow(prev => ({ ...prev, step: 'dentist' }));
         setWidgetData({ dentists: data || [], recommendedDentists });
-        setActiveWidget('dentist-selection');
-        addBotMessage("Please choose your preferred dentist:");
+
+        // If we have recommended dentists, keep the 'recommend-dentist' widget active
+        // Otherwise show the regular dentist selection
+        if (!recommendedDentists || recommendedDentists.length === 0) {
+          setActiveWidget('dentist-selection');
+          addBotMessage("Please choose your preferred dentist:");
+        }
+        // If recommendedDentists exist, activeWidget is already set to 'recommend-dentist' by handleSuggestions
       }
-      
+
     } catch (error) {
       console.error("Error fetching dentists:", error);
       addBotMessage("I couldn't load the dentist list. Please try again.");
@@ -1438,7 +1444,31 @@ You'll receive a confirmation email shortly.`;
     if (!activeWidget) return null;
 
     switch (activeWidget) {
-      
+
+      case 'recommend-dentist':
+        return widgetData.recommendedDentists && widgetData.recommendedDentists.length > 0 ? (
+          <RecommendedDentistWidget
+            dentistNames={widgetData.recommendedDentists}
+            symptoms={bookingFlow.reason}
+            onSelectDentist={(dentist) => {
+              // Transform dentist object to match expected structure with profiles
+              const dentistWithProfiles = {
+                ...dentist,
+                profiles: {
+                  first_name: dentist.first_name,
+                  last_name: dentist.last_name
+                }
+              };
+              handleDentistSelection(dentistWithProfiles);
+              setActiveWidget(null);
+            }}
+            onSeeAlternatives={() => {
+              setActiveWidget('dentist-selection');
+              addBotMessage("Here are all available dentists:");
+            }}
+          />
+        ) : null;
+
       case 'dentist-selection':
         return (
           <DentistSelectionWidget
