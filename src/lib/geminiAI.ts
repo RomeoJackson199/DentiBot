@@ -5,6 +5,18 @@ import { TimeSlot } from './appointmentAvailability';
 import { getSlotUsageStatistics, getUnderutilizedSlots, SlotUsageStats } from './slotUsageTracking';
 import { PatientPreferences } from './smartScheduling';
 import { format, getDay } from 'date-fns';
+import type {
+  IntakeAIRequest,
+  IntakeAIResponse,
+  Symptom,
+  IntakeStatus,
+  DentistMatchingRequest,
+  DentistMatchingResponse,
+  DentistInfo,
+  DentistMatchResult,
+  UrgencyAssessment,
+  ChatMessage
+} from '@/types/intake';
 
 // Initialize Gemini AI
 const getGeminiAI = () => {
@@ -432,6 +444,538 @@ export async function testGeminiConnection(): Promise<{
     return {
       success: false,
       message: `Failed to connect to Gemini AI: ${error instanceof Error ? error.message : 'Unknown error'}`
+    };
+  }
+}
+
+// =====================================================
+// AI CONVERSATIONAL INTAKE FUNCTIONS
+// =====================================================
+
+/**
+ * Processes patient message during intake and determines next steps
+ * This is the core AI conversational intake engine
+ */
+export async function processIntakeConversation(
+  request: IntakeAIRequest
+): Promise<IntakeAIResponse> {
+  try {
+    const genAI = getGeminiAI();
+    const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+
+    const prompt = buildIntakePrompt(request);
+    const result = await model.generateContent(prompt);
+    const response = result.response.text();
+
+    // Parse JSON response
+    const jsonMatch = response.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      throw new Error('Failed to parse AI intake response');
+    }
+
+    const aiResponse: IntakeAIResponse = JSON.parse(jsonMatch[0]);
+
+    // Log the intake interaction
+    await logIntakeInteraction(request.session_id, request.patient_message, aiResponse);
+
+    return aiResponse;
+  } catch (error) {
+    console.error('Error processing intake conversation:', error);
+
+    // Fallback response
+    return getFallbackIntakeResponse(request);
+  }
+}
+
+/**
+ * Builds the prompt for AI intake conversation
+ */
+function buildIntakePrompt(request: IntakeAIRequest): string {
+  const conversationHistory = request.conversation_history
+    .map(msg => `${msg.role === 'user' ? 'Patient' : 'AI'}: ${msg.content}`)
+    .join('\n');
+
+  const collectedSymptoms = request.collected_symptoms.length > 0
+    ? JSON.stringify(request.collected_symptoms, null, 2)
+    : 'None yet';
+
+  return `You are a compassionate dental AI assistant conducting a patient intake interview. Your goal is to:
+1. Collect information about the patient's dental concern naturally and conversationally
+2. Ask relevant follow-up questions to understand their needs
+3. Assess urgency level
+4. Build enough information to match them with the right dentist
+
+**Current Intake Step:** ${request.current_step}
+
+**Conversation So Far:**
+${conversationHistory}
+
+**Patient's Latest Message:** "${request.patient_message}"
+
+**Symptoms Collected So Far:**
+${collectedSymptoms}
+
+**Your Task:**
+Based on the patient's message, respond naturally and determine:
+1. What symptoms/information can be extracted from their message?
+2. What's the urgency level (if assessable)?
+3. What question should you ask next?
+4. Should we move to the next step of intake?
+
+**Guidelines:**
+- Be warm, empathetic, and professional
+- Ask ONE question at a time
+- For pain: ask about severity (1-10), duration, triggers
+- For dental issues: ask when it started, what makes it better/worse
+- If they mention multiple issues, prioritize and address systematically
+- Assess urgency: emergency (immediate), urgent (24-48hrs), routine (1-2 weeks)
+- Once you have enough information (symptoms, urgency), suggest matching with a dentist
+
+**Output Format (JSON):**
+{
+  "response_message": "Your compassionate response to the patient",
+  "extracted_symptoms": [
+    {
+      "text": "symptom description",
+      "category": "pain|bleeding|swelling|sensitivity|cosmetic|broken_tooth|missing_tooth|jaw_issues|gum_issues|routine_checkup|other",
+      "severity": 7,
+      "duration": "2 days"
+    }
+  ],
+  "urgency_assessment": {
+    "score": 8,
+    "level": "urgent",
+    "reasoning": "Why this urgency level",
+    "requires_immediate_care": true,
+    "recommended_timeframe": "within 24 hours"
+  },
+  "next_step": "${getNextStepOptions(request.current_step)}",
+  "next_question": "Your next question if needed",
+  "should_match_dentist": false,
+  "metadata": {
+    "confidence": 0.85,
+    "reasoning": "Why you're making these decisions"
+  }
+}
+
+**Important:**
+- Extract ALL symptoms mentioned in patient's message
+- Only include urgency_assessment if you have enough information
+- Set should_match_dentist to true when you have: symptoms + pain level/urgency + basic history
+- Be conversational and natural - don't sound robotic
+- If patient expresses worry or fear, acknowledge and reassure`;
+}
+
+/**
+ * Gets valid next steps based on current step
+ */
+function getNextStepOptions(currentStep: IntakeStatus): string {
+  const stepFlow: Record<IntakeStatus, IntakeStatus[]> = {
+    'started': ['collecting_symptoms'],
+    'collecting_symptoms': ['collecting_symptoms', 'assessing_urgency'],
+    'assessing_urgency': ['assessing_urgency', 'collecting_history'],
+    'collecting_history': ['collecting_history', 'matching_dentist'],
+    'matching_dentist': ['selecting_appointment'],
+    'selecting_appointment': ['completed'],
+    'completed': ['completed'],
+    'abandoned': ['abandoned']
+  };
+
+  return stepFlow[currentStep]?.join('|') || currentStep;
+}
+
+/**
+ * Fallback response if AI fails
+ */
+function getFallbackIntakeResponse(request: IntakeAIRequest): IntakeAIResponse {
+  const responses: Record<IntakeStatus, string> = {
+    'started': "Hi! I'm here to help you find the right dentist. Can you tell me what brings you in today?",
+    'collecting_symptoms': "I understand. Can you tell me more about your symptoms? For example, when did this start?",
+    'assessing_urgency': "On a scale of 1-10, how would you rate your pain or discomfort?",
+    'collecting_history': "Have you had any recent dental work or do you have any medical conditions I should know about?",
+    'matching_dentist': "Thank you for that information. Let me find the best dentist for your needs.",
+    'selecting_appointment': "Great! Let's schedule your appointment.",
+    'completed': "Your appointment is confirmed!",
+    'abandoned': "Feel free to reach out if you need help."
+  };
+
+  return {
+    response_message: responses[request.current_step],
+    next_step: request.current_step,
+    should_match_dentist: false,
+    metadata: {
+      confidence: 0.5,
+      reasoning: 'Fallback response - AI unavailable'
+    }
+  };
+}
+
+/**
+ * Logs intake interaction for analytics
+ */
+async function logIntakeInteraction(
+  sessionId: string,
+  patientMessage: string,
+  aiResponse: IntakeAIResponse
+): Promise<void> {
+  try {
+    // Update the intake session with the latest interaction
+    const { error } = await supabase
+      .from('ai_intake_sessions')
+      .update({
+        status: aiResponse.next_step,
+        conversation_history: supabase.rpc('jsonb_append', {
+          data: {
+            role: 'user',
+            content: patientMessage,
+            timestamp: new Date().toISOString()
+          }
+        }),
+        total_messages: supabase.rpc('increment'),
+        updated_at: new Date().toISOString()
+      })
+      .eq('session_id', sessionId);
+
+    if (error) {
+      console.error('Error logging intake interaction:', error);
+    }
+  } catch (error) {
+    console.error('Error logging intake interaction:', error);
+  }
+}
+
+// =====================================================
+// AI DENTIST MATCHING FUNCTIONS
+// =====================================================
+
+/**
+ * Uses AI to match patient with best dentists based on symptoms and needs
+ */
+export async function matchPatientToDentists(
+  request: DentistMatchingRequest
+): Promise<DentistMatchingResponse> {
+  try {
+    const genAI = getGeminiAI();
+    const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+
+    const prompt = buildDentistMatchingPrompt(request);
+    const result = await model.generateContent(prompt);
+    const response = result.response.text();
+
+    // Parse JSON response
+    const jsonMatch = response.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      throw new Error('Failed to parse AI matching response');
+    }
+
+    const matchingData = JSON.parse(jsonMatch[0]);
+
+    // Enrich with full dentist info
+    const enrichedMatches: DentistMatchResult[] = matchingData.matches.map((match: any) => {
+      const dentist = request.available_dentists.find(d => d.id === match.dentist_id);
+      return {
+        ...match,
+        dentist_info: dentist!
+      };
+    });
+
+    // Log matching results
+    await logDentistMatching(request.session_id, enrichedMatches, matchingData.reasoning);
+
+    return {
+      matched_dentists: enrichedMatches,
+      top_recommendation: enrichedMatches[0],
+      matching_summary: matchingData.summary,
+      alternative_recommendations: enrichedMatches.slice(1, 4),
+      reasoning: matchingData.reasoning
+    };
+  } catch (error) {
+    console.error('Error matching dentists:', error);
+    return getFallbackDentistMatching(request);
+  }
+}
+
+/**
+ * Builds the prompt for dentist matching
+ */
+function buildDentistMatchingPrompt(request: DentistMatchingRequest): string {
+  const symptomsText = request.symptoms
+    .map(s => `- ${s.text} (${s.category}) - Severity: ${s.severity || 'N/A'}, Duration: ${s.duration || 'N/A'}`)
+    .join('\n');
+
+  const dentistsInfo = request.available_dentists.map(d => ({
+    id: d.id,
+    name: `Dr. ${d.first_name} ${d.last_name}`,
+    specializations: d.specializations?.map(s => s.specialization_type).join(', ') || 'General Dentistry',
+    experience: d.experience_years || 'N/A',
+    languages: d.languages?.join(', ') || 'English',
+    bio: d.bio || '',
+    next_available: d.next_available_slot || 'Check availability'
+  }));
+
+  return `You are an expert dental AI assistant tasked with matching a patient to the best dentist based on their needs.
+
+**Patient Information:**
+**Urgency Score:** ${request.urgency_score}/10
+**Symptoms:**
+${symptomsText}
+
+**Available Dentists:**
+${JSON.stringify(dentistsInfo, null, 2)}
+
+**Patient Preferences:**
+${JSON.stringify(request.patient_preferences || 'No specific preferences', null, 2)}
+
+**Your Task:**
+Analyze the patient's symptoms and urgency level, then match them with the best dentists. Consider:
+
+1. **Specialization Match:** Does the dentist's specialization align with the symptoms?
+   - Pain/infection → General or Endodontics
+   - Gum issues → Periodontics
+   - Broken/missing teeth → Prosthodontics or Oral Surgery
+   - Cosmetic concerns → Cosmetic Dentistry
+   - Orthodontic needs → Orthodontics
+   - Children → Pediatric Dentistry
+
+2. **Urgency Compatibility:** Can they handle the urgency level?
+   - Urgent cases (8-10) need emergency care capability
+   - High urgency (6-7) need quick availability
+   - Routine (1-5) can wait for specialist
+
+3. **Availability:** Sooner available slots score higher for urgent cases
+
+4. **Experience:** More experience with similar cases scores higher
+
+5. **Patient Preferences:** Language, preferred dentist, etc.
+
+**Scoring:**
+Rate each dentist 0-100 on:
+- Specialization match (0-100)
+- Availability match (0-100)
+- Patient preference match (0-100)
+- Urgency compatibility (0-100)
+- Overall match score (weighted average)
+
+**Output Format (JSON):**
+{
+  "matches": [
+    {
+      "dentist_id": "uuid",
+      "overall_match_score": 92,
+      "specialization_match_score": 95,
+      "availability_score": 88,
+      "patient_preference_score": 90,
+      "urgency_compatibility_score": 95,
+      "match_reasoning": "Dr. Smith is an excellent match because...",
+      "match_highlights": [
+        "Specializes in endodontics (root canals)",
+        "10+ years experience",
+        "Available today",
+        "Speaks French"
+      ],
+      "recommendation_rank": 1,
+      "was_shown_to_patient": true,
+      "was_selected": false
+    }
+  ],
+  "summary": "Based on your root canal needs and pain level, I recommend Dr. Smith who specializes in endodontics.",
+  "reasoning": "Detailed explanation of the matching logic"
+}
+
+**Important:**
+- Rank dentists from best to worst match
+- Provide clear, patient-friendly explanations
+- Be honest about why each dentist is a good fit
+- Include at least 3 recommendations if available
+- For urgent cases, prioritize availability and emergency capability`;
+}
+
+/**
+ * Fallback dentist matching if AI fails
+ */
+function getFallbackDentistMatching(request: DentistMatchingRequest): DentistMatchingResponse {
+  // Simple rule-based matching
+  const matches: DentistMatchResult[] = request.available_dentists.map((dentist, index) => ({
+    dentist_id: dentist.id,
+    dentist_info: dentist,
+    overall_match_score: 75 - (index * 5),
+    specialization_match_score: 70,
+    availability_score: 75,
+    patient_preference_score: 70,
+    urgency_compatibility_score: request.urgency_score > 7 ? 90 : 70,
+    match_reasoning: `Dr. ${dentist.first_name} ${dentist.last_name} is available to help with your dental needs.`,
+    match_highlights: [
+      dentist.specializations?.[0]?.specialization_type.replace(/_/g, ' ') || 'General dentistry',
+      `${dentist.experience_years || 5}+ years experience`,
+      'Available for appointments'
+    ],
+    recommendation_rank: index + 1,
+    was_shown_to_patient: index < 3,
+    was_selected: false
+  }));
+
+  return {
+    matched_dentists: matches,
+    top_recommendation: matches[0],
+    matching_summary: `I've found ${matches.length} dentists who can help with your dental needs.`,
+    alternative_recommendations: matches.slice(1, 4),
+    reasoning: 'Matched based on availability and specialization'
+  };
+}
+
+/**
+ * Logs dentist matching results
+ */
+async function logDentistMatching(
+  sessionId: string,
+  matches: DentistMatchResult[],
+  reasoning: string
+): Promise<void> {
+  const businessId = await getCurrentBusinessId();
+
+  try {
+    // Get the intake session to get the session ID
+    const { data: session } = await supabase
+      .from('ai_intake_sessions')
+      .select('id')
+      .eq('session_id', sessionId)
+      .single();
+
+    if (!session) return;
+
+    // Insert match results
+    const matchRecords = matches.map(match => ({
+      business_id: businessId,
+      intake_session_id: session.id,
+      dentist_id: match.dentist_id,
+      overall_match_score: match.overall_match_score,
+      specialization_match_score: match.specialization_match_score,
+      availability_score: match.availability_score,
+      patient_preference_score: match.patient_preference_score,
+      urgency_compatibility_score: match.urgency_compatibility_score,
+      match_reasoning: match.match_reasoning,
+      match_highlights: match.match_highlights,
+      recommendation_rank: match.recommendation_rank,
+      was_shown_to_patient: match.was_shown_to_patient,
+      was_selected: match.was_selected
+    }));
+
+    await supabase.from('intake_match_results').insert(matchRecords);
+  } catch (error) {
+    console.error('Error logging dentist matching:', error);
+  }
+}
+
+// =====================================================
+// APPOINTMENT SUMMARY GENERATION
+// =====================================================
+
+/**
+ * Generates a comprehensive summary of the intake for the dentist
+ */
+export async function generateAppointmentSummaryForDentist(
+  sessionId: string
+): Promise<string> {
+  try {
+    // Get the full intake session
+    const { data: session, error } = await supabase
+      .from('ai_intake_sessions')
+      .select('*')
+      .eq('session_id', sessionId)
+      .single();
+
+    if (error || !session) {
+      throw new Error('Failed to fetch intake session');
+    }
+
+    const genAI = getGeminiAI();
+    const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+
+    const prompt = `You are creating a professional clinical summary for a dentist based on a patient's AI intake conversation.
+
+**Patient Intake Data:**
+${JSON.stringify(session, null, 2)}
+
+**Task:**
+Create a concise, professional summary that includes:
+1. **Chief Complaint:** Main reason for visit (in patient's words)
+2. **Symptoms:** List all symptoms with severity and duration
+3. **Urgency Level:** Score and reasoning
+4. **Medical History:** Relevant medical information, allergies, medications
+5. **Patient Concerns:** Any specific worries or questions mentioned
+6. **Recommended Action:** What the dentist should focus on
+
+**Format:**
+Use clear, clinical language but maintain the patient's voice in the chief complaint.
+Keep it concise (200-300 words) but include all critical information.
+
+**Output:**
+Return ONLY the summary text, no JSON or special formatting.`;
+
+    const result = await model.generateContent(prompt);
+    return result.response.text();
+  } catch (error) {
+    console.error('Error generating appointment summary:', error);
+    return 'Summary generation unavailable. Please review full intake conversation.';
+  }
+}
+
+/**
+ * Assesses urgency from patient symptoms and description
+ */
+export async function assessUrgency(
+  symptoms: Symptom[],
+  patientDescription: string
+): Promise<UrgencyAssessment> {
+  try {
+    const genAI = getGeminiAI();
+    const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+
+    const symptomsText = symptoms.map(s =>
+      `${s.text} (severity: ${s.severity}/10, duration: ${s.duration})`
+    ).join(', ');
+
+    const prompt = `You are a dental triage AI. Assess the urgency of this patient's situation.
+
+**Symptoms:** ${symptomsText}
+**Patient Description:** "${patientDescription}"
+
+**Urgency Levels:**
+- 9-10 (Emergency): Severe pain, heavy bleeding, trauma, swelling affecting breathing
+- 7-8 (Urgent): Significant pain, infection signs, broken tooth with pain
+- 5-6 (High): Moderate pain, sensitivity, minor bleeding
+- 3-4 (Medium): Mild discomfort, cosmetic concerns
+- 1-2 (Low): Routine checkup, preventive care
+
+**Output Format (JSON):**
+{
+  "score": 7,
+  "level": "urgent",
+  "reasoning": "Patient has severe tooth pain (8/10) for 2 days with sensitivity to temperature, indicating possible infection or deep cavity requiring prompt attention.",
+  "requires_immediate_care": true,
+  "recommended_timeframe": "within 24-48 hours"
+}`;
+
+    const result = await model.generateContent(prompt);
+    const response = result.response.text();
+    const jsonMatch = response.match(/\{[\s\S]*\}/);
+
+    if (jsonMatch) {
+      return JSON.parse(jsonMatch[0]);
+    }
+
+    throw new Error('Failed to parse urgency assessment');
+  } catch (error) {
+    console.error('Error assessing urgency:', error);
+
+    // Fallback urgency assessment
+    const maxSeverity = Math.max(...symptoms.map(s => s.severity || 5));
+    return {
+      score: maxSeverity,
+      level: maxSeverity >= 7 ? 'urgent' : maxSeverity >= 5 ? 'high' : 'medium',
+      reasoning: 'Based on reported symptom severity',
+      requires_immediate_care: maxSeverity >= 8,
+      recommended_timeframe: maxSeverity >= 7 ? 'within 24-48 hours' : 'within 1-2 weeks'
     };
   }
 }
