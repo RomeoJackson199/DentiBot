@@ -177,18 +177,30 @@ export const ChatBookingFlow = ({
       // Parse date and time strings as Brussels timezone and convert to UTC
       const appointmentDateTime = createAppointmentDateTimeFromStrings(dateStr, selectedTime);
 
-      // Generate AI appointment reason from conversation
+      // Generate AI appointment reason and summary from conversation
       let appointmentReason = "General consultation";
+      let aiSummary = "";
+      
       if (conversationHistory.length > 0) {
         try {
-          const { generateAppointmentReason } = await import("@/lib/symptoms");
-          const aiReason = await generateAppointmentReason(
-            conversationHistory as any,
-            { id: profile.id, first_name: profile.first_name, last_name: profile.last_name } as any
-          );
+          const { generateAppointmentReason, generateSymptomSummary } = await import("@/lib/symptoms");
+          
+          // Generate both reason and detailed summary
+          const [aiReason, fullSummary] = await Promise.all([
+            generateAppointmentReason(
+              conversationHistory as any,
+              { id: profile.id, first_name: profile.first_name, last_name: profile.last_name } as any
+            ),
+            generateSymptomSummary(
+              conversationHistory as any,
+              { id: profile.id, first_name: profile.first_name, last_name: profile.last_name } as any
+            )
+          ]);
+          
           if (aiReason) appointmentReason = aiReason;
+          if (fullSummary) aiSummary = fullSummary;
         } catch (err) {
-          console.error('Failed to generate AI reason:', err);
+          console.error('Failed to generate AI summaries:', err);
         }
       }
 
@@ -200,7 +212,9 @@ export const ChatBookingFlow = ({
           appointment_date: appointmentDateTime.toISOString(),
           reason: appointmentReason,
           status: "confirmed",
-          urgency: "medium"
+          urgency: "medium",
+          ai_summary: aiSummary,
+          conversation_transcript: conversationHistory as any
         })
         .select()
         .single();
@@ -219,6 +233,36 @@ export const ChatBookingFlow = ({
         onResponse("That time was just taken. Please pick another time.");
         setStep('time');
         return;
+      }
+
+      // Send notifications
+      try {
+        const { sendAppointmentConfirmation, sendDentistNotification } = await import("@/lib/appointmentNotifications");
+        
+        await Promise.all([
+          sendAppointmentConfirmation({
+            appointmentId: appointmentData.id,
+            patientEmail: email,
+            patientName: `${profile.first_name} ${profile.last_name}`,
+            dentistName: `Dr. ${currentDentist.first_name} ${currentDentist.last_name}`,
+            appointmentDate: selectedDate,
+            appointmentTime: selectedTime,
+            reason: appointmentReason,
+          }),
+          sendDentistNotification({
+            appointmentId: appointmentData.id,
+            patientEmail: email,
+            patientName: `${profile.first_name} ${profile.last_name}`,
+            dentistName: `Dr. ${currentDentist.first_name} ${currentDentist.last_name}`,
+            appointmentDate: selectedDate,
+            appointmentTime: selectedTime,
+            reason: appointmentReason,
+            aiSummary: aiSummary,
+          })
+        ]);
+      } catch (notifError) {
+        console.error('Error sending notifications:', notifError);
+        // Don't fail the booking if notifications fail
       }
 
       toast({
