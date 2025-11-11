@@ -641,26 +641,64 @@ ${patient_context.recent_payments.slice(0, 3).map((p: any) => `- €${p.amount} 
     const recommendedDentists: string[] = [];
     const lowerResponse = botResponse.toLowerCase();
     const lowerMessage = sanitizedMessage.toLowerCase();
+    const fullContext = buildConversationContext(sanitizedMessage, conversation_history);
     
     // Only recommend dentists if AI decided to show the widget
     if (suggestions.includes('recommend-dentist')) {
-      if (lowerResponse.includes('pediatric') || lowerResponse.includes('child') || 
-          lowerMessage.includes('enfant') || lowerMessage.includes('child') || lowerMessage.includes('kid')) {
-        recommendedDentists.push('Virginie Pauwels', 'Emeline Hubin');
-      }
-      
-      if (lowerResponse.includes('orthodontic') || lowerResponse.includes('braces') || 
-          lowerMessage.includes('orthodontie') || lowerMessage.includes('alignement')) {
-        recommendedDentists.push('Justine Peters', 'Anne-Sophie Haas');
-      }
-      
-      if (lowerResponse.includes('general') || lowerResponse.includes('routine') || 
-          lowerMessage.includes('général') || lowerMessage.includes('nettoyage')) {
-        recommendedDentists.push('Firdaws Benhsain');
-      }
-      
-      // Default to general dentist if no specific match
-      if (recommendedDentists.length === 0) {
+      // Fetch available dentists from database to make real recommendations
+      const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
+      const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+      const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+      const supabase = createClient(supabaseUrl, supabaseKey);
+
+      try {
+        const { data: dentists } = await supabase
+          .from('dentists')
+          .select('id, first_name, last_name, specialty, bio')
+          .eq('is_active', true)
+          .limit(5);
+
+        if (dentists && dentists.length > 0) {
+          // Intelligent matching based on symptoms and context
+          const pediatricKeywords = /child|kid|enfant|daughter|son|fils|fille|pediatric|pédiatrique/i;
+          const orthodonticKeywords = /braces|orthodontic|orthodontie|alignement|alignment|invisalign/i;
+          const urgentKeywords = /pain|urgentce|emergency|douleur|hurt|mal/i;
+
+          let bestMatch = dentists[0]; // Default to first dentist
+          
+          // Pediatric case
+          if (pediatricKeywords.test(fullContext)) {
+            const pediatricDentist = dentists.find(d => 
+              d.specialty?.toLowerCase().includes('pediatric') || 
+              d.specialty?.toLowerCase().includes('pédiatrique') ||
+              d.bio?.toLowerCase().includes('child')
+            );
+            if (pediatricDentist) bestMatch = pediatricDentist;
+          }
+          
+          // Orthodontic case
+          else if (orthodonticKeywords.test(fullContext)) {
+            const orthodontist = dentists.find(d => 
+              d.specialty?.toLowerCase().includes('orthodontic') ||
+              d.specialty?.toLowerCase().includes('orthodontie')
+            );
+            if (orthodontist) bestMatch = orthodontist;
+          }
+          
+          // Urgent/pain case - prefer general dentist
+          else if (urgentKeywords.test(fullContext)) {
+            const generalDentist = dentists.find(d => 
+              d.specialty?.toLowerCase().includes('general') ||
+              d.specialty?.toLowerCase().includes('générale')
+            );
+            if (generalDentist) bestMatch = generalDentist;
+          }
+
+          recommendedDentists.push(`${bestMatch.first_name} ${bestMatch.last_name}`);
+        }
+      } catch (error) {
+        console.error('Error fetching dentists:', error);
+        // Fallback to default dentist
         recommendedDentists.push('Firdaws Benhsain');
       }
     }

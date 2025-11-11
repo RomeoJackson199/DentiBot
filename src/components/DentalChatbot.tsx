@@ -22,6 +22,7 @@ import { generateSymptomSummary } from "@/lib/symptoms";
 import { generateMedicalRecordFromChat, createMedicalRecord } from "@/lib/medicalRecords";
 import { AiDisclaimer } from "@/components/AiDisclaimer";
 import { MarkdownRenderer } from "@/components/chat/MarkdownRenderer";
+import { RecommendedDentistWidget } from "@/components/chat/RecommendedDentistWidget";
 import { logger } from '@/lib/logger';
 
 interface DentalChatbotProps {
@@ -279,11 +280,28 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
       const suggestions = data.suggestions || [];
       const aiRecommendedDentist = data.recommended_dentist || null;
 
+      // Handle AI recommended dentist
       if (aiRecommendedDentist && aiRecommendedDentist.length > 0) {
-        // Handle both string and array formats for recommended dentists
         setRecommendedDentist(Array.isArray(aiRecommendedDentist) ? aiRecommendedDentist : [aiRecommendedDentist]);
-        // Don't automatically scroll to dentists - let the conversation flow naturally
-        // The user will be guided to the dentist selection through the chat flow
+        
+        // Show recommended dentist widget if AI suggested it
+        if (suggestions.includes('recommend-dentist')) {
+          setTimeout(() => {
+            const widgetMessage: ChatMessage = {
+              id: crypto.randomUUID(),
+              session_id: sessionId,
+              message: JSON.stringify({
+                type: 'recommended-dentist-widget',
+                dentists: aiRecommendedDentist,
+                symptoms: userMessage
+              }),
+              is_bot: true,
+              message_type: "widget",
+              created_at: new Date().toISOString(),
+            };
+            setMessages(prev => [...prev, widgetMessage]);
+          }, 500);
+        }
       }
 
       // Extract consultation reason from AI response
@@ -767,47 +785,79 @@ Type your request...`;
 
       {/* Messages Area */}
       <ScrollArea className="flex-1 p-4 space-y-4">
-        {messages.map((message) => (
-          <div
-            key={message.id}
-            className={`flex ${message.is_bot ? 'justify-start' : 'justify-end'}`}
-          >
-            <div
-              className={`max-w-[80%] rounded-2xl px-4 py-3 ${
-                message.is_bot
-                  ? 'bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100'
-                  : 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white'
-              }`}
-            >
-              <div className="flex items-start gap-2">
-                {message.is_bot && (
-                  <div className="w-6 h-6 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                    <Bot className="w-3 h-3 text-white" />
+        {messages.map((message) => {
+          // Check if this is a widget message
+          if (message.message_type === 'widget' && message.is_bot) {
+            try {
+              const widgetData = JSON.parse(message.message);
+              
+              if (widgetData.type === 'recommended-dentist-widget') {
+                return (
+                  <div key={message.id} className="my-4">
+                    <RecommendedDentistWidget
+                      dentistNames={widgetData.dentists}
+                      symptoms={widgetData.symptoms}
+                      onSelectDentist={(dentist) => {
+                        // Store selected dentist and initiate booking flow
+                        setSelectedDentist(dentist);
+                        setShowChatBooking(true);
+                      }}
+                      onSeeAlternatives={() => {
+                        // Show all dentists
+                        setCurrentFlow('dentist-selection');
+                      }}
+                    />
                   </div>
-                )}
-                <div className="flex-1">
-                  {message.is_bot ? (
-                    <MarkdownRenderer content={message.message} />
-                  ) : (
-                    <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                      {message.message}
-                    </p>
+                );
+              }
+            } catch (e) {
+              console.error('Error parsing widget data:', e);
+            }
+          }
+          
+          // Regular message rendering
+          return (
+            <div
+              key={message.id}
+              className={`flex ${message.is_bot ? 'justify-start' : 'justify-end'}`}
+            >
+              <div
+                className={`max-w-[80%] rounded-2xl px-4 py-3 ${
+                  message.is_bot
+                    ? 'bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100'
+                    : 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white'
+                }`}
+              >
+                <div className="flex items-start gap-2">
+                  {message.is_bot && (
+                    <div className="w-6 h-6 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                      <Bot className="w-3 h-3 text-white" />
+                    </div>
                   )}
-                  {message.metadata?.ai_generated && (
-                    <div className="mt-2 text-xs opacity-70">
-                      AI Assistant
+                  <div className="flex-1">
+                    {message.is_bot ? (
+                      <MarkdownRenderer content={message.message} />
+                    ) : (
+                      <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                        {message.message}
+                      </p>
+                    )}
+                    {message.metadata?.ai_generated && (
+                      <div className="mt-2 text-xs opacity-70">
+                        AI Assistant
+                      </div>
+                    )}
+                  </div>
+                  {!message.is_bot && (
+                    <div className="w-6 h-6 bg-gradient-to-r from-gray-500 to-gray-600 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                      <UserIcon className="w-3 h-3 text-white" />
                     </div>
                   )}
                 </div>
-                {!message.is_bot && (
-                  <div className="w-6 h-6 bg-gradient-to-r from-gray-500 to-gray-600 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                    <UserIcon className="w-3 h-3 text-white" />
-                  </div>
-                )}
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
         
         {isLoading && (
           <div className="flex justify-start">
@@ -882,6 +932,57 @@ Type your request...`;
           </Button>
         </div>
       </div>
+
+      {/* Chat Booking Flow Modal */}
+      {showChatBooking && user && (
+        <div className="absolute inset-0 z-50 bg-background">
+          <ChatBookingFlow
+            user={user}
+            selectedDentist={selectedDentist}
+            conversationHistory={messages}
+            onComplete={(appointmentData) => {
+              setShowChatBooking(false);
+              
+              // Add confirmation message to chat
+              const confirmationMsg: ChatMessage = {
+                id: crypto.randomUUID(),
+                session_id: sessionId,
+                message: appointmentData.message || "Appointment confirmed!",
+                is_bot: true,
+                message_type: "text",
+                created_at: new Date().toISOString(),
+              };
+              setMessages(prev => [...prev, confirmationMsg]);
+            }}
+            onCancel={() => {
+              setShowChatBooking(false);
+              
+              // Add cancellation message
+              const cancelMsg: ChatMessage = {
+                id: crypto.randomUUID(),
+                session_id: sessionId,
+                message: "Booking cancelled. How else can I help you?",
+                is_bot: true,
+                message_type: "text",
+                created_at: new Date().toISOString(),
+              };
+              setMessages(prev => [...prev, cancelMsg]);
+            }}
+            onResponse={(message) => {
+              // Add AI response to chat
+              const aiMsg: ChatMessage = {
+                id: crypto.randomUUID(),
+                session_id: sessionId,
+                message,
+                is_bot: true,
+                message_type: "text",
+                created_at: new Date().toISOString(),
+              };
+              setMessages(prev => [...prev, aiMsg]);
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 };
