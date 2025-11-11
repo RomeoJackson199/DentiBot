@@ -12,9 +12,9 @@ export function BookingRouteHandler({ children }: BookingRouteHandlerProps) {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   }
 
-  // If AI chat is disabled, redirect to manual booking
+  // If AI chat is disabled, redirect to dashboard
   if (!hasFeature('aiChat')) {
-    return <Navigate to="/book-manual" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   return <>{children}</>;
