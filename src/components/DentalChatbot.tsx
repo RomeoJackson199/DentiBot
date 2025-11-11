@@ -280,28 +280,26 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
       const suggestions = data.suggestions || [];
       const aiRecommendedDentist = data.recommended_dentist || null;
 
-      // Handle AI recommended dentist
-      if (aiRecommendedDentist && aiRecommendedDentist.length > 0) {
+      // Handle AI recommended dentist - show widget when we have recommendations
+      if (suggestions.includes('recommend-dentist') && aiRecommendedDentist && aiRecommendedDentist.length > 0) {
         setRecommendedDentist(Array.isArray(aiRecommendedDentist) ? aiRecommendedDentist : [aiRecommendedDentist]);
         
-        // Show recommended dentist widget if AI suggested it
-        if (suggestions.includes('recommend-dentist')) {
-          setTimeout(() => {
-            const widgetMessage: ChatMessage = {
-              id: crypto.randomUUID(),
-              session_id: sessionId,
-              message: JSON.stringify({
-                type: 'recommended-dentist-widget',
-                dentists: aiRecommendedDentist,
-                symptoms: userMessage
-              }),
-              is_bot: true,
-              message_type: "widget",
-              created_at: new Date().toISOString(),
-            };
-            setMessages(prev => [...prev, widgetMessage]);
-          }, 500);
-        }
+        setTimeout(() => {
+          const widgetMessage: ChatMessage = {
+            id: crypto.randomUUID(),
+            session_id: sessionId,
+            message: JSON.stringify({
+              type: 'recommended-dentist-widget',
+              dentists: aiRecommendedDentist,
+              symptoms: userMessage,
+              matchReason: data.match_reason
+            }),
+            is_bot: true,
+            message_type: "widget",
+            created_at: new Date().toISOString(),
+          };
+          setMessages(prev => [...prev, widgetMessage]);
+        }, 500);
       }
 
       // Extract consultation reason from AI response

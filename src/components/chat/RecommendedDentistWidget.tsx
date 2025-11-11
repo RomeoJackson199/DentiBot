@@ -177,7 +177,13 @@ export const RecommendedDentistWidget = ({
           {/* Actions */}
           <div className="space-y-2 pt-2">
             <Button 
-              onClick={() => onSelectDentist(dentist)}
+              onClick={() => onSelectDentist({
+                id: dentist.id,
+                first_name: dentist.first_name,
+                last_name: dentist.last_name,
+                specialty: dentist.specialty,
+                bio: dentist.bio
+              })}
               className="w-full group"
               size="lg"
             >

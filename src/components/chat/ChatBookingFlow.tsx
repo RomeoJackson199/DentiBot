@@ -44,36 +44,15 @@ export const ChatBookingFlow = ({
   const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
   const [selectedTime, setSelectedTime] = useState<string>();
   const [loading, setLoading] = useState(false);
-  const [step, setStep] = useState<'dentist' | 'date' | 'time' | 'confirm'>('dentist');
+  const [step, setStep] = useState<'date' | 'time' | 'confirm'>('date');
 
   useEffect(() => {
-    fetchDentists();
     if (selectedDentist) {
-      setStep('date');
-      onResponse(`Great! I'll help you book an appointment with Dr. ${selectedDentist.profiles?.first_name} ${selectedDentist.profiles?.last_name}. Please select your preferred date:`);
+      setCurrentDentist(selectedDentist);
+      onResponse(`Great! I'll help you book an appointment with Dr. ${selectedDentist.first_name} ${selectedDentist.last_name}. Please select your preferred date:`);
     }
-  }, []);
+  }, [selectedDentist]);
 
-  const fetchDentists = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("dentists")
-        .select(`
-          id,
-          specialty,
-          profiles:profile_id (
-            first_name,
-            last_name
-          )
-        `)
-        .eq("is_active", true);
-
-      if (error) throw error;
-      setDentists(data || []);
-    } catch (error) {
-      console.error("Error fetching dentists:", error);
-    }
-  };
 
   const fetchAvailableSlots = async (date: Date, dentistId: string) => {
     setLoading(true);
@@ -130,7 +109,7 @@ export const ChatBookingFlow = ({
       if (availableCount === 0) {
         onResponse(`No available slots for ${format(date, "EEEE, MMMM d")}. Please try a different date.`);
       } else {
-        onResponse(`Available times for ${format(date, "EEEE, MMMM d")} with Dr. ${currentDentist.profiles?.first_name} ${currentDentist.profiles?.last_name}:`);
+        onResponse(`Available times for ${format(date, "EEEE, MMMM d")} with Dr. ${currentDentist.first_name} ${currentDentist.last_name}:`);
       }
     } catch (error) {
       console.error("Error fetching slots:", error);
@@ -152,7 +131,7 @@ export const ChatBookingFlow = ({
   const handleTimeSelect = (time: string) => {
     setSelectedTime(time);
     setStep('confirm');
-    onResponse(`Perfect! You've selected ${format(selectedDate!, "EEEE, MMMM d")} at ${time} with Dr. ${currentDentist.profiles?.first_name} ${currentDentist.profiles?.last_name}. Would you like to confirm this appointment?`);
+    onResponse(`Perfect! You've selected ${format(selectedDate!, "EEEE, MMMM d")} at ${time} with Dr. ${currentDentist.first_name} ${currentDentist.last_name}. Would you like to confirm this appointment?`);
   };
 
   const confirmBooking = async () => {
@@ -252,7 +231,7 @@ export const ChatBookingFlow = ({
 
 📅 **Date:** ${format(selectedDate, "EEEE, MMMM d, yyyy")}
 🕒 **Time:** ${selectedTime}
-👨‍⚕️ **Dentist:** Dr. ${currentDentist.profiles?.first_name} ${currentDentist.profiles?.last_name}
+👨‍⚕️ **Dentist:** Dr. ${currentDentist.first_name} ${currentDentist.last_name}
 📝 **Reason:** ${appointmentReason}
 
 You'll receive a confirmation email shortly. If you need to reschedule or cancel, just ask me!`;
@@ -288,7 +267,7 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
                 <CalendarDays className="h-8 w-8 mx-auto text-primary mb-2" />
                 <h3 className="font-semibold">Select Date</h3>
                 <p className="text-sm text-muted-foreground">
-                  Dr. {currentDentist?.profiles?.first_name} {currentDentist?.profiles?.last_name}
+                  Dr. {currentDentist?.first_name} {currentDentist?.last_name}
                 </p>
               </div>
               <Calendar
@@ -366,7 +345,7 @@ You'll receive a confirmation email shortly. If you need to reschedule or cancel
             <div className="space-y-3 text-sm">
               <div className="flex items-center gap-2">
                 <UserIcon className="h-4 w-4 text-muted-foreground" />
-                <span>Dr. {currentDentist?.profiles?.first_name} {currentDentist?.profiles?.last_name}</span>
+                <span>Dr. {currentDentist?.first_name} {currentDentist?.last_name}</span>
               </div>
               <div className="flex items-center gap-2">
                 <CalendarDays className="h-4 w-4 text-muted-foreground" />

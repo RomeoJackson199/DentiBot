@@ -643,8 +643,28 @@ ${patient_context.recent_payments.slice(0, 3).map((p: any) => `- €${p.amount} 
     const lowerMessage = sanitizedMessage.toLowerCase();
     const fullContext = buildConversationContext(sanitizedMessage, conversation_history);
     
-    // Only recommend dentists if AI decided to show the widget
-    if (suggestions.includes('recommend-dentist')) {
+    // Check if we should recommend dentists based on context (patient info + symptoms gathered)
+    const shouldRecommendDentist = hasPatientInfo(fullContext) && hasSymptomInfo(fullContext);
+    
+    // Prepare match reason keywords
+    const pediatricKeywords = /child|kid|enfant|daughter|son|fils|fille|pediatric|pédiatrique/i;
+    const orthodonticKeywords = /braces|orthodontic|orthodontie|alignement|alignment|invisalign/i;
+    const urgentKeywords = /pain|urgentce|emergency|douleur|hurt|mal/i;
+    
+    let matchReason = "Highly experienced in general dentistry and patient care";
+    if (pediatricKeywords.test(fullContext)) {
+      matchReason = "Specialized in pediatric dentistry and excellent with children";
+    } else if (orthodonticKeywords.test(fullContext)) {
+      matchReason = "Expert in orthodontics and teeth alignment";
+    } else if (urgentKeywords.test(fullContext)) {
+      matchReason = "Available for urgent consultations and pain management";
+    }
+    
+    // Only recommend dentists if AI decided to show the widget OR we have enough context
+    if (suggestions.includes('recommend-dentist') || shouldRecommendDentist) {
+      if (shouldRecommendDentist && !suggestions.includes('recommend-dentist')) {
+        suggestions.push('recommend-dentist');
+      }
       // Fetch available dentists from database to make real recommendations
       const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
       const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
@@ -660,10 +680,6 @@ ${patient_context.recent_payments.slice(0, 3).map((p: any) => `- €${p.amount} 
 
         if (dentists && dentists.length > 0) {
           // Intelligent matching based on symptoms and context
-          const pediatricKeywords = /child|kid|enfant|daughter|son|fils|fille|pediatric|pédiatrique/i;
-          const orthodonticKeywords = /braces|orthodontic|orthodontie|alignement|alignment|invisalign/i;
-          const urgentKeywords = /pain|urgentce|emergency|douleur|hurt|mal/i;
-
           let bestMatch = dentists[0]; // Default to first dentist
           
           // Pediatric case
@@ -719,6 +735,7 @@ ${patient_context.recent_payments.slice(0, 3).map((p: any) => `- €${p.amount} 
       urgency_detected,
       emergency_detected,
       recommended_dentist: finalRecommendations, // Pass the recommended dentists to frontend
+      match_reason: matchReason, // Pass match reason
       consultation_reason: consultationReason
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
