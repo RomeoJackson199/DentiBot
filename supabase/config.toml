@@ -89,9 +89,3 @@ verify_jwt = true
 
 [functions.create-healthcare-business]
 verify_jwt = true
-
-[functions.send-appointment-confirmation]
-verify_jwt = true
-
-[functions.send-dentist-notification]
-verify_jwt = true

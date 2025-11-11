@@ -174,7 +174,6 @@ export type Database = {
       }
       appointments: {
         Row: {
-          ai_summary: string | null
           amount_paid_cents: number | null
           appointment_date: string
           appointment_type_id: string | null
@@ -182,7 +181,6 @@ export type Database = {
           business_id: string
           completed_at: string | null
           consultation_notes: string | null
-          conversation_transcript: Json | null
           created_at: string
           dentist_id: string
           duration_minutes: number | null
@@ -199,7 +197,6 @@ export type Database = {
           urgency: string
         }
         Insert: {
-          ai_summary?: string | null
           amount_paid_cents?: number | null
           appointment_date: string
           appointment_type_id?: string | null
@@ -207,7 +204,6 @@ export type Database = {
           business_id: string
           completed_at?: string | null
           consultation_notes?: string | null
-          conversation_transcript?: Json | null
           created_at?: string
           dentist_id: string
           duration_minutes?: number | null
@@ -224,7 +220,6 @@ export type Database = {
           urgency?: string
         }
         Update: {
-          ai_summary?: string | null
           amount_paid_cents?: number | null
           appointment_date?: string
           appointment_type_id?: string | null
@@ -232,7 +227,6 @@ export type Database = {
           business_id?: string
           completed_at?: string | null
           consultation_notes?: string | null
-          conversation_transcript?: Json | null
           created_at?: string
           dentist_id?: string
           duration_minutes?: number | null

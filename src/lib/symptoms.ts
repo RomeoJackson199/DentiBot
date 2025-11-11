@@ -4,8 +4,7 @@ import type { UserProfile } from "@/types/common";
 import { logger } from '@/lib/logger';
 
 /**
- * Generate a detailed symptom summary for the dentist using the dental AI function.
- * This creates a comprehensive summary of patient symptoms, concerns, and relevant details.
+ * Generate a short symptom description using the dental AI function.
  */
 export const generateSymptomSummary = async (
   messages: ChatMessage[],
@@ -14,16 +13,16 @@ export const generateSymptomSummary = async (
   try {
     const { data, error } = await supabase.functions.invoke('dental-ai-chat', {
       body: {
-        message: 'Based on the entire conversation, create a detailed clinical summary for the dentist. Include: 1) Chief complaint and symptoms, 2) Duration and severity, 3) Any relevant medical history mentioned, 4) Patient concerns and questions, 5) Urgency level. Format it in clear paragraphs suitable for a dental professional.',
+        message: 'Summarize the patient symptoms in one or two sentences.',
         conversation_history: messages,
         user_profile: userProfile,
       },
     });
     if (error) throw error;
-    return (data.response || data.fallback_response || 'Patient expressed dental concerns during intake conversation.').trim();
+    return (data.response || data.fallback_response || '').trim();
   } catch (err) {
     console.error('Error generating symptom summary:', err);
-    return 'Patient expressed dental concerns during intake conversation.';
+    return '';
   }
 };
 
