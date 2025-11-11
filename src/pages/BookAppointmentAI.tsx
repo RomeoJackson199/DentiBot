@@ -24,7 +24,6 @@ import {
 import { format, startOfDay } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import ClinicMap from "@/components/Map";
-import { ServiceSelector } from "@/components/booking/ServiceSelector";
 import { logger } from '@/lib/logger';
 import { AnimatedBackground, EmptyState } from "@/components/ui/polished-components";
 import { clinicTimeToUtc, createAppointmentDateTimeFromStrings } from "@/lib/timezone";
@@ -66,7 +65,6 @@ export default function BookAppointmentAI() {
   const [bookingData, setBookingData] = useState<any>(null);
   const [dentists, setDentists] = useState<Dentist[]>([]);
   const [recommendedDentists, setRecommendedDentists] = useState<string[]>([]);
-  const [selectedService, setSelectedService] = useState<any>(null);
   const [selectedDentist, setSelectedDentist] = useState<Dentist | null>(null);
   const [expandedDentist, setExpandedDentist] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>();
@@ -405,14 +403,14 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
           dentist_id: selectedDentist.id,
           business_id: businessId,
           appointment_date: appointmentDateTime.toISOString(),
-          reason: selectedService?.name || appointmentReason,
+          reason: appointmentReason,
           status: "confirmed",
           booking_source: "ai",
           urgency: bookingData?.urgency >= 5 ? "emergency" :
-                   bookingData?.urgency === 4 ? "high" : 
+                   bookingData?.urgency === 4 ? "high" :
                    bookingData?.urgency === 3 ? "medium" : "low",
-          service_id: selectedService?.id || null,
-          duration_minutes: selectedService?.duration_minutes || 60
+          service_id: null,
+          duration_minutes: 60
         })
         .select()
         .single();
@@ -569,15 +567,6 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
                 </div>
               </CardContent>
             </Card>
-          )}
-
-          {/* Service Selection */}
-          {businessId && (
-            <ServiceSelector
-              businessId={businessId}
-              selectedServiceId={selectedService?.id || null}
-              onSelectService={setSelectedService}
-            />
           )}
 
           {dentists.length === 0 ? (

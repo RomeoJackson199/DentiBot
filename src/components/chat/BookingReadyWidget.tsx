@@ -18,19 +18,8 @@ export const BookingReadyWidget = ({ conversationData }: BookingReadyWidgetProps
     // Store conversation data in session storage for booking
     sessionStorage.setItem('aiBookingData', JSON.stringify(conversationData));
 
-    // Ensure we're on the assistant section with classic booking (for dentist template)
-    try {
-      localStorage.setItem('pd_section', 'assistant');
-      localStorage.setItem('pd_forceClassic', '1');
-    } catch {}
-
-    // Switch section if dashboard is already mounted
-    window.dispatchEvent(new CustomEvent('dashboard:changeSection', { detail: { section: 'assistant' } }));
-
-    // If we're not on the dashboard, navigate there so the event/flags take effect
-    if (window.location.pathname !== '/dashboard') {
-      navigate('/dashboard');
-    }
+    // Navigate to AI booking page
+    navigate('/book-appointment');
   };
 
   return (
