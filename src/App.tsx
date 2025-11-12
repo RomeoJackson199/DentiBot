@@ -334,9 +334,11 @@ const App = () => {
                 <Route path="/restaurant/kitchen" element={<RoleBasedRouter requiredRole='dentist'><KitchenDashboard /></RoleBasedRouter>} />
                 {/* Public table ordering route */}
                 <Route path="/order" element={<TableOrderingPage />} />
-                {/* Unified booking route with AI enhancement */}
-                <Route path="/book-appointment" element={<BookingRouteHandler><BookAppointment /></BookingRouteHandler>} />
-                {/* Legacy booking routes - redirect to main booking */}
+                {/* AI-powered booking route */}
+                <Route path="/book-appointment" element={<BookingRouteHandler><BookAppointmentAI /></BookingRouteHandler>} />
+                {/* Legacy manual booking route */}
+                <Route path="/book-appointment-legacy" element={<BookingRouteHandler><BookAppointment /></BookingRouteHandler>} />
+                {/* Redirect old AI route to main booking */}
                 <Route path="/book-appointment-ai" element={<Navigate to="/book-appointment" replace />} />
                 <Route path="/smart-book-appointment" element={<Navigate to="/book-appointment" replace />} />
                 {/* Business portal route - must come before catch-all */}

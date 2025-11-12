@@ -10,6 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Calendar } from "@/components/ui/calendar";
+import { RecommendedDentistWidget } from "@/components/chat/RecommendedDentistWidget";
 import { 
   ArrowLeft, 
   MapPin, 
@@ -64,7 +65,8 @@ export default function BookAppointmentAI() {
   const hasAIChat = hasFeature('aiChat');
   const [bookingData, setBookingData] = useState<any>(null);
   const [dentists, setDentists] = useState<Dentist[]>([]);
-  const [recommendedDentists, setRecommendedDentists] = useState<string[]>([]);
+  const [recommendedDentist, setRecommendedDentist] = useState<any>(null);
+  const [matchReason, setMatchReason] = useState<string>("");
   const [selectedDentist, setSelectedDentist] = useState<Dentist | null>(null);
   const [expandedDentist, setExpandedDentist] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>();
@@ -190,10 +192,35 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
   };
 
   const getAIRecommendations = async (dentistList: Dentist[]) => {
-    // Simulate AI recommendation based on conversation
-    // In production, this would call an AI function
-    const recommended = dentistList.slice(0, 2).map(d => d.id);
-    setRecommendedDentists(recommended);
+    if (!bookingData?.messages || bookingData.messages.length === 0) {
+      return;
+    }
+
+    setLoadingAI(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('dental-ai-chat', {
+        body: {
+          message: "Recommend dentist based on this conversation",
+          conversation_history: bookingData.messages,
+          business_id: businessId
+        }
+      });
+
+      if (error) {
+        console.error('AI recommendation error:', error);
+        return;
+      }
+
+      if (data?.recommended_dentist && data.recommended_dentist.length > 0) {
+        const dentistData = data.recommended_dentist[0];
+        setRecommendedDentist(dentistData);
+        setMatchReason(data.match_reason || "Best match based on your needs");
+      }
+    } catch (error) {
+      console.error('Failed to get AI recommendations:', error);
+    } finally {
+      setLoadingAI(false);
+    }
   };
 
   const fetchAvailableSlots = async (date: Date, dentistId: string) => {
@@ -227,15 +254,31 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
         p_date: dateStr
       });
 
-      const { data, error } = await supabase
+      let { data, error } = await supabase
         .from('appointment_slots')
         .select('slot_time, is_available, emergency_only')
         .eq('dentist_id', dentistId)
         .eq('slot_date', dateStr)
         .eq('business_id', businessId)
+        .eq('is_available', true)
         .order('slot_time');
 
       if (error) throw error;
+
+      // If no slots found with business_id, try without it (legacy slots)
+      if (!data || data.length === 0) {
+        const { data: fallbackData, error: fallbackError } = await supabase
+          .from('appointment_slots')
+          .select('slot_time, is_available, emergency_only')
+          .eq('dentist_id', dentistId)
+          .eq('slot_date', dateStr)
+          .eq('is_available', true)
+          .order('slot_time');
+
+        if (!fallbackError) {
+          data = fallbackData;
+        }
+      }
 
       const slots: TimeSlot[] = (data || []).map(slot => ({
         time: slot.slot_time.substring(0, 5),
@@ -547,26 +590,29 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
                   </h1>
                 </div>
                 <p className="text-muted-foreground max-w-2xl mx-auto">
-                  {recommendedDentists.length > 0
-                    ? "We've selected the best dentists based on your conversation"
+                  {recommendedDentist
+                    ? "We've found the perfect dentist based on your conversation"
                     : "Choose your preferred dentist and schedule a convenient time"}
                 </p>
               </div>
             </div>
           </div>
 
-          {recommendedDentists.length > 0 && (
-            <Card className="border-blue-500/30 bg-gradient-to-r from-blue-50/50 to-cyan-50/50 dark:from-blue-950/30 dark:to-cyan-950/30 shadow-md">
-              <CardContent className="p-4 flex items-center gap-3">
-                <div className="p-2 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg">
-                  <Bot className="h-5 w-5 text-white" />
-                </div>
-                <div>
-                  <p className="font-semibold text-sm">AI Recommendations</p>
-                  <p className="text-xs text-muted-foreground">These dentists best match your needs based on our conversation</p>
-                </div>
-              </CardContent>
-            </Card>
+           {recommendedDentist && (
+            <RecommendedDentistWidget
+              dentist={recommendedDentist}
+              matchReason={matchReason}
+              symptoms={bookingData?.symptoms}
+              onSelectDentist={(dentist) => {
+                const fullDentist = dentists.find(d => d.id === dentist.id);
+                if (fullDentist) {
+                  handleDentistSelect(fullDentist);
+                }
+              }}
+              onSeeAlternatives={() => {
+                // User can scroll down to see all dentists
+              }}
+            />
           )}
 
           {dentists.length === 0 ? (
@@ -582,7 +628,7 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
           ) : (
             <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               {dentists.map((dentist) => {
-                const isRecommended = recommendedDentists.includes(dentist.id);
+                const isRecommended = recommendedDentist?.id === dentist.id;
                 const displayName = `${dentist.first_name || dentist.profiles?.first_name} ${dentist.last_name || dentist.profiles?.last_name}`;
 
                 return (
@@ -673,7 +719,7 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
                           {getDentistInitials(selectedDentist)}
                         </AvatarFallback>
                       </Avatar>
-                      {recommendedDentists.includes(selectedDentist.id) && (
+                      {recommendedDentist?.id === selectedDentist.id && (
                         <Badge className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-yellow-100 text-yellow-800 border-yellow-200 text-xs px-2">
                           Best pick
                         </Badge>
