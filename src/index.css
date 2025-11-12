@@ -21,46 +21,46 @@
      All colors in HSL format for proper theming
      ============================================================================ */
   :root {
-    /* Core UI Colors - Dark Mode */
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
+    /* Core UI Colors - Dark Mode - Enhanced Contrast */
+    --background: 222 14% 5%;
+    --foreground: 210 40% 98%;
 
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
+    --card: 222 14% 8%;
+    --card-foreground: 210 40% 98%;
 
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 222 14% 8%;
+    --popover-foreground: 210 40% 98%;
 
-    /* Primary Brand Color - Deep Blue */
-    --primary: 213 73% 31%;
+    /* Primary Brand Color - Deep Blue - Enhanced */
+    --primary: 213 84% 38%;
     --primary-foreground: 0 0% 100%;
-    --primary-light: 213 73% 41%;
-    --primary-dark: 213 73% 21%;
+    --primary-light: 213 84% 48%;
+    --primary-dark: 213 84% 28%;
 
-    /* Secondary Color - Aqua */
-    --secondary: 185 64% 63%;
-    --secondary-foreground: 213 73% 31%;
-    --secondary-light: 185 64% 73%;
-    --secondary-dark: 185 64% 53%;
+    /* Secondary Color - Aqua - Enhanced */
+    --secondary: 185 74% 58%;
+    --secondary-foreground: 222 14% 5%;
+    --secondary-light: 185 74% 68%;
+    --secondary-dark: 185 74% 48%;
 
-    /* Accent Color - Soft Lilac */
-    --accent: 268 42% 79%;
-    --accent-foreground: 213 73% 31%;
-    --accent-light: 268 42% 89%;
-    --accent-dark: 268 42% 69%;
+    /* Accent Color - Soft Lilac - Enhanced */
+    --accent: 268 52% 74%;
+    --accent-foreground: 222 14% 5%;
+    --accent-light: 268 52% 84%;
+    --accent-dark: 268 52% 64%;
 
-    /* Neutral Colors */
-    --muted: 240 5% 18%;
-    --muted-foreground: 240 5% 64.9%;
+    /* Neutral Colors - Enhanced Contrast */
+    --muted: 220 14% 20%;
+    --muted-foreground: 220 12% 72%;
 
-    /* Destructive/Error */
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 0 0% 98%;
+    /* Destructive/Error - Enhanced */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
 
-    /* Form Elements */
-    --border: 240 5% 26%;
-    --input: 240 5% 26%;
-    --ring: 199 89% 48%;
+    /* Form Elements - Enhanced Visibility */
+    --border: 220 14% 28%;
+    --input: 220 14% 28%;
+    --ring: 213 84% 58%;
 
     /* Semantic Status Colors */
     --success: 142 71% 45%;
@@ -79,33 +79,64 @@
     --info-bg: 214 95% 93%;
     --info-foreground: 0 0% 100%;
     
-    /* Border Radius */
-    --radius: 0.5rem;
+    /* Enhanced Border Radius System */
+    --radius: 0.75rem;
+    --radius-sm: 0.5rem;
+    --radius-md: 0.75rem;
+    --radius-lg: 1rem;
+    --radius-xl: 1.25rem;
+    --radius-2xl: 1.5rem;
+    --radius-card: 1rem;
     
-    /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(199 89% 48%), hsl(142 71% 45%), hsl(217 91% 60%));
-    --gradient-secondary: linear-gradient(135deg, hsl(142 71% 45%), hsl(279 70% 52%), hsl(142 71% 45%));
-    --gradient-accent: linear-gradient(135deg, hsl(279 70% 52%), hsl(279 100% 60%), hsl(320 70% 60%));
-    --gradient-mesh: 
-      radial-gradient(ellipse at top left, hsl(199 89% 48% / 0.15) 0%, transparent 50%),
-      radial-gradient(ellipse at top right, hsl(279 70% 52% / 0.1) 0%, transparent 50%),
-      radial-gradient(ellipse at bottom left, hsl(142 71% 45% / 0.1) 0%, transparent 50%),
-      radial-gradient(ellipse at bottom right, hsl(217 91% 60% / 0.08) 0%, transparent 50%);
+    /* Enhanced Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(213 84% 48%) 0%, hsl(213 84% 38%) 50%, hsl(213 84% 28%) 100%);
+    --gradient-secondary: linear-gradient(135deg, hsl(185 74% 68%) 0%, hsl(185 74% 58%) 50%, hsl(185 74% 48%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(268 52% 84%) 0%, hsl(268 52% 74%) 50%, hsl(268 52% 64%) 100%);
+    --gradient-card: linear-gradient(135deg, hsl(213 84% 42%) 0%, hsl(213 84% 38%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(213 84% 48%) 0%, hsl(185 74% 58%) 50%, hsl(268 52% 74%) 100%);
+    --gradient-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 100%);
+    --gradient-mesh:
+      radial-gradient(ellipse at top left, hsl(213 84% 48% / 0.12) 0%, transparent 50%),
+      radial-gradient(ellipse at top right, hsl(268 52% 74% / 0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at bottom left, hsl(185 74% 58% / 0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at bottom right, hsl(213 84% 38% / 0.06) 0%, transparent 50%);
     
-    /* Shadows */
-    --shadow-sm: 0 1px 2px 0 hsl(240 10% 4% / 0.05);
-    --shadow-md: 0 4px 6px -1px hsl(240 10% 4% / 0.1);
-    --shadow-lg: 0 10px 15px -3px hsl(240 10% 4% / 0.1);
-    --shadow-xl: 0 20px 25px -5px hsl(240 10% 4% / 0.1);
-    --shadow-glow: 0 0 20px hsl(199 89% 48% / 0.3);
-    
-    /* Sidebar */
-    --sidebar-background: 240 10% 5%;
-    --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 199 89% 48%;
+    /* Enhanced Shadow System */
+    --shadow-sm: 0 1px 3px 0 hsl(220 14% 0% / 0.08), 0 1px 2px -1px hsl(220 14% 0% / 0.08);
+    --shadow-md: 0 4px 6px -1px hsl(220 14% 0% / 0.12), 0 2px 4px -2px hsl(220 14% 0% / 0.08);
+    --shadow-lg: 0 10px 15px -3px hsl(220 14% 0% / 0.14), 0 4px 6px -4px hsl(220 14% 0% / 0.08);
+    --shadow-xl: 0 20px 25px -5px hsl(220 14% 0% / 0.16), 0 8px 10px -6px hsl(220 14% 0% / 0.08);
+    --shadow-glow: 0 0 24px hsl(213 84% 58% / 0.35), 0 0 12px hsl(213 84% 58% / 0.2);
+    --shadow-soft: 0 2px 8px hsl(220 14% 0% / 0.06);
+    --shadow-medium: 0 4px 12px hsl(220 14% 0% / 0.1);
+    --shadow-large: 0 8px 24px hsl(220 14% 0% / 0.14);
+    --shadow-elegant: 0 12px 40px hsl(220 14% 0% / 0.18), 0 4px 12px hsl(220 14% 0% / 0.1);
+
+    /* Sidebar - Enhanced */
+    --sidebar-background: 222 14% 6%;
+    --sidebar-foreground: 210 40% 96%;
+    --sidebar-primary: 213 84% 58%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 5% 18%;
+    --sidebar-accent: 220 14% 18%;
     
+    /* Dental-Specific Colors */
+    --dental-primary: var(--primary);
+    --dental-primary-foreground: var(--primary-foreground);
+    --dental-secondary: var(--secondary);
+    --dental-secondary-foreground: var(--secondary-foreground);
+    --dental-accent: var(--accent);
+    --dental-accent-foreground: var(--accent-foreground);
+    --dental-muted: var(--muted);
+    --dental-muted-foreground: var(--muted-foreground);
+    --dental-surface: var(--card);
+    --dental-surface-foreground: var(--card-foreground);
+    --dental-neutral: var(--muted);
+    --dental-neutral-foreground: var(--muted-foreground);
+    --dental-success: var(--success);
+    --dental-warning: var(--warning);
+    --dental-error: var(--error);
+    --dental-info: var(--info);
+
     /* Z-index hierarchy */
     --z-sidebar: 40;
     --z-header: 50;
@@ -113,9 +144,9 @@
     --z-modal: 10000;
     --z-notification: 10001;
     --z-tooltip: 10002;
-    --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 240 5% 26%;
-    --sidebar-ring: 199 89% 48%;
+    --sidebar-accent-foreground: 210 40% 96%;
+    --sidebar-border: 220 14% 28%;
+    --sidebar-ring: 213 84% 58%;
   }
 
   /* ============================================================================
@@ -123,46 +154,46 @@
      All colors in HSL format for proper theming
      ============================================================================ */
   .light {
-    /* Core UI Colors - Light Mode */
-    --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
+    /* Core UI Colors - Light Mode - Enhanced Contrast */
+    --background: 210 20% 98%;
+    --foreground: 222 20% 12%;
 
     --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
+    --card-foreground: 222 20% 12%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
+    --popover-foreground: 222 20% 12%;
 
-    /* Primary Brand Color - Deep Blue */
-    --primary: 213 73% 31%;
+    /* Primary Brand Color - Deep Blue - Enhanced */
+    --primary: 213 84% 38%;
     --primary-foreground: 0 0% 100%;
-    --primary-light: 213 73% 41%;
-    --primary-dark: 213 73% 21%;
+    --primary-light: 213 84% 48%;
+    --primary-dark: 213 84% 28%;
 
-    /* Secondary Color - Aqua */
-    --secondary: 185 64% 63%;
-    --secondary-foreground: 213 73% 31%;
-    --secondary-light: 185 64% 73%;
-    --secondary-dark: 185 64% 53%;
+    /* Secondary Color - Aqua - Enhanced */
+    --secondary: 185 74% 52%;
+    --secondary-foreground: 0 0% 100%;
+    --secondary-light: 185 74% 62%;
+    --secondary-dark: 185 74% 42%;
 
-    /* Accent Color - Soft Lilac */
-    --accent: 268 42% 79%;
-    --accent-foreground: 213 73% 31%;
-    --accent-light: 268 42% 89%;
-    --accent-dark: 268 42% 69%;
+    /* Accent Color - Soft Lilac - Enhanced */
+    --accent: 268 52% 68%;
+    --accent-foreground: 0 0% 100%;
+    --accent-light: 268 52% 78%;
+    --accent-dark: 268 52% 58%;
 
-    /* Neutral Colors */
-    --muted: 240 5% 96%;
-    --muted-foreground: 240 3.8% 46.1%;
+    /* Neutral Colors - Enhanced Contrast */
+    --muted: 210 20% 94%;
+    --muted-foreground: 220 10% 42%;
 
-    /* Destructive/Error */
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 0 0% 98%;
+    /* Destructive/Error - Enhanced */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
 
-    /* Form Elements */
-    --border: 240 5% 90%;
-    --input: 240 5% 90%;
-    --ring: 199 89% 48%;
+    /* Form Elements - Enhanced Visibility */
+    --border: 220 14% 88%;
+    --input: 220 14% 88%;
+    --ring: 213 84% 58%;
 
     /* Semantic Status Colors */
     --success: 142 71% 45%;
@@ -181,35 +212,66 @@
     --info-bg: 214 95% 93%;
     --info-foreground: 0 0% 100%;
     
-    /* Border Radius */
-    --radius: 0.5rem;
+    /* Enhanced Border Radius System */
+    --radius: 0.75rem;
+    --radius-sm: 0.5rem;
+    --radius-md: 0.75rem;
+    --radius-lg: 1rem;
+    --radius-xl: 1.25rem;
+    --radius-2xl: 1.5rem;
+    --radius-card: 1rem;
     
-    /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(199 89% 48%), hsl(142 71% 45%), hsl(217 91% 60%));
-    --gradient-secondary: linear-gradient(135deg, hsl(142 71% 45%), hsl(279 70% 52%), hsl(142 71% 45%));
-    --gradient-accent: linear-gradient(135deg, hsl(279 70% 52%), hsl(279 100% 60%), hsl(320 70% 60%));
-    --gradient-mesh: 
-      radial-gradient(ellipse at top left, hsl(199 89% 48% / 0.08) 0%, transparent 50%),
-      radial-gradient(ellipse at top right, hsl(279 70% 52% / 0.06) 0%, transparent 50%),
-      radial-gradient(ellipse at bottom left, hsl(142 71% 45% / 0.06) 0%, transparent 50%),
-      radial-gradient(ellipse at bottom right, hsl(217 91% 60% / 0.04) 0%, transparent 50%);
+    /* Enhanced Gradients - Light Mode */
+    --gradient-primary: linear-gradient(135deg, hsl(213 84% 48%) 0%, hsl(213 84% 38%) 50%, hsl(213 84% 28%) 100%);
+    --gradient-secondary: linear-gradient(135deg, hsl(185 74% 62%) 0%, hsl(185 74% 52%) 50%, hsl(185 74% 42%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(268 52% 78%) 0%, hsl(268 52% 68%) 50%, hsl(268 52% 58%) 100%);
+    --gradient-card: linear-gradient(135deg, hsl(213 84% 42%) 0%, hsl(213 84% 38%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(213 84% 48%) 0%, hsl(185 74% 52%) 50%, hsl(268 52% 68%) 100%);
+    --gradient-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.6) 100%);
+    --gradient-mesh:
+      radial-gradient(ellipse at top left, hsl(213 84% 48% / 0.06) 0%, transparent 50%),
+      radial-gradient(ellipse at top right, hsl(268 52% 68% / 0.04) 0%, transparent 50%),
+      radial-gradient(ellipse at bottom left, hsl(185 74% 52% / 0.04) 0%, transparent 50%),
+      radial-gradient(ellipse at bottom right, hsl(213 84% 38% / 0.03) 0%, transparent 50%);
     
-    /* Shadows */
-    --shadow-sm: 0 1px 2px 0 hsl(240 10% 4% / 0.05);
-    --shadow-md: 0 4px 6px -1px hsl(240 10% 4% / 0.1);
-    --shadow-lg: 0 10px 15px -3px hsl(240 10% 4% / 0.1);
-    --shadow-xl: 0 20px 25px -5px hsl(240 10% 4% / 0.1);
-    --shadow-glow: 0 0 20px hsl(199 89% 48% / 0.2);
-    
-    /* Sidebar */
+    /* Enhanced Shadow System - Light Mode */
+    --shadow-sm: 0 1px 3px 0 hsl(220 14% 20% / 0.06), 0 1px 2px -1px hsl(220 14% 20% / 0.06);
+    --shadow-md: 0 4px 6px -1px hsl(220 14% 20% / 0.08), 0 2px 4px -2px hsl(220 14% 20% / 0.06);
+    --shadow-lg: 0 10px 15px -3px hsl(220 14% 20% / 0.1), 0 4px 6px -4px hsl(220 14% 20% / 0.06);
+    --shadow-xl: 0 20px 25px -5px hsl(220 14% 20% / 0.12), 0 8px 10px -6px hsl(220 14% 20% / 0.06);
+    --shadow-glow: 0 0 24px hsl(213 84% 58% / 0.25), 0 0 12px hsl(213 84% 58% / 0.15);
+    --shadow-soft: 0 2px 8px hsl(220 14% 20% / 0.04);
+    --shadow-medium: 0 4px 12px hsl(220 14% 20% / 0.06);
+    --shadow-large: 0 8px 24px hsl(220 14% 20% / 0.08);
+    --shadow-elegant: 0 12px 40px hsl(220 14% 20% / 0.12), 0 4px 12px hsl(220 14% 20% / 0.06);
+
+    /* Sidebar - Enhanced */
     --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 199 89% 48%;
+    --sidebar-foreground: 222 20% 18%;
+    --sidebar-primary: 213 84% 58%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 5% 96%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 240 5% 90%;
-    --sidebar-ring: 199 89% 48%;
+    --sidebar-accent: 210 20% 96%;
+    --sidebar-accent-foreground: 222 20% 12%;
+    --sidebar-border: 220 14% 88%;
+    --sidebar-ring: 213 84% 58%;
+
+    /* Dental-Specific Colors */
+    --dental-primary: var(--primary);
+    --dental-primary-foreground: var(--primary-foreground);
+    --dental-secondary: var(--secondary);
+    --dental-secondary-foreground: var(--secondary-foreground);
+    --dental-accent: var(--accent);
+    --dental-accent-foreground: var(--accent-foreground);
+    --dental-muted: var(--muted);
+    --dental-muted-foreground: var(--muted-foreground);
+    --dental-surface: var(--card);
+    --dental-surface-foreground: var(--card-foreground);
+    --dental-neutral: var(--muted);
+    --dental-neutral-foreground: var(--muted-foreground);
+    --dental-success: var(--success);
+    --dental-warning: var(--warning);
+    --dental-error: var(--error);
+    --dental-info: var(--info);
   }
 }
 
@@ -736,15 +798,40 @@
   
   /* Form Layout Improvements */
   .form-group {
-    @apply space-y-2;
+    @apply space-y-3;
   }
-  
+
   .form-row {
     @apply grid gap-4 grid-cols-1 md:grid-cols-2;
   }
-  
+
   .form-row-thirds {
     @apply grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3;
+  }
+
+  /* Enhanced Spacing Utilities */
+  .section-spacing {
+    @apply py-8 md:py-12 lg:py-16;
+  }
+
+  .section-spacing-sm {
+    @apply py-4 md:py-6 lg:py-8;
+  }
+
+  .section-spacing-lg {
+    @apply py-12 md:py-16 lg:py-24;
+  }
+
+  .content-spacing {
+    @apply space-y-6 md:space-y-8 lg:space-y-10;
+  }
+
+  .content-spacing-sm {
+    @apply space-y-4 md:space-y-5 lg:space-y-6;
+  }
+
+  .content-spacing-lg {
+    @apply space-y-8 md:space-y-10 lg:space-y-12;
   }
 
   /* Touch-Friendly Interactive Elements */

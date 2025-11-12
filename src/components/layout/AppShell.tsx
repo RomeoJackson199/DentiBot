@@ -182,8 +182,8 @@ function TopBar() {
   }, []);
 
   return (
-    <div className="sticky top-0 z-40 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
-      <div className="flex items-center gap-2 px-3 md:px-4 py-2">
+    <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:bg-background/85 border-b shadow-sm">
+      <div className="flex items-center gap-3 px-4 md:px-6 py-3">
         <SidebarTrigger className="md:hidden h-8 w-8" aria-label="Collapse or expand sidebar" title="Collapse/Expand" />
         <Button
           variant="outline"
@@ -519,8 +519,8 @@ export function AppShell() {
       }}
     >
       <Sidebar variant="floating" collapsible={isMobile ? "offcanvas" : "icon"}>
-        <SidebarHeader className="px-3 py-3 transition-[padding] duration-200 group-data-[state=collapsed]:px-2 group-data-[state=collapsed]:py-4">
-          <div className="flex items-center gap-2 px-1">
+        <SidebarHeader className="px-4 py-4 transition-[padding] duration-200 group-data-[state=collapsed]:px-3 group-data-[state=collapsed]:py-5">
+          <div className="flex items-center gap-3 px-1">
             {branding.logoUrl ? (
               <img
                 src={branding.logoUrl}
@@ -541,9 +541,9 @@ export function AppShell() {
             <SidebarInput placeholder="Search…" aria-label="Search" className="group-data-[state=collapsed]:hidden" />
           </div>
         </SidebarHeader>
-        <SidebarContent className="pt-2 transition-[padding] duration-200 group-data-[state=collapsed]:pt-4">
+        <SidebarContent className="pt-3 transition-[padding] duration-200 group-data-[state=collapsed]:pt-4">
           {/* Quick Actions */}
-          <SidebarGroup className="px-2">
+          <SidebarGroup className="px-3">
             <div className="grid grid-cols-2 gap-2">
               <SidebarMenuButton
                 size="sm"
@@ -643,7 +643,7 @@ export function AppShell() {
       </Sidebar>
       <SidebarInset>
         <TopBar />
-        <div className="p-3 md:p-6 lg:p-8">
+        <div className="p-4 md:p-6 lg:p-8 xl:p-10">
           <AnimatePresence mode="wait" initial={false}>
             <motion.div
               key={location.pathname + location.search}

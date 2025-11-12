@@ -5,26 +5,26 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-2xl text-sm font-medium ring-offset-background transition-all duration-300 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 relative overflow-hidden touch-target before:absolute before:inset-0 before:bg-white/0 before:transition-all before:duration-300 hover:before:bg-white/10 active:before:bg-black/10",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-semibold ring-offset-background transition-all duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 relative overflow-hidden touch-target",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground shadow-soft hover:shadow-elegant hover:scale-[1.03] hover:-translate-y-0.5 active:scale-[0.98] active:translate-y-0 active:shadow-inner transition-transform",
-        destructive: "bg-destructive text-destructive-foreground shadow-soft hover:shadow-elegant hover:shadow-destructive/50 hover:scale-[1.03] hover:-translate-y-0.5 active:scale-[0.98] active:translate-y-0",
-        outline: "border-2 border-input bg-background shadow-soft hover:bg-accent/10 hover:border-primary hover:shadow-md hover:scale-[1.03] hover:-translate-y-0.5 active:scale-[0.98] active:translate-y-0",
-        secondary: "bg-secondary text-secondary-foreground shadow-soft hover:bg-secondary/90 hover:shadow-elegant hover:shadow-secondary/50 hover:scale-[1.03] hover:-translate-y-0.5 active:scale-[0.98] active:translate-y-0",
-        ghost: "hover:bg-accent/10 hover:text-accent-foreground active:bg-accent/20",
+        default: "bg-primary text-primary-foreground shadow-md hover:shadow-lg hover:bg-primary/90 active:scale-[0.98]",
+        destructive: "bg-destructive text-destructive-foreground shadow-md hover:shadow-lg hover:bg-destructive/90 active:scale-[0.98]",
+        outline: "border-2 border-border bg-background shadow-sm hover:bg-muted hover:border-primary/50 hover:shadow-md active:scale-[0.98]",
+        secondary: "bg-secondary text-secondary-foreground shadow-md hover:shadow-lg hover:bg-secondary/90 active:scale-[0.98]",
+        ghost: "hover:bg-muted hover:text-foreground active:bg-muted/80",
         link: "text-primary underline-offset-4 hover:underline hover:text-primary/80",
         // Modern DentiBot variants
-        gradient: "bg-gradient-primary text-white shadow-elegant hover:shadow-glow hover:shadow-primary/50 hover:scale-[1.03] hover:-translate-y-0.5 active:scale-[0.98] active:translate-y-0",
-        aqua: "bg-secondary text-white shadow-soft hover:shadow-elegant hover:shadow-secondary/50 hover:scale-[1.03] hover:-translate-y-0.5 active:scale-[0.98] active:translate-y-0",
-        lilac: "bg-accent text-accent-foreground shadow-soft hover:shadow-elegant hover:shadow-accent/50 hover:scale-[1.03] hover:-translate-y-0.5 active:scale-[0.98] active:translate-y-0",
-        glass: "bg-white/10 backdrop-blur-sm border-2 border-white/20 text-foreground hover:bg-white/20 hover:border-white/40 hover:scale-[1.03] hover:-translate-y-0.5 active:scale-[0.98] active:translate-y-0",
+        gradient: "bg-gradient-primary text-white shadow-lg hover:shadow-glow active:scale-[0.98]",
+        aqua: "bg-secondary text-white shadow-md hover:shadow-lg hover:bg-secondary/90 active:scale-[0.98]",
+        lilac: "bg-accent text-accent-foreground shadow-md hover:shadow-lg hover:bg-accent/90 active:scale-[0.98]",
+        glass: "bg-white/10 backdrop-blur-md border-2 border-white/20 text-foreground hover:bg-white/20 hover:border-white/30 active:scale-[0.98]",
       },
       size: {
-        default: "h-10 px-5 py-2",
-        sm: "h-9 rounded-xl px-3 text-xs",
-        lg: "h-12 rounded-2xl px-8 text-base",
+        default: "h-10 px-6 py-2.5",
+        sm: "h-9 rounded-lg px-4 text-xs",
+        lg: "h-12 rounded-xl px-8 text-base",
         icon: "h-10 w-10",
         desktop: "h-11 px-8",
         mobile: "h-12 px-6 text-base",
