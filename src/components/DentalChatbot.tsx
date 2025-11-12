@@ -282,7 +282,8 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
 
       // Handle AI recommended dentist - show widget when we have recommendations
       if (suggestions.includes('recommend-dentist') && aiRecommendedDentist && aiRecommendedDentist.length > 0) {
-        setRecommendedDentist(Array.isArray(aiRecommendedDentist) ? aiRecommendedDentist : [aiRecommendedDentist]);
+        const dentistData = Array.isArray(aiRecommendedDentist) ? aiRecommendedDentist[0] : aiRecommendedDentist;
+        setRecommendedDentist([dentistData]);
         
         setTimeout(() => {
           const widgetMessage: ChatMessage = {
@@ -290,7 +291,7 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
             session_id: sessionId,
             message: JSON.stringify({
               type: 'recommended-dentist-widget',
-              dentists: aiRecommendedDentist,
+              dentist: dentistData,
               symptoms: userMessage,
               matchReason: data.match_reason
             }),
@@ -793,15 +794,14 @@ Type your request...`;
                 return (
                   <div key={message.id} className="my-4">
                     <RecommendedDentistWidget
-                      dentistNames={widgetData.dentists}
+                      dentist={widgetData.dentist}
+                      matchReason={widgetData.matchReason}
                       symptoms={widgetData.symptoms}
                       onSelectDentist={(dentist) => {
-                        // Store selected dentist and initiate booking flow
                         setSelectedDentist(dentist);
                         setShowChatBooking(true);
                       }}
                       onSeeAlternatives={() => {
-                        // Show all dentists
                         setCurrentFlow('dentist-selection');
                       }}
                     />

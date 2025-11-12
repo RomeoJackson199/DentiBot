@@ -7,7 +7,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface RecommendedDentistWidgetProps {
-  dentistNames: string[];
+  dentist: DentistProfile;
   matchReason?: string;
   symptoms?: string;
   onSelectDentist: (dentist: any) => void;
@@ -27,64 +27,12 @@ interface DentistProfile {
 }
 
 export const RecommendedDentistWidget = ({
-  dentistNames,
+  dentist,
   matchReason,
   symptoms,
   onSelectDentist,
   onSeeAlternatives,
 }: RecommendedDentistWidgetProps) => {
-  const [dentist, setDentist] = useState<DentistProfile | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchRecommendedDentist();
-  }, [dentistNames]);
-
-  const fetchRecommendedDentist = async () => {
-    if (!dentistNames || dentistNames.length === 0) return;
-
-    try {
-      const firstName = dentistNames[0].split(' ')[0];
-      const lastName = dentistNames[0].split(' ').slice(1).join(' ');
-
-      const { data, error } = await supabase
-        .from("dentists")
-        .select(`
-          id,
-          profile_id,
-          first_name,
-          last_name,
-          specialty,
-          bio,
-          profiles:profile_id (
-            avatar_url
-          )
-        `)
-        .ilike('first_name', `%${firstName}%`)
-        .ilike('last_name', `%${lastName}%`)
-        .eq('is_active', true)
-        .maybeSingle();
-
-      if (!error && data) {
-        setDentist(data as DentistProfile);
-      }
-    } catch (error) {
-      console.error("Error fetching dentist:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (loading) {
-    return (
-      <Card className="max-w-md mx-auto my-4 border-primary/20 shadow-lg animate-pulse">
-        <CardContent className="p-6">
-          <div className="h-24 bg-muted rounded"></div>
-        </CardContent>
-      </Card>
-    );
-  }
-
   if (!dentist) return null;
 
   const getInitials = () => {

@@ -674,7 +674,16 @@ ${patient_context.recent_payments.slice(0, 3).map((p: any) => `- €${p.amount} 
       try {
         const { data: dentists } = await supabase
           .from('dentists')
-          .select('id, first_name, last_name, specialty, bio')
+          .select(`
+            id,
+            first_name,
+            last_name,
+            specialty,
+            bio,
+            profiles:profile_id (
+              avatar_url
+            )
+          `)
           .eq('is_active', true)
           .limit(5);
 
@@ -710,17 +719,16 @@ ${patient_context.recent_payments.slice(0, 3).map((p: any) => `- €${p.amount} 
             if (generalDentist) bestMatch = generalDentist;
           }
 
-          recommendedDentists.push(`${bestMatch.first_name} ${bestMatch.last_name}`);
+          // Return full dentist object instead of just name
+          recommendedDentists.push(bestMatch);
         }
       } catch (error) {
         console.error('Error fetching dentists:', error);
-        // Fallback to default dentist
-        recommendedDentists.push('Firdaws Benhsain');
       }
     }
     
-    const uniqueDentists = [...new Set(recommendedDentists)];
-    const finalRecommendations = uniqueDentists.slice(0, 2);
+    // Return dentist objects, not names
+    const finalRecommendations = recommendedDentists.slice(0, 1);
     
     const urgency_detected = false;
     const emergency_detected = false;

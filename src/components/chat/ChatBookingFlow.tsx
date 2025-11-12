@@ -57,45 +57,32 @@ export const ChatBookingFlow = ({
   const fetchAvailableSlots = async (date: Date, dentistId: string) => {
     setLoading(true);
     try {
-      // Use format to preserve Brussels date without UTC conversion
       const dateStr = format(date, 'yyyy-MM-dd');
       const businessId = await getCurrentBusinessId();
 
-      // Check if dentist works on this day
-      const dayOfWeek = date.getDay();
-      const { data: availability } = await supabase
-        .from('dentist_availability')
-        .select('is_available')
-        .eq('dentist_id', dentistId)
-        .eq('business_id', businessId)
-        .eq('day_of_week', dayOfWeek)
-        .maybeSingle();
-
-      if (!availability || availability.is_available === false) {
-        // Clean up any stale slots
-        try {
-          await supabase.rpc('generate_daily_slots', { p_dentist_id: dentistId, p_date: dateStr });
-        } catch {}
-        setAvailableSlots([]);
-        return;
+      // First, ensure slots are generated for this date
+      try {
+        await supabase.rpc('generate_daily_slots', {
+          p_dentist_id: dentistId,
+          p_date: dateStr
+        });
+      } catch (genError) {
+        console.error('Error generating slots:', genError);
       }
 
-      // Generate slots for the date
-      await supabase.rpc('generate_daily_slots', {
-        p_dentist_id: dentistId,
-        p_date: dateStr
-      });
-
+      // Fetch available slots
       const { data, error } = await supabase
         .from('appointment_slots')
         .select('slot_time, is_available, emergency_only')
         .eq('dentist_id', dentistId)
         .eq('slot_date', dateStr)
-        .eq('business_id', businessId)
         .eq('is_available', true)
         .order('slot_time');
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching slots:", error);
+        throw error;
+      }
 
       const slots: TimeSlot[] = (data || []).map(slot => ({
         time: slot.slot_time.substring(0, 5),
@@ -103,17 +90,18 @@ export const ChatBookingFlow = ({
         emergency_only: slot.emergency_only
       }));
 
-      setAvailableSlots(slots);
+      const availableNormalSlots = slots.filter(s => s.available);
+      setAvailableSlots(availableNormalSlots);
       
-      const availableCount = slots.filter(s => s.available).length;
-      if (availableCount === 0) {
+      if (availableNormalSlots.length === 0) {
         onResponse(`No available slots for ${format(date, "EEEE, MMMM d")}. Please try a different date.`);
       } else {
-        onResponse(`Available times for ${format(date, "EEEE, MMMM d")} with Dr. ${currentDentist.first_name} ${currentDentist.last_name}:`);
+        onResponse(`Found ${availableNormalSlots.length} available times for ${format(date, "EEEE, MMMM d")} with Dr. ${currentDentist.first_name} ${currentDentist.last_name}. Please select a time:`);
       }
     } catch (error) {
-      console.error("Error fetching slots:", error);
-      onResponse("Sorry, I couldn't load the available times. Please try again.");
+      console.error("Error in fetchAvailableSlots:", error);
+      onResponse("Sorry, I couldn't load the available times. Please try again or contact the clinic directly.");
+      setAvailableSlots([]);
     } finally {
       setLoading(false);
     }
