@@ -15,10 +15,11 @@ export default {
 			center: true,
 			padding: {
 				DEFAULT: '1rem',
-				sm: '2rem',
+				sm: '1.5rem',
+				md: '2rem',
 				lg: '3rem',
 				xl: '4rem',
-				'2xl': '5rem',
+				'2xl': '6rem',
 			},
 			screens: {
 				'xs': '475px',
@@ -182,11 +183,14 @@ export default {
 				'large': 'var(--shadow-large)',
 			},
 			borderRadius: {
-				lg: 'var(--radius-card)',
-				md: 'calc(var(--radius-card) - 2px)',
-				sm: 'calc(var(--radius-card) - 4px)',
+				lg: 'var(--radius-lg)',
+				md: 'var(--radius-md)',
+				sm: 'var(--radius-sm)',
+				xl: 'var(--radius-xl)',
+				'2xl': 'var(--radius-2xl)',
 				'4xl': '2rem',
 				'5xl': '2.5rem',
+				card: 'var(--radius-card)',
 			},
 			backdropBlur: {
 				'4xl': '72px',

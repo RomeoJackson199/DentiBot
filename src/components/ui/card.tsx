@@ -4,25 +4,25 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const cardVariants = cva(
-  "rounded-[var(--radius-card)] text-card-foreground transition-all duration-300",
+  "rounded-[var(--radius-card)] text-card-foreground transition-all duration-300 ease-out",
   {
     variants: {
       variant: {
-        default: "bg-card border shadow-sm",
-        glass: "glass-card border-white/20",
-        "glass-strong": "glass-card-strong border-white/30",
-        floating: "floating-card",
-        elevated: "card-elevated",
-        interactive: "card-interactive",
-        outline: "border-2 border-dental-primary/20 bg-card/50 hover:border-dental-primary/40",
-        gradient: "bg-gradient-card border-0 text-white shadow-elegant",
+        default: "bg-card border border-border/60 shadow-md hover:shadow-lg",
+        glass: "glass-card border-white/20 shadow-soft",
+        "glass-strong": "glass-card-strong border-white/30 shadow-medium",
+        floating: "floating-card shadow-large",
+        elevated: "card-elevated shadow-elegant",
+        interactive: "card-interactive shadow-medium hover:shadow-large",
+        outline: "border-2 border-primary/20 bg-card/50 hover:border-primary/40 shadow-soft hover:shadow-md",
+        gradient: "bg-gradient-card border-0 text-white shadow-elegant hover:shadow-glow",
       },
       padding: {
         none: "",
         sm: "p-4",
         default: "p-6",
         lg: "p-8",
-        xl: "p-10",
+        xl: "p-12",
       },
       rounded: {
         none: "rounded-none",
@@ -75,7 +75,7 @@ const CardHeader = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "flex flex-col space-y-1.5 p-6",
+      "flex flex-col space-y-2 p-6",
       gradient && "bg-gradient-primary text-white rounded-t-[var(--radius-card)] -m-6 mb-6 p-6",
       className
     )}
