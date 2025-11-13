@@ -12,7 +12,7 @@ import { BusinessSelector } from "@/components/BusinessSelector";
 import { useBusinessTemplate } from "@/hooks/useBusinessTemplate";
 import { useTemplateNavigation } from "@/hooks/useTemplateNavigation";
 import { useNavigate } from "react-router-dom";
-export type DentistSection = 'dashboard' | 'patients' | 'appointments' | 'employees' | 'messages' | 'clinical' | 'schedule' | 'payments' | 'analytics' | 'reports' | 'inventory' | 'imports' | 'branding' | 'security' | 'users' | 'team' | 'settings' | 'services';
+export type DentistSection = 'dashboard' | 'patients' | 'appointments' | 'team' | 'messages' | 'payments' | 'analytics' | 'inventory' | 'imports' | 'settings';
 interface DentistAppShellProps {
   activeSection: DentistSection;
   onChangeSection: (section: DentistSection) => void;
@@ -54,8 +54,8 @@ export const DentistAppShell: React.FC<DentistAppShellProps> = ({
     label: t('appointmentPlural'),
     icon: Calendar
   }, {
-    id: 'employees' as DentistSection,
-    label: 'Staff',
+    id: 'team' as DentistSection,
+    label: 'Team',
     icon: UserCog
   }, {
     id: 'messages' as DentistSection,
