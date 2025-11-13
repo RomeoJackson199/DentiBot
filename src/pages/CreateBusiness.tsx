@@ -105,9 +105,14 @@ export default function CreateBusiness() {
   };
 
   const handleAISuggestedData = (suggestedData: any) => {
+    if (!suggestedData || Object.keys(suggestedData).length === 0) return;
+    
     // Apply AI suggestions to business data
     updateBusinessData(suggestedData);
-    toast.success('AI filled in some fields for you!');
+    
+    // Show what was filled
+    const fields = Object.keys(suggestedData).join(', ');
+    toast.success(`✨ Auto-filled: ${fields}`);
   };
 
   const handleAuthComplete = () => {
