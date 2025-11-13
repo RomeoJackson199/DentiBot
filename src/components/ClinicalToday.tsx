@@ -7,7 +7,6 @@ import { Calendar, Clock, User as UserIcon, CheckCircle, TrendingUp, AlertCircle
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { NextAppointmentWidget } from "@/components/NextAppointmentWidget";
-import { ServicesQuickLink } from "@/components/dashboard/ServicesQuickLink";
 import { useBusinessTemplate } from "@/hooks/useBusinessTemplate";
 import { logger } from '@/lib/logger';
 import { AnimatedBackground, StatCard, EmptyState } from "@/components/ui/polished-components";
@@ -194,9 +193,6 @@ export function ClinicalToday({ user, dentistId, onOpenPatientsTab, onOpenAppoin
 				gradient="from-purple-500 to-pink-500"
 			/>
 		</div>
-
-			{/* Services Quick Link */}
-			<ServicesQuickLink />
 
 			{/* Next Appointment Widget */}
 			<NextAppointmentWidget dentistId={dentistId} />
