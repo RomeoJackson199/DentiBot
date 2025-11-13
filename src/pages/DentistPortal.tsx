@@ -5,7 +5,6 @@ import { User } from "@supabase/supabase-js";
 import { useToast } from "@/hooks/use-toast";
 import { logger } from "@/lib/logger";
 import { DentistAppShell, DentistSection } from "@/components/layout/DentistAppShell";
-import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 import { useBusinessTemplate } from "@/hooks/useBusinessTemplate";
 
 // Import components
@@ -20,7 +19,6 @@ import DentistSettings from "./DentistSettings";
 import { ModernLoadingSpinner } from "@/components/enhanced/ModernLoadingSpinner";
 import DentistAppointmentsManagement from "./DentistAppointmentsManagement";
 import { InviteDentistDialog } from "@/components/InviteDentistDialog";
-import { useBusinessContext } from "@/hooks/useBusinessContext";
 import Messages from "./Messages";
 import { UserTour, useUserTour } from "@/components/UserTour";
 import { DentistDemoTour } from "@/components/DentistDemoTour";
