@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -37,6 +37,13 @@ export function BusinessServicesStep({ services, template, onUpdate }: BusinessS
     services.length > 0 ? services : []
   );
   const [errors, setErrors] = useState<Record<number, Record<string, string>>>({});
+
+  // Update local state when services prop changes (from AI suggestions)
+  useEffect(() => {
+    if (services.length > 0 && JSON.stringify(services) !== JSON.stringify(localServices)) {
+      setLocalServices(services);
+    }
+  }, [services]);
 
   const templateConfig = template ? getTemplateConfig(template) : null;
   const quickAddServices = templateConfig?.quickAddServices || [];
