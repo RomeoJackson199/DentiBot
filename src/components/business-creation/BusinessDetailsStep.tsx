@@ -20,6 +20,19 @@ export function BusinessDetailsStep({ businessData, onUpdate }: BusinessDetailsS
   const [bio, setBio] = useState(businessData.bio || '');
   const [slugError, setSlugError] = useState('');
 
+  // Update local state when businessData changes (from AI suggestions)
+  useEffect(() => {
+    if (businessData.name && businessData.name !== name) {
+      setName(businessData.name);
+    }
+    if (businessData.tagline && businessData.tagline !== tagline) {
+      setTagline(businessData.tagline);
+    }
+    if (businessData.bio && businessData.bio !== bio) {
+      setBio(businessData.bio);
+    }
+  }, [businessData]);
+
   // Auto-generate slug from name
   const generateSlug = (businessName: string): string => {
     return businessName
