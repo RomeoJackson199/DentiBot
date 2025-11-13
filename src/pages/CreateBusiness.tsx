@@ -11,6 +11,7 @@ import { BusinessDetailsStep } from '@/components/business-creation/BusinessDeta
 import { BusinessServicesStep } from '@/components/business-creation/BusinessServicesStep';
 import { BusinessSubscriptionStep } from '@/components/business-creation/BusinessSubscriptionStep';
 import { BusinessCreationTour } from '@/components/business-creation/BusinessCreationTour';
+import { BusinessCreationAIGuide } from '@/components/business-creation/BusinessCreationAIGuide';
 import { TemplateType } from '@/lib/businessTemplates';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -103,6 +104,12 @@ export default function CreateBusiness() {
     setBusinessData({ ...businessData, ...data });
   };
 
+  const handleAISuggestedData = (suggestedData: any) => {
+    // Apply AI suggestions to business data
+    updateBusinessData(suggestedData);
+    toast.success('AI filled in some fields for you!');
+  };
+
   const handleAuthComplete = () => {
     setIsAuthenticated(true);
     handleNext();
@@ -179,7 +186,7 @@ export default function CreateBusiness() {
         </div>
 
         {/* Step Content */}
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-7xl mx-auto">
           <AnimatePresence mode="wait">
             <motion.div
               key={currentStep}
@@ -188,66 +195,82 @@ export default function CreateBusiness() {
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.3 }}
             >
-              <Card className="p-8">
-                {currentStep === 1 && (
-                  <BusinessCreationAuth onComplete={handleAuthComplete} />
-                )}
-
-                {currentStep === 2 && (
-                  <BusinessTemplateStep
-                    selectedTemplate={businessData.template}
-                    onSelect={(template) => {
-                      updateBusinessData({ template });
-                    }}
-                  />
-                )}
-
-                {currentStep === 3 && (
-                  <BusinessDetailsStep
-                    businessData={businessData}
-                    onUpdate={updateBusinessData}
-                  />
-                )}
-
-                {currentStep === 4 && (
-                  <BusinessServicesStep
-                    services={businessData.services || []}
-                    template={businessData.template}
-                    onUpdate={(services) => updateBusinessData({ services })}
-                  />
-                )}
-
-                {currentStep === 5 && (
-                  <BusinessSubscriptionStep
-                    businessData={businessData}
-                    onComplete={handlePaymentComplete}
-                  />
-                )}
-
-                {/* Navigation Buttons */}
-                {currentStep > 1 && (
-                  <div className="flex items-center justify-between mt-8 pt-6 border-t">
-                    <Button
-                      variant="outline"
-                      onClick={handleBack}
-                      disabled={currentStep === 1}
-                    >
-                      <ArrowLeft className="w-4 h-4 mr-2" />
-                      Back
-                    </Button>
-
-                    {currentStep < STEPS.length && currentStep !== 5 && (
-                      <Button 
-                        onClick={handleNext}
-                        disabled={currentStep === 4 && (!businessData.services || businessData.services.length === 0 || !businessData.services.some((s: any) => s.name.trim() && s.price > 0))}
-                      >
-                        Next
-                        <ArrowRight className="w-4 h-4 ml-2" />
-                      </Button>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Main Content */}
+                <div className="lg:col-span-2">
+                  <Card className="p-8">
+                    {currentStep === 1 && (
+                      <BusinessCreationAuth onComplete={handleAuthComplete} />
                     )}
+
+                    {currentStep === 2 && (
+                      <BusinessTemplateStep
+                        selectedTemplate={businessData.template}
+                        onSelect={(template) => {
+                          updateBusinessData({ template });
+                        }}
+                      />
+                    )}
+
+                    {currentStep === 3 && (
+                      <BusinessDetailsStep
+                        businessData={businessData}
+                        onUpdate={updateBusinessData}
+                      />
+                    )}
+
+                    {currentStep === 4 && (
+                      <BusinessServicesStep
+                        services={businessData.services || []}
+                        template={businessData.template}
+                        onUpdate={(services) => updateBusinessData({ services })}
+                      />
+                    )}
+
+                    {currentStep === 5 && (
+                      <BusinessSubscriptionStep
+                        businessData={businessData}
+                        onComplete={handlePaymentComplete}
+                      />
+                    )}
+
+                    {/* Navigation Buttons */}
+                    {currentStep > 1 && (
+                      <div className="flex items-center justify-between mt-8 pt-6 border-t">
+                        <Button
+                          variant="outline"
+                          onClick={handleBack}
+                          disabled={currentStep === 1}
+                        >
+                          <ArrowLeft className="w-4 h-4 mr-2" />
+                          Back
+                        </Button>
+
+                        {currentStep < STEPS.length && currentStep !== 5 && (
+                          <Button 
+                            onClick={handleNext}
+                            disabled={currentStep === 4 && (!businessData.services || businessData.services.length === 0 || !businessData.services.some((s: any) => s.name.trim() && s.price > 0))}
+                          >
+                            Next
+                            <ArrowRight className="w-4 h-4 ml-2" />
+                          </Button>
+                        )}
+                      </div>
+                    )}
+                  </Card>
+                </div>
+
+                {/* AI Guide Sidebar */}
+                {currentStep > 1 && (
+                  <div className="lg:col-span-1">
+                    <BusinessCreationAIGuide
+                      currentStep={currentStep}
+                      businessData={businessData}
+                      onSuggestedData={handleAISuggestedData}
+                    />
                   </div>
                 )}
-              </Card>
+              </div>
             </motion.div>
           </AnimatePresence>
         </div>

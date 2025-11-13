@@ -89,3 +89,6 @@ verify_jwt = true
 
 [functions.create-healthcare-business]
 verify_jwt = true
+
+[functions.business-creation-ai]
+verify_jwt = false
