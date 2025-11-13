@@ -5,21 +5,28 @@ import { User } from "@supabase/supabase-js";
 import { useToast } from "@/hooks/use-toast";
 import { logger } from "@/lib/logger";
 import { DentistAppShell, DentistSection } from "@/components/layout/DentistAppShell";
+import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 import { useBusinessTemplate } from "@/hooks/useBusinessTemplate";
 
 // Import components
 import { ClinicalToday } from "@/components/ClinicalToday";
 import { ModernPatientManagement } from "@/components/enhanced/ModernPatientManagement";
+import { EnhancedAvailabilitySettings } from "@/components/enhanced/EnhancedAvailabilitySettings";
 import { PaymentRequestManager } from "@/components/PaymentRequestManager";
 import { DentistAnalytics } from "@/components/analytics/DentistAnalytics";
 import { InventoryManager } from "@/components/inventory/InventoryManager";
 import DataImportManager from "@/components/DataImportManager";
+import DentistAdminBranding from "./DentistAdminBranding";
+import DentistAdminSecurity from "./DentistAdminSecurity";
 import DentistAdminUsers from "./DentistAdminUsers";
+import DentistTeamManagement from "./DentistTeamManagement";
 import DentistSettings from "./DentistSettings";
 import { ModernLoadingSpinner } from "@/components/enhanced/ModernLoadingSpinner";
 import DentistAppointmentsManagement from "./DentistAppointmentsManagement";
 import { InviteDentistDialog } from "@/components/InviteDentistDialog";
+import { useBusinessContext } from "@/hooks/useBusinessContext";
 import Messages from "./Messages";
+import { ServiceManager } from "@/components/services/ServiceManager";
 import { UserTour, useUserTour } from "@/components/UserTour";
 import { DentistDemoTour } from "@/components/DentistDemoTour";
 import { OnboardingProgressTracker } from "@/components/onboarding/OnboardingProgressTracker";
@@ -67,8 +74,9 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
       const sectionFromUrl = pathParts[1]; // Gets 'patients' from '/dentist/patients'
       
       const validSections: DentistSection[] = [
-        'dashboard', 'patients', 'appointments', 'team', 'messages',
-        'payments', 'analytics', 'inventory', 'imports', 'settings'
+        'dashboard', 'patients', 'appointments', 'employees', 'messages', 'clinical',
+        'schedule', 'payments', 'analytics', 'reports', 'inventory',
+        'imports', 'users', 'team', 'branding', 'security', 'settings', 'services'
       ];
       
       if (validSections.includes(sectionFromUrl as DentistSection)) {
@@ -203,6 +211,12 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
   }
 
   const renderContent = () => {
+    // If trying to access clinical section without medical features, redirect to dashboard
+    if (activeSection === 'clinical' && !hasFeature('medicalRecords') && !hasFeature('prescriptions') && !hasFeature('treatmentPlans')) {
+      setActiveSection('dashboard');
+      return <ModernLoadingSpinner variant="card" message="Loading..." />;
+    }
+
     switch (activeSection) {
       case 'dashboard':
         return <ClinicalToday dentistId={dentistId} user={user} onOpenPatientsTab={() => setActiveSection('patients')} onOpenAppointmentsTab={() => setActiveSection('appointments')} />;
@@ -210,10 +224,18 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
         return <ModernPatientManagement dentistId={dentistId} />;
       case 'appointments':
         return <DentistAppointmentsManagement />;
-      case 'team':
+      case 'employees':
         return <DentistAdminUsers />;
       case 'messages':
         return <Messages />;
+      case 'clinical':
+        // Only render clinical if medical features are enabled
+        if (hasFeature('medicalRecords') || hasFeature('prescriptions') || hasFeature('treatmentPlans')) {
+          return <ClinicalToday dentistId={dentistId} user={user} onOpenPatientsTab={() => setActiveSection('patients')} onOpenAppointmentsTab={() => setActiveSection('appointments')} />;
+        }
+        return <div className="p-4">Clinical features not available for this business type</div>;
+      case 'schedule':
+        return <EnhancedAvailabilitySettings dentistId={dentistId} />;
       case 'payments':
         return hasFeature('paymentRequests') ? <PaymentRequestManager dentistId={dentistId} /> : <div className="p-4">Payment features not available</div>;
       case 'analytics':
@@ -221,16 +243,28 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
           <DentistAnalytics
             dentistId={dentistId}
             onOpenPatientsTab={() => setActiveSection('patients')}
-            onOpenClinicalTab={() => setActiveSection('dashboard')}
+            onOpenClinicalTab={() => setActiveSection('clinical')}
             onOpenPaymentsTab={() => setActiveSection('payments')}
           />
         );
+      case 'reports':
+        return <div className="p-4">Reports (Coming Soon)</div>;
       case 'inventory':
         return <InventoryManager dentistId={dentistId} userId={user.id} />;
       case 'imports':
         return <DataImportManager />;
+      case 'users':
+        return <DentistAdminUsers />;
+      case 'team':
+        return <DentistTeamManagement />;
+      case 'branding':
+        return <DentistAdminBranding />;
+      case 'security':
+        return <DentistAdminSecurity />;
       case 'settings':
         return <DentistSettings />;
+      case 'services':
+        return <ServiceManager />;
       default:
         return <div className="p-4">Section not found</div>;
     }
@@ -258,10 +292,18 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
             </Button>
           </div>
         )}
+        {activeSection === 'users' && businessInfo && (
+          <div className="flex justify-end mb-4">
+            <InviteDentistDialog 
+              businessId={businessInfo.id} 
+              businessName={businessInfo.name}
+            />
+          </div>
+        )}
         {activeSection === 'team' && businessInfo && (
           <div className="flex justify-end mb-4">
-            <InviteDentistDialog
-              businessId={businessInfo.id}
+            <InviteDentistDialog 
+              businessId={businessInfo.id} 
               businessName={businessInfo.name}
             />
           </div>
