@@ -162,7 +162,7 @@ export function ClinicalToday({ user, dentistId, onOpenPatientsTab, onOpenAppoin
 			</div>
 
 		{/* Quick Stats with Polished Components */}
-		<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4" data-tour="stats-cards">
+		<div className="grid grid-cols-4 gap-3 sm:gap-4" data-tour="stats-cards">
 			<StatCard
 				title="Today's Appointments"
 				value={stats.todayCount.toString()}
@@ -190,7 +190,7 @@ export function ClinicalToday({ user, dentistId, onOpenPatientsTab, onOpenAppoin
 				title={t('customerPlural')}
 				value={stats.totalPatients.toString()}
 				icon={UserIcon}
-				gradient="from-purple-500 to-pink-500"
+				gradient="from-indigo-500 to-blue-500"
 			/>
 		</div>
 
