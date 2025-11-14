@@ -76,6 +76,7 @@ const PatientAccountProfilePage = lazy(() => import("./pages/PatientAccountProfi
 const PatientAccountInsurancePage = lazy(() => import("./pages/PatientAccountInsurancePage"));
 const PatientAccountPrivacyPage = lazy(() => import("./pages/PatientAccountPrivacyPage"));
 const PatientAccountHelpPage = lazy(() => import("./pages/PatientAccountHelpPage"));
+const PatientSettingsPage = lazy(() => import("./pages/PatientSettingsPage"));
 const AdminHomepageManager = lazy(() => import("./pages/AdminHomepageManager"));
 const SetupMPPage = lazy(() => import("./pages/SetupMPPage"));
 const SetupMPMaisonPage = lazy(() => import("./pages/SetupMPMaisonPage"));
@@ -302,6 +303,7 @@ const App = () => {
                   <Route path="/account/insurance" element={<PatientAccountInsurancePage />} />
                   <Route path="/account/privacy" element={<PatientAccountPrivacyPage />} />
                   <Route path="/account/help" element={<PatientAccountHelpPage />} />
+                  <Route path="/account/settings" element={<PatientSettingsPage />} />
                 </Route>
                 {/* Public routes */}
                 <Route path="/dentists" element={<DentistProfiles />} />
