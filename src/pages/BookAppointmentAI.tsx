@@ -208,6 +208,11 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
 
       if (error) {
         console.error('AI recommendation error:', error);
+        toast({
+          title: "AI Recommendations Unavailable",
+          description: "Couldn't get AI recommendations, but you can still select a dentist manually",
+          variant: "default",
+        });
         return;
       }
 
@@ -218,6 +223,11 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
       }
     } catch (error) {
       console.error('Failed to get AI recommendations:', error);
+      toast({
+        title: "AI Recommendations Unavailable",
+        description: "Couldn't get AI recommendations, but you can still select a dentist manually",
+        variant: "default",
+      });
     } finally {
       setLoadingAI(false);
     }
@@ -265,19 +275,14 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
 
       if (error) throw error;
 
-      // If no slots found with business_id, try without it (legacy slots)
       if (!data || data.length === 0) {
-        const { data: fallbackData, error: fallbackError } = await supabase
-          .from('appointment_slots')
-          .select('slot_time, is_available, emergency_only')
-          .eq('dentist_id', dentistId)
-          .eq('slot_date', dateStr)
-          .eq('is_available', true)
-          .order('slot_time');
-
-        if (!fallbackError) {
-          data = fallbackData;
-        }
+        toast({
+          title: "No Available Slots",
+          description: "No available slots found for this clinic on the selected date",
+          variant: "destructive",
+        });
+        setAvailableSlots([]);
+        return;
       }
 
       const slots: TimeSlot[] = (data || []).map(slot => ({
@@ -329,6 +334,11 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
 
       if (error) {
         console.warn('AI recommendations failed:', error);
+        toast({
+          title: "AI Suggestions Unavailable",
+          description: "Couldn't get smart recommendations. Please select a time slot manually",
+          variant: "default",
+        });
       } else if (data?.showSlots) {
         // AI returned a code with slots to show
         console.log('AI Code received - show these slots:', data.showSlots);
@@ -340,6 +350,11 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
       }
     } catch (error) {
       console.warn('AI recommendations error:', error);
+      toast({
+        title: "AI Suggestions Unavailable",
+        description: "Couldn't get smart recommendations. Please select a time slot manually",
+        variant: "default",
+      });
     } finally {
       setLoadingAI(false);
     }

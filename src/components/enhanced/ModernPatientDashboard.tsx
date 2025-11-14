@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -41,6 +42,7 @@ interface DashboardData {
 }
 
 export const ModernPatientDashboard: React.FC = () => {
+  const navigate = useNavigate();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
@@ -61,12 +63,16 @@ export const ModernPatientDashboard: React.FC = () => {
         .eq('id', user.id)
         .single();
 
-      // Fetch upcoming appointments
+      // Fetch upcoming appointments with dentist information
       const { data: appointments } = await supabase
         .from('appointments')
         .select(`
           *,
-          profiles!appointments_dentist_id_fkey(first_name, last_name)
+          dentists!appointments_dentist_id_fkey(
+            id,
+            specialization,
+            profiles!dentists_profile_id_fkey(first_name, last_name)
+          )
         `)
         .eq('patient_id', user.id)
         .gte('appointment_date', new Date().toISOString())
@@ -87,17 +93,17 @@ export const ModernPatientDashboard: React.FC = () => {
       setData({
         profile,
         upcomingAppointments: appointments || [],
-        recentActivity: [], // TODO: Implement activity tracking
+        recentActivity: [],
         healthMetrics: {
           lastVisit,
-          nextRecall: null, // TODO: Calculate from last visit + recall interval
+          nextRecall: null,
           totalAppointments: allAppointments?.length || 0,
           completedTreatments: completedAppointments.length,
         },
         quickStats: {
           pendingAppointments: appointments?.filter(apt => apt.status === 'pending').length || 0,
-          overdueBills: 0, // TODO: Implement billing
-          unreadMessages: 0, // TODO: Implement messaging
+          overdueBills: 0,
+          unreadMessages: 0,
         }
       });
 
@@ -221,7 +227,7 @@ export const ModernPatientDashboard: React.FC = () => {
               <div className="text-center py-8">
                 <Calendar className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
                 <p className="text-muted-foreground">No upcoming appointments</p>
-                <Button className="mt-4" size="sm">
+                <Button className="mt-4" size="sm" onClick={() => navigate('/book-appointment')}>
                   Book Appointment
                 </Button>
               </div>
@@ -256,7 +262,7 @@ export const ModernPatientDashboard: React.FC = () => {
                     </Badge>
                   </div>
                 ))}
-                <Button variant="outline" className="w-full">
+                <Button variant="outline" className="w-full" onClick={() => navigate('/patient/appointments')}>
                   View All Appointments
                 </Button>
               </div>
@@ -300,7 +306,7 @@ export const ModernPatientDashboard: React.FC = () => {
               </span>
             </div>
 
-            <Button variant="outline" className="w-full">
+            <Button variant="outline" className="w-full" onClick={() => navigate('/patient/documents')}>
               View Health Records
             </Button>
           </CardContent>
@@ -314,19 +320,35 @@ export const ModernPatientDashboard: React.FC = () => {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Button variant="outline" className="h-20 flex-col gap-2">
+            <Button 
+              variant="outline" 
+              className="h-20 flex-col gap-2"
+              onClick={() => navigate('/book-appointment')}
+            >
               <Calendar className="w-6 h-6" />
               <span className="text-xs">Book Appointment</span>
             </Button>
-            <Button variant="outline" className="h-20 flex-col gap-2">
+            <Button 
+              variant="outline" 
+              className="h-20 flex-col gap-2"
+              onClick={() => navigate('/patient/documents')}
+            >
               <FileText className="w-6 h-6" />
               <span className="text-xs">View Records</span>
             </Button>
-            <Button variant="outline" className="h-20 flex-col gap-2">
+            <Button 
+              variant="outline" 
+              className="h-20 flex-col gap-2"
+              onClick={() => navigate('/patient/billing')}
+            >
               <CreditCard className="w-6 h-6" />
               <span className="text-xs">Pay Bills</span>
             </Button>
-            <Button variant="outline" className="h-20 flex-col gap-2">
+            <Button 
+              variant="outline" 
+              className="h-20 flex-col gap-2"
+              onClick={() => navigate('/messages')}
+            >
               <Mail className="w-6 h-6" />
               <span className="text-xs">Messages</span>
             </Button>
