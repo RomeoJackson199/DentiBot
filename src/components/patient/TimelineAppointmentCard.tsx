@@ -3,7 +3,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AppointmentStatusBadge } from "./AppointmentStatusBadge";
-import { Calendar, Clock, User, MapPin, Phone, RefreshCw, XCircle, MessageSquare } from "lucide-react";
+import { PatientAppointmentActions } from "./PatientAppointmentActions";
+import { Calendar, Clock, User, MapPin, Phone, MessageSquare } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
@@ -96,23 +97,15 @@ export function TimelineAppointmentCard({
               </p>
             </div>}
 
-          {canModify && <div className="flex gap-2 mt-4 pt-4 border-t">
-              <Button variant="outline" size="sm" onClick={e => {
-            e.stopPropagation();
-            onReschedule?.();
-          }} className="flex-1">
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Reschedule
-              </Button>
-              <Button variant="outline" size="sm" onClick={e => {
-            e.stopPropagation();
-            onCancel?.();
-          }} className="flex-1 text-destructive hover:bg-destructive hover:text-destructive-foreground">
-                <XCircle className="h-4 w-4 mr-2" />
-                Cancel
-              </Button>
-              
-            </div>}
+          {canModify && (
+            <div className="mt-4 pt-4 border-t">
+              <PatientAppointmentActions
+                appointmentId={appointment.id}
+                appointmentDate={appointment.appointment_date}
+                status={appointment.status}
+              />
+            </div>
+          )}
         </CardContent>
       </Card>
     </motion.div>;
