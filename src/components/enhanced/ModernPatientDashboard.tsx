@@ -262,7 +262,7 @@ export const ModernPatientDashboard: React.FC = () => {
                     </Badge>
                   </div>
                 ))}
-                <Button variant="outline" className="w-full" onClick={() => navigate('/patient/appointments')}>
+                <Button variant="outline" className="w-full" onClick={() => navigate('/care/appointments')}>
                   View All Appointments
                 </Button>
               </div>
@@ -306,7 +306,7 @@ export const ModernPatientDashboard: React.FC = () => {
               </span>
             </div>
 
-            <Button variant="outline" className="w-full" onClick={() => navigate('/patient/documents')}>
+            <Button variant="outline" className="w-full" onClick={() => navigate('/docs')}>
               View Health Records
             </Button>
           </CardContent>
@@ -331,7 +331,7 @@ export const ModernPatientDashboard: React.FC = () => {
             <Button 
               variant="outline" 
               className="h-20 flex-col gap-2"
-              onClick={() => navigate('/patient/documents')}
+              onClick={() => navigate('/docs')}
             >
               <FileText className="w-6 h-6" />
               <span className="text-xs">View Records</span>
@@ -339,7 +339,7 @@ export const ModernPatientDashboard: React.FC = () => {
             <Button 
               variant="outline" 
               className="h-20 flex-col gap-2"
-              onClick={() => navigate('/patient/billing')}
+              onClick={() => navigate('/billing')}
             >
               <CreditCard className="w-6 h-6" />
               <span className="text-xs">Pay Bills</span>
