@@ -482,7 +482,7 @@ export function ModernPatientManagement({ dentistId }: ModernPatientManagementPr
           ) : (
             <>
               {/* Patient Header */}
-              <Card className="bg-gradient-card border-border/50 shadow-elegant">
+              <Card className="bg-card border-border/50 shadow-elegant">
                 <CardContent className="p-6">
                   <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
                     <div className="flex items-start gap-4">
@@ -490,7 +490,7 @@ export function ModernPatientManagement({ dentistId }: ModernPatientManagementPr
                         {`${selectedPatient.first_name[0]}${selectedPatient.last_name[0]}`.toUpperCase()}
                       </div>
                       <div className="flex-1">
-                        <h3 className="text-2xl font-bold">
+                        <h3 className="text-2xl font-bold text-foreground">
                           {selectedPatient.first_name} {selectedPatient.last_name}
                         </h3>
                         <div className="flex flex-wrap items-center gap-3 mt-2">
@@ -515,18 +515,18 @@ export function ModernPatientManagement({ dentistId }: ModernPatientManagementPr
                         
                         {/* Contact Info */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
-                          <div className="flex items-center gap-2 text-sm">
+                          <div className="flex items-center gap-2 text-sm text-foreground">
                             <Mail className="h-4 w-4 text-muted-foreground" />
                             <span className="truncate">{selectedPatient.email}</span>
                           </div>
                           {selectedPatient.phone && (
-                            <div className="flex items-center gap-2 text-sm">
+                            <div className="flex items-center gap-2 text-sm text-foreground">
                               <Phone className="h-4 w-4 text-muted-foreground" />
                               <span>{selectedPatient.phone}</span>
                             </div>
                           )}
                           {selectedPatient.address && (
-                            <div className="flex items-center gap-2 text-sm md:col-span-2">
+                            <div className="flex items-center gap-2 text-sm text-foreground md:col-span-2">
                               <MapPin className="h-4 w-4 text-muted-foreground" />
                               <span>{selectedPatient.address}</span>
                             </div>
@@ -540,7 +540,7 @@ export function ModernPatientManagement({ dentistId }: ModernPatientManagementPr
                               <FileText className="h-4 w-4" />
                               Medical Alert
                             </p>
-                            <p className="text-sm mt-1">{selectedPatient.medical_history}</p>
+                            <p className="text-sm mt-1 text-foreground">{selectedPatient.medical_history}</p>
                           </div>
                         )}
                       </div>
@@ -588,7 +588,7 @@ export function ModernPatientManagement({ dentistId }: ModernPatientManagementPr
               </Card>
 
               {/* Tabbed Content */}
-              <Card className="bg-gradient-card border-border/50">
+              <Card className="bg-card border-border/50">
                 <CardContent className="p-6">
                   <PatientDetailsTabs 
                     selectedPatient={selectedPatient}
