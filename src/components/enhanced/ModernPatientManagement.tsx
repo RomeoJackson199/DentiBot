@@ -304,12 +304,12 @@ export function ModernPatientManagement({ dentistId }: ModernPatientManagementPr
 
         {/* Stats Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card className="bg-gradient-card border-border/50 hover:shadow-elegant transition-all duration-300">
+          <Card className="bg-card border-border/50 hover:shadow-elegant transition-all duration-300">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Total Patients</p>
-                  <p className="text-3xl font-bold mt-1">{stats.totalPatients}</p>
+                  <p className="text-sm font-medium text-muted-foreground">Total Patients</p>
+                  <p className="text-3xl font-bold mt-1 text-foreground">{stats.totalPatients}</p>
                 </div>
                 <div className="bg-primary/10 p-3 rounded-xl">
                   <Users className="h-6 w-6 text-primary" />
@@ -318,12 +318,12 @@ export function ModernPatientManagement({ dentistId }: ModernPatientManagementPr
             </CardContent>
           </Card>
           
-          <Card className="bg-gradient-card border-border/50 hover:shadow-elegant transition-all duration-300">
+          <Card className="bg-card border-border/50 hover:shadow-elegant transition-all duration-300">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Active Treatments</p>
-                  <p className="text-3xl font-bold mt-1">{stats.activeTreatments}</p>
+                  <p className="text-sm font-medium text-muted-foreground">Active Treatments</p>
+                  <p className="text-3xl font-bold mt-1 text-foreground">{stats.activeTreatments}</p>
                 </div>
                 <div className="bg-blue-500/10 p-3 rounded-xl">
                   <Activity className="h-6 w-6 text-blue-500" />
@@ -332,12 +332,12 @@ export function ModernPatientManagement({ dentistId }: ModernPatientManagementPr
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-card border-border/50 hover:shadow-elegant transition-all duration-300">
+          <Card className="bg-card border-border/50 hover:shadow-elegant transition-all duration-300">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Upcoming Appts</p>
-                  <p className="text-3xl font-bold mt-1">{stats.upcomingAppointments}</p>
+                  <p className="text-sm font-medium text-muted-foreground">Upcoming Appts</p>
+                  <p className="text-3xl font-bold mt-1 text-foreground">{stats.upcomingAppointments}</p>
                 </div>
                 <div className="bg-green-500/10 p-3 rounded-xl">
                   <Calendar className="h-6 w-6 text-green-500" />
@@ -346,12 +346,12 @@ export function ModernPatientManagement({ dentistId }: ModernPatientManagementPr
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-card border-border/50 hover:shadow-elegant transition-all duration-300">
+          <Card className="bg-card border-border/50 hover:shadow-elegant transition-all duration-300">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Pending Payments</p>
-                  <p className="text-3xl font-bold mt-1">{stats.pendingPayments}</p>
+                  <p className="text-sm font-medium text-muted-foreground">Pending Payments</p>
+                  <p className="text-3xl font-bold mt-1 text-foreground">{stats.pendingPayments}</p>
                 </div>
                 <div className="bg-orange-500/10 p-3 rounded-xl">
                   <CreditCard className="h-6 w-6 text-orange-500" />
@@ -366,7 +366,7 @@ export function ModernPatientManagement({ dentistId }: ModernPatientManagementPr
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Modern Patient List */}
         <div className="lg:col-span-1">
-          <Card className="bg-gradient-card border-border/50 h-full">
+          <Card className="bg-card border-border/50 h-full">
             <CardHeader className="pb-4">
               <CardTitle className="text-lg flex items-center justify-between">
                 <span>Patients</span>
