@@ -141,13 +141,22 @@ serve(async (req) => {
   }
 
   try {
-    const incoming = await req.json();
+    const raw = await req.text();
+    console.log('RAW:', raw);
+
+    let incoming: any;
+    try {
+      incoming = raw ? JSON.parse(raw) : {};
+    } catch {
+      incoming = {};
+    }
+    console.log('PARSED:', incoming);
+
     // ElevenLabs may wrap payload as { body: {...} } — support both
     const body = (incoming && typeof incoming === 'object' && 'body' in incoming && (incoming as any).body)
       ? (incoming as any).body
       : incoming;
-
-    console.log('Parsed incoming payload:', { incoming, body });
+    console.log('FINAL DATA:', body);
     
     // Check if this is a direct appointment creation call (from voice AI tool)
     if (body?.name && body?.appointment_date) {
