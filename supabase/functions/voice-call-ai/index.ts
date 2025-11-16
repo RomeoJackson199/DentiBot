@@ -160,10 +160,16 @@ serve(async (req) => {
   }
 
   try {
-    const body = await req.json();
+    const incoming = await req.json();
+    // ElevenLabs may wrap payload as { body: {...} } — support both
+    const body = (incoming && typeof incoming === 'object' && 'body' in incoming && (incoming as any).body)
+      ? (incoming as any).body
+      : incoming;
+
+    console.log('Parsed incoming payload:', { incoming, body });
     
     // Check if this is a direct appointment creation call (from voice AI tool)
-    if (body.name && body.appointment_date) {
+    if (body?.name && body?.appointment_date) {
       console.log('Direct appointment creation:', body);
       
       const supabase = createClient(
