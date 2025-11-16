@@ -195,6 +195,110 @@ serve(async (req) => {
       );
     }
     
+    // Patient lookup-only mode (no message needed)
+    if (body?.action === 'lookup_patient' || ((body?.phone || body?.name || body?.date_of_birth || body?.dob) && !body?.appointment_date && !body?.message)) {
+      try {
+        console.log('Patient lookup request:', { phone: body?.phone || body?.caller_phone, name: body?.name, dob: body?.date_of_birth || body?.dob });
+        const supabase = createClient(
+          Deno.env.get('SUPABASE_URL')!,
+          Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+        );
+
+        const phoneRaw = body?.phone || body?.caller_phone || null;
+        const name = body?.name || null;
+        const dobRaw = body?.date_of_birth || body?.dob || null;
+
+        const normalizedPhone = phoneRaw ? String(phoneRaw).replace(/[^0-9]/g, '') : null;
+
+        let firstName: string | null = null;
+        let lastName: string | null = null;
+        if (name && typeof name === 'string') {
+          const parts = name.trim().split(/\s+/);
+          firstName = parts[0] || null;
+          lastName = parts.slice(1).join(' ') || null;
+        }
+
+        let dobISO: string | null = null;
+        if (dobRaw && typeof dobRaw === 'string') {
+          const m = dobRaw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+          if (m) {
+            dobISO = `${m[1]}-${m[2]}-${m[3]}`;
+          } else {
+            const d = new Date(dobRaw);
+            if (!isNaN(d.getTime())) {
+              const yyyy = d.getFullYear();
+              const mm = String(d.getMonth() + 1).padStart(2, '0');
+              const dd = String(d.getDate()).padStart(2, '0');
+              dobISO = `${yyyy}-${mm}-${dd}`;
+            }
+          }
+        }
+
+        let patient: any = null;
+
+        // Strategy 1: phone (exact -> normalized)
+        if (!patient && (phoneRaw || normalizedPhone)) {
+          console.log('Attempting phone lookup...');
+          if (phoneRaw) {
+            const r1 = await supabase
+              .from('profiles')
+              .select('id, first_name, last_name, email, phone, date_of_birth')
+              .eq('phone', phoneRaw)
+              .maybeSingle();
+            patient = r1.data || null;
+          }
+          if (!patient && normalizedPhone) {
+            const r2 = await supabase
+              .from('profiles')
+              .select('id, first_name, last_name, email, phone, date_of_birth')
+              .eq('phone', normalizedPhone)
+              .maybeSingle();
+            patient = r2.data || null;
+          }
+        }
+
+        // Strategy 2: name + DOB
+        if (!patient && firstName && lastName && dobISO) {
+          const res = await supabase
+            .from('profiles')
+            .select('id, first_name, last_name, email, phone, date_of_birth')
+            .eq('date_of_birth', dobISO)
+            .ilike('first_name', `${firstName}%`)
+            .ilike('last_name', `${lastName}%`)
+            .maybeSingle();
+          patient = res.data || null;
+        }
+
+        // Strategy 3: name-only fuzzy
+        if (!patient && firstName && lastName) {
+          const res = await supabase
+            .from('profiles')
+            .select('id, first_name, last_name, email, phone, date_of_birth')
+            .ilike('first_name', `${firstName}%`)
+            .ilike('last_name', `${lastName}%`)
+            .limit(1)
+            .maybeSingle();
+          patient = res.data || null;
+        }
+
+        if (patient) {
+          console.log('Resolved patient (lookup-only):', patient.id);
+          return new Response(JSON.stringify({
+            patient_id: patient.id,
+            found: true,
+            created: false,
+            profile: { first_name: patient.first_name, last_name: patient.last_name, email: patient.email, phone: patient.phone }
+          }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+        } else {
+          console.log('Patient not found (lookup-only)');
+          return new Response(JSON.stringify({ error: 'Patient not found', found: false }), { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+        }
+      } catch (e) {
+        console.error('Lookup-only error:', e);
+        return new Response(JSON.stringify({ error: (e as any)?.message || 'Lookup failed' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+    }
+
     // Original OpenAI conversation flow
     const { message, conversation_history = [], caller_phone, business_id } = body;
     
@@ -203,7 +307,6 @@ serve(async (req) => {
     if (!message) {
       throw new Error('No message provided');
     }
-
     const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
     if (!OPENAI_API_KEY) {
       throw new Error('OPENAI_API_KEY not configured');
