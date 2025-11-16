@@ -417,60 +417,109 @@ async function bookAppointment(supabase: any, args: any, callerPhone: string, bu
   
   const phone = patient_phone || callerPhone;
   
-  // 1. Find or create patient
-  let { data: patient, error: patientError } = await supabase
+  // Parse date - handle formats like "18/11/2025" or "2025-11-18"
+  let parsedDate = appointment_date;
+  let parsedTime = appointment_time || '09:00';
+  
+  // If date contains "/" it's likely DD/MM/YYYY format
+  if (appointment_date.includes('/')) {
+    const parts = appointment_date.split(' ');
+    const datePart = parts[0];
+    const timePart = parts[1];
+    
+    // Convert DD/MM/YYYY to YYYY-MM-DD
+    const [day, month, year] = datePart.split('/');
+    parsedDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+    
+    if (timePart) {
+      parsedTime = timePart;
+    }
+  } else if (appointment_date.includes(' ')) {
+    // Date and time in one string
+    const parts = appointment_date.split(' ');
+    parsedDate = parts[0];
+    parsedTime = parts[1] || '09:00';
+  }
+  
+  // 1. Find or create patient (using service role, no user_id required)
+  let { data: patient } = await supabase
     .from('profiles')
     .select('id, first_name, last_name')
     .eq('phone', phone)
     .maybeSingle();
   
   if (!patient) {
-    // Create new patient
+    // Create temporary auth user first
     const nameParts = patient_name.trim().split(' ');
     const firstName = nameParts[0];
     const lastName = nameParts.slice(1).join(' ') || nameParts[0];
+    const tempEmail = `${phone.replace(/[^0-9]/g, '')}@patient.temp`;
     
-    const { data: newProfile, error: createError } = await supabase
-      .from('profiles')
-      .insert({
+    // Create auth user with service role
+    const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
+      email: tempEmail,
+      email_confirm: true,
+      user_metadata: {
         first_name: firstName,
         last_name: lastName,
-        phone: phone,
-        email: `${phone.replace(/[^0-9]/g, '')}@temp.com`
-      })
-      .select()
-      .single();
+        phone: phone
+      }
+    });
     
-    if (createError) {
-      console.error('Error creating patient:', createError);
-      return { error: 'Failed to create patient profile' };
+    if (authError) {
+      console.error('Error creating auth user:', authError);
+      return { error: 'Failed to create patient account' };
     }
+    
+    // The trigger should create the profile automatically, wait a bit
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    // Fetch the created profile
+    const { data: newProfile } = await supabase
+      .from('profiles')
+      .select('id, first_name, last_name')
+      .eq('user_id', authUser.user.id)
+      .single();
     
     patient = newProfile;
   }
   
-  // 2. Find and book the slot
-  const { data: slot, error: slotError } = await supabase
+  // 2. Find available dentist if not specified
+  let finalDentistId = dentist_id;
+  if (!finalDentistId && businessId) {
+    const { data: dentists } = await supabase
+      .from('dentists')
+      .select('id')
+      .eq('is_active', true)
+      .limit(1);
+    
+    if (dentists && dentists.length > 0) {
+      finalDentistId = dentists[0].id;
+    }
+  }
+  
+  if (!finalDentistId) {
+    return { error: 'No dentist available' };
+  }
+  
+  // 3. Find available slot or create appointment without slot
+  const { data: slot } = await supabase
     .from('appointment_slots')
     .select('id')
-    .eq('dentist_id', dentist_id)
-    .eq('slot_date', appointment_date)
-    .eq('slot_time', appointment_time)
+    .eq('dentist_id', finalDentistId)
+    .eq('slot_date', parsedDate)
+    .eq('slot_time', parsedTime)
     .eq('is_available', true)
     .maybeSingle();
   
-  if (!slot) {
-    return { error: 'Slot no longer available' };
-  }
-  
-  // 3. Create appointment
-  const appointmentDateTime = `${appointment_date}T${appointment_time}:00`;
+  // 4. Create appointment
+  const appointmentDateTime = `${parsedDate}T${parsedTime}:00`;
   
   const appointmentData: any = {
     patient_id: patient.id,
-    dentist_id: dentist_id,
+    dentist_id: finalDentistId,
     appointment_date: appointmentDateTime,
-    reason: reason,
+    reason: reason || 'Phone consultation',
     status: 'confirmed',
     patient_name: `${patient.first_name} ${patient.last_name}`
   };
@@ -490,20 +539,22 @@ async function bookAppointment(supabase: any, args: any, callerPhone: string, bu
     return { error: appointmentError.message };
   }
   
-  // 4. Mark slot as unavailable
-  await supabase
-    .from('appointment_slots')
-    .update({ 
-      is_available: false,
-      appointment_id: appointment.id 
-    })
-    .eq('id', slot.id);
+  // 5. Mark slot as unavailable if found
+  if (slot) {
+    await supabase
+      .from('appointment_slots')
+      .update({ 
+        is_available: false,
+        appointment_id: appointment.id 
+      })
+      .eq('id', slot.id);
+  }
   
   return {
     success: true,
     appointment_id: appointment.id,
     patient_name: `${patient.first_name} ${patient.last_name}`,
-    confirmation: `Appointment booked for ${appointment_date} at ${appointment_time}`
+    confirmation: `Appointment booked for ${parsedDate} at ${parsedTime}`
   };
 }
 
