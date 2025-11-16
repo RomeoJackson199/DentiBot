@@ -476,12 +476,21 @@ async function bookAppointment(supabase: any, args: any, callerPhone: string, bu
   }
 
   if (input.includes('/')) {
-    const parts = input.split(' ');
-    const datePart = parts[0];
-    const timePart = parts.slice(1).join(' ').trim();
+    const [datePart, ...restParts] = input.split(' ');
     const [day, month, year] = datePart.split('/');
     parsedDate = `${year}-${pad(Number(month))}-${pad(Number(day))}`;
-    if (timePart) parsedTime = parsedTime || timePart;
+    const restText = restParts.join(' ').trim();
+    if (restText && !parsedTime) {
+      const tMatch = restText.match(/(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/i);
+      if (tMatch) {
+        let h = parseInt(tMatch[1], 10);
+        const m = tMatch[2] ? parseInt(tMatch[2], 10) : 0;
+        const ampm = tMatch[3]?.toLowerCase();
+        if (ampm === 'pm' && h < 12) h += 12;
+        if (ampm === 'am' && h === 12) h = 0;
+        parsedTime = `${pad(h)}:${pad(m)}`;
+      }
+    }
   } else if (input.includes('-') && input.includes('T')) {
     const d = new Date(input);
     if (!isNaN(d.getTime())) {
@@ -645,6 +654,20 @@ async function bookAppointment(supabase: any, args: any, callerPhone: string, bu
 
   if (!patient) {
     return { error: 'Could not identify or create patient' };
+  }
+
+  // Normalize time to HH:MM (handle inputs like "at 16:00")
+  {
+    const t = parsedTime.match(/(\d{1,2})(?::(\d{2}))?/);
+    if (t) {
+      let h = parseInt(t[1], 10);
+      let m = t[2] ? parseInt(t[2], 10) : 0;
+      h = Math.max(0, Math.min(23, h));
+      m = Math.max(0, Math.min(59, m));
+      parsedTime = `${pad(h)}:${pad(m)}`;
+    } else {
+      parsedTime = '09:00';
+    }
   }
 
   // 2. Determine dentist
