@@ -458,7 +458,8 @@ async function bookAppointment(supabase: any, args: any, callerPhone: string, bu
   
   const phone: string | null = patient_phone || callerPhone || null;
   const normalizedPhone = phone ? phone.replace(/[^0-9]/g, '') : null;
-
+  // Resolve business context if not provided
+  let resolvedBusinessId: string | null = businessId || null;
   // Parse date/time (supports formats like "18/11/2025", "2025-11-18 15:00", ISO, and natural text like "Friday 3 PM")
   let parsedDate = '';
   let parsedTime = appointment_time || '';
@@ -684,7 +685,7 @@ async function bookAppointment(supabase: any, args: any, callerPhone: string, bu
   if (!finalDentistId) {
     let slotQuery = supabase
       .from('appointment_slots')
-      .select('id, dentist_id')
+      .select('id, dentist_id, business_id')
       .eq('slot_date', parsedDate)
       .eq('slot_time', parsedTime)
       .eq('is_available', true)
@@ -697,6 +698,9 @@ async function bookAppointment(supabase: any, args: any, callerPhone: string, bu
     const { data: availSlot } = await slotQuery.maybeSingle();
     if (availSlot) {
       finalDentistId = availSlot.dentist_id;
+      if (!resolvedBusinessId && (availSlot as any).business_id) {
+        resolvedBusinessId = (availSlot as any).business_id;
+      }
     } else {
       const { data: dentists } = await supabase
         .from('dentists')
@@ -716,12 +720,48 @@ async function bookAppointment(supabase: any, args: any, callerPhone: string, bu
   // 3. Find available slot for that dentist
   const { data: slot } = await supabase
     .from('appointment_slots')
-    .select('id')
+    .select('id, business_id')
     .eq('dentist_id', finalDentistId)
     .eq('slot_date', parsedDate)
     .eq('slot_time', parsedTime)
     .eq('is_available', true)
     .maybeSingle();
+
+  // Resolve business_id if not provided
+  if (!resolvedBusinessId) {
+    if (slot && (slot as any).business_id) {
+      resolvedBusinessId = (slot as any).business_id as string;
+    } else {
+      // Derive from dentist -> profile -> business mapping
+      const { data: dentistRec } = await supabase
+        .from('dentists')
+        .select('profile_id')
+        .eq('id', finalDentistId)
+        .single();
+
+      if (dentistRec?.profile_id) {
+        const { data: pbm } = await supabase
+          .from('provider_business_map')
+          .select('business_id')
+          .eq('provider_id', dentistRec.profile_id)
+          .maybeSingle();
+
+        if (pbm?.business_id) {
+          resolvedBusinessId = pbm.business_id as string;
+        } else {
+          const { data: member } = await supabase
+            .from('business_members')
+            .select('business_id')
+            .eq('profile_id', dentistRec.profile_id)
+            .maybeSingle();
+          if (member?.business_id) {
+            resolvedBusinessId = member.business_id as string;
+          }
+        }
+      }
+    }
+  }
+  console.log('Resolved business_id:', resolvedBusinessId);
 
   // 4. Create appointment
   const appointmentDateTime = `${parsedDate}T${parsedTime}:00`;
@@ -735,8 +775,11 @@ async function bookAppointment(supabase: any, args: any, callerPhone: string, bu
     patient_name: `${patient.first_name ?? firstName} ${patient.last_name ?? lastName}`.trim()
   };
 
-  if (businessId) {
-    appointmentData.business_id = businessId;
+  if (resolvedBusinessId) {
+    appointmentData.business_id = resolvedBusinessId;
+  } else {
+    console.error('Could not resolve business_id for appointment');
+    return { error: 'Could not determine business for appointment' };
   }
 
   const { data: appointment, error: appointmentError } = await supabase
