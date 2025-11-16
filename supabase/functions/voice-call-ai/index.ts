@@ -560,7 +560,7 @@ async function bookAppointment(supabase: any, args: any, callerPhone: string, bu
   }
   if (!parsedTime) parsedTime = '09:00';
 
-  // 1. Find or create patient (prefer Name + DOB, fallback phone)
+  // 1. Find or create patient - Enhanced lookup strategy
   const nameParts = (patient_name || '').trim().split(/\s+/);
   const firstName = nameParts[0] || '';
   const lastName = nameParts.slice(1).join(' ') || '';
@@ -578,25 +578,18 @@ async function bookAppointment(supabase: any, args: any, callerPhone: string, bu
   }
 
   let { data: patient } = { data: null as any };
+  console.log('Patient lookup - Phone:', normalizedPhone, 'Name:', firstName, lastName, 'DOB:', dobISO);
 
-  if (firstName && lastName && dobISO) {
-    const res = await supabase
-      .from('profiles')
-      .select('id, first_name, last_name, email, phone, date_of_birth')
-      .eq('date_of_birth', dobISO)
-      .ilike('first_name', `${firstName}%`)
-      .ilike('last_name', `${lastName}%`)
-      .maybeSingle();
-    patient = res.data || null;
-  }
-
-  if (!patient && phone) {
+  // Strategy 1: Try phone lookup first (most reliable for voice calls)
+  if (phone) {
+    console.log('Attempting phone lookup...');
     let res = await supabase
       .from('profiles')
       .select('id, first_name, last_name, email, phone, date_of_birth')
       .eq('phone', phone)
       .maybeSingle();
     patient = res.data || null;
+    if (patient) console.log('Found patient by exact phone');
 
     if (!patient && normalizedPhone && normalizedPhone !== phone) {
       res = await supabase
@@ -605,10 +598,52 @@ async function bookAppointment(supabase: any, args: any, callerPhone: string, bu
         .eq('phone', normalizedPhone)
         .maybeSingle();
       patient = res.data || null;
+      if (patient) console.log('Found patient by normalized phone');
+    }
+
+    // Try searching in phone field with LIKE for partial matches
+    if (!patient && normalizedPhone) {
+      res = await supabase
+        .from('profiles')
+        .select('id, first_name, last_name, email, phone, date_of_birth')
+        .ilike('phone', `%${normalizedPhone}%`)
+        .maybeSingle();
+      patient = res.data || null;
+      if (patient) console.log('Found patient by phone fuzzy match');
     }
   }
 
+  // Strategy 2: Try exact name + DOB match
+  if (!patient && firstName && lastName && dobISO) {
+    console.log('Attempting name + DOB lookup...');
+    const res = await supabase
+      .from('profiles')
+      .select('id, first_name, last_name, email, phone, date_of_birth')
+      .eq('date_of_birth', dobISO)
+      .ilike('first_name', `${firstName}%`)
+      .ilike('last_name', `${lastName}%`)
+      .maybeSingle();
+    patient = res.data || null;
+    if (patient) console.log('Found patient by name + DOB');
+  }
+
+  // Strategy 3: Try name-only fuzzy match
+  if (!patient && firstName && lastName) {
+    console.log('Attempting name-only lookup...');
+    const res = await supabase
+      .from('profiles')
+      .select('id, first_name, last_name, email, phone, date_of_birth')
+      .ilike('first_name', `${firstName}%`)
+      .ilike('last_name', `${lastName}%`)
+      .limit(1)
+      .maybeSingle();
+    patient = res.data || null;
+    if (patient) console.log('Found patient by name fuzzy match');
+  }
+
+  // Strategy 4: Create new patient if none found
   if (!patient) {
+    console.log('No existing patient found, creating new patient...');
     const tempEmail = `${(normalizedPhone || 'unknown')}@patient.temp`;
     const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
       email: tempEmail,
@@ -624,6 +659,7 @@ async function bookAppointment(supabase: any, args: any, callerPhone: string, bu
     if (authError) {
       console.error('Error creating auth user:', authError);
       if ((authError as any).code === 'email_exists') {
+        console.log('Email exists, attempting to find existing profile...');
         let pr = await supabase
           .from('profiles')
           .select('id, first_name, last_name, email, phone')
@@ -648,10 +684,15 @@ async function bookAppointment(supabase: any, args: any, callerPhone: string, bu
             .maybeSingle();
           patient = pr.data || null;
         }
+        
+        if (patient) {
+          console.log('Found existing patient after auth error:', patient.id);
+        }
       } else {
         return { error: 'Failed to create patient account' };
       }
     } else {
+      console.log('Auth user created, fetching profile...');
       await new Promise(resolve => setTimeout(resolve, 100));
       const { data: newProfile } = await supabase
         .from('profiles')
@@ -659,12 +700,16 @@ async function bookAppointment(supabase: any, args: any, callerPhone: string, bu
         .eq('user_id', authUser.user.id)
         .maybeSingle();
       patient = newProfile;
+      if (patient) console.log('New patient profile created:', patient.id);
     }
   }
 
   if (!patient) {
+    console.error('Could not identify or create patient after all strategies');
     return { error: 'Could not identify or create patient' };
   }
+
+  console.log('Final patient ID:', patient.id, 'Name:', patient.first_name, patient.last_name);
 
   // Normalize time to HH:MM (handle inputs like "at 16:00")
   {
