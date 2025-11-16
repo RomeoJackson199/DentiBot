@@ -1,5 +1,8 @@
 project_id = "gjvxcisbaxhhblhsytar"
 
+[functions.voice-call-ai]
+verify_jwt = false
+
 [functions.google-calendar-oauth]
 verify_jwt = true
 
