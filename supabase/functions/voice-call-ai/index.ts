@@ -160,7 +160,46 @@ serve(async (req) => {
   }
 
   try {
-    const { message, conversation_history = [], caller_phone, business_id } = await req.json();
+    const body = await req.json();
+    
+    // Check if this is a direct appointment creation call (from voice AI tool)
+    if (body.name && body.appointment_date) {
+      console.log('Direct appointment creation:', body);
+      
+      const supabase = createClient(
+        Deno.env.get('SUPABASE_URL')!,
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+      );
+      
+      // Book appointment directly
+      const result = await bookAppointment(supabase, {
+        patient_name: body.name,
+        patient_phone: body.phone,
+        dentist_id: body.dentist_id || null, // Optional, will use first available
+        appointment_date: body.appointment_date.split(' ')[0], // Extract date
+        appointment_time: body.appointment_date.split(' ')[1] || '09:00', // Extract time or default
+        reason: body.symptoms || 'General consultation'
+      }, body.phone, body.business_id);
+      
+      if (result.error) {
+        return new Response(
+          JSON.stringify({ error: result.error }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
+      return new Response(
+        JSON.stringify({ 
+          success: true,
+          message: result.confirmation,
+          appointment_id: result.appointment_id
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    // Original OpenAI conversation flow
+    const { message, conversation_history = [], caller_phone, business_id } = body;
     
     console.log('Voice call AI request:', { message, caller_phone, business_id });
 
