@@ -346,23 +346,75 @@ serve(async (req) => {
     
     // Parse JSON and handle ElevenLabs webhook format (wrapped in body key)
     const parsed = JSON.parse(text);
-    const incoming = parsed.body ?? parsed;
+    const incoming: any = parsed.body ?? parsed;
     
     console.log('RAW:', text);
     console.log('PARSED:', JSON.stringify(incoming));
     
-    const { action, ...params } = incoming;
+    // Extract and allow inference when action is missing
+    let action = incoming?.action as string | undefined;
+    let params: any = { ...incoming };
+    delete params.action;
+
+    // Heuristic: infer common actions for ElevenLabs agent payloads
+    const hasAppointmentCore =
+      !!params.patient_id && !!params.dentist_id && !!(params.appointment_date || params.date || params.time);
+
+    if (!action && hasAppointmentCore) {
+      action = 'create_appointment';
+      // Normalize appointment_date if split into date/time
+      if (!params.appointment_date && params.date && params.time) {
+        params.appointment_date = `${params.date} ${params.time}`;
+      }
+    }
+
+    // If still no action, attempt read_table if table specified
+    if (!action && params.table) {
+      action = 'read_table';
+    }
+
+    // For create_appointment, try to infer business_id if missing from dentist context
+    if (action === 'create_appointment' && !params.business_id && params.dentist_id) {
+      // Try dentist_availability then appointment_slots
+      const { data: avail } = await supabase
+        .from('dentist_availability')
+        .select('business_id')
+        .eq('dentist_id', params.dentist_id)
+        .limit(1);
+      const inferredBusinessId =
+        avail?.[0]?.business_id ||
+        (await supabase
+          .from('appointment_slots')
+          .select('business_id')
+          .eq('dentist_id', params.dentist_id)
+          .limit(1)).data?.[0]?.business_id;
+
+      if (inferredBusinessId) {
+        params.business_id = inferredBusinessId;
+      } else {
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: 'Missing required field: business_id and could not infer from dentist_id',
+            hint: 'Include business_id or ensure dentist has availability or slots configured to infer it automatically.',
+            received: params,
+          }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    }
 
     if (!action) {
       return new Response(
-        JSON.stringify({ 
-          success: false, 
+        JSON.stringify({
+          success: false,
           error: 'Missing required field: action',
+          hint: 'We attempted to infer the action but could not. Provide "action" or include patient_id, dentist_id, and appointment_date to create an appointment.',
           available_actions: {
             read_only_get: ['read_table', 'list_appointments', 'search_patients', 'lookup_patient_by_phone', 'search_dentists', 'get_available_times'],
-            all_actions_post: ['read_table', 'insert_record', 'update_record', 'delete_record', 'list_appointments', 'create_appointment', 'update_appointment', 'delete_appointment', 'search_patients', 'lookup_patient_by_phone', 'search_dentists', 'get_available_times', 'custom_query']
+            all_actions_post: ['read_table', 'insert_record', 'update_record', 'delete_record', 'list_appointments', 'create_appointment', 'update_appointment', 'delete_appointment', 'search_patients', 'lookup_patient_by_phone', 'search_dentists', 'get_available_times', 'custom_query'],
           },
-          example: { action: 'search_patients', name: 'John' }
+          example: { action: 'search_patients', name: 'John' },
         }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
