@@ -12,12 +12,260 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+  const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+  const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+  const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Handle empty body
+  // Handle GET requests with query parameters
+  if (req.method === 'GET') {
+    try {
+      const url = new URL(req.url);
+      const action = url.searchParams.get('action');
+      
+      if (!action) {
+        return new Response(
+          JSON.stringify({ success: false, error: 'Missing "action" query parameter' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Convert all query params to object
+      const params: any = {};
+      url.searchParams.forEach((value, key) => {
+        if (key !== 'action') {
+          params[key] = value;
+        }
+      });
+
+      let result;
+
+      // Only support read operations via GET
+      switch (action) {
+        case 'read_table': {
+          const { table, columns = '*', limit = 100 } = params;
+          let query = supabase.from(table).select(columns);
+          
+          // Apply filters from query params
+          Object.entries(params).forEach(([key, value]) => {
+            if (!['table', 'columns', 'limit', 'order_by', 'ascending'].includes(key)) {
+              query = query.eq(key, value);
+            }
+          });
+
+          if (params.order_by) {
+            query = query.order(params.order_by, { ascending: params.ascending !== 'false' });
+          }
+          query = query.limit(Number(limit));
+
+          const { data, error } = await query;
+          if (error) throw error;
+          result = { success: true, data };
+          break;
+        }
+
+        case 'list_appointments': {
+          const { business_id, dentist_id, patient_id, status, date_from, date_to, limit = 50 } = params;
+          let query = supabase.from('appointments').select('*');
+
+          if (business_id) query = query.eq('business_id', business_id);
+          if (dentist_id) query = query.eq('dentist_id', dentist_id);
+          if (patient_id) query = query.eq('patient_id', patient_id);
+          if (status) query = query.eq('status', status);
+          if (date_from) query = query.gte('appointment_date', date_from);
+          if (date_to) query = query.lte('appointment_date', date_to);
+
+          query = query.order('appointment_date', { ascending: true }).limit(Number(limit));
+
+          const { data, error } = await query;
+          if (error) throw error;
+          result = { success: true, data };
+          break;
+        }
+
+        case 'search_patients': {
+          const { name, id, phone, dob, email, business_id, limit = 50 } = params;
+          let query = supabase
+            .from('profiles')
+            .select(`
+              id,
+              first_name,
+              last_name,
+              email,
+              phone,
+              date_of_birth,
+              address,
+              medical_history,
+              created_at
+            `);
+
+          if (id) query = query.eq('id', id);
+          if (phone) query = query.ilike('phone', `%${phone}%`);
+          if (email) query = query.ilike('email', `%${email}%`);
+          if (dob) query = query.eq('date_of_birth', dob);
+          if (name) query = query.or(`first_name.ilike.%${name}%,last_name.ilike.%${name}%`);
+
+          query = query.limit(Number(limit));
+
+          const { data: patients, error } = await query;
+          if (error) throw error;
+
+          if (patients && patients.length > 0) {
+            for (const patient of patients) {
+              const { data: lastAppt } = await supabase
+                .from('appointments')
+                .select(`
+                  dentist_id,
+                  appointment_date,
+                  business_id,
+                  dentists!inner(
+                    id,
+                    first_name,
+                    last_name,
+                    email,
+                    specialization,
+                    profile_picture_url
+                  )
+                `)
+                .eq('patient_id', patient.id)
+                .order('appointment_date', { ascending: false })
+                .limit(1)
+                .maybeSingle();
+
+              if (lastAppt) {
+                (patient as any).last_dentist = lastAppt.dentists;
+                (patient as any).last_appointment_date = lastAppt.appointment_date;
+                (patient as any).last_business_id = lastAppt.business_id;
+              }
+            }
+          }
+
+          result = { success: true, data: patients };
+          break;
+        }
+
+        case 'lookup_patient_by_phone': {
+          const { phone } = params;
+          
+          const { data: patient, error } = await supabase
+            .from('profiles')
+            .select(`
+              id,
+              first_name,
+              last_name,
+              email,
+              phone,
+              date_of_birth
+            `)
+            .eq('phone', phone)
+            .maybeSingle();
+
+          if (error) throw error;
+
+          if (patient) {
+            const { data: lastAppt } = await supabase
+              .from('appointments')
+              .select(`
+                dentist_id,
+                appointment_date,
+                dentists!inner(
+                  first_name,
+                  last_name
+                )
+              `)
+              .eq('patient_id', patient.id)
+              .order('appointment_date', { ascending: false })
+              .limit(1)
+              .maybeSingle();
+
+            if (lastAppt) {
+              (patient as any).last_dentist = lastAppt.dentists;
+            }
+          }
+
+          result = { 
+            success: true, 
+            data: patient,
+            found: !!patient 
+          };
+          break;
+        }
+
+        case 'search_dentists': {
+          const { name, specialization, business_id, is_active = 'true', limit = 50 } = params;
+          
+          let query = supabase
+            .from('dentists')
+            .select(`
+              id,
+              first_name,
+              last_name,
+              email,
+              specialization,
+              profile_picture_url,
+              average_rating,
+              total_ratings,
+              is_active,
+              profiles!inner(
+                bio,
+                phone
+              )
+            `)
+            .eq('is_active', is_active === 'true');
+
+          if (name) query = query.or(`first_name.ilike.%${name}%,last_name.ilike.%${name}%`);
+          if (specialization) query = query.ilike('specialization', `%${specialization}%`);
+
+          query = query.limit(Number(limit));
+
+          const { data: dentists, error } = await query;
+          if (error) throw error;
+
+          if (business_id && dentists) {
+            const { data: businessMembers } = await supabase
+              .from('provider_business_map')
+              .select('provider_id')
+              .eq('business_id', business_id);
+
+            const providerIds = new Set(businessMembers?.map(m => m.provider_id) || []);
+            const filtered = dentists.filter(d => providerIds.has(d.id));
+            result = { success: true, data: filtered };
+          } else {
+            result = { success: true, data: dentists };
+          }
+          break;
+        }
+
+        default:
+          return new Response(
+            JSON.stringify({ 
+              success: false, 
+              error: `Action "${action}" not supported via GET. Use POST for write operations.` 
+            }),
+            { status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+      }
+
+      return new Response(JSON.stringify(result), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+
+    } catch (error) {
+      console.error('Database API GET error:', error);
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: error instanceof Error ? error.message : String(error),
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
+    }
+  }
+
+  // Handle POST requests with JSON body
+  try {
     const text = await req.text();
     if (!text || text.trim() === '') {
       throw new Error('Request body is required. Please provide a JSON payload with an "action" field.');
