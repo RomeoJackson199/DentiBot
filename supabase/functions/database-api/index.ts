@@ -16,7 +16,13 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { action, ...params } = await req.json();
+    // Handle empty body
+    const text = await req.text();
+    if (!text || text.trim() === '') {
+      throw new Error('Request body is required. Please provide a JSON payload with an "action" field.');
+    }
+    
+    const { action, ...params } = JSON.parse(text);
 
     let result;
 
