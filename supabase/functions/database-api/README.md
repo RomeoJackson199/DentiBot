@@ -101,6 +101,18 @@ curl -X POST https://gjvxcisbaxhhblhsytar.supabase.co/functions/v1/database-api 
   }'
 ```
 
+### Get Available Times for a Dentist
+```bash
+curl -X POST https://gjvxcisbaxhhblhsytar.supabase.co/functions/v1/database-api \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action": "get_available_times",
+    "dentist_id": "uuid-here",
+    "date": "2025-11-20",
+    "business_id": "uuid-here"
+  }'
+```
+
 ### Get Table Schema
 ```bash
 curl -X POST https://gjvxcisbaxhhblhsytar.supabase.co/functions/v1/database-api \
