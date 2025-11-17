@@ -66,40 +66,28 @@ Add this to your Claude Desktop config (`~/Library/Application Support/Claude/cl
 
 ## Available Tools
 
-### read_table
-Read data from any table with filters, ordering, and pagination.
+### Appointments
+- **create_appointment** - Create a new appointment
+- **update_appointment** - Update an existing appointment by ID
+- **delete_appointment** - Delete an appointment by ID
+- **list_appointments** - List appointments with filters (business, dentist, patient, status, date range)
 
-Example:
-```
-Read appointments where status is "pending" ordered by date
-```
+### Patients
+- **search_patients** - Search patients by name, phone, email, or DOB (includes last dentist used)
+- **get_patient** - Get complete patient profile with appointment history and medical records
+- **lookup_patient_by_phone** - Quick phone lookup for voice AI
 
-### create_appointment
-Create a new appointment with all required fields.
+### Dentists
+- **search_dentists** - Search dentists by name, specialization, or business
+- **get_dentist** - Get full dentist profile with bio, stats, availability, and upcoming appointments
 
-### update_appointment
-Update an existing appointment by ID.
-
-### delete_appointment
-Delete an appointment by ID.
-
-### list_appointments
-List appointments with optional filters (business, dentist, patient, status, date range).
-
-### insert_record
-Insert a new record into any table.
-
-### update_record
-Update a record in any table by ID.
-
-### delete_record
-Delete a record from any table by ID.
-
-### execute_query
-Execute custom SELECT queries for advanced operations.
-
-### get_table_schema
-Get the structure/schema of any table.
+### General Database
+- **read_table** - Read data from any table with filters, ordering, and pagination
+- **insert_record** - Insert a new record into any table
+- **update_record** - Update a record in any table by ID
+- **delete_record** - Delete a record from any table by ID
+- **execute_query** - Execute custom SELECT queries for advanced operations
+- **get_table_schema** - Get the structure/schema of any table
 
 ## Security
 
@@ -120,6 +108,26 @@ Main tables available:
 
 ## Example Queries
 
+**Search for a patient:**
+```
+Search patients by name "John" or phone "555-1234"
+```
+
+**Get full patient history:**
+```
+Get patient details for patient ID [uuid] including all appointments and medical records
+```
+
+**Find a dentist:**
+```
+Search dentists with specialization "orthodontics" at business [business_id]
+```
+
+**Get dentist profile:**
+```
+Get full dentist profile for dentist [dentist_id] with availability and stats
+```
+
 **List today's appointments:**
 ```
 List appointments where date_from is today
@@ -130,9 +138,9 @@ List appointments where date_from is today
 Create an appointment for patient [patient_id] with dentist [dentist_id] at [date/time] for [reason]
 ```
 
-**Get all patients:**
+**Lookup patient by phone (for voice AI):**
 ```
-Read table profiles where role is patient
+Lookup patient by phone "+1234567890"
 ```
 
 **Update appointment status:**

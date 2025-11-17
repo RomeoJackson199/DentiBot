@@ -187,6 +187,336 @@ serve(async (req) => {
         break;
       }
 
+      // Search patients
+      case 'search_patients': {
+        const { name, id, phone, dob, email, business_id, limit = 50 } = params;
+        let query = supabase
+          .from('profiles')
+          .select(`
+            id,
+            first_name,
+            last_name,
+            email,
+            phone,
+            date_of_birth,
+            address,
+            medical_history,
+            created_at
+          `);
+
+        if (id) {
+          query = query.eq('id', id);
+        }
+        if (phone) {
+          query = query.ilike('phone', `%${phone}%`);
+        }
+        if (email) {
+          query = query.ilike('email', `%${email}%`);
+        }
+        if (dob) {
+          query = query.eq('date_of_birth', dob);
+        }
+        if (name) {
+          query = query.or(`first_name.ilike.%${name}%,last_name.ilike.%${name}%`);
+        }
+
+        query = query.limit(limit);
+
+        const { data: patients, error } = await query;
+        if (error) throw error;
+
+        // Get last dentist used for each patient
+        if (patients && patients.length > 0) {
+          for (const patient of patients) {
+            const { data: lastAppt } = await supabase
+              .from('appointments')
+              .select(`
+                dentist_id,
+                appointment_date,
+                business_id,
+                dentists!inner(
+                  id,
+                  first_name,
+                  last_name,
+                  email,
+                  specialization,
+                  profile_picture_url
+                )
+              `)
+              .eq('patient_id', patient.id)
+              .order('appointment_date', { ascending: false })
+              .limit(1)
+              .maybeSingle();
+
+            if (lastAppt) {
+              (patient as any).last_dentist = lastAppt.dentists;
+              (patient as any).last_appointment_date = lastAppt.appointment_date;
+              (patient as any).last_business_id = lastAppt.business_id;
+            }
+          }
+        }
+
+        result = { success: true, data: patients };
+        break;
+      }
+
+      // Get patient by ID with full details
+      case 'get_patient': {
+        const { patient_id } = params;
+        
+        // Get patient profile
+        const { data: patient, error: patientError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', patient_id)
+          .single();
+
+        if (patientError) throw patientError;
+
+        // Get appointment history
+        const { data: appointments } = await supabase
+          .from('appointments')
+          .select(`
+            id,
+            appointment_date,
+            status,
+            reason,
+            notes,
+            business_id,
+            dentists!inner(
+              id,
+              first_name,
+              last_name,
+              specialization
+            ),
+            businesses!inner(
+              id,
+              name,
+              slug
+            )
+          `)
+          .eq('patient_id', patient_id)
+          .order('appointment_date', { ascending: false })
+          .limit(10);
+
+        // Get medical records
+        const { data: medicalRecords } = await supabase
+          .from('medical_records')
+          .select('*')
+          .eq('patient_id', patient_id)
+          .order('record_date', { ascending: false })
+          .limit(10);
+
+        // Get patient preferences
+        const { data: preferences } = await supabase
+          .from('patient_preferences')
+          .select('*')
+          .eq('patient_id', patient_id)
+          .maybeSingle();
+
+        result = {
+          success: true,
+          data: {
+            patient,
+            appointments,
+            medical_records: medicalRecords,
+            preferences,
+          },
+        };
+        break;
+      }
+
+      // Get dentist by ID with full bio and stats
+      case 'get_dentist': {
+        const { dentist_id } = params;
+
+        // Get dentist details
+        const { data: dentist, error: dentistError } = await supabase
+          .from('dentists')
+          .select(`
+            id,
+            first_name,
+            last_name,
+            email,
+            specialization,
+            license_number,
+            profile_picture_url,
+            clinic_address,
+            average_rating,
+            total_ratings,
+            expertise_score,
+            communication_score,
+            wait_time_score,
+            is_active,
+            created_at,
+            profiles!inner(
+              bio,
+              phone,
+              address
+            )
+          `)
+          .eq('id', dentist_id)
+          .single();
+
+        if (dentistError) throw dentistError;
+
+        // Get businesses they work at
+        const { data: businesses } = await supabase
+          .from('provider_business_map')
+          .select(`
+            business_id,
+            role,
+            businesses!inner(
+              id,
+              name,
+              slug,
+              specialty_type,
+              logo_url,
+              tagline
+            )
+          `)
+          .eq('provider_id', dentist.profiles.id);
+
+        // Get availability
+        const { data: availability } = await supabase
+          .from('dentist_availability')
+          .select('*')
+          .eq('dentist_id', dentist_id)
+          .eq('is_available', true)
+          .order('day_of_week');
+
+        // Get capacity settings
+        const { data: capacity } = await supabase
+          .from('dentist_capacity_settings')
+          .select('*')
+          .eq('dentist_id', dentist_id)
+          .maybeSingle();
+
+        // Get upcoming appointments count
+        const { count: upcomingCount } = await supabase
+          .from('appointments')
+          .select('*', { count: 'exact', head: true })
+          .eq('dentist_id', dentist_id)
+          .gte('appointment_date', new Date().toISOString())
+          .eq('status', 'confirmed');
+
+        result = {
+          success: true,
+          data: {
+            dentist,
+            businesses,
+            availability,
+            capacity_settings: capacity,
+            upcoming_appointments: upcomingCount || 0,
+          },
+        };
+        break;
+      }
+
+      // Search dentists
+      case 'search_dentists': {
+        const { name, specialization, business_id, is_active = true, limit = 50 } = params;
+        
+        let query = supabase
+          .from('dentists')
+          .select(`
+            id,
+            first_name,
+            last_name,
+            email,
+            specialization,
+            profile_picture_url,
+            average_rating,
+            total_ratings,
+            is_active,
+            profiles!inner(
+              bio,
+              phone
+            )
+          `)
+          .eq('is_active', is_active);
+
+        if (name) {
+          query = query.or(`first_name.ilike.%${name}%,last_name.ilike.%${name}%`);
+        }
+        if (specialization) {
+          query = query.ilike('specialization', `%${specialization}%`);
+        }
+
+        query = query.limit(limit);
+
+        const { data: dentists, error } = await query;
+        if (error) throw error;
+
+        // Filter by business if needed
+        if (business_id && dentists) {
+          const { data: businessMembers } = await supabase
+            .from('provider_business_map')
+            .select('provider_id')
+            .eq('business_id', business_id);
+
+          const providerIds = new Set(businessMembers?.map(m => m.provider_id) || []);
+          const filtered = dentists.filter(d => {
+            // Need to match dentist profile_id with provider_id
+            return providerIds.has(d.id);
+          });
+
+          result = { success: true, data: filtered };
+        } else {
+          result = { success: true, data: dentists };
+        }
+        break;
+      }
+
+      // Lookup patient by phone (for voice AI)
+      case 'lookup_patient_by_phone': {
+        const { phone } = params;
+        
+        const { data: patient, error } = await supabase
+          .from('profiles')
+          .select(`
+            id,
+            first_name,
+            last_name,
+            email,
+            phone,
+            date_of_birth
+          `)
+          .eq('phone', phone)
+          .maybeSingle();
+
+        if (error) throw error;
+
+        if (patient) {
+          // Get last appointment
+          const { data: lastAppt } = await supabase
+            .from('appointments')
+            .select(`
+              dentist_id,
+              appointment_date,
+              dentists!inner(
+                first_name,
+                last_name
+              )
+            `)
+            .eq('patient_id', patient.id)
+            .order('appointment_date', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+          if (lastAppt) {
+            (patient as any).last_dentist = lastAppt.dentists;
+          }
+        }
+
+        result = { 
+          success: true, 
+          data: patient,
+          found: !!patient 
+        };
+        break;
+      }
+
       default:
         throw new Error(`Unknown action: ${action}`);
     }
