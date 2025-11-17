@@ -330,10 +330,36 @@ serve(async (req) => {
   try {
     const text = await req.text();
     if (!text || text.trim() === '') {
-      throw new Error('Request body is required. Please provide a JSON payload with an "action" field.');
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: 'Request body is required. Please provide a JSON payload with an "action" field.',
+          available_actions: {
+            read_only_get: ['read_table', 'list_appointments', 'search_patients', 'lookup_patient_by_phone', 'search_dentists', 'get_available_times'],
+            all_actions_post: ['read_table', 'insert_record', 'update_record', 'delete_record', 'list_appointments', 'create_appointment', 'update_appointment', 'delete_appointment', 'search_patients', 'lookup_patient_by_phone', 'search_dentists', 'get_available_times', 'custom_query']
+          },
+          example: { action: 'search_patients', name: 'John' }
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
     
     const { action, ...params } = JSON.parse(text);
+
+    if (!action) {
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: 'Missing required field: action',
+          available_actions: {
+            read_only_get: ['read_table', 'list_appointments', 'search_patients', 'lookup_patient_by_phone', 'search_dentists', 'get_available_times'],
+            all_actions_post: ['read_table', 'insert_record', 'update_record', 'delete_record', 'list_appointments', 'create_appointment', 'update_appointment', 'delete_appointment', 'search_patients', 'lookup_patient_by_phone', 'search_dentists', 'get_available_times', 'custom_query']
+          },
+          example: { action: 'search_patients', name: 'John' }
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     let result;
 
