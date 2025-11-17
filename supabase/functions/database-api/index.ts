@@ -352,9 +352,25 @@ serve(async (req) => {
     console.log('PARSED:', JSON.stringify(incoming));
     
     // Extract and allow inference when action is missing
-    let action = incoming?.action as string | undefined;
+    // Extract and normalize action, allow inference when missing
+    const actionRaw = (incoming?.action ?? '') as string;
+    let action = actionRaw ? actionRaw.toString().trim() : undefined;
+    // Build params and remove action field
     let params: any = { ...incoming };
     delete params.action;
+
+    // Some agents may send the action as a key instead of a value
+    if (!action) {
+      const known = new Set([
+        'read_table', 'list_appointments', 'create_appointment', 'update_appointment', 'delete_appointment',
+        'search_patients', 'lookup_patient_by_phone', 'search_dentists', 'get_available_times', 'custom_query',
+        'execute_query', 'get_patient'
+      ]);
+      for (const k of Object.keys(incoming || {})) {
+        const key = (k || '').toString().trim();
+        if (known.has(key)) { action = key; break; }
+      }
+    }
 
     // Heuristic: infer common actions for ElevenLabs agent payloads
     const hasAppointmentCore =
@@ -517,6 +533,63 @@ serve(async (req) => {
         const { data, error } = await query;
         if (error) throw error;
         result = { success: true, data };
+        break;
+      }
+
+      // Get available appointment times for a dentist on a given date
+      case 'get_available_times': {
+        const dentist_id = params.dentist_id;
+        const rawDate = params.date || params.slot_date;
+        const business_id = params.business_id;
+
+        if (!dentist_id || !rawDate) {
+          return new Response(
+            JSON.stringify({ success: false, error: 'Missing required parameters: dentist_id and date' }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        const normalizeDate = (d: string) => {
+          const s = String(d);
+          if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
+          const parsed = new Date(s);
+          if (isNaN(parsed.getTime())) throw new Error(`Invalid date format: ${s}`);
+          return parsed.toISOString().slice(0, 10);
+        };
+
+        const dateStr = normalizeDate(rawDate);
+
+        // Ensure slots exist for that day (idempotent)
+        await supabase.rpc('ensure_daily_slots', { p_dentist_id: dentist_id, p_date: dateStr });
+
+        let slotsQuery = supabase
+          .from('appointment_slots')
+          .select('*')
+          .eq('dentist_id', dentist_id)
+          .eq('slot_date', dateStr)
+          .eq('is_available', true)
+          .order('slot_time', { ascending: true });
+
+        if (business_id) slotsQuery = slotsQuery.eq('business_id', business_id);
+
+        const { data: slots, error: slotsError } = await slotsQuery;
+        if (slotsError) throw slotsError;
+
+        const { data: dentist } = await supabase
+          .from('dentists')
+          .select('id, first_name, last_name, specialization, profiles!inner(bio)')
+          .eq('id', dentist_id)
+          .maybeSingle();
+
+        result = {
+          success: true,
+          data: {
+            dentist,
+            date: dateStr,
+            available_slots: slots || [],
+            total_available: slots?.length || 0,
+          },
+        };
         break;
       }
 
