@@ -24,8 +24,17 @@ serve(async (req) => {
       
       if (!action) {
         return new Response(
-          JSON.stringify({ success: false, error: 'Missing "action" query parameter' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          JSON.stringify({ 
+            success: true,
+            message: 'Database API v1',
+            documentation: 'See README.md for usage examples',
+            available_actions: {
+              read_only_get: ['read_table', 'list_appointments', 'search_patients', 'lookup_patient_by_phone', 'search_dentists'],
+              all_actions_post: ['read_table', 'insert_record', 'update_record', 'delete_record', 'list_appointments', 'create_appointment', 'update_appointment', 'delete_appointment', 'search_patients', 'lookup_patient_by_phone', 'search_dentists', 'custom_query']
+            },
+            example: '?action=search_patients&name=John'
+          }),
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
