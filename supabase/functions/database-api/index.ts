@@ -344,7 +344,14 @@ serve(async (req) => {
       );
     }
     
-    const { action, ...params } = JSON.parse(text);
+    // Parse JSON and handle ElevenLabs webhook format (wrapped in body key)
+    const parsed = JSON.parse(text);
+    const incoming = parsed.body ?? parsed;
+    
+    console.log('RAW:', text);
+    console.log('PARSED:', JSON.stringify(incoming));
+    
+    const { action, ...params } = incoming;
 
     if (!action) {
       return new Response(
