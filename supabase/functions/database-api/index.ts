@@ -29,7 +29,7 @@ serve(async (req) => {
             message: 'Database API v1',
             documentation: 'See README.md for usage examples',
             available_actions: {
-              read_only_get: ['read_table', 'list_appointments', 'search_patients', 'lookup_patient_by_phone', 'search_dentists'],
+              read_only_get: ['read_table', 'list_appointments', 'search_patients', 'lookup_patient_by_phone', 'search_dentists', 'get_available_times'],
               all_actions_post: ['read_table', 'insert_record', 'update_record', 'delete_record', 'list_appointments', 'create_appointment', 'update_appointment', 'delete_appointment', 'search_patients', 'lookup_patient_by_phone', 'search_dentists', 'custom_query']
             },
             example: '?action=search_patients&name=John'
@@ -241,6 +241,59 @@ serve(async (req) => {
           } else {
             result = { success: true, data: dentists };
           }
+          break;
+        }
+
+        case 'get_available_times': {
+          const { dentist_id, date, business_id } = params;
+
+          if (!dentist_id || !date) {
+            return new Response(
+              JSON.stringify({ success: false, error: 'Missing required parameters: dentist_id and date' }),
+              { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          }
+
+          // Get available slots for the date
+          let slotsQuery = supabase
+            .from('appointment_slots')
+            .select('*')
+            .eq('dentist_id', dentist_id)
+            .eq('slot_date', date)
+            .eq('is_available', true)
+            .order('slot_time', { ascending: true });
+
+          if (business_id) {
+            slotsQuery = slotsQuery.eq('business_id', business_id);
+          }
+
+          const { data: slots, error: slotsError } = await slotsQuery;
+          if (slotsError) throw slotsError;
+
+          // Get dentist info
+          const { data: dentist, error: dentistError } = await supabase
+            .from('dentists')
+            .select(`
+              id,
+              first_name,
+              last_name,
+              specialization,
+              profiles!inner(bio)
+            `)
+            .eq('id', dentist_id)
+            .maybeSingle();
+
+          if (dentistError) throw dentistError;
+
+          result = { 
+            success: true, 
+            data: {
+              dentist: dentist,
+              date: date,
+              available_slots: slots || [],
+              total_available: slots?.length || 0
+            }
+          };
           break;
         }
 
