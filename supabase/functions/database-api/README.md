@@ -71,13 +71,79 @@ curl -X POST https://gjvxcisbaxhhblhsytar.supabase.co/functions/v1/database-api 
   }'
 ```
 
+### Search Patients
+```bash
+curl -X POST https://gjvxcisbaxhhblhsytar.supabase.co/functions/v1/database-api \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action": "search_patients",
+    "name": "John",
+    "phone": "555",
+    "limit": 10
+  }'
+```
+
+### Get Patient Details
+```bash
+curl -X POST https://gjvxcisbaxhhblhsytar.supabase.co/functions/v1/database-api \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action": "get_patient",
+    "patient_id": "uuid-here"
+  }'
+```
+
+### Lookup Patient by Phone
+```bash
+curl -X POST https://gjvxcisbaxhhblhsytar.supabase.co/functions/v1/database-api \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action": "lookup_patient_by_phone",
+    "phone": "+1234567890"
+  }'
+```
+
+### Get Dentist Full Profile
+```bash
+curl -X POST https://gjvxcisbaxhhblhsytar.supabase.co/functions/v1/database-api \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action": "get_dentist",
+    "dentist_id": "uuid-here"
+  }'
+```
+
+### Search Dentists
+```bash
+curl -X POST https://gjvxcisbaxhhblhsytar.supabase.co/functions/v1/database-api \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action": "search_dentists",
+    "name": "Smith",
+    "specialization": "orthodontics",
+    "business_id": "uuid-here"
+  }'
+```
+
 ## Available Actions
 
-- `read_table` - Read from any table with filters
+### Appointments
 - `create_appointment` - Create new appointment
 - `update_appointment` - Update existing appointment
 - `delete_appointment` - Delete appointment
 - `list_appointments` - List appointments with filters
+
+### Patients
+- `search_patients` - Search patients by name, phone, email, DOB
+- `get_patient` - Get full patient details with history
+- `lookup_patient_by_phone` - Quick phone lookup (for voice AI)
+
+### Dentists
+- `search_dentists` - Search dentists by name, specialization, business
+- `get_dentist` - Get full dentist profile with bio, stats, availability
+
+### General Database
+- `read_table` - Read from any table with filters
 - `insert_record` - Insert into any table
 - `update_record` - Update any record
 - `delete_record` - Delete any record
