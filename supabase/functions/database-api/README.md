@@ -27,6 +27,15 @@ curl "https://gjvxcisbaxhhblhsytar.supabase.co/functions/v1/database-api?action=
 curl "https://gjvxcisbaxhhblhsytar.supabase.co/functions/v1/database-api?action=search_dentists&specialization=orthodontics&limit=5"
 ```
 
+### Get Available Times for a Dentist
+```bash
+curl "https://gjvxcisbaxhhblhsytar.supabase.co/functions/v1/database-api?action=get_available_times&dentist_id=DENTIST_UUID&date=2025-11-20&business_id=BUSINESS_UUID"
+```
+Parameters:
+- `dentist_id` (required): UUID of the dentist
+- `date` (required): Date in YYYY-MM-DD format
+- `business_id` (optional): Filter by business
+
 ### List Appointments
 ```bash
 curl "https://gjvxcisbaxhhblhsytar.supabase.co/functions/v1/database-api?action=list_appointments&business_id=uuid-here&status=pending"
