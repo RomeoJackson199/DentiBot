@@ -95,3 +95,6 @@ verify_jwt = true
 
 [functions.business-creation-ai]
 verify_jwt = false
+
+[functions.database-api]
+verify_jwt = false
