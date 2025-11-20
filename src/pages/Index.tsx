@@ -5,18 +5,21 @@ import { Header } from "@/components/homepage/Header";
 import { Footer } from "@/components/homepage/Footer";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Calendar, Clock, Bell, Shield, Users, CheckCircle2, ArrowRight, Sparkles, Zap, Star, PlayCircle } from "lucide-react";
+import { Calendar, Clock, Bell, Shield, Users, CheckCircle2, ArrowRight, Sparkles, Zap, Star, PlayCircle, BarChart3 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AccessibleLoadingIndicator } from "@/components/ui/skip-to-content";
 import { DemoTourFlow } from "@/components/demo/DemoTourFlow";
 import { AnimatedBackground } from "@/components/homepage/AnimatedBackground";
 import { ScrollAnimatedSection } from "@/components/homepage/ScrollAnimatedSection";
+import { AIReceptionistDemo } from "@/components/homepage/AIReceptionistDemo";
 import { motion } from "framer-motion";
+
 const Index = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [showDemoTour, setShowDemoTour] = useState(false);
   const navigate = useNavigate();
+
   useEffect(() => {
     // Check for existing session
     supabase.auth.getSession().then(({
@@ -53,381 +56,345 @@ const Index = () => {
     });
     return () => subscription.unsubscribe();
   }, [navigate]);
+
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50">
         <AccessibleLoadingIndicator message="Loading Caberu" size="lg" />
-      </div>;
+      </div>
+    );
   }
 
   // Homepage for non-authenticated users
-  return <div className="min-h-screen bg-white">
+  return (
+    <div className="min-h-screen bg-white font-sans antialiased selection:bg-blue-100 selection:text-blue-900">
       <Header user={user} minimal />
 
       <main id="main-content">
         {/* Hero Section */}
-        <section className="relative pt-20 pb-32 px-4 sm:px-6 lg:px-8 overflow-hidden bg-gradient-to-br from-blue-50 via-white to-purple-50">
+        <section className="relative pt-24 pb-32 lg:pt-32 lg:pb-48 px-4 sm:px-6 lg:px-8 overflow-hidden">
           {/* Animated Background */}
           <AnimatedBackground />
 
           <div className="max-w-7xl mx-auto relative z-10">
-            <div className="text-center space-y-8">
-              {/* Badge */}
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6 }}
-                className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-blue-100 text-blue-700 text-xl font-medium"
-              >
-                <Sparkles className="h-6 w-6" />
-                <span>AI-Powered Appointment Management</span>
-              </motion.div>
-
-              <motion.h1
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.2 }}
-                className="text-4xl sm:text-5xl lg:text-7xl font-bold text-gray-900 tracking-tight"
-              >
-                Your Complete Healthcare
-                <span className="block bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mt-4">
-                  Practice Management System
-                </span>
-              </motion.h1>
-
-              <motion.p
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.4 }}
-                className="text-lg sm:text-xl lg:text-3xl text-gray-600 max-w-5xl mx-auto leading-relaxed"
-              >
-                From appointment scheduling to patient records, payments to inventory—manage your entire healthcare practice with AI-powered efficiency. Built specifically for modern healthcare professionals.
-              </motion.p>
-
-              <motion.div 
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.6 }}
-                className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center items-center pt-8"
-              >
-                <Button size="lg" className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 sm:px-12 py-6 sm:py-8 text-lg sm:text-2xl shadow-lg hover:shadow-xl transition-all group w-full sm:w-auto" onClick={() => navigate('/signup')} aria-label="Book your first appointment free">
-                  Book Your First Appointment Free
-                  <ArrowRight className="ml-3 h-5 w-5 sm:h-7 sm:w-7 group-hover:translate-x-1 transition-transform" />
-                </Button>
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="border-2 border-purple-300 hover:border-purple-600 hover:bg-purple-50 px-8 sm:px-12 py-6 sm:py-8 text-lg sm:text-2xl transition-all group w-full sm:w-auto"
-                  onClick={() => setShowDemoTour(true)}
-                  aria-label="Watch interactive demo"
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
+              <div className="text-center lg:text-left space-y-8">
+                {/* Badge */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6 }}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/50 backdrop-blur-md border border-blue-100 shadow-sm text-blue-700 font-medium"
                 >
-                  <PlayCircle className="mr-3 h-5 w-5 sm:h-7 sm:w-7 group-hover:scale-110 transition-transform" />
-                  Watch Demo
-                </Button>
-              </motion.div>
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+                  </span>
+                  <span>Next-Gen Practice Management</span>
+                </motion.div>
 
-              {/* Trust indicators */}
-              <motion.div 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.8, delay: 0.8 }}
-                className="flex flex-wrap justify-center items-center gap-12 pt-12 text-xl text-gray-600"
+                <motion.h1
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 0.2 }}
+                  className="text-5xl sm:text-6xl lg:text-7xl font-extrabold text-gray-900 tracking-tight leading-[1.1]"
+                >
+                  Your Clinic, <br />
+                  <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+                    Autopilot Enabled
+                  </span>
+                </motion.h1>
+
+                <motion.p
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 0.4 }}
+                  className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto lg:mx-0 leading-relaxed"
+                >
+                  Upgrade your practice with an AI receptionist that works 24/7. Manage appointments, patient records, and billing effortlessly while you focus on care.
+                </motion.p>
+
+                <motion.div
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 0.6 }}
+                  className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-4"
+                >
+                  <Button size="lg" className="h-14 px-8 text-lg bg-gray-900 hover:bg-gray-800 text-white rounded-full shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300" onClick={() => navigate('/signup')}>
+                    Start Free Trial
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="h-14 px-8 text-lg border-2 rounded-full hover:bg-gray-50 transition-all duration-300"
+                    onClick={() => setShowDemoTour(true)}
+                  >
+                    <PlayCircle className="mr-2 h-5 w-5" />
+                    Watch Demo
+                  </Button>
+                </motion.div>
+
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 1, delay: 1 }}
+                  className="pt-8 flex items-center justify-center lg:justify-start gap-6 text-sm text-gray-500 font-medium"
+                >
+                  <div className="flex items-center gap-2">
+                    <Shield className="w-4 h-4 text-blue-600" /> HIPAA Compliant
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Star className="w-4 h-4 text-yellow-500" /> 4.9/5 Average Rating
+                  </div>
+                </motion.div>
+              </div>
+
+              {/* Right Side Demo - Hidden on mobile initially, visible on larger screens */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9, rotateY: 10 }}
+                animate={{ opacity: 1, scale: 1, rotateY: 0 }}
+                transition={{ duration: 1, delay: 0.4 }}
+                className="hidden lg:block relative z-10"
               >
-                <div className="flex items-center gap-3">
-                  <Shield className="h-8 w-8 text-blue-600" />
-                  <span>HIPAA Compliant</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <CheckCircle2 className="h-8 w-8 text-green-600" />
-                  <span>No credit card required</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Sparkles className="h-8 w-8 text-purple-600" />
-                  <span>AI-Powered Features</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Users className="h-8 w-8 text-green-600" />
-                  <span>Multi-Location Support</span>
+                <div className="relative">
+                  <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 to-purple-500 rounded-[2.5rem] blur opacity-20 animate-pulse"></div>
+                  <AIReceptionistDemo />
                 </div>
               </motion.div>
             </div>
           </div>
         </section>
 
-        {/* Features Section */}
-        <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
-          <div className="max-w-7xl mx-auto">
-            <ScrollAnimatedSection className="text-center mb-16">
-              <h2 className="text-5xl font-bold text-gray-900 mb-6">
-                Everything Your Healthcare Practice Needs
+        {/* AI Feature Spotlight Section */}
+        <section className="py-24 bg-gray-50 relative overflow-hidden">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <ScrollAnimatedSection className="text-center mb-20">
+              <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6 tracking-tight">
+                Meet Your New <span className="text-blue-600">AI Front Desk</span>
               </h2>
-              <p className="text-2xl text-gray-600 max-w-4xl mx-auto">
-                Comprehensive practice management tools designed by healthcare professionals, for healthcare professionals
+              <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+                Never miss a patient inquiry. Our AI receptionist handles bookings, questions, and scheduling 24/7, just like a human, but faster.
               </p>
             </ScrollAnimatedSection>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {([{
-              icon: Calendar,
-              title: "Smart Appointment Scheduling",
-              description: "Reduce no-shows by 40% with intelligent scheduling that sends automated SMS and email reminders to patients",
-              gradient: "from-blue-500 to-cyan-500"
-            }, {
-              icon: Zap,
-              title: "AI-Powered Patient Insights",
-              description: "Predict patient needs and preferences before appointments, enabling personalized care and better preparation",
-              gradient: "from-purple-500 to-pink-500"
-            }, {
-              icon: Bell,
-              title: "Automated Reminders & Recalls",
-              description: "Cut no-shows by 40% with automated appointment reminders via SMS, email, and recall systems for follow-ups",
-              gradient: "from-orange-500 to-red-500"
-            }, {
-              icon: Users,
-              title: "Centralized Patient Records",
-              description: "Access complete patient history, treatment plans, and medical records instantly from one unified dashboard",
-              gradient: "from-green-500 to-emerald-500"
-            }, {
-              icon: Shield,
-              title: "HIPAA-Compliant Security",
-              description: "Enterprise-grade encryption and HIPAA compliance keeps patient data secure with bank-level protection",
-              gradient: "from-indigo-500 to-blue-500"
-            }, {
-              icon: CheckCircle2,
-              title: "Streamlined Billing & Payments",
-              description: "Automated payment reminders reduce outstanding balances, with integrated billing that saves 3+ hours per week",
-              gradient: "from-teal-500 to-cyan-500"
-            }] as const).map((feature, index) => <ScrollAnimatedSection key={index} delay={index * 0.1} direction="up">
-                <Card className="group p-6 border-2 border-gray-200 hover:border-transparent hover:shadow-2xl transition-all duration-300 cursor-pointer relative overflow-hidden h-full flex flex-col" role="article" tabIndex={0} aria-label={`Feature: ${feature.title}`}>
-                  {/* Gradient background on hover */}
-                  <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-300`}></div>
+            <div className="grid md:grid-cols-3 gap-8">
+               {[
+                {
+                  icon: Clock,
+                  title: "24/7 Availability",
+                  desc: "Book appointments at 2 AM or 2 PM. Your AI desk never sleeps, ensuring your calendar is always full."
+                },
+                {
+                  icon: Zap,
+                  title: "Instant Responses",
+                  desc: "Zero wait times. Patients get immediate answers to common questions about pricing, services, and availability."
+                },
+                {
+                  icon: BarChart3,
+                  title: "Smart Scheduling",
+                  desc: "Optimizes your calendar automatically to reduce gaps and maximize your daily revenue."
+                }
+               ].map((item, i) => (
+                 <ScrollAnimatedSection key={i} delay={i * 0.2}>
+                   <Card className="h-full p-8 border-0 shadow-lg bg-white hover:shadow-xl hover:-translate-y-1 transition-all duration-300 rounded-2xl">
+                     <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center mb-6 text-blue-600">
+                       <item.icon className="w-7 h-7" />
+                     </div>
+                     <h3 className="text-2xl font-bold text-gray-900 mb-3">{item.title}</h3>
+                     <p className="text-gray-600 leading-relaxed">{item.desc}</p>
+                   </Card>
+                 </ScrollAnimatedSection>
+               ))}
+            </div>
+          </div>
 
-                  <div className="relative flex flex-col h-full">
-                    <div className={`inline-flex p-4 rounded-xl bg-gradient-to-br ${feature.gradient} mb-6 group-hover:scale-110 transition-transform duration-300 w-fit`}>
-                      <feature.icon className="h-10 w-10 text-white" aria-hidden="true" />
+          {/* Decorative background elements */}
+          <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+             <div className="absolute top-1/4 -left-64 w-96 h-96 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
+             <div className="absolute top-1/4 -right-64 w-96 h-96 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+          </div>
+        </section>
+
+        {/* Comprehensive Features Grid */}
+        <section className="py-24 px-4 sm:px-6 lg:px-8 bg-white">
+          <div className="max-w-7xl mx-auto">
+            <ScrollAnimatedSection className="text-center mb-16">
+              <h2 className="text-4xl font-bold text-gray-900 mb-6">
+                Everything You Need to Run a Modern Practice
+              </h2>
+            </ScrollAnimatedSection>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {([
+                {
+                  icon: Calendar,
+                  title: "Intelligent Calendar",
+                  description: "Drag-and-drop scheduling with automated conflict detection and multi-view support.",
+                  color: "text-blue-600",
+                  bg: "bg-blue-50"
+                },
+                {
+                  icon: Bell,
+                  title: "Automated Recalls",
+                  description: "Bring patients back with smart SMS & email reminders that reduce no-shows by 40%.",
+                  color: "text-purple-600",
+                  bg: "bg-purple-50"
+                },
+                {
+                  icon: Users,
+                  title: "Patient Records (EMR)",
+                  description: "Secure, searchable digital charts with treatment history, files, and notes in one place.",
+                  color: "text-emerald-600",
+                  bg: "bg-emerald-50"
+                },
+                {
+                  icon: Shield,
+                  title: "Bank-Level Security",
+                  description: "Full HIPAA compliance with end-to-end encryption to keep your patient data safe.",
+                  color: "text-indigo-600",
+                  bg: "bg-indigo-50"
+                },
+                {
+                  icon: CheckCircle2,
+                  title: "Billing & Invoicing",
+                  description: "Create professional invoices, accept online payments, and track revenue effortlessly.",
+                  color: "text-orange-600",
+                  bg: "bg-orange-50"
+                },
+                {
+                  icon: Sparkles,
+                  title: "Review Management",
+                  description: "Automatically request reviews from happy patients to boost your online reputation.",
+                  color: "text-pink-600",
+                  bg: "bg-pink-50"
+                }
+              ] as const).map((feature, index) => (
+                <ScrollAnimatedSection key={index} delay={index * 0.1}>
+                  <div className="group p-8 rounded-3xl bg-white border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 h-full hover:border-blue-100">
+                    <div className={`w-12 h-12 rounded-xl ${feature.bg} ${feature.color} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>
+                      <feature.icon className="w-6 h-6" />
                     </div>
-                    <h3 className="text-2xl font-semibold text-gray-900 mb-4 group-hover:text-blue-600 transition-colors">
+                    <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors">
                       {feature.title}
                     </h3>
-                    <p className="text-xl text-gray-600 leading-relaxed flex-grow">{feature.description}</p>
+                    <p className="text-gray-600 leading-relaxed">
+                      {feature.description}
+                    </p>
                   </div>
-                </Card>
-              </ScrollAnimatedSection>)}
-            </div>
-
-            {/* Additional features list */}
-            <ScrollAnimatedSection className="mt-16 bg-gradient-to-br from-gray-50 to-blue-50 rounded-2xl p-8 md:p-12" delay={0.3}>
-              <h3 className="text-4xl font-bold text-gray-900 mb-8 text-center">Plus Much More</h3>
-              <div className="grid grid-cols-2 gap-8">
-                {["Multi-location & multi-provider support", "Inventory management with low-stock alerts", "Comprehensive analytics & reporting", "Mobile-responsive PWA design", "Customizable clinic templates", "Real-time notifications & messaging", "Prescription management system", "Treatment plan tracking", "Staff & team management", "Data import/export tools", "Custom branding & white-labeling", "Google Calendar synchronization"].map((feature, index) => <div key={index} className="flex items-center gap-4">
-                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center">
-                      <CheckCircle2 className="h-5 w-5 text-white" aria-hidden="true" />
-                    </div>
-                    <span className="text-gray-700 font-medium text-xl">{feature}</span>
-                  </div>)}
-              </div>
-            </ScrollAnimatedSection>
-          </div>
-        </section>
-
-        {/* Benefits Section */}
-        <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-gray-50 to-blue-50">
-          <div className="max-w-7xl mx-auto">
-            <ScrollAnimatedSection className="text-center mb-16">
-              <h2 className="text-5xl font-bold text-gray-900 mb-6">
-                Why Healthcare Practices Choose Caberu
-              </h2>
-              <p className="text-2xl text-gray-600 max-w-4xl mx-auto">
-                Built specifically for healthcare professionals with the features you actually need
-              </p>
-            </ScrollAnimatedSection>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-10">
-              {[{
-              title: "Save Time",
-              description: "Reduce administrative work by up to 60% with automated scheduling, reminders, and patient communications",
-              stat: "60% less admin time"
-            }, {
-              title: "Increase Revenue",
-              description: "Reduce no-shows, improve appointment utilization, and streamline billing to boost practice income",
-              stat: "40% fewer no-shows"
-            }, {
-              title: "Better Patient Care",
-              description: "Access complete patient histories instantly, track treatment plans, and provide more personalized care",
-              stat: "100% organized records"
-            }].map((benefit, index) => <ScrollAnimatedSection key={index} delay={index * 0.15}>
-                <Card className="p-8 lg:p-10 text-center bg-white border-2 border-blue-100 hover:border-blue-300 hover:shadow-xl transition-all duration-300">
-                  <div className="text-5xl font-bold text-blue-600 mb-4">{benefit.stat}</div>
-                  <h3 className="text-3xl font-bold text-gray-900 mb-4">{benefit.title}</h3>
-                  <p className="text-xl text-gray-600">{benefit.description}</p>
-                </Card>
-              </ScrollAnimatedSection>)}
+                </ScrollAnimatedSection>
+              ))}
             </div>
           </div>
         </section>
 
-        {/* Pricing Preview Section */}
-        <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
+        {/* Pricing Section Redesigned */}
+        <section className="py-24 px-4 sm:px-6 lg:px-8 bg-slate-50">
           <div className="max-w-7xl mx-auto">
             <ScrollAnimatedSection className="text-center mb-16">
-              <h2 className="text-5xl font-bold text-gray-900 mb-6">
-                Simple, Transparent Pricing
+              <h2 className="text-4xl font-bold text-gray-900 mb-4">
+                Transparent Pricing
               </h2>
-              <p className="text-2xl text-gray-600 max-w-4xl mx-auto">
-                Start free, upgrade when you're ready. No hidden fees, cancel anytime.
+              <p className="text-lg text-gray-600">
+                No hidden fees. Cancel anytime. 14-day free trial.
               </p>
             </ScrollAnimatedSection>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 max-w-6xl mx-auto">
-              {/* Starter Plan */}
-              <ScrollAnimatedSection delay={0} direction="up">
-                <Card className="p-6 lg:p-8 border-2 border-gray-200 hover:border-gray-300 hover:shadow-lg transition-all duration-300 h-full">
-                <div className="text-center mb-6">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Starter</h3>
-                  <div className="flex items-baseline justify-center gap-1">
-                    <span className="text-5xl font-bold text-gray-900">€99</span>
-                    <span className="text-gray-600">/month</span>
+            <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+              {/* Starter */}
+              <ScrollAnimatedSection delay={0}>
+                <Card className="p-8 rounded-3xl border border-gray-200 shadow-sm hover:shadow-lg transition-all bg-white h-full flex flex-col">
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Starter</h3>
+                  <div className="flex items-baseline gap-1 mb-6">
+                    <span className="text-4xl font-bold text-gray-900">€99</span>
+                    <span className="text-gray-500">/mo</span>
                   </div>
-                  <p className="text-sm text-gray-600 mt-2">Perfect for small practices</p>
-                </div>
-                <ul className="space-y-3 mb-8">
-                  {["Up to 500 customers", "Normal booking system", "Patient reminders", "Mobile app access", "Email support"].map((feature) => (
-                    <li key={feature} className="flex items-center gap-2 text-gray-700">
-                      <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0" />
-                      <span className="text-sm">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-                <Button
-                  onClick={() => navigate('/pricing')}
-                  variant="outline"
-                  className="w-full border-2"
-                >
-                  Get Started
-                </Button>
-              </Card>
+                  <ul className="space-y-4 mb-8 flex-1">
+                    {["Up to 500 patients", "Basic Calendar", "Email Reminders", "Standard Support"].map((item) => (
+                      <li key={item} className="flex items-center gap-3 text-gray-700 text-sm">
+                        <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0" />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                  <Button variant="outline" className="w-full rounded-xl h-12 border-gray-300" onClick={() => navigate('/pricing')}>
+                    Choose Starter
+                  </Button>
+                </Card>
               </ScrollAnimatedSection>
 
-              {/* Professional Plan */}
-              <ScrollAnimatedSection delay={0.15} direction="up">
-                <Card className="p-6 lg:p-8 border-2 border-blue-600 bg-gradient-to-br from-blue-50 to-purple-50 relative shadow-xl hover:shadow-2xl duration-300 h-full">
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                  <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-1 rounded-full text-sm font-semibold shadow-lg">
+              {/* Professional - Highlighted */}
+              <ScrollAnimatedSection delay={0.1}>
+                <Card className="relative p-8 rounded-3xl border-2 border-blue-600 shadow-2xl bg-white h-full flex flex-col scale-105 z-10">
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-1 rounded-full text-sm font-medium shadow-lg">
                     Most Popular
                   </div>
-                </div>
-                <div className="text-center mb-6">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Professional</h3>
-                  <div className="flex items-baseline justify-center gap-1">
-                    <span className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">€250</span>
-                    <span className="text-gray-600">/month</span>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Professional</h3>
+                  <div className="flex items-baseline gap-1 mb-6">
+                    <span className="text-4xl font-bold text-gray-900">€250</span>
+                    <span className="text-gray-500">/mo</span>
                   </div>
-                  <p className="text-sm text-gray-600 mt-2">For growing practices</p>
-                </div>
-                <ul className="space-y-3 mb-8">
-                  {["Up to 2,500 customers", "AI booking system", "Custom training", "2,000 emails per month", "Billing & payments", "Analytics & reporting", "Priority support"].map((feature) => (
-                    <li key={feature} className="flex items-center gap-2 text-gray-700">
-                      <CheckCircle2 className="h-5 w-5 text-blue-600 flex-shrink-0" />
-                      <span className="text-sm font-medium">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-                <Button
-                  onClick={() => navigate('/pricing')}
-                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg"
-                >
-                  Start Free Trial
-                </Button>
-              </Card>
+                  <ul className="space-y-4 mb-8 flex-1">
+                    {["Up to 2,500 patients", "AI Receptionist (Basic)", "SMS & Email Reminders", "Billing & Invoicing", "Priority Support"].map((item) => (
+                      <li key={item} className="flex items-center gap-3 text-gray-700 text-sm font-medium">
+                        <CheckCircle2 className="w-5 h-5 text-blue-500 flex-shrink-0" />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                  <Button className="w-full rounded-xl h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg" onClick={() => navigate('/pricing')}>
+                    Start Free Trial
+                  </Button>
+                </Card>
               </ScrollAnimatedSection>
 
-              {/* Enterprise Plan */}
-              <ScrollAnimatedSection delay={0.3} direction="up">
-                <Card className="p-6 lg:p-8 border-2 border-gray-200 hover:border-gray-300 hover:shadow-lg transition-all duration-300 h-full">
-                <div className="text-center mb-6">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Enterprise</h3>
-                  <div className="flex items-baseline justify-center gap-1">
-                    <span className="text-5xl font-bold text-gray-900">€999</span>
-                    <span className="text-gray-600">/month</span>
+              {/* Enterprise */}
+              <ScrollAnimatedSection delay={0.2}>
+                <Card className="p-8 rounded-3xl border border-gray-200 shadow-sm hover:shadow-lg transition-all bg-white h-full flex flex-col">
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Enterprise</h3>
+                  <div className="flex items-baseline gap-1 mb-6">
+                    <span className="text-4xl font-bold text-gray-900">€999</span>
+                    <span className="text-gray-500">/mo</span>
                   </div>
-                  <p className="text-sm text-gray-600 mt-2">For large organizations</p>
-                </div>
-                <ul className="space-y-3 mb-8">
-                  {["Up to 7,500 patients", "Unlimited AI triage system", "Custom training", "Multi-location system", "7,500 emails per month", "Dedicated account manager", "24/7 phone support"].map((feature) => (
-                    <li key={feature} className="flex items-center gap-2 text-gray-700">
-                      <CheckCircle2 className="h-5 w-5 text-purple-600 flex-shrink-0" />
-                      <span className="text-sm">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-                <Button
-                  onClick={() => navigate('/pricing')}
-                  variant="outline"
-                  className="w-full border-2"
-                >
-                  Get Started
-                </Button>
-              </Card>
+                  <ul className="space-y-4 mb-8 flex-1">
+                    {["Unlimited patients", "Advanced AI & Analytics", "Multi-location Support", "Dedicated Manager", "Custom Integrations"].map((item) => (
+                      <li key={item} className="flex items-center gap-3 text-gray-700 text-sm">
+                        <CheckCircle2 className="w-5 h-5 text-purple-500 flex-shrink-0" />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                  <Button variant="outline" className="w-full rounded-xl h-12 border-gray-300" onClick={() => navigate('/pricing')}>
+                    Contact Sales
+                  </Button>
+                </Card>
               </ScrollAnimatedSection>
-            </div>
-
-            <div className="text-center mt-12">
-              <p className="text-gray-600 mb-4">All plans include a 14-day free trial. No credit card required.</p>
-              <Button
-                onClick={() => navigate('/pricing')}
-                variant="link"
-                className="text-blue-600 hover:text-blue-700"
-              >
-                View detailed pricing →
-              </Button>
             </div>
           </div>
         </section>
 
-        {/* CTA Section */}
-        <section className="relative py-20 px-4 sm:px-6 lg:px-8 overflow-hidden bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600">
-          {/* Background decoration */}
-          <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            <div className="absolute top-0 right-0 w-96 h-96 bg-white rounded-full mix-blend-soft-light filter blur-3xl opacity-10"></div>
-            <div className="absolute bottom-0 left-0 w-96 h-96 bg-white rounded-full mix-blend-soft-light filter blur-3xl opacity-10"></div>
-          </div>
-
-          <div className="max-w-4xl mx-auto text-center text-white space-y-8 relative">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm text-white text-sm font-medium mb-4">
-              <Zap className="h-4 w-4" />
-              <span>Start Your Free Trial</span>
-            </div>
-
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight">
-              Ready to Transform Your Healthcare Practice?
-            </h2>
-            <p className="text-xl text-blue-100 max-w-2xl mx-auto">
-              Join modern healthcare practices using Caberu to save time, reduce no-shows, and provide better patient care.
-              Get started today—no credit card required.
-            </p>
-
-            <div className="flex flex-col md:flex-row gap-4 justify-center items-center pt-4">
-              <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-6 text-lg shadow-2xl hover:shadow-3xl transition-all group font-semibold" onClick={() => navigate('/signup')} aria-label="Start your free trial today">
-                Start Your Free Trial
-                <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-              </Button>
-
-            </div>
-
-            {/* Trust badges */}
-            <div className="flex flex-wrap justify-center items-center gap-6 pt-8 text-sm">
-              <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full">
-                <Shield className="h-4 w-4" />
-                <span>HIPAA Compliant</span>
-              </div>
-              <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full">
-                <CheckCircle2 className="h-4 w-4" />
-                <span>No Credit Card Required</span>
-              </div>
-              <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full">
-                <Clock className="h-4 w-4" />
-                <span>Setup in 5 Minutes</span>
-              </div>
-            </div>
-          </div>
+        {/* Final CTA */}
+        <section className="relative py-24 px-4 sm:px-6 lg:px-8 overflow-hidden bg-gray-900">
+           <div className="absolute inset-0 opacity-20 bg-[radial-gradient(#4f46e5_1px,transparent_1px)] [background-size:16px_16px]"></div>
+           <div className="relative z-10 max-w-4xl mx-auto text-center">
+             <h2 className="text-4xl md:text-5xl font-bold text-white mb-6 tracking-tight">
+               Ready to modernize your clinic?
+             </h2>
+             <p className="text-xl text-gray-300 mb-10 max-w-2xl mx-auto">
+               Join thousands of healthcare professionals who trust Caberu to manage their practice.
+             </p>
+             <Button
+               size="lg"
+               className="h-16 px-10 text-lg bg-white text-gray-900 hover:bg-gray-100 rounded-full shadow-2xl font-semibold transition-all hover:scale-105"
+               onClick={() => navigate('/signup')}
+             >
+               Get Started Now
+               <ArrowRight className="ml-2 h-5 w-5" />
+             </Button>
+             <p className="mt-6 text-sm text-gray-500">
+               No credit card required • 14-day free trial • Cancel anytime
+             </p>
+           </div>
         </section>
       </main>
 
@@ -438,6 +405,8 @@ const Index = () => {
         isOpen={showDemoTour} 
         onClose={() => setShowDemoTour(false)} 
       />
-    </div>;
+    </div>
+  );
 };
+
 export default Index;
