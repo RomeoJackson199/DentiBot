@@ -388,6 +388,10 @@ END:VCALENDAR`;
    * Trigger email for specific events - public API
    */
   async triggerAppointmentRescheduled(appointmentId: string, oldStart: string, newStart: string, patientId: string) {
+    // Extract date and time separately for email templates
+    const oldDate = new Date(oldStart);
+    const newDate = new Date(newStart);
+
     const event: EmailEvent = {
       event: 'AppointmentRescheduled',
       occurred_at: new Date().toISOString(),
@@ -396,6 +400,10 @@ END:VCALENDAR`;
       payload: {
         old_start: oldStart,
         new_start: newStart,
+        original_appointment_date: oldDate.toLocaleDateString(),
+        original_appointment_time: oldDate.toLocaleTimeString(),
+        new_appointment_date: newDate.toLocaleDateString(),
+        new_appointment_time: newDate.toLocaleTimeString(),
         language: 'en'
       },
       idempotency_key: `evt_${appointmentId}_rescheduled_${Date.now()}`
@@ -404,7 +412,16 @@ END:VCALENDAR`;
     return this.processEmailEvent(event);
   }
 
-  async triggerAppointmentCancelled(appointmentId: string, patientId: string, reason: string) {
+  async triggerAppointmentCancelled(appointmentId: string, patientId: string, reason: string, appointmentDate?: string) {
+    // Extract date and time if appointment date is provided
+    let dateStr = '';
+    let timeStr = '';
+    if (appointmentDate) {
+      const date = new Date(appointmentDate);
+      dateStr = date.toLocaleDateString();
+      timeStr = date.toLocaleTimeString();
+    }
+
     const event: EmailEvent = {
       event: 'AppointmentCancelled',
       occurred_at: new Date().toISOString(),
@@ -413,6 +430,8 @@ END:VCALENDAR`;
       payload: {
         cancellation_reason: reason,
         cancelled_by: 'patient',
+        original_appointment_date: dateStr,
+        original_appointment_time: timeStr,
         language: 'en'
       },
       idempotency_key: `evt_${appointmentId}_cancelled_${Date.now()}`
@@ -421,7 +440,16 @@ END:VCALENDAR`;
     return this.processEmailEvent(event);
   }
 
-  async triggerAppointmentReminder(appointmentId: string, patientId: string, reminderType: '24h' | '2h' | '1h') {
+  async triggerAppointmentReminder(appointmentId: string, patientId: string, reminderType: '24h' | '2h' | '1h', appointmentDate?: string) {
+    // Extract date and time if appointment date is provided
+    let dateStr = '';
+    let timeStr = '';
+    if (appointmentDate) {
+      const date = new Date(appointmentDate);
+      dateStr = date.toLocaleDateString();
+      timeStr = date.toLocaleTimeString();
+    }
+
     const event: EmailEvent = {
       event: 'AppointmentReminderDue',
       occurred_at: new Date().toISOString(),
@@ -429,6 +457,8 @@ END:VCALENDAR`;
       appointment_id: appointmentId,
       payload: {
         reminder_type: reminderType,
+        appointment_date: dateStr,
+        appointment_time: timeStr,
         language: 'en'
       },
       idempotency_key: `evt_${appointmentId}_reminder_${reminderType}`

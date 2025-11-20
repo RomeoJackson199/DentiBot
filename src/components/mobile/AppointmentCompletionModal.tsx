@@ -643,6 +643,11 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 							patient_cents: it.patient_cents,
 							vat_cents: it.vat_cents
 						})));
+						// Mark appointment as completed in fallback path
+						await sb.from('appointments').update({
+							status: 'completed',
+							treatment_completed_at: new Date().toISOString()
+						}).eq('id', appointment.id);
 						atomicSuccess = false;
 					} else {
 						throw rpcErr;
