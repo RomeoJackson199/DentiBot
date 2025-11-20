@@ -130,6 +130,27 @@ const tools = [
         required: ["info_type"]
       }
     }
+  },
+  {
+    type: "function",
+    function: {
+      name: "complete_appointment",
+      description: "Mark an appointment as completed. Use this after the patient confirms their visit is done.",
+      parameters: {
+        type: "object",
+        properties: {
+          appointment_id: {
+            type: "string",
+            description: "ID of the appointment to mark as completed"
+          },
+          notes: {
+            type: "string",
+            description: "Optional consultation notes about the visit"
+          }
+        },
+        required: ["appointment_id"]
+      }
+    }
   }
 ];
 
@@ -336,10 +357,11 @@ ${dentistsList}
 
 Your responsibilities:
 - Greet callers warmly and professionally
-- Help book, reschedule, or cancel appointments
+- Help book, reschedule, cancel, or complete appointments
 - Answer questions about the clinic (hours, location, services)
 - Look up patient information when needed
 - Provide appointment information
+- Mark appointments as completed when patients confirm their visit is done
 
 When booking appointments, ASK which dentist they prefer. If they don't have a preference, you can choose any available dentist using their ID from the list above.
 
@@ -495,7 +517,10 @@ async function executeTool(toolCall: any, callerPhone: string, businessId?: stri
         
       case 'get_clinic_info':
         return await getClinicInfo(supabase, args, businessId);
-        
+
+      case 'complete_appointment':
+        return await completeAppointment(supabase, args, businessId);
+
       default:
         return { error: 'Unknown tool' };
     }
@@ -1121,4 +1146,67 @@ async function getClinicInfo(supabase: any, args: any, businessId?: string) {
         description: business?.bio
       };
   }
+}
+
+async function completeAppointment(supabase: any, args: any, businessId?: string) {
+  const { appointment_id, notes } = args;
+
+  // Get appointment details first to ensure it exists and get business_id
+  const { data: appointment, error: fetchError } = await supabase
+    .from('appointments')
+    .select('id, business_id, patient_id, dentist_id, status')
+    .eq('id', appointment_id)
+    .single();
+
+  if (fetchError || !appointment) {
+    return { error: 'Appointment not found' };
+  }
+
+  if (appointment.status === 'completed') {
+    return { error: 'Appointment is already completed' };
+  }
+
+  // Ensure we have business_id
+  const resolvedBusinessId = appointment.business_id || businessId;
+  if (!resolvedBusinessId) {
+    return { error: 'Could not determine business for appointment' };
+  }
+
+  // Update appointment to completed status
+  const updateData: any = {
+    status: 'completed',
+    business_id: resolvedBusinessId
+  };
+
+  if (notes) {
+    updateData.consultation_notes = notes;
+  }
+
+  const { error: updateError } = await supabase
+    .from('appointments')
+    .update(updateData)
+    .eq('id', appointment_id);
+
+  if (updateError) {
+    console.error('Error completing appointment:', updateError);
+    return { error: 'Failed to complete appointment' };
+  }
+
+  // If notes provided, also save them as a separate note record
+  if (notes) {
+    const currentDate = new Date().toISOString().split('T')[0];
+    await supabase.from('notes').insert({
+      patient_id: appointment.patient_id,
+      business_id: resolvedBusinessId,
+      title: `Appointment Completion - ${currentDate}`,
+      content: notes,
+      note_type: 'consultation',
+      created_by: appointment.dentist_id
+    });
+  }
+
+  return {
+    success: true,
+    message: 'Appointment marked as completed'
+  };
 }
