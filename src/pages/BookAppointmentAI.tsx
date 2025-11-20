@@ -290,11 +290,10 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
         .select('slot_time, is_available, emergency_only')
         .eq('dentist_id', dentistId)
         .eq('slot_date', dateStr)
-        .eq('business_id', businessId)
         .eq('is_available', true)
         .order('slot_time');
 
-      console.log('📊 Query result:', { dataLength: data?.length, error });
+      console.log('📊 Query result:', { dataLength: data?.length, error, businessId });
 
       if (error) throw error;
 
