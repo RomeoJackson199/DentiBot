@@ -5,7 +5,11 @@ import {
   Users,
   Shield,
   CheckCircle2,
-  Sparkles
+  Sparkles,
+  Bot,
+  Clock,
+  Zap,
+  BarChart3
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -16,9 +20,10 @@ interface BentoCardProps {
   className?: string;
   delay?: number;
   gradient?: string;
+  children?: React.ReactNode;
 }
 
-const BentoCard = ({ title, description, icon: Icon, className, delay = 0, gradient }: BentoCardProps) => (
+const BentoCard = ({ title, description, icon: Icon, className, delay = 0, gradient, children }: BentoCardProps) => (
   <motion.div
     initial={{ opacity: 0, y: 20 }}
     whileInView={{ opacity: 1, y: 0 }}
@@ -44,9 +49,11 @@ const BentoCard = ({ title, description, icon: Icon, className, delay = 0, gradi
         {title}
       </h3>
 
-      <p className="text-gray-500 leading-relaxed group-hover:text-gray-600">
+      <p className="text-gray-500 leading-relaxed group-hover:text-gray-600 mb-4">
         {description}
       </p>
+
+      {children}
     </div>
   </motion.div>
 );
@@ -80,6 +87,47 @@ export const BentoGridFeatures = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
+          {/* Featured AI Receptionist Card */}
+          <BentoCard
+            title="AI Receptionist"
+            description="Your front desk, upgraded. A fully automated assistant that manages your clinic 24/7, so you never miss a patient."
+            icon={Bot}
+            className="col-span-1 md:col-span-2 lg:col-span-3 bg-gradient-to-br from-blue-50/50 via-white to-purple-50/50 border-blue-100"
+            gradient="bg-gradient-to-r from-blue-600 to-purple-600"
+            delay={0}
+          >
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6 pt-6 border-t border-gray-100/50">
+              <div className="flex items-start gap-4">
+                <div className="p-2 bg-blue-100 rounded-lg text-blue-600 mt-1">
+                  <Clock className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900">24/7 Availability</h4>
+                  <p className="text-sm text-gray-500 mt-1">Books appointments day or night, ensuring your calendar is always full.</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-4">
+                <div className="p-2 bg-purple-100 rounded-lg text-purple-600 mt-1">
+                  <Zap className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900">Instant Responses</h4>
+                  <p className="text-sm text-gray-500 mt-1">Zero wait times. Answers questions about pricing and services instantly.</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-4">
+                <div className="p-2 bg-pink-100 rounded-lg text-pink-600 mt-1">
+                  <BarChart3 className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900">Smart Scheduling</h4>
+                  <p className="text-sm text-gray-500 mt-1">Optimizes your calendar to reduce gaps and maximize daily revenue.</p>
+                </div>
+              </div>
+            </div>
+          </BentoCard>
+
+          {/* Standard Features */}
           <BentoCard
             title="Intelligent Calendar"
             description="Drag-and-drop scheduling with automated conflict detection and multi-view support."
