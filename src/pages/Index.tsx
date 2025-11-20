@@ -5,13 +5,13 @@ import { Header } from "@/components/homepage/Header";
 import { Footer } from "@/components/homepage/Footer";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Calendar, Clock, Bell, Shield, Users, CheckCircle2, ArrowRight, Sparkles, Zap, Star, PlayCircle, BarChart3 } from "lucide-react";
+import { CheckCircle2, ArrowRight, PlayCircle, Shield, Star } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AccessibleLoadingIndicator } from "@/components/ui/skip-to-content";
 import { DemoTourFlow } from "@/components/demo/DemoTourFlow";
 import { AnimatedBackground } from "@/components/homepage/AnimatedBackground";
 import { ScrollAnimatedSection } from "@/components/homepage/ScrollAnimatedSection";
-import { AIReceptionistDemo } from "@/components/homepage/AIReceptionistDemo";
+import { BentoGridFeatures } from "@/components/homepage/BentoGridFeatures";
 import { motion } from "framer-motion";
 
 const Index = () => {
@@ -72,224 +72,88 @@ const Index = () => {
 
       <main id="main-content">
         {/* Hero Section */}
-        <section className="relative pt-24 pb-32 lg:pt-32 lg:pb-48 px-4 sm:px-6 lg:px-8 overflow-hidden">
+        <section className="relative pt-24 pb-32 lg:pt-32 lg:pb-40 px-4 sm:px-6 lg:px-8 overflow-hidden">
           {/* Animated Background */}
           <AnimatedBackground />
 
-          <div className="max-w-7xl mx-auto relative z-10">
-            <div className="grid lg:grid-cols-2 gap-12 items-center">
-              <div className="text-center lg:text-left space-y-8">
-                {/* Badge */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6 }}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/50 backdrop-blur-md border border-blue-100 shadow-sm text-blue-700 font-medium"
-                >
-                  <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
-                  </span>
-                  <span>Next-Gen Practice Management</span>
-                </motion.div>
+          <div className="max-w-5xl mx-auto relative z-10 text-center">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/50 backdrop-blur-md border border-blue-100 shadow-sm text-blue-700 font-medium mb-8"
+            >
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+              </span>
+              <span>Next-Gen Practice Management</span>
+            </motion.div>
 
-                <motion.h1
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: 0.2 }}
-                  className="text-5xl sm:text-6xl lg:text-7xl font-extrabold text-gray-900 tracking-tight leading-[1.1]"
-                >
-                  Your Clinic, <br />
-                  <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-                    Autopilot Enabled
-                  </span>
-                </motion.h1>
+            <motion.h1
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              className="text-5xl sm:text-6xl lg:text-7xl font-extrabold text-gray-900 tracking-tight leading-[1.1] mb-8"
+            >
+              Your Clinic, <br />
+              <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+                Autopilot Enabled
+              </span>
+            </motion.h1>
 
-                <motion.p
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: 0.4 }}
-                  className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto lg:mx-0 leading-relaxed"
-                >
-                  Upgrade your practice with an AI receptionist that works 24/7. Manage appointments, patient records, and billing effortlessly while you focus on care.
-                </motion.p>
+            <motion.p
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.4 }}
+              className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed mb-10"
+            >
+              A receptionist you can call, personalized to your clinic.
+              It books appointments, answers questions, and is available 24/7.
+            </motion.p>
 
-                <motion.div
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: 0.6 }}
-                  className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-4"
-                >
-                  <Button size="lg" className="h-14 px-8 text-lg bg-gray-900 hover:bg-gray-800 text-white rounded-full shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300" onClick={() => navigate('/signup')}>
-                    Start Free Trial
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </Button>
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    className="h-14 px-8 text-lg border-2 rounded-full hover:bg-gray-50 transition-all duration-300"
-                    onClick={() => setShowDemoTour(true)}
-                  >
-                    <PlayCircle className="mr-2 h-5 w-5" />
-                    Watch Demo
-                  </Button>
-                </motion.div>
-
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 1, delay: 1 }}
-                  className="pt-8 flex items-center justify-center lg:justify-start gap-6 text-sm text-gray-500 font-medium"
-                >
-                  <div className="flex items-center gap-2">
-                    <Shield className="w-4 h-4 text-blue-600" /> HIPAA Compliant
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Star className="w-4 h-4 text-yellow-500" /> 4.9/5 Average Rating
-                  </div>
-                </motion.div>
-              </div>
-
-              {/* Right Side Demo - Hidden on mobile initially, visible on larger screens */}
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9, rotateY: 10 }}
-                animate={{ opacity: 1, scale: 1, rotateY: 0 }}
-                transition={{ duration: 1, delay: 0.4 }}
-                className="hidden lg:block relative z-10"
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.6 }}
+              className="flex flex-col sm:flex-row gap-4 justify-center pt-4"
+            >
+              <Button size="lg" className="h-14 px-8 text-lg bg-gray-900 hover:bg-gray-800 text-white rounded-full shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300" onClick={() => navigate('/signup')}>
+                Start Free Trial
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                className="h-14 px-8 text-lg border-2 rounded-full hover:bg-gray-50 transition-all duration-300"
+                onClick={() => setShowDemoTour(true)}
               >
-                <div className="relative">
-                  <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 to-purple-500 rounded-[2.5rem] blur opacity-20 animate-pulse"></div>
-                  <AIReceptionistDemo />
-                </div>
-              </motion.div>
-            </div>
-          </div>
-        </section>
+                <PlayCircle className="mr-2 h-5 w-5" />
+                Watch Demo
+              </Button>
+            </motion.div>
 
-        {/* AI Feature Spotlight Section */}
-        <section className="py-24 bg-gray-50 relative overflow-hidden">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-            <ScrollAnimatedSection className="text-center mb-20">
-              <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6 tracking-tight">
-                Meet Your New <span className="text-blue-600">AI Front Desk</span>
-              </h2>
-              <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                Never miss a patient inquiry. Our AI receptionist handles bookings, questions, and scheduling 24/7, just like a human, but faster.
-              </p>
-            </ScrollAnimatedSection>
-
-            <div className="grid md:grid-cols-3 gap-8">
-               {[
-                {
-                  icon: Clock,
-                  title: "24/7 Availability",
-                  desc: "Book appointments at 2 AM or 2 PM. Your AI desk never sleeps, ensuring your calendar is always full."
-                },
-                {
-                  icon: Zap,
-                  title: "Instant Responses",
-                  desc: "Zero wait times. Patients get immediate answers to common questions about pricing, services, and availability."
-                },
-                {
-                  icon: BarChart3,
-                  title: "Smart Scheduling",
-                  desc: "Optimizes your calendar automatically to reduce gaps and maximize your daily revenue."
-                }
-               ].map((item, i) => (
-                 <ScrollAnimatedSection key={i} delay={i * 0.2}>
-                   <Card className="h-full p-8 border-0 shadow-lg bg-white hover:shadow-xl hover:-translate-y-1 transition-all duration-300 rounded-2xl">
-                     <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center mb-6 text-blue-600">
-                       <item.icon className="w-7 h-7" />
-                     </div>
-                     <h3 className="text-2xl font-bold text-gray-900 mb-3">{item.title}</h3>
-                     <p className="text-gray-600 leading-relaxed">{item.desc}</p>
-                   </Card>
-                 </ScrollAnimatedSection>
-               ))}
-            </div>
-          </div>
-
-          {/* Decorative background elements */}
-          <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-             <div className="absolute top-1/4 -left-64 w-96 h-96 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
-             <div className="absolute top-1/4 -right-64 w-96 h-96 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 1, delay: 1 }}
+              className="pt-12 flex items-center justify-center gap-6 text-sm text-gray-500 font-medium"
+            >
+              <div className="flex items-center gap-2">
+                <Shield className="w-4 h-4 text-blue-600" /> HIPAA Compliant
+              </div>
+              <div className="flex items-center gap-2">
+                <Star className="w-4 h-4 text-yellow-500" /> 4.9/5 Average Rating
+              </div>
+            </motion.div>
           </div>
         </section>
 
         {/* Comprehensive Features Grid */}
-        <section className="py-24 px-4 sm:px-6 lg:px-8 bg-white">
-          <div className="max-w-7xl mx-auto">
-            <ScrollAnimatedSection className="text-center mb-16">
-              <h2 className="text-4xl font-bold text-gray-900 mb-6">
-                Everything You Need to Run a Modern Practice
-              </h2>
-            </ScrollAnimatedSection>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {([
-                {
-                  icon: Calendar,
-                  title: "Intelligent Calendar",
-                  description: "Drag-and-drop scheduling with automated conflict detection and multi-view support.",
-                  color: "text-blue-600",
-                  bg: "bg-blue-50"
-                },
-                {
-                  icon: Bell,
-                  title: "Automated Recalls",
-                  description: "Bring patients back with smart SMS & email reminders that reduce no-shows by 40%.",
-                  color: "text-purple-600",
-                  bg: "bg-purple-50"
-                },
-                {
-                  icon: Users,
-                  title: "Patient Records (EMR)",
-                  description: "Secure, searchable digital charts with treatment history, files, and notes in one place.",
-                  color: "text-emerald-600",
-                  bg: "bg-emerald-50"
-                },
-                {
-                  icon: Shield,
-                  title: "Bank-Level Security",
-                  description: "Full HIPAA compliance with end-to-end encryption to keep your patient data safe.",
-                  color: "text-indigo-600",
-                  bg: "bg-indigo-50"
-                },
-                {
-                  icon: CheckCircle2,
-                  title: "Billing & Invoicing",
-                  description: "Create professional invoices, accept online payments, and track revenue effortlessly.",
-                  color: "text-orange-600",
-                  bg: "bg-orange-50"
-                },
-                {
-                  icon: Sparkles,
-                  title: "Review Management",
-                  description: "Automatically request reviews from happy patients to boost your online reputation.",
-                  color: "text-pink-600",
-                  bg: "bg-pink-50"
-                }
-              ] as const).map((feature, index) => (
-                <ScrollAnimatedSection key={index} delay={index * 0.1}>
-                  <div className="group p-8 rounded-3xl bg-white border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 h-full hover:border-blue-100">
-                    <div className={`w-12 h-12 rounded-xl ${feature.bg} ${feature.color} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>
-                      <feature.icon className="w-6 h-6" />
-                    </div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors">
-                      {feature.title}
-                    </h3>
-                    <p className="text-gray-600 leading-relaxed">
-                      {feature.description}
-                    </p>
-                  </div>
-                </ScrollAnimatedSection>
-              ))}
-            </div>
-          </div>
-        </section>
+        <BentoGridFeatures />
 
         {/* Pricing Section Redesigned */}
-        <section className="py-24 px-4 sm:px-6 lg:px-8 bg-slate-50">
+        <section className="py-24 px-4 sm:px-6 lg:px-8 bg-white">
           <div className="max-w-7xl mx-auto">
             <ScrollAnimatedSection className="text-center mb-16">
               <h2 className="text-4xl font-bold text-gray-900 mb-4">
