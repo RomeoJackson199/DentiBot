@@ -131,18 +131,25 @@ export function exportAppointmentsToCSV(appointments: any[]): void {
     'created_at',
   ];
 
-  const formattedData = appointments.map(apt => ({
-    id: apt.id,
-    patient_name: apt.patient_name || `${apt.patient?.first_name || ''} ${apt.patient?.last_name || ''}`.trim(),
-    dentist_name: apt.dentist_name || `${apt.dentist?.first_name || ''} ${apt.dentist?.last_name || ''}`.trim(),
-    appointment_date: apt.appointment_date || '',
-    appointment_time: apt.appointment_time || '',
-    duration: apt.duration_minutes ? `${apt.duration_minutes} minutes` : '',
-    status: apt.status || '',
-    type: apt.appointment_type || '',
-    notes: apt.notes || '',
-    created_at: apt.created_at ? new Date(apt.created_at).toLocaleDateString() : '',
-  }));
+  const formattedData = appointments.map(apt => {
+    // appointment_date is a timestamp - extract date and time separately
+    const appointmentDateTime = apt.appointment_date ? new Date(apt.appointment_date) : null;
+    const dateStr = appointmentDateTime ? appointmentDateTime.toLocaleDateString() : '';
+    const timeStr = appointmentDateTime ? appointmentDateTime.toLocaleTimeString() : '';
+
+    return {
+      id: apt.id,
+      patient_name: apt.patient_name || `${apt.patient?.first_name || ''} ${apt.patient?.last_name || ''}`.trim(),
+      dentist_name: apt.dentist_name || `${apt.dentist?.first_name || ''} ${apt.dentist?.last_name || ''}`.trim(),
+      appointment_date: dateStr,
+      appointment_time: timeStr,
+      duration: apt.duration_minutes ? `${apt.duration_minutes} minutes` : '',
+      status: apt.status || '',
+      type: apt.appointment_type || '',
+      notes: apt.notes || '',
+      created_at: apt.created_at ? new Date(apt.created_at).toLocaleDateString() : '',
+    };
+  });
 
   const filename = `appointments_export_${new Date().toISOString().split('T')[0]}.csv`;
   downloadCSV(formattedData, { filename, headers });
