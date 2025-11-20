@@ -22,7 +22,7 @@ import {
   CalendarDays,
   CheckCircle
 } from "lucide-react";
-import { format, startOfDay } from "date-fns";
+import { format, startOfDay, startOfWeek, addDays, getDay } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import ClinicMap from "@/components/Map";
 import { logger } from '@/lib/logger';
@@ -73,6 +73,7 @@ export default function BookAppointmentAI() {
   const [selectedTime, setSelectedTime] = useState<string>();
   const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingSlots, setLoadingSlots] = useState(false);
   const [loadingAI, setLoadingAI] = useState(false);
   const [showAllSlots, setShowAllSlots] = useState(false);
   const [aiSlotCode, setAiSlotCode] = useState<{showSlots: string[], slotDetails: Record<string, {score: number, reason: string}>}>({ showSlots: [], slotDetails: {} });
@@ -236,6 +237,7 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
   const fetchAvailableSlots = async (date: Date, dentistId: string) => {
     if (!businessId) return;
 
+    setLoadingSlots(true);
     try {
       // Use format to preserve Brussels date without UTC conversion
       const dateStr = format(date, 'yyyy-MM-dd');
@@ -253,6 +255,7 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
 
         if (availability && availability.is_available === false) {
           setAvailableSlots([]);
+          setLoadingSlots(false);
           return;
         }
       } catch (e) {
@@ -282,6 +285,7 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
           variant: "destructive",
         });
         setAvailableSlots([]);
+        setLoadingSlots(false);
         return;
       }
 
@@ -304,6 +308,8 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
         description: "Failed to load available times",
         variant: "destructive",
       });
+    } finally {
+      setLoadingSlots(false);
     }
   };
 
@@ -861,19 +867,22 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
                   {/* Week Days */}
                   <div className="grid grid-cols-7 gap-2">
                     {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, index) => {
-                      const date = new Date();
-                      date.setDate(date.getDate() + index);
+                      // Calculate the correct date for the current week
+                      // Start from the beginning of the current week (Monday = 1)
+                      const today = new Date();
+                      const weekStart = startOfWeek(selectedDate || today, { weekStartsOn: 1 });
+                      const date = addDays(weekStart, index);
                       const isSelected = selectedDate && format(selectedDate, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd');
                       const isDisabled = date.getDay() === 0 || date.getDay() === 6;
-                      
+
                       return (
                         <button
                           key={day}
                           onClick={() => !isDisabled && handleDateSelect(date)}
                           disabled={isDisabled}
                           className={`flex flex-col items-center p-3 rounded-full transition-all ${
-                            isSelected 
-                              ? 'bg-primary text-primary-foreground' 
+                            isSelected
+                              ? 'bg-primary text-primary-foreground'
                               : isDisabled
                               ? 'opacity-40 cursor-not-allowed'
                               : 'hover:bg-muted'
@@ -902,9 +911,9 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
                       </div>
                       
                       <div className="max-h-[400px] overflow-y-auto space-y-2">
-                        {availableSlots.length === 0 ? (
+                        {loadingSlots ? (
                           <p className="text-center text-muted-foreground py-8">Loading time slots...</p>
-                        ) : availableSlots.filter(slot => slot.available).length === 0 ? (
+                        ) : availableSlots.length === 0 || availableSlots.filter(slot => slot.available).length === 0 ? (
                           <p className="text-center text-muted-foreground py-8">No available slots for this date</p>
                         ) : (
                           availableSlots
