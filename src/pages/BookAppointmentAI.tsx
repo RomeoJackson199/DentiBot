@@ -262,28 +262,26 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
         console.warn('Availability check failed:', e);
       }
 
-      console.log('🔍 Fetching slots for:', { dentistId, dateStr, businessId });
-
-      const { error: rpcError } = await supabase.rpc('ensure_daily_slots', {
-        p_dentist_id: dentistId,
-        p_date: dateStr
-      });
-
-      if (rpcError) {
-        console.error('❌ ensure_daily_slots error:', rpcError);
-        throw rpcError;
-      }
-
-      console.log('✅ ensure_daily_slots completed');
-
-      // First check if any slots exist at all for debugging
-      const { data: allSlots } = await supabase
+      // Check if slots already exist to avoid unnecessary RPC calls
+      const { data: existingSlots, error: checkError } = await supabase
         .from('appointment_slots')
-        .select('slot_time, business_id')
+        .select('id')
         .eq('dentist_id', dentistId)
-        .eq('slot_date', dateStr);
+        .eq('slot_date', dateStr)
+        .limit(1);
 
-      console.log('🔎 All slots for this dentist/date:', allSlots);
+      // Only call ensure_daily_slots if no slots exist yet
+      if (!checkError && (!existingSlots || existingSlots.length === 0)) {
+        const { error: rpcError } = await supabase.rpc('ensure_daily_slots', {
+          p_dentist_id: dentistId,
+          p_date: dateStr
+        });
+
+        if (rpcError) {
+          console.error('Failed to generate slots:', rpcError);
+          throw rpcError;
+        }
+      }
 
       let { data, error } = await supabase
         .from('appointment_slots')
@@ -292,8 +290,6 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
         .eq('slot_date', dateStr)
         .eq('is_available', true)
         .order('slot_time');
-
-      console.log('📊 Query result:', { dataLength: data?.length, error, businessId });
 
       if (error) throw error;
 
