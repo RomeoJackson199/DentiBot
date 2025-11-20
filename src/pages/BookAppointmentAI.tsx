@@ -262,7 +262,7 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
         console.warn('Availability check failed:', e);
       }
 
-      await supabase.rpc('generate_daily_slots', {
+      await supabase.rpc('ensure_daily_slots', {
         p_dentist_id: dentistId,
         p_date: dateStr
       });
