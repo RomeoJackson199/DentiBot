@@ -18,6 +18,7 @@ import { Progress } from "@/components/ui/progress";
 import { withSchemaReloadRetry } from "@/integrations/supabase/retry";
 import { SKU_DISPLAY_NAME, PROCEDURE_DEFS, type ProcedureDef } from "@/lib/constants";
 import { logger } from '@/lib/logger';
+import { useBusinessContext } from '@/hooks/useBusinessContext';
 
 interface AppointmentCompletionModalProps {
 	open: boolean;
@@ -47,6 +48,7 @@ interface TreatmentItemForm {
 
 export function AppointmentCompletionModal({ open, onOpenChange, appointment, dentistId, onCompleted }: AppointmentCompletionModalProps) {
 	const { toast } = useToast();
+	const { businessId } = useBusinessContext();
 	const [loading, setLoading] = useState(false);
 	const [locking, setLocking] = useState(false);
 	const sb: any = supabase;
@@ -188,7 +190,7 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 				);
 			}
 			await sb.from('invoices').update({ status: 'paid' }).eq('id', invoiceId as string);
-			await sb.from('appointments').update({ status: 'completed', treatment_completed_at: new Date().toISOString() }).eq('id', appointment.id);
+			await sb.from('appointments').update({ status: 'completed', treatment_completed_at: new Date().toISOString(), business_id: businessId }).eq('id', appointment.id);
 			await emitAnalyticsEvent('INVOICE_CREATED', dentistId, { appointmentId: appointment.id, amount_cents: patientCents, status: 'paid' });
 			await emitAnalyticsEvent('APPOINTMENT_COMPLETED', dentistId, { appointmentId: appointment.id, totals: { ...totals, total_due_cents: patientCents }, outcome });
 			toast({ title: 'Marked as paid' });

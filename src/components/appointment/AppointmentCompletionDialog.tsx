@@ -28,6 +28,7 @@ import { format } from 'date-fns';
 import { NotificationService } from '@/lib/notificationService';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useBusinessTemplate } from '@/hooks/useBusinessTemplate';
+import { useBusinessContext } from '@/hooks/useBusinessContext';
 import { logger } from '@/lib/logger';
 
 interface AppointmentCompletionDialogProps {
@@ -76,7 +77,10 @@ export function AppointmentCompletionDialog({
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(false);
-  
+
+  // Business context
+  const { businessId } = useBusinessContext();
+
   // Template-driven behavior
   const { template, hasFeature } = useBusinessTemplate();
   const steps = useMemo(() => {
@@ -266,6 +270,7 @@ export function AppointmentCompletionDialog({
         
         await supabase.from('notes').insert({
           patient_id: appointment.patient_id,
+          business_id: businessId,
           title: `Appointment Treatments - ${format(new Date(appointment.appointment_date), 'PPP')}`,
           content: treatmentNotes,
           note_type: 'treatment',
@@ -277,6 +282,7 @@ export function AppointmentCompletionDialog({
       if (notes.trim() || consultationNotes.trim()) {
         await supabase.from('notes').insert({
           patient_id: appointment.patient_id,
+          business_id: businessId,
           title: `Consultation Notes - ${format(new Date(appointment.appointment_date), 'PPP')}`,
           content: consultationNotes.trim() || notes.trim(),
           note_type: 'consultation',
@@ -294,6 +300,7 @@ export function AppointmentCompletionDialog({
               appointment_id: appointment.id,
               patient_id: appointment.patient_id,
               dentist_id: appointment.dentist_id,
+              business_id: businessId,
               total_amount_cents: Math.round(totalAmount * 100),
               patient_amount_cents: Math.round(totalAmount * 100),
               mutuality_amount_cents: 0,
@@ -316,6 +323,7 @@ export function AppointmentCompletionDialog({
           // Add invoice items for treatments
           const invoiceItems = treatments.map(treatment => ({
             invoice_id: invoice.id,
+            business_id: businessId,
             code: `TREAT-${treatment.name.replace(/\s+/g, '-').toUpperCase()}`,
             description: treatment.name,
             quantity: 1,
@@ -378,6 +386,7 @@ export function AppointmentCompletionDialog({
         const prescriptionData = prescriptions.map(rx => ({
           patient_id: appointment.patient_id,
           dentist_id: appointment.dentist_id,
+          business_id: businessId,
           medication_name: rx.medication,
           dosage: rx.dosage,
           frequency: rx.frequency,
@@ -399,6 +408,7 @@ export function AppointmentCompletionDialog({
           .insert({
             patient_id: appointment.patient_id,
             dentist_id: appointment.dentist_id,
+            business_id: businessId,
             title: newTreatmentPlanForm.title,
             description: newTreatmentPlanForm.description || null,
             diagnosis: newTreatmentPlanForm.diagnosis || null,
@@ -431,7 +441,8 @@ export function AppointmentCompletionDialog({
         .update({
           status: 'completed',
           reason: aiGeneratedReason,
-          consultation_notes: consultationNotes || notes || null
+          consultation_notes: consultationNotes || notes || null,
+          business_id: businessId
         })
         .eq('id', appointment.id);
 
@@ -441,6 +452,7 @@ export function AppointmentCompletionDialog({
         await createAppointmentWithNotification({
           patient_id: appointment.patient_id,
           dentist_id: appointment.dentist_id,
+          business_id: businessId,
           appointment_date: new Date(followUpDate).toISOString(),
           reason: 'Follow-up appointment',
           status: 'confirmed',

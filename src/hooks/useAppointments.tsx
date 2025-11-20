@@ -65,6 +65,7 @@ interface UseAppointmentsReturn {
 export async function createAppointmentWithNotification(appointmentData: {
   patient_id: string;
   dentist_id: string;
+  business_id: string;
   appointment_date: string;
   reason: string;
   notes?: string;

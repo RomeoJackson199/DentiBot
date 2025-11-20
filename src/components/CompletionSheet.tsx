@@ -20,6 +20,7 @@ import { withSchemaReloadRetry } from "@/integrations/supabase/retry";
 import { SKU_DISPLAY_NAME, PROCEDURE_DEFS } from "@/lib/constants";
 import { PatientPreferencesDialog } from "./PatientPreferencesDialog";
 import { logger } from '@/lib/logger';
+import { useBusinessContext } from '@/hooks/useBusinessContext';
 
 interface CompletionSheetProps {
 	open: boolean;
@@ -47,6 +48,7 @@ type AdjustmentType = 'none' | 'discount_percent' | 'discount_amount' | 'surchar
 export function CompletionSheet({ open, onOpenChange, appointment, dentistId, onCompleted }: CompletionSheetProps) {
 	const isMobile = typeof window !== 'undefined' ? window.innerWidth < 768 : false;
 	const { toast } = useToast();
+	const { businessId } = useBusinessContext();
 	const sb: any = supabase;
 	const [loading, setLoading] = useState(false);
 	const [currentUserId, setCurrentUserId] = useState<string | null>(null);
@@ -454,7 +456,7 @@ export function CompletionSheet({ open, onOpenChange, appointment, dentistId, on
 			}
 
 			// 9) Mark appointment status
-			await sb.from('appointments').update({ status: withInvoice ? 'completed' : 'confirmed', treatment_completed_at: withInvoice ? new Date().toISOString() : null }).eq('id', appointment.id);
+			await sb.from('appointments').update({ status: withInvoice ? 'completed' : 'confirmed', treatment_completed_at: withInvoice ? new Date().toISOString() : null, business_id: businessId }).eq('id', appointment.id);
 			await emitAnalyticsEvent('APPOINTMENT_COMPLETED', dentistId, { appointmentId: appointment.id, totals: { subtotal, finalTotal }, outcome: 'successful' });
 
 			toast({ title: withInvoice ? 'Saved & invoiced' : 'Saved as draft' });
