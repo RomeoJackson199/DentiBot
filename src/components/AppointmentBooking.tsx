@@ -170,7 +170,7 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
 
       if (error) throw error;
 
-      const availableSlots = allSlots?.filter(slot => slot.is_available && !slot.emergency_only)
+      const availableSlots = allSlots?.filter(slot => slot.is_available && !slot.emergency_only && slot.slot_time)
         .map(slot => slot.slot_time.substring(0, 5)) || [];
 
       setAvailableTimes(availableSlots);
@@ -527,6 +527,8 @@ export const AppointmentBooking = ({ user, selectedDentist: preSelectedDentist, 
                           <div className="grid grid-cols-3 xs:grid-cols-4 sm:grid-cols-6 gap-1 sm:gap-2">
                            {allSlots
                              .filter(slot => {
+                               // Filter out slots with null/undefined slot_time
+                               if (!slot.slot_time) return false;
                                // If showing all, include all available slots
                                if (showAllSlots) return slot.is_available && !slot.emergency_only;
                                // If AI code exists, show only AI-recommended slots

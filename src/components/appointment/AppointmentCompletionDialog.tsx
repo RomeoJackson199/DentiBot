@@ -288,7 +288,7 @@ export function AppointmentCompletionDialog({
       if (totalAmount > 0) {
         if (paymentReceived) {
           // Payment received - create invoice
-          const { data: invoice } = await supabase
+          const { data: invoice, error: invoiceError } = await supabase
             .from('invoices')
             .insert({
               appointment_id: appointment.id,
@@ -304,6 +304,15 @@ export function AppointmentCompletionDialog({
             .select()
             .single();
 
+          if (invoiceError) {
+            console.error('Error creating invoice:', invoiceError);
+            throw new Error('Failed to create invoice');
+          }
+
+          if (!invoice) {
+            throw new Error('Invoice creation returned no data');
+          }
+
           // Add invoice items for treatments
           const invoiceItems = treatments.map(treatment => ({
             invoice_id: invoice.id,
@@ -315,7 +324,7 @@ export function AppointmentCompletionDialog({
             patient_cents: Math.round(treatment.price * 100),
             vat_cents: 0
           }));
-          
+
           if (invoiceItems.length > 0) {
             await supabase.from('invoice_items').insert(invoiceItems);
           }
