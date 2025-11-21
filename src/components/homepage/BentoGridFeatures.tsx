@@ -1,15 +1,12 @@
 import { motion } from "framer-motion";
 import {
-  Calendar,
-  Bell,
-  Users,
-  Shield,
-  CheckCircle2,
-  Sparkles,
   Bot,
-  Clock,
   Zap,
-  BarChart3
+  Clock,
+  Activity,
+  ClipboardList,
+  LayoutDashboard,
+  Phone
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -69,112 +66,79 @@ export const BentoGridFeatures = () => {
             viewport={{ once: true }}
             className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6 tracking-tight"
           >
-            Complete Practice Management, <br/>
+            Caberu Answers Every Call, <br/>
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
-              Redefined.
+              Books Every Appointment
             </span>
           </motion.h2>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.1 }}
-            className="text-xl text-gray-600"
-          >
-            Everything you need to run a modern practice, all in one place.
-          </motion.p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
-          {/* Featured AI Receptionist Card */}
+          {/* AI Phone Reception - Full Width */}
           <BentoCard
-            title="AI Receptionist"
-            description="Your front desk, upgraded. A fully automated assistant that manages your clinic 24/7, so you never miss a patient."
+            title="AI Phone Reception"
+            description="Natural, human-like conversation that answers instantly - no robotic menus or hold music."
             icon={Bot}
             className="col-span-1 md:col-span-2 lg:col-span-3 bg-gradient-to-br from-blue-50/50 via-white to-purple-50/50 border-blue-100"
             gradient="bg-gradient-to-r from-blue-600 to-purple-600"
             delay={0}
           >
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6 pt-6 border-t border-gray-100/50">
-              <div className="flex items-start gap-4">
-                <div className="p-2 bg-blue-100 rounded-lg text-blue-600 mt-1">
-                  <Clock className="w-5 h-5" />
-                </div>
-                <div>
-                  <h4 className="font-semibold text-gray-900">24/7 Availability</h4>
-                  <p className="text-sm text-gray-500 mt-1">Books appointments day or night, ensuring your calendar is always full.</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-4">
-                <div className="p-2 bg-purple-100 rounded-lg text-purple-600 mt-1">
-                  <Zap className="w-5 h-5" />
-                </div>
-                <div>
-                  <h4 className="font-semibold text-gray-900">Instant Responses</h4>
-                  <p className="text-sm text-gray-500 mt-1">Zero wait times. Answers questions about pricing and services instantly.</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-4">
-                <div className="p-2 bg-pink-100 rounded-lg text-pink-600 mt-1">
-                  <BarChart3 className="w-5 h-5" />
-                </div>
-                <div>
-                  <h4 className="font-semibold text-gray-900">Smart Scheduling</h4>
-                  <p className="text-sm text-gray-500 mt-1">Optimizes your calendar to reduce gaps and maximize daily revenue.</p>
-                </div>
-              </div>
-            </div>
+             {/* Decorative sub-features or visualization could go here if needed, but simple text is requested */}
           </BentoCard>
 
-          {/* Standard Features */}
+          {/* Real-Time Booking */}
           <BentoCard
-            title="Intelligent Calendar"
-            description="Drag-and-drop scheduling with automated conflict detection and multi-view support."
-            icon={Calendar}
+            title="Real-Time Booking"
+            description="Books appointments with your actual availability in milliseconds, while the patient is on the line."
+            icon={Zap}
             gradient="bg-blue-600"
             delay={0.1}
           />
 
+          {/* 24/7 Availability */}
           <BentoCard
-            title="Automated Recalls"
-            description="Bring patients back with smart SMS & email reminders that reduce no-shows by 40%."
-            icon={Bell}
+            title="24/7 Availability"
+            description="Patients can call anytime - early morning, late evening, weekends - and get immediate service."
+            icon={Clock}
             gradient="bg-purple-600"
             delay={0.2}
           />
 
+          {/* Smart Triage */}
           <BentoCard
-            title="Patient Records (EMR)"
-            description="Secure, searchable digital charts with treatment history, files, and notes in one place."
-            icon={Users}
-            gradient="bg-emerald-600"
+            title="Smart Triage"
+            description="Emergency cases identified and prioritized appropriately."
+            icon={Activity}
+            gradient="bg-red-600"
             delay={0.3}
           />
 
+          {/* Patient Intake */}
           <BentoCard
-            title="Bank-Level Security"
-            description="Full HIPAA compliance with end-to-end encryption to keep your patient data safe."
-            icon={Shield}
-            gradient="bg-indigo-600"
+            title="Patient Intake"
+            description="Conversational collection of patient information before they arrive."
+            icon={ClipboardList}
+            gradient="bg-emerald-600"
             delay={0.4}
           />
 
+          {/* Complete Management */}
           <BentoCard
-            title="Billing & Invoicing"
-            description="Create professional invoices, accept online payments, and track revenue effortlessly."
-            icon={CheckCircle2}
+            title="Complete Management"
+            description="Full practice dashboard, patient portal, payments, and analytics included."
+            icon={LayoutDashboard}
             gradient="bg-orange-600"
             delay={0.5}
+            className="col-span-1 md:col-span-2 lg:col-span-2"
           />
-
-          <BentoCard
-            title="Review Management"
-            description="Automatically request reviews from happy patients to boost your online reputation."
-            icon={Sparkles}
-            gradient="bg-pink-600"
-            delay={0.6}
-          />
+          {/* Note: Adjusted span for aesthetic balance, 5 cards + 1 full width + 1 double width = 3+1+1+1+1+2 = 9 slots.
+             Grid is 3 columns.
+             Row 1: AI Reception (3 cols)
+             Row 2: Booking, 24/7, Triage (3 cols)
+             Row 3: Intake (1 col), Complete Mgmt (2 cols)
+             Total fit.
+           */}
 
         </div>
 
@@ -182,7 +146,7 @@ export const BentoGridFeatures = () => {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ delay: 0.7 }}
+          transition={{ delay: 0.6 }}
           className="mt-16 text-center"
         >
           <p className="text-4xl sm:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-gray-300 via-gray-500 to-gray-300 tracking-tight animate-pulse">
