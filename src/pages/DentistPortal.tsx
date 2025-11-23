@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
@@ -13,7 +13,8 @@ import { ClinicalToday } from "@/components/ClinicalToday";
 import { ModernPatientManagement } from "@/components/enhanced/ModernPatientManagement";
 import { EnhancedAvailabilitySettings } from "@/components/enhanced/EnhancedAvailabilitySettings";
 import { PaymentRequestManager } from "@/components/PaymentRequestManager";
-import { DentistAnalytics } from "@/components/analytics/DentistAnalytics";
+// Lazy load analytics (includes heavy chart library ~400KB)
+const DentistAnalytics = lazy(() => import("@/components/analytics/DentistAnalytics").then(m => ({ default: m.DentistAnalytics })));
 import { InventoryManager } from "@/components/inventory/InventoryManager";
 import DataImportManager from "@/components/DataImportManager";
 import DentistAdminBranding from "./DentistAdminBranding";
@@ -25,7 +26,8 @@ import { ModernLoadingSpinner } from "@/components/enhanced/ModernLoadingSpinner
 import DentistAppointmentsManagement from "./DentistAppointmentsManagement";
 import { InviteDentistDialog } from "@/components/InviteDentistDialog";
 import { useBusinessContext } from "@/hooks/useBusinessContext";
-import Messages from "./Messages";
+// Lazy load Messages component for better code splitting
+const Messages = lazy(() => import("./Messages"));
 import { ServiceManager } from "@/components/services/ServiceManager";
 import { UserTour, useUserTour } from "@/components/UserTour";
 import { DentistDemoTour } from "@/components/DentistDemoTour";
@@ -227,7 +229,11 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
       case 'employees':
         return <DentistAdminUsers />;
       case 'messages':
-        return <Messages />;
+        return (
+          <Suspense fallback={<ModernLoadingSpinner />}>
+            <Messages />
+          </Suspense>
+        );
       case 'clinical':
         // Only render clinical if medical features are enabled
         if (hasFeature('medicalRecords') || hasFeature('prescriptions') || hasFeature('treatmentPlans')) {
@@ -240,12 +246,14 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
         return hasFeature('paymentRequests') ? <PaymentRequestManager dentistId={dentistId} /> : <div className="p-4">Payment features not available</div>;
       case 'analytics':
         return (
-          <DentistAnalytics
-            dentistId={dentistId}
-            onOpenPatientsTab={() => setActiveSection('patients')}
-            onOpenClinicalTab={() => setActiveSection('clinical')}
-            onOpenPaymentsTab={() => setActiveSection('payments')}
-          />
+          <Suspense fallback={<ModernLoadingSpinner />}>
+            <DentistAnalytics
+              dentistId={dentistId}
+              onOpenPatientsTab={() => setActiveSection('patients')}
+              onOpenClinicalTab={() => setActiveSection('clinical')}
+              onOpenPaymentsTab={() => setActiveSection('payments')}
+            />
+          </Suspense>
         );
       case 'reports':
         return <div className="p-4">Reports (Coming Soon)</div>;

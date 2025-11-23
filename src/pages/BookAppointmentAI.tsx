@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { useNavigate, Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -11,12 +11,12 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Calendar } from "@/components/ui/calendar";
 import { RecommendedDentistWidget } from "@/components/chat/RecommendedDentistWidget";
-import { 
-  ArrowLeft, 
-  MapPin, 
-  Phone, 
-  Mail, 
-  Star, 
+import {
+  ArrowLeft,
+  MapPin,
+  Phone,
+  Mail,
+  Star,
   Bot,
   Clock,
   CalendarDays,
@@ -24,7 +24,8 @@ import {
 } from "lucide-react";
 import { format, startOfDay, startOfWeek, addDays, getDay } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
-import ClinicMap from "@/components/Map";
+// Lazy load Map component (Mapbox is heavy ~100KB+)
+const ClinicMap = lazy(() => import("@/components/Map"));
 import { logger } from '@/lib/logger';
 import { AnimatedBackground, EmptyState } from "@/components/ui/polished-components";
 import { clinicTimeToUtc, createAppointmentDateTimeFromStrings } from "@/lib/timezone";
@@ -866,7 +867,9 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
                     {selectedDentist.clinic_address || 'Address not available'}
                   </p>
                   <div className="w-full h-40 rounded-lg overflow-hidden">
-                    <ClinicMap address={selectedDentist.clinic_address || ''} />
+                    <Suspense fallback={<Skeleton className="w-full h-40" />}>
+                      <ClinicMap address={selectedDentist.clinic_address || ''} />
+                    </Suspense>
                   </div>
                 </CardContent>
               </Card>

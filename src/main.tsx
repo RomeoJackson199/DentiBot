@@ -4,10 +4,15 @@ import './index.css'
 import { performanceTracker } from './utils/performance'
 import { notify } from './lib/notify'
 import { logger } from '@/lib/logger';
+import { initPerformanceMonitoring } from '@/lib/performance';
 
-// Initialize performance monitoring
+// Initialize comprehensive performance monitoring
 if (process.env.NODE_ENV === 'development') {
   performanceTracker.monitorMemory();
+  initPerformanceMonitoring();
+} else if (import.meta.env.VITE_ENABLE_PERFORMANCE_MONITORING) {
+  // Enable in production if explicitly enabled
+  initPerformanceMonitoring();
 }
 
 // Register service worker with better error handling
