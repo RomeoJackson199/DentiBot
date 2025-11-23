@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, lazy, Suspense } from "react";
 import { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { InteractiveDentalChat } from "@/components/chat/InteractiveDentalChat";
@@ -37,7 +37,8 @@ import { AppointmentsTab } from "@/components/patient/AppointmentsTab";
 import { PaymentsTab } from "@/components/patient/PaymentsTab";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import BookAppointment from "@/pages/BookAppointment";
-import Messages from "@/pages/Messages";
+// Lazy load Messages component for better code splitting
+const Messages = lazy(() => import("@/pages/Messages"));
 import { logger } from '@/lib/logger';
 import { useBusinessTemplate } from '@/hooks/useBusinessTemplate';
 import { useBusinessContext } from '@/hooks/useBusinessContext';
@@ -603,7 +604,11 @@ export const PatientDashboard = ({
       )}
 
 
-      {activeSection === 'messages' && <Messages />}
+      {activeSection === 'messages' && (
+        <Suspense fallback={<div className="flex items-center justify-center p-8"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
+          <Messages />
+        </Suspense>
+      )}
 
       {activeSection === 'care' && <CareTab plans={carePlans} prescriptions={carePrescriptions} visits={careVisits} records={careRecords} user={user} patientId={userProfile?.id || null} onReschedule={() => setActiveSection('assistant')} />}
 
