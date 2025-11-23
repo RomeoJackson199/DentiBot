@@ -2082,7 +2082,9 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
           if (["en","fr","nl"].includes(pref)) {
             setLanguage(pref);
           }
-        } catch {}
+        } catch (error) {
+          console.error('Failed to load language preference from profile:', error);
+        }
       })();
     }
   }, []);

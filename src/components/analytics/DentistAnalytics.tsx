@@ -490,14 +490,18 @@ export const DentistAnalytics = ({ dentistId, onOpenPatientsTab, onOpenClinicalT
           setCustomRange({ from: new Date(parsed.customRange.from), to: parsed.customRange.to ? new Date(parsed.customRange.to) : undefined });
         }
       }
-    } catch {}
+    } catch (error) {
+      console.error('Failed to load analytics filters from localStorage:', error);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   useEffect(() => {
     try {
       localStorage.setItem('dentistAnalyticsFilters', JSON.stringify({ range, selectedTreatment, customRange }));
       localStorage.setItem('analytics.autoScheduleEnabled', String(autoScheduleEnabled));
-    } catch {}
+    } catch (error) {
+      console.error('Failed to save analytics filters to localStorage:', error);
+    }
   }, [range, selectedTreatment, customRange?.from, customRange?.to, autoScheduleEnabled]);
 
   // Deltas vs previous period
@@ -1016,7 +1020,9 @@ export const DentistAnalytics = ({ dentistId, onOpenPatientsTab, onOpenClinicalT
                               // No delete API by flag; add a clearing note for audit
                               await supabase.from('notes').insert({ dentist_id: dentistId, patient_id: p.id, content: 'require_deposit_removed' });
                             }
-                          } catch {}
+                          } catch (error) {
+                            console.error('Failed to update deposit requirement:', error);
+                          }
                         }} />
                       </div>
                     </div>
@@ -1061,7 +1067,9 @@ export const DentistAnalytics = ({ dentistId, onOpenPatientsTab, onOpenClinicalT
                       //   { patient_id: f.patientId }
                       // );
                     }
-                  } catch {}
+                  } catch (error) {
+                    console.error('Failed to send follow-up link:', error);
+                  }
                 }
               }}><Send className="w-4 h-4 mr-1" />Send follow-up link</Button>
               <Button size="sm" disabled={!autoScheduleEnabled} onClick={async () => {
@@ -1096,7 +1104,9 @@ export const DentistAnalytics = ({ dentistId, onOpenPatientsTab, onOpenClinicalT
                         await supabase.from('appointment_slots').update({ is_available: false, appointment_id: appt.id }).eq('id', first.id);
                       }
                     }
-                  } catch {}
+                  } catch (error) {
+                    console.error('Failed to auto-schedule follow-up:', error);
+                  }
                 }
               }}>Auto-schedule slots</Button>
             </div>
@@ -1212,7 +1222,9 @@ export const DentistAnalytics = ({ dentistId, onOpenPatientsTab, onOpenClinicalT
                   //   { patient_id: reminderPatient.id, email: prof?.email }
                   // );
                 }
-              } catch {}
+              } catch (error) {
+                console.error('Failed to send reminder:', error);
+              }
               setReminderOpen(false);
             }}>Send</Button>
           </DialogFooter>

@@ -94,7 +94,13 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
   const loadBookingData = () => {
     const data = sessionStorage.getItem('aiBookingData');
     if (data) {
-      setBookingData(JSON.parse(data));
+      try {
+        setBookingData(JSON.parse(data));
+      } catch (error) {
+        console.error('Failed to parse booking data from sessionStorage:', error);
+        // Clear invalid data
+        sessionStorage.removeItem('aiBookingData');
+      }
     }
   };
 

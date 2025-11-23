@@ -155,7 +155,7 @@ export default function PatientCareHome() {
       icon: Calendar,
       label: t.bookAppointment || "Book Appointment",
       description: "Schedule a new appointment",
-      onClick: () => { try { localStorage.setItem('pd_section', 'assistant'); } catch {}; window.dispatchEvent(new CustomEvent('dashboard:changeSection', { detail: { section: 'assistant' } })); navigate('/dashboard'); },
+      onClick: () => { try { localStorage.setItem('pd_section', 'assistant'); } catch (e) { console.error('Failed to save section preference:', e); } window.dispatchEvent(new CustomEvent('dashboard:changeSection', { detail: { section: 'assistant' } })); navigate('/dashboard'); },
       color: "text-blue-600",
       bgColor: "bg-blue-50 hover:bg-blue-100",
     },
@@ -200,7 +200,7 @@ export default function PatientCareHome() {
         <Button
           size="lg"
           className="gap-2"
-          onClick={() => { try { localStorage.setItem('pd_section', 'assistant'); } catch {}; window.dispatchEvent(new CustomEvent('dashboard:changeSection', { detail: { section: 'assistant' } })); navigate('/dashboard'); }}
+          onClick={() => { try { localStorage.setItem('pd_section', 'assistant'); } catch (e) { console.error('Failed to save section preference:', e); } window.dispatchEvent(new CustomEvent('dashboard:changeSection', { detail: { section: 'assistant' } })); navigate('/dashboard'); }}
           aria-label={t.bookAppointment}
         >
           <Calendar className="h-4 w-4" />
@@ -377,7 +377,7 @@ export default function PatientCareHome() {
               </Alert>
               <Button
                 className="mt-4 w-full"
-                onClick={() => { try { localStorage.setItem('pd_section', 'assistant'); } catch {}; window.dispatchEvent(new CustomEvent('dashboard:changeSection', { detail: { section: 'assistant' } })); navigate('/dashboard'); }}
+                onClick={() => { try { localStorage.setItem('pd_section', 'assistant'); } catch (e) { console.error('Failed to save section preference:', e); } window.dispatchEvent(new CustomEvent('dashboard:changeSection', { detail: { section: 'assistant' } })); navigate('/dashboard'); }}
                 aria-label="Book your first appointment"
               >
                 <Calendar className="h-4 w-4 mr-2" />

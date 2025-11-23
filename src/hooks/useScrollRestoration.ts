@@ -7,7 +7,14 @@ export function useScrollRestoration() {
   const location = useLocation();
 
   useEffect(() => {
-    const positions: Record<string, number> = JSON.parse(sessionStorage.getItem(SCROLL_KEY) || "{}");
+    let positions: Record<string, number> = {};
+    try {
+      positions = JSON.parse(sessionStorage.getItem(SCROLL_KEY) || "{}");
+    } catch (error) {
+      console.error('Failed to parse scroll positions from sessionStorage:', error);
+      positions = {};
+    }
+
     const key = location.pathname + location.hash;
     if (positions[key] != null) {
       requestAnimationFrame(() => window.scrollTo({ top: positions[key], behavior: "auto" }));
@@ -15,7 +22,11 @@ export function useScrollRestoration() {
 
     const onScroll = () => {
       positions[key] = window.scrollY;
-      sessionStorage.setItem(SCROLL_KEY, JSON.stringify(positions));
+      try {
+        sessionStorage.setItem(SCROLL_KEY, JSON.stringify(positions));
+      } catch (error) {
+        console.error('Failed to save scroll position to sessionStorage:', error);
+      }
     };
 
     window.addEventListener("scroll", onScroll, { passive: true });
