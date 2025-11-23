@@ -18,7 +18,9 @@ interface QueryResult<T> {
   isStale: boolean;
 }
 
-// Simple cache implementation
+// Simple cache implementation with size limit
+const MAX_CACHE_SIZE = 100; // Prevent unbounded memory growth
+
 const queryCache = new Map<string, {
   data: any;
   timestamp: number;
@@ -26,15 +28,24 @@ const queryCache = new Map<string, {
   cacheTime: number;
 }>();
 
-// Cleanup expired cache entries
-setInterval(() => {
+// Cleanup expired cache entries - called on-demand instead of globally
+function cleanupExpiredCache() {
   const now = Date.now();
   for (const [key, entry] of queryCache.entries()) {
     if (now - entry.timestamp > entry.cacheTime) {
       queryCache.delete(key);
     }
   }
-}, 5 * 60 * 1000); // Clean every 5 minutes
+
+  // If cache is still too large, remove oldest entries
+  if (queryCache.size > MAX_CACHE_SIZE) {
+    const entries = Array.from(queryCache.entries())
+      .sort((a, b) => a[1].timestamp - b[1].timestamp);
+
+    const toRemove = entries.slice(0, queryCache.size - MAX_CACHE_SIZE);
+    toRemove.forEach(([key]) => queryCache.delete(key));
+  }
+}
 
 export function useOptimizedQuery<T>(
   queryKey: string,
@@ -58,6 +69,9 @@ export function useOptimizedQuery<T>(
 
   const executeQuery = useCallback(async (useCache = true) => {
     if (!enabled) return;
+
+    // Cleanup expired entries on each query (more efficient than global interval)
+    cleanupExpiredCache();
 
     // Check cache first
     if (useCache) {

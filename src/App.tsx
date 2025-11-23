@@ -195,58 +195,83 @@ const App = () => {
   }, []);
 
   useEffect(() => {
+    let isMounted = true;
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
     // Check auth and show business picker if multi-business user or no business selected
     const checkAuth = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
-      
-      if (user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('user_id', user.id)
-          .single();
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
 
-        if (profile) {
-          const { data: memberships } = await supabase
-            .from('business_members')
-            .select('business_id')
-            .eq('profile_id', profile.id);
+        // Only update state if component is still mounted
+        if (!isMounted) return;
+        setUser(user);
 
-          // Check if they have a current business selection
-          const { data: sessionBusiness } = await supabase
-            .from('session_business')
-            .select('business_id')
+        if (user) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('id')
             .eq('user_id', user.id)
-            .order('updated_at', { ascending: false })
-            .limit(1)
-            .maybeSingle();
+            .single();
 
-          // Show business picker on login
-          if (memberships && memberships.length > 0) {
-            if (memberships.length > 1 && !sessionBusiness?.business_id) {
-              // Providers with multiple clinics need to choose
-              setTimeout(() => setShowBusinessPicker(true), 500);
+          if (!isMounted) return;
+
+          if (profile) {
+            const { data: memberships } = await supabase
+              .from('business_members')
+              .select('business_id')
+              .eq('profile_id', profile.id);
+
+            if (!isMounted) return;
+
+            // Check if they have a current business selection
+            const { data: sessionBusiness } = await supabase
+              .from('session_business')
+              .select('business_id')
+              .eq('user_id', user.id)
+              .order('updated_at', { ascending: false })
+              .limit(1)
+              .maybeSingle();
+
+            if (!isMounted) return;
+
+            // Show business picker on login
+            if (memberships && memberships.length > 0) {
+              if (memberships.length > 1 && !sessionBusiness?.business_id) {
+                // Providers with multiple clinics need to choose
+                timeoutId = setTimeout(() => {
+                  if (isMounted) setShowBusinessPicker(true);
+                }, 500);
+              }
+            } else if (!sessionBusiness?.business_id) {
+              // Patient/guest: no clinic selected yet, show patient picker
+              timeoutId = setTimeout(() => {
+                if (isMounted) setShowBusinessPicker(true);
+              }, 500);
             }
-          } else if (!sessionBusiness?.business_id) {
-            // Patient/guest: no clinic selected yet, show patient picker
-            setTimeout(() => setShowBusinessPicker(true), 500);
           }
-
         }
+      } catch (error) {
+        console.error('Error in checkAuth:', error);
       }
     };
 
     checkAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setUser(session?.user ?? null);
-      if (event === 'SIGNED_IN') {
-        checkAuth();
+      if (isMounted) {
+        setUser(session?.user ?? null);
+        if (event === 'SIGNED_IN') {
+          checkAuth();
+        }
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      isMounted = false;
+      if (timeoutId) clearTimeout(timeoutId);
+      subscription.unsubscribe();
+    };
   }, []);
 
   return (

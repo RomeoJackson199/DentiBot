@@ -6,7 +6,7 @@ import { notify } from './lib/notify'
 import { logger } from '@/lib/logger';
 
 // Initialize performance monitoring
-if (process.env.NODE_ENV === 'development') {
+if (import.meta.env.MODE === 'development') {
   performanceTracker.monitorMemory();
 }
 

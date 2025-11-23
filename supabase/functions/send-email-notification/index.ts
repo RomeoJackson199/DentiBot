@@ -2,6 +2,19 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
+// HTML escape function to prevent XSS attacks
+function escapeHtml(text: string): string {
+  const htmlEntities: { [key: string]: string } = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#x27;',
+    '/': '&#x2F;',
+  };
+  return text.replace(/[&<>"'\/]/g, (char) => htmlEntities[char]);
+}
+
 // Environment-based CORS configuration
 const getCorsHeaders = () => {
   const environment = Deno.env.get('ENVIRONMENT') || 'development';
@@ -170,9 +183,9 @@ serve(async (req) => {
         type: "text/html",
         value: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #333;">${subject}</h2>
+            <h2 style="color: #333;">${escapeHtml(subject)}</h2>
             <div style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin: 20px 0;">
-              ${message.replace(/\n/g, '<br>')}
+              ${escapeHtml(message).replace(/\n/g, '<br>')}
             </div>
             <p style="color: #666; font-size: 12px;">
               This email was sent from your dental practice management system.

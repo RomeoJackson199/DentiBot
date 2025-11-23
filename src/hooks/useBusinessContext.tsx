@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
@@ -34,6 +34,12 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
   const [membershipRole, setMembershipRole] = useState<string | null>(null);
   const [memberships, setMemberships] = useState<BusinessMembership[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Use ref to track current businessId without causing re-renders or stale closures
+  const businessIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    businessIdRef.current = businessId;
+  }, [businessId]);
 
   const loadMemberships = useCallback(async () => {
     try {
@@ -88,7 +94,7 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
       setMemberships(formattedMemberships);
 
       // Get current session business or auto-select (only if not already set)
-      const currentBusinessId = businessId;
+      const currentBusinessId = businessIdRef.current;
       if (!currentBusinessId) {
         const { data: sessionBusiness } = await supabase
           .from('session_business')
@@ -124,8 +130,14 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
             }
           }
         } else if (formattedMemberships.length === 1) {
-          // Auto-select if only one business membership
-          await switchBusiness(formattedMemberships[0].business_id);
+          // Auto-select if only one business membership - set directly without calling switchBusiness
+          const membership = formattedMemberships[0];
+          if (membership?.business) {
+            setBusinessId(membership.business_id);
+            setBusinessSlug(membership.business.slug);
+            setBusinessName(membership.business.name);
+            setMembershipRole(membership.role);
+          }
         }
       }
     } catch (error: any) {
@@ -134,7 +146,7 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoading(false);
     }
-  }, []); // Empty deps - we capture businessId value at call time
+  }, []); // Empty deps is now safe - uses ref for businessId
 
   const switchBusiness = useCallback(async (businessIdOrSlug: string) => {
     try {
@@ -174,9 +186,6 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
             toast.success(`Switched to ${business.name}`);
           }
         }
-        
-        // Reload memberships to refresh any template-related data
-        await loadMemberships();
       }
     } catch (error: any) {
       logger.error('Error switching business:', error);
@@ -184,7 +193,7 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoading(false);
     }
-  }, [memberships, loadMemberships]);
+  }, [memberships]); // Remove loadMemberships dependency to break circular dependency
 
   useEffect(() => {
     loadMemberships();

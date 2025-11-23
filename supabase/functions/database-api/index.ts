@@ -2,10 +2,38 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': Deno.env.get('ALLOWED_ORIGIN') ?? 'http://localhost:5173',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
 };
+
+// Whitelist of allowed tables to prevent SQL injection
+const ALLOWED_TABLES = [
+  'profiles',
+  'appointments',
+  'businesses',
+  'business_memberships',
+  'time_slots',
+  'user_roles',
+  'notifications',
+  'subscription_plans',
+  'subscriptions'
+];
+
+// Whitelist of allowed column patterns for ordering
+const SAFE_COLUMN_PATTERN = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
+
+function validateTableName(table: string): void {
+  if (!table || !ALLOWED_TABLES.includes(table)) {
+    throw new Error(`Invalid table name: ${table}. Allowed tables: ${ALLOWED_TABLES.join(', ')}`);
+  }
+}
+
+function validateColumnName(column: string): void {
+  if (!column || !SAFE_COLUMN_PATTERN.test(column)) {
+    throw new Error(`Invalid column name: ${column}`);
+  }
+}
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -52,16 +80,22 @@ serve(async (req) => {
       switch (action) {
         case 'read_table': {
           const { table, columns = '*', limit = 100 } = params;
+
+          // Validate table name against whitelist
+          validateTableName(table);
+
           let query = supabase.from(table).select(columns);
-          
-          // Apply filters from query params
+
+          // Apply filters from query params - Supabase client safely parameterizes these
           Object.entries(params).forEach(([key, value]) => {
             if (!['table', 'columns', 'limit', 'order_by', 'ascending'].includes(key)) {
+              validateColumnName(key); // Validate column names
               query = query.eq(key, value);
             }
           });
 
           if (params.order_by) {
+            validateColumnName(params.order_by); // Validate order_by column
             query = query.order(params.order_by, { ascending: params.ascending !== 'false' });
           }
           query = query.limit(Number(limit));
@@ -593,22 +627,15 @@ serve(async (req) => {
         break;
       }
 
-      // Execute custom SQL SELECT query
+      // Execute custom SQL SELECT query - DISABLED for security
       case 'execute_query': {
-        const { query } = params;
-        if (!query.trim().toUpperCase().startsWith('SELECT')) {
-          throw new Error('Only SELECT queries are allowed');
-        }
-
-        const { data, error } = await supabase.rpc('exec_sql', { query });
-        if (error) throw error;
-        result = { success: true, data };
-        break;
+        throw new Error('Custom query execution has been disabled for security reasons. Please use specific API actions instead.');
       }
 
       // Get table schema
       case 'get_table_schema': {
         const { table } = params;
+        validateTableName(table); // Validate table name
         const { data, error } = await supabase
           .from('information_schema.columns')
           .select('column_name, data_type, is_nullable, column_default')
@@ -623,6 +650,7 @@ serve(async (req) => {
       // Insert record
       case 'insert_record': {
         const { table, data: recordData } = params;
+        validateTableName(table); // Validate table name
         const { data, error } = await supabase
           .from(table)
           .insert(recordData)
@@ -637,6 +665,7 @@ serve(async (req) => {
       // Update record
       case 'update_record': {
         const { table, id, data: recordData } = params;
+        validateTableName(table); // Validate table name
         const { data, error } = await supabase
           .from(table)
           .update(recordData)
@@ -652,6 +681,7 @@ serve(async (req) => {
       // Delete record
       case 'delete_record': {
         const { table, id } = params;
+        validateTableName(table); // Validate table name
         const { error } = await supabase
           .from(table)
           .delete()
