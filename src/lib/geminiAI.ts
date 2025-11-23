@@ -112,7 +112,13 @@ Analyze the available time slots and recommend which ones to promote to the pati
       throw new Error('Failed to parse AI response');
     }
 
-    const aiAnalysis = JSON.parse(jsonMatch[0]);
+    let aiAnalysis;
+    try {
+      aiAnalysis = JSON.parse(jsonMatch[0]);
+    } catch (error) {
+      console.error('Failed to parse AI JSON response:', error);
+      throw new Error('Failed to parse AI response: ' + (error instanceof Error ? error.message : 'Invalid JSON'));
+    }
 
     // Enrich recommendations with actual slot data
     const enrichedRecommendations = aiAnalysis.recommendations.map((rec: any) => {

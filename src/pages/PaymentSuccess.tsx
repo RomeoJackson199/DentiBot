@@ -26,11 +26,25 @@ const PaymentSuccess: React.FC = () => {
             throw new Error('Business data not found');
           }
 
-          const businessData = JSON.parse(pendingData);
+          let businessData;
+          try {
+            businessData = JSON.parse(pendingData);
+          } catch (error) {
+            console.error('Failed to parse business data:', error);
+            throw new Error('Invalid business data format');
+          }
 
           // Get promo code if used
           const promoCodeData = sessionStorage.getItem('promo_code_used');
-          const promoCode = promoCodeData ? JSON.parse(promoCodeData) : null;
+          let promoCode = null;
+          if (promoCodeData) {
+            try {
+              promoCode = JSON.parse(promoCodeData);
+            } catch (error) {
+              console.error('Failed to parse promo code data:', error);
+              // Continue without promo code if parsing fails
+            }
+          }
 
           // Get current user
           const { data: { user } } = await supabase.auth.getUser();

@@ -24,7 +24,9 @@ export class DashboardError extends Error {
 
 export const handleDatabaseError = (error: unknown, context: string): ErrorInfo => {
   console.error(`Database error in ${context}:`, error);
-  const err = error as any;
+
+  // Type-safe error handling
+  const err = error as { code?: string; message?: string; details?: string; hint?: string };
 
   // Handle specific Supabase errors
   if (err?.code) {
@@ -249,7 +251,8 @@ export const formatErrorForUser = (error: unknown): string => {
     return error;
   }
 
-  const err = error as any;
+  // Type-safe error formatting
+  const err = error as { userFriendly?: string; message?: string };
   if (err?.userFriendly) {
     return err.userFriendly;
   }

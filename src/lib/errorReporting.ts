@@ -90,7 +90,9 @@ export function initializeErrorReporting() {
           metadata: { consoleArgs: safeSerialize(args) },
         });
       }
-    } catch {}
+    } catch {
+      // Silently ignore - avoid infinite recursion if error reporting fails
+    }
     // Always forward to original console
     originalError(...args);
   };
@@ -109,7 +111,9 @@ export function initializeErrorReporting() {
           metadata: { consoleArgs: safeSerialize(args) },
         });
       }
-    } catch {}
+    } catch {
+      // Silently ignore - avoid infinite recursion if error reporting fails
+    }
     originalWarn(...args);
   };
 
