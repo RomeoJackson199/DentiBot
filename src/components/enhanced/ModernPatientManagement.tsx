@@ -26,7 +26,6 @@ import {
 import { format } from "date-fns";
 import { NewPatientDialog } from "@/components/patient/NewPatientDialog";
 import { PatientDetailsTabs } from "./PatientDetailsTabs";
-import SimpleAppointmentBooking from "@/components/SimpleAppointmentBooking";
 import { logger } from '@/lib/logger';
 
 interface Patient {
@@ -573,12 +572,11 @@ export function ModernPatientManagement({ dentistId }: ModernPatientManagementPr
 
                   {/* Quick Actions */}
                   <div className="flex flex-wrap gap-3 mt-6 pt-6 border-t">
-                    <SimpleAppointmentBooking 
-                      dentistId={dentistId} 
-                      patientId={selectedPatient.id} 
-                      patientName={`${selectedPatient.first_name} ${selectedPatient.last_name}`} 
-                      onSuccess={() => fetchPatientData(selectedPatient.id)} 
-                    />
+                    {/* TODO: Re-implement staff booking with EnhancedAppointmentBooking or create proper slot-locking API */}
+                    <Button variant="outline" className="gap-2" disabled title="Staff booking temporarily disabled - needs reimplementation with slot locking">
+                      <Calendar className="h-4 w-4" />
+                      Book Appointment
+                    </Button>
                     <Button variant="outline" className="gap-2">
                       <EyeIcon className="h-4 w-4" />
                       View Full History

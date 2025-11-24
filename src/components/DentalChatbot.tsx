@@ -10,7 +10,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Send, Bot, User as UserIcon, Calendar, Camera, Mail, ImageIcon, Mic, Square } from "lucide-react";
 import { ChatMessage } from "@/types/chat";
-import { AppointmentBookingWithAuth } from "@/components/AppointmentBookingWithAuth";
 import { PhotoUpload } from "@/components/PhotoUpload";
 import { DentistSelection } from "@/components/DentistSelection";
 import { QuickPhotoUpload } from "@/components/QuickPhotoUpload";
