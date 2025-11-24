@@ -8,7 +8,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import RealAppointmentsList from "@/components/RealAppointmentsList";
-import { AppointmentBooking } from "@/components/AppointmentBooking";
+import { EnhancedAppointmentBooking } from "@/components/booking/EnhancedAppointmentBooking";
 import { RescheduleDialog } from "@/components/RescheduleDialog";
 import { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
@@ -545,7 +545,7 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({
       {/* Booking Dialog */}
       <Dialog open={showBooking} onOpenChange={setShowBooking}>
         <DialogContent className="max-w-4xl w-full max-h-[90vh] overflow-auto p-0">
-          <AppointmentBooking
+          <EnhancedAppointmentBooking
             user={user}
             onCancel={() => setShowBooking(false)}
             onComplete={() => {

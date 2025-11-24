@@ -26,7 +26,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { LoadingSkeleton } from "@/components/ui/loading-skeleton";
 import { PrescriptionManager } from "@/components/PrescriptionManager";
 import { TreatmentPlanManager } from "@/components/TreatmentPlanManager";
-import SimpleAppointmentBooking from "@/components/SimpleAppointmentBooking";
 import { AIConversationDialog } from "@/components/AIConversationDialog";
 import { logger } from '@/lib/logger';
 
@@ -512,14 +511,7 @@ if (treatmentPlansResult.status === 'fulfilled') {
           <Card className="floating-card">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Appointments</CardTitle>
-              {mode === 'dentist' && dentistId && patientProfile && (
-                <SimpleAppointmentBooking
-                  dentistId={dentistId}
-                  patientId={patientProfile.id}
-                  patientName={`${patientProfile.first_name} ${patientProfile.last_name}`}
-                  onSuccess={loadHealthData}
-                />
-              )}
+              {/* TODO: Re-implement staff booking with EnhancedAppointmentBooking or create proper slot-locking API */}
             </CardHeader>
             <CardContent>
               {appointments.length === 0 ? (

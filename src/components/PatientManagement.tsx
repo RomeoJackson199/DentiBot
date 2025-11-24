@@ -47,7 +47,6 @@ import { CompletionSheet } from "@/components/CompletionSheet";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { PatientPaymentHistory } from "@/components/PatientPaymentHistory";
 import { PaymentRequestForm } from "@/components/PaymentRequestForm";
-import SimpleAppointmentBooking from "@/components/SimpleAppointmentBooking";
 import { useNavigate } from "react-router-dom";
 import { useBusinessTemplate } from "@/hooks/useBusinessTemplate";
 import { logger } from '@/lib/logger';
@@ -1101,19 +1100,24 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
                 <div className="mt-4 pt-4 border-t">
                   <h4 className="font-medium text-sm mb-3">Quick Actions</h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <SimpleAppointmentBooking 
-                      dentistId={dentistId} 
-                      patientId={selectedPatient.id} 
-                      patientName={`${selectedPatient.first_name} ${selectedPatient.last_name}`} 
-                      onSuccess={() => fetchPatientData(selectedPatient.id)} 
-                    />
-                    <Button 
-                      size="lg" 
-                      variant="outline" 
+                    {/* TODO: Re-implement staff booking with EnhancedAppointmentBooking or create proper slot-locking API */}
+                    <Button
+                      size="lg"
+                      variant="outline"
+                      disabled
+                      className="h-12 rounded-xl"
+                      title="Staff booking temporarily disabled - needs reimplementation with slot locking"
+                    >
+                      <Calendar className="h-5 w-5 mr-2" />
+                      Book Appointment
+                    </Button>
+                    <Button
+                      size="lg"
+                      variant="outline"
                       onClick={() => setShowPaymentDialog(true)}
                       className="h-12 rounded-xl"
                     >
-                      <CreditCard className="h-5 w-5 mr-2" /> 
+                      <CreditCard className="h-5 w-5 mr-2" />
                       Create Payment Request
                     </Button>
                   </div>

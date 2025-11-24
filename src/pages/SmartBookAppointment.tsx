@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useBusinessContext } from "@/hooks/useBusinessContext";
-import { SmartAppointmentBooking } from "@/components/SmartAppointmentBooking";
+import { EnhancedAppointmentBooking } from "@/components/booking/EnhancedAppointmentBooking";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ModernLoadingSpinner } from "@/components/enhanced/ModernLoadingSpinner";
@@ -92,7 +92,7 @@ export default function SmartBookAppointment() {
     <>
       <ConfirmationDialog />
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 p-4 md:p-6">
-        <SmartAppointmentBooking
+        <EnhancedAppointmentBooking
           user={user}
           onComplete={() => {
             toast({

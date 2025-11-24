@@ -19,7 +19,6 @@ import {
   Eye as EyeIcon,
   AlertCircle
 } from "lucide-react";
-import SimpleAppointmentBooking from "@/components/SimpleAppointmentBooking";
 import { PatientPaymentHistory } from "@/components/PatientPaymentHistory";
 import { PrescriptionManager } from "@/components/PrescriptionManager";
 import { TreatmentPlanManager } from "@/components/TreatmentPlanManager";
@@ -158,12 +157,11 @@ export function PatientDetailsTabs({ selectedPatient, dentistId, appointments, o
                 <span className="truncate">Upcoming Appointments</span>
                 <Badge variant="secondary" className="rounded-full flex-shrink-0">{upcomingAppointments.length}</Badge>
               </h3>
-              <SimpleAppointmentBooking 
-                dentistId={dentistId}
-                patientId={selectedPatient.id}
-                patientName={`${selectedPatient.first_name} ${selectedPatient.last_name}`}
-                onSuccess={onRefresh}
-              />
+              {/* TODO: Re-implement staff booking with EnhancedAppointmentBooking or create proper slot-locking API */}
+              <Button variant="outline" size="sm" disabled title="Staff booking temporarily disabled - needs reimplementation with slot locking">
+                <Calendar className="h-4 w-4 mr-1" />
+                Book Appointment
+              </Button>
             </div>
             
             {upcomingAppointments.length === 0 ? (
