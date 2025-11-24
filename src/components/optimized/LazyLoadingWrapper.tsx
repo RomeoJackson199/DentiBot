@@ -21,5 +21,5 @@ export const LazyLoadingWrapper = ({
 
 // Pre-configured lazy components for common use cases
 export const LazyPatientDashboard = lazy(() => import('@/components/PatientDashboard').then(module => ({ default: module.PatientDashboard })));
-export const LazyDentalChatbot = lazy(() => import('@/components/chat/InteractiveDentalChat').then(module => ({ default: module.InteractiveDentalChat })));
+export const LazyDentalChatbot = lazy(() => import('@/components/DentalChatbot').then(module => ({ default: module.DentalChatbot })));
 export const LazyAppointmentBooking = lazy(() => import('@/components/booking/EnhancedAppointmentBooking').then(module => ({ default: module.EnhancedAppointmentBooking })));
