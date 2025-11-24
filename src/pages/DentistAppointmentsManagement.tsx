@@ -1,18 +1,28 @@
 import { useState, useEffect, useRef } from "react";
 import { useCurrentDentist } from "@/hooks/useCurrentDentist";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { ChevronLeft, ChevronRight, Calendar, Grid3x3, CalendarDays } from "lucide-react";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { ChevronLeft, ChevronRight, Calendar, Grid3x3, CalendarDays, Search, Filter, X, BarChart3 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/hooks/useLanguage";
 import { WeeklyCalendarView } from "@/components/appointments/WeeklyCalendarView";
 import { DayCalendarView } from "@/components/appointments/DayCalendarView";
 import { AppointmentDetailsSidebar } from "@/components/appointments/AppointmentDetailsSidebar";
-import { format, addDays, subDays, parseISO, startOfWeek, endOfWeek } from "date-fns";
+import { AppointmentStats } from "@/components/appointments/AppointmentStats";
+import { MonthlyOverview } from "@/components/appointments/MonthlyOverview";
+import { format, addDays, subDays, parseISO, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import { logger } from '@/lib/logger';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 export default function DentistAppointmentsManagement() {
   const {
     dentistId,
@@ -22,6 +32,10 @@ export default function DentistAppointmentsManagement() {
   const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
   const [viewMode, setViewMode] = useState<"week" | "day">("week");
   const [headerVisible, setHeaderVisible] = useState(true);
+  const [showStats, setShowStats] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [urgencyFilter, setUrgencyFilter] = useState<string>("all");
   const lastScrollY = useRef(0);
   const {
     toast
@@ -30,6 +44,51 @@ export default function DentistAppointmentsManagement() {
     t
   } = useLanguage();
   const queryClient = useQueryClient();
+
+  // Fetch all appointments for stats and filtering
+  const {
+    data: allAppointments = []
+  } = useQuery({
+    queryKey: ['all-appointments', dentistId, currentDate],
+    queryFn: async () => {
+      if (!dentistId) return [];
+      const weekStart = startOfWeek(currentDate);
+      const weekEnd = endOfWeek(addDays(currentDate, 7));
+      const { data, error } = await supabase
+        .from("appointments")
+        .select("*")
+        .eq("dentist_id", dentistId)
+        .gte("appointment_date", weekStart.toISOString())
+        .lt("appointment_date", weekEnd.toISOString())
+        .order("appointment_date", { ascending: true });
+
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!dentistId,
+  });
+
+  // Fetch monthly appointments for overview
+  const {
+    data: monthlyAppointments = []
+  } = useQuery({
+    queryKey: ['monthly-appointments', dentistId, format(currentDate, 'yyyy-MM')],
+    queryFn: async () => {
+      if (!dentistId) return [];
+      const monthStart = startOfMonth(currentDate);
+      const monthEnd = endOfMonth(currentDate);
+      const { data, error } = await supabase
+        .from("appointments")
+        .select("*")
+        .eq("dentist_id", dentistId)
+        .gte("appointment_date", monthStart.toISOString())
+        .lte("appointment_date", monthEnd.toISOString());
+
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!dentistId && showStats,
+  });
 
   // Fetch Google Calendar events
   const {
@@ -245,6 +304,22 @@ export default function DentistAppointmentsManagement() {
               </Button>
             </div>
 
+            {/* Stats Toggle */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowStats(!showStats)}
+              className={cn(
+                "h-9 rounded-xl border-2 transition-all shadow-sm font-semibold",
+                showStats
+                  ? "bg-blue-50 border-blue-200 dark:bg-blue-950"
+                  : "hover:bg-blue-50 hover:border-blue-200 dark:hover:bg-blue-950"
+              )}
+            >
+              <BarChart3 className="h-4 w-4 mr-2" />
+              Stats
+            </Button>
+
             {/* Today Button */}
             <Button
               variant="outline"
@@ -256,7 +331,129 @@ export default function DentistAppointmentsManagement() {
             </Button>
           </div>
         </div>
+
+        {/* Search and Filters */}
+        <div className="px-4 sm:px-6 py-3 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
+          <div className="flex flex-col sm:flex-row gap-3">
+            {/* Search */}
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder="Search patients..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 pr-10 h-10 rounded-xl border-2"
+              />
+              {searchQuery && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-1 top-1/2 transform -translate-y-1/2 h-8 w-8"
+                  onClick={() => setSearchQuery("")}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+
+            {/* Status Filter */}
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-full sm:w-[180px] h-10 rounded-xl border-2">
+                <Filter className="h-4 w-4 mr-2" />
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="confirmed">Confirmed</SelectItem>
+                <SelectItem value="completed">Completed</SelectItem>
+                <SelectItem value="cancelled">Cancelled</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {/* Urgency Filter */}
+            <Select value={urgencyFilter} onValueChange={setUrgencyFilter}>
+              <SelectTrigger className="w-full sm:w-[180px] h-10 rounded-xl border-2">
+                <Filter className="h-4 w-4 mr-2" />
+                <SelectValue placeholder="Urgency" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Urgencies</SelectItem>
+                <SelectItem value="high">High</SelectItem>
+                <SelectItem value="medium">Medium</SelectItem>
+                <SelectItem value="low">Low</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {/* Clear Filters */}
+            {(searchQuery || statusFilter !== "all" || urgencyFilter !== "all") && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setSearchQuery("");
+                  setStatusFilter("all");
+                  setUrgencyFilter("all");
+                }}
+                className="h-10 rounded-xl border-2"
+              >
+                <X className="h-4 w-4 mr-2" />
+                Clear
+              </Button>
+            )}
+          </div>
+        </div>
       </div>
+
+      {/* Stats Dashboard */}
+      {showStats && (
+        <div className="px-4 sm:px-6 pt-4 pb-4 border-b bg-gradient-to-br from-gray-50/50 via-blue-50/30 to-purple-50/30 dark:from-gray-950/50 dark:via-blue-950/30 dark:to-purple-950/30 space-y-4">
+          <AppointmentStats appointments={allAppointments} dentistId={dentistId || ""} />
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div className="lg:col-span-1">
+              <MonthlyOverview
+                appointments={monthlyAppointments}
+                currentDate={currentDate}
+                onDateClick={(date) => {
+                  setCurrentDate(date);
+                  setViewMode("day");
+                }}
+              />
+            </div>
+            <div className="lg:col-span-2">
+              <Card className="border-2 h-full">
+                <CardHeader>
+                  <h3 className="text-base font-semibold">Quick Insights</h3>
+                </CardHeader>
+                <CardContent className="space-y-3 text-sm">
+                  <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
+                    <span className="text-muted-foreground">Busiest Day This Week</span>
+                    <span className="font-bold text-blue-600 dark:text-blue-400">
+                      {allAppointments.length > 0
+                        ? format(new Date(allAppointments[0].appointment_date), "EEEE")
+                        : "N/A"}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-950/30 rounded-lg">
+                    <span className="text-muted-foreground">Average Appointments/Day</span>
+                    <span className="font-bold text-green-600 dark:text-green-400">
+                      {Math.round(allAppointments.length / 7)}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-purple-50 dark:bg-purple-950/30 rounded-lg">
+                    <span className="text-muted-foreground">Total This Month</span>
+                    <span className="font-bold text-purple-600 dark:text-purple-400">
+                      {monthlyAppointments.length}
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">

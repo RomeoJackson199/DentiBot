@@ -9,9 +9,10 @@ import { cn } from "@/lib/utils";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { CheckCircle2, XCircle, ChevronLeft, ChevronRight } from "lucide-react";
+import { CheckCircle2, XCircle, ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { AppointmentCompletionDialog } from "../appointment/AppointmentCompletionDialog";
+import { QuickAppointmentDialog } from "./QuickAppointmentDialog";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useNavigate } from "react-router-dom";
 import { logger } from '@/lib/logger';
@@ -54,6 +55,9 @@ export function WeeklyCalendarView({
   const [completionDialogOpen, setCompletionDialogOpen] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
   const [mobileCurrentDay, setMobileCurrentDay] = useState(0); // Index of current day (0-6)
+  const [quickAppointmentOpen, setQuickAppointmentOpen] = useState(false);
+  const [quickAppointmentDate, setQuickAppointmentDate] = useState<Date>(new Date());
+  const [quickAppointmentTime, setQuickAppointmentTime] = useState<string>("");
   
   // Fetch dentist availability
   const { data: availability = [] } = useQuery({
@@ -220,6 +224,12 @@ export function WeeklyCalendarView({
     setCompletionDialogOpen(true);
   };
 
+  const handleEmptySlotClick = (day: Date, timeSlot: string) => {
+    setQuickAppointmentDate(day);
+    setQuickAppointmentTime(timeSlot);
+    setQuickAppointmentOpen(true);
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-96">
@@ -339,6 +349,22 @@ export function WeeklyCalendarView({
                         <div className="text-center space-y-1">
                           <div className="text-xs text-muted-foreground font-semibold italic">Break Time</div>
                           <div className="text-[10px] text-muted-foreground/60">No appointments</div>
+                        </div>
+                      </div>
+                    ) : slotAppointments.length === 0 ? (
+                      <div
+                        className="flex items-center justify-center h-full group cursor-pointer hover:bg-blue-50/50 dark:hover:bg-blue-950/20 rounded-lg transition-all duration-200"
+                        onClick={() => handleEmptySlotClick(day, timeSlot)}
+                      >
+                        <div className="text-center space-y-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 rounded-full bg-blue-500 hover:bg-blue-600 text-white"
+                          >
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                          <div className="text-[10px] text-muted-foreground font-medium">Add Appointment</div>
                         </div>
                       </div>
                     ) : (
@@ -508,6 +534,14 @@ export function WeeklyCalendarView({
           }}
         />
       )}
+
+      <QuickAppointmentDialog
+        open={quickAppointmentOpen}
+        onOpenChange={setQuickAppointmentOpen}
+        dentistId={dentistId}
+        selectedDate={quickAppointmentDate}
+        selectedTime={quickAppointmentTime}
+      />
     </TooltipProvider>
   );
 }
