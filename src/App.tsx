@@ -60,7 +60,9 @@ const UnifiedDashboard = lazy(() => import("./components/UnifiedDashboard"));
 const LanguageTest = lazy(() => import("./components/LanguageTest").then(module => ({ default: module.LanguageTest })));
 const About = lazy(() => import("./pages/About"));
 const Claim = lazy(() => import("./pages/Claim"));
+const PublicBooking = lazy(() => import("./pages/PublicBooking"));
 const BookAppointmentAI = lazy(() => import("./pages/BookAppointmentAI"));
+const BookAppointment = lazy(() => import("./pages/BookAppointment"));
 const BusinessPortal = lazy(() => import("./pages/BusinessPortal"));
 import { BookingRouteHandler } from "./components/booking/BookingRouteHandler";
 import { logger } from '@/lib/logger';
@@ -85,6 +87,7 @@ const RestaurantOwnerDashboard = lazy(() => import("./pages/RestaurantOwnerDashb
 const WaiterDashboard = lazy(() => import("./pages/WaiterDashboard"));
 const KitchenDashboard = lazy(() => import("./pages/KitchenDashboard"));
 const TableOrderingPage = lazy(() => import("./pages/TableOrderingPage"));
+const SmartBookAppointment = lazy(() => import("./pages/SmartBookAppointment"));
 const SuperAdminDashboard = lazy(() => import("./pages/SuperAdminDashboard"));
 const AuthRedirect = lazy(() => import("./pages/AuthRedirect"));
 
@@ -335,8 +338,9 @@ const App = () => {
                 <Route path="/order" element={<TableOrderingPage />} />
                 {/* AI-powered booking route */}
                 <Route path="/book-appointment" element={<BookingRouteHandler><BookAppointmentAI /></BookingRouteHandler>} />
-                {/* Redirect old routes to main booking */}
-                <Route path="/book-appointment-legacy" element={<Navigate to="/book-appointment" replace />} />
+                {/* Legacy manual booking route */}
+                <Route path="/book-appointment-legacy" element={<BookingRouteHandler><BookAppointment /></BookingRouteHandler>} />
+                {/* Redirect old AI route to main booking */}
                 <Route path="/book-appointment-ai" element={<Navigate to="/book-appointment" replace />} />
                 <Route path="/smart-book-appointment" element={<Navigate to="/book-appointment" replace />} />
                 {/* Business portal route - must come before catch-all */}
