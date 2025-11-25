@@ -4,7 +4,7 @@ import { getCurrentBusinessId } from '@/lib/businessScopedSupabase';
 import { fetchDentistAvailability } from './appointmentAvailability';
 import { getRecommendedSlots, RecommendedSlot } from './smartScheduling';
 import { logger } from '@/lib/logger';
-import { sendNotification } from '@/lib/notificationService';
+import { NotificationService } from '@/lib/notificationService';
 
 export interface RescheduleSuggestion {
   date: Date;
@@ -175,17 +175,18 @@ export async function autoRescheduleAppointment(
         .single();
 
       if (appointment) {
-        await sendNotification({
-          userId: appointment.patient_id,
-          type: 'appointment_rescheduled',
-          title: 'Appointment Rescheduled',
-          message: `Your appointment has been rescheduled to ${format(newDateTime, 'PPP p')}`,
-          priority: 'high',
-          metadata: {
+        await NotificationService.createNotification(
+          appointment.patient_id,
+          'Appointment Rescheduled',
+          `Your appointment has been rescheduled to ${format(newDateTime, 'PPP p')}`,
+          'appointment_rescheduled',
+          'info',
+          undefined,
+          {
             appointmentId,
             newDateTime: newDateTime.toISOString()
           }
-        });
+        );
       }
     } catch (notifError) {
       logger.error('Failed to send reschedule notification:', notifError);
@@ -329,20 +330,21 @@ export async function sendRescheduleSuggestions(
 
   // Send notification through notification service
   try {
-    await sendNotification({
-      userId: appointment.patient_id,
-      type: 'appointment_reschedule',
-      title: 'Appointment Rescheduling Options',
-      message: `Your appointment needs to be rescheduled. Here are some suggested times:\n\n${suggestionText}\n\nPlease contact us to confirm.`,
-      priority: 'high',
-      metadata: {
+    await NotificationService.createNotification(
+      appointment.patient_id,
+      'Appointment Rescheduling Options',
+      `Your appointment needs to be rescheduled. Here are some suggested times:\n\n${suggestionText}\n\nPlease contact us to confirm.`,
+      'appointment_reschedule',
+      'info',
+      undefined,
+      {
         appointmentId,
         suggestions: suggestions.map(s => ({
           date: format(s.date, 'yyyy-MM-dd'),
           time: s.slot.time
         }))
       }
-    });
+    );
   } catch (notifError) {
     logger.error('Failed to send reschedule suggestions notification:', notifError);
     return { success: false, error: 'Failed to send notification' };
