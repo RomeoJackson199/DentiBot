@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState, useEffect } from "react";
 import { startOfDay, format } from "date-fns";
 import { useNavigate } from "react-router-dom";

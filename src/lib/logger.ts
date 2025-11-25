@@ -92,16 +92,44 @@ class Logger {
    * Implement this when you integrate an error tracking service
    */
   private sendToErrorTracking(level: string, data: any[]): void {
-    // TODO: Integrate with Sentry or similar service
-    // Example:
+    // Integration point for error tracking services
+    // To enable Sentry, install @sentry/react and uncomment:
+    //
+    // import * as Sentry from '@sentry/react';
+    //
     // if (level === 'error') {
-    //   Sentry.captureException(new Error(JSON.stringify(data)));
-    // } else {
-    //   Sentry.captureMessage(JSON.stringify(data), level as SeverityLevel);
+    //   const errorData = data[0];
+    //   if (errorData instanceof Error) {
+    //     Sentry.captureException(errorData, {
+    //       extra: { additionalData: data.slice(1) }
+    //     });
+    //   } else {
+    //     Sentry.captureException(new Error(JSON.stringify(errorData)));
+    //   }
+    // } else if (level === 'warn') {
+    //   Sentry.captureMessage(JSON.stringify(data), 'warning');
     // }
 
-    // For now, we'll silently ignore in production to avoid console clutter
-    // But in a real production app, you'd send these to a monitoring service
+    // For production use without Sentry, consider:
+    // - LogRocket: https://logrocket.com/
+    // - Datadog: https://www.datadoghq.com/
+    // - Custom endpoint to your backend logging service
+
+    // Store critical errors in localStorage as fallback for debugging
+    if (level === 'error' && typeof window !== 'undefined') {
+      try {
+        const errors = JSON.parse(localStorage.getItem('app_errors') || '[]');
+        errors.push({
+          timestamp: new Date().toISOString(),
+          level,
+          data: data.map(d => d instanceof Error ? d.message : d)
+        });
+        // Keep only last 50 errors
+        localStorage.setItem('app_errors', JSON.stringify(errors.slice(-50)));
+      } catch (e) {
+        // Silently fail if localStorage is unavailable
+      }
+    }
   }
 
   /**

@@ -1,4 +1,5 @@
 // Performance monitoring and optimization utilities
+import { logger } from '@/lib/logger';
 
 export const performanceTracker = {
   // Track component render time
@@ -20,7 +21,7 @@ export const performanceTracker = {
       return result;
     } catch (error) {
       const end = performance.now();
-      console.error(`❌ ${functionName} failed after ${(end - start).toFixed(2)}ms:`, error);
+      logger.error(`❌ ${functionName} failed after ${(end - start).toFixed(2)}ms:`, error);
       throw error;
     }
   },

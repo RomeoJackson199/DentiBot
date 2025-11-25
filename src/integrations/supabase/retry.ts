@@ -1,3 +1,5 @@
+import { logger } from '@/lib/logger';
+
 export async function withSchemaReloadRetry<T>(op: () => Promise<T>, sb: any): Promise<T> {
 	try {
 		return await op();
@@ -9,7 +11,7 @@ export async function withSchemaReloadRetry<T>(op: () => Promise<T>, sb: any): P
 			await sb.rpc('reload_postgrest_schema');
 		} catch (reloadError) {
 			// Schema reload RPC is optional - log but continue with retry
-			console.debug('Schema reload RPC failed (non-critical):', reloadError);
+			logger.debug('Schema reload RPC failed (non-critical):', reloadError);
 		}
 		await new Promise(r => setTimeout(r, 600));
 		return await op();
