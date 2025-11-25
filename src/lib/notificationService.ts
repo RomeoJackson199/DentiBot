@@ -13,7 +13,7 @@ export class NotificationService {
       .range(offset, offset + limit - 1);
 
     if (error) {
-      console.error('Error fetching notifications:', error);
+      logger.error('Error fetching notifications:', error);
       throw new Error('Failed to fetch notifications');
     }
 
@@ -31,7 +31,7 @@ export class NotificationService {
       .eq('is_read', false);
 
     if (error) {
-      console.error('Error fetching unread count:', error);
+      logger.error('Error fetching unread count:', error);
       throw new Error('Failed to fetch unread count');
     }
 
@@ -46,7 +46,7 @@ static async markAsRead(notificationId: string): Promise<boolean> {
     .eq('id', notificationId);
 
   if (error) {
-    console.error('Error marking notification as read:', error);
+    logger.error('Error marking notification as read:', error);
     throw new Error('Failed to mark notification as read');
   }
 
@@ -61,7 +61,7 @@ static async markAllAsRead(): Promise<number> {
     .select('id');
 
   if (error) {
-    console.error('Error marking all notifications as read:', error);
+    logger.error('Error marking all notifications as read:', error);
     throw new Error('Failed to mark all notifications as read');
   }
 
@@ -98,7 +98,7 @@ const { data, error } = await supabase
   .single();
 
 if (error) {
-  console.error('Error creating notification:', error);
+  logger.error('Error creating notification:', error);
   throw new Error('Failed to create notification');
 }
 
@@ -130,13 +130,13 @@ return data.id;
         .single();
 
       if (profileError || !profile) {
-        console.error('❌ Profile not found for user:', userId, profileError);
+        logger.error('❌ Profile not found for user:', userId, profileError);
         throw new Error('User profile not found');
       }
 
       const recipientEmail = (metadata?.email as string) || profile.email;
       if (!recipientEmail) {
-        console.error('❌ No email address available');
+        logger.error('❌ No email address available');
         throw new Error('No email address found');
       }
 
@@ -154,12 +154,12 @@ return data.id;
       });
 
       if (error) {
-        console.error('❌ Edge function error:', error);
+        logger.error('❌ Edge function error:', error);
         throw new Error(`Email service error: ${error.message}`);
       }
 
     } catch (error) {
-      console.error('❌ Email notification failed:', error);
+      logger.error('❌ Email notification failed:', error);
       throw error;
     }
   }
@@ -195,7 +195,7 @@ const { data, error } = await supabase
   .single();
 
 if (error) {
-  console.error('Error creating appointment reminder:', error);
+  logger.error('Error creating appointment reminder:', error);
   throw new Error('Failed to create appointment reminder');
 }
 
@@ -219,7 +219,7 @@ static async createPrescriptionNotification(prescriptionId: string): Promise<str
     .single();
 
   if (error) {
-    console.error('Error creating prescription notification:', error);
+    logger.error('Error creating prescription notification:', error);
     throw new Error('Failed to create prescription notification');
   }
 
@@ -246,7 +246,7 @@ const { data, error } = await supabase
   .single();
 
 if (error) {
-  console.error('Error creating treatment plan notification:', error);
+  logger.error('Error creating treatment plan notification:', error);
   throw new Error('Failed to create treatment plan notification');
 }
 
@@ -285,7 +285,7 @@ return data.id;
 
       return data as any;
     } catch (error) {
-      console.error('Error fetching notification preferences:', error);
+      logger.error('Error fetching notification preferences:', error);
       // Return default preferences on error
       return {
         id: `default-${userId}`,
@@ -324,7 +324,7 @@ static async updateNotificationPreferences(
         .single();
 
       if (error) {
-        console.error('Error updating notification preferences:', error);
+        logger.error('Error updating notification preferences:', error);
         throw new Error('Failed to update notification preferences');
       }
 
@@ -381,7 +381,7 @@ static async createNotificationFromTemplate(
       .not('expires_at', 'is', null);
 
     if (error) {
-      console.error('Error deleting expired notifications:', error);
+      logger.error('Error deleting expired notifications:', error);
       throw new Error('Failed to delete expired notifications');
     }
 
