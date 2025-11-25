@@ -3,6 +3,8 @@ import { format, addDays, parseISO, isAfter, isBefore } from 'date-fns';
 import { getCurrentBusinessId } from '@/lib/businessScopedSupabase';
 import { fetchDentistAvailability } from './appointmentAvailability';
 import { getRecommendedSlots, RecommendedSlot } from './smartScheduling';
+import { logger } from '@/lib/logger';
+import { NotificationService } from '@/lib/notificationService';
 
 export interface RescheduleSuggestion {
   date: Date;
@@ -40,7 +42,7 @@ export async function findRescheduleOptions(
     .single();
 
   if (aptError || !appointment) {
-    console.error('Error fetching appointment:', aptError);
+    logger.error('Error fetching appointment:', aptError);
     return [];
   }
 
@@ -163,8 +165,34 @@ export async function autoRescheduleAppointment(
     .order('created_at', { ascending: false })
     .limit(1);
 
-  // TODO: Trigger notification if notifyPatient is true
-  // This would integrate with your existing notification system
+  // Trigger notification if requested
+  if (notifyPatient) {
+    try {
+      const { data: appointment } = await supabase
+        .from('appointments')
+        .select('patient_id, appointment_date')
+        .eq('id', appointmentId)
+        .single();
+
+      if (appointment) {
+        await NotificationService.createNotification(
+          appointment.patient_id,
+          'Appointment Rescheduled',
+          `Your appointment has been rescheduled to ${format(newDateTime, 'PPP p')}`,
+          'appointment_rescheduled',
+          'info',
+          undefined,
+          {
+            appointmentId,
+            newDateTime: newDateTime.toISOString()
+          }
+        );
+      }
+    } catch (notifError) {
+      logger.error('Failed to send reschedule notification:', notifError);
+      // Don't fail the reschedule if notification fails
+    }
+  }
 
   return { success: true };
 }
@@ -300,21 +328,27 @@ export async function sendRescheduleSuggestions(
     .map((s, i) => `${i + 1}. ${format(s.date, 'EEEE, MMMM d')} at ${s.slot.time}`)
     .join('\n');
 
-  // TODO: Integrate with your notification system
-  // For now, we'll create an in-app notification
-  await supabase.from('notifications').insert({
-    user_id: appointment.patient_id,
-    title: 'Appointment Rescheduling Options',
-    message: `Your appointment needs to be rescheduled. Here are some suggested times:\n\n${suggestionText}\n\nPlease contact us to confirm.`,
-    type: 'appointment_reschedule',
-    metadata: {
-      appointment_id: appointmentId,
-      suggestions: suggestions.map(s => ({
-        date: format(s.date, 'yyyy-MM-dd'),
-        time: s.slot.time
-      }))
-    }
-  });
+  // Send notification through notification service
+  try {
+    await NotificationService.createNotification(
+      appointment.patient_id,
+      'Appointment Rescheduling Options',
+      `Your appointment needs to be rescheduled. Here are some suggested times:\n\n${suggestionText}\n\nPlease contact us to confirm.`,
+      'appointment_reschedule',
+      'info',
+      undefined,
+      {
+        appointmentId,
+        suggestions: suggestions.map(s => ({
+          date: format(s.date, 'yyyy-MM-dd'),
+          time: s.slot.time
+        }))
+      }
+    );
+  } catch (notifError) {
+    logger.error('Failed to send reschedule suggestions notification:', notifError);
+    return { success: false, error: 'Failed to send notification' };
+  }
 
   return { success: true };
 }

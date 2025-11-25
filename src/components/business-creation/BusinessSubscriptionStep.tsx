@@ -6,6 +6,7 @@ import { Check, Loader2, Tag, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
+import { logger } from "@/lib/logger";
 
 interface BusinessSubscriptionStepProps {
   businessData: any;
@@ -41,9 +42,9 @@ export const BusinessSubscriptionStep = ({ businessData, onComplete }: BusinessS
         .order('price_monthly', { ascending: true });
       
       if (error) throw error;
-      
-      console.log('Loaded plans:', data); // Debug log
-      
+
+      logger.debug('Loaded subscription plans:', data);
+
       // Ensure features is properly parsed as an array
       return (data || []).map(plan => ({
         ...plan,

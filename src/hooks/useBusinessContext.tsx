@@ -65,8 +65,21 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
 
       if (membershipError) throw membershipError;
 
-      const businessIds = (membershipData || []).map((m: any) => m.business_id);
-      let businessMap: Record<string, any> = {};
+      interface MembershipData {
+        id: string;
+        business_id: string;
+        role: string;
+      }
+
+      interface BusinessData {
+        id: string;
+        name: string;
+        slug: string;
+        template_type: string;
+      }
+
+      const businessIds = (membershipData || []).map((m: MembershipData) => m.business_id);
+      let businessMap: Record<string, BusinessData> = {};
       if (businessIds.length > 0) {
         const { data: businessesData, error: businessesError } = await supabase
           .from('businesses')
@@ -75,14 +88,14 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
           .in('template_type', ['healthcare', 'dentist']);
 
         if (businessesError) throw businessesError;
-        businessMap = Object.fromEntries((businessesData || []).map((b: any) => [b.id, b]));
+        businessMap = Object.fromEntries((businessesData || []).map((b: BusinessData) => [b.id, b]));
       }
 
-      const formattedMemberships = (membershipData || []).map((m: any) => ({
+      const formattedMemberships = (membershipData || []).map((m: MembershipData) => ({
         id: m.id,
         business_id: m.business_id,
         role: m.role,
-        business: businessMap[m.business_id] || null,
+        business: businessMap[m.business_id] || undefined,
       }));
 
       setMemberships(formattedMemberships);
