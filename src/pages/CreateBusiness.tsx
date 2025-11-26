@@ -9,7 +9,6 @@ import { BusinessCreationAuth } from '@/components/business-creation/BusinessCre
 import { BusinessDetailsStep } from '@/components/business-creation/BusinessDetailsStep';
 import { BusinessSubscriptionStep } from '@/components/business-creation/BusinessSubscriptionStep';
 import { BusinessCreationTour } from '@/components/business-creation/BusinessCreationTour';
-import { BusinessCreationAIGuide } from '@/components/business-creation/BusinessCreationAIGuide';
 import { FloatingChatBubble } from '@/components/chat/FloatingChatBubble';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -100,17 +99,6 @@ export default function CreateBusiness() {
     setBusinessData({ ...businessData, ...data });
   };
 
-  const handleAISuggestedData = (suggestedData: any) => {
-    if (!suggestedData || Object.keys(suggestedData).length === 0) return;
-
-    // Apply AI suggestions to business data
-    updateBusinessData(suggestedData);
-
-    // Show what was filled
-    const fields = Object.keys(suggestedData).join(', ');
-    toast.success(`✨ Auto-filled: ${fields}`);
-  };
-
   const handleAuthComplete = () => {
     setIsAuthenticated(true);
     handleNext();
@@ -187,7 +175,7 @@ export default function CreateBusiness() {
         </div>
 
         {/* Step Content */}
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-4xl mx-auto">
           <AnimatePresence mode="wait">
             <motion.div
               key={currentStep}
@@ -196,65 +184,49 @@ export default function CreateBusiness() {
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.3 }}
             >
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Main Content */}
-                <div className="lg:col-span-2">
-                  <Card className="p-8">
-                    {currentStep === 1 && (
-                      <BusinessCreationAuth onComplete={handleAuthComplete} />
-                    )}
+              <Card className="p-8">
+                {currentStep === 1 && (
+                  <BusinessCreationAuth onComplete={handleAuthComplete} />
+                )}
 
-                    {currentStep === 2 && (
-                      <BusinessDetailsStep
-                        businessData={businessData}
-                        onUpdate={updateBusinessData}
-                      />
-                    )}
+                {currentStep === 2 && (
+                  <BusinessDetailsStep
+                    businessData={businessData}
+                    onUpdate={updateBusinessData}
+                  />
+                )}
 
-                    {currentStep === 3 && (
-                      <BusinessSubscriptionStep
-                        businessData={businessData}
-                        onComplete={handlePaymentComplete}
-                      />
-                    )}
+                {currentStep === 3 && (
+                  <BusinessSubscriptionStep
+                    businessData={businessData}
+                    onComplete={handlePaymentComplete}
+                  />
+                )}
 
-                    {/* Navigation Buttons */}
-                    {currentStep > 1 && (
-                      <div className="flex items-center justify-between mt-8 pt-6 border-t">
-                        <Button
-                          variant="outline"
-                          onClick={handleBack}
-                          disabled={currentStep === 1}
-                        >
-                          <ArrowLeft className="w-4 h-4 mr-2" />
-                          Back
-                        </Button>
-
-                        {currentStep < STEPS.length && currentStep !== 3 && (
-                          <Button
-                            onClick={handleNext}
-                            disabled={currentStep === 2 && !businessData.name}
-                          >
-                            Next
-                            <ArrowRight className="w-4 h-4 ml-2" />
-                          </Button>
-                        )}
-                      </div>
-                    )}
-                  </Card>
-                </div>
-
-                {/* AI Guide Sidebar */}
+                {/* Navigation Buttons */}
                 {currentStep > 1 && (
-                  <div className="lg:col-span-1">
-                    <BusinessCreationAIGuide
-                      currentStep={currentStep}
-                      businessData={businessData}
-                      onSuggestedData={handleAISuggestedData}
-                    />
+                  <div className="flex items-center justify-between mt-8 pt-6 border-t">
+                    <Button
+                      variant="outline"
+                      onClick={handleBack}
+                      disabled={currentStep === 1}
+                    >
+                      <ArrowLeft className="w-4 h-4 mr-2" />
+                      Back
+                    </Button>
+
+                    {currentStep < STEPS.length && currentStep !== 3 && (
+                      <Button
+                        onClick={handleNext}
+                        disabled={currentStep === 2 && !businessData.name}
+                      >
+                        Next
+                        <ArrowRight className="w-4 h-4 ml-2" />
+                      </Button>
+                    )}
                   </div>
                 )}
-              </div>
+              </Card>
             </motion.div>
           </AnimatePresence>
         </div>
