@@ -111,7 +111,7 @@ serve(async (req) => {
       .insert({
         business_id: business.id,
         profile_id: profile.id,
-        role: 'admin',
+        role: 'owner',
       });
 
     if (memberError) {

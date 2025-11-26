@@ -131,7 +131,7 @@ export const BusinessSubscriptionStep = ({ businessData, onComplete }: BusinessS
             tagline: businessData.tagline || null,
             bio: businessData.bio || null,
             owner_profile_id: profile.id,
-            template_type: businessData.templateType || 'dentist',
+            template_type: businessData.template || 'dentist',
           })
           .select()
           .single();
@@ -160,7 +160,7 @@ export const BusinessSubscriptionStep = ({ businessData, onComplete }: BusinessS
         });
 
         toast.success('Business created successfully!');
-        window.location.href = `/business/${business.slug}`;
+        window.location.href = '/auth-redirect';
       } catch (error: any) {
         console.error('Error creating business:', error);
         toast.error(error.message || 'Failed to create business');
