@@ -1099,7 +1099,6 @@ export function PatientManagement({ dentistId }: PatientManagementProps) {
                 <div className="mt-4 pt-4 border-t">
                   <h4 className="font-medium text-sm mb-3">Quick Actions</h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {/* TODO: Re-implement staff booking with EnhancedAppointmentBooking or create proper slot-locking API */}
                     <Button
                       size="lg"
                       variant="outline"

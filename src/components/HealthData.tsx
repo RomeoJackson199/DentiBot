@@ -510,7 +510,6 @@ if (treatmentPlansResult.status === 'fulfilled') {
           <Card className="floating-card">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Appointments</CardTitle>
-              {/* TODO: Re-implement staff booking with EnhancedAppointmentBooking or create proper slot-locking API */}
             </CardHeader>
             <CardContent>
               {appointments.length === 0 ? (
