@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { ERROR_REPORTING } from '@/lib/constants';
 
 export type ErrorSeverity = 'low' | 'medium' | 'high' | 'critical';
 
@@ -43,13 +44,12 @@ export function initializeErrorReporting() {
   if ((window as any).__error_reporting_initialized__) return;
   (window as any).__error_reporting_initialized__ = true;
 
-  // Simple dedupe to avoid spammy duplicates (30s window)
-  const DEDUPE_WINDOW_MS = 30_000;
+  // Simple dedupe to avoid spammy duplicates
   const seen = new Map<string, number>();
   const shouldReport = (key: string) => {
     const now = Date.now();
     const last = seen.get(key) || 0;
-    if (now - last < DEDUPE_WINDOW_MS) return false;
+    if (now - last < ERROR_REPORTING.DEDUPE_WINDOW_MS) return false;
     seen.set(key, now);
     return true;
   };

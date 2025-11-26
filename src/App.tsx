@@ -66,6 +66,7 @@ const BookAppointment = lazy(() => import("./pages/BookAppointment"));
 const BusinessPortal = lazy(() => import("./pages/BusinessPortal"));
 import { BookingRouteHandler } from "./components/booking/BookingRouteHandler";
 import { logger } from '@/lib/logger';
+import { CACHE_CONFIG, UI_TIMINGS } from '@/lib/constants';
 const PatientCareHome = lazy(() => import("./pages/PatientCareHome"));
 const PatientAppointmentsPage = lazy(() => import("./pages/PatientAppointmentsPage"));
 const PatientPrescriptionsPage = lazy(() => import("./pages/PatientPrescriptionsPage"));
@@ -134,14 +135,19 @@ const Dashboard = () => {
     });
 
     // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      const currentUser = session?.user ?? null;
-      setUser(currentUser);
-      setLoading(false);
-    }).catch(error => {
-      logger.error('Error getting session:', error);
-      setLoading(false);
-    });
+    const initSession = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const currentUser = session?.user ?? null;
+        setUser(currentUser);
+        setLoading(false);
+      } catch (error) {
+        logger.error('Error getting session:', error);
+        setLoading(false);
+      }
+    };
+
+    initSession();
 
     return () => subscription.unsubscribe();
   }, []);
@@ -160,8 +166,8 @@ const Dashboard = () => {
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      gcTime: 10 * 60 * 1000, // 10 minutes (was cacheTime)
+      staleTime: CACHE_CONFIG.STALE_TIME,
+      gcTime: CACHE_CONFIG.GC_TIME,
       refetchOnWindowFocus: false,
       retry: (failureCount, error) => {
         // Don't retry auth errors (401/403)
@@ -178,9 +184,12 @@ const queryClient = new QueryClient({
             }
           }
         }
-        return failureCount < 3;
+        return failureCount < CACHE_CONFIG.MAX_RETRIES;
       },
-      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+      retryDelay: (attemptIndex) => Math.min(
+        CACHE_CONFIG.RETRY_BASE_DELAY * 2 ** attemptIndex,
+        CACHE_CONFIG.MAX_RETRY_DELAY
+      ),
     },
   },
 });
@@ -226,11 +235,11 @@ const App = () => {
           if (memberships && memberships.length > 0) {
             if (memberships.length > 1 && !sessionBusiness?.business_id) {
               // Providers with multiple clinics need to choose
-              setTimeout(() => setShowBusinessPicker(true), 500);
+              setTimeout(() => setShowBusinessPicker(true), UI_TIMINGS.BUSINESS_PICKER_DELAY);
             }
           } else if (!sessionBusiness?.business_id) {
             // Patient/guest: no clinic selected yet, show patient picker
-            setTimeout(() => setShowBusinessPicker(true), 500);
+            setTimeout(() => setShowBusinessPicker(true), UI_TIMINGS.BUSINESS_PICKER_DELAY);
           }
 
         }

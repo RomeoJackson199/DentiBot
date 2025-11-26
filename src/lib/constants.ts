@@ -291,3 +291,183 @@ export const URGENCY_COLORS = {
   medium: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
   low: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
 } as const;
+
+// ============================================================================
+// Application-wide Configuration Constants
+// ============================================================================
+
+// Cache Configuration
+export const CACHE_CONFIG = {
+  /** React Query stale time - 5 minutes */
+  STALE_TIME: 5 * 60 * 1000,
+  /** React Query garbage collection time - 10 minutes */
+  GC_TIME: 10 * 60 * 1000,
+  /** Maximum retry attempts for failed queries */
+  MAX_RETRIES: 3,
+  /** Base delay for retry (exponential backoff) */
+  RETRY_BASE_DELAY: 1000,
+  /** Maximum retry delay */
+  MAX_RETRY_DELAY: 30000,
+} as const;
+
+// Error Reporting
+export const ERROR_REPORTING = {
+  /** Deduplication window for similar errors - 30 seconds */
+  DEDUPE_WINDOW_MS: 30_000,
+  /** Maximum stack trace length to store */
+  MAX_STACK_TRACE_LENGTH: 5000,
+} as const;
+
+// UI Timings
+export const UI_TIMINGS = {
+  /** Delay before showing business picker dialog */
+  BUSINESS_PICKER_DELAY: 500,
+  /** Toast notification duration - default */
+  TOAST_DURATION: 5000,
+  /** Toast duration for critical errors */
+  TOAST_CRITICAL_DURATION: 10000,
+  /** Debounce delay for search inputs */
+  SEARCH_DEBOUNCE: 300,
+  /** Animation duration for transitions */
+  ANIMATION_DURATION: 200,
+} as const;
+
+// Pagination
+export const PAGINATION = {
+  /** Default page size for lists */
+  DEFAULT_PAGE_SIZE: 50,
+  /** Maximum page size */
+  MAX_PAGE_SIZE: 100,
+  /** Default notifications limit */
+  NOTIFICATIONS_LIMIT: 50,
+} as const;
+
+// Notification Preferences (Defaults)
+export const NOTIFICATION_DEFAULTS = {
+  EMAIL_ENABLED: true,
+  SMS_ENABLED: false,
+  PUSH_ENABLED: true,
+  IN_APP_ENABLED: true,
+  APPOINTMENT_REMINDERS: true,
+  PRESCRIPTION_UPDATES: true,
+  TREATMENT_PLAN_UPDATES: true,
+  EMERGENCY_ALERTS: true,
+  SYSTEM_NOTIFICATIONS: true,
+  QUIET_HOURS_START: '22:00',
+  QUIET_HOURS_END: '07:00',
+} as const;
+
+// Business Templates
+export const BUSINESS_TEMPLATES = {
+  HEALTHCARE: 'healthcare',
+  DENTIST: 'dentist',
+  SALON: 'salon',
+  RESTAURANT: 'restaurant',
+} as const;
+
+// User Roles
+export const USER_ROLES = {
+  PATIENT: 'patient',
+  DENTIST: 'dentist',
+  PROVIDER: 'provider',
+  ADMIN: 'admin',
+  SUPER_ADMIN: 'super_admin',
+  GUEST: 'guest',
+} as const;
+
+// Appointment Status
+export const APPOINTMENT_STATUS = {
+  PENDING: 'pending',
+  CONFIRMED: 'confirmed',
+  COMPLETED: 'completed',
+  CANCELLED: 'cancelled',
+  NO_SHOW: 'no_show',
+} as const;
+
+// Appointment Urgency
+export const APPOINTMENT_URGENCY = {
+  LOW: 'low',
+  MEDIUM: 'medium',
+  HIGH: 'high',
+  EMERGENCY: 'emergency',
+} as const;
+
+// Date/Time Formats
+export const DATE_FORMATS = {
+  /** Display format: Jan 1, 2024 */
+  DISPLAY: 'MMM d, yyyy',
+  /** Display with time: Jan 1, 2024 at 2:30 PM */
+  DISPLAY_WITH_TIME: 'MMM d, yyyy \'at\' h:mm a',
+  /** ISO format for APIs */
+  ISO: 'yyyy-MM-dd',
+  /** Time only: 2:30 PM */
+  TIME: 'h:mm a',
+  /** 24-hour time: 14:30 */
+  TIME_24H: 'HH:mm',
+} as const;
+
+// API Configuration
+export const API_CONFIG = {
+  /** Timeout for API requests - 30 seconds */
+  REQUEST_TIMEOUT: 30000,
+  /** Maximum file upload size - 10MB */
+  MAX_FILE_SIZE: 10 * 1024 * 1024,
+  /** Allowed image formats */
+  ALLOWED_IMAGE_FORMATS: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
+  /** Allowed document formats */
+  ALLOWED_DOCUMENT_FORMATS: ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+} as const;
+
+// Validation Rules
+export const VALIDATION = {
+  /** Minimum password length */
+  MIN_PASSWORD_LENGTH: 8,
+  /** Maximum name length */
+  MAX_NAME_LENGTH: 100,
+  /** Maximum description length */
+  MAX_DESCRIPTION_LENGTH: 500,
+  /** Maximum bio length */
+  MAX_BIO_LENGTH: 1000,
+  /** Phone number regex pattern */
+  PHONE_PATTERN: /^\+?[\d\s\-\(\)]+$/,
+  /** Email regex pattern */
+  EMAIL_PATTERN: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+} as const;
+
+// Local Storage Keys
+export const STORAGE_KEYS = {
+  AUTH_TOKEN: 'auth_token',
+  SELECTED_BUSINESS: 'selected_business',
+  THEME: 'theme',
+  LANGUAGE: 'language',
+  RECENT_SEARCHES: 'recent_searches',
+  USER_PREFERENCES: 'user_preferences',
+} as const;
+
+// Feature Flags (for gradual rollout)
+export const FEATURES = {
+  ENABLE_AI_CHATBOT: true,
+  ENABLE_VOICE_COMMANDS: false,
+  ENABLE_ANALYTICS: true,
+  ENABLE_NOTIFICATIONS: true,
+  ENABLE_RESTAURANT_MODE: true,
+  ENABLE_SALON_MODE: true,
+} as const;
+
+// HTTP Status Codes (for clarity)
+export const HTTP_STATUS = {
+  OK: 200,
+  CREATED: 201,
+  BAD_REQUEST: 400,
+  UNAUTHORIZED: 401,
+  FORBIDDEN: 403,
+  NOT_FOUND: 404,
+  CONFLICT: 409,
+  INTERNAL_SERVER_ERROR: 500,
+} as const;
+
+// Type exports for type safety
+export type BusinessTemplate = typeof BUSINESS_TEMPLATES[keyof typeof BUSINESS_TEMPLATES];
+export type UserRole = typeof USER_ROLES[keyof typeof USER_ROLES];
+export type AppointmentStatus = typeof APPOINTMENT_STATUS[keyof typeof APPOINTMENT_STATUS];
+export type AppointmentUrgency = typeof APPOINTMENT_URGENCY[keyof typeof APPOINTMENT_URGENCY];

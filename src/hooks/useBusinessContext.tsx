@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
@@ -27,6 +27,24 @@ interface BusinessContextValue {
 
 const BusinessContext = createContext<BusinessContextValue | undefined>(undefined);
 
+/**
+ * Helper function to fetch business details by ID
+ */
+async function fetchBusinessDetails(businessId: string) {
+  const { data, error } = await supabase
+    .from('businesses')
+    .select('id, name, slug, template_type')
+    .eq('id', businessId)
+    .single();
+
+  if (error) {
+    logger.error('Error fetching business details:', error);
+    throw error;
+  }
+
+  return data;
+}
+
 export function BusinessProvider({ children }: { children: ReactNode }) {
   const [businessId, setBusinessId] = useState<string | null>(null);
   const [businessSlug, setBusinessSlug] = useState<string | null>(null);
@@ -34,6 +52,14 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
   const [membershipRole, setMembershipRole] = useState<string | null>(null);
   const [memberships, setMemberships] = useState<BusinessMembership[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Use ref to track if business is already set (to prevent re-fetching on every loadMemberships call)
+  const businessIdRef = useRef<string | null>(null);
+
+  // Sync ref with state
+  useEffect(() => {
+    businessIdRef.current = businessId;
+  }, [businessId]);
 
   const loadMemberships = useCallback(async () => {
     try {
@@ -101,7 +127,7 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
       setMemberships(formattedMemberships);
 
       // Get current session business or auto-select (only if not already set)
-      const currentBusinessId = businessId;
+      const currentBusinessId = businessIdRef.current;
       if (!currentBusinessId) {
         const { data: sessionBusiness } = await supabase
           .from('session_business')
@@ -123,17 +149,14 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
             }
           } else {
             // For patients (non-members): fetch business details directly
-            const { data: business } = await supabase
-              .from('businesses')
-              .select('id, name, slug')
-              .eq('id', sessionBusiness.business_id)
-              .single();
-
-            if (business) {
+            try {
+              const business = await fetchBusinessDetails(sessionBusiness.business_id);
               setBusinessId(business.id);
               setBusinessSlug(business.slug);
               setBusinessName(business.name);
               setMembershipRole('guest');
+            } catch (error) {
+              logger.error('Error fetching business for patient:', error);
             }
           }
         } else if (formattedMemberships.length === 1) {
@@ -175,16 +198,14 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
           toast.success(`Switched to ${membership.business.name}`);
         } else {
           // For patients (non-members): fetch business details
-          const { data: business } = await supabase
-            .from('businesses')
-            .select('name, slug')
-            .eq('id', data.businessId)
-            .single();
-
-          if (business) {
+          try {
+            const business = await fetchBusinessDetails(data.businessId);
             setBusinessSlug(business.slug);
             setBusinessName(business.name);
             toast.success(`Switched to ${business.name}`);
+          } catch (error) {
+            logger.error('Error fetching business after switch:', error);
+            toast.error('Failed to load business details');
           }
         }
         

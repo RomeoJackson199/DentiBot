@@ -5,13 +5,11 @@ import { TimeSlot } from './appointmentAvailability';
 import { getSlotUsageStatistics, getUnderutilizedSlots, SlotUsageStats } from './slotUsageTracking';
 import { PatientPreferences } from './smartScheduling';
 import { format, getDay } from 'date-fns';
+import { getGeminiApiKey, hasGeminiConfig } from '@/lib/env';
 
 // Initialize Gemini AI
 const getGeminiAI = () => {
-  const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-  if (!apiKey) {
-    throw new Error('VITE_GEMINI_API_KEY is not configured. Please add it to your .env file.');
-  }
+  const apiKey = getGeminiApiKey();
   return new GoogleGenerativeAI(apiKey);
 };
 
@@ -416,14 +414,14 @@ export async function testGeminiConnection(): Promise<{
   message: string;
 }> {
   try {
-    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-    if (!apiKey) {
+    if (!hasGeminiConfig()) {
       return {
         success: false,
         message: 'VITE_GEMINI_API_KEY is not configured'
       };
     }
 
+    const apiKey = getGeminiApiKey();
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
 
