@@ -60,6 +60,7 @@ export function FloatingChatBubble({ context = 'general' }: FloatingChatBubblePr
         body: {
           message: userMessage,
           conversation_history: messages,
+          context: context,
         },
       });
 
