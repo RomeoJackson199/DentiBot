@@ -23,20 +23,20 @@ const FALLBACK_PLANS: SubscriptionPlan[] = [
     id: 'starter-fallback',
     name: 'Starter',
     slug: 'starter',
-    price_monthly: 99,
-    price_yearly: 990,
+    price_monthly: 249,
+    price_yearly: 2480,
     customer_limit: 500,
-    features: ["Up to 500 customers", "Basic appointment scheduling", "Patient management", "Email notifications", "Basic reports"],
+    features: ["Up to 500 customers per month", "Basic appointment scheduling", "Patient management", "Email notifications", "Basic reports"],
     isPopular: false
   },
   {
     id: 'pro-fallback',
     name: 'Professional',
     slug: 'professional',
-    price_monthly: 250,
-    price_yearly: 2500,
+    price_monthly: 499,
+    price_yearly: 4970,
     customer_limit: 2500,
-    features: ["Up to 2,500 customers", "Everything in Starter", "2,000 emails/month", "Advanced analytics", "SMS notifications", "Custom branding", "Priority support"],
+    features: ["Up to 2,500 customers per month", "Everything in Starter", "2,000 emails/month", "Advanced analytics", "SMS notifications", "Custom branding", "Priority support"],
     isPopular: true
   },
   {
@@ -44,9 +44,9 @@ const FALLBACK_PLANS: SubscriptionPlan[] = [
     name: 'Enterprise',
     slug: 'enterprise',
     price_monthly: 999,
-    price_yearly: 9990,
+    price_yearly: 9950,
     customer_limit: 7500,
-    features: ["Up to 7,500 customers", "Everything in Professional", "7,500 emails/month", "Unlimited staff accounts", "API access", "Dedicated support", "Custom integrations"],
+    features: ["Up to 7,500 customers per month", "Everything in Professional", "7,500 emails/month", "Unlimited staff accounts", "API access", "Dedicated support", "Custom integrations"],
     isPopular: false
   }
 ];

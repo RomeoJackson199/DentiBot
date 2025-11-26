@@ -269,7 +269,7 @@ export const BusinessSubscriptionStep = ({ businessData, onComplete }: BusinessS
                 <div className="text-center">
                   <div className="flex items-baseline justify-center gap-1">
                     <span className="text-4xl md:text-5xl font-bold bg-gradient-to-br from-primary to-purple-600 bg-clip-text text-transparent">
-                      ${price}
+                      €{price}
                     </span>
                     <span className="text-muted-foreground">
                       /{billingCycle === 'monthly' ? 'month' : 'year'}
@@ -334,7 +334,7 @@ export const BusinessSubscriptionStep = ({ businessData, onComplete }: BusinessS
                 <p className="text-sm text-green-700 dark:text-green-300">
                   {validPromo.discount_type === 'free' && 'Free activation!'}
                   {validPromo.discount_type === 'percentage' && `${validPromo.discount_value}% off`}
-                  {validPromo.discount_type === 'fixed' && `$${validPromo.discount_value} off`}
+                  {validPromo.discount_type === 'fixed' && `€${validPromo.discount_value} off`}
                 </p>
               </div>
             </div>
