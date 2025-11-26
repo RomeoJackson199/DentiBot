@@ -16,6 +16,7 @@ import { ProblemSection } from "@/components/homepage/ProblemSection";
 import { StatsSection } from "@/components/homepage/StatsSection";
 import { ResultsSection } from "@/components/homepage/ResultsSection";
 import { PricingSection } from "@/components/homepage/PricingSection";
+import { FloatingChatBubble } from "@/components/chat/FloatingChatBubble";
 import { motion } from "framer-motion";
 
 const Index = () => {
@@ -193,12 +194,15 @@ const Index = () => {
       </main>
 
       <Footer />
-      
+
       {/* Demo Tour Modal */}
-      <DemoTourFlow 
-        isOpen={showDemoTour} 
-        onClose={() => setShowDemoTour(false)} 
+      <DemoTourFlow
+        isOpen={showDemoTour}
+        onClose={() => setShowDemoTour(false)}
       />
+
+      {/* Floating Chat Bubble */}
+      <FloatingChatBubble />
     </div>
   );
 };
