@@ -10,6 +10,7 @@ import { BusinessDetailsStep } from '@/components/business-creation/BusinessDeta
 import { BusinessSubscriptionStep } from '@/components/business-creation/BusinessSubscriptionStep';
 import { BusinessCreationTour } from '@/components/business-creation/BusinessCreationTour';
 import { BusinessCreationAIGuide } from '@/components/business-creation/BusinessCreationAIGuide';
+import { FloatingChatBubble } from '@/components/chat/FloatingChatBubble';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -258,6 +259,9 @@ export default function CreateBusiness() {
           </AnimatePresence>
         </div>
       </div>
+
+      {/* Floating Chat Bubble for Onboarding Help */}
+      <FloatingChatBubble context="onboarding" />
     </div>
   );
 }
