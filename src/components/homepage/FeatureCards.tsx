@@ -209,17 +209,6 @@ export const FeatureCards = () => {
                 >
                   Get Started Free
                 </Button>
-                
-                <Link to="/emergency-triage" className="w-full sm:w-auto">
-                  <Button
-                    variant="glass"
-                    size="lg"
-                    className="w-full px-6 sm:px-8 py-3 font-semibold border-dental-primary/30 hover:border-dental-primary/60 touch-target"
-                    icon={<Zap className="w-4 h-4 sm:w-5 sm:h-5" />}
-                  >
-                    Emergency Assessment
-                  </Button>
-                </Link>
               </div>
             </CardContent>
           </Card>

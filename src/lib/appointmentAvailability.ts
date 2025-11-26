@@ -6,7 +6,7 @@ import { getCurrentBusinessId } from '@/lib/businessScopedSupabase';
 export interface TimeSlot {
   time: string;
   available: boolean;
-  reason?: 'booked' | 'vacation' | 'outside_hours' | 'emergency_only';
+  reason?: 'booked' | 'vacation' | 'outside_hours';
   appointmentId?: string;
 }
 
@@ -19,17 +19,103 @@ export interface DentistAvailability {
   is_available: boolean;
 }
 
+// Cache for availability queries
+interface CacheEntry {
+  data: TimeSlot[];
+  timestamp: number;
+}
+
+const availabilityCache = new Map<string, CacheEntry>();
+const CACHE_TTL = 2 * 60 * 1000; // 2 minutes cache
+
+// Debounce map for pending requests
+const pendingRequests = new Map<string, Promise<TimeSlot[]>>();
+
 /**
- * Fetches real-time availability for a dentist on a specific date
- * Considers: existing appointments, vacation days, working hours, and emergency slots
+ * Get cached availability or fetch if cache is stale/missing
+ * @param dentistId - Dentist ID
+ * @param date - Date to check
+ * @returns TimeSlot array (cached or fresh)
+ */
+function getCachedAvailability(dentistId: string, dateStr: string): CacheEntry | null {
+  const cacheKey = `${dentistId}_${dateStr}`;
+  const cached = availabilityCache.get(cacheKey);
+
+  if (cached && (Date.now() - cached.timestamp) < CACHE_TTL) {
+    return cached;
+  }
+
+  // Remove stale cache
+  if (cached) {
+    availabilityCache.delete(cacheKey);
+  }
+
+  return null;
+}
+
+/**
+ * Store availability in cache
+ */
+function setCachedAvailability(dentistId: string, dateStr: string, data: TimeSlot[]) {
+  const cacheKey = `${dentistId}_${dateStr}`;
+  availabilityCache.set(cacheKey, {
+    data,
+    timestamp: Date.now()
+  });
+}
+
+/**
+ * Invalidate cache for a specific dentist/date combination
+ * Call this after booking or cancelling an appointment
+ */
+export function invalidateAvailabilityCache(dentistId: string, date: Date | string) {
+  const dateStr = typeof date === 'string' ? date : format(date, 'yyyy-MM-dd');
+  const cacheKey = `${dentistId}_${dateStr}`;
+  availabilityCache.delete(cacheKey);
+}
+
+/**
+ * Clear all availability cache
+ */
+export function clearAvailabilityCache() {
+  availabilityCache.clear();
+  pendingRequests.clear();
+}
+
+/**
+ * Fetches real-time availability for a dentist on a specific date (with caching)
+ * Considers: existing appointments, vacation days, and working hours
+ * @param dentistId - Dentist ID
+ * @param date - Date to check availability
+ * @param skipCache - Skip cache and force fresh fetch (default: false)
+ * @returns TimeSlot array
  */
 export async function fetchDentistAvailability(
   dentistId: string,
-  date: Date
+  date: Date,
+  skipCache: boolean = false
 ): Promise<TimeSlot[]> {
   const dateStr = format(date, 'yyyy-MM-dd');
-  const dayOfWeek = date.getDay();
-  const businessId = await getCurrentBusinessId();
+  const cacheKey = `${dentistId}_${dateStr}`;
+
+  // Check cache first (unless skipCache is true)
+  if (!skipCache) {
+    const cached = getCachedAvailability(dentistId, dateStr);
+    if (cached) {
+      return cached.data;
+    }
+
+    // Check if there's already a pending request for this key (debouncing)
+    const pending = pendingRequests.get(cacheKey);
+    if (pending) {
+      return pending;
+    }
+  }
+
+  // Create the fetch promise
+  const fetchPromise = (async () => {
+    const dayOfWeek = date.getDay();
+    const businessId = await getCurrentBusinessId();
 
   // Parallel fetch of all availability data
   const [
@@ -121,8 +207,8 @@ export async function fetchDentistAvailability(
       const formattedTime = slot.slot_time.length === 5 ? `${slot.slot_time}:00` : slot.slot_time;
       return {
         time: formattedTime,
-        available: slot.is_available && !slot.emergency_only,
-        reason: !slot.is_available ? 'booked' : (slot.emergency_only ? 'emergency_only' : undefined),
+        available: slot.is_available,
+        reason: !slot.is_available ? 'booked' : undefined,
         appointmentId: slot.appointment_id || undefined
       };
     });
@@ -170,15 +256,6 @@ export async function fetchDentistAvailability(
 
     // Check if slot exists in appointment_slots table
     const slotRecord = slots.find(s => s.slot_time === timeStr);
-    
-    // If slot is marked as emergency only
-    if (slotRecord?.emergency_only) {
-      return {
-        time: timeStr,
-        available: false,
-        reason: 'emergency_only'
-      };
-    }
 
     // If slot is explicitly marked as unavailable
     if (slotRecord && !slotRecord.is_available) {
@@ -213,7 +290,24 @@ export async function fetchDentistAvailability(
     };
   });
 
-  return timeSlots;
+    // Cache the result before returning
+    setCachedAvailability(dentistId, dateStr, timeSlots);
+
+    return timeSlots;
+  })();
+
+  // Store the promise in pendingRequests (for debouncing)
+  if (!skipCache) {
+    pendingRequests.set(cacheKey, fetchPromise);
+  }
+
+  try {
+    const result = await fetchPromise;
+    return result;
+  } finally {
+    // Clean up pending request
+    pendingRequests.delete(cacheKey);
+  }
 }
 
 /**
@@ -291,13 +385,13 @@ export async function isDentistAvailableOnDate(
   // Check appointment slots next
   const { data: slots } = await supabase
     .from('appointment_slots')
-    .select('is_available, emergency_only')
+    .select('is_available')
     .eq('dentist_id', dentistId)
     .eq('slot_date', dateStr)
     .eq('business_id', businessId);
 
   if (slots && slots.length > 0) {
-    const hasAvailableSlots = slots.some(s => s.is_available && !s.emergency_only);
+    const hasAvailableSlots = slots.some(s => s.is_available);
     return { available: hasAvailableSlots };
   }
 

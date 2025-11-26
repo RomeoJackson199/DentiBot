@@ -38,7 +38,7 @@ interface Dentist {
 interface TimeSlot {
   time: string;
   available: boolean;
-  emergency_only?: boolean;
+  reason?: string;
 }
 
 export const EnhancedAppointmentBooking = ({ 
@@ -114,6 +114,25 @@ export const EnhancedAppointmentBooking = ({
     }
   }, [dentists, selectedDentist, preSelectedDentist]);
 
+  // Monitor if selected time slot becomes unavailable
+  useEffect(() => {
+    if (!selectedTime || availableSlots.length === 0) return;
+
+    const isStillAvailable = availableSlots.some(
+      slot => slot.time === selectedTime && slot.available
+    );
+
+    if (!isStillAvailable) {
+      // Slot was deselected or became unavailable
+      toast({
+        title: "Slot No Longer Available",
+        description: "The time slot you selected has been booked by someone else. Please choose another time.",
+        variant: "destructive",
+      });
+      setSelectedTime("");
+    }
+  }, [availableSlots, selectedTime, toast]);
+
   const fetchAvailability = async (date: Date) => {
     if (!selectedDentist) return;
     
@@ -162,7 +181,7 @@ export const EnhancedAppointmentBooking = ({
       // Fetch ALL slots for comprehensive view
       const { data: slots, error } = await supabase
         .from('appointment_slots')
-        .select('slot_time, is_available, emergency_only')
+        .select('slot_time, is_available')
         .eq('dentist_id', selectedDentist)
         .eq('slot_date', dateStr)
         .eq('business_id', businessId)
@@ -172,13 +191,12 @@ export const EnhancedAppointmentBooking = ({
 
       const allSlotsData = (slots || []).map(slot => ({
         time: slot.slot_time.substring(0, 5),
-        available: slot.is_available,
-        emergency_only: slot.emergency_only || false
+        available: slot.is_available
       }));
 
-      // Filter available non-emergency slots
-      const availableSlotsData = allSlotsData.filter(slot => 
-        slot.available && !slot.emergency_only
+      // Filter available slots
+      const availableSlotsData = allSlotsData.filter(slot =>
+        slot.available
       );
 
       setAllSlots(allSlotsData);
