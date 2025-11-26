@@ -13,12 +13,26 @@ interface Message {
   content: string;
 }
 
-export function FloatingChatBubble() {
+interface FloatingChatBubbleProps {
+  context?: 'general' | 'onboarding';
+}
+
+const INITIAL_MESSAGES = {
+  general: "👋 Hi! I'm Caberu's AI assistant. Ask me anything about our dental practice management platform!",
+  onboarding: "👋 Hi! I'm here to help you set up your business! Ask me anything about the onboarding process or business setup.",
+};
+
+const CHAT_TITLES = {
+  general: 'Caberu Assistant',
+  onboarding: 'Setup Assistant',
+};
+
+export function FloatingChatBubble({ context = 'general' }: FloatingChatBubbleProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
-      content: "👋 Hi! I'm Caberu's AI assistant. Ask me anything about our dental practice management platform!",
+      content: INITIAL_MESSAGES[context],
     },
   ]);
   const [input, setInput] = useState('');
@@ -71,20 +85,40 @@ export function FloatingChatBubble() {
   const getFallbackResponse = (message: string): string => {
     const lowerMessage = message.toLowerCase();
 
-    if (lowerMessage.includes('appointment') || lowerMessage.includes('schedule')) {
-      return "Caberu offers smart appointment scheduling with AI-powered triage. You can book appointments, manage your calendar, and send automated reminders to reduce no-shows. Would you like to know more about any specific feature?";
-    } else if (lowerMessage.includes('price') || lowerMessage.includes('cost') || lowerMessage.includes('plan')) {
-      return "Caberu offers flexible pricing plans for practices of all sizes. Visit our Pricing page to see detailed plan comparisons and find the best fit for your practice!";
-    } else if (lowerMessage.includes('feature') || lowerMessage.includes('what can')) {
-      return "Caberu is a complete dental practice management system with:\n\n• Smart Scheduling with AI triage\n• Patient Records & Treatment History\n• Billing & Payment Processing\n• Inventory Management\n• Analytics & Reporting\n• Automated Reminders\n• Multi-Provider Support\n• HIPAA Compliant Security\n\nWhat would you like to know more about?";
-    } else if (lowerMessage.includes('ai') || lowerMessage.includes('chatbot')) {
-      return "Yes! Caberu includes an AI Assistant that helps with patient triage, answers common questions, and guides patients through booking appointments. It's available 24/7 and can handle multiple languages!";
-    } else if (lowerMessage.includes('hipaa') || lowerMessage.includes('security') || lowerMessage.includes('secure')) {
-      return "Absolutely! Caberu is HIPAA compliant with enterprise-grade security and encryption. Your patient data is protected with the highest security standards.";
-    } else if (lowerMessage.includes('start') || lowerMessage.includes('get started') || lowerMessage.includes('sign up')) {
-      return "Getting started with Caberu is easy! Click 'Sign Up' to create your account, and you'll be guided through our onboarding process. We'll help you set up your practice profile, add services, and configure your settings. Need help? Our support team is here for you!";
+    if (context === 'onboarding') {
+      // Onboarding-specific responses
+      if (lowerMessage.includes('business name') || lowerMessage.includes('name my business')) {
+        return "Choose a name that's memorable and reflects your practice! It should be:\n\n• Easy to spell and pronounce\n• Unique in your area\n• Professional yet friendly\n• Reflects your specialty (optional)\n\nExample: 'Bright Smile Dental' or 'Dr. Smith Family Dentistry'";
+      } else if (lowerMessage.includes('tagline') || lowerMessage.includes('slogan')) {
+        return "A great tagline captures what makes you special! Keep it:\n\n• Short (5-7 words)\n• Benefit-focused\n• Memorable\n\nExamples:\n• 'Your smile is our passion'\n• 'Gentle care, beautiful smiles'\n• 'Where families feel at home'";
+      } else if (lowerMessage.includes('bio') || lowerMessage.includes('description') || lowerMessage.includes('about')) {
+        return "Your business bio helps patients understand your practice. Include:\n\n• Your specialty or focus\n• Years of experience\n• What makes you unique\n• Your practice philosophy\n• Services you offer\n\nKeep it friendly, professional, and around 2-3 paragraphs!";
+      } else if (lowerMessage.includes('plan') || lowerMessage.includes('subscription') || lowerMessage.includes('pricing')) {
+        return "We offer 3 plans:\n\n• **Starter** - Perfect for new practices ($29/mo)\n• **Professional** - Most popular ($79/mo)\n• **Enterprise** - For large practices ($149/mo)\n\nAll plans include a 14-day free trial! You can upgrade or downgrade anytime.";
+      } else if (lowerMessage.includes('step') || lowerMessage.includes('next') || lowerMessage.includes('how many')) {
+        return "The setup has 3 simple steps:\n\n1. **Sign Up** - Create your account\n2. **Details** - Add your business information\n3. **Subscription** - Choose your plan\n\nYou're doing great! Take your time filling out each step.";
+      } else if (lowerMessage.includes('help') || lowerMessage.includes('stuck') || lowerMessage.includes('confused')) {
+        return "No worries, I'm here to help! You can:\n\n• Ask me specific questions about any field\n• Skip optional fields and come back later\n• Use the AI Guide on the right for suggestions\n• Contact support anytime\n\nWhat specific part can I help you with?";
+      } else {
+        return "I'm here to help you create your business! You can ask me about:\n\n• Choosing a business name or tagline\n• Writing your business bio\n• Understanding the different plans\n• Any step in the setup process\n\nWhat would you like to know?";
+      }
     } else {
-      return "Thanks for your question! Caberu is an AI-powered dental practice management platform that helps you manage appointments, patient records, billing, inventory, and more—all in one place. What specific aspect would you like to know about?";
+      // General support responses
+      if (lowerMessage.includes('appointment') || lowerMessage.includes('schedule')) {
+        return "Caberu offers smart appointment scheduling with AI-powered triage. You can book appointments, manage your calendar, and send automated reminders to reduce no-shows. Would you like to know more about any specific feature?";
+      } else if (lowerMessage.includes('price') || lowerMessage.includes('cost') || lowerMessage.includes('plan')) {
+        return "Caberu offers flexible pricing plans for practices of all sizes. Visit our Pricing page to see detailed plan comparisons and find the best fit for your practice!";
+      } else if (lowerMessage.includes('feature') || lowerMessage.includes('what can')) {
+        return "Caberu is a complete dental practice management system with:\n\n• Smart Scheduling with AI triage\n• Patient Records & Treatment History\n• Billing & Payment Processing\n• Inventory Management\n• Analytics & Reporting\n• Automated Reminders\n• Multi-Provider Support\n• HIPAA Compliant Security\n\nWhat would you like to know more about?";
+      } else if (lowerMessage.includes('ai') || lowerMessage.includes('chatbot')) {
+        return "Yes! Caberu includes an AI Assistant that helps with patient triage, answers common questions, and guides patients through booking appointments. It's available 24/7 and can handle multiple languages!";
+      } else if (lowerMessage.includes('hipaa') || lowerMessage.includes('security') || lowerMessage.includes('secure')) {
+        return "Absolutely! Caberu is HIPAA compliant with enterprise-grade security and encryption. Your patient data is protected with the highest security standards.";
+      } else if (lowerMessage.includes('start') || lowerMessage.includes('get started') || lowerMessage.includes('sign up')) {
+        return "Getting started with Caberu is easy! Click 'Sign Up' to create your account, and you'll be guided through our onboarding process. We'll help you set up your practice profile, add services, and configure your settings. Need help? Our support team is here for you!";
+      } else {
+        return "Thanks for your question! Caberu is an AI-powered dental practice management platform that helps you manage appointments, patient records, billing, inventory, and more—all in one place. What specific aspect would you like to know about?";
+      }
     }
   };
 
@@ -136,8 +170,8 @@ export function FloatingChatBubble() {
                       <Bot className="w-5 h-5" />
                     </div>
                     <div>
-                      <CardTitle className="text-base font-semibold">Caberu Assistant</CardTitle>
-                      <p className="text-xs text-white/80">Ask me anything!</p>
+                      <CardTitle className="text-base font-semibold">{CHAT_TITLES[context]}</CardTitle>
+                      <p className="text-xs text-white/80">{context === 'onboarding' ? 'Need help setting up?' : 'Ask me anything!'}</p>
                     </div>
                   </div>
                   <Button
