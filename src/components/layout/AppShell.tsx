@@ -387,7 +387,9 @@ export function AppShell() {
           setPaymentsOverdue(overdueCount);
           setInventoryLow(lowCount);
         }
-      } catch {}
+      } catch (error) {
+        logger.error('Failed to fetch badge counts:', error);
+      }
     })();
     return () => { cancelled = true; };
   }, [dentistId]);

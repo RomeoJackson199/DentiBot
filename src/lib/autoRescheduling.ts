@@ -114,7 +114,7 @@ async function logRescheduleSuggestions(
 ): Promise<void> {
   const businessId = await getCurrentBusinessId();
 
-  await supabase
+  const { error } = await supabase
     .from('reschedule_suggestions')
     .insert({
       original_appointment_id: appointmentId,
@@ -128,6 +128,10 @@ async function logRescheduleSuggestions(
         rank: s.rank
       }))
     });
+
+  if (error) {
+    logger.error('Failed to log reschedule suggestions:', error);
+  }
 }
 
 /**
@@ -154,7 +158,7 @@ export async function autoRescheduleAppointment(
   }
 
   // Update the reschedule suggestion log
-  await supabase
+  const { error: suggestionError } = await supabase
     .from('reschedule_suggestions')
     .update({
       accepted_slot: newDateTime.toISOString(),
@@ -164,6 +168,11 @@ export async function autoRescheduleAppointment(
     .eq('original_appointment_id', appointmentId)
     .order('created_at', { ascending: false })
     .limit(1);
+
+  if (suggestionError) {
+    logger.error('Failed to update reschedule suggestion log:', suggestionError);
+    // Don't fail the reschedule if logging fails
+  }
 
   // Trigger notification if requested
   if (notifyPatient) {
@@ -420,7 +429,7 @@ export async function acceptRescheduleSuggestion(
 
   if (result.success) {
     // Mark suggestion as accepted
-    await supabase
+    const { error } = await supabase
       .from('reschedule_suggestions')
       .update({
         accepted_slot: dateTime.toISOString(),
@@ -430,6 +439,11 @@ export async function acceptRescheduleSuggestion(
       .is('accepted_slot', null)
       .order('created_at', { ascending: false })
       .limit(1);
+
+    if (error) {
+      logger.error('Failed to mark reschedule suggestion as accepted:', error);
+      // Don't fail the operation if marking fails
+    }
   }
 
   return result;
