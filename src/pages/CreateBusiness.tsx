@@ -10,18 +10,15 @@ import { BusinessDetailsStep } from '@/components/business-creation/BusinessDeta
 import { BusinessSubscriptionStep } from '@/components/business-creation/BusinessSubscriptionStep';
 import { BusinessCreationTour } from '@/components/business-creation/BusinessCreationTour';
 import { BusinessCreationAIGuide } from '@/components/business-creation/BusinessCreationAIGuide';
-import { TemplateType } from '@/lib/businessTemplates';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 interface BusinessData {
-  template?: TemplateType;
-  customFeatures?: any;
-  customTerminology?: any;
+  template?: string;
   name?: string;
   tagline?: string;
   bio?: string;
-  services?: Array<{ name: string; price: number; duration?: number }>;
+  slug?: string;
 }
 
 const STEPS = [
@@ -104,10 +101,10 @@ export default function CreateBusiness() {
 
   const handleAISuggestedData = (suggestedData: any) => {
     if (!suggestedData || Object.keys(suggestedData).length === 0) return;
-    
+
     // Apply AI suggestions to business data
     updateBusinessData(suggestedData);
-    
+
     // Show what was filled
     const fields = Object.keys(suggestedData).join(', ');
     toast.success(`✨ Auto-filled: ${fields}`);
