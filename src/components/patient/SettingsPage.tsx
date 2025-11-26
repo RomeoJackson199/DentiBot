@@ -12,7 +12,6 @@ import { saveProfileData, loadProfileData, ProfileData } from "@/lib/profileUtil
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { JoinRestaurantStaff } from "@/components/restaurant/JoinRestaurantStaff";
 import { ProfilePictureUpload } from "@/components/ProfilePictureUpload";
 
 export interface SettingsPageProps {
@@ -316,8 +315,6 @@ const LinkedAccounts: React.FC = () => {
   
   return (
     <div className="space-y-6">
-      <JoinRestaurantStaff />
-      
       <Card>
         <CardHeader>
           <CardTitle>Linked Accounts</CardTitle>
