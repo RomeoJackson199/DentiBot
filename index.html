@@ -35,6 +35,19 @@
 
   <body>
     <div id="root"></div>
+    <script>
+      // Prevent duplicate custom element registration errors
+      (function() {
+        const originalDefine = customElements.define;
+        customElements.define = function(name, constructor, options) {
+          if (!customElements.get(name)) {
+            originalDefine.call(customElements, name, constructor, options);
+          } else {
+            console.warn(`Custom element ${name} is already defined. Skipping duplicate registration.`);
+          }
+        };
+      })();
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
