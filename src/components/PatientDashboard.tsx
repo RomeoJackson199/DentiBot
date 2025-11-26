@@ -6,7 +6,6 @@ import { ModernSettings } from "@/components/ModernSettings";
 import RealAppointmentsList from "@/components/RealAppointmentsList";
 import { HealthData } from "@/components/HealthData";
 import { PatientPaymentHistory } from "@/components/PatientPaymentHistory";
-import { EmergencyTriageForm } from "@/components/EmergencyTriageForm";
 import { PatientAnalytics } from "@/components/analytics/PatientAnalytics";
 import { ModernNotificationCenter } from "@/components/notifications/ModernNotificationCenter";
 import { useLanguage } from "@/hooks/useLanguage";
@@ -76,11 +75,6 @@ const getNavigationItems = (hasAIChat: boolean) => [{
     label: 'My Appointments',
     icon: Calendar,
     badge: null
-  }, {
-    id: 'emergency',
-    label: 'Emergency Care',
-    icon: AlertTriangle,
-    badge: '!'
   }]
 }, {
   group: "Health Records",
@@ -133,7 +127,7 @@ export const PatientDashboard = ({
   const hasAIChat = hasFeature('aiChat');
   const navigationItems = getNavigationItems(hasAIChat);
   const { businessId, businessSlug } = useBusinessContext();
-  type Tab = 'overview' | 'chat' | 'appointments' | 'prescriptions' | 'treatment' | 'records' | 'notes' | 'payments' | 'analytics' | 'emergency' | 'test';
+  type Tab = 'overview' | 'chat' | 'appointments' | 'prescriptions' | 'treatment' | 'records' | 'notes' | 'payments' | 'analytics' | 'test';
   const [activeTab, setActiveTab] = useState<Tab>(() => {
     try {
       return localStorage.getItem('pd_tab') as Tab || 'overview';
@@ -141,7 +135,7 @@ export const PatientDashboard = ({
       return 'overview';
     }
   });
-  const [triggerBooking, setTriggerBooking] = useState<'low' | 'medium' | 'high' | 'emergency' | false>(false);
+  const [triggerBooking, setTriggerBooking] = useState<'low' | 'medium' | 'high' | false>(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
@@ -218,10 +212,6 @@ export const PatientDashboard = ({
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
-  const handleEmergencyComplete = (urgency: 'low' | 'medium' | 'high' | 'emergency') => {
-    setActiveTab('chat');
-    setTriggerBooking(urgency);
-  };
   useEffect(() => {
     try {
       localStorage.setItem('pd_tab', activeTab);
@@ -696,19 +686,6 @@ const DashboardOverview = ({
           </div>
           <h3 className="font-semibold mb-1">Prescriptions</h3>
           <p className="text-sm text-muted-foreground">View active medications</p>
-        </CardContent>
-      </Card>
-
-      <Card className="group hover:shadow-lg transition-all duration-300 cursor-pointer border-red-500/20 hover:border-red-500/40" onClick={() => setActiveTab('emergency')}>
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="p-3 bg-red-500/10 rounded-lg group-hover:bg-red-500/20 transition-colors">
-              <AlertTriangle className="h-6 w-6 text-red-500" />
-            </div>
-            <Badge variant="destructive">24/7</Badge>
-          </div>
-          <h3 className="font-semibold mb-1">Emergency</h3>
-          <p className="text-sm text-muted-foreground">Urgent dental care</p>
         </CardContent>
       </Card>
     </div>
