@@ -59,7 +59,7 @@ export default function CreateBusiness() {
           if (error) throw error;
 
           toast.success('Business created successfully!');
-          navigate(`/business/${data.businessSlug}`);
+          navigate('/auth-redirect');
         } catch (error: any) {
           console.error('Error completing business:', error);
           toast.error(error.message || 'Failed to complete business setup');
