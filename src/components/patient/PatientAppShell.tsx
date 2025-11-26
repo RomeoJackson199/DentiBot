@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { Home as HomeIcon, FolderOpen, Calendar, CreditCard, Settings as SettingsIcon, Bot, LogOut, Info, PanelLeft, MessageSquare } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { ModernNotificationCenter } from "@/components/notifications/ModernNotificationCenter";
+import { EnhancedNotificationCenter } from "@/components/notifications/EnhancedNotificationCenter";
 import { FloatingBookingButton } from "@/components/patient/FloatingBookingButton";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -163,7 +163,7 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
             </div>
 
             <div className="flex items-center gap-2">
-              <ModernNotificationCenter userId={userId} />
+              <EnhancedNotificationCenter userId={userId} variant="popover" />
               {onBookAppointment && <Button variant="gradient" size="icon" onClick={onBookAppointment} className="min-h-[44px] min-w-[44px]" aria-label="Book appointment">
                   <Calendar className="h-5 w-5" />
                   <span className="sr-only">Book appointment</span>

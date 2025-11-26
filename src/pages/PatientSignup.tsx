@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { AuthForm } from "@/components/AuthForm";
+import { EnhancedAuthForm } from "@/components/auth/EnhancedAuthForm";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -79,7 +79,7 @@ const PatientSignup = () => {
             </CardContent>
           </Card>
           
-          <AuthForm initialRole={selectedRole} />
+          <EnhancedAuthForm compact={false} />
           
           <div className="text-center text-sm text-muted-foreground">
             Already have an account?{" "}

@@ -30,7 +30,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import { ModernNotificationCenter } from "@/components/notifications/ModernNotificationCenter";
+import { EnhancedNotificationCenter } from "@/components/notifications/EnhancedNotificationCenter";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
@@ -234,7 +234,7 @@ function TopBar() {
             <BusinessSelector />
           )}
 
-          {userId && <ModernNotificationCenter userId={userId} />}
+          {userId && <EnhancedNotificationCenter userId={userId} variant="popover" />}
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

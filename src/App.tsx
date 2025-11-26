@@ -83,10 +83,6 @@ const SetupMPMaisonPage = lazy(() => import("./pages/SetupMPMaisonPage"));
 const SetupMPMaisonServicesPage = lazy(() => import("./pages/SetupMPMaisonServicesPage"));
 const DeleteNonDentistBusinessesPage = lazy(() => import("./pages/DeleteNonDentistBusinessesPage"));
 const DeleteBusinessPage = lazy(() => import("./pages/DeleteBusinessPage"));
-const RestaurantOwnerDashboard = lazy(() => import("./pages/RestaurantOwnerDashboard"));
-const WaiterDashboard = lazy(() => import("./pages/WaiterDashboard"));
-const KitchenDashboard = lazy(() => import("./pages/KitchenDashboard"));
-const TableOrderingPage = lazy(() => import("./pages/TableOrderingPage"));
 const SmartBookAppointment = lazy(() => import("./pages/SmartBookAppointment"));
 const SuperAdminDashboard = lazy(() => import("./pages/SuperAdminDashboard"));
 const AuthRedirect = lazy(() => import("./pages/AuthRedirect"));
@@ -330,12 +326,6 @@ const App = () => {
                 <Route path="/admin/delete-business" element={<DeleteBusinessPage />} />
                 {/* Super Admin Dashboard */}
                 <Route path="/super-admin" element={<SuperAdminDashboard />} />
-                {/* Restaurant management routes */}
-                <Route path="/restaurant/owner" element={<RoleBasedRouter requiredRole='dentist'><RestaurantOwnerDashboard /></RoleBasedRouter>} />
-                <Route path="/restaurant/waiter" element={<RoleBasedRouter requiredRole='dentist'><WaiterDashboard /></RoleBasedRouter>} />
-                <Route path="/restaurant/kitchen" element={<RoleBasedRouter requiredRole='dentist'><KitchenDashboard /></RoleBasedRouter>} />
-                {/* Public table ordering route */}
-                <Route path="/order" element={<TableOrderingPage />} />
                 {/* AI-powered booking route */}
                 <Route path="/book-appointment" element={<BookingRouteHandler><BookAppointmentAI /></BookingRouteHandler>} />
                 {/* Legacy manual booking route */}

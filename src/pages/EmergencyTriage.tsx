@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { EmergencyTriageEntry } from "@/components/EmergencyTriageEntry";
-import { AuthForm } from "@/components/AuthForm";
+import { EnhancedAuthForm } from "@/components/auth/EnhancedAuthForm";
 import { useToast } from "@/hooks/use-toast";
 import { getTriageInfo } from "@/lib/mockApi";
 import { Button } from "@/components/ui/button";
@@ -78,7 +78,7 @@ const EmergencyTriage = () => {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
         <div className="w-full max-w-md">
-          <AuthForm />
+          <EnhancedAuthForm />
         </div>
       </div>
     );
