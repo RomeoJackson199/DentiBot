@@ -6,9 +6,7 @@ import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { CheckCircle2, ArrowLeft, ArrowRight, Sparkles } from 'lucide-react';
 import { BusinessCreationAuth } from '@/components/business-creation/BusinessCreationAuth';
-import { BusinessTemplateStep } from '@/components/business-creation/BusinessTemplateStep';
 import { BusinessDetailsStep } from '@/components/business-creation/BusinessDetailsStep';
-import { BusinessServicesStep } from '@/components/business-creation/BusinessServicesStep';
 import { BusinessSubscriptionStep } from '@/components/business-creation/BusinessSubscriptionStep';
 import { BusinessCreationTour } from '@/components/business-creation/BusinessCreationTour';
 import { BusinessCreationAIGuide } from '@/components/business-creation/BusinessCreationAIGuide';
@@ -28,17 +26,17 @@ interface BusinessData {
 
 const STEPS = [
   { id: 1, name: 'Sign Up', description: 'Create your account' },
-  { id: 2, name: 'Template', description: 'Choose your business type' },
-  { id: 3, name: 'Details', description: 'Enter business information' },
-  { id: 4, name: 'Services', description: 'Add your services' },
-  { id: 5, name: 'Subscription', description: 'Choose your plan' },
+  { id: 2, name: 'Details', description: 'Enter business information' },
+  { id: 3, name: 'Subscription', description: 'Choose your plan' },
 ];
 
 export default function CreateBusiness() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [currentStep, setCurrentStep] = useState(1);
-  const [businessData, setBusinessData] = useState<BusinessData>({});
+  const [businessData, setBusinessData] = useState<BusinessData>({
+    template: 'dentist', // Default template
+  });
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showTour, setShowTour] = useState(false);
 
@@ -141,7 +139,7 @@ export default function CreateBusiness() {
           <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-3">
             Create Your Business
           </h1>
-          <p className="text-muted-foreground text-lg">Set up your business in just 5 simple steps</p>
+          <p className="text-muted-foreground text-lg">Set up your business in just 3 simple steps</p>
         </div>
 
         {/* Enhanced Progress Bar */}
@@ -209,30 +207,13 @@ export default function CreateBusiness() {
                     )}
 
                     {currentStep === 2 && (
-                      <BusinessTemplateStep
-                        selectedTemplate={businessData.template}
-                        onSelect={(template) => {
-                          updateBusinessData({ template });
-                        }}
-                      />
-                    )}
-
-                    {currentStep === 3 && (
                       <BusinessDetailsStep
                         businessData={businessData}
                         onUpdate={updateBusinessData}
                       />
                     )}
 
-                    {currentStep === 4 && (
-                      <BusinessServicesStep
-                        services={businessData.services || []}
-                        template={businessData.template}
-                        onUpdate={(services) => updateBusinessData({ services })}
-                      />
-                    )}
-
-                    {currentStep === 5 && (
+                    {currentStep === 3 && (
                       <BusinessSubscriptionStep
                         businessData={businessData}
                         onComplete={handlePaymentComplete}
@@ -251,10 +232,10 @@ export default function CreateBusiness() {
                           Back
                         </Button>
 
-                        {currentStep < STEPS.length && currentStep !== 5 && (
-                          <Button 
+                        {currentStep < STEPS.length && currentStep !== 3 && (
+                          <Button
                             onClick={handleNext}
-                            disabled={currentStep === 4 && (!businessData.services || businessData.services.length === 0 || !businessData.services.some((s: any) => s.name.trim() && s.price > 0))}
+                            disabled={currentStep === 2 && !businessData.name}
                           >
                             Next
                             <ArrowRight className="w-4 h-4 ml-2" />
