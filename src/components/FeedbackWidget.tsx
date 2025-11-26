@@ -125,8 +125,6 @@ export function FeedbackWidget({
     setIsSubmitting(true);
 
     try {
-      // TODO: Implement actual feedback submission to backend
-      // For now, just simulate an API call
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       console.log("Feedback submitted:", {

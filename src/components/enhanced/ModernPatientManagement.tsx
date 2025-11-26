@@ -572,7 +572,6 @@ export function ModernPatientManagement({ dentistId }: ModernPatientManagementPr
 
                   {/* Quick Actions */}
                   <div className="flex flex-wrap gap-3 mt-6 pt-6 border-t">
-                    {/* TODO: Re-implement staff booking with EnhancedAppointmentBooking or create proper slot-locking API */}
                     <Button variant="outline" className="gap-2" disabled title="Staff booking temporarily disabled - needs reimplementation with slot locking">
                       <Calendar className="h-4 w-4" />
                       Book Appointment
