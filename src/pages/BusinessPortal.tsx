@@ -1,15 +1,13 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { UnifiedAuthForm } from "@/components/auth/UnifiedAuthForm";
+import { EnhancedAuthForm } from "@/components/auth/EnhancedAuthForm";
 import { ModernLoadingSpinner } from "@/components/enhanced/ModernLoadingSpinner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Building2 } from "lucide-react";
 import { logger } from '@/lib/logger';
 import { CustomizableHomepage } from "@/components/business/CustomizableHomepage";
-import RestaurantPublicPage from "./RestaurantPublicPage";
-import { BarbershopAuthPage } from "@/components/barbershop/BarbershopAuthPage";
 
 export default function BusinessPortal() {
   const { slug } = useParams<{ slug: string }>();
@@ -152,16 +150,6 @@ export default function BusinessPortal() {
     );
   }
 
-  // If business is a restaurant template and user is not logged in, show restaurant page
-  if (business.template_type === 'restaurant' && !user) {
-    return <RestaurantPublicPage business={business} services={services} />;
-  }
-
-  // If business slug is artbarber and user is not logged in, show barbershop page
-  if (slug === 'artbarber' && !user) {
-    return <BarbershopAuthPage business={business} onAuthSuccess={handleAuthSuccess} />;
-  }
-
   // If homepage settings exist and is active, show customizable homepage
   if (homepageSettings && homepageSettings.is_active) {
     return (
@@ -183,7 +171,7 @@ export default function BusinessPortal() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <UnifiedAuthForm onSignInSuccess={handleAuthSuccess} />
+                <EnhancedAuthForm onSuccess={handleAuthSuccess} />
               </CardContent>
             </Card>
           </div>

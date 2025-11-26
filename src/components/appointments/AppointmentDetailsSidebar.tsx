@@ -11,7 +11,6 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { AppointmentCompletionDialog } from "@/components/appointment/AppointmentCompletionDialog";
-import { QuickCheckout } from "@/components/salon/QuickCheckout";
 import { RescheduleAssistant } from "@/components/RescheduleAssistant";
 import { logger } from '@/lib/logger';
 
@@ -36,7 +35,6 @@ export function AppointmentDetailsSidebar({
 }: AppointmentDetailsSidebarProps) {
   const navigate = useNavigate();
   const [showCompletionDialog, setShowCompletionDialog] = useState(false);
-  const [showCheckout, setShowCheckout] = useState(false);
   const [showReschedule, setShowReschedule] = useState(false);
   const [summaries, setSummaries] = useState<{ short: string; long: string } | null>(null);
   const [loadingSummaries, setLoadingSummaries] = useState(false);
@@ -382,30 +380,6 @@ export function AppointmentDetailsSidebar({
         }}
       />
 
-      {/* Checkout Dialog */}
-      {showCheckout && serviceDetails && appointment.dentists && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <QuickCheckout
-              appointmentId={appointment.id}
-              clientName={patientName}
-              stylistId={appointment.dentist_id}
-              stylistName={appointment.dentists.profiles
-                ? `${appointment.dentists.profiles.first_name} ${appointment.dentists.profiles.last_name}`
-                : 'Stylist'
-              }
-              servicePrice={serviceDetails.price_cents / 100}
-              serviceName={serviceDetails.name}
-              onComplete={() => {
-                setShowCheckout(false);
-                onStatusChange(appointment.id, "completed");
-                onClose();
-              }}
-              onCancel={() => setShowCheckout(false)}
-            />
-          </div>
-        </div>
-      )}
 
       {/* Smart Reschedule Assistant */}
       <RescheduleAssistant

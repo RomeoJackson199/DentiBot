@@ -31,7 +31,6 @@ import {
 import { saveProfileData, loadProfileData, testDatabaseConnection, ProfileData } from "@/lib/profileUtils";
 import { DentistManagement } from "@/components/DentistManagement";
 import { logger } from '@/lib/logger';
-import { JoinRestaurantStaff } from "@/components/restaurant/JoinRestaurantStaff";
 
 interface SettingsProps {
   user: User;
@@ -332,10 +331,6 @@ const handleDeleteAccount = async () => {
                   <div className="bg-muted/30 rounded-xl p-4">
                     <LanguageSettings />
                   </div>
-                </div>
-                
-                <div>
-                  <JoinRestaurantStaff />
                 </div>
 
                 <div>

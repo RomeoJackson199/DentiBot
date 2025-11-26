@@ -4,14 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { InteractiveDentalChat } from "@/components/chat/InteractiveDentalChat";
 import { ModernSettings } from "@/components/ModernSettings";
 import RealAppointmentsList from "@/components/RealAppointmentsList";
-import { AppointmentDebug } from "@/components/AppointmentDebug";
-import { SimpleAppointmentTest } from "@/components/SimpleAppointmentTest";
 import { HealthData } from "@/components/HealthData";
 import { PatientPaymentHistory } from "@/components/PatientPaymentHistory";
 import { EmergencyTriageForm } from "@/components/EmergencyTriageForm";
 import { PatientAnalytics } from "@/components/analytics/PatientAnalytics";
-import { DatabaseTest } from "@/components/DatabaseTest";
-import { NotificationTest } from "@/components/NotificationTest";
 import { ModernNotificationCenter } from "@/components/notifications/ModernNotificationCenter";
 import { useLanguage } from "@/hooks/useLanguage";
 import { Button } from "@/components/ui/button";
@@ -42,7 +38,6 @@ const Messages = lazy(() => import("@/pages/Messages"));
 import { logger } from '@/lib/logger';
 import { useBusinessTemplate } from '@/hooks/useBusinessTemplate';
 import { useBusinessContext } from '@/hooks/useBusinessContext';
-import { RestaurantBookingFlow } from '@/components/restaurant/RestaurantBookingFlow';
 
 interface PatientDashboardProps {
   user: User;
