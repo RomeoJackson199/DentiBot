@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader2, Send, Sparkles } from 'lucide-react';
+import { Loader2, Send, Sparkles, Bot, User as UserIcon } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -117,28 +117,58 @@ export function BusinessCreationAIGuide({
       </div>
 
       {/* Messages */}
-      <ScrollArea className="flex-1 p-4" ref={scrollRef}>
-        <div className="space-y-4">
+      <ScrollArea className="flex-1 p-4 bg-gradient-to-b from-background to-muted/20" ref={scrollRef}>
+        <div className="space-y-4 pb-4">
           {messages.map((msg, idx) => (
             <div
               key={idx}
-              className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+              className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-2 duration-300`}
             >
               <div
-                className={`max-w-[80%] rounded-lg px-4 py-2 ${
-                  msg.role === 'user'
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-background border border-border'
+                className={`flex items-start gap-3 max-w-[85%] ${
+                  msg.role === 'user' ? 'flex-row-reverse' : ''
                 }`}
               >
-                <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                {/* Avatar */}
+                <div className="flex-shrink-0 mt-1">
+                  {msg.role === 'assistant' ? (
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/10 shadow-sm">
+                      <Bot className="w-5 h-5 text-primary" />
+                    </div>
+                  ) : (
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-secondary/80 to-secondary flex items-center justify-center shadow-sm">
+                      <UserIcon className="w-5 h-5 text-secondary-foreground" />
+                    </div>
+                  )}
+                </div>
+                {/* Message Bubble */}
+                <Card className={`border-none shadow-md ${
+                  msg.role === 'user'
+                    ? 'bg-gradient-to-br from-primary to-primary/90 text-primary-foreground'
+                    : 'bg-card/80 backdrop-blur-sm'
+                }`}>
+                  <CardContent className="p-4">
+                    <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+                  </CardContent>
+                </Card>
               </div>
             </div>
           ))}
           {isLoading && (
-            <div className="flex justify-start">
-              <div className="bg-background border border-border rounded-lg px-4 py-2">
-                <Loader2 className="w-4 h-4 animate-spin" />
+            <div className="flex justify-start animate-in fade-in slide-in-from-bottom-2 duration-300">
+              <div className="flex items-start gap-3 max-w-[85%]">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/10 shadow-sm">
+                  <Bot className="w-5 h-5 text-primary" />
+                </div>
+                <Card className="bg-card/80 backdrop-blur-sm border-none shadow-md">
+                  <CardContent className="p-4">
+                    <div className="flex gap-1.5">
+                      <div className="w-2.5 h-2.5 bg-primary rounded-full animate-bounce"></div>
+                      <div className="w-2.5 h-2.5 bg-primary rounded-full animate-bounce" style={{ animationDelay: "0.1s" }}></div>
+                      <div className="w-2.5 h-2.5 bg-primary rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
             </div>
           )}
@@ -146,20 +176,21 @@ export function BusinessCreationAIGuide({
       </ScrollArea>
 
       {/* Input */}
-      <div className="p-4 border-t bg-background">
-        <div className="flex gap-2">
+      <div className="border-t bg-card/50 backdrop-blur-sm p-4">
+        <div className="flex gap-3">
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder="Ask me anything..."
+            placeholder="Ask me anything about your business..."
             disabled={isLoading}
-            className="flex-1"
+            className="flex-1 bg-background/50 border-input/50 focus:border-primary transition-colors"
           />
           <Button
             onClick={sendMessage}
             disabled={!input.trim() || isLoading}
             size="icon"
+            className="h-10 w-10 rounded-xl shadow-md hover:shadow-lg transition-all"
           >
             {isLoading ? (
               <Loader2 className="w-4 h-4 animate-spin" />

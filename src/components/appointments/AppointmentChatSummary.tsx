@@ -74,48 +74,55 @@ export function AppointmentChatSummary({ appointmentId }: AppointmentChatSummary
             <span>Conversation from {format(new Date(messages[0].created_at), 'PPP')}</span>
           </div>
           
-          <ScrollArea className="h-[400px] pr-4">
-            <div className="space-y-3">
+          <ScrollArea className="h-[400px] pr-4 bg-gradient-to-b from-background to-muted/20">
+            <div className="space-y-4 pb-4">
               {messages.map((message) => (
                 <div
                   key={message.id}
                   className={cn(
-                    "flex gap-3",
+                    "flex gap-3 animate-in fade-in slide-in-from-bottom-2 duration-300",
                     message.is_bot ? "justify-start" : "justify-end"
                   )}
                 >
-                  {message.is_bot && (
-                    <div className="flex-shrink-0">
-                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                        <Bot className="w-4 h-4 text-primary" />
-                      </div>
-                    </div>
-                  )}
-                  
                   <div
                     className={cn(
-                      "max-w-[80%] rounded-lg p-3",
-                      message.is_bot
-                        ? "bg-muted"
-                        : "bg-primary text-primary-foreground"
+                      "flex items-start gap-3 max-w-[85%]",
+                      !message.is_bot && "flex-row-reverse"
                     )}
                   >
-                    <p className="text-sm whitespace-pre-wrap">{message.message}</p>
-                    <p className={cn(
-                      "text-xs mt-1",
-                      message.is_bot ? "text-muted-foreground" : "text-primary-foreground/70"
-                    )}>
-                      {format(new Date(message.created_at), 'p')}
-                    </p>
-                  </div>
-                  
-                  {!message.is_bot && (
-                    <div className="flex-shrink-0">
-                      <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
-                        <User className="w-4 h-4 text-secondary-foreground" />
-                      </div>
+                    {/* Avatar */}
+                    <div className="flex-shrink-0 mt-1">
+                      {message.is_bot ? (
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/10 shadow-sm">
+                          <Bot className="w-5 h-5 text-primary" />
+                        </div>
+                      ) : (
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-secondary/80 to-secondary flex items-center justify-center shadow-sm">
+                          <User className="w-5 h-5 text-secondary-foreground" />
+                        </div>
+                      )}
                     </div>
-                  )}
+
+                    {/* Message Bubble */}
+                    <Card
+                      className={cn(
+                        "border-none shadow-md",
+                        message.is_bot
+                          ? "bg-card/80 backdrop-blur-sm"
+                          : "bg-gradient-to-br from-primary to-primary/90 text-primary-foreground"
+                      )}
+                    >
+                      <CardContent className="p-4">
+                        <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.message}</p>
+                        <p className={cn(
+                          "text-xs mt-2",
+                          message.is_bot ? "text-muted-foreground" : "text-primary-foreground/70"
+                        )}>
+                          {format(new Date(message.created_at), 'p')}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </div>
                 </div>
               ))}
             </div>
