@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" fill="none">
+  <!-- Background gradient -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2563eb;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1e40af;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="accentGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#60a5fa;stop-opacity:0.3" />
+      <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:0.1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bgGradient)"/>
+
+  <!-- Decorative elements -->
+  <circle cx="1100" cy="100" r="150" fill="url(#accentGradient)"/>
+  <circle cx="100" cy="530" r="100" fill="url(#accentGradient)"/>
+
+  <!-- Tooth icon (stylized) -->
+  <g transform="translate(100, 180)">
+    <path d="M60 0C26.9 0 0 26.9 0 60v60c0 22.1 11.9 40 30 40s30-17.9 30-40V80c0-11 9-20 20-20s20 9 20 20v40c0 22.1 11.9 40 30 40s30-17.9 30-40V60c0-33.1-26.9-60-60-60z" fill="white" opacity="0.95"/>
+  </g>
+
+  <!-- Main text -->
+  <text x="260" y="240" font-family="system-ui, -apple-system, sans-serif" font-size="72" font-weight="700" fill="white">
+    Caberu
+  </text>
+
+  <!-- Subtitle -->
+  <text x="260" y="300" font-family="system-ui, -apple-system, sans-serif" font-size="36" font-weight="400" fill="white" opacity="0.95">
+    Complete Dental Practice Management
+  </text>
+
+  <!-- Features -->
+  <g transform="translate(260, 340)">
+    <!-- Feature 1 -->
+    <circle cx="0" cy="0" r="4" fill="#60a5fa"/>
+    <text x="20" y="6" font-family="system-ui, -apple-system, sans-serif" font-size="24" fill="white" opacity="0.9">
+      AI-Powered Scheduling
+    </text>
+
+    <!-- Feature 2 -->
+    <circle cx="0" cy="45" r="4" fill="#60a5fa"/>
+    <text x="20" y="51" font-family="system-ui, -apple-system, sans-serif" font-size="24" fill="white" opacity="0.9">
+      Patient Management
+    </text>
+
+    <!-- Feature 3 -->
+    <circle cx="0" cy="90" r="4" fill="#60a5fa"/>
+    <text x="20" y="96" font-family="system-ui, -apple-system, sans-serif" font-size="24" fill="white" opacity="0.9">
+      HIPAA Compliant
+    </text>
+  </g>
+
+  <!-- Website URL -->
+  <text x="260" y="570" font-family="system-ui, -apple-system, sans-serif" font-size="28" font-weight="500" fill="white" opacity="0.85">
+    caberu.be
+  </text>
+</svg>
