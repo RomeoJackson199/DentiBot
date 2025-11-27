@@ -66,7 +66,48 @@ const seoMap: Record<string, { title: string; description: string; structuredDat
   },
   "/about": {
     title: "About Caberu — Modern Dental Practice Management Software",
-    description: "Learn about Caberu's mission to transform dental practice management with AI-powered scheduling, patient care, and practice optimization tools.",
+    description: "Learn about Caberu's mission to transform dental practice management with AI-powered scheduling, patient care, and practice optimization tools. Founded in 2024 by Romeo Jackson and Thomas Iordache.",
+    structuredData: {
+      "@context": "https://schema.org",
+      "@type": "AboutPage",
+      mainEntity: {
+        "@type": "Organization",
+        "@id": "https://caberu.be/#organization",
+        name: "Caberu",
+        alternateName: "Caberu SRL",
+        url: "https://caberu.be",
+        logo: {
+          "@type": "ImageObject",
+          url: "https://caberu.be/lovable-uploads/bd9069b9-f5b0-427d-8acb-8b6a25ccba24.png"
+        },
+        description: "AI-powered dental practice management platform designed to help modern dental professionals reduce administrative burden and enhance patient care",
+        foundingDate: "2024",
+        founder: [
+          {
+            "@type": "Person",
+            name: "Romeo Jackson",
+            jobTitle: "Co-Founder & CEO"
+          },
+          {
+            "@type": "Person",
+            name: "Thomas Iordache",
+            jobTitle: "Co-Founder & CTO"
+          }
+        ],
+        areaServed: "Worldwide",
+        sameAs: [
+          "https://twitter.com/caberu_be"
+        ],
+        knowsAbout: [
+          "Dental Practice Management",
+          "Healthcare Software",
+          "Artificial Intelligence",
+          "HIPAA Compliance",
+          "Patient Management",
+          "Appointment Scheduling"
+        ]
+      }
+    }
   },
   "/pricing": {
     title: "Pricing Plans — Affordable Dental Practice Management | Caberu",
