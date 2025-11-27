@@ -282,8 +282,6 @@ const App = () => {
                 {/* Dentist routes with tab-based navigation */}
                 <Route path="/dentist/*" element={<RoleBasedRouter requiredRole='dentist'><DentistPortal /></RoleBasedRouter>} />
                 <Route path="/dentist-services" element={<RoleBasedRouter requiredRole='dentist'><DentistServices /></RoleBasedRouter>} />
-                {/* Hairdresser routes */}
-                <Route path="/hairdresser/*" element={<RoleBasedRouter requiredRole='dentist'><DentistPortal /></RoleBasedRouter>} />
                 {/* Patient portal routes with patient nav */}
                 <Route element={<PatientPortalNav><></></PatientPortalNav>}>
                   <Route path="/care" element={<PatientCareHome />} />
