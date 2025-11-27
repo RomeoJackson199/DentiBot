@@ -51,7 +51,6 @@ const Chat = lazy(() => import("./pages/Chat"));
 const Messages = lazy(() => import("./pages/Messages"));
 const DemoDentistDashboard = lazy(() => import("./pages/demo/DemoDentistDashboard"));
 const Schedule = lazy(() => import("./pages/Schedule"));
-// RecallDeepLink removed - file doesn't exist
 const Analytics = lazy(() => import("./pages/Analytics"));
 const Pricing = lazy(() => import("./pages/Pricing"));
 const Support = lazy(() => import("./pages/Support"));

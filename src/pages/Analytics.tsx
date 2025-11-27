@@ -26,7 +26,6 @@ import {
   UserX,
   FileWarning
 } from "lucide-react";
-import { getAnalytics } from "@/lib/mockApi";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { format, subDays } from "date-fns";
@@ -102,8 +101,8 @@ const Analytics = () => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        // Simulated base API call (we only use it to simulate latency)
-        await getAnalytics();
+        // Simulated latency for data loading
+        await new Promise(resolve => setTimeout(resolve, 300));
 
         // Determine days window for KPIs (not the mini-trend toggle)
         const windowDays = timeRange === "today" ? 1 : timeRange === "week" ? 7 : timeRange === "month" ? 30 : (() => {
