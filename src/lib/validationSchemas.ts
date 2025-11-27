@@ -187,7 +187,7 @@ export const businessCreationSchema = z.object({
     .min(3, "URL slug is required")
     .max(50, "URL slug is too long")
     .regex(/^[a-z0-9-]+$/, "Slug can only contain lowercase letters, numbers, and hyphens"),
-  businessType: z.enum(['dental', 'salon', 'gym', 'medical', 'generic']),
+  businessType: z.enum(['dental', 'gym', 'medical', 'generic']),
   phone: phoneSchema,
   email: emailSchema,
   address: z.string()

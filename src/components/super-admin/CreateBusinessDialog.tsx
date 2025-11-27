@@ -131,7 +131,6 @@ export function CreateBusinessDialog({ open, onClose }: CreateBusinessDialogProp
                 <SelectContent>
                   <SelectItem value="dental">Dental</SelectItem>
                   <SelectItem value="medical">Medical</SelectItem>
-                  <SelectItem value="salon">Salon</SelectItem>
                   <SelectItem value="wellness">Wellness</SelectItem>
                 </SelectContent>
               </Select>
