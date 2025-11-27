@@ -305,14 +305,6 @@ const seoMap: Record<string, { title: string; description: string; structuredDat
     title: "Dashboard — Appointments, Tasks & Insights",
     description: "Manage appointments, patients, and tasks with real-time insights and secure records.",
   },
-  "/analytics": {
-    title: "Analytics — Practice Performance & Trends",
-    description: "Track practice KPIs, patient trends, and revenue insights in one place.",
-  },
-  "/schedule": {
-    title: "Schedule — Smart Calendar & Availability",
-    description: "Plan efficiently with smart scheduling, slots, and availability management.",
-  },
   "/support": {
     title: "Help & Support — FAQs, Documentation & Guides | Caberu",
     description: "Get help with Caberu dental practice management software. Find answers to common questions, tutorials, and comprehensive documentation.",
@@ -424,19 +416,6 @@ const seoMap: Record<string, { title: string; description: string; structuredDat
   "/feature-detail": {
     title: "Features — Comprehensive Dental Practice Management Tools | Caberu",
     description: "Explore Caberu's comprehensive suite of dental practice management features including AI scheduling, patient records, billing, analytics, and more.",
-  },
-  "/public-booking": {
-    title: "Book an Appointment — Online Dental Scheduling | Caberu",
-    description: "Schedule your dental appointment online with our easy-to-use booking system. Choose your preferred time and dentist in seconds.",
-    structuredData: {
-      "@context": "https://schema.org",
-      "@type": "WebPage",
-      name: "Online Appointment Booking",
-      description: "Book dental appointments online with real-time availability",
-      provider: {
-        "@id": "https://caberu.be/#organization"
-      }
-    }
   },
   "/payment-success": {
     title: "Payment Successful — Thank You | Caberu",
