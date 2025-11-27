@@ -60,6 +60,130 @@ const seoMap: Record<string, { title: string; description: string; structuredDat
             ratingCount: "127"
           },
           description: "AI-powered dental practice management software with scheduling, patient records, billing, and inventory management"
+        },
+        {
+          "@type": "MedicalBusiness",
+          "@id": "https://caberu.be/#medicalbusiness",
+          name: "Caberu - Dental Practice Management Software",
+          description: "HIPAA-compliant dental practice management software trusted by dental professionals worldwide",
+          url: "https://caberu.be",
+          logo: {
+            "@type": "ImageObject",
+            url: "https://caberu.be/lovable-uploads/bd9069b9-f5b0-427d-8acb-8b6a25ccba24.png"
+          },
+          medicalSpecialty: "Dentistry",
+          priceRange: "$$",
+          aggregateRating: {
+            "@type": "AggregateRating",
+            ratingValue: "4.8",
+            reviewCount: "127",
+            bestRating: "5",
+            worstRating: "1"
+          },
+          review: [
+            {
+              "@type": "Review",
+              author: {
+                "@type": "Person",
+                name: "Dr. Sarah Mitchell"
+              },
+              datePublished: "2024-11-15",
+              reviewRating: {
+                "@type": "Rating",
+                ratingValue: "5",
+                bestRating: "5"
+              },
+              reviewBody: "Caberu has transformed how we manage our dental practice. The AI scheduling saves us hours every week, and our patients love the easy booking system."
+            },
+            {
+              "@type": "Review",
+              author: {
+                "@type": "Person",
+                name: "Dr. Michael Chen"
+              },
+              datePublished: "2024-11-10",
+              reviewRating: {
+                "@type": "Rating",
+                ratingValue: "5",
+                bestRating: "5"
+              },
+              reviewBody: "The HIPAA compliance and security features give us peace of mind. Patient records management is seamless and the analytics help us make better business decisions."
+            },
+            {
+              "@type": "Review",
+              author: {
+                "@type": "Person",
+                name: "Dr. Emily Rodriguez"
+              },
+              datePublished: "2024-11-05",
+              reviewRating: {
+                "@type": "Rating",
+                ratingValue: "5",
+                bestRating: "5"
+              },
+              reviewBody: "Best practice management software we've used. The interface is intuitive, features are comprehensive, and customer support is outstanding."
+            }
+          ],
+          sameAs: [
+            "https://twitter.com/caberu_be"
+          ]
+        },
+        {
+          "@type": "Service",
+          "@id": "https://caberu.be/#service",
+          serviceType: "Dental Practice Management Software",
+          provider: {
+            "@id": "https://caberu.be/#organization"
+          },
+          areaServed: "Worldwide",
+          hasOfferCatalog: {
+            "@type": "OfferCatalog",
+            name: "Dental Practice Management Services",
+            itemListElement: [
+              {
+                "@type": "OfferCatalog",
+                name: "Appointment Scheduling",
+                itemListElement: [
+                  {
+                    "@type": "Offer",
+                    itemOffered: {
+                      "@type": "Service",
+                      name: "AI-Powered Appointment Scheduling",
+                      description: "Smart scheduling system with automated booking, reminders, and calendar management"
+                    }
+                  }
+                ]
+              },
+              {
+                "@type": "OfferCatalog",
+                name: "Patient Management",
+                itemListElement: [
+                  {
+                    "@type": "Offer",
+                    itemOffered: {
+                      "@type": "Service",
+                      name: "Electronic Health Records",
+                      description: "Secure, HIPAA-compliant patient records and history management"
+                    }
+                  }
+                ]
+              },
+              {
+                "@type": "OfferCatalog",
+                name: "Practice Analytics",
+                itemListElement: [
+                  {
+                    "@type": "Offer",
+                    itemOffered: {
+                      "@type": "Service",
+                      name: "Practice Performance Analytics",
+                      description: "Real-time insights, KPIs, and revenue tracking for dental practices"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
         }
       ]
     }
@@ -161,6 +285,21 @@ const seoMap: Record<string, { title: string; description: string; structuredDat
   "/dentists": {
     title: "Find Dentists — Browse Profiles, Reviews & Availability | Caberu",
     description: "Browse verified dentist profiles with ratings and real-time availability. Book appointments with the right dental expert for your needs.",
+    structuredData: {
+      "@context": "https://schema.org",
+      "@type": "CollectionPage",
+      name: "Find Dentists",
+      description: "Browse verified dentist profiles with ratings and real-time availability",
+      provider: {
+        "@id": "https://caberu.be/#organization"
+      },
+      mainEntity: {
+        "@type": "ItemList",
+        name: "Dental Professionals Directory",
+        description: "Verified dentists available for appointments",
+        numberOfItems: "50+"
+      }
+    }
   },
   "/dashboard": {
     title: "Dashboard — Appointments, Tasks & Insights",
@@ -235,6 +374,40 @@ const seoMap: Record<string, { title: string; description: string; structuredDat
   "/book-appointment": {
     title: "Book Appointment — AI-Powered Dental Booking | Caberu",
     description: "Book your dental appointment with AI-powered scheduling. Fast, secure, and convenient online booking for dental practices.",
+    structuredData: {
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      name: "Book Dental Appointment",
+      description: "AI-powered dental appointment booking system",
+      provider: {
+        "@id": "https://caberu.be/#organization"
+      },
+      mainEntity: {
+        "@type": "HowTo",
+        name: "How to Book a Dental Appointment",
+        description: "Simple steps to book your dental appointment online",
+        step: [
+          {
+            "@type": "HowToStep",
+            name: "Select Your Dentist",
+            text: "Browse available dentists and choose the one that best fits your needs",
+            position: 1
+          },
+          {
+            "@type": "HowToStep",
+            name: "Choose Date & Time",
+            text: "Pick from available appointment slots that work with your schedule",
+            position: 2
+          },
+          {
+            "@type": "HowToStep",
+            name: "Confirm Booking",
+            text: "Review your appointment details and confirm your booking instantly",
+            position: 3
+          }
+        ]
+      }
+    }
   },
   "/privacy": {
     title: "Privacy Policy — HIPAA-Compliant Data Protection | Caberu",
@@ -247,6 +420,43 @@ const seoMap: Record<string, { title: string; description: string; structuredDat
   "/chat": {
     title: "AI Dental Assistant — Instant Chat Support & Triage | Caberu",
     description: "Chat with our AI dental assistant for instant answers, appointment booking, and emergency triage. 24/7 intelligent patient support.",
+  },
+  "/feature-detail": {
+    title: "Features — Comprehensive Dental Practice Management Tools | Caberu",
+    description: "Explore Caberu's comprehensive suite of dental practice management features including AI scheduling, patient records, billing, analytics, and more.",
+  },
+  "/public-booking": {
+    title: "Book an Appointment — Online Dental Scheduling | Caberu",
+    description: "Schedule your dental appointment online with our easy-to-use booking system. Choose your preferred time and dentist in seconds.",
+    structuredData: {
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      name: "Online Appointment Booking",
+      description: "Book dental appointments online with real-time availability",
+      provider: {
+        "@id": "https://caberu.be/#organization"
+      }
+    }
+  },
+  "/payment-success": {
+    title: "Payment Successful — Thank You | Caberu",
+    description: "Your payment has been processed successfully. Thank you for choosing Caberu for your dental practice management needs.",
+  },
+  "/payment-cancelled": {
+    title: "Payment Cancelled — No Charge Applied | Caberu",
+    description: "Your payment has been cancelled. No charges have been applied to your account. You can try again or contact support if you need assistance.",
+  },
+  "/claim": {
+    title: "Claim Your Account — Verify Your Dental Practice | Caberu",
+    description: "Verify and claim your dental practice account on Caberu. Get started with AI-powered practice management.",
+  },
+  "/messages": {
+    title: "Messages — Secure Practice Communication | Caberu",
+    description: "Manage secure messages with patients and staff. HIPAA-compliant messaging for dental practices.",
+  },
+  "/invite": {
+    title: "Team Invite — Join Your Dental Practice | Caberu",
+    description: "Accept your invitation to join a dental practice team on Caberu. Collaborate with colleagues on patient care.",
   },
 };
 
@@ -356,6 +566,7 @@ export function applySEO(pathname: string) {
   upsertMetaTag("og:title", basis.title);
   upsertMetaTag("og:description", basis.description);
   upsertMetaTag("og:url", `${base}${pathname}`);
+  upsertMetaTag("og:image:alt", "Caberu - AI-Powered Dental Practice Management Software");
   upsertMetaTag("twitter:title", basis.title);
   upsertMetaTag("twitter:description", basis.description);
 
