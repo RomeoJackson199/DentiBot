@@ -1,5 +1,5 @@
 # Caberu - Dental Practice Management System
-# https://caberu.app
+# https://caberu.be
 
 User-agent: *
 Allow: /
@@ -10,4 +10,4 @@ Disallow: /admin/*
 Disallow: /api/*
 
 # Sitemap location
-Sitemap: https://caberu.app/sitemap.xml
+Sitemap: https://caberu.be/sitemap.xml
