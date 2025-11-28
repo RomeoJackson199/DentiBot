@@ -91,7 +91,7 @@ export const Header = ({ user, minimal = false }: HeaderProps) => {
                 <Button
                   variant="ghost"
                   onClick={() => navigate("/login")}
-                  className="hidden sm:inline-flex text-gray-600 hover:text-gray-900 font-medium"
+                  className="hidden sm:inline-flex text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white font-medium"
                 >
                   Sign In
                 </Button>
@@ -126,23 +126,23 @@ export const Header = ({ user, minimal = false }: HeaderProps) => {
 
         {/* Mobile Navigation */}
         {isMobileMenuOpen && !minimal && (
-          <div className="md:hidden py-4 mt-2 border-t border-gray-100 bg-white absolute left-0 right-0 px-4 shadow-xl animate-in slide-in-from-top-5">
+          <div className="md:hidden py-4 mt-2 border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 absolute left-0 right-0 px-4 shadow-xl animate-in slide-in-from-top-5">
             <nav className="space-y-3">
               {navigation.map((item) => (
                 <Link
                   key={item.name}
                   to={item.href}
-                  className="block text-gray-600 hover:text-blue-600 font-medium py-2 px-3 rounded-lg hover:bg-blue-50 transition-colors"
+                  className="block text-gray-600 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 font-medium py-2 px-3 rounded-lg hover:bg-blue-50 dark:hover:bg-gray-800 transition-colors"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   {item.name}
                 </Link>
               ))}
               {!user && (
-                <div className="pt-3 border-t border-gray-100 mt-3">
+                <div className="pt-3 border-t border-gray-100 dark:border-gray-800 mt-3">
                   <Link
                     to="/login"
-                    className="block text-center text-gray-600 hover:text-gray-900 font-medium py-3"
+                    className="block text-center text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white font-medium py-3"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     Sign In
