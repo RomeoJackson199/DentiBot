@@ -449,17 +449,17 @@ export const PatientDashboard = ({
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'confirmed':
-        return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400';
+        return 'bg-green-100 text-green-800';
       case 'pending':
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400';
+        return 'bg-yellow-100 text-yellow-800';
       case 'cancelled':
-        return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400';
+        return 'bg-red-100 text-red-800';
       case 'completed':
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400';
+        return 'bg-blue-100 text-blue-800';
       case 'active':
-        return 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400';
+        return 'bg-emerald-100 text-emerald-800';
       default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400';
+        return 'bg-gray-100 text-gray-800';
     }
   };
   if (loading) {
@@ -702,8 +702,8 @@ const DashboardOverview = ({
                   Last visit: {formatDate(patientStats.lastVisit)}
                 </p>}
             </div>
-            <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-full">
-              <CalendarDays className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+            <div className="p-3 bg-blue-100 rounded-full">
+              <CalendarDays className="h-6 w-6 text-blue-600" />
             </div>
           </div>
         </CardContent>
@@ -720,8 +720,8 @@ const DashboardOverview = ({
                 <span className="text-xs text-green-600">Regular checkups</span>
               </div>
             </div>
-            <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-full">
-              <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
+            <div className="p-3 bg-green-100 rounded-full">
+              <CheckCircle className="h-6 w-6 text-green-600" />
             </div>
           </div>
         </CardContent>
@@ -737,8 +737,8 @@ const DashboardOverview = ({
                 Total: {patientStats.totalPrescriptions} prescribed
               </p>
             </div>
-            <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-full">
-              <Pill className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+            <div className="p-3 bg-purple-100 rounded-full">
+              <Pill className="h-6 w-6 text-purple-600" />
             </div>
           </div>
         </CardContent>
@@ -754,8 +754,8 @@ const DashboardOverview = ({
                 {patientStats.totalNotes} clinical notes
               </p>
             </div>
-            <div className="p-3 bg-orange-100 dark:bg-orange-900/30 rounded-full">
-              <ClipboardListIcon className="h-6 w-6 text-orange-600 dark:text-orange-400" />
+            <div className="p-3 bg-orange-100 rounded-full">
+              <ClipboardListIcon className="h-6 w-6 text-orange-600" />
             </div>
           </div>
         </CardContent>
@@ -779,8 +779,8 @@ const DashboardOverview = ({
           <div className="space-y-3">
             {recentAppointments.slice(0, 3).map(appointment => <div key={appointment.id} className="flex items-center justify-between p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
                 <div className="flex items-center space-x-4">
-                  <div className={cn("h-10 w-10 rounded-full flex items-center justify-center", appointment.status === 'completed' ? 'bg-blue-100 dark:bg-blue-900/30' : appointment.status === 'confirmed' ? 'bg-green-100 dark:bg-green-900/30' : 'bg-yellow-100 dark:bg-yellow-900/30')}>
-                    <Calendar className={cn("h-5 w-5", appointment.status === 'completed' ? 'text-blue-600 dark:text-blue-400' : appointment.status === 'confirmed' ? 'text-green-600 dark:text-green-400' : 'text-yellow-600 dark:text-yellow-400')} />
+                  <div className={cn("h-10 w-10 rounded-full flex items-center justify-center", appointment.status === 'completed' ? 'bg-blue-100' : appointment.status === 'confirmed' ? 'bg-green-100' : 'bg-yellow-100')}>
+                    <Calendar className={cn("h-5 w-5", appointment.status === 'completed' ? 'text-blue-600' : appointment.status === 'confirmed' ? 'text-green-600' : 'text-yellow-600')} />
                   </div>
                   <div>
                     <p className="font-medium">{appointment.reason || 'General Checkup'}</p>
@@ -819,7 +819,7 @@ const DashboardOverview = ({
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">Overall Health</span>
-              <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">Good</Badge>
+              <Badge className="bg-green-100 text-green-700">Good</Badge>
             </div>
             <Separator />
             <div className="space-y-2">

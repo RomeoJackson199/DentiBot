@@ -1648,7 +1648,7 @@ You'll receive a confirmation email shortly.`;
           <Bot className="h-5 w-5 text-primary" />
           <h2 className="font-semibold text-base">AI Dental Assistant</h2>
           {hasCustomAI && businessName && (
-            <Badge variant="secondary" className="text-xs px-2 py-0.5 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800">
+            <Badge variant="secondary" className="text-xs px-2 py-0.5 bg-purple-100 text-purple-700 border-purple-200">
               <Bot className="h-3 w-3 mr-1" />
               Powered by {businessName}
             </Badge>

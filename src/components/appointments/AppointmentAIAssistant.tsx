@@ -204,7 +204,7 @@ export function AppointmentAIAssistant({ appointmentData, treatmentContext }: Ap
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
           ) : (
-            <div className="prose prose-sm dark:prose-invert max-w-none">
+            <div className="prose prose-sm max-w-none">
               <p className="text-sm leading-relaxed whitespace-pre-wrap">{summary}</p>
             </div>
           )}

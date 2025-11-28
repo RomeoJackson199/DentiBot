@@ -82,7 +82,7 @@ export default function PatientBillingPage() {
   return (
     <div className="space-y-6">
       {/* Enhanced Header */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 dark:from-amber-950/20 dark:via-orange-950/20 dark:to-red-950/20 rounded-2xl p-6">
+      <div className="relative overflow-hidden bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 rounded-2xl p-6">
         <AnimatedBackground />
 
         <div className="relative z-10 flex items-start justify-between">

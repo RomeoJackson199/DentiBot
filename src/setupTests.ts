@@ -79,7 +79,7 @@ jest.mock('@/hooks/useLanguage', () => {
         personal: 'Personal',
         language: 'Language',
         light: 'Light',
-        dark: 'Dark',
+ 'Dark',
         save: 'Save',
         confirm: 'Confirm',
         cancel: 'Cancel',

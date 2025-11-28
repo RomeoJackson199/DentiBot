@@ -428,9 +428,9 @@ export const EnhancedAppointmentBooking = ({
 
   return (
     <>
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-background dark:via-background dark:to-primary/5 p-4">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-4">
         <div className="max-w-5xl mx-auto">
-          <Card className="shadow-2xl border-0 bg-white/95 dark:bg-background/95 backdrop-blur-sm">
+          <Card className="shadow-2xl border-0 bg-white/95 backdrop-blur-sm">
             <CardHeader className="text-center pb-6 border-b bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10">
               <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-white mb-3 shadow-lg mx-auto">
                 <CalendarDays className="h-7 w-7" />
@@ -444,15 +444,15 @@ export const EnhancedAppointmentBooking = ({
             <CardContent className="space-y-8 p-6 md:p-10">
               {/* Step Indicator */}
               <div className="flex items-center justify-center gap-3 mb-6">
-                <div className={`flex items-center gap-2 px-4 py-2 rounded-full ${selectedDentist ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'}`}>
+                <div className={`flex items-center gap-2 px-4 py-2 rounded-full ${selectedDentist ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}`}>
                   <span className="font-semibold">1. Dentist</span>
                   {selectedDentist && <CheckCircle className="h-4 w-4" />}
                 </div>
-                <div className={`flex items-center gap-2 px-4 py-2 rounded-full ${selectedDate ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' : 'bg-gray-100 dark:bg-gray-800 text-gray-500'}`}>
+                <div className={`flex items-center gap-2 px-4 py-2 rounded-full ${selectedDate ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
                   <span className="font-semibold">2. Date & Time</span>
                   {selectedDate && selectedTime && <CheckCircle className="h-4 w-4" />}
                 </div>
-                <div className={`flex items-center gap-2 px-4 py-2 rounded-full ${reason ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' : 'bg-gray-100 dark:bg-gray-800 text-gray-500'}`}>
+                <div className={`flex items-center gap-2 px-4 py-2 rounded-full ${reason ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
                   <span className="font-semibold">3. Details</span>
                   {reason && <CheckCircle className="h-4 w-4" />}
                 </div>
@@ -465,7 +465,7 @@ export const EnhancedAppointmentBooking = ({
                   Step 1: Choose Your Dentist
                 </Label>
                 <Select value={selectedDentist} onValueChange={setSelectedDentist}>
-                  <SelectTrigger className="h-14 border-2 border-blue-200 dark:border-blue-900 bg-blue-50/50 dark:bg-blue-950/20 hover:border-blue-400 dark:hover:border-blue-700 transition-colors text-base">
+                  <SelectTrigger className="h-14 border-2 border-blue-200 bg-blue-50/50 hover:border-blue-400:border-blue-700 transition-colors text-base">
                     <SelectValue placeholder="Select your preferred dentist" />
                   </SelectTrigger>
                   <SelectContent>
@@ -501,7 +501,7 @@ export const EnhancedAppointmentBooking = ({
                       if (date) fetchAvailability(date);
                     }}
                     disabled={isDateDisabled}
-                    className="rounded-2xl border-2 border-purple-200 dark:border-purple-900 shadow-xl bg-purple-50/50 dark:bg-purple-950/20 p-6"
+                    className="rounded-2xl border-2 border-purple-200 shadow-xl bg-purple-50/50 p-6"
                   />
                 </div>
               </div>
@@ -522,9 +522,9 @@ export const EnhancedAppointmentBooking = ({
                   ) : (
                     <div className="space-y-6">
                       {/* Available Slots - Scrollable */}
-                      <Card className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 border-2 border-green-300 dark:border-green-800 shadow-lg">
-                        <CardHeader className="pb-3 bg-green-100/50 dark:bg-green-900/30">
-                          <CardTitle className="text-xl text-green-800 dark:text-green-300 flex items-center gap-2">
+                      <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-300 shadow-lg">
+                        <CardHeader className="pb-3 bg-green-100/50">
+                          <CardTitle className="text-xl text-green-800 flex items-center gap-2">
                             <CheckCircle className="h-5 w-5" />
                             Available Time Slots ({availableSlots.length})
                           </CardTitle>
@@ -545,8 +545,8 @@ export const EnhancedAppointmentBooking = ({
                                       "h-14 text-base font-semibold transition-all shadow-sm",
                                       "hover:scale-105 hover:shadow-md",
                                       selectedTime === slot.time
-                                        ? "bg-gradient-to-br from-blue-500 to-purple-600 text-white border-0 ring-2 ring-blue-300 dark:ring-blue-800"
-                                        : "bg-white dark:bg-gray-900 border-2 border-green-300 dark:border-green-800 hover:border-green-500 dark:hover:border-green-600"
+                                        ? "bg-gradient-to-br from-blue-500 to-purple-600 text-white border-0 ring-2 ring-blue-300"
+                                        : "bg-white border-2 border-green-300 hover:border-green-500:border-green-600"
                                     )}
                                   >
                                     <Clock className="h-4 w-4 mr-1" />
@@ -558,7 +558,7 @@ export const EnhancedAppointmentBooking = ({
                           ) : (
                             <div className="text-center py-8">
                               <XCircle className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-                              <p className="text-gray-600 dark:text-gray-400 font-medium">
+                              <p className="text-gray-600 font-medium">
                                 No available slots for this date
                               </p>
                               <p className="text-sm text-muted-foreground mt-2">

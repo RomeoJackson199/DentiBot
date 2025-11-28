@@ -560,22 +560,22 @@ export default function DataImportManager() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-3 gap-4">
-                  <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                    <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                  <div className="text-center p-4 bg-green-50 rounded-lg">
+                    <div className="text-2xl font-bold text-green-600">
                       {importSession.successful_records || importSession.successCount || 0}
                     </div>
                     <div className="text-sm text-muted-foreground">Successful</div>
                   </div>
                   
-                  <div className="text-center p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
-                    <div className="text-2xl font-bold text-red-600 dark:text-red-400">
+                  <div className="text-center p-4 bg-red-50 rounded-lg">
+                    <div className="text-2xl font-bold text-red-600">
                       {importSession.failed_records || importSession.failureCount || 0}
                     </div>
                     <div className="text-sm text-muted-foreground">Failed</div>
                   </div>
                   
-                  <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                    <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                  <div className="text-center p-4 bg-blue-50 rounded-lg">
+                    <div className="text-2xl font-bold text-blue-600">
                       {importSession.total_records || importSession.totalRecords || 0}
                     </div>
                     <div className="text-sm text-muted-foreground">Total</div>

@@ -103,15 +103,15 @@ export const PaymentsTab: React.FC<PaymentsTabProps> = ({ patientId, totalDueCen
 
       {/* Payment Status Card */}
       {due ? (
-        <Card className="border-orange-200 bg-orange-50 dark:bg-orange-950/20">
+        <Card className="border-orange-200 bg-orange-50">
           <CardContent className="p-6">
             <div className="flex items-start space-x-3">
               <AlertCircle className="h-5 w-5 text-orange-600 mt-0.5" />
               <div className="flex-1">
-                <h3 className="font-medium text-orange-900 dark:text-orange-100">
+                <h3 className="font-medium text-orange-900">
                   Outstanding Balance
                 </h3>
-                <p className="text-sm text-orange-700 dark:text-orange-200 mt-1">
+                <p className="text-sm text-orange-700 mt-1">
                   You have €{(totalDueCents/100).toFixed(2)} in pending payments. 
                   Click "Pay All" above to settle all outstanding amounts at once.
                 </p>
@@ -120,15 +120,15 @@ export const PaymentsTab: React.FC<PaymentsTabProps> = ({ patientId, totalDueCen
           </CardContent>
         </Card>
       ) : (
-        <Card className="border-green-200 bg-green-50 dark:bg-green-950/20">
+        <Card className="border-green-200 bg-green-50">
           <CardContent className="p-6">
             <div className="flex items-start space-x-3">
               <CheckCircle className="h-5 w-5 text-green-600 mt-0.5" />
               <div className="flex-1">
-                <h3 className="font-medium text-green-900 dark:text-green-100">
+                <h3 className="font-medium text-green-900">
                   All Paid Up!
                 </h3>
-                <p className="text-sm text-green-700 dark:text-green-200 mt-1">
+                <p className="text-sm text-green-700 mt-1">
                   You don't have any outstanding payments. Great job staying on top of your bills!
                 </p>
                 <div className="mt-3">

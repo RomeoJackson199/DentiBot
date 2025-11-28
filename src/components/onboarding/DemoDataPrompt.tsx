@@ -149,9 +149,9 @@ export function DemoDataPrompt({
         {!completed && !loading && (
           <>
             <div className="space-y-4 py-4">
-              <Alert className="border-blue-200 bg-blue-50 dark:bg-blue-900/20">
+              <Alert className="border-blue-200 bg-blue-50">
                 <Info className="h-4 w-4 text-blue-600" />
-                <AlertDescription className="text-sm text-blue-900 dark:text-blue-100">
+                <AlertDescription className="text-sm text-blue-900">
                   We'll create realistic sample data so you can explore all features
                   without setting up everything manually. You can delete this data
                   anytime.
@@ -162,7 +162,7 @@ export function DemoDataPrompt({
                 <h4 className="font-semibold text-sm">What we'll create:</h4>
 
                 <div className="grid gap-3">
-                  <div className="flex items-center gap-3 p-3 rounded-lg bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border border-blue-200">
+                  <div className="flex items-center gap-3 p-3 rounded-lg bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200">
                     <Users className="h-5 w-5 text-blue-600" />
                     <div className="flex-1">
                       <p className="font-medium text-sm">15 Demo Patients</p>
@@ -172,7 +172,7 @@ export function DemoDataPrompt({
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3 p-3 rounded-lg bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border border-purple-200">
+                  <div className="flex items-center gap-3 p-3 rounded-lg bg-gradient-to-r from-purple-50 to-purple-100 border border-purple-200">
                     <Calendar className="h-5 w-5 text-purple-600" />
                     <div className="flex-1">
                       <p className="font-medium text-sm">25 Sample Appointments</p>
@@ -182,7 +182,7 @@ export function DemoDataPrompt({
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3 p-3 rounded-lg bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border border-green-200">
+                  <div className="flex items-center gap-3 p-3 rounded-lg bg-gradient-to-r from-green-50 to-green-100 border border-green-200">
                     <FileText className="h-5 w-5 text-green-600" />
                     <div className="flex-1">
                       <p className="font-medium text-sm">Medical Records</p>
@@ -194,8 +194,8 @@ export function DemoDataPrompt({
                 </div>
               </div>
 
-              <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 rounded-lg p-3">
-                <p className="text-xs text-yellow-800 dark:text-yellow-200">
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                <p className="text-xs text-yellow-800">
                   <strong>Note:</strong> All demo data is clearly marked and can be
                   removed with one click from your settings.
                 </p>
@@ -227,7 +227,7 @@ export function DemoDataPrompt({
         {completed && stats && (
           <div className="py-6 space-y-4">
             <div className="flex items-center justify-center">
-              <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
                 <CheckCircle2 className="h-10 w-10 text-green-600" />
               </div>
             </div>
@@ -240,19 +240,19 @@ export function DemoDataPrompt({
             </div>
 
             <div className="grid grid-cols-3 gap-3 pt-4">
-              <div className="text-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+              <div className="text-center p-3 bg-blue-50 rounded-lg">
                 <p className="text-2xl font-bold text-blue-600">
                   {stats.patientsCreated}
                 </p>
                 <p className="text-xs text-muted-foreground">Patients</p>
               </div>
-              <div className="text-center p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+              <div className="text-center p-3 bg-purple-50 rounded-lg">
                 <p className="text-2xl font-bold text-purple-600">
                   {stats.appointmentsCreated}
                 </p>
                 <p className="text-xs text-muted-foreground">Appointments</p>
               </div>
-              <div className="text-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+              <div className="text-center p-3 bg-green-50 rounded-lg">
                 <p className="text-2xl font-bold text-green-600">
                   {stats.medicalRecordsCreated}
                 </p>

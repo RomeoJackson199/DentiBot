@@ -52,19 +52,19 @@
     --primary: 213 84% 38%;
     --primary-foreground: 0 0% 100%;
     --primary-light: 213 84% 48%;
-    --primary-dark: 213 84% 28%;
+    --primary- 213 84% 28%;
 
     /* Secondary Color - Aqua - Enhanced */
     --secondary: 185 74% 58%;
     --secondary-foreground: 222 14% 5%;
     --secondary-light: 185 74% 68%;
-    --secondary-dark: 185 74% 48%;
+    --secondary- 185 74% 48%;
 
     /* Accent Color - Soft Lilac - Enhanced */
     --accent: 268 52% 74%;
     --accent-foreground: 222 14% 5%;
     --accent-light: 268 52% 84%;
-    --accent-dark: 268 52% 64%;
+    --accent- 268 52% 64%;
 
     /* Neutral Colors - Enhanced Contrast */
     --muted: 220 14% 20%;
@@ -185,19 +185,19 @@
     --primary: 213 84% 38%;
     --primary-foreground: 0 0% 100%;
     --primary-light: 213 84% 48%;
-    --primary-dark: 213 84% 28%;
+    --primary- 213 84% 28%;
 
     /* Secondary Color - Aqua - Enhanced */
     --secondary: 185 74% 52%;
     --secondary-foreground: 0 0% 100%;
     --secondary-light: 185 74% 62%;
-    --secondary-dark: 185 74% 42%;
+    --secondary- 185 74% 42%;
 
     /* Accent Color - Soft Lilac - Enhanced */
     --accent: 268 52% 68%;
     --accent-foreground: 0 0% 100%;
     --accent-light: 268 52% 78%;
-    --accent-dark: 268 52% 58%;
+    --accent- 268 52% 58%;
 
     /* Neutral Colors - Enhanced Contrast */
     --muted: 210 20% 94%;

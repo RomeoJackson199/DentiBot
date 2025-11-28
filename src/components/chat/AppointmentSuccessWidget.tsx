@@ -20,7 +20,7 @@ export const AppointmentSuccessWidget = ({
   const navigate = useNavigate();
 
   return (
-    <Card className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950 border-green-200 dark:border-green-800">
+    <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
       <CardContent className="pt-6">
         <div className="flex flex-col items-center text-center space-y-4">
           <div className="w-16 h-16 rounded-full bg-green-500 flex items-center justify-center">
@@ -28,15 +28,15 @@ export const AppointmentSuccessWidget = ({
           </div>
           
           <div>
-            <h3 className="text-xl font-semibold text-green-900 dark:text-green-100 mb-2">
+            <h3 className="text-xl font-semibold text-green-900 mb-2">
               Appointment Confirmed! 🎉
             </h3>
-            <p className="text-sm text-green-700 dark:text-green-300">
+            <p className="text-sm text-green-700">
               You'll receive a confirmation email shortly
             </p>
           </div>
 
-          <div className="w-full p-4 bg-white/50 dark:bg-black/20 rounded-lg space-y-2 text-left">
+          <div className="w-full p-4 bg-white/50 rounded-lg space-y-2 text-left">
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Date:</span>
               <span className="font-medium">{appointmentDetails.date}</span>

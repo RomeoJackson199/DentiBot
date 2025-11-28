@@ -76,7 +76,7 @@ const Signup = () => {
         title: "✅ Account created successfully!",
         description: "Please check your email inbox (and spam folder) for a verification link to activate your account.",
         duration: 10000,
-        className: "bg-green-50 border-green-200 text-green-900 dark:bg-green-950 dark:border-green-800 dark:text-green-100",
+        className: "bg-green-50 border-green-200 text-green-900",
       });
 
       // Redirect business owners to create business flow
@@ -93,7 +93,7 @@ const Signup = () => {
           title: "📧 Important: Verify Your Email",
           description: "We sent you a confirmation email. Click the link inside to complete your registration.",
           duration: 15000,
-          className: "bg-blue-50 border-blue-200 text-blue-900 dark:bg-blue-950 dark:border-blue-800 dark:text-blue-100",
+          className: "bg-blue-50 border-blue-200 text-blue-900",
         });
       }, 1000);
     } catch (error: any) {
@@ -170,8 +170,8 @@ const Signup = () => {
                   className="group relative overflow-hidden rounded-xl border-2 border-muted hover:border-primary transition-all p-6 text-left bg-background hover:bg-accent"
                 >
                   <div className="flex items-start gap-4">
-                    <div className="rounded-full bg-blue-100 dark:bg-blue-900/30 p-3">
-                      <Calendar className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                    <div className="rounded-full bg-blue-100 p-3">
+                      <Calendar className="h-6 w-6 text-blue-600" />
                     </div>
                     <div className="flex-1">
                       <h3 className="text-lg font-semibold mb-2">A Client</h3>
@@ -187,8 +187,8 @@ const Signup = () => {
                   className="group relative overflow-hidden rounded-xl border-2 border-muted hover:border-primary transition-all p-6 text-left bg-background hover:bg-accent"
                 >
                   <div className="flex items-start gap-4">
-                    <div className="rounded-full bg-purple-100 dark:bg-purple-900/30 p-3">
-                      <Sparkles className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                    <div className="rounded-full bg-purple-100 p-3">
+                      <Sparkles className="h-6 w-6 text-purple-600" />
                     </div>
                     <div className="flex-1">
                       <h3 className="text-lg font-semibold mb-2">A Business Owner</h3>

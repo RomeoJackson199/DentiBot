@@ -157,7 +157,7 @@ export function ServiceManager() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 dark:from-blue-950/20 dark:via-purple-950/20 dark:to-pink-950/20 p-6 rounded-2xl border-2 border-blue-100 dark:border-blue-900">
+      <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 p-6 rounded-2xl border-2 border-blue-100">
         <div>
           <h2 className="text-4xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
             Services & Products
@@ -178,7 +178,7 @@ export function ServiceManager() {
           <Button
             onClick={() => handleAddNew('Product')}
             variant="outline"
-            className="gap-2 border-2 border-purple-300 dark:border-purple-700 hover:bg-purple-50 dark:hover:bg-purple-950/30 h-11 px-6"
+            className="gap-2 border-2 border-purple-300 hover:bg-purple-50:bg-purple-950/30 h-11 px-6"
             size="lg"
           >
             <Plus className="h-5 w-5" />
@@ -191,28 +191,28 @@ export function ServiceManager() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="border-2 border-blue-200 dark:border-blue-900 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/30 shadow-md">
+        <Card className="border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-blue-100 shadow-md">
           <CardHeader className="pb-3">
-            <CardDescription className="text-blue-700 dark:text-blue-400 font-medium">Total Items</CardDescription>
-            <CardTitle className="text-4xl font-bold text-blue-900 dark:text-blue-100">{services.length}</CardTitle>
+            <CardDescription className="text-blue-700 font-medium">Total Items</CardDescription>
+            <CardTitle className="text-4xl font-bold text-blue-900">{services.length}</CardTitle>
           </CardHeader>
         </Card>
-        <Card className="border-2 border-emerald-200 dark:border-emerald-900 bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-950/30 dark:to-emerald-900/30 shadow-md">
+        <Card className="border-2 border-emerald-200 bg-gradient-to-br from-emerald-50 to-emerald-100 shadow-md">
           <CardHeader className="pb-3">
-            <CardDescription className="text-emerald-700 dark:text-emerald-400 font-medium">Active</CardDescription>
-            <CardTitle className="text-4xl font-bold text-emerald-900 dark:text-emerald-100">{activeCount}</CardTitle>
+            <CardDescription className="text-emerald-700 font-medium">Active</CardDescription>
+            <CardTitle className="text-4xl font-bold text-emerald-900">{activeCount}</CardTitle>
           </CardHeader>
         </Card>
-        <Card className="border-2 border-amber-200 dark:border-amber-900 bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-950/30 dark:to-amber-900/30 shadow-md">
+        <Card className="border-2 border-amber-200 bg-gradient-to-br from-amber-50 to-amber-100 shadow-md">
           <CardHeader className="pb-3">
-            <CardDescription className="text-amber-700 dark:text-amber-400 font-medium">Inactive</CardDescription>
-            <CardTitle className="text-4xl font-bold text-amber-900 dark:text-amber-100">{inactiveCount}</CardTitle>
+            <CardDescription className="text-amber-700 font-medium">Inactive</CardDescription>
+            <CardTitle className="text-4xl font-bold text-amber-900">{inactiveCount}</CardTitle>
           </CardHeader>
         </Card>
-        <Card className="border-2 border-purple-200 dark:border-purple-900 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950/30 dark:to-purple-900/30 shadow-md">
+        <Card className="border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-purple-100 shadow-md">
           <CardHeader className="pb-3">
-            <CardDescription className="text-purple-700 dark:text-purple-400 font-medium">Prepay Required</CardDescription>
-            <CardTitle className="text-4xl font-bold text-purple-900 dark:text-purple-100">
+            <CardDescription className="text-purple-700 font-medium">Prepay Required</CardDescription>
+            <CardTitle className="text-4xl font-bold text-purple-900">
               {services.filter(service => service.requires_upfront_payment).length}
             </CardTitle>
           </CardHeader>
@@ -304,7 +304,7 @@ export function ServiceManager() {
             >
               <CardHeader className="space-y-4">
                 {service.image_url && (
-                  <div className="h-48 w-full overflow-hidden rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-muted shadow-inner">
+                  <div className="h-48 w-full overflow-hidden rounded-xl border-2 border-gray-200 bg-muted shadow-inner">
                     <img
                       src={service.image_url}
                       alt={service.name}
@@ -318,7 +318,7 @@ export function ServiceManager() {
                     {service.category && (
                       <Badge
                         variant="secondary"
-                        className="uppercase tracking-wide font-semibold bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/50 dark:to-purple-900/50 text-blue-800 dark:text-blue-200"
+                        className="uppercase tracking-wide font-semibold bg-gradient-to-r from-blue-100 to-purple-100 text-blue-800"
                       >
                         {service.category}
                       </Badge>
@@ -326,7 +326,7 @@ export function ServiceManager() {
                   </div>
                   <div className="flex flex-wrap justify-end gap-1.5">
                     {!service.is_active && (
-                      <Badge variant="outline" className="border-amber-400 text-amber-700 dark:text-amber-400">
+                      <Badge variant="outline" className="border-amber-400 text-amber-700">
                         Inactive
                       </Badge>
                     )}
@@ -348,7 +348,7 @@ export function ServiceManager() {
                   </div>
                   <div className="flex items-center gap-3 text-sm text-muted-foreground">
                     {service.duration_minutes && (
-                      <span className="bg-blue-100 dark:bg-blue-900/30 px-2 py-1 rounded-full font-medium">
+                      <span className="bg-blue-100 px-2 py-1 rounded-full font-medium">
                         {service.duration_minutes} min
                       </span>
                     )}
@@ -360,7 +360,7 @@ export function ServiceManager() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="flex-1 border-2 hover:bg-blue-50 dark:hover:bg-blue-950/30"
+                    className="flex-1 border-2 hover:bg-blue-50:bg-blue-950/30"
                     onClick={() => handleEdit(service)}
                   >
                     <Pencil className="mr-2 h-4 w-4" />
@@ -369,7 +369,7 @@ export function ServiceManager() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className={service.is_active ? 'border-2 border-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/30' : 'border-2 border-green-400 hover:bg-green-50 dark:hover:bg-green-950/30'}
+                    className={service.is_active ? 'border-2 border-amber-400 hover:bg-amber-50:bg-amber-950/30' : 'border-2 border-green-400 hover:bg-green-50:bg-green-950/30'}
                     onClick={() => handleToggleActive(service.id, service.is_active)}
                   >
                     {service.is_active ? 'Deactivate' : 'Activate'}
@@ -377,7 +377,7 @@ export function ServiceManager() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="border-2 border-red-400 hover:bg-red-50 dark:hover:bg-red-950/30"
+                    className="border-2 border-red-400 hover:bg-red-50:bg-red-950/30"
                     onClick={() => handleDelete(service.id)}
                   >
                     <Trash2 className="h-4 w-4" />

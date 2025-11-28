@@ -282,14 +282,14 @@ export const BusinessSubscriptionStep = ({ businessData, onComplete }: BusinessS
                   {Array.isArray(plan.features) && plan.features.map((feature, idx) => (
                     <div key={idx} className="flex items-start gap-3">
                       <div className={`mt-0.5 rounded-full p-1 ${
-                        isPopular ? 'bg-blue-100 dark:bg-blue-900' : 
-                        isPremium ? 'bg-purple-100 dark:bg-purple-900' :
-                        'bg-green-100 dark:bg-green-900'
+                        isPopular ? 'bg-blue-100' : 
+                        isPremium ? 'bg-purple-100' :
+                        'bg-green-100'
                       }`}>
                         <Check className={`h-4 w-4 ${
-                          isPopular ? 'text-blue-600 dark:text-blue-400' :
-                          isPremium ? 'text-purple-600 dark:text-purple-400' :
-                          'text-green-600 dark:text-green-400'
+                          isPopular ? 'text-blue-600' :
+                          isPremium ? 'text-purple-600' :
+                          'text-green-600'
                         }`} />
                       </div>
                       <span className="text-sm flex-1">{feature}</span>
@@ -324,14 +324,14 @@ export const BusinessSubscriptionStep = ({ businessData, onComplete }: BusinessS
         </div>
         
         {validPromo ? (
-          <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+          <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">
             <div className="flex items-center gap-2">
               <Check className="h-5 w-5 text-green-600" />
               <div>
-                <p className="font-medium text-green-900 dark:text-green-100">
+                <p className="font-medium text-green-900">
                   {validPromo.code}
                 </p>
-                <p className="text-sm text-green-700 dark:text-green-300">
+                <p className="text-sm text-green-700">
                   {validPromo.discount_type === 'free' && 'Free activation!'}
                   {validPromo.discount_type === 'percentage' && `${validPromo.discount_value}% off`}
                   {validPromo.discount_type === 'fixed' && `€${validPromo.discount_value} off`}

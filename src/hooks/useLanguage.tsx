@@ -25,7 +25,7 @@ interface Translations {
   emergencyAssistance: string;
   language: string;
   light: string;
-  dark: string;
+ string;
   save: string;
   confirm: string;
   cancel: string;
@@ -519,7 +519,7 @@ const translations: Record<Language, Translations> = {
   emergencyAssistance: "Emergency Assistance",
     language: "Preferred Language",
     light: "Light",
-    dark: "Dark",
+ "Dark",
     save: "Save",
     confirm: "Confirm",
     cancel: "Cancel",
@@ -1032,7 +1032,7 @@ How can I help you today?`,
     emergencyAssistance: "Assistance d'urgence",
     language: "Langue préférée",
     light: "Clair",
-    dark: "Sombre",
+ "Sombre",
     save: "Enregistrer",
     confirm: "Confirmer",
     cancel: "Annuler",
@@ -1570,7 +1570,7 @@ Comment puis-je vous aider aujourd'hui ?`,
     preparingAssistant: "Assistent voorbereiden",
     language: "Voorkeurstaal",
     light: "Licht",
-    dark: "Donker",
+ "Donker",
     save: "Opslaan",
     confirm: "Bevestigen",
     cancel: "Annuleren",

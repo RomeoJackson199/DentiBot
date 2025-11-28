@@ -215,8 +215,8 @@ export function OnboardingProgressTracker({
                     key={step.id}
                     className={`flex items-center gap-3 p-3 rounded-lg transition-all ${
                       step.completed
-                        ? "bg-green-50 dark:bg-green-900/20 border border-green-200"
-                        : "bg-gray-50 dark:bg-gray-800/50 border border-gray-200 hover:border-blue-300"
+                        ? "bg-green-50 border border-green-200"
+                        : "bg-gray-50 border border-gray-200 hover:border-blue-300"
                     }`}
                   >
                     <div className="flex-shrink-0">
@@ -237,7 +237,7 @@ export function OnboardingProgressTracker({
                       <p
                         className={`text-sm font-medium ${
                           step.completed
-                            ? "text-green-900 dark:text-green-100"
+                            ? "text-green-900"
                             : ""
                         }`}
                       >
@@ -269,8 +269,8 @@ export function OnboardingProgressTracker({
               })}
 
               {progress === 100 && (
-                <div className="mt-4 p-4 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 rounded-lg text-center border border-green-200">
-                  <p className="font-semibold text-green-900 dark:text-green-100">
+                <div className="mt-4 p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg text-center border border-green-200">
+                  <p className="font-semibold text-green-900">
                     🎉 You're all set up!
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">

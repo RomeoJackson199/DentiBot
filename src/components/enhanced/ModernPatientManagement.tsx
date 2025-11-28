@@ -444,7 +444,7 @@ export function ModernPatientManagement({ dentistId }: ModernPatientManagementPr
                               </Badge>
                             )}
                             {flags?.hasUpcomingAppointment && (
-                              <Badge className="text-xs rounded-full bg-green-500/10 text-green-700 dark:text-green-400 hover:bg-green-500/20">
+                              <Badge className="text-xs rounded-full bg-green-500/10 text-green-700 hover:bg-green-500/20">
                                 <Calendar className="h-3 w-3 mr-1" />
                                 Upcoming
                               </Badge>

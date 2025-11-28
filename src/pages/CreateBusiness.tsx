@@ -109,7 +109,7 @@ export default function CreateBusiness() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-background dark:via-background dark:to-primary/5">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
       <BusinessCreationTour
         currentStep={currentStep}
         isOpen={showTour}
@@ -142,8 +142,8 @@ export default function CreateBusiness() {
                       currentStep > step.id
                         ? 'bg-gradient-to-br from-green-500 to-emerald-600 text-white'
                         : currentStep === step.id
-                        ? 'bg-gradient-to-br from-blue-500 to-purple-600 text-white ring-4 ring-blue-200 dark:ring-blue-900'
-                        : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
+                        ? 'bg-gradient-to-br from-blue-500 to-purple-600 text-white ring-4 ring-blue-200'
+                        : 'bg-gray-200 text-gray-500'
                     }`}
                   >
                     {currentStep > step.id ? <CheckCircle2 className="w-6 h-6" /> : step.id}
@@ -156,7 +156,7 @@ export default function CreateBusiness() {
                   </div>
                 </div>
                 {index < STEPS.length - 1 && (
-                  <div className="flex-1 h-1.5 mx-3 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700">
+                  <div className="flex-1 h-1.5 mx-3 rounded-full overflow-hidden bg-gray-200">
                     <motion.div
                       initial={{ width: 0 }}
                       animate={{ width: currentStep > step.id ? '100%' : '0%' }}

@@ -28,12 +28,12 @@ export function MonthlyOverview({ appointments, currentDate, onDateClick }: Mont
   const maxAppointments = Math.max(...Array.from(appointmentsByDay.values()), 1);
 
   const getIntensityColor = (count: number) => {
-    if (count === 0) return "bg-gray-100 dark:bg-gray-800";
+    if (count === 0) return "bg-gray-100";
     const intensity = count / maxAppointments;
-    if (intensity > 0.75) return "bg-blue-600 dark:bg-blue-500";
-    if (intensity > 0.5) return "bg-blue-500 dark:bg-blue-600";
-    if (intensity > 0.25) return "bg-blue-300 dark:bg-blue-700";
-    return "bg-blue-200 dark:bg-blue-800";
+    if (intensity > 0.75) return "bg-blue-600";
+    if (intensity > 0.5) return "bg-blue-500";
+    if (intensity > 0.25) return "bg-blue-300";
+    return "bg-blue-200";
   };
 
   // Get day of week for first day to align calendar
@@ -88,7 +88,7 @@ export function MonthlyOverview({ appointments, currentDate, onDateClick }: Mont
                     "text-xs font-semibold",
                     appointmentCount > 0
                       ? "text-white"
-                      : "text-gray-600 dark:text-gray-400"
+                      : "text-gray-600"
                   )}
                 >
                   {format(day, "d")}
@@ -112,11 +112,11 @@ export function MonthlyOverview({ appointments, currentDate, onDateClick }: Mont
         <div className="mt-4 flex items-center justify-center gap-2 text-xs text-muted-foreground">
           <span>Less</span>
           <div className="flex gap-1">
-            <div className="w-4 h-4 rounded bg-gray-100 dark:bg-gray-800 border" />
-            <div className="w-4 h-4 rounded bg-blue-200 dark:bg-blue-800" />
-            <div className="w-4 h-4 rounded bg-blue-300 dark:bg-blue-700" />
-            <div className="w-4 h-4 rounded bg-blue-500 dark:bg-blue-600" />
-            <div className="w-4 h-4 rounded bg-blue-600 dark:bg-blue-500" />
+            <div className="w-4 h-4 rounded bg-gray-100 border" />
+            <div className="w-4 h-4 rounded bg-blue-200" />
+            <div className="w-4 h-4 rounded bg-blue-300" />
+            <div className="w-4 h-4 rounded bg-blue-500" />
+            <div className="w-4 h-4 rounded bg-blue-600" />
           </div>
           <span>More</span>
         </div>

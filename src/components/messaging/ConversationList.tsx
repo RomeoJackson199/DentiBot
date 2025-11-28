@@ -373,7 +373,7 @@ export function ConversationList({ currentUserId, onSelectRecipient }: Conversat
                     className="w-full p-3 rounded-xl hover:bg-primary/5 hover:shadow-md transition-all duration-300 text-left group"
                   >
                     <div className="flex items-center gap-3">
-                      <Avatar className="h-12 w-12 ring-2 ring-white dark:ring-gray-800 shadow-md border-2 border-primary/10">
+                      <Avatar className="h-12 w-12 ring-2 ring-white shadow-md border-2 border-primary/10">
                         <AvatarFallback className="bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 text-white font-bold">
                           {contact.name.split(' ').map((n) => n[0]).join('').toUpperCase()}
                         </AvatarFallback>
@@ -417,7 +417,7 @@ export function ConversationList({ currentUserId, onSelectRecipient }: Conversat
                 >
                   <div className="flex items-start gap-3">
                     <div className="relative">
-                      <Avatar className="h-12 w-12 ring-2 ring-white dark:ring-gray-800 shadow-md border-2 border-primary/10">
+                      <Avatar className="h-12 w-12 ring-2 ring-white shadow-md border-2 border-primary/10">
                         <AvatarFallback className="bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 text-white font-bold">
                           {conv.name.split(' ').map((n) => n[0]).join('').toUpperCase()}
                         </AvatarFallback>

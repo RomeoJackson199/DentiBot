@@ -148,7 +148,7 @@ export function ClinicalToday({ user, dentistId, onOpenPatientsTab, onOpenAppoin
 	return (
 		<div className="space-y-4 sm:space-y-6 p-3 sm:p-6">
 			{/* Enhanced Welcome Header with Animated Background */}
-			<div className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950/20 dark:via-indigo-950/20 dark:to-purple-950/20 rounded-2xl p-4 sm:p-6 shadow-sm">
+			<div className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 rounded-2xl p-4 sm:p-6 shadow-sm">
 				<AnimatedBackground />
 
 				<div className="relative z-10 space-y-1">

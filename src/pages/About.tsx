@@ -12,7 +12,7 @@ const About = () => {
       <Header user={null} minimal={false} />
 
       {/* Hero Section */}
-      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-900 dark:to-gray-800 border-b pt-24">
+      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-b pt-24">
         <div className="container mx-auto px-4 py-16 max-w-4xl">
           <div className="flex justify-center mb-8">
             <Logo variant="full" size="lg" className="h-16" />
@@ -140,7 +140,7 @@ const About = () => {
         </section>
 
         {/* Stats Section */}
-        <section className="mb-16 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-900 dark:to-gray-800 rounded-xl p-8">
+        <section className="mb-16 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-8">
           <h2 className="text-3xl font-bold tracking-tight mb-8 text-center">Caberu by the Numbers</h2>
           <div className="grid md:grid-cols-4 gap-8 text-center">
             <div>
@@ -165,7 +165,7 @@ const About = () => {
         {/* Company Info */}
         <section className="mb-16">
           <h2 className="text-3xl font-bold tracking-tight mb-6">Company Information</h2>
-          <div className="prose prose-gray dark:prose-invert max-w-none">
+          <div className="prose prose-gray max-w-none">
             <p className="text-muted-foreground leading-relaxed mb-4">
               <strong>Caberu SRL</strong> is a healthcare technology company headquartered in Europe, dedicated to transforming dental practice management through artificial intelligence and modern software design.
             </p>

@@ -208,7 +208,7 @@ export function ChatWindow({
               <ArrowLeft className="h-5 w-5" />
             </Button>
           )}
-          <Avatar className="h-12 w-12 ring-2 ring-white dark:ring-gray-800 shadow-md border-2 border-primary/10">
+          <Avatar className="h-12 w-12 ring-2 ring-white shadow-md border-2 border-primary/10">
             <AvatarFallback className="bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 text-white font-bold">
               {recipient.name.split(' ').map((n) => n[0]).join('').toUpperCase()}
             </AvatarFallback>
@@ -260,7 +260,7 @@ export function ChatWindow({
                       {!isOwnMessage && (
                         <div className="w-8 shrink-0">
                           {showAvatar && (
-                            <Avatar className="h-8 w-8 ring-2 ring-white dark:ring-gray-800 shadow-sm border border-primary/10">
+                            <Avatar className="h-8 w-8 ring-2 ring-white shadow-sm border border-primary/10">
                               <AvatarFallback className="bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 text-white text-xs font-bold">
                                 {recipient.name.split(' ').map((n) => n[0]).join('').toUpperCase()}
                               </AvatarFallback>

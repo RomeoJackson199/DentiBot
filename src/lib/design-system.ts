@@ -58,7 +58,7 @@ export const colors = {
   primary: {
     DEFAULT: '199 89% 48%',      // Dental Blue - main brand color
     light: '199 89% 60%',
-    dark: '199 89% 38%',
+ '199 89% 38%',
     foreground: '0 0% 100%',     // White text on primary
   },
   
@@ -66,7 +66,7 @@ export const colors = {
   secondary: {
     DEFAULT: '142 71% 45%',      // Dental Green - success, growth
     light: '142 71% 55%',
-    dark: '142 71% 35%',
+ '142 71% 35%',
     foreground: '0 0% 100%',
   },
   
@@ -74,7 +74,7 @@ export const colors = {
   accent: {
     DEFAULT: '279 70% 52%',      // Purple - highlights, special actions
     light: '279 70% 62%',
-    dark: '279 70% 42%',
+ '279 70% 42%',
     foreground: '0 0% 100%',
   },
   
@@ -98,28 +98,28 @@ export const colors = {
     success: {
       light: '142 76% 70%',
       DEFAULT: '142 71% 45%',
-      dark: '142 72% 29%',
+ '142 72% 29%',
       bg: '140 84% 92%',        // Light background
       foreground: '0 0% 100%',
     },
     warning: {
       light: '45 96% 56%',
       DEFAULT: '38 92% 50%',
-      dark: '32 75% 40%',
+ '32 75% 40%',
       bg: '48 96% 89%',
       foreground: '0 0% 100%',
     },
     error: {
       light: '0 94% 82%',
       DEFAULT: '0 72% 51%',
-      dark: '0 74% 31%',
+ '0 74% 31%',
       bg: '0 93% 94%',
       foreground: '0 0% 100%',
     },
     info: {
       light: '214 95% 77%',
       DEFAULT: '217 91% 60%',
-      dark: '226 57% 28%',
+ '226 57% 28%',
       bg: '214 95% 93%',
       foreground: '0 0% 100%',
     },

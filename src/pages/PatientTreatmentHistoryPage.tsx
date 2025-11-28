@@ -26,7 +26,7 @@ export default function PatientTreatmentHistoryPage() {
   return (
     <div className="space-y-6">
       {/* Enhanced Header */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-950/20 dark:via-purple-950/20 dark:to-pink-950/20 rounded-2xl p-6">
+      <div className="relative overflow-hidden bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 rounded-2xl p-6">
         <AnimatedBackground />
 
         <div className="relative z-10">

@@ -152,7 +152,7 @@ const InlineCalendarWidget = ({
   const getDateModifiers = (date: Date) => {
     const isVacation = vacationDates.some(vDate => isSameDay(vDate, date));
     if (isVacation) {
-      return { className: 'bg-red-100 text-red-500 line-through dark:bg-red-950 dark:text-red-400' };
+      return { className: 'bg-red-100 text-red-500 line-through' };
     }
     return {};
   };
@@ -186,7 +186,7 @@ const InlineCalendarWidget = ({
             vacation: vacationDates
           }}
           modifiersClassNames={{
-            vacation: 'bg-red-100 text-red-600 line-through hover:bg-red-100 dark:bg-red-950 dark:text-red-400'
+            vacation: 'bg-red-100 text-red-600 line-through hover:bg-red-100'
           }}
           className="rounded-lg border mx-auto"
         />
@@ -216,18 +216,18 @@ const TimeSlotsWidget = ({
 
   const getSlotStyle = (slot: { available: boolean; reason?: string }) => {
     if (slot.available) {
-      return "bg-green-50 border-green-500 hover:bg-green-100 text-green-700 dark:bg-green-950 dark:border-green-700 dark:text-green-300";
+      return "bg-green-50 border-green-500 hover:bg-green-100 text-green-700";
     }
     
     switch (slot.reason) {
       case 'vacation':
-        return "bg-red-50 border-red-300 text-red-400 cursor-not-allowed dark:bg-red-950 dark:border-red-800";
+        return "bg-red-50 border-red-300 text-red-400 cursor-not-allowed";
       case 'booked':
-        return "bg-gray-50 border-gray-300 text-gray-400 cursor-not-allowed dark:bg-gray-900 dark:border-gray-700";
+        return "bg-gray-50 border-gray-300 text-gray-400 cursor-not-allowed";
       case 'emergency_only':
-        return "bg-orange-50 border-orange-300 text-orange-400 cursor-not-allowed dark:bg-orange-950 dark:border-orange-800";
+        return "bg-orange-50 border-orange-300 text-orange-400 cursor-not-allowed";
       default:
-        return "bg-gray-50 border-gray-300 text-gray-400 cursor-not-allowed dark:bg-gray-900 dark:border-gray-700";
+        return "bg-gray-50 border-gray-300 text-gray-400 cursor-not-allowed";
     }
   };
 
@@ -303,9 +303,9 @@ const TimeSlotsWidget = ({
             </div>
             
             {slots.filter(s => s.available).length === 0 && (
-              <div className="text-center py-4 bg-orange-50 dark:bg-orange-950/20 rounded-lg">
-                <Info className="h-5 w-5 mx-auto text-orange-600 dark:text-orange-400 mb-1" />
-                <p className="text-sm text-orange-700 dark:text-orange-300">
+              <div className="text-center py-4 bg-orange-50 rounded-lg">
+                <Info className="h-5 w-5 mx-auto text-orange-600 mb-1" />
+                <p className="text-sm text-orange-700">
                   No available slots for this date. Try another day.
                 </p>
               </div>

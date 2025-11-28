@@ -189,12 +189,12 @@ export const DentistManagement = ({ currentDentistId }: DentistManagementProps) 
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4">
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
             <div className="flex items-start space-x-3">
-              <Mail className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+              <Mail className="h-5 w-5 text-blue-600 mt-0.5" />
               <div>
-                <h4 className="font-medium text-blue-900 dark:text-blue-100">How it works</h4>
-                <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
+                <h4 className="font-medium text-blue-900">How it works</h4>
+                <p className="text-sm text-blue-700 mt-1">
                   Enter the email address of the dentist you want to add. We'll send them an invitation email with instructions to set up their account and access the dentist dashboard.
                 </p>
               </div>
@@ -235,12 +235,12 @@ export const DentistManagement = ({ currentDentistId }: DentistManagementProps) 
             </div>
           </div>
 
-          <div className="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800 rounded-xl p-4">
+          <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
             <div className="flex items-start space-x-3">
-              <UserPlus className="h-5 w-5 text-emerald-600 dark:text-emerald-400 mt-0.5" />
+              <UserPlus className="h-5 w-5 text-emerald-600 mt-0.5" />
               <div>
-                <h4 className="font-medium text-emerald-900 dark:text-emerald-100">New User?</h4>
-                <p className="text-sm text-emerald-700 dark:text-emerald-300 mt-1">
+                <h4 className="font-medium text-emerald-900">New User?</h4>
+                <p className="text-sm text-emerald-700 mt-1">
                   No problem! If they don't have an account yet, we'll create one and send them an invitation email. If they already have an account, they'll be promoted to dentist automatically.
                 </p>
               </div>

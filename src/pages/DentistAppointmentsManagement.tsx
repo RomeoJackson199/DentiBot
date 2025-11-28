@@ -219,20 +219,20 @@ export default function DentistAppointmentsManagement() {
         </Card>
       </div>;
   }
-  return <div className="h-screen flex flex-col bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30 dark:from-gray-950 dark:via-blue-950/30 dark:to-purple-950/30">
+  return <div className="h-screen flex flex-col bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30">
       {/* Enhanced Header */}
       <div className={cn(
-        "border-b bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl sticky top-0 z-30 transition-all duration-300 shadow-sm",
+        "border-b bg-white/80 backdrop-blur-xl sticky top-0 z-30 transition-all duration-300 shadow-sm",
         headerVisible ? "translate-y-0" : "-translate-y-full"
       )}>
         {/* Page Title Section */}
-        <div className="px-4 sm:px-6 pt-4 pb-3 border-b border-gray-100 dark:border-gray-800">
+        <div className="px-4 sm:px-6 pt-4 pb-3 border-b border-gray-100">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl shadow-lg">
               <Calendar className="h-6 w-6 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-gray-100 dark:to-gray-400 bg-clip-text text-transparent">
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
                 Appointment Calendar
               </h1>
               <p className="text-sm text-muted-foreground">Manage your daily schedule and appointments</p>
@@ -248,13 +248,13 @@ export default function DentistAppointmentsManagement() {
               variant="outline"
               size="icon"
               onClick={() => navigateDate("prev")}
-              className="h-10 w-10 rounded-xl border-2 hover:bg-blue-50 hover:border-blue-200 dark:hover:bg-blue-950 transition-all shadow-sm"
+              className="h-10 w-10 rounded-xl border-2 hover:bg-blue-50 hover:border-blue-200:bg-blue-950 transition-all shadow-sm"
             >
               <ChevronLeft className="h-5 w-5" />
             </Button>
 
-            <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/50 dark:to-purple-950/50 rounded-xl border border-blue-100 dark:border-blue-900">
-              <Calendar className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+            <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-blue-100">
+              <Calendar className="h-4 w-4 text-blue-600" />
               <span className="text-base font-semibold text-foreground min-w-[180px] text-center">
                 {getDateRangeLabel()}
               </span>
@@ -264,7 +264,7 @@ export default function DentistAppointmentsManagement() {
               variant="outline"
               size="icon"
               onClick={() => navigateDate("next")}
-              className="h-10 w-10 rounded-xl border-2 hover:bg-blue-50 hover:border-blue-200 dark:hover:bg-blue-950 transition-all shadow-sm"
+              className="h-10 w-10 rounded-xl border-2 hover:bg-blue-50 hover:border-blue-200:bg-blue-950 transition-all shadow-sm"
             >
               <ChevronRight className="h-5 w-5" />
             </Button>
@@ -273,7 +273,7 @@ export default function DentistAppointmentsManagement() {
           {/* View Mode & Today Button */}
           <div className="flex items-center gap-2">
             {/* View Mode Toggle */}
-            <div className="flex items-center gap-1 p-1 bg-gray-100 dark:bg-gray-800 rounded-xl">
+            <div className="flex items-center gap-1 p-1 bg-gray-100 rounded-xl">
               <Button
                 variant={viewMode === "week" ? "default" : "ghost"}
                 size="sm"
@@ -281,8 +281,8 @@ export default function DentistAppointmentsManagement() {
                 className={cn(
                   "h-9 px-3 rounded-lg transition-all",
                   viewMode === "week"
-                    ? "bg-white dark:bg-gray-900 shadow-sm"
-                    : "hover:bg-gray-200 dark:hover:bg-gray-700"
+                    ? "bg-white shadow-sm"
+                    : "hover:bg-gray-200:bg-gray-700"
                 )}
               >
                 <Grid3x3 className="h-4 w-4 mr-2" />
@@ -295,8 +295,8 @@ export default function DentistAppointmentsManagement() {
                 className={cn(
                   "h-9 px-3 rounded-lg transition-all",
                   viewMode === "day"
-                    ? "bg-white dark:bg-gray-900 shadow-sm"
-                    : "hover:bg-gray-200 dark:hover:bg-gray-700"
+                    ? "bg-white shadow-sm"
+                    : "hover:bg-gray-200:bg-gray-700"
                 )}
               >
                 <CalendarDays className="h-4 w-4 mr-2" />
@@ -312,8 +312,8 @@ export default function DentistAppointmentsManagement() {
               className={cn(
                 "h-9 rounded-xl border-2 transition-all shadow-sm font-semibold",
                 showStats
-                  ? "bg-blue-50 border-blue-200 dark:bg-blue-950"
-                  : "hover:bg-blue-50 hover:border-blue-200 dark:hover:bg-blue-950"
+                  ? "bg-blue-50 border-blue-200"
+                  : "hover:bg-blue-50 hover:border-blue-200:bg-blue-950"
               )}
             >
               <BarChart3 className="h-4 w-4 mr-2" />
@@ -325,7 +325,7 @@ export default function DentistAppointmentsManagement() {
               variant="outline"
               size="sm"
               onClick={() => setCurrentDate(new Date())}
-              className="h-9 rounded-xl border-2 hover:bg-blue-50 hover:border-blue-200 dark:hover:bg-blue-950 transition-all shadow-sm font-semibold"
+              className="h-9 rounded-xl border-2 hover:bg-blue-50 hover:border-blue-200:bg-blue-950 transition-all shadow-sm font-semibold"
             >
               Today
             </Button>
@@ -333,7 +333,7 @@ export default function DentistAppointmentsManagement() {
         </div>
 
         {/* Search and Filters */}
-        <div className="px-4 sm:px-6 py-3 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
+        <div className="px-4 sm:px-6 py-3 border-t border-gray-100 bg-gray-50/50">
           <div className="flex flex-col sm:flex-row gap-3">
             {/* Search */}
             <div className="relative flex-1">
@@ -408,7 +408,7 @@ export default function DentistAppointmentsManagement() {
 
       {/* Stats Dashboard */}
       {showStats && (
-        <div className="px-4 sm:px-6 pt-4 pb-4 border-b bg-gradient-to-br from-gray-50/50 via-blue-50/30 to-purple-50/30 dark:from-gray-950/50 dark:via-blue-950/30 dark:to-purple-950/30 space-y-4">
+        <div className="px-4 sm:px-6 pt-4 pb-4 border-b bg-gradient-to-br from-gray-50/50 via-blue-50/30 to-purple-50/30 space-y-4">
           <AppointmentStats appointments={allAppointments} dentistId={dentistId || ""} />
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -428,23 +428,23 @@ export default function DentistAppointmentsManagement() {
                   <h3 className="text-base font-semibold">Quick Insights</h3>
                 </CardHeader>
                 <CardContent className="space-y-3 text-sm">
-                  <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
+                  <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
                     <span className="text-muted-foreground">Busiest Day This Week</span>
-                    <span className="font-bold text-blue-600 dark:text-blue-400">
+                    <span className="font-bold text-blue-600">
                       {allAppointments.length > 0
                         ? format(new Date(allAppointments[0].appointment_date), "EEEE")
                         : "N/A"}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-950/30 rounded-lg">
+                  <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
                     <span className="text-muted-foreground">Average Appointments/Day</span>
-                    <span className="font-bold text-green-600 dark:text-green-400">
+                    <span className="font-bold text-green-600">
                       {Math.round(allAppointments.length / 7)}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between p-3 bg-purple-50 dark:bg-purple-950/30 rounded-lg">
+                  <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
                     <span className="text-muted-foreground">Total This Month</span>
-                    <span className="font-bold text-purple-600 dark:text-purple-400">
+                    <span className="font-bold text-purple-600">
                       {monthlyAppointments.length}
                     </span>
                   </div>
@@ -473,8 +473,8 @@ export default function DentistAppointmentsManagement() {
             <div className="flex justify-center items-center h-full">
               <Card className="max-w-md">
                 <CardContent className="pt-6 text-center space-y-4">
-                  <div className="mx-auto w-16 h-16 bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900 dark:to-purple-900 rounded-full flex items-center justify-center">
-                    <Calendar className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+                  <div className="mx-auto w-16 h-16 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center">
+                    <Calendar className="h-8 w-8 text-blue-600" />
                   </div>
                   <p className="text-muted-foreground">{t.notRegisteredDentist}</p>
                 </CardContent>
@@ -502,7 +502,7 @@ export default function DentistAppointmentsManagement() {
         {/* Sidebar */}
         {selectedAppointment && (
           <div className={cn(
-            "w-full md:w-[35%] border-l bg-white dark:bg-gray-900 transition-all duration-300 shadow-lg"
+            "w-full md:w-[35%] border-l bg-white transition-all duration-300 shadow-lg"
           )}>
             <AppointmentDetailsSidebar
               appointment={selectedAppointment}

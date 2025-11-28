@@ -87,28 +87,28 @@ const SECTIONS: Array<{
     id: 'visits', 
     label: 'Visits', 
     icon: Calendar, 
-    color: 'text-blue-600 bg-blue-100 dark:bg-blue-900/30',
+    color: 'text-blue-600 bg-blue-100',
     subFilters: ['Upcoming', 'Completed', 'Cancelled']
   },
   { 
     id: 'treatments', 
     label: 'Treatments', 
     icon: Activity, 
-    color: 'text-orange-600 bg-orange-100 dark:bg-orange-900/30',
+    color: 'text-orange-600 bg-orange-100',
     subFilters: ['Active', 'Completed']
   },
   { 
     id: 'medications', 
     label: 'Medications', 
     icon: Pill, 
-    color: 'text-purple-600 bg-purple-100 dark:bg-purple-900/30',
+    color: 'text-purple-600 bg-purple-100',
     subFilters: ['Active', 'Past']
   },
   { 
     id: 'documents', 
     label: 'Documents', 
     icon: Folder, 
-    color: 'text-green-600 bg-green-100 dark:bg-green-900/30',
+    color: 'text-green-600 bg-green-100',
     subFilters: ['Uploaded', 'Shared', 'Draft']
   }
 ];
@@ -166,14 +166,14 @@ export const CareTab: React.FC<CareTabProps> = ({
     switch ((status || '').toLowerCase()) {
       case 'active':
       case 'confirmed': 
-      case 'completed': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400';
-      case 'draft': return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400';
+      case 'completed': return 'bg-green-100 text-green-800';
+      case 'draft': return 'bg-gray-100 text-gray-800';
       case 'pending':
       case 'scheduled':
-      case 'upcoming': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400';
-      case 'cancelled': return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400';
-      case 'past': return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400';
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400';
+      case 'upcoming': return 'bg-blue-100 text-blue-800';
+      case 'cancelled': return 'bg-red-100 text-red-800';
+      case 'past': return 'bg-gray-100 text-gray-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -331,10 +331,10 @@ export const CareTab: React.FC<CareTabProps> = ({
                       isMedication ? 'text-purple-600' :
                       'text-green-600';
     
-    const iconBg = isVisit ? 'bg-blue-100 dark:bg-blue-900/30' :
-                   isTreatment ? 'bg-orange-100 dark:bg-orange-900/30' :
-                   isMedication ? 'bg-purple-100 dark:bg-purple-900/30' :
-                   'bg-green-100 dark:bg-green-900/30';
+    const iconBg = isVisit ? 'bg-blue-100' :
+                   isTreatment ? 'bg-orange-100' :
+                   isMedication ? 'bg-purple-100' :
+                   'bg-green-100';
 
     return (
       <motion.div

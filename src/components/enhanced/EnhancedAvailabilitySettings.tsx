@@ -307,7 +307,7 @@ export function EnhancedAvailabilitySettings({ dentistId }: EnhancedAvailability
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 dark:from-blue-950/20 dark:via-purple-950/20 dark:to-pink-950/20 p-6 rounded-2xl border-2 border-blue-100 dark:border-blue-900 shadow-md">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 p-6 rounded-2xl border-2 border-blue-100 shadow-md">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg">
             <Clock className="h-6 w-6 text-white" />
@@ -331,7 +331,7 @@ export function EnhancedAvailabilitySettings({ dentistId }: EnhancedAvailability
       </div>
 
       <Tabs defaultValue="schedule" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2 h-14 bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-950/50 dark:to-purple-950/50 p-1 rounded-xl shadow-inner">
+        <TabsList className="grid w-full grid-cols-2 h-14 bg-gradient-to-r from-blue-100 to-purple-100 p-1 rounded-xl shadow-inner">
           <TabsTrigger
             value="schedule"
             className="text-sm sm:text-base font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-lg"
@@ -350,7 +350,7 @@ export function EnhancedAvailabilitySettings({ dentistId }: EnhancedAvailability
 
         <TabsContent value="schedule">
           <Card className="glass-card border-2 shadow-lg">
-            <CardHeader className="bg-gradient-to-r from-blue-50/50 to-purple-50/50 dark:from-blue-950/20 dark:to-purple-950/20 border-b">
+            <CardHeader className="bg-gradient-to-r from-blue-50/50 to-purple-50/50 border-b">
               <CardTitle className="flex items-center text-xl sm:text-2xl font-bold">
                 <Calendar className="h-6 w-6 mr-3 text-blue-600" />
                 {t.weeklyPlanning}
@@ -362,7 +362,7 @@ export function EnhancedAvailabilitySettings({ dentistId }: EnhancedAvailability
                 <Button
                   variant="outline"
                   size="lg"
-                  className="h-12 px-6 rounded-xl border-2 border-blue-300 dark:border-blue-700 hover:bg-blue-100 dark:hover:bg-blue-950/30 font-semibold"
+                  className="h-12 px-6 rounded-xl border-2 border-blue-300 hover:bg-blue-100:bg-blue-950/30 font-semibold"
                   onClick={() => {
                     setAvailability(prev => prev.map(day => ({
                       ...day,

@@ -65,7 +65,7 @@ export default function Messages() {
       <div className="min-h-screen bg-gradient-subtle">
         {!selectedRecipient ? (
           <div className="p-4">
-            <div className="mb-4 bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 dark:from-blue-950/30 dark:via-purple-950/30 dark:to-pink-950/30 px-4 py-4 rounded-xl -mx-4">
+            <div className="mb-4 bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 px-4 py-4 rounded-xl -mx-4">
               <div className="text-xs text-muted-foreground font-semibold uppercase tracking-widest mb-1">
                 Communication Hub
               </div>
@@ -93,7 +93,7 @@ export default function Messages() {
   return (
     <div className="min-h-screen bg-gradient-subtle p-6">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-6 bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 dark:from-blue-950/30 dark:via-purple-950/30 dark:to-pink-950/30 px-6 py-5 rounded-xl">
+        <div className="mb-6 bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 px-6 py-5 rounded-xl">
           <div className="text-xs text-muted-foreground font-semibold uppercase tracking-widest mb-2">
             Communication Hub
           </div>

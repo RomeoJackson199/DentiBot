@@ -300,7 +300,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
         >
           <Card className={cn(
             "h-full hover:shadow-lg transition-all",
-            unpaid && "border-red-200 bg-red-50/50 dark:bg-red-900/10"
+            unpaid && "border-red-200 bg-red-50/50"
           )}>
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center justify-between text-base">
@@ -359,8 +359,8 @@ export const HomeTab: React.FC<HomeTabProps> = ({
             className={cn(
               "h-full hover:shadow-md transition-all cursor-pointer focus:outline-none focus-visible:ring-2",
               hasAIChat
-                ? "bg-gradient-to-br from-emerald-50/50 to-emerald-100/30 dark:from-emerald-900/10 dark:to-emerald-900/5 border-emerald-200/50 focus-visible:ring-emerald-300"
-                : "bg-gradient-to-br from-orange-50/50 to-orange-100/30 dark:from-orange-900/10 dark:to-orange-900/5 border-orange-200/50 focus-visible:ring-orange-300"
+                ? "bg-gradient-to-br from-emerald-50/50 to-emerald-100/30 border-emerald-200/50 focus-visible:ring-emerald-300"
+                : "bg-gradient-to-br from-orange-50/50 to-orange-100/30 border-orange-200/50 focus-visible:ring-orange-300"
             )}
           >
             <CardHeader className="pb-3">

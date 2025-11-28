@@ -317,7 +317,7 @@ export const EnhancedHomeTab: React.FC<EnhancedHomeTabProps> = ({
             className={`h-full rounded-2xl border-2 transition-all cursor-pointer group hover:shadow-glow ${
               hasAIChat
                 ? 'border-primary/30 hover:border-primary bg-gradient-to-br from-primary/5 to-secondary/5'
-                : 'border-orange-500/30 hover:border-orange-500 bg-gradient-to-br from-orange-50/50 to-orange-100/30 dark:from-orange-900/10 dark:to-orange-900/5'
+                : 'border-orange-500/30 hover:border-orange-500 bg-gradient-to-br from-orange-50/50 to-orange-100/30'
             }`}
             onClick={onOpenAssistant}
           >

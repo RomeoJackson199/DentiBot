@@ -26,11 +26,11 @@ interface WeeklyCalendarViewProps {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  "completed": "bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 dark:from-emerald-900/40 dark:via-green-900/40 dark:to-teal-900/40 text-emerald-900 dark:text-emerald-100 border-l-emerald-500 shadow-md hover:shadow-lg",
-  "cancelled": "bg-gradient-to-br from-gray-50 via-slate-50 to-gray-100 dark:from-gray-800/40 dark:via-slate-800/40 dark:to-gray-800/40 text-gray-600 dark:text-gray-400 border-l-gray-400 shadow-md hover:shadow-lg",
-  "confirmed": "bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-100 dark:from-blue-900/40 dark:via-indigo-900/40 dark:to-blue-900/40 text-blue-900 dark:text-blue-100 border-l-blue-500 shadow-md hover:shadow-lg",
-  "pending": "bg-gradient-to-br from-amber-50 via-yellow-50 to-orange-50 dark:from-amber-900/40 dark:via-yellow-900/40 dark:to-orange-900/40 text-amber-900 dark:text-amber-100 border-l-amber-500 shadow-md hover:shadow-lg",
-  "google-calendar": "bg-gradient-to-br from-purple-50 via-violet-50 to-fuchsia-50 dark:from-purple-900/40 dark:via-violet-900/40 dark:to-fuchsia-900/40 text-purple-900 dark:text-purple-100 border-l-purple-500 shadow-md hover:shadow-lg",
+  "completed": "bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 text-emerald-900 border-l-emerald-500 shadow-md hover:shadow-lg",
+  "cancelled": "bg-gradient-to-br from-gray-50 via-slate-50 to-gray-100 text-gray-600 border-l-gray-400 shadow-md hover:shadow-lg",
+  "confirmed": "bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-100 text-blue-900 border-l-blue-500 shadow-md hover:shadow-lg",
+  "pending": "bg-gradient-to-br from-amber-50 via-yellow-50 to-orange-50 text-amber-900 border-l-amber-500 shadow-md hover:shadow-lg",
+  "google-calendar": "bg-gradient-to-br from-purple-50 via-violet-50 to-fuchsia-50 text-purple-900 border-l-purple-500 shadow-md hover:shadow-lg",
 };
 
 const URGENCY_LABELS: Record<string, string> = {
@@ -240,10 +240,10 @@ export function WeeklyCalendarView({
 
   return (
     <TooltipProvider>
-      <div className="border-2 rounded-2xl bg-white dark:bg-gray-900 overflow-hidden shadow-xl min-h-[calc(100vh-140px)] transition-all duration-300">
+      <div className="border-2 rounded-2xl bg-white overflow-hidden shadow-xl min-h-[calc(100vh-140px)] transition-all duration-300">
         {/* Mobile day navigation */}
         {isMobile && (
-          <div className="flex items-center justify-between px-4 py-3 border-b bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 dark:from-blue-950/30 dark:via-purple-950/30 dark:to-pink-950/30">
+          <div className="flex items-center justify-between px-4 py-3 border-b bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50">
             <Button
               variant="outline"
               size="icon"
@@ -259,7 +259,7 @@ export function WeeklyCalendarView({
               </div>
               <div className={cn(
                 "text-lg font-bold",
-                isSameDay(displayDays[0], new Date()) && "text-blue-600 dark:text-blue-400"
+                isSameDay(displayDays[0], new Date()) && "text-blue-600"
               )}>
                 {format(displayDays[0], "d MMMM yyyy")}
               </div>
@@ -278,7 +278,7 @@ export function WeeklyCalendarView({
 
         {/* Header with days (desktop only) - Enhanced layout */}
         {!isMobile && (
-          <div className="sticky top-0 z-10 bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 dark:from-blue-950/30 dark:via-purple-950/30 dark:to-pink-950/30 border-b-2 border-gray-200 dark:border-gray-700">
+          <div className="sticky top-0 z-10 bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 border-b-2 border-gray-200">
             <div className="grid grid-cols-[100px_repeat(7,1fr)]">
               <div className="px-4 py-4"></div>
               {weekDays.map((day) => {
@@ -297,7 +297,7 @@ export function WeeklyCalendarView({
                           "text-2xl font-bold inline-flex items-center justify-center transition-all duration-300",
                           isToday
                             ? "bg-gradient-to-br from-blue-500 to-purple-600 text-white rounded-2xl w-12 h-12 shadow-lg scale-110"
-                            : "text-foreground hover:bg-gray-100 dark:hover:bg-gray-800 rounded-2xl w-12 h-12"
+                            : "text-foreground hover:bg-gray-100:bg-gray-800 rounded-2xl w-12 h-12"
                         )}
                       >
                         {format(day, "dd")}
@@ -321,7 +321,7 @@ export function WeeklyCalendarView({
               {/* Time label */}
               <div
                 key={`time-${timeSlot}`}
-                className="px-4 py-3 border-r-2 border-b text-sm text-muted-foreground font-semibold bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900"
+                className="px-4 py-3 border-r-2 border-b text-sm text-muted-foreground font-semibold bg-gradient-to-r from-gray-50 to-gray-100"
               >
                 {timeSlot}
               </div>
@@ -338,10 +338,10 @@ export function WeeklyCalendarView({
                     className={cn(
                       "p-3 border-r border-b last:border-r-0 min-h-[110px] transition-all duration-200",
                       isBreak
-                        ? "bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 pattern-dots pattern-gray-300 pattern-bg-transparent pattern-size-2 pattern-opacity-30"
+                        ? "bg-gradient-to-br from-gray-100 to-gray-200 pattern-dots pattern-gray-300 pattern-bg-transparent pattern-size-2 pattern-opacity-30"
                         : isToday
-                          ? "bg-gradient-to-br from-blue-50/50 to-purple-50/50 dark:from-blue-950/20 dark:to-purple-950/20 hover:from-blue-100/50 hover:to-purple-100/50"
-                          : "bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                          ? "bg-gradient-to-br from-blue-50/50 to-purple-50/50 hover:from-blue-100/50 hover:to-purple-100/50"
+                          : "bg-white hover:bg-gray-50:bg-gray-800/50"
                     )}
                   >
                     {isBreak ? (
@@ -353,7 +353,7 @@ export function WeeklyCalendarView({
                       </div>
                     ) : slotAppointments.length === 0 ? (
                       <div
-                        className="flex items-center justify-center h-full group cursor-pointer hover:bg-blue-50/50 dark:hover:bg-blue-950/20 rounded-lg transition-all duration-200"
+                        className="flex items-center justify-center h-full group cursor-pointer hover:bg-blue-50/50:bg-blue-950/20 rounded-lg transition-all duration-200"
                         onClick={() => handleEmptySlotClick(day, timeSlot)}
                       >
                         <div className="text-center space-y-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
@@ -387,7 +387,7 @@ export function WeeklyCalendarView({
                                 onClick={() => onAppointmentClick(apt)}
                               >
                                 <div className="flex items-start gap-2">
-                                  <Avatar className="h-8 w-8 flex-shrink-0 ring-2 ring-white dark:ring-gray-800 shadow-sm">
+                                  <Avatar className="h-8 w-8 flex-shrink-0 ring-2 ring-white shadow-sm">
                                     <AvatarFallback className="text-xs font-bold bg-gradient-to-br from-blue-500 to-purple-600 text-white">
                                       {getPatientInitials(apt.patient?.first_name, apt.patient?.last_name)}
                                     </AvatarFallback>
@@ -415,9 +415,9 @@ export function WeeklyCalendarView({
                               </Card>
                             </TooltipTrigger>
                             <TooltipContent side="right" className="w-[340px] p-0 border-l-[6px] border-l-blue-500 shadow-2xl rounded-xl">
-                              <div className="p-5 space-y-4 bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
-                                <div className="flex items-center gap-3 pb-4 border-b-2 border-gray-200 dark:border-gray-700">
-                                  <Avatar className="h-14 w-14 ring-4 ring-blue-100 dark:ring-blue-900 shadow-lg">
+                              <div className="p-5 space-y-4 bg-gradient-to-br from-white to-gray-50">
+                                <div className="flex items-center gap-3 pb-4 border-b-2 border-gray-200">
+                                  <Avatar className="h-14 w-14 ring-4 ring-blue-100 shadow-lg">
                                     <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-bold text-lg">
                                       {getPatientInitials(apt.patient?.first_name, apt.patient?.last_name)}
                                     </AvatarFallback>
@@ -486,7 +486,7 @@ export function WeeklyCalendarView({
                                 </div>
 
                                 {apt.status !== "completed" && apt.status !== "cancelled" && (
-                                  <div className="flex gap-2 pt-4 border-t-2 border-gray-200 dark:border-gray-700">
+                                  <div className="flex gap-2 pt-4 border-t-2 border-gray-200">
                                     <Button
                                       size="sm"
                                       className="flex-1 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 shadow-md rounded-xl font-semibold"
@@ -498,7 +498,7 @@ export function WeeklyCalendarView({
                                     <Button
                                       size="sm"
                                       variant="outline"
-                                      className="flex-1 border-2 hover:bg-red-50 hover:border-red-300 hover:text-red-700 dark:hover:bg-red-950 rounded-xl font-semibold"
+                                      className="flex-1 border-2 hover:bg-red-50 hover:border-red-300 hover:text-red-700:bg-red-950 rounded-xl font-semibold"
                                       onClick={(e) => handleCancelAppointment(apt.id, e)}
                                     >
                                       <XCircle className="h-4 w-4 mr-1" />

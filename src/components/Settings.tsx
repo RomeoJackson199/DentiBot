@@ -352,9 +352,9 @@ const handleDeleteAccount = async () => {
                       />
                     </div>
                     {profile.ai_opt_out && (
-                      <div className="flex items-start space-x-2 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
-                        <AlertCircle className="h-4 w-4 text-yellow-600 dark:text-yellow-400 mt-0.5 flex-shrink-0" />
-                        <div className="text-sm text-yellow-800 dark:text-yellow-200">
+                      <div className="flex items-start space-x-2 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                        <AlertCircle className="h-4 w-4 text-yellow-600 mt-0.5 flex-shrink-0" />
+                        <div className="text-sm text-yellow-800">
                           <p className="font-medium">AI Features Disabled</p>
                           <p>You have disabled AI features. You can re-enable them anytime in settings.</p>
                         </div>

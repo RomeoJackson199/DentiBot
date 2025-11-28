@@ -138,9 +138,9 @@ export const AIChatOnboardingDialog = ({ isOpen, onClose }: AIChatOnboardingDial
           </div>
 
           {currentStep === 0 && (
-            <div className="flex items-start gap-2 p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
-              <AlertCircle className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
-              <div className="text-sm text-blue-900 dark:text-blue-100">
+            <div className="flex items-start gap-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
+              <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+              <div className="text-sm text-blue-900">
                 <strong>Pro Tip:</strong> Just type naturally like you're texting a friend. 
                 The AI understands context and conversational language!
               </div>
@@ -148,9 +148,9 @@ export const AIChatOnboardingDialog = ({ isOpen, onClose }: AIChatOnboardingDial
           )}
 
           {currentStep === ONBOARDING_STEPS.length - 1 && (
-            <div className="flex items-start gap-2 p-3 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-800">
-              <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
-              <div className="text-sm text-green-900 dark:text-green-100">
+            <div className="flex items-start gap-2 p-3 bg-green-50 rounded-lg border border-green-200">
+              <CheckCircle2 className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+              <div className="text-sm text-green-900">
                 You're all set! Start chatting below and I'll help you with anything you need.
               </div>
             </div>

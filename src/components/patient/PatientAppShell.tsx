@@ -42,13 +42,13 @@ const getNavItems = (hasAIChat: boolean, hasMedicalFeatures: boolean): Array<{
     id: 'home' as PatientSection,
     label: 'Home',
     icon: HomeIcon,
-    color: 'text-blue-600 bg-blue-100 dark:bg-blue-900/30'
+    color: 'text-blue-600 bg-blue-100'
   }, {
     id: 'assistant' as PatientSection,
     label: hasAIChat ? 'Assistant' : 'Classic Booking',
     shortLabel: hasAIChat ? undefined : 'Booking',
     icon: hasAIChat ? Bot : Calendar,
-    color: hasAIChat ? 'text-emerald-600 bg-emerald-100 dark:bg-emerald-900/30' : 'text-orange-600 bg-orange-100 dark:bg-orange-900/30'
+    color: hasAIChat ? 'text-emerald-600 bg-emerald-100' : 'text-orange-600 bg-orange-100'
   }];
 
   // Only add Treatment Records if medical features are enabled
@@ -58,7 +58,7 @@ const getNavItems = (hasAIChat: boolean, hasMedicalFeatures: boolean): Array<{
       label: 'Treatment Records',
       shortLabel: 'Records',
       icon: FolderOpen,
-      color: 'text-purple-600 bg-purple-100 dark:bg-purple-900/30'
+      color: 'text-purple-600 bg-purple-100'
     });
   }
 
@@ -68,19 +68,19 @@ const getNavItems = (hasAIChat: boolean, hasMedicalFeatures: boolean): Array<{
       label: 'Appointments',
       shortLabel: 'Appts',
       icon: Calendar,
-      color: 'text-orange-600 bg-orange-100 dark:bg-orange-900/30'
+      color: 'text-orange-600 bg-orange-100'
     },
     {
       id: 'payments' as PatientSection,
       label: 'Payments',
       icon: CreditCard,
-      color: 'text-green-600 bg-green-100 dark:bg-green-900/30'
+      color: 'text-green-600 bg-green-100'
     },
     {
       id: 'messages' as PatientSection,
       label: 'Messages',
       icon: MessageSquare,
-      color: 'text-indigo-600 bg-indigo-100 dark:bg-indigo-900/30'
+      color: 'text-indigo-600 bg-indigo-100'
     }
   );
 

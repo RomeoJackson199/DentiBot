@@ -601,7 +601,7 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
       {bookingStep === 'dentist' && (
         <div className="max-w-6xl mx-auto p-4 py-8 space-y-6">
           {/* Enhanced Header with Animated Background */}
-          <div className="relative overflow-hidden bg-gradient-to-br from-purple-50 via-blue-50 to-cyan-50 dark:from-purple-950/20 dark:via-blue-950/20 dark:to-cyan-950/20 rounded-2xl p-6 mb-6">
+          <div className="relative overflow-hidden bg-gradient-to-br from-purple-50 via-blue-50 to-cyan-50 rounded-2xl p-6 mb-6">
             <AnimatedBackground />
 
             <div className="relative z-10">
@@ -683,7 +683,7 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
                     key={dentist.id}
                     className={`group cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${
                       isRecommended
-                        ? 'border-yellow-400/50 ring-2 ring-yellow-400/20 bg-gradient-to-br from-yellow-50/50 to-amber-50/50 dark:from-yellow-950/20 dark:to-amber-950/20 hover:shadow-yellow-500/20'
+                        ? 'border-yellow-400/50 ring-2 ring-yellow-400/20 bg-gradient-to-br from-yellow-50/50 to-amber-50/50 hover:shadow-yellow-500/20'
                         : 'hover:shadow-blue-500/10 hover:border-blue-500/40'
                     }`}
                     onClick={() => handleDentistSelect(dentist)}

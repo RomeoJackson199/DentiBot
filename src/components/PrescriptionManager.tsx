@@ -203,7 +203,7 @@ export function PrescriptionManager({ dentistId }: PrescriptionManagerProps) {
   return (
     <div className={`space-y-6 ${isMobile ? 'p-4' : ''}`}>
       {/* Header */}
-      <Card className={`${cardClass} border-0 shadow-lg bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/50 dark:to-indigo-950/50`}>
+      <Card className={`${cardClass} border-0 shadow-lg bg-gradient-to-r from-blue-50 to-indigo-50`}>
         <CardHeader>
           <CardTitle className="flex items-center text-xl">
             <Pill className="h-6 w-6 mr-2 text-blue-600" />

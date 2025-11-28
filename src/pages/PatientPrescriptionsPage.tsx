@@ -16,7 +16,7 @@ export default function PatientPrescriptionsPage() {
   return (
     <div className="space-y-6">
       {/* Enhanced Header */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 dark:from-green-950/20 dark:via-emerald-950/20 dark:to-teal-950/20 rounded-2xl p-6">
+      <div className="relative overflow-hidden bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 rounded-2xl p-6">
         <AnimatedBackground />
 
         <div className="relative z-10">

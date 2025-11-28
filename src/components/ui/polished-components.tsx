@@ -54,7 +54,7 @@ export function GradientCard({ children, className, gradient = "from-blue-500 to
         gradient,
         hover && "group-hover:opacity-100 transition duration-500"
       )} />
-      <Card className={cn("relative bg-white dark:bg-gray-900", className)}>
+      <Card className={cn("relative bg-white", className)}>
         {children}
       </Card>
     </div>
@@ -144,12 +144,12 @@ export function EmptyState({ icon: Icon = Inbox, title, description, action, sec
     <Card className="border-dashed border-2">
       <CardContent className="py-16">
         <div className="flex flex-col items-center text-center space-y-6 max-w-md mx-auto">
-          <div className="p-4 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700">
+          <div className="p-4 rounded-full bg-gradient-to-br from-gray-100 to-gray-200">
             <Icon className="h-12 w-12 text-gray-400" aria-hidden="true" />
           </div>
 
           <div className="space-y-2">
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+            <h3 className="text-xl font-semibold text-gray-900">
               {title}
             </h3>
             <p className="text-sm text-muted-foreground">
@@ -338,13 +338,13 @@ interface InfoCardProps {
 
 export function InfoCard({ icon: Icon, label, value, subValue }: InfoCardProps) {
   return (
-    <div className="flex items-center gap-3 p-4 rounded-lg bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-      <div className="p-2 rounded-lg bg-white dark:bg-gray-900 shadow-sm">
-        <Icon className="h-5 w-5 text-gray-600 dark:text-gray-400" aria-hidden="true" />
+    <div className="flex items-center gap-3 p-4 rounded-lg bg-gray-50 hover:bg-gray-100:bg-gray-700 transition-colors">
+      <div className="p-2 rounded-lg bg-white shadow-sm">
+        <Icon className="h-5 w-5 text-gray-600" aria-hidden="true" />
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-xs font-medium text-muted-foreground">{label}</p>
-        <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">{value}</p>
+        <p className="text-sm font-semibold text-gray-900 truncate">{value}</p>
         {subValue && (
           <p className="text-xs text-muted-foreground">{subValue}</p>
         )}
@@ -410,7 +410,7 @@ export function SectionHeader({ title, description, icon: Icon, gradient, action
           </div>
         )}
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{title}</h2>
+          <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
           {description && (
             <p className="text-sm text-muted-foreground mt-1">{description}</p>
           )}
@@ -454,7 +454,7 @@ export function TimelineItem({ icon: Icon, title, description, time, iconColor =
 
       <div className="flex-1 pt-1">
         <div className="flex items-center justify-between mb-1">
-          <h4 className="font-semibold text-gray-900 dark:text-gray-100">{title}</h4>
+          <h4 className="font-semibold text-gray-900">{title}</h4>
           <span className="text-xs text-muted-foreground">{time}</span>
         </div>
         <p className="text-sm text-muted-foreground">{description}</p>
