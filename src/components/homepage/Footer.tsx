@@ -1,5 +1,5 @@
-import { Calendar } from "lucide-react";
 import { Link } from "react-router-dom";
+import { Logo } from "@/components/Logo";
 
 export const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -10,14 +10,9 @@ export const Footer = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Brand */}
           <div className="space-y-4">
-            <div className="flex items-center space-x-3">
-              <div className="flex items-center justify-center w-10 h-10 bg-blue-600 rounded-lg">
-                <Calendar className="h-6 w-6 text-white" />
-              </div>
-              <span className="text-xl font-bold text-gray-900">Caberu</span>
-            </div>
+            <Logo variant="full" size="sm" className="h-8" />
             <p className="text-sm text-gray-600">
-              Simplifying appointment management for businesses worldwide.
+              AI-powered healthcare solutions transforming patient care.
             </p>
           </div>
 

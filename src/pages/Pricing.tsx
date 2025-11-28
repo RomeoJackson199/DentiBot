@@ -6,6 +6,8 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import { Header } from "@/components/homepage/Header";
+import { Footer } from "@/components/homepage/Footer";
 
 interface SubscriptionPlan {
   id: string;
@@ -85,7 +87,9 @@ export default function Pricing() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20">
-      <div className="container mx-auto px-4 py-16">
+      <Header user={null} minimal={false} />
+
+      <div className="container mx-auto px-4 py-16 pt-24">
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-7xl md:text-9xl font-bold mb-4 bg-gradient-to-b from-foreground to-foreground/60 bg-clip-text text-transparent">
@@ -188,6 +192,8 @@ export default function Pricing() {
           <p>All plans include free updates and can be cancelled anytime.</p>
         </div>
       </div>
+
+      <Footer />
     </div>
   );
 }

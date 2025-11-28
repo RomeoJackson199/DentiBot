@@ -2,18 +2,26 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { ArrowRight, Shield, Zap, Users, Heart, Award, Clock } from "lucide-react";
+import { Header } from "@/components/homepage/Header";
+import { Footer } from "@/components/homepage/Footer";
+import { Logo } from "@/components/Logo";
 
 const About = () => {
   return (
     <div className="min-h-screen bg-background">
+      <Header user={null} minimal={false} />
+
       {/* Hero Section */}
-      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-900 dark:to-gray-800 border-b">
+      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-900 dark:to-gray-800 border-b pt-24">
         <div className="container mx-auto px-4 py-16 max-w-4xl">
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
-            Transforming Dental Practice Management
+          <div className="flex justify-center mb-8">
+            <Logo variant="full" size="lg" className="h-16" />
+          </div>
+          <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 text-center">
+            Transforming Healthcare Management
           </h1>
-          <p className="text-xl text-muted-foreground leading-relaxed max-w-3xl">
-            Caberu is the AI-powered dental practice management platform designed to help modern dental professionals reduce administrative burden, enhance patient care, and grow their practice with confidence.
+          <p className="text-xl text-muted-foreground leading-relaxed max-w-3xl text-center mx-auto">
+            Caberu is the AI-powered healthcare practice management platform designed to help modern healthcare professionals reduce administrative burden, enhance patient care, and grow their practice with confidence.
           </p>
         </div>
       </div>
@@ -192,6 +200,8 @@ const About = () => {
           </div>
         </section>
       </div>
+
+      <Footer />
     </div>
   );
 };

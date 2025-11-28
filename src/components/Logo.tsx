@@ -1,9 +1,10 @@
 /**
  * Caberu Logo Component
  * Professional logo with multiple size variants
+ * Logos are served from Supabase public storage
  */
 
-import caberuLogo from "@/assets/caberu-logo.jpg";
+import { getCaberuLogo } from "@/lib/caberu-branding";
 
 interface LogoProps {
   size?: "sm" | "md" | "lg" | "xl";
@@ -20,11 +21,12 @@ const sizeMap = {
 
 export function Logo({ size = "md", variant = "full", className = "" }: LogoProps) {
   const logoSize = sizeMap[size];
+  const logoSrc = getCaberuLogo(variant);
 
   return (
     <img
-      src={caberuLogo}
-      alt="Caberu Logo"
+      src={logoSrc}
+      alt={variant === "full" ? "Caberu Healthcare Solutions" : "Caberu"}
       style={{ height: logoSize }}
       className={`object-contain ${className}`}
     />
@@ -34,14 +36,15 @@ export function Logo({ size = "md", variant = "full", className = "" }: LogoProp
 /**
  * Animated Logo for splash screens and loading states
  */
-export function AnimatedLogo({ size = "lg" }: { size?: "sm" | "md" | "lg" | "xl" }) {
+export function AnimatedLogo({ size = "lg", variant = "full" }: { size?: "sm" | "md" | "lg" | "xl"; variant?: "full" | "icon" }) {
   const logoSize = sizeMap[size];
+  const logoSrc = getCaberuLogo(variant);
 
   return (
     <div className="flex flex-col items-center gap-4 animate-pulse">
       <img
-        src={caberuLogo}
-        alt="Caberu Logo"
+        src={logoSrc}
+        alt={variant === "full" ? "Caberu Healthcare Solutions" : "Caberu"}
         style={{ height: logoSize * 1.5 }}
         className="object-contain"
       />
@@ -53,9 +56,11 @@ export function AnimatedLogo({ size = "lg" }: { size?: "sm" | "md" | "lg" | "xl"
  * Favicon-ready icon (simplified for small sizes)
  */
 export function FaviconIcon() {
+  const logoSrc = getCaberuLogo("icon");
+
   return (
     <img
-      src={caberuLogo}
+      src={logoSrc}
       alt="Caberu Icon"
       width="32"
       height="32"

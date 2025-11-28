@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { User } from "@supabase/supabase-js";
 import { useNavigate, Link } from "react-router-dom";
-import { Calendar, Menu, X, Moon, Sun } from "lucide-react";
+import { Menu, X, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
+import { Logo } from "@/components/Logo";
 
 interface HeaderProps {
   user: User | null;
@@ -44,16 +45,12 @@ export const Header = ({ user, minimal = false }: HeaderProps) => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-3 group">
-            <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl shadow-lg shadow-blue-500/20 group-hover:scale-105 transition-transform duration-300">
-              <Calendar className="h-5 w-5 text-white" />
-            </div>
-            <span className={cn(
-              "text-xl font-bold tracking-tight transition-colors",
-              scrolled ? "text-gray-900 dark:text-white" : "text-gray-900 dark:text-white"
-            )}>
-              Caberu
-            </span>
+          <Link to="/" className="flex items-center group">
+            <Logo
+              variant="full"
+              size="sm"
+              className="h-8 group-hover:scale-105 transition-transform duration-300"
+            />
           </Link>
 
           {/* Desktop Navigation */}
