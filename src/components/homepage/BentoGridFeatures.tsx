@@ -8,7 +8,8 @@ import {
   Phone,
   Users,
   CreditCard,
-  BarChart
+  BarChart,
+  Bell
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -94,6 +95,26 @@ export const BentoGridFeatures = () => {
             icon={Zap}
             gradient="bg-blue-600"
           />
+
+          {/* Automated Reminders */}
+          <BentoCard
+            title="Automated Reminders"
+            description="Reduce no-shows by 30% with intelligent SMS and email appointment reminders. Automated follow-ups ensure patients never forget."
+            icon={Bell}
+            className="col-span-1 md:col-span-2 lg:col-span-2 bg-gradient-to-br from-indigo-50/50 via-white to-blue-50/50 border-indigo-100"
+            gradient="bg-gradient-to-r from-indigo-600 to-blue-600"
+          >
+            <div className="mt-4 flex gap-4 text-sm flex-wrap">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full" />
+                <span className="text-gray-600 font-medium">30% Fewer No-Shows</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Bell className="w-4 h-4 text-indigo-600" />
+                <span className="text-gray-600 font-medium">Auto SMS & Email</span>
+              </div>
+            </div>
+          </BentoCard>
 
           {/* Patient Management */}
           <BentoCard
