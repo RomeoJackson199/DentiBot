@@ -56,6 +56,7 @@ const Pricing = lazy(() => import("./pages/Pricing"));
 const Support = lazy(() => import("./pages/Support"));
 const FeatureDetail = lazy(() => import("./pages/FeatureDetail"));
 const FAQ = lazy(() => import("./pages/FAQ"));
+const AIInfo = lazy(() => import("./pages/AIInfo"));
 const UnifiedDashboard = lazy(() => import("./components/UnifiedDashboard"));
 const LanguageTest = lazy(() => import("./components/LanguageTest").then(module => ({ default: module.LanguageTest })));
 const About = lazy(() => import("./pages/About"));
@@ -312,6 +313,7 @@ const App = () => {
                 <Route path="/claim" element={<Claim />} />
                 <Route path="/pricing" element={<Pricing />} />
                 <Route path="/faq" element={<FAQ />} />
+                <Route path="/ai-info" element={<AIInfo />} />
                 <Route path="/google-calendar-callback" element={<GoogleCalendarCallback />} />
                 {/* Admin route for homepage management */}
                 <Route path="/admin/homepage-manager" element={<AdminHomepageManager />} />

@@ -17,9 +17,7 @@ import { ResultsSection } from "@/components/homepage/ResultsSection";
 import { PricingSection } from "@/components/homepage/PricingSection";
 import { FloatingChatBubble } from "@/components/chat/FloatingChatBubble";
 import { TestimonialsSection } from "@/components/homepage/TestimonialsSection";
-import { ROICalculator } from "@/components/homepage/ROICalculator";
 import { FAQSection } from "@/components/homepage/FAQSection";
-import { ComparisonTable } from "@/components/homepage/ComparisonTable";
 import { TrustedBySection } from "@/components/homepage/TrustedBySection";
 import { ContactForm } from "@/components/homepage/ContactForm";
 
@@ -138,12 +136,6 @@ const Index = () => {
 
         {/* Comprehensive Features Grid */}
         <BentoGridFeatures />
-
-        {/* ROI Calculator */}
-        <ROICalculator />
-
-        {/* Comparison Table */}
-        <ComparisonTable />
 
         {/* Testimonials */}
         <TestimonialsSection />
