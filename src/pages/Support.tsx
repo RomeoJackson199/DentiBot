@@ -5,13 +5,15 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { 
-  MessageCircle, 
-  Phone, 
-  Mail, 
-  HelpCircle, 
-  FileText, 
-  Video, 
+import { Header } from "@/components/homepage/Header";
+import { Footer } from "@/components/homepage/Footer";
+import {
+  MessageCircle,
+  Phone,
+  Mail,
+  HelpCircle,
+  FileText,
+  Video,
   BookOpen,
   Search,
   Send
@@ -136,13 +138,16 @@ const Support = () => {
   ];
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Support Center</h1>
-        <p className="text-muted-foreground">
-          Get help with your dental practice management
-        </p>
-      </div>
+    <div className="min-h-screen bg-background">
+      <Header user={null} minimal={false} />
+
+      <div className="p-6 max-w-7xl mx-auto pt-24">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold mb-2">Support Center</h1>
+          <p className="text-muted-foreground">
+            Get help with your healthcare practice management
+          </p>
+        </div>
 
       {/* Support Channels */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -284,6 +289,9 @@ const Support = () => {
           </div>
         </CardContent>
       </Card>
+      </div>
+
+      <Footer />
     </div>
   );
 };
