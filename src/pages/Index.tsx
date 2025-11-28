@@ -9,7 +9,6 @@ import { CheckCircle2, ArrowRight, PlayCircle, Shield, Zap } from "lucide-react"
 import { useNavigate } from "react-router-dom";
 import { AccessibleLoadingIndicator } from "@/components/ui/skip-to-content";
 import { DemoTourFlow } from "@/components/demo/DemoTourFlow";
-import { AnimatedBackground } from "@/components/homepage/AnimatedBackground";
 import { ScrollAnimatedSection } from "@/components/homepage/ScrollAnimatedSection";
 import { BentoGridFeatures } from "@/components/homepage/BentoGridFeatures";
 import { ProblemSection } from "@/components/homepage/ProblemSection";
@@ -23,7 +22,6 @@ import { FAQSection } from "@/components/homepage/FAQSection";
 import { ComparisonTable } from "@/components/homepage/ComparisonTable";
 import { TrustedBySection } from "@/components/homepage/TrustedBySection";
 import { ContactForm } from "@/components/homepage/ContactForm";
-import { motion } from "framer-motion";
 
 const Index = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -85,52 +83,29 @@ const Index = () => {
       <main id="main-content">
         {/* Hero Section */}
         <section className="relative pt-24 pb-32 lg:pt-32 lg:pb-40 px-4 sm:px-6 lg:px-8 overflow-hidden">
-          {/* Animated Background */}
-          <AnimatedBackground />
-
           <div className="max-w-5xl mx-auto relative z-10 text-center">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/50 backdrop-blur-md border border-blue-100 shadow-sm text-blue-700 font-medium mb-8"
-            >
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/50 backdrop-blur-md border border-blue-100 shadow-sm text-blue-700 font-medium mb-8 animate-fade-in">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
               </span>
-              <span>AI-Powered Reception</span>
-            </motion.div>
+              <span>Complete Practice Management Platform</span>
+            </div>
 
-            <motion.h1
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              className="text-5xl sm:text-6xl lg:text-7xl font-extrabold text-gray-900 tracking-tight leading-[1.1] mb-8"
-            >
-              Never Miss Another <br />
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold text-gray-900 tracking-tight leading-[1.1] mb-8 animate-fade-in">
+              Run Your Entire Practice <br />
               <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-                Patient Call
+                From One Platform
               </span>
-            </motion.h1>
+            </h1>
 
-            <motion.p
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
-              className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed mb-10"
-            >
-              AI-powered phone reception that answers every call instantly, books appointments in real-time, and keeps your practice running 24/7.
-            </motion.p>
+            <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed mb-10 animate-fade-in" style={{ animationDelay: '0.1s' }}>
+              AI-powered reception, appointment scheduling, patient management, billing, analytics, and more. Everything your healthcare practice needs in one seamless platform.
+            </p>
 
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.6 }}
-              className="flex flex-col sm:flex-row gap-4 justify-center pt-4"
-            >
+            <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4 animate-fade-in" style={{ animationDelay: '0.2s' }}>
               <Button size="lg" className="h-14 px-8 text-lg bg-gray-900 hover:bg-gray-800 text-white rounded-full shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300" onClick={() => navigate('/signup')}>
-                Sign Up
+                Get Started Free
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
               <Button
@@ -140,23 +115,18 @@ const Index = () => {
                 onClick={() => setShowDemoTour(true)}
               >
                 <PlayCircle className="mr-2 h-5 w-5" />
-                Schedule a Demo
+                Watch Demo
               </Button>
-            </motion.div>
+            </div>
 
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 1, delay: 1 }}
-              className="pt-12 flex flex-col sm:flex-row items-center justify-center gap-6 text-sm text-gray-500 font-medium"
-            >
+            <div className="pt-12 flex flex-col sm:flex-row items-center justify-center gap-6 text-sm text-gray-500 font-medium animate-fade-in" style={{ animationDelay: '0.3s' }}>
               <div className="flex items-center gap-2">
                 <Shield className="w-4 h-4 text-blue-600" /> HIPAA Compliant
               </div>
               <div className="flex items-center gap-2">
-                <Zap className="w-4 h-4 text-yellow-500" /> Real-time Booking
+                <Zap className="w-4 h-4 text-yellow-500" /> All-in-One Platform
               </div>
-            </motion.div>
+            </div>
           </div>
         </section>
 
