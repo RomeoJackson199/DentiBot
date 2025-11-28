@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import {
   Bot,
   Zap,
@@ -6,7 +5,10 @@ import {
   Activity,
   ClipboardList,
   LayoutDashboard,
-  Phone
+  Phone,
+  Users,
+  CreditCard,
+  BarChart
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -15,17 +17,12 @@ interface BentoCardProps {
   description: string;
   icon: React.ElementType;
   className?: string;
-  delay?: number;
   gradient?: string;
   children?: React.ReactNode;
 }
 
-const BentoCard = ({ title, description, icon: Icon, className, delay = 0, gradient, children }: BentoCardProps) => (
-  <motion.div
-    initial={{ opacity: 0, y: 20 }}
-    whileInView={{ opacity: 1, y: 0 }}
-    viewport={{ once: true }}
-    transition={{ duration: 0.5, delay }}
+const BentoCard = ({ title, description, icon: Icon, className, gradient, children }: BentoCardProps) => (
+  <div
     className={cn(
       "group relative overflow-hidden rounded-3xl p-6 sm:p-8 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1",
       "bg-white border border-gray-100 shadow-sm",
@@ -52,7 +49,7 @@ const BentoCard = ({ title, description, icon: Icon, className, delay = 0, gradi
 
       {children}
     </div>
-  </motion.div>
+  </div>
 );
 
 export const BentoGridFeatures = () => {
@@ -60,108 +57,92 @@ export const BentoGridFeatures = () => {
     <section className="py-24 px-4 sm:px-6 lg:px-8 bg-slate-50/50 overflow-hidden">
       <div className="max-w-7xl mx-auto">
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6 tracking-tight"
-          >
-            Caberu Answers Every Call, <br/>
+          <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6 tracking-tight">
+            Everything Your Practice Needs, <br/>
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
-              Books Every Appointment
+              All in One Place
             </span>
-          </motion.h2>
+          </h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
-          {/* AI Phone Reception - Full Width */}
+          {/* AI Phone Reception */}
           <BentoCard
-            title="Answer Every Call in Under 2 Seconds"
-            description="Natural, human-like AI conversation handles unlimited calls simultaneously. No hold music, no robotic menus - just instant, professional service every time."
-            icon={Bot}
-            className="col-span-1 md:col-span-2 lg:col-span-3 bg-gradient-to-br from-blue-50/50 via-white to-purple-50/50 border-blue-100"
+            title="AI Phone Reception"
+            description="Natural AI conversation handles calls 24/7. Answers in under 2 seconds, books appointments instantly, and never misses a patient."
+            icon={Phone}
+            className="col-span-1 md:col-span-2 lg:col-span-2 bg-gradient-to-br from-blue-50/50 via-white to-purple-50/50 border-blue-100"
             gradient="bg-gradient-to-r from-blue-600 to-purple-600"
-            delay={0}
           >
-            <div className="mt-4 flex gap-4 text-sm">
+            <div className="mt-4 flex gap-4 text-sm flex-wrap">
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                <div className="w-2 h-2 bg-green-500 rounded-full" />
                 <span className="text-gray-600 font-medium">100% Answer Rate</span>
               </div>
               <div className="flex items-center gap-2">
-                <Phone className="w-4 h-4 text-blue-600" />
-                <span className="text-gray-600 font-medium">Unlimited Concurrent Calls</span>
+                <Clock className="w-4 h-4 text-blue-600" />
+                <span className="text-gray-600 font-medium">24/7 Available</span>
               </div>
             </div>
           </BentoCard>
 
-          {/* Real-Time Booking */}
+          {/* Appointment Scheduling */}
           <BentoCard
-            title="Book 3X More Appointments"
-            description="Syncs with your calendar to book appointments instantly while patients are on the line. No callbacks, no delays - just immediate confirmations."
+            title="Smart Scheduling"
+            description="Calendar integration, automated booking, SMS reminders, and intelligent conflict resolution. Book 3X more appointments."
             icon={Zap}
             gradient="bg-blue-600"
-            delay={0.1}
           />
 
-          {/* 24/7 Availability */}
+          {/* Patient Management */}
           <BentoCard
-            title="Capture After-Hours Revenue"
-            description="70% of patients call outside business hours. Caberu answers 24/7/365 - capturing appointments your competitors miss while you sleep."
-            icon={Clock}
+            title="Patient Records"
+            description="Complete digital health records, treatment history, prescriptions, insurance, and documents - all HIPAA compliant."
+            icon={Users}
             gradient="bg-purple-600"
-            delay={0.2}
+          />
+
+          {/* Billing & Payments */}
+          <BentoCard
+            title="Billing & Payments"
+            description="Integrated payment processing, invoice generation, insurance tracking, and automated payment reminders."
+            icon={CreditCard}
+            gradient="bg-emerald-600"
+          />
+
+          {/* Analytics */}
+          <BentoCard
+            title="Practice Analytics"
+            description="Real-time insights on appointments, revenue, patient trends, and staff performance. Make data-driven decisions."
+            icon={BarChart}
+            gradient="bg-orange-600"
+          />
+
+          {/* Patient Portal */}
+          <BentoCard
+            title="Patient Portal"
+            description="Self-service portal for patients to book, view records, pay bills, and message providers. Reduce admin by 80%."
+            icon={LayoutDashboard}
+            gradient="bg-pink-600"
           />
 
           {/* Smart Triage */}
           <BentoCard
-            title="Instantly Identify Emergencies"
-            description="AI recognizes urgent cases and alerts you immediately via SMS/email. Routine appointments scheduled automatically without interruption."
+            title="Emergency Triage"
+            description="AI identifies urgent cases and alerts you immediately via SMS/email. Never miss a critical patient need."
             icon={Activity}
             gradient="bg-red-600"
-            delay={0.3}
+            className="col-span-1 md:col-span-2 lg:col-span-3"
           />
-
-          {/* Patient Intake */}
-          <BentoCard
-            title="Collect Patient Info Automatically"
-            description="Gathers insurance, medical history, and preferences conversationally before appointments. Patients arrive ready, reducing check-in time by 80%."
-            icon={ClipboardList}
-            gradient="bg-emerald-600"
-            delay={0.4}
-          />
-
-          {/* Complete Management */}
-          <BentoCard
-            title="Complete Practice Management Included"
-            description="Full dashboard, patient portal, payment processing, analytics, and more. Replace 5+ tools with one integrated platform at a fraction of the cost."
-            icon={LayoutDashboard}
-            gradient="bg-orange-600"
-            delay={0.5}
-            className="col-span-1 md:col-span-2 lg:col-span-2"
-          />
-          {/* Note: Adjusted span for aesthetic balance, 5 cards + 1 full width + 1 double width = 3+1+1+1+1+2 = 9 slots.
-             Grid is 3 columns.
-             Row 1: AI Reception (3 cols)
-             Row 2: Booking, 24/7, Triage (3 cols)
-             Row 3: Intake (1 col), Complete Mgmt (2 cols)
-             Total fit.
-           */}
 
         </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.6 }}
-          className="mt-16 text-center"
-        >
-          <p className="text-4xl sm:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-gray-300 via-gray-500 to-gray-300 tracking-tight animate-pulse">
-            And so much more...
+        <div className="mt-16 text-center">
+          <p className="text-xl text-gray-600 mb-4">
+            Plus: Inventory management • Staff scheduling • Automated reminders • Multi-location support • API access • And much more...
           </p>
-        </motion.div>
+        </div>
       </div>
     </section>
   );
