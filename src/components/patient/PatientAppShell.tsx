@@ -15,8 +15,6 @@ import { useClinicBranding } from "@/hooks/useClinicBranding";
 import { LanguageSelectorMenu } from "@/components/LanguageSelector";
 import { RoleSwitcherMenu } from "@/components/RoleSwitcher";
 import { UserTour, useUserTour } from "@/components/UserTour";
-import { Settings } from "@/components/Settings";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useTemplate } from "@/contexts/TemplateContext";
 
 export type PatientSection = 'home' | 'assistant' | 'care' | 'appointments' | 'payments' | 'messages' | 'settings';
@@ -119,16 +117,6 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
       return false;
     }
   });
-  const [settingsOpen, setSettingsOpen] = React.useState(false);
-  const [currentUser, setCurrentUser] = React.useState<any>(null);
-
-  React.useEffect(() => {
-    const fetchUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setCurrentUser(user);
-    };
-    fetchUser();
-  }, []);
   React.useEffect(() => {
     try {
       localStorage.setItem('psidebar:collapsed', collapsed ? '1' : '0');
@@ -148,7 +136,7 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
     }
   };
   const handleSettingsClick = () => {
-    setSettingsOpen(true);
+    onChangeSection('settings');
   };
   if (isMobile) {
     return <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 overflow-x-hidden">
@@ -380,13 +368,6 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
 
       {/* User Tour */}
       <UserTour isOpen={showTour} onClose={closeTour} userRole="patient" />
-
-      {/* Settings Dialog */}
-      <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          {currentUser && <Settings user={currentUser} />}
-        </DialogContent>
-      </Dialog>
     </div>;
 };
 export default PatientAppShell;
