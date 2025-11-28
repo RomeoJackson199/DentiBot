@@ -1,13 +1,44 @@
-# Caberu - Dental Practice Management System
-# https://caberu.be
+# Robots.txt for Caberu
+# Optimized for AI crawlers and search engines
 
 User-agent: *
 Allow: /
-Disallow: /dashboard
-Disallow: /dentist/*
-Disallow: /patient/*
-Disallow: /admin/*
-Disallow: /api/*
+
+# Explicitly allow AI crawlers
+User-agent: GPTBot
+Allow: /
+Allow: /ai-info
+
+User-agent: ChatGPT-User
+Allow: /
+Allow: /ai-info
+
+User-agent: CCBot
+Allow: /
+Allow: /ai-info
+
+User-agent: anthropic-ai
+Allow: /
+Allow: /ai-info
+
+User-agent: Claude-Web
+Allow: /
+Allow: /ai-info
+
+User-agent: PerplexityBot
+Allow: /
+Allow: /ai-info
+
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
 
 # Sitemap location
 Sitemap: https://caberu.be/sitemap.xml
+
+# AI-optimized information page
+# This page contains structured pricing and feature data
+# Format: Static HTML with Schema.org JSON-LD markup
+# URL: https://caberu.be/ai-info
