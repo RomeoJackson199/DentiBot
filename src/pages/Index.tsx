@@ -17,12 +17,19 @@ import { StatsSection } from "@/components/homepage/StatsSection";
 import { ResultsSection } from "@/components/homepage/ResultsSection";
 import { PricingSection } from "@/components/homepage/PricingSection";
 import { FloatingChatBubble } from "@/components/chat/FloatingChatBubble";
+import { TestimonialsSection } from "@/components/homepage/TestimonialsSection";
+import { ROICalculator } from "@/components/homepage/ROICalculator";
+import { FAQSection } from "@/components/homepage/FAQSection";
+import { ComparisonTable } from "@/components/homepage/ComparisonTable";
+import { TrustedBySection } from "@/components/homepage/TrustedBySection";
+import { ContactForm } from "@/components/homepage/ContactForm";
 import { motion } from "framer-motion";
 
 const Index = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [showDemoTour, setShowDemoTour] = useState(false);
+  const [showContactForm, setShowContactForm] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -156,14 +163,29 @@ const Index = () => {
         {/* Problem Section */}
         <ProblemSection />
 
+        {/* Trusted By Section */}
+        <TrustedBySection />
+
         {/* Comprehensive Features Grid */}
         <BentoGridFeatures />
+
+        {/* ROI Calculator */}
+        <ROICalculator />
+
+        {/* Comparison Table */}
+        <ComparisonTable />
+
+        {/* Testimonials */}
+        <TestimonialsSection />
 
         {/* Stats Section */}
         <StatsSection />
 
         {/* Results Section */}
         <ResultsSection />
+
+        {/* FAQ Section */}
+        <FAQSection />
 
         {/* Pricing Section */}
         <PricingSection />
@@ -181,7 +203,7 @@ const Index = () => {
              <Button
                size="lg"
                className="h-16 px-10 text-lg bg-white text-gray-900 hover:bg-gray-100 rounded-full shadow-2xl font-semibold transition-all hover:scale-105"
-               onClick={() => window.location.href = 'mailto:caberupreview.kevinjackson@agent.abundly.ai'}
+               onClick={() => setShowContactForm(true)}
              >
                Contact Us Today
                <ArrowRight className="ml-2 h-5 w-5" />
@@ -199,6 +221,12 @@ const Index = () => {
       <DemoTourFlow
         isOpen={showDemoTour}
         onClose={() => setShowDemoTour(false)}
+      />
+
+      {/* Contact Form Dialog */}
+      <ContactForm
+        open={showContactForm}
+        onOpenChange={setShowContactForm}
       />
 
       {/* Floating Chat Bubble */}
