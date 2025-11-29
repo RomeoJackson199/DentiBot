@@ -32,7 +32,7 @@ export default function DentistAppointmentsManagement() {
   const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
   const [viewMode, setViewMode] = useState<"week" | "day">("week");
   const [headerVisible, setHeaderVisible] = useState(true);
-  const [showStats, setShowStats] = useState(true);
+  const [showStats, setShowStats] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [urgencyFilter, setUrgencyFilter] = useState<string>("all");
@@ -423,31 +423,59 @@ export default function DentistAppointmentsManagement() {
               />
             </div>
             <div className="lg:col-span-2">
-              <Card className="border-2 h-full">
+              <Card className="border-2 h-full bg-gradient-to-br from-white to-gray-50/50 dark:from-gray-900 dark:to-gray-800/50">
                 <CardHeader>
                   <h3 className="text-base font-semibold">Quick Insights</h3>
                 </CardHeader>
                 <CardContent className="space-y-3 text-sm">
-                  <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
-                    <span className="text-muted-foreground">Busiest Day This Week</span>
-                    <span className="font-bold text-blue-600 dark:text-blue-400">
-                      {allAppointments.length > 0
-                        ? format(new Date(allAppointments[0].appointment_date), "EEEE")
-                        : "N/A"}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-950/30 rounded-lg">
-                    <span className="text-muted-foreground">Average Appointments/Day</span>
-                    <span className="font-bold text-green-600 dark:text-green-400">
-                      {Math.round(allAppointments.length / 7)}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-purple-50 dark:bg-purple-950/30 rounded-lg">
-                    <span className="text-muted-foreground">Total This Month</span>
-                    <span className="font-bold text-purple-600 dark:text-purple-400">
-                      {monthlyAppointments.length}
-                    </span>
-                  </div>
+                  {(() => {
+                    // Calculate busiest day properly
+                    const dayGroups: Record<string, number> = {};
+                    allAppointments.forEach(apt => {
+                      const day = format(new Date(apt.appointment_date), "EEEE");
+                      dayGroups[day] = (dayGroups[day] || 0) + 1;
+                    });
+                    const busiestDay = Object.entries(dayGroups).sort((a, b) => b[1] - a[1])[0];
+
+                    // Calculate week stats
+                    const confirmed = allAppointments.filter(a => a.status === 'confirmed').length;
+                    const completed = allAppointments.filter(a => a.status === 'completed').length;
+                    const pending = allAppointments.filter(a => a.status === 'pending').length;
+                    const completionRate = (confirmed + completed) > 0
+                      ? Math.round((completed / (confirmed + completed)) * 100)
+                      : 0;
+
+                    return (
+                      <>
+                        <div className="flex items-center justify-between p-3 bg-gradient-to-r from-blue-50 to-blue-100/50 dark:from-blue-950/50 dark:to-blue-900/30 rounded-lg border border-blue-200/50 dark:border-blue-800/50">
+                          <span className="text-muted-foreground font-medium">Busiest Day This Week</span>
+                          <span className="font-bold text-blue-600 dark:text-blue-400">
+                            {busiestDay ? `${busiestDay[0]} (${busiestDay[1]})` : "N/A"}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between p-3 bg-gradient-to-r from-green-50 to-green-100/50 dark:from-green-950/50 dark:to-green-900/30 rounded-lg border border-green-200/50 dark:border-green-800/50">
+                          <span className="text-muted-foreground font-medium">Week Completion Rate</span>
+                          <span className="font-bold text-green-600 dark:text-green-400">
+                            {completionRate}%
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="flex flex-col p-3 bg-gradient-to-br from-purple-50 to-purple-100/50 dark:from-purple-950/50 dark:to-purple-900/30 rounded-lg border border-purple-200/50 dark:border-purple-800/50">
+                            <span className="text-xs text-muted-foreground font-medium mb-1">This Month</span>
+                            <span className="text-xl font-bold text-purple-600 dark:text-purple-400">
+                              {monthlyAppointments.length}
+                            </span>
+                          </div>
+                          <div className="flex flex-col p-3 bg-gradient-to-br from-amber-50 to-amber-100/50 dark:from-amber-950/50 dark:to-amber-900/30 rounded-lg border border-amber-200/50 dark:border-amber-800/50">
+                            <span className="text-xs text-muted-foreground font-medium mb-1">Pending</span>
+                            <span className="text-xl font-bold text-amber-600 dark:text-amber-400">
+                              {pending}
+                            </span>
+                          </div>
+                        </div>
+                      </>
+                    );
+                  })()}
                 </CardContent>
               </Card>
             </div>
