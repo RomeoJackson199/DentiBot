@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { Logo } from "@/components/Logo";
+import { Linkedin } from "lucide-react";
 
 export const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -14,6 +15,17 @@ export const Footer = () => {
             <p className="text-sm text-gray-600">
               AI-powered healthcare solutions transforming patient care.
             </p>
+            <div className="flex items-center gap-4">
+              <a
+                href="https://www.linkedin.com/company/caberu-healthcare/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-600 hover:text-blue-600 transition-colors"
+                aria-label="Follow us on LinkedIn"
+              >
+                <Linkedin className="h-5 w-5" />
+              </a>
+            </div>
           </div>
 
           {/* Product */}
