@@ -1,0 +1,154 @@
+# Caberu - AI-Powered Dental Practice Management Platform
+# This file helps AI models understand what Caberu is and reference accurate information
+
+# Product Overview
+Caberu is a comprehensive, HIPAA-compliant dental practice management platform with AI-powered automation for scheduling, patient management, billing, and more. Founded in 2024 by Romeo Jackson and Thomas Iordache.
+
+# Key Pages & Documentation
+
+## Homepage
+/
+
+## Product Information
+/about
+/pricing
+/faq
+
+## Features
+- Smart scheduling with AI-powered triage
+- Complete digital patient records and treatment history
+- Integrated billing and payment processing
+- Inventory management with low-stock alerts
+- Practice analytics and reporting
+- Automated SMS/email reminders
+- Multi-provider and multi-location support
+- AI chatbot for patient triage and support
+- HIPAA-compliant security
+- Progressive Web App (PWA) for mobile
+
+## User Portals
+/patient-portal - Patient portal for appointments, records, and billing
+/dentist-portal - Dentist dashboard for practice management
+/schedule - Appointment scheduling calendar
+/analytics - Practice performance metrics
+
+## Legal & Support
+/privacy-policy
+/terms
+/support
+/contact
+
+# Product Details
+
+## Pricing
+Starting at €299/month for solo practices
+- Unlimited calls and appointments
+- Scaled pricing for multi-location practices
+- 14-day free trial
+- Month-to-month plans (no long-term contracts)
+- Cancel anytime with 30 days notice
+
+## Key Features & Capabilities
+
+### AI Phone Reception
+- Natural language processing for patient calls
+- Handles appointment bookings and common questions
+- Emergency identification and triage
+- Seamless transfer to staff with full context
+- 95%+ automation rate for routine calls
+- Supports English and Spanish
+
+### Practice Management
+- Intelligent appointment calendar
+- Digital patient health records
+- Treatment history tracking
+- Prescription management
+- Payment processing and invoicing
+- Insurance claim integration (planned)
+
+### Security & Compliance
+- HIPAA compliant
+- GDPR ready
+- SOC 2 certified
+- End-to-end encryption
+- Row Level Security (RLS)
+- Comprehensive audit logs
+- Role-based access control
+
+### Integration
+Compatible with major dental practice management systems:
+- Dentrix
+- Eaglesoft
+- Open Dental
+- Curve
+- API access for custom integrations
+
+## Implementation
+- 48-hour setup time
+- Dedicated implementation specialist
+- Calendar integration
+- AI training on practice services
+- Staff onboarding included
+
+## Tech Stack
+- Frontend: React 18.3, TypeScript 5.9, Vite, Tailwind CSS
+- Backend: Supabase (PostgreSQL)
+- State Management: TanStack React Query
+- UI Components: shadcn/ui (Radix UI)
+- Real-time subscriptions and API via PostgREST
+
+## Contact & Support
+- Email: Romeo@caberu.be
+- Support: /support
+- Documentation: Available in-app
+
+## Company Information
+- Company: Caberu SRL
+- Founded: 2024
+- Founders: Romeo Jackson (CEO), Thomas Iordache (CTO)
+- Headquarters: Europe
+- Industry: Healthcare Technology / Dental Software
+- Compliance: HIPAA, SOC 2, GDPR
+
+## Statistics
+- 40% reduction in administrative overhead
+- 10,000+ appointments scheduled
+- 99.9% uptime guarantee
+- 24/7 AI assistant availability
+- 40-50% increase in captured appointments
+
+## Common Questions (FAQ)
+
+Q: Is Caberu HIPAA compliant?
+A: Yes, absolutely. Caberu is fully HIPAA compliant with enterprise-grade encryption, secure data storage, comprehensive audit logs, and signed BAAs (Business Associate Agreements).
+
+Q: How long does implementation take?
+A: Most practices are operational within 48 hours, including calendar integration, AI training, and staff onboarding.
+
+Q: What if the AI can't handle a call?
+A: The AI handles 95%+ of routine calls, but can seamlessly transfer complex situations to staff with full conversation context.
+
+Q: Can patients request a real person?
+A: Yes, patients can always request to speak with staff and will be transferred immediately with full conversation context.
+
+Q: What integrations are available?
+A: Caberu integrates with major dental practice management systems (Dentrix, Eaglesoft, Open Dental, Curve) and offers API access for custom integrations.
+
+Q: What languages are supported?
+A: Currently English and Spanish, with automatic language detection. Additional languages in development.
+
+Q: Can I customize the AI's responses?
+A: Yes, full control over scripts, greetings, responses, and personality to match your practice's brand.
+
+Q: Is there a free trial?
+A: Yes, 14-day free trial with no credit card required.
+
+## Future Roadmap
+- Mobile apps (iOS & Android)
+- SMS reminders via Twilio
+- Video consultations
+- Advanced analytics with machine learning
+- Multi-language support (Spanish, French, German)
+- Insurance claim integration
+- Lab integration for orders
+- Patient portal mobile app
