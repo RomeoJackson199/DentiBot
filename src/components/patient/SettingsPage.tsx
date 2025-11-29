@@ -20,10 +20,8 @@ export interface SettingsPageProps {
 
 const SECTIONS = [
   'Profile & Personal Info',
-  'Medical & Insurance Info',
   'Preferences',
   'Security',
-  'Linked Accounts',
   'Legal & Support',
 ] as const;
 
@@ -37,7 +35,6 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ user }) => {
   const [profile, setProfile] = useState<ProfileData>({
     first_name: '', last_name: '', phone: '', date_of_birth: '', medical_history: '', address: '', emergency_contact: '', ai_opt_out: false,
   });
-  const [medical, setMedical] = useState({ allergies: '', notes: '' });
 
   useEffect(() => {
     (async () => {
@@ -77,12 +74,6 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ user }) => {
           <ProfileForm profile={profile} setProfile={setProfile} onSave={handleSave} saving={saving} email={user.email || ''} userId={user.id} />
         </AccordionContent>
       </AccordionItem>
-      <AccordionItem value="medical">
-        <AccordionTrigger>Medical & Insurance Info</AccordionTrigger>
-        <AccordionContent>
-          <MedicalForm medical={medical} setMedical={setMedical} onSave={() => {}} />
-        </AccordionContent>
-      </AccordionItem>
       <AccordionItem value="preferences">
         <AccordionTrigger>Preferences</AccordionTrigger>
         <AccordionContent>
@@ -93,12 +84,6 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ user }) => {
         <AccordionTrigger>Security</AccordionTrigger>
         <AccordionContent>
           <Security />
-        </AccordionContent>
-      </AccordionItem>
-      <AccordionItem value="linked">
-        <AccordionTrigger>Linked Accounts</AccordionTrigger>
-        <AccordionContent>
-          <LinkedAccounts />
         </AccordionContent>
       </AccordionItem>
       <AccordionItem value="legal">
@@ -123,14 +108,10 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ user }) => {
         {active === 'Profile & Personal Info' && (
           <ProfileForm profile={profile} setProfile={setProfile} onSave={handleSave} saving={saving} email={user.email || ''} userId={user.id} />
         )}
-        {active === 'Medical & Insurance Info' && (
-          <MedicalForm medical={medical} setMedical={setMedical} onSave={() => {}} />
-        )}
         {active === 'Preferences' && (
           <Preferences theme={theme} setTheme={setTheme} />
         )}
         {active === 'Security' && <Security />}
-        {active === 'Linked Accounts' && <LinkedAccounts />}
         {active === 'Legal & Support' && <LegalSupport />}
       </div>
     </div>
@@ -209,36 +190,6 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ email, profile, setProfile, o
   );
 };
 
-interface MedicalFormProps {
-  medical: { allergies: string; notes: string };
-  setMedical: (m: { allergies: string; notes: string }) => void;
-  onSave: () => void;
-}
-
-const MedicalForm: React.FC<MedicalFormProps> = ({ medical, setMedical }) => {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Medical & Insurance Info</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div>
-          <Label>Mutuality / Insurance</Label>
-          <Input placeholder="Provider name / Policy" />
-        </div>
-        <div>
-          <Label>Allergies</Label>
-          <Textarea value={medical.allergies} onChange={(e) => setMedical({ ...medical, allergies: e.target.value })} />
-        </div>
-        <div>
-          <Label>Medical Notes</Label>
-          <Textarea value={medical.notes} onChange={(e) => setMedical({ ...medical, notes: e.target.value })} />
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
-
 const Preferences: React.FC<{ theme?: string; setTheme: (t: string) => void; }> = ({ theme, setTheme }) => {
   return (
     <Card>
@@ -307,99 +258,6 @@ const Security: React.FC = () => {
         </div>
       </CardContent>
     </Card>
-  );
-};
-
-const LinkedAccounts: React.FC = () => {
-  const { toast } = useToast();
-  
-  return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Linked Accounts</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-        <div className="space-y-3">
-          <div className="flex items-center justify-between p-3 border rounded-lg">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-blue-500 rounded flex items-center justify-center text-white text-sm">
-                G
-              </div>
-              <div>
-                <div className="font-medium">Google Account</div>
-                <div className="text-sm text-muted-foreground">Not connected</div>
-              </div>
-            </div>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => toast({
-                title: "Google Integration",
-                description: "Google account linking will be available in a future update.",
-              })}
-            >
-              Connect
-            </Button>
-          </div>
-          
-          <div className="flex items-center justify-between p-3 border rounded-lg">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center text-white text-sm">
-                F
-              </div>
-              <div>
-                <div className="font-medium">Facebook Account</div>
-                <div className="text-sm text-muted-foreground">Not connected</div>
-              </div>
-            </div>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => toast({
-                title: "Facebook Integration",
-                description: "Facebook account linking will be available in a future update.",
-              })}
-            >
-              Connect
-            </Button>
-          </div>
-          
-          <div className="flex items-center justify-between p-3 border rounded-lg">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-green-500 rounded flex items-center justify-center text-white text-sm">
-                A
-              </div>
-              <div>
-                <div className="font-medium">Apple ID</div>
-                <div className="text-sm text-muted-foreground">Not connected</div>
-              </div>
-            </div>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => toast({
-                title: "Apple Integration",
-                description: "Apple ID linking will be available in a future update.",
-              })}
-            >
-              Connect
-            </Button>
-          </div>
-        </div>
-        
-        <div className="text-sm text-muted-foreground border-t pt-4">
-          <div className="font-medium mb-2">Connected Devices</div>
-          <div className="space-y-2">
-            <div className="flex justify-between">
-              <span>Current Device (Web Browser)</span>
-              <Badge variant="secondary">Active</Badge>
-            </div>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-    </div>
   );
 };
 
