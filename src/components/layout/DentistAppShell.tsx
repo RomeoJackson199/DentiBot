@@ -54,10 +54,6 @@ export const DentistAppShell: React.FC<DentistAppShellProps> = ({
     label: t('appointmentPlural'),
     icon: Calendar
   }, {
-    id: 'employees' as DentistSection,
-    label: 'Staff',
-    icon: UserCog
-  }, {
     id: 'messages' as DentistSection,
     label: 'Messages',
     icon: MessageSquare

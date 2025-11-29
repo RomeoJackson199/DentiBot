@@ -3,8 +3,7 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Settings as SettingsIcon, Calendar, Palette, Shield, User, LogOut, Mail, HelpCircle, Globe } from "lucide-react";
-import { HomepageEditor } from "@/components/business/HomepageEditor";
+import { Settings as SettingsIcon, Calendar, Palette, Shield, User, LogOut, Mail, HelpCircle, UserCog } from "lucide-react";
 import { EnhancedAvailabilitySettings } from "@/components/enhanced/EnhancedAvailabilitySettings";
 import DentistAdminBranding from "./DentistAdminBranding";
 import DentistAdminSecurity from "./DentistAdminSecurity";
@@ -24,7 +23,7 @@ export default function DentistSettings() {
 
   useEffect(() => {
     const tabParam = searchParams.get('tab');
-    if (tabParam && ['profile', 'schedule', 'branding', 'homepage', 'security', 'support'].includes(tabParam)) {
+    if (tabParam && ['profile', 'schedule', 'branding', 'security', 'staff', 'support'].includes(tabParam)) {
       setActiveTab(tabParam);
     }
   }, [searchParams]);
@@ -107,10 +106,10 @@ export default function DentistSettings() {
             <span className="hidden sm:inline">Branding</span>
             <span className="sm:hidden">Brand</span>
           </TabsTrigger>
-          <TabsTrigger value="homepage" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3">
-            <Globe className="h-3 w-3 sm:h-4 sm:w-4" />
-            <span className="hidden sm:inline">Homepage</span>
-            <span className="sm:hidden">Home</span>
+          <TabsTrigger value="staff" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3">
+            <UserCog className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">Staff</span>
+            <span className="sm:hidden">Staff</span>
           </TabsTrigger>
           <TabsTrigger value="security" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3">
             <Shield className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -146,8 +145,18 @@ export default function DentistSettings() {
           <DentistAdminBranding />
         </TabsContent>
 
-        <TabsContent value="homepage" className="space-y-6">
-          <HomepageEditor />
+        <TabsContent value="staff" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Staff Management</CardTitle>
+              <CardDescription>
+                Manage your team members and their access
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <DentistAdminUsers />
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="security" className="space-y-6">
