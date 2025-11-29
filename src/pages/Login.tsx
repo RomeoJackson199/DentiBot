@@ -1,13 +1,12 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Building2, ChevronRight, Check } from "lucide-react";
+import { Loader2, Shield, Sparkles, Zap, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
+import { BusinessSelector } from "@/components/auth/BusinessSelector";
 import { logger } from '@/lib/logger';
 
 type Business = {
@@ -18,15 +17,13 @@ type Business = {
   template_type?: string | null;
 };
 
-const loginHeroImage = "/lovable-uploads/dd1b725d-745a-4f59-a31a-2b7df6e48a1c.png";
-
 const Login = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [isLoadingBusinesses, setIsLoadingBusinesses] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [showBusinessSelector, setShowBusinessSelector] = useState(false);
   const [selectedBusinessId, setSelectedBusinessId] = useState<string | null>(
     () => localStorage.getItem("selected_business_id")
   );
@@ -71,26 +68,6 @@ const Login = () => {
     loadBusinesses();
   }, []);
 
-  const filteredBusinesses = useMemo(() => {
-    const term = searchTerm.trim().toLowerCase();
-
-    if (!term) {
-      return businesses;
-    }
-
-    return businesses.filter((business) => {
-      const nameMatches = business.name.toLowerCase().includes(term);
-      const taglineMatches = business.tagline?.toLowerCase().includes(term) ?? false;
-
-      return nameMatches || taglineMatches;
-    });
-  }, [businesses, searchTerm]);
-
-  const selectedBusiness = useMemo(
-    () => (selectedBusinessId ? businesses.find((business) => business.id === selectedBusinessId) : undefined),
-    [businesses, selectedBusinessId]
-  );
-
   const handleSelectBusiness = (businessId: string) => {
     localStorage.setItem("selected_business_id", businessId);
     setSelectedBusinessId(businessId);
@@ -99,7 +76,7 @@ const Login = () => {
     if (business) {
       toast({
         title: `${business.name} selected`,
-        description: "Sign in on the right to continue to this workspace.",
+        description: "You're all set to sign in to this workspace.",
         duration: 3500,
       });
     }
@@ -175,195 +152,115 @@ const Login = () => {
     }
   };
 
-  const renderBusinessList = (layout: "desktop" | "mobile") => {
-    const isDesktop = layout === "desktop";
-
-    if (isLoadingBusinesses) {
-      return (
-        <div className="space-y-4">
-          {Array.from({ length: 4 }).map((_, index) => (
-            <Skeleton
-              key={`${layout}-skeleton-${index}`}
-              className={cn(
-                "h-24 w-full rounded-2xl",
-                isDesktop ? "bg-white/10" : "bg-slate-200/60"
-              )}
-            />
-          ))}
-        </div>
-      );
-    }
-
-    if (filteredBusinesses.length === 0) {
-      return (
-        <p className={cn("text-sm", isDesktop ? "text-white/70" : "text-muted-foreground")}>
-          No businesses found.
-        </p>
-      );
-    }
-
-    return (
-      <div className="space-y-3">
-        {filteredBusinesses.map((business) => {
-          const isSelected = selectedBusinessId === business.id;
-
-          return (
-            <button
-              key={business.id}
-              type="button"
-              onClick={() => handleSelectBusiness(business.id)}
-              className={cn(
-                "w-full rounded-2xl border p-5 text-left transition-all duration-200 group",
-                isDesktop
-                  ? "border-white/15 bg-white/5 hover:border-white/40 hover:bg-white/10"
-                  : "border-slate-200 bg-white hover:border-slate-300 hover:shadow-md",
-                isSelected &&
-                  (isDesktop
-                    ? "border-white bg-white/20 shadow-lg"
-                    : "border-primary shadow-lg")
-              )}
-            >
-              <div className="flex items-center gap-4">
-                {business.logo_url ? (
-                  <img
-                    src={business.logo_url}
-                    alt={`${business.name} logo`}
-                    className={cn(
-                      "h-12 w-12 rounded-xl object-cover",
-                      isDesktop ? "bg-white/90" : "bg-slate-100"
-                    )}
-                  />
-                ) : (
-                  <div
-                    className={cn(
-                      "flex h-12 w-12 items-center justify-center rounded-xl",
-                      isDesktop ? "bg-white/10 text-white" : "bg-slate-100 text-slate-500"
-                    )}
-                  >
-                    <Building2 className="h-5 w-5" />
-                  </div>
-                )}
-                <div className="min-w-0 flex-1">
-                  <p className={cn("text-lg font-semibold", isDesktop ? "text-white" : "text-slate-900")}>
-                    {business.name}
-                  </p>
-                  {business.tagline && (
-                    <p className={cn("mt-1 truncate text-sm", isDesktop ? "text-white/70" : "text-slate-500")}>
-                      {business.tagline}
-                    </p>
-                  )}
-                </div>
-                {isSelected ? (
-                  <Check
-                    className={cn(
-                      "h-5 w-5",
-                      isDesktop ? "text-white" : "text-primary"
-                    )}
-                  />
-                ) : (
-                  <ChevronRight
-                    className={cn(
-                      "h-5 w-5 transition-colors",
-                      isDesktop
-                        ? "text-white/60 group-hover:text-white"
-                        : "text-slate-400 group-hover:text-slate-600"
-                    )}
-                  />
-                )}
-              </div>
-            </button>
-          );
-        })}
-      </div>
-    );
-  };
-
   return (
-    <div className="min-h-screen flex flex-row bg-background max-[480px]:flex-col">
-      <div className="relative flex w-full flex-col overflow-hidden text-white max-[480px]:hidden md:w-1/2">
-        <div className="absolute inset-0 bg-slate-950/85" />
-        <div className="relative z-10 flex-1 space-y-8 overflow-y-auto p-12 backdrop-blur-sm">
-          <div className="space-y-4">
-            <span className="inline-flex w-fit items-center gap-2 rounded-full bg-white/10 px-4 py-1 text-xs uppercase tracking-wide text-white/80">
-              Choose your workspace
-            </span>
-            <h2 className="text-4xl font-semibold leading-tight">
-              Businesses on the left, sign in on the right
-            </h2>
-            <p className="text-sm text-white/70">
-              Pick your business to tailor automations, messaging, and reports to the right location.
-            </p>
-          </div>
-          <div className="space-y-4">
-            <Input
-              type="search"
-              value={searchTerm}
-              onChange={(event) => setSearchTerm(event.target.value)}
-              placeholder="Search businesses"
-              className="border-white/20 bg-white/10 text-white placeholder:text-white/60"
-            />
-            {renderBusinessList("desktop")}
-          </div>
-        </div>
-        <div className="relative z-10 border-t border-white/10 p-8 text-sm text-white/70 backdrop-blur-sm bg-slate-950/60">
-          Need a new workspace?{" "}
-          <a href="/create-business" className="font-semibold text-white underline-offset-4 hover:underline">
-            Create a business
-          </a>
-        </div>
-      </div>
+    <div className="min-h-screen flex flex-col lg:flex-row">
+      {/* Left Side - Hero Section */}
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-primary via-primary/90 to-primary/80">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.1),transparent)]" />
 
-      <div className="flex flex-1 flex-col">
-        <div className="hidden border-b border-slate-200 bg-muted/40 max-[480px]:block">
-          <div className="px-6 py-8 space-y-6">
-            <div className="relative h-56 w-full overflow-hidden rounded-3xl">
-              <div className="absolute inset-0 bg-slate-950/70" />
-              <div className="absolute inset-0 flex flex-col justify-end space-y-3 p-6 text-white">
-                <span className="inline-flex w-fit items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-[11px] uppercase tracking-wide text-white/80">
-                  Choose your workspace
-                </span>
-                <h2 className="text-2xl font-semibold leading-tight">
-                  Businesses on the left, sign in on the right
-                </h2>
-                <p className="text-sm text-white/80">
-                  Pick your business to tailor automations, messaging, and reports to the right location.
-                </p>
-              </div>
+        <div className="relative z-10 flex flex-col justify-between p-12 text-white w-full">
+          <div className="space-y-6">
+            <div className="flex items-center gap-2">
+              <Shield className="h-6 w-6" />
+              <span className="font-semibold text-lg">DentiBot</span>
+            </div>
+          </div>
+
+          <div className="space-y-8">
+            <div>
+              <h2 className="text-5xl font-bold leading-tight mb-4">
+                Welcome back to
+                <br />
+                your workspace
+              </h2>
+              <p className="text-lg text-white/90">
+                Access your dental practice dashboard and keep every patient journey on track.
+              </p>
             </div>
 
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-slate-900">Choose your business</h3>
-              <p className="text-sm text-muted-foreground">
-                Pick the business you manage so we can log you into the right workspace.
-              </p>
-              <Input
-                type="search"
-                value={searchTerm}
-                onChange={(event) => setSearchTerm(event.target.value)}
-                placeholder="Search businesses"
-              />
-              {renderBusinessList("mobile")}
+              <div className="flex items-start gap-4 p-4 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20">
+                <div className="h-10 w-10 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0">
+                  <Sparkles className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="font-semibold mb-1">AI-Powered Automation</h3>
+                  <p className="text-sm text-white/80">Automate appointment reminders, follow-ups, and patient communications</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4 p-4 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20">
+                <div className="h-10 w-10 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0">
+                  <Clock className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="font-semibold mb-1">Real-Time Scheduling</h3>
+                  <p className="text-sm text-white/80">Manage appointments with smart calendar integration</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4 p-4 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20">
+                <div className="h-10 w-10 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0">
+                  <Zap className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="font-semibold mb-1">Instant Insights</h3>
+                  <p className="text-sm text-white/80">Track practice performance with powerful analytics</p>
+                </div>
+              </div>
             </div>
           </div>
+
+          <div className="text-sm text-white/70">
+            Need a new workspace?{" "}
+            <Link to="/create-business" className="font-semibold text-white underline-offset-4 hover:underline">
+              Create a business
+            </Link>
+          </div>
         </div>
+      </div>
 
-        <div className="flex flex-1 items-center justify-center px-6 py-12 sm:px-12">
-          <div className="w-full max-w-lg space-y-6">
-            <div className="space-y-4 text-center">
-              <h1 className="text-4xl font-semibold tracking-tight">Sign in</h1>
-              <p className="text-sm text-muted-foreground">
-                Access your workspace and keep every patient journey on track.
-              </p>
-              {selectedBusiness && (
-                <div className="mx-auto flex w-fit items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-2 text-sm font-medium text-primary">
-                  <Building2 className="h-4 w-4" />
-                  {selectedBusiness.name}
-                </div>
-              )}
+      {/* Right Side - Sign In Form */}
+      <div className="flex-1 flex items-center justify-center p-6 sm:p-12 bg-background">
+        <div className="w-full max-w-sm space-y-8">
+          {/* Header */}
+          <div className="text-center space-y-2">
+            <div className="flex lg:hidden items-center justify-center gap-2 mb-6">
+              <Shield className="h-6 w-6 text-primary" />
+              <span className="font-semibold text-lg">DentiBot</span>
             </div>
+            <h1 className="text-3xl font-bold tracking-tight">Sign in</h1>
+            <p className="text-sm text-muted-foreground">
+              Access your workspace to manage your practice
+            </p>
+          </div>
 
-            <div className="rounded-3xl border bg-card p-8 shadow-sm">
+          <div className="space-y-6">
+            {/* Business Selector */}
+            <BusinessSelector
+              businesses={businesses}
+              selectedBusinessId={selectedBusinessId}
+              isLoading={isLoadingBusinesses}
+              onSelectBusiness={handleSelectBusiness}
+              variant="compact"
+              open={showBusinessSelector}
+              onOpenChange={setShowBusinessSelector}
+            />
+
+            {/* Dialog for mobile/all platforms */}
+            <BusinessSelector
+              businesses={businesses}
+              selectedBusinessId={selectedBusinessId}
+              isLoading={isLoadingBusinesses}
+              onSelectBusiness={handleSelectBusiness}
+              variant="dialog"
+              open={showBusinessSelector}
+              onOpenChange={setShowBusinessSelector}
+            />
+
+            <div className="rounded-2xl border bg-card p-6 shadow-sm">
               <div className="space-y-4">
+                {/* Google Sign In */}
                 <Button
                   type="button"
                   variant="outline"
@@ -385,13 +282,14 @@ const Login = () => {
                     <span className="w-full border-t" />
                   </div>
                   <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-card px-2 text-muted-foreground">or sign in with email</span>
+                    <span className="bg-card px-2 text-muted-foreground">or continue with email</span>
                   </div>
                 </div>
 
+                {/* Email/Password Form */}
                 <form onSubmit={handleSignIn} className="space-y-4">
-                  <div className="space-y-2 text-left">
-                    <Label htmlFor="email">Your Email</Label>
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email</Label>
                     <Input
                       id="email"
                       type="email"
@@ -400,11 +298,21 @@ const Login = () => {
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                       className="h-12"
                       required
+                      autoFocus
+                      autoComplete="email"
                     />
                   </div>
 
-                  <div className="space-y-2 text-left">
-                    <Label htmlFor="password">Password</Label>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="password">Password</Label>
+                      <Link
+                        to="/forgot-password"
+                        className="text-xs text-primary hover:underline"
+                      >
+                        Forgot?
+                      </Link>
+                    </div>
                     <Input
                       id="password"
                       type="password"
@@ -413,31 +321,34 @@ const Login = () => {
                       onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                       className="h-12"
                       required
+                      autoComplete="current-password"
                     />
                   </div>
 
                   <Button
                     type="submit"
-                    className="h-12 w-full bg-primary text-lg font-semibold hover:bg-primary/90"
+                    className="h-12 w-full text-base font-semibold"
                     disabled={isLoading}
                   >
-                    {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Sign in"}
+                    {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Continue"}
                   </Button>
-
-                  <p className="text-center text-sm text-muted-foreground">
-                    Don't have an account?{" "}
-                    <Link to="/signup" className="font-medium text-primary hover:underline">
-                      Sign up
-                    </Link>
-                  </p>
                 </form>
               </div>
             </div>
 
+            {/* Sign up link */}
+            <p className="text-center text-sm text-muted-foreground">
+              Don't have an account?{" "}
+              <Link to="/signup" className="font-medium text-primary hover:underline">
+                Sign up
+              </Link>
+            </p>
+
+            {/* Terms */}
             <p className="text-center text-xs text-muted-foreground">
               By signing in, you agree to our{" "}
               <Link to="/terms" className="underline hover:text-foreground">
-                Terms of Service
+                Terms
               </Link>{" "}
               and{" "}
               <Link to="/privacy" className="underline hover:text-foreground">

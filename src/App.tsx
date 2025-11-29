@@ -35,6 +35,7 @@ import { initializeErrorReporting } from "@/lib/errorReporting";
 const Invite = lazy(() => import("./pages/Invite"));
 const Login = lazy(() => import("./pages/Login"));
 const Signup = lazy(() => import("./pages/Signup"));
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
 const GoogleCalendarCallback = lazy(() => import("./pages/GoogleCalendarCallback"));
 const DentistServices = lazy(() => import("./pages/DentistServices"));
 const CreateBusiness = lazy(() => import("./pages/CreateBusiness"));
@@ -274,6 +275,7 @@ const App = () => {
                 {/* Auth routes */}
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<Signup />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/create-business" element={<CreateBusiness />} />
                 {/* Post-auth redirect handler */}
                 <Route path="/auth-redirect" element={<AuthRedirect />} />
