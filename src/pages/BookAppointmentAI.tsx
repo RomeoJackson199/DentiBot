@@ -71,6 +71,7 @@ export default function BookAppointmentAI() {
   const [selectedDentist, setSelectedDentist] = useState<Dentist | null>(null);
   const [expandedDentist, setExpandedDentist] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>();
+  const [currentWeekStart, setCurrentWeekStart] = useState<Date>(startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [selectedTime, setSelectedTime] = useState<string>();
   const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
   const [loading, setLoading] = useState(true);
@@ -545,6 +546,10 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
     return date < today || date.getDay() === 0 || date.getDay() === 6;
   };
 
+  const navigateWeek = (direction: 'prev' | 'next') => {
+    setCurrentWeekStart(prev => addDays(prev, direction === 'next' ? 7 : -7));
+  };
+
   const getDentistInitials = (dentist: Dentist) => {
     const fn = dentist.first_name || dentist.profiles?.first_name || "";
     const ln = dentist.last_name || dentist.profiles?.last_name || "";
@@ -881,13 +886,13 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
                 <CardContent className="p-6 space-y-6">
                   {/* Date Navigation */}
                   <div className="flex items-center justify-between">
-                    <Button variant="ghost" size="icon" onClick={() => {}}>
+                    <Button variant="ghost" size="icon" onClick={() => navigateWeek('prev')}>
                       <ArrowLeft className="h-4 w-4" />
                     </Button>
                     <h3 className="font-semibold">
                       {selectedDate ? format(selectedDate, "EEE, dd MMMM") : "Select a date"}
                     </h3>
-                    <Button variant="ghost" size="icon" onClick={() => {}}>
+                    <Button variant="ghost" size="icon" onClick={() => navigateWeek('next')}>
                       <ArrowLeft className="h-4 w-4 rotate-180" />
                     </Button>
                   </div>
@@ -896,12 +901,9 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
                   <div className="grid grid-cols-7 gap-2">
                     {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, index) => {
                       // Calculate the correct date for the current week
-                      // Start from the beginning of the current week (Monday = 1)
-                      const today = new Date();
-                      const weekStart = startOfWeek(selectedDate || today, { weekStartsOn: 1 });
-                      const date = addDays(weekStart, index);
+                      const date = addDays(currentWeekStart, index);
                       const isSelected = selectedDate && format(selectedDate, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd');
-                      const isDisabled = date.getDay() === 0 || date.getDay() === 6;
+                      const isDisabled = isDateDisabled(date);
 
                       return (
                         <button
