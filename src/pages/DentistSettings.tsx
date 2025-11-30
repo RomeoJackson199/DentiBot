@@ -8,6 +8,7 @@ import { EnhancedAvailabilitySettings } from "@/components/enhanced/EnhancedAvai
 import DentistAdminBranding from "./DentistAdminBranding";
 import DentistAdminSecurity from "./DentistAdminSecurity";
 import DentistAdminProfile from "./DentistAdminProfile";
+import DentistAdminUsers from "./DentistAdminUsers";
 import { useCurrentDentist } from "@/hooks/useCurrentDentist";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
