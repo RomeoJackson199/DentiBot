@@ -84,6 +84,19 @@ const Login = () => {
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate business selection first
+    if (!selectedBusinessId) {
+      toast({
+        title: "Business required",
+        description: "Please select a business before signing in.",
+        variant: "destructive",
+        duration: 5000,
+      });
+      setShowBusinessSelector(true);
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -96,11 +109,31 @@ const Login = () => {
 
       const storedBusinessId = localStorage.getItem("selected_business_id");
       if (storedBusinessId) {
-        await supabase.functions
-          .invoke("set-current-business", {
+        const { data, error: businessError } = await supabase.functions.invoke(
+          "set-current-business",
+          {
             body: { businessId: storedBusinessId },
-          })
-          .catch(console.warn);
+          }
+        );
+
+        if (businessError) {
+          logger.error("Error setting business context:", businessError);
+          toast({
+            title: "Warning",
+            description: "Failed to set business context. Please select your business again.",
+            variant: "destructive",
+            duration: 5000,
+          });
+        } else if (!data?.success) {
+          logger.error("Failed to set business context:", data);
+          toast({
+            title: "Warning",
+            description: "Failed to set business context. Please select your business again.",
+            variant: "destructive",
+            duration: 5000,
+          });
+        }
+
         localStorage.removeItem("selected_business_id");
       }
 
@@ -132,6 +165,18 @@ const Login = () => {
   };
 
   const handleGoogleSignIn = async () => {
+    // Validate business selection first
+    if (!selectedBusinessId) {
+      toast({
+        title: "Business required",
+        description: "Please select a business before signing in.",
+        variant: "destructive",
+        duration: 5000,
+      });
+      setShowBusinessSelector(true);
+      return;
+    }
+
     setIsLoading(true);
     try {
       const { error } = await supabase.auth.signInWithOAuth({
