@@ -26,11 +26,11 @@ interface WeeklyCalendarViewProps {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  "completed": "bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 dark:from-emerald-900/40 dark:via-green-900/40 dark:to-teal-900/40 text-emerald-900 dark:text-emerald-100 border-l-emerald-500 shadow-md hover:shadow-lg",
-  "cancelled": "bg-gradient-to-br from-gray-50 via-slate-50 to-gray-100 dark:from-gray-800/40 dark:via-slate-800/40 dark:to-gray-800/40 text-gray-600 dark:text-gray-400 border-l-gray-400 shadow-md hover:shadow-lg",
-  "confirmed": "bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-100 dark:from-blue-900/40 dark:via-indigo-900/40 dark:to-blue-900/40 text-blue-900 dark:text-blue-100 border-l-blue-500 shadow-md hover:shadow-lg",
-  "pending": "bg-gradient-to-br from-amber-50 via-yellow-50 to-orange-50 dark:from-amber-900/40 dark:via-yellow-900/40 dark:to-orange-900/40 text-amber-900 dark:text-amber-100 border-l-amber-500 shadow-md hover:shadow-lg",
-  "google-calendar": "bg-gradient-to-br from-purple-50 via-violet-50 to-fuchsia-50 dark:from-purple-900/40 dark:via-violet-900/40 dark:to-fuchsia-900/40 text-purple-900 dark:text-purple-100 border-l-purple-500 shadow-md hover:shadow-lg",
+  "completed": "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-900 dark:text-emerald-100 border-l-4 border-l-emerald-500",
+  "cancelled": "bg-gray-50 dark:bg-gray-800/20 text-gray-600 dark:text-gray-400 border-l-4 border-l-gray-400",
+  "confirmed": "bg-blue-50 dark:bg-blue-900/20 text-blue-900 dark:text-blue-100 border-l-4 border-l-blue-500",
+  "pending": "bg-amber-50 dark:bg-amber-900/20 text-amber-900 dark:text-amber-100 border-l-4 border-l-amber-500",
+  "google-calendar": "bg-purple-50 dark:bg-purple-900/20 text-purple-900 dark:text-purple-100 border-l-4 border-l-purple-500",
 };
 
 const URGENCY_LABELS: Record<string, string> = {
@@ -240,68 +240,66 @@ export function WeeklyCalendarView({
 
   return (
     <TooltipProvider>
-      <div className="border-2 rounded-2xl bg-white dark:bg-gray-900 overflow-hidden shadow-xl min-h-[calc(100vh-140px)] transition-all duration-300">
+      <div className="border rounded-lg bg-background overflow-hidden shadow-sm">
         {/* Mobile day navigation */}
         {isMobile && (
-          <div className="flex items-center justify-between px-4 py-3 border-b bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 dark:from-blue-950/30 dark:via-purple-950/30 dark:to-pink-950/30">
+          <div className="flex items-center justify-between px-4 py-4 border-b bg-muted/30">
             <Button
-              variant="outline"
+              variant="ghost"
               size="icon"
               onClick={handlePreviousDay}
               disabled={mobileCurrentDay === 0}
-              className="h-9 w-9 rounded-xl border-2"
+              className="h-8 w-8"
             >
-              <ChevronLeft className="h-5 w-5" />
+              <ChevronLeft className="h-4 w-4" />
             </Button>
             <div className="text-center">
-              <div className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
+              <div className="text-xs text-muted-foreground font-medium">
                 {format(displayDays[0], "EEEE")}
               </div>
               <div className={cn(
-                "text-lg font-bold",
-                isSameDay(displayDays[0], new Date()) && "text-blue-600 dark:text-blue-400"
+                "text-base font-semibold mt-0.5",
+                isSameDay(displayDays[0], new Date()) && "text-primary"
               )}>
-                {format(displayDays[0], "d MMMM yyyy")}
+                {format(displayDays[0], "MMM d, yyyy")}
               </div>
             </div>
             <Button
-              variant="outline"
+              variant="ghost"
               size="icon"
               onClick={handleNextDay}
               disabled={mobileCurrentDay === 6}
-              className="h-9 w-9 rounded-xl border-2"
+              className="h-8 w-8"
             >
-              <ChevronRight className="h-5 w-5" />
+              <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
         )}
 
-        {/* Header with days (desktop only) - Enhanced layout */}
+        {/* Header with days (desktop only) */}
         {!isMobile && (
-          <div className="sticky top-0 z-10 bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 dark:from-blue-950/30 dark:via-purple-950/30 dark:to-pink-950/30 border-b-2 border-gray-200 dark:border-gray-700">
-            <div className="grid grid-cols-[100px_repeat(7,1fr)]">
-              <div className="px-4 py-4"></div>
+          <div className="sticky top-0 z-10 bg-muted/30 border-b">
+            <div className="grid grid-cols-[80px_repeat(7,1fr)]">
+              <div className="px-3 py-3"></div>
               {weekDays.map((day) => {
                 const isToday = isSameDay(day, new Date());
                 return (
                   <div
                     key={day.toISOString()}
-                    className="px-2 py-4 text-center"
+                    className="px-2 py-3 text-center"
                   >
-                    <div className="space-y-2">
-                      <div className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
-                        {format(day, "EEE")}
-                      </div>
-                      <div
-                        className={cn(
-                          "text-2xl font-bold inline-flex items-center justify-center transition-all duration-300",
-                          isToday
-                            ? "bg-gradient-to-br from-blue-500 to-purple-600 text-white rounded-2xl w-12 h-12 shadow-lg scale-110"
-                            : "text-foreground hover:bg-gray-100 dark:hover:bg-gray-800 rounded-2xl w-12 h-12"
-                        )}
-                      >
-                        {format(day, "dd")}
-                      </div>
+                    <div className="text-xs font-medium text-muted-foreground mb-1">
+                      {format(day, "EEE")}
+                    </div>
+                    <div
+                      className={cn(
+                        "text-lg font-semibold inline-flex items-center justify-center w-9 h-9 rounded-lg",
+                        isToday
+                          ? "bg-primary text-primary-foreground"
+                          : "text-foreground"
+                      )}
+                    >
+                      {format(day, "d")}
                     </div>
                   </div>
                 );
@@ -311,17 +309,17 @@ export function WeeklyCalendarView({
         )}
 
       {/* Time slots and appointments */}
-      <div className="pt-2">
+      <div>
         <div className={cn(
           "grid",
-          isMobile ? "grid-cols-[100px_1fr]" : "grid-cols-[100px_repeat(7,1fr)]"
+          isMobile ? "grid-cols-[80px_1fr]" : "grid-cols-[80px_repeat(7,1fr)]"
         )}>
           {TIME_SLOTS.map((timeSlot) => (
             <>
               {/* Time label */}
               <div
                 key={`time-${timeSlot}`}
-                className="px-4 py-3 border-r-2 border-b text-sm text-muted-foreground font-semibold bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900"
+                className="px-3 py-3 border-r border-b text-xs text-muted-foreground font-medium bg-muted/20"
               >
                 {timeSlot}
               </div>
@@ -336,39 +334,37 @@ export function WeeklyCalendarView({
                   <div
                     key={`${day.toISOString()}-${timeSlot}`}
                     className={cn(
-                      "p-3 border-r border-b last:border-r-0 min-h-[110px] transition-all duration-200",
+                      "p-2 border-r border-b last:border-r-0 min-h-[100px] transition-colors",
                       isBreak
-                        ? "bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 pattern-dots pattern-gray-300 pattern-bg-transparent pattern-size-2 pattern-opacity-30"
+                        ? "bg-muted/40"
                         : isToday
-                          ? "bg-gradient-to-br from-blue-50/50 to-purple-50/50 dark:from-blue-950/20 dark:to-purple-950/20 hover:from-blue-100/50 hover:to-purple-100/50"
-                          : "bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                          ? "bg-primary/5 hover:bg-primary/10"
+                          : "bg-background hover:bg-muted/20"
                     )}
                   >
                     {isBreak ? (
                       <div className="flex items-center justify-center h-full">
-                        <div className="text-center space-y-1">
-                          <div className="text-xs text-muted-foreground font-semibold italic">Break Time</div>
-                          <div className="text-[10px] text-muted-foreground/60">No appointments</div>
+                        <div className="text-center">
+                          <div className="text-xs text-muted-foreground italic">Break</div>
                         </div>
                       </div>
                     ) : slotAppointments.length === 0 ? (
                       <div
-                        className="flex items-center justify-center h-full group cursor-pointer hover:bg-blue-50/50 dark:hover:bg-blue-950/20 rounded-lg transition-all duration-200"
+                        className="flex items-center justify-center h-full group cursor-pointer rounded-md hover:bg-muted/40"
                         onClick={() => handleEmptySlotClick(day, timeSlot)}
                       >
-                        <div className="text-center space-y-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                        <div className="text-center opacity-0 group-hover:opacity-100 transition-opacity">
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-8 w-8 rounded-full bg-blue-500 hover:bg-blue-600 text-white"
+                            className="h-7 w-7 rounded-full"
                           >
-                            <Plus className="h-4 w-4" />
+                            <Plus className="h-3 w-3" />
                           </Button>
-                          <div className="text-[10px] text-muted-foreground font-medium">Add Appointment</div>
                         </div>
                       </div>
                     ) : (
-                      <div className="space-y-2">
+                      <div className="space-y-1.5">
                         {slotAppointments.map((apt) => {
                         const patientName = `${apt.patient?.first_name || ""} ${apt.patient?.last_name || ""}`.trim() || "Unknown";
                         const isSelected = apt.id === selectedAppointmentId;
@@ -380,128 +376,91 @@ export function WeeklyCalendarView({
                             <TooltipTrigger asChild>
                               <Card
                                 className={cn(
-                                  "p-3 cursor-pointer transition-all duration-300 border-l-[6px] rounded-xl backdrop-blur-sm",
+                                  "p-2.5 cursor-pointer transition-all rounded-md border",
                                   getStatusColor(apt.status),
-                                  isSelected && "ring-4 ring-blue-500 ring-offset-2 shadow-2xl scale-105 z-10"
+                                  isSelected && "ring-2 ring-primary ring-offset-1"
                                 )}
                                 onClick={() => onAppointmentClick(apt)}
                               >
-                                <div className="flex items-start gap-2">
-                                  <Avatar className="h-8 w-8 flex-shrink-0 ring-2 ring-white dark:ring-gray-800 shadow-sm">
-                                    <AvatarFallback className="text-xs font-bold bg-gradient-to-br from-blue-500 to-purple-600 text-white">
+                                <div className="flex items-center gap-2">
+                                  <Avatar className="h-7 w-7 flex-shrink-0">
+                                    <AvatarFallback className="text-xs font-medium bg-primary text-primary-foreground">
                                       {getPatientInitials(apt.patient?.first_name, apt.patient?.last_name)}
                                     </AvatarFallback>
                                   </Avatar>
                                   <div className="flex-1 min-w-0">
-                                    <div className="font-semibold text-xs truncate mb-1">
+                                    <div className="font-medium text-xs truncate">
                                       {patientName}
                                     </div>
-                                    <div className="text-[11px] text-muted-foreground font-medium">
-                                      {format(startTime, "h:mm a")} - {format(endTime, "h:mm a")}
+                                    <div className="text-[10px] text-muted-foreground">
+                                      {format(startTime, "h:mm a")}
                                     </div>
                                   </div>
-                                  {apt.urgency !== "low" && (
+                                  {apt.urgency === "high" && (
                                     <Badge
-                                      variant="outline"
-                                      className={cn(
-                                        "text-[10px] px-2 h-5 font-bold",
-                                        apt.urgency === "high" && "bg-red-100 text-red-700 border-red-300 animate-pulse"
-                                      )}
+                                      variant="destructive"
+                                      className="text-[9px] px-1.5 h-4 font-semibold"
                                     >
-                                      {URGENCY_LABELS[apt.urgency]}
+                                      !
                                     </Badge>
                                   )}
                                 </div>
                               </Card>
                             </TooltipTrigger>
-                            <TooltipContent side="right" className="w-[340px] p-0 border-l-[6px] border-l-blue-500 shadow-2xl rounded-xl">
-                              <div className="p-5 space-y-4 bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
-                                <div className="flex items-center gap-3 pb-4 border-b-2 border-gray-200 dark:border-gray-700">
-                                  <Avatar className="h-14 w-14 ring-4 ring-blue-100 dark:ring-blue-900 shadow-lg">
-                                    <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-bold text-lg">
+                            <TooltipContent side="right" className="w-80 p-4">
+                              <div className="space-y-3">
+                                <div className="flex items-center gap-3 pb-3 border-b">
+                                  <Avatar className="h-10 w-10">
+                                    <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
                                       {getPatientInitials(apt.patient?.first_name, apt.patient?.last_name)}
                                     </AvatarFallback>
                                   </Avatar>
                                   <div className="flex-1 min-w-0">
-                                    <p className="font-bold text-lg">{patientName}</p>
-                                    <p className="text-sm text-muted-foreground truncate">{apt.patient?.email}</p>
+                                    <p className="font-semibold text-sm">{patientName}</p>
+                                    <p className="text-xs text-muted-foreground truncate">{apt.patient?.email}</p>
                                   </div>
                                 </div>
-                                
-                                <div className="space-y-3 text-sm">
-                                  <div className="flex items-start gap-3 py-2">
-                                    <div className="w-8 h-8 rounded flex items-center justify-center bg-muted">
-                                      <svg className="w-4 h-4 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                      </svg>
-                                    </div>
-                                    <div className="flex-1">
-                                      <p className="text-muted-foreground text-xs mb-1">Date</p>
-                                      <p className="font-medium">{format(startTime, "EEEE, MMMM d, yyyy")}</p>
-                                    </div>
+
+                                <div className="space-y-2 text-xs">
+                                  <div className="flex justify-between">
+                                    <span className="text-muted-foreground">Date</span>
+                                    <span className="font-medium">{format(startTime, "MMM d, yyyy")}</span>
                                   </div>
-                                  
-                                  <div className="flex items-start gap-3 py-2">
-                                    <div className="w-8 h-8 rounded flex items-center justify-center bg-muted">
-                                      <svg className="w-4 h-4 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                      </svg>
-                                    </div>
-                                    <div className="flex-1">
-                                      <p className="text-muted-foreground text-xs mb-1">Time</p>
-                                      <p className="font-medium">{format(startTime, "h:mm a")}</p>
-                                    </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-muted-foreground">Time</span>
+                                    <span className="font-medium">{format(startTime, "h:mm a")} - {format(endTime, "h:mm a")}</span>
                                   </div>
-                                </div>
-                                
-                                <div className="space-y-2 pt-2 border-t">
-                                  <div>
-                                    <p className="text-muted-foreground text-xs mb-1">Status</p>
-                                    <Badge 
-                                      variant={apt.status === "completed" ? "success" : apt.status === "confirmed" ? "default" : "secondary"} 
-                                      className="capitalize"
-                                    >
-                                      ✓ {apt.status}
+                                  <div className="flex justify-between">
+                                    <span className="text-muted-foreground">Status</span>
+                                    <Badge variant="outline" className="text-[10px] capitalize">
+                                      {apt.status}
                                     </Badge>
                                   </div>
-                                  
-                                  {apt.urgency !== "low" && (
-                                    <div>
-                                      <p className="text-muted-foreground text-xs mb-1">Urgency</p>
-                                      <Badge 
-                                        variant={apt.urgency === "high" ? "destructive" : "outline"}
-                                        className="uppercase text-xs font-semibold"
-                                      >
-                                        {URGENCY_LABELS[apt.urgency] || apt.urgency}
-                                      </Badge>
-                                    </div>
-                                  )}
-                                  
                                   {apt.reason && (
-                                    <div>
-                                      <p className="text-muted-foreground text-xs mb-1">Reason</p>
-                                      <p className="text-sm">{apt.reason}</p>
+                                    <div className="pt-1">
+                                      <span className="text-muted-foreground">Reason:</span>
+                                      <p className="mt-1 text-foreground">{apt.reason}</p>
                                     </div>
                                   )}
                                 </div>
 
                                 {apt.status !== "completed" && apt.status !== "cancelled" && (
-                                  <div className="flex gap-2 pt-4 border-t-2 border-gray-200 dark:border-gray-700">
+                                  <div className="flex gap-2 pt-2 border-t">
                                     <Button
                                       size="sm"
-                                      className="flex-1 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 shadow-md rounded-xl font-semibold"
+                                      className="flex-1"
                                       onClick={(e) => handleCompleteAppointment(apt, e)}
                                     >
-                                      <CheckCircle2 className="h-4 w-4 mr-1" />
+                                      <CheckCircle2 className="h-3 w-3 mr-1" />
                                       Complete
                                     </Button>
                                     <Button
                                       size="sm"
                                       variant="outline"
-                                      className="flex-1 border-2 hover:bg-red-50 hover:border-red-300 hover:text-red-700 dark:hover:bg-red-950 rounded-xl font-semibold"
+                                      className="flex-1"
                                       onClick={(e) => handleCancelAppointment(apt.id, e)}
                                     >
-                                      <XCircle className="h-4 w-4 mr-1" />
+                                      <XCircle className="h-3 w-3 mr-1" />
                                       Cancel
                                     </Button>
                                   </div>
