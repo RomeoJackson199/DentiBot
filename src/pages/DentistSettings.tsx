@@ -147,17 +147,7 @@ export default function DentistSettings() {
         </TabsContent>
 
         <TabsContent value="staff" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Staff Management</CardTitle>
-              <CardDescription>
-                Manage your team members and their access
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <DentistAdminUsers />
-            </CardContent>
-          </Card>
+          <DentistAdminUsers />
         </TabsContent>
 
         <TabsContent value="security" className="space-y-6">
