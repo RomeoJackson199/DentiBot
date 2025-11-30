@@ -112,7 +112,7 @@ export const DentistAppShell: React.FC<DentistAppShellProps> = ({
   if (isMobile) {
     return <div className="min-h-screen bg-background flex flex-col">
       {/* Mobile Top Header */}
-      <header className="fixed top-0 left-0 right-0 z-40 bg-background/95 backdrop-blur border-b px-4 py-3">
+      <header className="sticky top-0 z-40 bg-background/80 backdrop-blur border-b px-4 py-3">
         <div className="flex items-center gap-3">
           {branding.logoUrl ? (
             <img src={branding.logoUrl} alt="Clinic Logo" className="h-7 w-7 rounded-lg object-cover" />
@@ -151,7 +151,7 @@ export const DentistAppShell: React.FC<DentistAppShellProps> = ({
       </header>
 
       {/* Main Content - with bottom padding for nav */}
-      <main className="flex-1 overflow-y-auto pt-[52px] pb-20">
+      <main className="flex-1 pb-20">
         <AnimatePresence mode="wait">
           <motion.div key={activeSection} initial={{
             opacity: 0,
