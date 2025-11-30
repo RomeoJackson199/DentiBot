@@ -14,11 +14,170 @@ export interface ProfileData {
   profile_picture_url?: string;
 }
 
+// Profanity word list (can be expanded)
+const PROFANITY_LIST = [
+  'fuck', 'shit', 'ass', 'bitch', 'damn', 'bastard', 'crap', 'piss',
+  'dick', 'cock', 'pussy', 'slut', 'whore', 'fag', 'nigger', 'cunt',
+  'asshole', 'motherfucker', 'bullshit', 'goddamn', 'hell', 'retard'
+];
+
+// Validation functions
+export const validateName = (name: string): { valid: boolean; error?: string } => {
+  const trimmedName = name.trim();
+
+  if (!trimmedName) {
+    return { valid: false, error: 'Name is required' };
+  }
+
+  if (trimmedName.length < 2) {
+    return { valid: false, error: 'Name must be at least 2 characters' };
+  }
+
+  // Check for profanity
+  const lowerName = trimmedName.toLowerCase();
+  for (const word of PROFANITY_LIST) {
+    if (lowerName.includes(word)) {
+      return { valid: false, error: 'Name contains inappropriate language' };
+    }
+  }
+
+  return { valid: true };
+};
+
+export const validatePhone = (phone: string): { valid: boolean; error?: string } => {
+  const trimmedPhone = phone.trim();
+
+  if (!trimmedPhone) {
+    return { valid: false, error: 'Phone number is required' };
+  }
+
+  // Check if it starts with +32
+  if (!trimmedPhone.startsWith('+32')) {
+    return { valid: false, error: 'Phone number must start with +32 (Belgian format)' };
+  }
+
+  // Remove +32 and check remaining digits
+  const digitsOnly = trimmedPhone.slice(3).replace(/[\s\-\(\)]/g, '');
+
+  // Belgian phone numbers have 9 digits after +32
+  if (!/^\d{9}$/.test(digitsOnly)) {
+    return { valid: false, error: 'Phone number must have 9 digits after +32 (e.g., +32 123 45 67 89)' };
+  }
+
+  return { valid: true };
+};
+
+export const validateAddress = async (address: string): Promise<{ valid: boolean; error?: string }> => {
+  const trimmedAddress = address.trim();
+
+  if (!trimmedAddress) {
+    return { valid: false, error: 'Address is required' };
+  }
+
+  if (trimmedAddress.length < 5) {
+    return { valid: false, error: 'Address must be at least 5 characters' };
+  }
+
+  // Verify address exists using OpenStreetMap Nominatim API
+  try {
+    const encodedAddress = encodeURIComponent(trimmedAddress + ', Belgium');
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/search?format=json&q=${encodedAddress}&limit=1&countrycodes=be`,
+      {
+        headers: {
+          'User-Agent': 'DentiBot-App/1.0'
+        }
+      }
+    );
+
+    if (!response.ok) {
+      // If geocoding service fails, just check basic validation
+      console.warn('Address geocoding service unavailable, skipping location verification');
+      return { valid: true };
+    }
+
+    const results = await response.json();
+
+    if (!results || results.length === 0) {
+      return { valid: false, error: 'Address not found. Please enter a valid Belgian address' };
+    }
+
+    return { valid: true };
+  } catch (error) {
+    // If geocoding fails, just proceed with basic validation
+    console.warn('Address validation error:', error);
+    return { valid: true };
+  }
+};
+
+export const validateDateOfBirth = (dateOfBirth: string): { valid: boolean; error?: string } => {
+  if (!dateOfBirth) {
+    return { valid: false, error: 'Date of birth is required' };
+  }
+
+  const date = new Date(dateOfBirth);
+  const now = new Date();
+
+  // Check if date is valid
+  if (isNaN(date.getTime())) {
+    return { valid: false, error: 'Invalid date format' };
+  }
+
+  // Check if date is in the future
+  if (date > now) {
+    return { valid: false, error: 'Date of birth cannot be in the future' };
+  }
+
+  // Check if age is reasonable (not older than 150 years)
+  const age = (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24 * 365.25);
+  if (age > 150) {
+    return { valid: false, error: 'Date of birth is too far in the past (maximum age: 150 years)' };
+  }
+
+  // Check if age is at least 1 year
+  if (age < 1) {
+    return { valid: false, error: 'Patient must be at least 1 year old' };
+  }
+
+  return { valid: true };
+};
+
 export const saveProfileData = async (user: User, profileData: ProfileData) => {
   try {
-    // Validate required fields
-    if (!profileData.first_name?.trim() || !profileData.last_name?.trim()) {
-      throw new Error('First name and last name are required');
+    // Validate first name
+    const firstNameValidation = validateName(profileData.first_name);
+    if (!firstNameValidation.valid) {
+      throw new Error(`First name: ${firstNameValidation.error}`);
+    }
+
+    // Validate last name
+    const lastNameValidation = validateName(profileData.last_name);
+    if (!lastNameValidation.valid) {
+      throw new Error(`Last name: ${lastNameValidation.error}`);
+    }
+
+    // Validate phone number if provided
+    if (profileData.phone?.trim()) {
+      const phoneValidation = validatePhone(profileData.phone);
+      if (!phoneValidation.valid) {
+        throw new Error(`Phone: ${phoneValidation.error}`);
+      }
+    }
+
+    // Validate address if provided
+    if (profileData.address?.trim()) {
+      const addressValidation = await validateAddress(profileData.address);
+      if (!addressValidation.valid) {
+        throw new Error(`Address: ${addressValidation.error}`);
+      }
+    }
+
+    // Validate date of birth if provided
+    if (profileData.date_of_birth) {
+      const dobValidation = validateDateOfBirth(profileData.date_of_birth);
+      if (!dobValidation.valid) {
+        throw new Error(`Date of birth: ${dobValidation.error}`);
+      }
     }
 
     // Clean and prepare data - only include fields that exist in the database
