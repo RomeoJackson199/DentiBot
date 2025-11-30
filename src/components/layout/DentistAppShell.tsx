@@ -12,6 +12,7 @@ import { BusinessSelector } from "@/components/BusinessSelector";
 import { useBusinessTemplate } from "@/hooks/useBusinessTemplate";
 import { useTemplateNavigation } from "@/hooks/useTemplateNavigation";
 import { useNavigate } from "react-router-dom";
+import { useIsMobile } from "@/hooks/use-mobile";
 export type DentistSection = 'dashboard' | 'patients' | 'appointments' | 'employees' | 'messages' | 'clinical' | 'schedule' | 'payments' | 'analytics' | 'reports' | 'inventory' | 'imports' | 'branding' | 'security' | 'users' | 'team' | 'settings' | 'services';
 interface DentistAppShellProps {
   activeSection: DentistSection;
@@ -38,6 +39,7 @@ export const DentistAppShell: React.FC<DentistAppShellProps> = ({
   } = useBusinessTemplate();
   const { filterNavItems, getRestaurantNavItems, isRestaurant } = useTemplateNavigation();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [userName, setUserName] = useState<string>("");
   const [userInitials, setUserInitials] = useState<string>("?");
   const [userProfilePicture, setUserProfilePicture] = useState<string | null>(null);
@@ -105,6 +107,111 @@ export const DentistAppShell: React.FC<DentistAppShellProps> = ({
       setUserProfilePicture(data?.profile_picture_url || null);
     })();
   }, []);
+
+  // Mobile bottom navigation (similar to patient portal)
+  if (isMobile) {
+    return <div className="min-h-screen bg-background flex flex-col">
+      {/* Mobile Top Header */}
+      <header className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b px-4 py-3">
+        <div className="flex items-center gap-3">
+          {branding.logoUrl ? (
+            <img src={branding.logoUrl} alt="Clinic Logo" className="h-7 w-7 rounded-lg object-cover" />
+          ) : (
+            <div className="h-7 w-7 rounded-lg bg-primary flex items-center justify-center">
+              <span className="text-primary-foreground font-bold text-sm">D</span>
+            </div>
+          )}
+          <span className="text-sm font-semibold truncate flex-1">{branding.clinicName || 'Dental Portal'}</span>
+
+          {/* User Avatar */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8">
+                <Avatar className="h-7 w-7">
+                  <AvatarImage src={userProfilePicture || undefined} />
+                  <AvatarFallback className="text-xs">{userInitials}</AvatarFallback>
+                </Avatar>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-44">
+              <DropdownMenuLabel>{userName || 'Account'}</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => onChangeSection('settings')} className="gap-2">
+                <SettingsIcon className="mr-2 h-4 w-4" />
+                Settings
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleSignOut} className="gap-2 text-destructive">
+                <LogOut className="mr-2 h-4 w-4" />
+                Log out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </header>
+
+      {/* Main Content - with bottom padding for nav */}
+      <main className="flex-1 overflow-y-auto pb-20">
+        <AnimatePresence mode="wait">
+          <motion.div key={activeSection} initial={{
+            opacity: 0,
+            y: 10
+          }} animate={{
+            opacity: 1,
+            y: 0
+          }} exit={{
+            opacity: 0,
+            y: -10
+          }} transition={{
+            duration: 0.2
+          }} className="h-full">
+            {children}
+          </motion.div>
+        </AnimatePresence>
+      </main>
+
+      {/* Bottom Navigation */}
+      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur border-t">
+        <div className={cn(
+          "grid",
+          NAV_ITEMS.length === 4 ? "grid-cols-4" : "grid-cols-3"
+        )}>
+          {NAV_ITEMS.map(item => {
+            const Icon = item.icon;
+            const active = isActive(item.id);
+            const handleClick = () => {
+              if (item.path) {
+                navigate(item.path);
+              } else {
+                onChangeSection(item.id);
+              }
+            };
+            const badge = badges?.[item.id];
+
+            return (
+              <button
+                key={item.id}
+                onClick={handleClick}
+                className={cn(
+                  "py-2.5 flex flex-col items-center transition-colors relative",
+                  active ? "text-primary" : "text-muted-foreground"
+                )}
+                aria-label={item.label}
+              >
+                <div className="relative">
+                  <Icon className="h-5 w-5" />
+                  {badge && badge > 0 && (
+                    <span className="absolute -top-1 -right-1 h-2.5 w-2.5 bg-red-500 rounded-full" />
+                  )}
+                </div>
+                <span className="text-xs mt-1">{item.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </nav>
+    </div>;
+  }
 
   // Desktop Layout
   return <div className="min-h-screen bg-background flex flex-col">
