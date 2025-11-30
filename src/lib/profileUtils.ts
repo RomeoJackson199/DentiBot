@@ -67,7 +67,7 @@ export const validatePhone = (phone: string): { valid: boolean; error?: string }
   return { valid: true };
 };
 
-export const validateAddress = (address: string): { valid: boolean; error?: string } => {
+export const validateAddress = async (address: string): Promise<{ valid: boolean; error?: string }> => {
   const trimmedAddress = address.trim();
 
   if (!trimmedAddress) {
@@ -78,7 +78,36 @@ export const validateAddress = (address: string): { valid: boolean; error?: stri
     return { valid: false, error: 'Address must be at least 5 characters' };
   }
 
-  return { valid: true };
+  // Verify address exists using OpenStreetMap Nominatim API
+  try {
+    const encodedAddress = encodeURIComponent(trimmedAddress + ', Belgium');
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/search?format=json&q=${encodedAddress}&limit=1&countrycodes=be`,
+      {
+        headers: {
+          'User-Agent': 'DentiBot-App/1.0'
+        }
+      }
+    );
+
+    if (!response.ok) {
+      // If geocoding service fails, just check basic validation
+      console.warn('Address geocoding service unavailable, skipping location verification');
+      return { valid: true };
+    }
+
+    const results = await response.json();
+
+    if (!results || results.length === 0) {
+      return { valid: false, error: 'Address not found. Please enter a valid Belgian address' };
+    }
+
+    return { valid: true };
+  } catch (error) {
+    // If geocoding fails, just proceed with basic validation
+    console.warn('Address validation error:', error);
+    return { valid: true };
+  }
 };
 
 export const validateDateOfBirth = (dateOfBirth: string): { valid: boolean; error?: string } => {
@@ -137,7 +166,7 @@ export const saveProfileData = async (user: User, profileData: ProfileData) => {
 
     // Validate address if provided
     if (profileData.address?.trim()) {
-      const addressValidation = validateAddress(profileData.address);
+      const addressValidation = await validateAddress(profileData.address);
       if (!addressValidation.valid) {
         throw new Error(`Address: ${addressValidation.error}`);
       }
