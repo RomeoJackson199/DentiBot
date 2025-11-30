@@ -133,16 +133,15 @@ export function AppointmentDetailsDialog({ appointmentId, open, onOpenChange }: 
               {/* Patient AI Chat Conversation */}
               <AppointmentChatSummary appointmentId={appointmentId} />
 
-              {/* AI Assistant Section - Hidden from patients */}
-              {!isPatient && (
-                <AppointmentAIAssistant
-                  appointmentData={appointment}
-                  treatmentContext={{
-                    medical_records: appointment.medical_records,
-                    prescriptions: appointment.prescriptions,
-                  }}
-                />
-              )}
+              {/* AI Assistant Section - Summary hidden from patients */}
+              <AppointmentAIAssistant
+                appointmentData={appointment}
+                treatmentContext={{
+                  medical_records: appointment.medical_records,
+                  prescriptions: appointment.prescriptions,
+                }}
+                hideSummary={isPatient}
+              />
               {/* Basic Info */}
               <Card>
                 <CardHeader>

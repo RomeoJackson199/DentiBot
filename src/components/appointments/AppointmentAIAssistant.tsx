@@ -18,9 +18,10 @@ interface Message {
 interface AppointmentAIAssistantProps {
   appointmentData: any;
   treatmentContext?: any;
+  hideSummary?: boolean;
 }
 
-export function AppointmentAIAssistant({ appointmentData, treatmentContext }: AppointmentAIAssistantProps) {
+export function AppointmentAIAssistant({ appointmentData, treatmentContext, hideSummary = false }: AppointmentAIAssistantProps) {
   const { hasFeature, loading } = useBusinessTemplate();
   const hasAIChat = !loading && hasFeature('aiChat');
   
@@ -190,26 +191,28 @@ export function AppointmentAIAssistant({ appointmentData, treatmentContext }: Ap
 
   return (
     <div className="space-y-4">
-      {/* AI Summary Card */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-primary" />
-            AI Appointment Summary
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {loadingSummary ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-            </div>
-          ) : (
-            <div className="prose prose-sm dark:prose-invert max-w-none">
-              <p className="text-sm leading-relaxed whitespace-pre-wrap">{summary}</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      {/* AI Summary Card - Hidden from patients */}
+      {!hideSummary && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-primary" />
+              AI Appointment Summary
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {loadingSummary ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              </div>
+            ) : (
+              <div className="prose prose-sm dark:prose-invert max-w-none">
+                <p className="text-sm leading-relaxed whitespace-pre-wrap">{summary}</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* AI Chat for Treatment Plans */}
       {appointmentData.status === "completed" || appointmentData.treatment_plan ? (
