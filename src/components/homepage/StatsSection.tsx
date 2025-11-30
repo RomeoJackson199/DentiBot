@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import { Zap, Server, PhoneIncoming } from "lucide-react";
 
 const stats = [
@@ -37,36 +36,21 @@ export const StatsSection = () => {
 
       <div className="max-w-7xl mx-auto relative z-10">
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-3xl sm:text-4xl font-bold mb-4"
-          >
+          <h2 className="text-3xl sm:text-4xl font-bold mb-4">
             Powered by Advanced AI Technology
-          </motion.h2>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.1 }}
-            className="text-xl text-gray-400"
-          >
+          </h2>
+          <p className="text-xl text-gray-400">
             Caberu combines cutting-edge voice AI with lightning-fast appointment matching.
-          </motion.p>
+          </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {stats.map((stat, index) => (
-            <motion.div
+            <div
               key={stat.label}
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.1 + 0.2 }}
-              className="relative p-8 rounded-3xl bg-gray-800/50 border border-gray-700 backdrop-blur-sm text-center group hover:bg-gray-800/80 transition-colors duration-300"
+              className="relative p-8 rounded-3xl bg-gray-800/50 border border-gray-700 backdrop-blur-sm text-center"
             >
-              <div className={`inline-flex p-4 rounded-2xl ${stat.bg} ${stat.color} mb-6 group-hover:scale-110 transition-transform duration-300`}>
+              <div className={`inline-flex p-4 rounded-2xl ${stat.bg} ${stat.color} mb-6`}>
                 <stat.icon className="w-8 h-8" />
               </div>
               <div className="text-5xl font-extrabold text-white mb-2 tracking-tight">
@@ -78,7 +62,7 @@ export const StatsSection = () => {
               <div className="text-gray-400 text-sm font-medium uppercase tracking-wider">
                 {stat.sublabel}
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
       </div>

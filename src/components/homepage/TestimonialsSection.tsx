@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import { Star, Quote } from "lucide-react";
 import { Card } from "@/components/ui/card";
 
@@ -60,30 +59,19 @@ export const TestimonialsSection = () => {
   return (
     <section className="py-24 px-4 sm:px-6 lg:px-8 bg-white overflow-hidden">
       <div className="max-w-7xl mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-center max-w-3xl mx-auto mb-16"
-        >
+        <div className="text-center max-w-3xl mx-auto mb-16">
           <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4 tracking-tight">
             Trusted by Dental Professionals
           </h2>
           <p className="text-xl text-gray-600">
             See what dentists are saying about transforming their practices with Caberu
           </p>
-        </motion.div>
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {testimonials.map((testimonial, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.1 }}
-            >
-              <Card className="p-6 h-full hover:shadow-lg transition-shadow duration-300 relative">
+            <div key={index}>
+              <Card className="p-6 h-full relative">
                 <Quote className="absolute top-4 right-4 h-8 w-8 text-blue-100" />
 
                 <div className="flex gap-1 mb-4">
@@ -107,17 +95,11 @@ export const TestimonialsSection = () => {
                   </div>
                 </div>
               </Card>
-            </motion.div>
+            </div>
           ))}
         </div>
 
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.6 }}
-          className="mt-12 text-center"
-        >
+        <div className="mt-12 text-center">
           <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-green-50 border border-green-200">
             <div className="flex -space-x-2">
               {[1, 2, 3, 4].map((i) => (
@@ -131,7 +113,7 @@ export const TestimonialsSection = () => {
               Join <span className="font-bold text-green-700">500+</span> practices using Caberu
             </p>
           </div>
-        </motion.div>
+        </div>
       </div>
     </section>
   );

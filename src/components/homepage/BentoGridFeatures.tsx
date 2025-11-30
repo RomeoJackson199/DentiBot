@@ -25,26 +25,21 @@ interface BentoCardProps {
 const BentoCard = ({ title, description, icon: Icon, className, gradient, children }: BentoCardProps) => (
   <div
     className={cn(
-      "group relative overflow-hidden rounded-3xl p-6 sm:p-8 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1",
+      "relative overflow-hidden rounded-3xl p-6 sm:p-8",
       "bg-white border border-gray-100 shadow-sm",
       className
     )}
   >
-    <div className={cn(
-      "absolute inset-0 opacity-0 group-hover:opacity-5 transition-opacity duration-500",
-      gradient || "bg-gradient-to-br from-blue-600 to-purple-600"
-    )} />
-
     <div className="relative z-10 flex flex-col h-full">
-      <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gray-50 group-hover:bg-white/80 group-hover:scale-110 transition-all duration-300 shadow-sm text-gray-900">
+      <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gray-50 shadow-sm text-gray-900">
         <Icon className="h-6 w-6" />
       </div>
 
-      <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-700 transition-colors">
+      <h3 className="text-xl font-bold text-gray-900 mb-2">
         {title}
       </h3>
 
-      <p className="text-gray-500 leading-relaxed group-hover:text-gray-600 mb-4">
+      <p className="text-gray-500 leading-relaxed mb-4">
         {description}
       </p>
 

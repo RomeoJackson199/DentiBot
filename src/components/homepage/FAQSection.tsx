@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import {
   Accordion,
   AccordionContent,
@@ -83,32 +82,22 @@ export const FAQSection = () => {
   return (
     <section className="py-24 px-4 sm:px-6 lg:px-8 bg-white overflow-hidden">
       <div className="max-w-4xl mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-center mb-12"
-        >
+        <div className="text-center mb-12">
           <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4 tracking-tight">
             Frequently Asked Questions
           </h2>
           <p className="text-xl text-gray-600">
             Everything you need to know about Caberu's AI reception
           </p>
-        </motion.div>
+        </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.2 }}
-        >
+        <div>
           <Accordion type="single" collapsible className="space-y-4">
             {faqs.map((faq, index) => (
               <AccordionItem
                 key={index}
                 value={`item-${index}`}
-                className="border border-gray-200 rounded-lg px-6 bg-white hover:shadow-md transition-shadow"
+                className="border border-gray-200 rounded-lg px-6 bg-white"
               >
                 <AccordionTrigger className="text-left hover:no-underline py-5">
                   <span className="font-semibold text-gray-900 pr-4">
@@ -121,15 +110,9 @@ export const FAQSection = () => {
               </AccordionItem>
             ))}
           </Accordion>
-        </motion.div>
+        </div>
 
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.4 }}
-          className="mt-12 text-center"
-        >
+        <div className="mt-12 text-center">
           <p className="text-gray-600 mb-4">
             Still have questions?
           </p>
@@ -139,7 +122,7 @@ export const FAQSection = () => {
           >
             Contact our team →
           </a>
-        </motion.div>
+        </div>
       </div>
     </section>
   );
