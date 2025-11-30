@@ -153,7 +153,7 @@ export const DentistAppShell: React.FC<DentistAppShellProps> = ({
       </header>
 
       {/* Main Content - with header and bottom nav offset */}
-      <main className="min-h-screen pt-[60px] pb-[80px]">
+      <main className="flex-1 pt-[60px] pb-[80px]">
         <AnimatePresence mode="wait">
           <motion.div key={activeSection} initial={{
             opacity: 0,
