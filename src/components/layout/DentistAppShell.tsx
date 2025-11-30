@@ -112,21 +112,23 @@ export const DentistAppShell: React.FC<DentistAppShellProps> = ({
   if (isMobile) {
     return <div className="min-h-screen bg-background flex flex-col">
       {/* Mobile Top Header */}
-      <header className="sticky top-0 z-40 bg-background/80 backdrop-blur border-b px-4 py-3">
-        <div className="flex items-center gap-3">
-          {branding.logoUrl ? (
-            <img src={branding.logoUrl} alt="Clinic Logo" className="h-7 w-7 rounded-lg object-cover" />
-          ) : (
-            <div className="h-7 w-7 rounded-lg bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-sm">D</span>
-            </div>
-          )}
-          <span className="text-sm font-semibold truncate flex-1">{branding.clinicName || 'Dental Portal'}</span>
+      <header className="fixed top-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-sm border-b">
+        <div className="flex items-center justify-between px-4 py-3">
+          <div className="flex items-center gap-3">
+            {branding.logoUrl ? (
+              <img src={branding.logoUrl} alt="Clinic Logo" className="h-8 w-8 rounded-lg object-cover" />
+            ) : (
+              <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
+                <span className="text-primary-foreground font-bold text-sm">D</span>
+              </div>
+            )}
+            <span className="text-sm font-semibold truncate">{branding.clinicName || 'Dental Portal'}</span>
+          </div>
 
           {/* User Avatar */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
+              <Button variant="ghost" size="icon" className="min-h-[44px] min-w-[44px]">
                 <Avatar className="h-7 w-7">
                   <AvatarImage src={userProfilePicture || undefined} />
                   <AvatarFallback className="text-xs">{userInitials}</AvatarFallback>
@@ -150,8 +152,8 @@ export const DentistAppShell: React.FC<DentistAppShellProps> = ({
         </div>
       </header>
 
-      {/* Main Content - with bottom padding for nav */}
-      <main className="flex-1 pb-20">
+      {/* Main Content - with header and bottom nav offset */}
+      <main className="min-h-screen pt-[60px] pb-[80px]">
         <AnimatePresence mode="wait">
           <motion.div key={activeSection} initial={{
             opacity: 0,
@@ -171,11 +173,8 @@ export const DentistAppShell: React.FC<DentistAppShellProps> = ({
       </main>
 
       {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur border-t">
-        <div className={cn(
-          "grid",
-          NAV_ITEMS.length === 4 ? "grid-cols-4" : "grid-cols-3"
-        )}>
+      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-t safe-bottom">
+        <div className="flex items-center justify-around py-2">
           {NAV_ITEMS.map(item => {
             const Icon = item.icon;
             const active = isActive(item.id);
@@ -193,15 +192,16 @@ export const DentistAppShell: React.FC<DentistAppShellProps> = ({
                 key={item.id}
                 onClick={handleClick}
                 className={cn(
-                  "py-2.5 flex flex-col items-center transition-colors relative",
-                  active ? "text-primary" : "text-muted-foreground"
+                  "flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-all relative touch-target min-h-[44px] min-w-[44px]",
+                  active ? "text-primary" : "text-muted-foreground hover:text-foreground"
                 )}
+                aria-current={active ? 'page' : undefined}
                 aria-label={item.label}
               >
                 <div className="relative">
-                  <Icon className="h-5 w-5" />
+                  <Icon className={cn("h-5 w-5", active && "scale-110")} />
                   {badge && badge > 0 && (
-                    <span className="absolute -top-1 -right-1 h-2.5 w-2.5 bg-red-500 rounded-full" />
+                    <span className="absolute -top-1 -right-1 h-2 w-2 bg-red-500 rounded-full animate-pulse" />
                   )}
                 </div>
                 <span className="text-xs mt-1">{item.label}</span>
