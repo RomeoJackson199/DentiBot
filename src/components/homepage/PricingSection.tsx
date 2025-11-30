@@ -5,7 +5,6 @@ import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
-import { ScrollAnimatedSection } from "./ScrollAnimatedSection";
 
 interface SubscriptionPlan {
   id: string;
@@ -82,16 +81,16 @@ export const PricingSection = () => {
   return (
     <section className="py-24 px-4 sm:px-6 lg:px-8 bg-white">
       <div className="max-w-7xl mx-auto">
-        <ScrollAnimatedSection className="text-center mb-12">
+        <div className="text-center mb-12">
           <h2 className="text-4xl font-bold text-gray-900 mb-4">
             Simple, Transparent Pricing
           </h2>
           <p className="text-lg text-gray-600">
             Everything you need to run your practice efficiently
           </p>
-        </ScrollAnimatedSection>
+        </div>
 
-        <ScrollAnimatedSection>
+        <div>
             {/* Billing Cycle Toggle */}
             <div className="flex justify-center gap-2 p-1 bg-gray-100 rounded-xl max-w-xs mx-auto border border-gray-200 mb-12">
             <Button
@@ -175,7 +174,7 @@ export const PricingSection = () => {
             <div className="text-center mt-12 text-sm text-gray-500">
             <p>All plans include free updates and can be cancelled anytime.</p>
             </div>
-        </ScrollAnimatedSection>
+        </div>
       </div>
     </section>
   );

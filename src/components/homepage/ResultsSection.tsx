@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import { CheckCircle2 } from "lucide-react";
 
 const benefits = [
@@ -30,16 +29,7 @@ export const ResultsSection = () => {
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <div className="relative">
-             {/* Decorative elements */}
-            <div className="absolute -top-10 -left-10 w-72 h-72 bg-blue-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
-            <div className="absolute -bottom-10 -right-10 w-72 h-72 bg-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
-
-            <motion.div
-                initial={{ opacity: 0, x: -50 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                className="relative z-10"
-            >
+            <div className="relative z-10">
                 <h2 className="text-4xl md:text-5xl font-extrabold text-gray-900 leading-tight mb-6">
                   The Result: <br />
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
@@ -61,25 +51,16 @@ export const ResultsSection = () => {
                         </div>
                     </div>
                      <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                        <motion.div
-                            initial={{ width: 0 }}
-                            whileInView={{ width: "98%" }}
-                            transition={{ duration: 1, delay: 0.5 }}
-                            className="h-full bg-green-500 rounded-full"
-                        />
+                        <div className="h-full bg-green-500 rounded-full" style={{ width: "98%" }} />
                     </div>
                 </div>
-            </motion.div>
+            </div>
           </div>
 
           <div className="space-y-6">
             {benefits.map((benefit, index) => (
-              <motion.div
+              <div
                 key={benefit.title}
-                initial={{ opacity: 0, x: 50 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
                 className="flex gap-4"
               >
                 <div className="flex-shrink-0 mt-1">
@@ -89,7 +70,7 @@ export const ResultsSection = () => {
                   <h3 className="text-lg font-bold text-gray-900 mb-1">{benefit.title}</h3>
                   <p className="text-gray-600">{benefit.description}</p>
                 </div>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
