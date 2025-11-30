@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/hooks/useLanguage";
+import { useUserRole } from "@/hooks/useUserRole";
 import { AppointmentAIAssistant } from "@/components/appointments/AppointmentAIAssistant";
 import { AppointmentChatSummary } from "@/components/appointments/AppointmentChatSummary";
 import { logger } from '@/lib/logger';
@@ -36,6 +37,7 @@ export function AppointmentDetailsDialog({ appointmentId, open, onOpenChange }: 
   const [appointment, setAppointment] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const { t } = useLanguage();
+  const { isPatient } = useUserRole();
 
   useEffect(() => {
     if (open && appointmentId) {
@@ -130,14 +132,15 @@ export function AppointmentDetailsDialog({ appointmentId, open, onOpenChange }: 
             <div className="space-y-6 pr-6">
               {/* Patient AI Chat Conversation */}
               <AppointmentChatSummary appointmentId={appointmentId} />
-              
-              {/* AI Assistant Section */}
-              <AppointmentAIAssistant 
+
+              {/* AI Assistant Section - Summary hidden from patients */}
+              <AppointmentAIAssistant
                 appointmentData={appointment}
                 treatmentContext={{
                   medical_records: appointment.medical_records,
                   prescriptions: appointment.prescriptions,
                 }}
+                hideSummary={isPatient}
               />
               {/* Basic Info */}
               <Card>
