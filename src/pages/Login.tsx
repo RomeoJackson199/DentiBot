@@ -84,6 +84,19 @@ const Login = () => {
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Require business selection before login
+    if (!selectedBusinessId && businesses.length > 0) {
+      toast({
+        title: "Business selection required",
+        description: "Please select a business to continue.",
+        variant: "destructive",
+        duration: 5000,
+      });
+      setShowBusinessSelector(true);
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -132,6 +145,18 @@ const Login = () => {
   };
 
   const handleGoogleSignIn = async () => {
+    // Require business selection before Google login
+    if (!selectedBusinessId && businesses.length > 0) {
+      toast({
+        title: "Business selection required",
+        description: "Please select a business before signing in with Google.",
+        variant: "destructive",
+        duration: 5000,
+      });
+      setShowBusinessSelector(true);
+      return;
+    }
+
     setIsLoading(true);
     try {
       const { error } = await supabase.auth.signInWithOAuth({

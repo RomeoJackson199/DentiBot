@@ -48,6 +48,7 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
   const [badges, setBadges] = useState<Partial<Record<DentistSection, number>>>({});
   const location = useLocation();
   const [businessInfo, setBusinessInfo] = useState<{ id: string; name: string } | null>(null);
+  const { businessId: contextBusinessId, businessName: contextBusinessName } = useBusinessContext();
   const { template, hasFeature, loading: templateLoading } = useBusinessTemplate();
   const { showTour, closeTour } = useUserTour("dentist");
   const [showDemoTour, setShowDemoTour] = useState(false);
@@ -111,18 +112,18 @@ export function DentistPortal({ user: userProp }: DentistPortalProps) {
       fetchDentistProfile();
       fetchBusinessInfo();
     }
-  }, [user]);
+  }, [user, contextBusinessId]);
 
   const fetchBusinessInfo = async () => {
-    const businessId = localStorage.getItem('selected_business_id');
-    if (!businessId) return;
-    
+    // Use business context instead of localStorage
+    if (!contextBusinessId) return;
+
     const { data } = await supabase
       .from('businesses')
       .select('id, name')
-      .eq('id', businessId)
+      .eq('id', contextBusinessId)
       .single();
-    
+
     if (data) setBusinessInfo(data);
   };
 
