@@ -178,7 +178,7 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate('/about')} aria-label="About">
                     <Info className="mr-2 h-4 w-4" />
-                    About Dentinot
+                    About Caberu
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleSignOut} className="text-red-600" aria-label="Logout">
