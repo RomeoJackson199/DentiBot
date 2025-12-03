@@ -113,16 +113,16 @@ const Login = () => {
       // Check if user has 2FA enabled
       const twoFactorEnabled = authData.user?.user_metadata?.two_factor_enabled === true;
 
+
       if (twoFactorEnabled) {
         // User has 2FA enabled - show verification dialog
+        // Keep session active during 2FA verification
         setUserEmail(formData.email);
         setShow2FADialog(true);
         setIsLoading(false);
-
-        // Sign out temporarily until 2FA is verified
-        await supabase.auth.signOut();
         return;
       }
+
 
       // No 2FA - proceed with normal login flow
       await completeLogin();
@@ -192,17 +192,6 @@ const Login = () => {
   const handle2FASuccess = async () => {
     setIsLoading(true);
     try {
-      // Re-authenticate with the same credentials after 2FA verification
-      const { error } = await supabase.auth.signInWithPassword({
-        email: formData.email,
-        password: formData.password,
-      });
-
-      if (error) throw error;
-
-      // Wait a moment for the session to be fully established
-      await new Promise(resolve => setTimeout(resolve, 500));
-
       // Log 2FA login event
       try {
         const { data: { user } } = await supabase.auth.getUser();
@@ -217,6 +206,7 @@ const Login = () => {
         console.error('Failed to log 2FA login:', logError);
       }
 
+      // Complete the login process with the active session
       await completeLogin();
     } catch (error: any) {
       toast({
