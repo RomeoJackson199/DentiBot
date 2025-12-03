@@ -37,19 +37,25 @@ const Login = () => {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      // Don't auto-navigate if 2FA dialog is showing
-      if (session && !show2FADialog) navigate("/auth-redirect");
+      // Don't auto-navigate if user has 2FA enabled (let the login handler show the dialog)
+      const has2FA = session?.user?.user_metadata?.two_factor_enabled === true;
+      if (session && !has2FA) {
+        navigate("/auth-redirect");
+      }
     });
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      // Don't auto-navigate if 2FA dialog is showing
-      if (session && !show2FADialog) navigate("/auth-redirect");
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      // Don't auto-navigate if user has 2FA enabled (let the login handler show the dialog)
+      const has2FA = session?.user?.user_metadata?.two_factor_enabled === true;
+      if (session && !has2FA) {
+        navigate("/auth-redirect");
+      }
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate, show2FADialog]);
+  }, [navigate]);
 
   useEffect(() => {
     const loadBusinesses = async () => {
