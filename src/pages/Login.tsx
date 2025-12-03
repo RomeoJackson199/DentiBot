@@ -37,17 +37,19 @@ const Login = () => {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) navigate("/auth-redirect");
+      // Don't auto-navigate if 2FA dialog is showing
+      if (session && !show2FADialog) navigate("/auth-redirect");
     });
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session) navigate("/auth-redirect");
+      // Don't auto-navigate if 2FA dialog is showing
+      if (session && !show2FADialog) navigate("/auth-redirect");
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, show2FADialog]);
 
   useEffect(() => {
     const loadBusinesses = async () => {
@@ -70,6 +72,12 @@ const Login = () => {
 
     loadBusinesses();
   }, []);
+
+  // Debug: Log when 2FA dialog state changes
+  useEffect(() => {
+    console.log('show2FADialog state changed to:', show2FADialog);
+    console.log('userEmail:', userEmail);
+  }, [show2FADialog, userEmail]);
 
   const handleSelectBusiness = (businessId: string) => {
     localStorage.setItem("selected_business_id", businessId);
