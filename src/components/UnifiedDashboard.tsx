@@ -5,6 +5,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { PatientDashboard } from "./PatientDashboard";
 import { AiOptOutPrompt } from "./AiOptOutPrompt";
 import { ModernLoadingSpinner } from "@/components/enhanced/ModernLoadingSpinner";
+import { PremiumLoadingScreen } from "@/components/ui/premium-loading-screen";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useIsSuperAdmin } from "@/hooks/useSuperAdmin";
 
@@ -26,11 +27,9 @@ export const UnifiedDashboard = memo(({ user }: UnifiedDashboardProps) => {
 
   if (roleLoading || superAdminLoading) {
     return (
-      <ModernLoadingSpinner 
-        variant="overlay" 
-        size="lg"
-        message="Loading Dashboard" 
-        description="Setting up your personalized experience..." 
+      <PremiumLoadingScreen
+        message="Loading Dashboard"
+        description="Setting up your personalized experience..."
       />
     );
   }

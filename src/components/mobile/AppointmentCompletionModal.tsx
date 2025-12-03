@@ -10,7 +10,8 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { Calendar } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Calendar, CheckCircle, CreditCard } from "lucide-react";
 import { QuickPhotoUpload } from "@/components/QuickPhotoUpload";
 import { emitAnalyticsEvent } from "@/lib/analyticsEvents";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -131,7 +132,7 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 					dentist_id: appt.dentist_id,
 					type: 'payment',
 					title: 'Payment Request',
-					message: `Payment request for €${(patientCents/100).toFixed(2)} - Appointment ${new Date(appointment.appointment_date).toLocaleDateString()}`,
+					message: `Payment request for €${(patientCents / 100).toFixed(2)} - Appointment ${new Date(appointment.appointment_date).toLocaleDateString()}`,
 					priority: 'high',
 					action_url: pr.payment_url,
 					action_label: 'Pay Now',
@@ -300,7 +301,7 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 	const addProcedureByKey = (key: string) => {
 		const def = PROCEDURE_DEFS.find(d => d.key === key);
 		if (!def) return;
-		const id = `${key}-${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
+		const id = `${key}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 		setSelectedProcedures(prev => ([...prev, { id, key: def.key, name: def.name, price: def.defaultPrice, duration: def.defaultDurationMin }]));
 		setTreatments(prev => ([...prev, {
 			code: `PROC-${def.key.toUpperCase()}`,
@@ -744,8 +745,8 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 
 	return (
 		<Drawer open={open} onOpenChange={onOpenChange}>
-			<DrawerContent className="max-h-[90vh] overflow-y-auto p-3">
-				<div className="space-y-4">
+			<DrawerContent className="h-[90vh] flex flex-col p-0">
+				<div className="flex-none p-4 border-b">
 					<div className="flex items-center justify-between">
 						<div>
 							<h3 className="font-semibold">Complete appointment</h3>
@@ -757,7 +758,10 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 						</div>
 					</div>
 
-					<Tabs value={step} onValueChange={(v) => setStep(v as any)}>
+				</div>
+
+				<div className="flex-1 overflow-y-auto p-4">
+					<Tabs value={step} onValueChange={(v) => setStep(v as any)} className="h-full flex flex-col">
 						<TabsList className="w-full grid grid-cols-3 sm:grid-cols-7">
 							{steps.map(s => (
 								<TabsTrigger key={s.id} value={s.id} className="text-xs px-2 py-1">{s.label}</TabsTrigger>
@@ -766,7 +770,7 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 
 						<TabsContent value="treatments" className="space-y-4">
 							{/* A. Select Procedures */}
-							<Card>
+							<Card className="min-h-[400px] shadow-sm">
 								<CardContent className="space-y-3 p-4">
 									<h3 className="font-semibold">A. Select Procedures</h3>
 									<Select onValueChange={(v: any) => { addProcedureByKey(v); }}>
@@ -797,7 +801,7 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 							</Card>
 
 							{/* B. Performed Treatments */}
-							<Card>
+							<Card className="min-h-[400px] shadow-sm">
 								<CardContent className="space-y-3 p-4">
 									<div className="flex items-center justify-between">
 										<h3 className="font-semibold">B. Performed Treatments</h3>
@@ -810,14 +814,14 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 												try {
 													await sb.from('patient_insurance_profiles').insert({
 														patient_id: appointment.patient_id,
-														valid_from: new Date().toISOString().slice(0,10),
+														valid_from: new Date().toISOString().slice(0, 10),
 														is_active: true
 													});
 													setInsuranceWarning(null);
 													toast({ title: 'Mutuality added', description: 'A basic mutuality profile was created. Please update details later.' });
 												} catch {
-				// ignore mutuality creation errors
-			}
+													// ignore mutuality creation errors
+												}
 											}}>Add Mutuality</Button>
 										</div>
 									)}
@@ -841,17 +845,17 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 													<Button variant="ghost" size="sm" onClick={() => removeTreatment(idx)}>Remove</Button>
 												</div>
 												<div className="grid grid-cols-4 gap-2 mt-2">
-													<Input type="number" value={t.quantity} onChange={e => setTreatments(prev => prev.map((x,i) => i===idx ? {...x, quantity: Math.max(1, parseInt(e.target.value || '1'))} : x))} />
-													<Input placeholder="Tooth/quadrant" value={t.tooth_ref || ''} onChange={e => setTreatments(prev => prev.map((x,i) => i===idx ? {...x, tooth_ref: e.target.value} : x))} />
+													<Input type="number" value={t.quantity} onChange={e => setTreatments(prev => prev.map((x, i) => i === idx ? { ...x, quantity: Math.max(1, parseInt(e.target.value || '1')) } : x))} />
+													<Input placeholder="Tooth/quadrant" value={t.tooth_ref || ''} onChange={e => setTreatments(prev => prev.map((x, i) => i === idx ? { ...x, tooth_ref: e.target.value } : x))} />
 													<Input value={`€${t.tariff.toFixed(2)}`} onChange={e => {
-														const raw = e.target.value.replace('€','');
+														const raw = e.target.value.replace('€', '');
 														const val = Math.max(0, parseFloat(raw || '0'));
-														setTreatments(prev => prev.map((x,i) => i===idx ? {...x, tariff: val, patient_share: val } : x));
+														setTreatments(prev => prev.map((x, i) => i === idx ? { ...x, tariff: val, patient_share: val } : x));
 													}} />
 													<Input value={`Patient €${t.patient_share.toFixed(2)}`} onChange={e => {
-														const raw = e.target.value.replace('Patient €','');
+														const raw = e.target.value.replace('Patient €', '');
 														const val = Math.max(0, parseFloat(raw || '0'));
-														setTreatments(prev => prev.map((x,i) => i===idx ? {...x, patient_share: val } : x));
+														setTreatments(prev => prev.map((x, i) => i === idx ? { ...x, patient_share: val } : x));
 													}} />
 												</div>
 											</div>
@@ -871,7 +875,7 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 
 						<TabsContent value="notes" className="space-y-4">
 							{/* Outcome & Notes */}
-							<Card>
+							<Card className="min-h-[400px] shadow-sm">
 								<CardContent className="space-y-3 p-4">
 									<h3 className="font-semibold">C. Outcome & Notes</h3>
 									<Select value={outcome} onValueChange={(v: any) => setOutcome(v)}>
@@ -901,7 +905,7 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 
 						<TabsContent value="plan" className="space-y-4">
 							{/* Add to Treatment Plan */}
-							<Card>
+							<Card className="min-h-[400px] shadow-sm">
 								<CardContent className="space-y-3 p-4">
 									<h3 className="font-semibold">D. Add to Treatment Plan</h3>
 									<Select value={createPlan ? 'new' : 'none'} onValueChange={v => setCreatePlan(v === 'new')}>
@@ -930,7 +934,7 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 							</Card>
 
 							{/* Prescriptions */}
-							<Card>
+							<Card className="min-h-[400px] shadow-sm">
 								<CardContent className="space-y-3 p-4">
 									<h3 className="font-semibold">E. Prescriptions</h3>
 									<Input placeholder="Medicine" value={rxMedName} onChange={e => setRxMedName(e.target.value)} />
@@ -946,7 +950,7 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 
 						<TabsContent value="payment" className="space-y-4">
 							{/* Payment & Invoice */}
-							<Card>
+							<Card className="min-h-[400px] shadow-sm">
 								<CardContent className="space-y-3 p-4">
 									<h3 className="font-semibold">F. Payment & Invoice</h3>
 									<div className="text-sm space-y-1">
@@ -983,7 +987,7 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 
 						<TabsContent value="followup" className="space-y-4">
 							{/* Follow-Up & Predictive Scheduling */}
-							<Card>
+							<Card className="min-h-[400px] shadow-sm">
 								<CardContent className="space-y-3 p-4">
 									<h3 className="font-semibold">G. Follow-Up & Predictive Scheduling</h3>
 									<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -999,9 +1003,9 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 											{followUpNeeded && (
 												<div className="grid grid-cols-3 gap-2 items-end">
 													<Input type="date" value={followUpDate || ''} onChange={e => setFollowUpDate(e.target.value)} />
-													<Button variant="outline" onClick={() => setFollowUpDate(new Date(Date.now() + 7*24*60*60*1000).toISOString().slice(0,10))}>1w</Button>
-													<Button variant="outline" onClick={() => setFollowUpDate(new Date(Date.now() + 14*24*60*60*1000).toISOString().slice(0,10))}>2w</Button>
-													<Button variant="outline" onClick={() => setFollowUpDate(new Date(Date.now() + 42*24*60*60*1000).toISOString().slice(0,10))}>6w</Button>
+													<Button variant="outline" onClick={() => setFollowUpDate(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10))}>1w</Button>
+													<Button variant="outline" onClick={() => setFollowUpDate(new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10))}>2w</Button>
+													<Button variant="outline" onClick={() => setFollowUpDate(new Date(Date.now() + 42 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10))}>6w</Button>
 													<Input placeholder="Reason" value={followUpReason} onChange={e => setFollowUpReason(e.target.value)} />
 												</div>
 											)}
@@ -1035,10 +1039,10 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 
 						<TabsContent value="files" className="space-y-4">
 							{/* Files / X-rays */}
-							<Card>
+							<Card className="min-h-[400px] shadow-sm">
 								<CardContent className="space-y-3 p-4">
 									<h3 className="font-semibold">H. Files / X-rays</h3>
-									<QuickPhotoUpload onPhotoUploaded={(url) => setUploadedFiles(prev => [...prev, url])} onCancel={() => {}} />
+									<QuickPhotoUpload onPhotoUploaded={(url) => setUploadedFiles(prev => [...prev, url])} onCancel={() => { }} />
 									<Input placeholder="Paste secure file URL" onKeyDown={e => {
 										if (e.key === 'Enter') {
 											const target = e.target as HTMLInputElement;
@@ -1057,7 +1061,7 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 							</Card>
 
 							{/* Treatment Type & Supplies */}
-							<Card>
+							<Card className="min-h-[400px] shadow-sm">
 								<CardContent className="space-y-3 p-4">
 									<h3 className="font-semibold">I. Treatment Type & Supplies</h3>
 									<Select value={selectedTreatmentTypeId || ''} onValueChange={(v: any) => setSelectedTreatmentTypeId(v)}>
@@ -1099,13 +1103,13 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 						</TabsContent>
 
 						<TabsContent value="review" className="space-y-4">
-							<Card>
+							<Card className="min-h-[400px] shadow-sm">
 								<CardContent className="space-y-3 p-4">
 									<h3 className="font-semibold">Review & Confirm</h3>
 									<div className="text-sm grid grid-cols-1 sm:grid-cols-2 gap-3">
 										<div>
 											<div className="font-medium">Treatments</div>
-											<div className="text-muted-foreground text-xs">{treatments.length} items{treatments.length ? ` — ${treatments.slice(0,3).map(t => t.code).join(', ')}${treatments.length>3 ? '…' : ''}` : ''}</div>
+											<div className="text-muted-foreground text-xs">{treatments.length} items{treatments.length ? ` — ${treatments.slice(0, 3).map(t => t.code).join(', ')}${treatments.length > 3 ? '…' : ''}` : ''}</div>
 										</div>
 										<div>
 											<div className="font-medium">Outcome</div>
@@ -1130,8 +1134,9 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 						</TabsContent>
 					</Tabs>
 
-					<Separator />
-					<div className="sticky bottom-0 bg-background p-3 flex gap-2">
+				</div>
+				<div className="flex-none p-4 border-t bg-background mt-auto">
+					<div className="flex gap-3">
 						<Button className="flex-1" variant="ghost" onClick={() => onOpenChange(false)} disabled={loading}>Discard</Button>
 						{currentStepIndex > 0 && (
 							<Button className="flex-1" variant="outline" onClick={goPrev} disabled={loading}>Back</Button>
@@ -1147,6 +1152,6 @@ export function AppointmentCompletionModal({ open, onOpenChange, appointment, de
 					</div>
 				</div>
 			</DrawerContent>
-		</Drawer>
+		</Drawer >
 	);
 }
