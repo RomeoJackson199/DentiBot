@@ -15,7 +15,7 @@ import { PricingSection } from "@/components/homepage/PricingSection";
 import { FloatingChatBubble } from "@/components/chat/FloatingChatBubble";
 import { TestimonialsSection } from "@/components/homepage/TestimonialsSection";
 import { FAQSection } from "@/components/homepage/FAQSection";
-import { SocialProofTicker } from "@/components/homepage/SocialProofTicker";
+
 import { ContactForm } from "@/components/homepage/ContactForm";
 import { motion } from "framer-motion";
 
@@ -159,10 +159,7 @@ const Index = () => {
           </div>
         </section>
 
-        {/* Social Proof Ticker */}
-        <SocialProofTicker />
 
-        {/* What Caberu Does */}
         <WhatCaberuDoesSection />
 
         {/* Interactive Features Grid */}
@@ -181,7 +178,7 @@ const Index = () => {
         <PricingSection />
 
         {/* CTA Section */}
-        <section className="relative py-32 px-4 sm:px-6 lg:px-8 overflow-hidden bg-[#0f172a]">
+        <section className="relative py-32 px-4 sm:px-6 lg:px-8 overflow-hidden bg-slate-900">
           <div className="absolute inset-0 opacity-20 bg-[radial-gradient(#4f46e5_1px,transparent_1px)] [background-size:16px_16px]" />
           <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
 
