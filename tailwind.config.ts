@@ -302,7 +302,7 @@ export default {
 				'mobile-slide-up': 'mobile-slide-up 0.4s ease-out',
 				'mobile-scale': 'mobile-scale 0.2s ease-out',
 				'bounce-gentle': 'bounce-gentle 2s ease-in-out infinite',
-				'marquee': 'marquee 25s linear infinite',
+				'marquee': 'marquee 10s linear infinite',
 			},
 			// Touch-friendly sizing
 			minHeight: {

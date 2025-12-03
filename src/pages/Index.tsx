@@ -204,7 +204,7 @@ const Index = () => {
               <Button
                 size="lg"
                 variant="outline"
-                className="h-16 px-10 text-lg border-slate-700 text-white hover:bg-slate-800 hover:text-white rounded-full font-semibold"
+                className="h-16 px-10 text-lg border-2 border-white bg-transparent text-white hover:bg-white hover:text-slate-900 rounded-full font-semibold transition-all"
                 onClick={() => setShowContactForm(true)}
               >
                 Contact Sales
