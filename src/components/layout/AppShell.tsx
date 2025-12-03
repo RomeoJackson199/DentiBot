@@ -182,19 +182,18 @@ function TopBar() {
   }, []);
 
   return (
-    <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:bg-background/85 border-b shadow-sm">
+    <div className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b shadow-sm supports-[backdrop-filter]:bg-background/60">
       <div className="flex items-center gap-3 px-4 md:px-6 py-3">
         <SidebarTrigger className="md:hidden h-8 w-8" aria-label="Collapse or expand sidebar" title="Collapse/Expand" />
         <Button
-          variant="outline"
+          variant="ghost"
           size="sm"
           onClick={toggleSidebar}
-          className="hidden md:inline-flex gap-2"
+          className="hidden md:inline-flex gap-2 text-muted-foreground hover:text-foreground"
           aria-label={state === 'expanded' ? 'Collapse sidebar' : 'Expand sidebar'}
           title={state === 'expanded' ? 'Collapse sidebar' : 'Expand sidebar'}
         >
           <PanelLeft className="h-4 w-4" />
-          <span>{state === 'expanded' ? 'Collapse' : 'Expand'}</span>
         </Button>
         <div className="flex items-center gap-2 text-muted-foreground">
           <Home className="h-4 w-4" aria-hidden="true" />
@@ -216,11 +215,11 @@ function TopBar() {
               </React.Fragment>
             ))}
           </nav>
-          <Separator orientation="vertical" className="h-4" />
-          <Button variant="outline" size="sm" onClick={() => setOpenSearch(true)} className="gap-2">
+          <Separator orientation="vertical" className="h-4 mx-2" />
+          <Button variant="outline" size="sm" onClick={() => setOpenSearch(true)} className="gap-2 bg-background/50 border-dashed">
             <Search className="h-4 w-4" />
             <span className="hidden sm:inline">{t.topSearch}</span>
-            <span className="text-xs text-muted-foreground hidden md:inline">/</span>
+            <span className="text-xs text-muted-foreground hidden md:inline">⌘K</span>
           </Button>
         </div>
 
@@ -238,10 +237,10 @@ function TopBar() {
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-2">
-                <Bell className="h-4 w-4 opacity-0" />
-                <span className="hidden sm:inline">{t.topProfile}</span>
-                <ChevronDown className="h-3 w-3" />
+              <Button variant="ghost" size="sm" className="gap-2 rounded-full">
+                <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center text-white font-medium shadow-md">
+                  {branding.clinicName?.[0]?.toUpperCase() || 'U'}
+                </div>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
@@ -261,17 +260,6 @@ function TopBar() {
               <DropdownMenuItem onClick={() => supabase.auth.signOut()}>Sign out</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button
-            variant="outline"
-            size="sm"
-            className="gap-2"
-            onClick={() => supabase.auth.signOut()}
-            aria-label="Sign out"
-            title="Sign out"
-          >
-            <LogOut className="h-4 w-4" />
-            <span className="hidden sm:inline">Sign out</span>
-          </Button>
         </div>
 
         <GlobalSearch open={openSearch} onOpenChange={setOpenSearch} />
@@ -305,7 +293,7 @@ function GlobalSearch({ open, onOpenChange }: { open: boolean; onOpenChange: (v:
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "/") {
+      if ((e.key === "k" && (e.metaKey || e.ctrlKey)) || e.key === "/") {
         onOpenChange(true);
         e.preventDefault();
       }
@@ -520,7 +508,7 @@ export function AppShell() {
         ["--sidebar-transition" as any]: "220ms cubic-bezier(0.32, 0.72, 0, 1)",
       }}
     >
-      <Sidebar variant="floating" collapsible={isMobile ? "offcanvas" : "icon"}>
+      <Sidebar variant="floating" collapsible={isMobile ? "offcanvas" : "icon"} className="border-r-0 bg-background/50 backdrop-blur-xl">
         <SidebarHeader className="px-4 py-4 transition-[padding] duration-200 group-data-[state=collapsed]:px-3 group-data-[state=collapsed]:py-5">
           <div className="flex items-center gap-3 px-1">
             <button
@@ -536,7 +524,7 @@ export function AppShell() {
                   className="h-8 w-8 rounded-lg object-cover"
                 />
               ) : (
-                <div className="h-8 w-8 rounded-lg bg-[hsl(var(--primary))] text-white flex items-center justify-center font-semibold shadow-sm">
+                <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-purple-600 text-white flex items-center justify-center font-semibold shadow-md">
                   {branding.clinicName?.[0]?.toUpperCase() || 'D'}
                 </div>
               )}
@@ -547,7 +535,7 @@ export function AppShell() {
             </div>
           </div>
           <div className="mt-2 transition-opacity duration-200 group-data-[state=collapsed]:opacity-0 group-data-[state=collapsed]:pointer-events-none">
-            <SidebarInput placeholder="Search…" aria-label="Search" className="group-data-[state=collapsed]:hidden" />
+            <SidebarInput placeholder="Search…" aria-label="Search" className="group-data-[state=collapsed]:hidden bg-background/50" />
           </div>
         </SidebarHeader>
         <SidebarContent className="pt-3 transition-[padding] duration-200 group-data-[state=collapsed]:pt-4">
@@ -559,7 +547,7 @@ export function AppShell() {
                 variant="outline"
                 onClick={() => handleNav("/clinical/schedule")}
                 aria-label={t.navSchedule}
-                className="group-data-[state=collapsed]:h-10 group-data-[state=collapsed]:w-10 group-data-[state=collapsed]:justify-center group-data-[state=collapsed]:px-0 group-data-[state=collapsed]:[&>span]:sr-only"
+                className="group-data-[state=collapsed]:h-10 group-data-[state=collapsed]:w-10 group-data-[state=collapsed]:justify-center group-data-[state=collapsed]:px-0 group-data-[state=collapsed]:[&>span]:sr-only bg-background/50 hover:bg-background/80"
               >
                 <Calendar className="h-4 w-4" />
                 <span>{t.navSchedule}</span>
@@ -569,28 +557,28 @@ export function AppShell() {
                 variant="outline"
                 onClick={() => handleNav("/clinical/patients")}
                 aria-label={t.navPatients}
-                className="group-data-[state=collapsed]:h-10 group-data-[state=collapsed]:w-10 group-data-[state=collapsed]:justify-center group-data-[state=collapsed]:px-0 group-data-[state=collapsed]:[&>span]:sr-only"
+                className="group-data-[state=collapsed]:h-10 group-data-[state=collapsed]:w-10 group-data-[state=collapsed]:justify-center group-data-[state=collapsed]:px-0 group-data-[state=collapsed]:[&>span]:sr-only bg-background/50 hover:bg-background/80"
               >
                 <Users className="h-4 w-4" />
                 <span>{t.navPatients}</span>
               </SidebarMenuButton>
             </div>
           </SidebarGroup>
-          <SidebarSeparator />
+          <SidebarSeparator className="bg-border/50" />
           <nav aria-label="Primary" onKeyDown={onKeyDownNav} ref={navRef}>
             {groups.map((group) => (
               <section key={group.id} aria-labelledby={`group-${group.id}`}>
                 <SidebarGroup>
-                  <SidebarGroupLabel className="flex items-center justify-between pr-8" role="button" tabIndex={0} aria-expanded={!!openGroups[group.id]} aria-controls={`group-content-${group.id}`} onClick={() => toggleGroup(group.id)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleGroup(group.id); } }}>
+                  <SidebarGroupLabel className="flex items-center justify-between pr-8 text-xs font-medium text-muted-foreground/70 uppercase tracking-wider" role="button" tabIndex={0} aria-expanded={!!openGroups[group.id]} aria-controls={`group-content-${group.id}`} onClick={() => toggleGroup(group.id)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleGroup(group.id); } }}>
                     <span className="flex items-center gap-2" id={`group-${group.id}`}>
-                      {group.id === "clinical" && <Stethoscope className="h-4 w-4" />}
-                      {group.id === "business" && <BarChart3 className="h-4 w-4" />}
-                      {group.id === "operations" && <Boxes className="h-4 w-4" />}
-                      {group.id === "admin" && <Shield className="h-4 w-4" />}
+                      {group.id === "clinical" && <Stethoscope className="h-3 w-3" />}
+                      {group.id === "business" && <BarChart3 className="h-3 w-3" />}
+                      {group.id === "operations" && <Boxes className="h-3 w-3" />}
+                      {group.id === "admin" && <Shield className="h-3 w-3" />}
                       <span>{group.label}</span>
                     </span>
                     <SidebarGroupAction aria-hidden="true">
-                      <ChevronDown className={cn("h-4 w-4 transition-transform", openGroups[group.id] ? "rotate-0" : "-rotate-90")} />
+                      <ChevronDown className={cn("h-3 w-3 transition-transform opacity-50", openGroups[group.id] ? "rotate-0" : "-rotate-90")} />
                     </SidebarGroupAction>
                   </SidebarGroupLabel>
                   <div
@@ -598,7 +586,7 @@ export function AppShell() {
                     role="region"
                     aria-labelledby={`group-${group.id}`}
                     className={cn(
-                      "overflow-hidden transition-all duration-200 ease-in-out",
+                      "overflow-hidden transition-all duration-300 ease-in-out",
                       openGroups[group.id] ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
                     )}
                   >
@@ -612,12 +600,22 @@ export function AppShell() {
                               : `Group: ${group.label}, item: ${item.label}.`;
                             return (
                               <SidebarMenuItem key={item.id}>
-                                <SidebarMenuButton data-group-id={group.id} tooltip={item.label} isActive={active} aria-label={ariaLabel} onClick={() => handleNav(item.to)} className="rounded-md">
+                                <SidebarMenuButton
+                                  data-group-id={group.id}
+                                  tooltip={item.label}
+                                  isActive={active}
+                                  aria-label={ariaLabel}
+                                  onClick={() => handleNav(item.to)}
+                                  className={cn(
+                                    "rounded-md transition-all duration-200",
+                                    active ? "bg-primary/10 text-primary font-medium shadow-sm" : "hover:bg-muted/50 text-muted-foreground hover:text-foreground"
+                                  )}
+                                >
                                   {item.icon}
                                   <span>{item.label}</span>
                                 </SidebarMenuButton>
                                 {typeof item.badge === 'number' && item.badge > 0 && (
-                                  <SidebarMenuBadge aria-label={`${item.label}, ${item.badge} due`}>{item.badge}</SidebarMenuBadge>
+                                  <SidebarMenuBadge className="bg-red-500 text-white animate-pulse" aria-label={`${item.label}, ${item.badge} due`}>{item.badge}</SidebarMenuBadge>
                                 )}
                               </SidebarMenuItem>
                             );
@@ -631,18 +629,18 @@ export function AppShell() {
             ))}
           </nav>
         </SidebarContent>
-        <SidebarSeparator />
+        <SidebarSeparator className="bg-border/50" />
         <SidebarFooter className="transition-[padding] duration-200 group-data-[state=collapsed]:px-2">
           <div className="flex items-center gap-2">
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
-              className="flex-1 justify-start transition-opacity duration-200 group-data-[state=collapsed]:hidden"
+              className="flex-1 justify-start transition-opacity duration-200 group-data-[state=collapsed]:hidden text-muted-foreground hover:text-foreground"
             >
               <Languages className="h-4 w-4 mr-2" />EN/FR/NL
             </Button>
             <SidebarTrigger
-              className="h-8 w-8"
+              className="h-8 w-8 text-muted-foreground hover:text-foreground"
               aria-label="Collapse or expand sidebar"
               title="Collapse/Expand"
             />
@@ -650,16 +648,16 @@ export function AppShell() {
         </SidebarFooter>
         <SidebarRail />
       </Sidebar>
-      <SidebarInset>
+      <SidebarInset className="bg-transparent">
         <TopBar />
-        <div className="p-4 md:p-6 lg:p-8 xl:p-10">
+        <div className="p-4 md:p-6 lg:p-8 xl:p-10 min-h-[calc(100vh-4rem)]">
           <AnimatePresence mode="wait" initial={false}>
             <motion.div
               key={location.pathname + location.search}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -12 }}
-              transition={{ duration: 0.24, ease: [0.32, 0.72, 0, 1] }}
+              initial={{ opacity: 0, y: 20, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -20, scale: 0.98 }}
+              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
               className="h-full"
             >
               <Outlet />
@@ -672,4 +670,3 @@ export function AppShell() {
 }
 
 export default AppShell;
-
