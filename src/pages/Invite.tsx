@@ -35,8 +35,8 @@ export default function Invite() {
 
     try {
       // Use the secure RPC function instead of direct database access
-      const { data, error } = await supabase.rpc('validate_invitation_token', { 
-        invitation_token: token 
+      const { data, error } = await supabase.rpc('validate_invitation_token', {
+        invitation_token: token
       });
 
       if (error || !data || data.length === 0) {
@@ -57,7 +57,7 @@ export default function Invite() {
 
   const handleSetupAccount = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (password !== confirmPassword) {
       toast({
         title: "Error",
@@ -69,7 +69,7 @@ export default function Invite() {
 
     if (password.length < 6) {
       toast({
-        title: "Error", 
+        title: "Error",
         description: "Password must be at least 6 characters long",
         variant: "destructive",
       });
@@ -77,10 +77,10 @@ export default function Invite() {
     }
 
     setIsSettingPassword(true);
-    
+
     try {
       const redirectUrl = `${window.location.origin}/`;
-      
+
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: invitation.email,
         password: password,
@@ -171,8 +171,8 @@ export default function Invite() {
             <CardDescription>{error}</CardDescription>
           </CardHeader>
           <CardContent>
-            <Button 
-              onClick={() => navigate('/')} 
+            <Button
+              onClick={() => navigate('/')}
               className="w-full"
             >
               Go to Homepage
@@ -182,87 +182,75 @@ export default function Invite() {
       </div>
     );
   }
-
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4">
-      <Card className="w-full max-w-md shadow-elegant">
-        <CardHeader className="text-center">
-          <User className="h-12 w-12 text-primary mx-auto mb-4" />
-          <CardTitle>Welcome to DentiBot!</CardTitle>
-          <CardDescription>
-            Set up your password to access your dental records
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {invitation && (
-            <div className="space-y-6">
-              <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
-                <h4 className="font-semibold mb-2">Your Account Details:</h4>
-                <p className="text-sm text-muted-foreground">
-                  Name: {invitation.first_name} {invitation.last_name}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Email: {invitation.email}
-                </p>
-                {invitation.phone && (
-                  <p className="text-sm text-muted-foreground">
-                    Phone: {invitation.phone}
-                  </p>
-                )}
-              </div>
-
-              <form onSubmit={handleSetupAccount} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="password">Create Your Password</Label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="password"
-                      type="password"
-                      placeholder="Enter a secure password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="pl-10"
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">Confirm Your Password</Label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="confirmPassword"
-                      type="password"
-                      placeholder="Re-enter your password"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="pl-10"
-                    />
-                  </div>
-                </div>
-
-                <Button
-                  type="submit"
-                  className="w-full"
-                  disabled={isSettingPassword}
-                >
-                  {isSettingPassword ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Setting up your account...
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle className="mr-2 h-4 w-4" />
-                      Set Up Account
-                    </>
-                  )}
-                </Button>
-              </form>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+  <div className="space-y-6">
+    <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
+      <h4 className="font-semibold mb-2">Your Account Details:</h4>
+      <p className="text-sm text-muted-foreground">
+        Name: {invitation.first_name} {invitation.last_name}
+      </p>
+      <p className="text-sm text-muted-foreground">
+        Email: {invitation.email}
+      </p>
+      {invitation.phone && (
+        <p className="text-sm text-muted-foreground">
+          Phone: {invitation.phone}
+        </p>
+      )}
     </div>
+
+    <form onSubmit={handleSetupAccount} className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="password">Create Your Password</Label>
+        <div className="relative">
+          <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+          <Input
+            id="password"
+            type="password"
+            placeholder="Enter a secure password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="confirmPassword">Confirm Your Password</Label>
+        <div className="relative">
+          <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+          <Input
+            id="confirmPassword"
+            type="password"
+            placeholder="Re-enter your password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+      </div>
+
+      <Button
+        type="submit"
+        className="w-full"
+        disabled={isSettingPassword}
+      >
+        {isSettingPassword ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Setting up your account...
+          </>
+        ) : (
+          <>
+            <CheckCircle className="mr-2 h-4 w-4" />
+            Set Up Account
+          </>
+        )}
+      </Button>
+    </form>
+  </div>
+          )
+}
+        </CardContent >
+      </Card >
+    </div >
   );
 }

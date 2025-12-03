@@ -20,20 +20,20 @@ Object.defineProperty(global, 'IntersectionObserver', {
     readonly root: Element | null = null;
     readonly rootMargin: string = '';
     readonly thresholds: ReadonlyArray<number> = [0];
-    constructor(_callback?: any, _options?: any) {}
-    observe(): void {}
-    unobserve(): void {}
-    disconnect(): void {}
+    constructor(_callback?: any, _options?: any) { }
+    observe(): void { }
+    unobserve(): void { }
+    disconnect(): void { }
     takeRecords(): IntersectionObserverEntry[] { return []; }
   },
 });
 
 // Mock ResizeObserver
 global.ResizeObserver = class ResizeObserver {
-  constructor() {}
-  disconnect() {}
-  observe() {}
-  unobserve() {}
+  constructor() { }
+  disconnect() { }
+  observe() { }
+  unobserve() { }
 };
 
 // Mock matchMedia
@@ -114,7 +114,7 @@ jest.mock('@/hooks/useLanguage', () => {
         phone: 'Phone',
         optional: 'optional',
         welcome: 'Welcome',
-        accessDentiBot: 'Access DentiBot',
+        accessDentiBot: 'Access Caberu',
         signInOrCreate: 'Sign in or create an account',
         signInButton: 'Sign in',
         createAccountButton: 'Create account',
@@ -123,7 +123,7 @@ jest.mock('@/hooks/useLanguage', () => {
         signUpError: 'Sign up error',
         signInError: 'Sign in error',
         signInSuccess: 'Sign in successful!',
-        welcomeToDentiBot: 'Welcome to DentiBot.',
+        welcomeToDentiBot: 'Welcome to Caberu.',
         enterFirstName: '',
         enterLastName: '',
         enterPhoneNumber: '',

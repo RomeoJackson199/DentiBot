@@ -1,10 +1,10 @@
 # Multi-Tenancy Architecture
 
-This document explains the multi-tenancy implementation in Dentibot, using Supabase/PostgreSQL with Row-Level Security (RLS).
+This document explains the multi-tenancy implementation in Caberu, using Supabase/PostgreSQL with Row-Level Security (RLS).
 
 ## Overview
 
-Dentibot supports multiple dental clinics (businesses) in a single database using:
+Caberu supports multiple dental clinics (businesses) in a single database using:
 - **Business-scoped tables**: All tenant data includes a `business_id` column
 - **Row-Level Security (RLS)**: PostgreSQL policies enforce business-level data isolation
 - **JWT/Session context**: Current business is stored in JWT claims and/or `session_business` table

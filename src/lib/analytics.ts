@@ -1,4 +1,4 @@
-// Comprehensive analytics system for Dentibot
+// Comprehensive analytics system for Caberu
 import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/lib/logger';
 
@@ -15,36 +15,36 @@ export const ANALYTICS_EVENTS = {
   AUTH_LOGOUT: 'auth_logout',
   AUTH_SIGNUP: 'auth_signup',
   AUTH_GOOGLE_LOGIN: 'auth_google_login',
-  
+
   // Appointment events
   APPOINTMENT_CREATE: 'appointment_create',
   APPOINTMENT_CANCEL: 'appointment_cancel',
   APPOINTMENT_CONFIRM: 'appointment_confirm',
   APPOINTMENT_COMPLETE: 'appointment_complete',
   APPOINTMENT_STATUS_CHANGE: 'appointment_status_change',
-  
+
   // Assistant chat events
   ASSISTANT_BOOKING_STARTED: 'assistant_booking_started',
   ASSISTANT_BOOKING_CONFIRMED: 'assistant_booking_confirmed',
   ASSISTANT_BOOKING_CANCELLED: 'assistant_booking_cancelled',
   ASSISTANT_SYMPTOM_SUBMITTED: 'assistant_symptom_submitted',
   ASSISTANT_DENTIST_RECOMMENDED: 'assistant_dentist_recommended',
-  
+
   // User journey events
   USER_ONBOARDING_STARTED: 'user_onboarding_started',
   USER_ONBOARDING_COMPLETED: 'user_onboarding_completed',
   USER_PROFILE_UPDATED: 'user_profile_updated',
-  
+
   // Performance events
   PAGE_LOAD_TIME: 'page_load_time',
   API_REQUEST_TIME: 'api_request_time',
   ERROR_OCCURRED: 'error_occurred',
-  
+
   // PWA events
   PWA_INSTALLED: 'pwa_installed',
   PWA_PROMPT_SHOWN: 'pwa_prompt_shown',
   PWA_PROMPT_DISMISSED: 'pwa_prompt_dismissed',
-  
+
   // Accessibility events
   KEYBOARD_NAVIGATION_USED: 'keyboard_navigation_used',
   SCREEN_READER_DETECTED: 'screen_reader_detected',
@@ -65,15 +65,15 @@ class AnalyticsManager {
       // Check for user consent
       const consent = localStorage.getItem('analytics_consent');
       this.consentGiven = consent === 'true';
-      
+
       // Initialize performance monitoring
       this.initializePerformanceMonitoring();
-      
+
       // Initialize error tracking
       this.initializeErrorTracking();
-      
+
       this.isInitialized = true;
-      
+
       // Process queued events
       await this.processEventQueue();
     } catch (error) {
@@ -103,13 +103,13 @@ class AnalyticsManager {
           const observer = new PerformanceObserver((list) => {
             const entries = list.getEntries();
             const lastEntry = entries[entries.length - 1];
-            
+
             this.track('lcp_measured', {
               value: lastEntry.startTime,
               url: window.location.pathname,
             });
           });
-          
+
           observer.observe({ type: 'largest-contentful-paint', buffered: true });
         } catch (e) {
           // Silently fail if observer not supported
@@ -145,7 +145,7 @@ class AnalyticsManager {
   async setConsent(consent: boolean) {
     this.consentGiven = consent;
     localStorage.setItem('analytics_consent', consent.toString());
-    
+
     if (consent && this.eventQueue.length > 0) {
       await this.processEventQueue();
     } else if (!consent) {
@@ -287,28 +287,28 @@ export async function measureAsync<T>(
   context: Record<string, any> = {}
 ): Promise<T> {
   const start = performance.now();
-  
+
   try {
     const result = await fn();
     const duration = performance.now() - start;
-    
+
     await analytics.track(eventName, {
       duration,
       success: true,
       ...context,
     });
-    
+
     return result;
   } catch (error) {
     const duration = performance.now() - start;
-    
+
     await analytics.track(eventName, {
       duration,
       success: false,
       error_message: error instanceof Error ? error.message : 'Unknown error',
       ...context,
     });
-    
+
     throw error;
   }
 }

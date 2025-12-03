@@ -290,7 +290,7 @@ const Login = () => {
           <div className="space-y-6">
             <div className="flex items-center gap-2">
               <Shield className="h-6 w-6" />
-              <span className="font-semibold text-lg">DentiBot</span>
+              <span className="font-semibold text-lg">Caberu</span>
             </div>
           </div>
 
@@ -355,7 +355,7 @@ const Login = () => {
           <div className="text-center space-y-2">
             <div className="flex lg:hidden items-center justify-center gap-2 mb-6">
               <Shield className="h-6 w-6 text-primary" />
-              <span className="font-semibold text-lg">DentiBot</span>
+              <span className="font-semibold text-lg">Caberu</span>
             </div>
             <h1 className="text-3xl font-bold tracking-tight">Sign in</h1>
             <p className="text-sm text-muted-foreground">

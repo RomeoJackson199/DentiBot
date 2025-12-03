@@ -62,95 +62,82 @@ const ForgotPassword = () => {
       </div>
 
       {/* Right Side - Form */}
-      <div className="flex-1 flex items-center justify-center p-6 sm:p-12 bg-background">
-        <div className="w-full max-w-sm space-y-8">
-          {/* Header */}
-          <div className="text-center space-y-2">
-            <div className="flex lg:hidden items-center justify-center gap-2 mb-6">
-              <Shield className="h-6 w-6 text-primary" />
-              <span className="font-semibold text-lg">DentiBot</span>
+
+      {emailSent ? (
+        <div className="space-y-6">
+          <div className="rounded-2xl border bg-card p-8 shadow-sm text-center space-y-4">
+            <div className="h-16 w-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto">
+              <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
             </div>
-            <h1 className="text-3xl font-bold tracking-tight">Reset password</h1>
-            <p className="text-sm text-muted-foreground">
-              Enter your email to receive reset instructions
-            </p>
+            <div>
+              <h2 className="text-xl font-semibold mb-2">Check your email</h2>
+              <p className="text-sm text-muted-foreground">
+                We sent password reset instructions to
+              </p>
+              <p className="text-sm font-medium mt-1">{email}</p>
+            </div>
+            <div className="pt-4 space-y-2 text-xs text-muted-foreground">
+              <p>Didn't receive the email? Check your spam folder.</p>
+              <button
+                onClick={() => setEmailSent(false)}
+                className="text-primary hover:underline font-medium"
+              >
+                Try a different email
+              </button>
+            </div>
           </div>
 
-          {emailSent ? (
-            <div className="space-y-6">
-              <div className="rounded-2xl border bg-card p-8 shadow-sm text-center space-y-4">
-                <div className="h-16 w-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto">
-                  <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-semibold mb-2">Check your email</h2>
-                  <p className="text-sm text-muted-foreground">
-                    We sent password reset instructions to
-                  </p>
-                  <p className="text-sm font-medium mt-1">{email}</p>
-                </div>
-                <div className="pt-4 space-y-2 text-xs text-muted-foreground">
-                  <p>Didn't receive the email? Check your spam folder.</p>
-                  <button
-                    onClick={() => setEmailSent(false)}
-                    className="text-primary hover:underline font-medium"
-                  >
-                    Try a different email
-                  </button>
-                </div>
-              </div>
-
-              <Link to="/login">
-                <Button variant="outline" className="w-full">
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  Back to sign in
-                </Button>
-              </Link>
-            </div>
-          ) : (
-            <div className="space-y-6">
-              <div className="rounded-2xl border bg-card p-6 shadow-sm">
-                <form onSubmit={handleResetPassword} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email address</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="name@email.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="h-12"
-                      required
-                      autoFocus
-                      autoComplete="email"
-                    />
-                  </div>
-
-                  <Button
-                    type="submit"
-                    className="h-12 w-full text-base font-semibold"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? (
-                      <Loader2 className="h-5 w-5 animate-spin" />
-                    ) : (
-                      "Send reset instructions"
-                    )}
-                  </Button>
-                </form>
-              </div>
-
-              <Link to="/login">
-                <Button variant="ghost" className="w-full">
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  Back to sign in
-                </Button>
-              </Link>
-            </div>
-          )}
+          <Link to="/login">
+            <Button variant="outline" className="w-full">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to sign in
+            </Button>
+          </Link>
         </div>
-      </div>
+      ) : (
+        <div className="space-y-6">
+          <div className="rounded-2xl border bg-card p-6 shadow-sm">
+            <form onSubmit={handleResetPassword} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email address</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="name@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="h-12"
+                  required
+                  autoFocus
+                  autoComplete="email"
+                />
+              </div>
+
+              <Button
+                type="submit"
+                className="h-12 w-full text-base font-semibold"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : (
+                  "Send reset instructions"
+                )}
+              </Button>
+            </form>
+          </div>
+
+          <Link to="/login">
+            <Button variant="ghost" className="w-full">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to sign in
+            </Button>
+          </Link>
+        </div>
+      )}
     </div>
+      </div >
+    </div >
   );
 };
 

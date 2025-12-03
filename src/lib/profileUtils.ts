@@ -85,7 +85,7 @@ export const validateAddress = async (address: string): Promise<{ valid: boolean
       `https://nominatim.openstreetmap.org/search?format=json&q=${encodedAddress}&limit=1&countrycodes=be`,
       {
         headers: {
-          'User-Agent': 'DentiBot-App/1.0'
+          'User-Agent': 'Caberu-App/1.0'
         }
       }
     );
@@ -277,7 +277,7 @@ export const loadProfileData = async (user: User): Promise<ProfileData> => {
     return profileData;
   } catch (error) {
     console.error('Profile load failed:', error);
-    
+
     // Removed localStorage fallback for security - sensitive PII should not be stored locally
     throw error;
   }

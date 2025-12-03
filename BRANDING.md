@@ -1,8 +1,8 @@
-# DentiBot Brand Guidelines
+# Caberu Brand Guidelines
 
 ## 🎨 Brand Identity
 
-DentiBot is a modern, professional dental practice management platform. Our brand conveys **trust, innovation, and care** through clean design and approachable interactions.
+Caberu is a modern, professional dental practice management platform. Our brand conveys **trust, innovation, and care** through clean design and approachable interactions.
 
 ---
 
@@ -323,7 +323,7 @@ Respect `prefers-reduced-motion` for users with motion sensitivity:
 ### Examples
 
 #### ✅ Good
-- "Welcome to DentiBot! Let's set up your practice."
+- "Welcome to Caberu! Let's set up your practice."
 - "Appointment confirmed for tomorrow at 2:00 PM"
 - "This patient has 3 upcoming appointments"
 
@@ -372,4 +372,4 @@ xl:  1280px  /* Extra large devices (desktops) */
 
 **Version**: 1.0.0
 **Last Updated**: October 2025
-**Maintained by**: DentiBot Team
+**Maintained by**: Caberu Team

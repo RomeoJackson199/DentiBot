@@ -50,7 +50,7 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
   const [isEmergency, setIsEmergency] = useState(false);
   const [emergencyDetected, setEmergencyDetected] = useState(false);
   const [urgencyLevel, setUrgencyLevel] = useState<string>("medium");
-  
+
   // Ref to track mounted state for cleanup
   const isMountedRef = useRef(true);
   const [consultationReason, setConsultationReason] = useState<string>("");
@@ -58,17 +58,17 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
   const [showChatBooking, setShowChatBooking] = useState(false);
   const [symptomSummary, setSymptomSummary] = useState<string>("");
   const [activeWidget, setActiveWidget] = useState<string>("");
-  
+
   // Voice recording states
   const [isRecording, setIsRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
   const [mediaStream, setMediaStream] = useState<MediaStream | null>(null);
-  
+
   const { toast } = useToast();
   const { t } = useLanguage();
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  
+
   // Declare functions first
   const addChatResponse = (message: string, buttons?: any[]) => {
     const botMessage: ChatMessage = {
@@ -79,7 +79,7 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
       message_type: "text",
       created_at: new Date().toISOString(),
     };
-    
+
     setMessages(prev => [...prev, botMessage]);
     if (buttons) {
       setActionButtons(buttons);
@@ -97,14 +97,14 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
       if (user) {
         await loadUserProfile();
       }
-      
+
       // Only add welcome message if no messages exist
       if (messages.length === 0) {
         const welcomeMessage: ChatMessage = {
           id: crypto.randomUUID(),
           session_id: sessionId,
-          message: user && userProfile ? 
-            t.detailedWelcomeMessageWithName(userProfile.first_name) : 
+          message: user && userProfile ?
+            t.detailedWelcomeMessageWithName(userProfile.first_name) :
             t.detailedWelcomeMessage,
           is_bot: true,
           message_type: "text",
@@ -119,7 +119,7 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
       initializeChat();
     }
   }, [sessionId]); // Fixed dependencies
-  
+
   // Effect to update welcome message when language changes
   useEffect(() => {
     if (messages.length > 0 && messages[0].is_bot && userProfile) {
@@ -128,14 +128,14 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
         ...messages[0],
         message: t.detailedWelcomeMessageWithName(userProfile.first_name),
       };
-      
+
       setMessages(prev => [updatedWelcomeMessage, ...prev.slice(1)]);
     }
   }, [t.detailedWelcomeMessageWithName, userProfile?.first_name]); // Fixed dependencies
 
   const loadUserProfile = async () => {
     if (!user) return;
-    
+
     try {
       const { data, error } = await supabase
         .from("profiles")
@@ -196,7 +196,7 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
 
   const saveMessage = async (message: ChatMessage) => {
     if (!user) return; // Don't save messages for non-authenticated users
-    
+
     try {
       await supabase.from("messages").insert({
         session_id: message.session_id,
@@ -221,7 +221,7 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
           .select('id')
           .limit(1)
           .single();
-        
+
         if (businesses) {
           businessId = businesses.id;
         }
@@ -238,7 +238,7 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
             .select('id')
             .eq('user_id', user.id)
             .single();
-          
+
           if (profile) {
             const { data, error } = await supabase.rpc('get_patient_context_for_ai', {
               p_patient_id: profile.id
@@ -252,7 +252,7 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
           console.error('Error loading patient context:', contextError);
         }
       }
-      
+
       // Call the AI edge function with patient context
       const { data, error } = await supabase.functions.invoke('dental-ai-chat', {
         body: {
@@ -283,7 +283,7 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
       if (suggestions.includes('recommend-dentist') && aiRecommendedDentist && aiRecommendedDentist.length > 0) {
         const dentistData = Array.isArray(aiRecommendedDentist) ? aiRecommendedDentist[0] : aiRecommendedDentist;
         setRecommendedDentist([dentistData]);
-        
+
         setTimeout(() => {
           const widgetMessage: ChatMessage = {
             id: crypto.randomUUID(),
@@ -364,10 +364,10 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
       // Handle patient selection from chat response
       if (suggestions.includes('skip-patient-selection')) {
         const lowerUserMessage = userMessage.toLowerCase();
-        
-        if (userMessage.includes('moi') || userMessage.includes('me') || 
-            userMessage.includes('myself') || userMessage.includes('voor mij') ||
-            userMessage.includes('for me')) {
+
+        if (userMessage.includes('moi') || userMessage.includes('me') ||
+          userMessage.includes('myself') || userMessage.includes('voor mij') ||
+          userMessage.includes('for me')) {
           // User selected themselves
           setIsForUser(true);
           setPatientInfo(userProfile);
@@ -423,8 +423,8 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
         message: response,
         is_bot: true,
         message_type: "text",
-        metadata: { 
-          ai_generated: true, 
+        metadata: {
+          ai_generated: true,
           suggestions
         },
         created_at: new Date().toISOString(),
@@ -434,14 +434,14 @@ export const DentalChatbot = ({ user, triggerBooking, onBookingTriggered, onScro
 
     } catch (error) {
       console.error('Error calling AI:', error);
-      
+
       // Fallback to simple responses
       const lowerMessage = userMessage.toLowerCase();
       let response = "";
 
-      if (lowerMessage.includes("appointment") || lowerMessage.includes("booking") || 
-          lowerMessage.includes("pain") || lowerMessage.includes("hurt") || 
-          lowerMessage.includes("problem") || lowerMessage.includes("issue")) {
+      if (lowerMessage.includes("appointment") || lowerMessage.includes("booking") ||
+        lowerMessage.includes("pain") || lowerMessage.includes("hurt") ||
+        lowerMessage.includes("problem") || lowerMessage.includes("issue")) {
         response = "What's the exact problem? I'll help you find the right dentist and book an appointment that typically takes 30-60 minutes.";
         if (user) {
           setTimeout(() => setCurrentFlow('patient-selection'), 1000);
@@ -550,7 +550,7 @@ Type your request...`;
       appointmentManager?.showAppointments();
       return true;
     }
-    
+
     if (lowerMessage.includes('next appointment') || lowerMessage.includes('prochain rendez-vous')) {
       appointmentManager?.showAppointments();
       return true;
@@ -578,7 +578,7 @@ Type your request...`;
 
   const handleActionButton = (action: string, data?: any) => {
     setActionButtons([]);
-    
+
     switch (action) {
       case 'book_appointment':
         setShowChatBooking(true);
@@ -601,50 +601,50 @@ Type your request...`;
   // Voice recording functions
   const startRecording = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
+      const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           sampleRate: 44100,
           channelCount: 1,
           echoCancellation: true,
           noiseSuppression: true,
           autoGainControl: true
-        } 
+        }
       });
-      
+
       const recorder = new MediaRecorder(stream, {
         mimeType: 'audio/webm;codecs=opus'
       });
-      
+
       const chunks: Blob[] = [];
-      
+
       recorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
           chunks.push(event.data);
         }
       };
-      
+
       recorder.onstop = async () => {
         const audioBlob = new Blob(chunks, { type: 'audio/webm' });
         await processVoiceMessage(audioBlob);
-        
+
         // Stop all tracks
         if (stream) {
           stream.getTracks().forEach(track => track.stop());
           setMediaStream(null);
         }
       };
-      
+
       setMediaRecorder(recorder);
       setMediaStream(stream);
       setAudioChunks(chunks);
       recorder.start();
       setIsRecording(true);
-      
+
       toast({
         title: "🎤 Enregistrement en cours",
         description: "Parlez maintenant...",
       });
-      
+
     } catch (error) {
       console.error('Error starting recording:', error);
       toast({
@@ -671,7 +671,7 @@ Type your request...`;
       }
     };
   }, [mediaStream]);
-  
+
   // Cleanup component mounted state
   useEffect(() => {
     return () => {
@@ -682,20 +682,20 @@ Type your request...`;
   const processVoiceMessage = async (audioBlob: Blob) => {
     try {
       setIsLoading(true);
-      
+
       // Convert audio to base64
       const arrayBuffer = await audioBlob.arrayBuffer();
       const base64Audio = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
-      
+
       // Send to voice-to-text edge function
       const { data, error } = await supabase.functions.invoke('voice-to-text', {
         body: { audio: base64Audio }
       });
-      
+
       if (error) throw error;
-      
+
       const transcribedText = data.text;
-      
+
       if (transcribedText && transcribedText.trim()) {
         // Create user message with transcribed text
         const userMessage: ChatMessage = {
@@ -717,7 +717,7 @@ Type your request...`;
           await saveMessage(botResponse);
           setIsLoading(false);
         }, 1000);
-        
+
         toast({
           title: "✅ Message vocal reçu",
           description: `"${transcribedText}"`,
@@ -730,7 +730,7 @@ Type your request...`;
         });
         setIsLoading(false);
       }
-      
+
     } catch (error) {
       console.error('Error processing voice message:', error);
       toast({
@@ -765,7 +765,7 @@ Type your request...`;
             <Bot className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h3 className="font-semibold text-gray-900">DentiBot Assistant</h3>
+            <h3 className="font-semibold text-gray-900">Caberu Assistant</h3>
             <p className="text-sm text-gray-600">How can I help you today?</p>
           </div>
         </div>
@@ -788,7 +788,7 @@ Type your request...`;
           if (message.message_type === 'widget' && message.is_bot) {
             try {
               const widgetData = JSON.parse(message.message);
-              
+
               if (widgetData.type === 'recommended-dentist-widget') {
                 return (
                   <div key={message.id} className="my-4">
@@ -811,7 +811,7 @@ Type your request...`;
               console.error('Error parsing widget data:', e);
             }
           }
-          
+
           // Regular message rendering
           return (
             <div
@@ -819,11 +819,10 @@ Type your request...`;
               className={`flex ${message.is_bot ? 'justify-start' : 'justify-end'}`}
             >
               <div
-                className={`max-w-[80%] rounded-2xl px-4 py-3 ${
-                  message.is_bot
+                className={`max-w-[80%] rounded-2xl px-4 py-3 ${message.is_bot
                     ? 'bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100'
                     : 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white'
-                }`}
+                  }`}
               >
                 <div className="flex items-start gap-2">
                   {message.is_bot && (
@@ -855,7 +854,7 @@ Type your request...`;
             </div>
           );
         })}
-        
+
         {isLoading && (
           <div className="flex justify-start">
             <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-2xl px-4 py-3">
@@ -872,7 +871,7 @@ Type your request...`;
             </div>
           </div>
         )}
-        
+
         <div ref={messagesEndRef} />
       </ScrollArea>
 
@@ -939,7 +938,7 @@ Type your request...`;
             conversationHistory={messages}
             onComplete={(appointmentData) => {
               setShowChatBooking(false);
-              
+
               // Add confirmation message to chat
               const confirmationMsg: ChatMessage = {
                 id: crypto.randomUUID(),
@@ -953,7 +952,7 @@ Type your request...`;
             }}
             onCancel={() => {
               setShowChatBooking(false);
-              
+
               // Add cancellation message
               const cancelMsg: ChatMessage = {
                 id: crypto.randomUUID(),

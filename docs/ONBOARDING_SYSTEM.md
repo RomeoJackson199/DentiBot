@@ -1,8 +1,8 @@
-# 🎉 DentiBot Onboarding System
+# 🎉 Caberu Onboarding System
 
 ## Overview
 
-The DentiBot onboarding system provides a comprehensive first-time user experience for new dentists, including:
+The Caberu onboarding system provides a comprehensive first-time user experience for new dentists, including:
 
 1. **7-Step Onboarding Flow** - Collects practice information
 2. **Demo Data Generation** - Creates realistic sample data
@@ -238,17 +238,6 @@ import { OnboardingOrchestrator } from "@/components/onboarding/OnboardingOrches
 <OnboardingOrchestrator user={user} />
 ```
 
-## User Experience Flow
-
-### First-Time Dentist User
-
-1. **Sign Up** → Create account
-2. **Navigate to Dentist Portal** → `/dentist/dashboard`
-3. **OnboardingOrchestrator Activates**
-   - Shows 7-step onboarding wizard
-4. **Complete Onboarding**
-   - Profile data saved to database
-   - `profiles.onboarding_completed` = true
 5. **Demo Data Prompt Appears**
    - User can generate or skip
 6. **Demo Data Generated** (if user chooses)

@@ -31,7 +31,7 @@ interface Translations {
   cancel: string;
   close: string;
   retry: string;
-  
+
   // Booking & schedule additions
   selectDentist: string;
   selectAppointmentType: string;
@@ -130,7 +130,7 @@ interface Translations {
   phone: string;
   optional: string;
   welcome: string;
-  accessDentiBot: string;
+  accessCaberu: string;
   signInOrCreate: string;
   signInButton: string;
   createAccountButton: string;
@@ -139,7 +139,7 @@ interface Translations {
   signUpError: string;
   signInError: string;
   signInSuccess: string;
-  welcomeToDentiBot: string;
+  welcomeToCaberu: string;
 
   // Placeholders
   enterFirstName: string;
@@ -221,7 +221,7 @@ interface Translations {
   yesCancelAppointment: string;
   appointmentCancelled: string;
   failedToCancelAppointment: string;
-  
+
   // Appointments Management
   appointmentsManagement: string;
   manageViewAppointments: string;
@@ -477,7 +477,7 @@ interface Translations {
   expand: string;
   srAlertNew: string;
   srQuickActions: string;
-  
+
   // Treatment records
   searchTreatments: string;
   filterByType: string;
@@ -506,17 +506,17 @@ const translations: Record<Language, Translations> = {
     voiceProcessingError: "Error processing voice message. Please try again.",
 
     // General
-  settings: "Settings",
-  general: "General",
-  theme: "Theme",
-  personal: "Personal",
-  intelligentDentalAssistant: "Intelligent Dental Assistant",
-  experienceFuture: "Experience the Future",
-  viewOurDentists: "View Our Dentists",
-  aiDiagnosis: "AI Diagnosis",
-  startConsultation: "Start Consultation",
-  bookAppointment: "Book Appointment",
-  emergencyAssistance: "Emergency Assistance",
+    settings: "Settings",
+    general: "General",
+    theme: "Theme",
+    personal: "Personal",
+    intelligentDentalAssistant: "Intelligent Dental Assistant",
+    experienceFuture: "Experience the Future",
+    viewOurDentists: "View Our Dentists",
+    aiDiagnosis: "AI Diagnosis",
+    startConsultation: "Start Consultation",
+    bookAppointment: "Book Appointment",
+    emergencyAssistance: "Emergency Assistance",
     language: "Preferred Language",
     light: "Light",
     dark: "Dark",
@@ -619,7 +619,7 @@ const translations: Record<Language, Translations> = {
     phone: "Phone",
     optional: "optional",
     welcome: "Welcome",
-    accessDentiBot: "Access DentiBot",
+    accessCaberu: "Access Caberu",
     signInOrCreate: "Sign in or create an account to get started",
     signInButton: "Sign in",
     createAccountButton: "Create account",
@@ -628,7 +628,7 @@ const translations: Record<Language, Translations> = {
     signUpError: "Sign up error",
     signInError: "Sign in error",
     signInSuccess: "Sign in successful!",
-    welcomeToDentiBot: "Welcome to DentiBot.",
+    welcomeToCaberu: "Welcome to Caberu.",
 
     // Placeholders
     enterFirstName: "Enter your first name",
@@ -644,7 +644,7 @@ const translations: Record<Language, Translations> = {
     dentalAssistant: "Dental Assistant",
     typeMessage: "Type your message...",
     send: "Send",
-    welcomeMessage: "Hello! I'm DentiBot. How can I help you today? 🦷",
+    welcomeMessage: "Hello! I'm Caberu. How can I help you today? 🦷",
     detailedWelcomeMessage: `Welcome to First Smile AI! 🦷✨
 
 I'm your AI dental assistant, available 24/7 to help you with:
@@ -733,7 +733,7 @@ How can I help you today?`,
     yesCancelAppointment: "Yes, Cancel",
     appointmentCancelled: "Appointment cancelled successfully",
     failedToCancelAppointment: "Failed to cancel appointment",
-    
+
     // Appointments Management
     appointmentsManagement: "Appointments Management",
     manageViewAppointments: "Manage and view all your patient appointments",
@@ -791,11 +791,11 @@ How can I help you today?`,
     invalidPhoneFormat: "Please enter a valid phone number",
     invalidEmailFormat: "Please enter a valid email address",
     requiredField: "This field is required",
-    consentHealthData: "I consent to DentiBot processing my personal and health data for appointment scheduling and dental service support purposes.",
+    consentHealthData: "I consent to Caberu processing my personal and health data for appointment scheduling and dental service support purposes.",
     childConsentNote: "If you are entering data for a patient under 16, you confirm you are their parent or legal guardian and consent to processing their data.",
     downloadMyData: "Download My Data",
     deleteAccount: "Delete My Account & Data",
-    deleteAccountConfirm: "Deleting your account will permanently remove all your personal and health data from DentiBot's systems. This cannot be undone. Are you sure?",
+    deleteAccountConfirm: "Deleting your account will permanently remove all your personal and health data from Caberu's systems. This cannot be undone. Are you sure?",
     aiAdviceDisclaimer: "⚠️ AI suggestions are for informational purposes only and are not a substitute for professional dental advice.",
 
     // Onboarding
@@ -872,7 +872,7 @@ How can I help you today?`,
 
     // Patient Dashboard Components
     goodMorning: "Good morning",
-    goodAfternoon: "Good afternoon", 
+    goodAfternoon: "Good afternoon",
     goodEvening: "Good evening",
     hereIsYourHealthOverview: "Here's your health overview",
     confirmed: "Confirmed",
@@ -932,7 +932,7 @@ How can I help you today?`,
     generalCheckup: "General Checkup",
     today: "Today",
     calendar: "Calendar",
-    list: "List", 
+    list: "List",
     history: "History",
     cancelled: "Cancelled",
     scheduled: "Scheduled",
@@ -1132,7 +1132,7 @@ How can I help you today?`,
     phone: "Téléphone",
     optional: "optionnel",
     welcome: "Bienvenue",
-    accessDentiBot: "Accès à DentiBot",
+    accessCaberu: "Accès à Caberu",
     signInOrCreate: "Connectez-vous ou créez un compte pour commencer",
     signInButton: "Se connecter",
     createAccountButton: "Créer un compte",
@@ -1141,7 +1141,7 @@ How can I help you today?`,
     signUpError: "Erreur lors de l'inscription",
     signInError: "Erreur lors de la connexion",
     signInSuccess: "Connexion réussie !",
-    welcomeToDentiBot: "Bienvenue sur DentiBot.",
+    welcomeToCaberu: "Bienvenue sur Caberu.",
 
     // Placeholders
     enterFirstName: "Entrez votre prénom",
@@ -1158,7 +1158,7 @@ How can I help you today?`,
     typeMessage: "Tapez votre message...",
     send: "Envoyer",
     welcomeMessage:
-      "Bonjour ! Je suis DentiBot. Comment puis-je vous aider aujourd'hui ? 🦷",
+      "Bonjour ! Je suis Caberu. Comment puis-je vous aider aujourd'hui ? 🦷",
     detailedWelcomeMessage: `Bienvenue sur First Smile AI ! 🦷✨
 
 Je suis votre assistant dentaire IA, disponible 24h/24 pour vous aider avec :
@@ -1254,7 +1254,7 @@ Comment puis-je vous aider aujourd'hui ?`,
     yesCancelAppointment: "Oui, Annuler",
     appointmentCancelled: "Rendez-vous annulé avec succès",
     failedToCancelAppointment: "Échec de l'annulation du rendez-vous",
-    
+
     // Appointments Management
     appointmentsManagement: "Gestion des Rendez-vous",
     manageViewAppointments: "Gérez et consultez tous les rendez-vous de vos patients",
@@ -1314,11 +1314,11 @@ Comment puis-je vous aider aujourd'hui ?`,
     invalidPhoneFormat: "Veuillez entrer un numéro de téléphone valide",
     invalidEmailFormat: "Veuillez entrer une adresse email valide",
     requiredField: "Ce champ est obligatoire",
-    consentHealthData: "Je consens à ce que DentiBot traite mes données personnelles et de santé pour la prise de rendez-vous et le support des services dentaires.",
+    consentHealthData: "Je consens à ce que Caberu traite mes données personnelles et de santé pour la prise de rendez-vous et le support des services dentaires.",
     childConsentNote: "Si vous saisissez des données pour un patient de moins de 16 ans, vous confirmez être son parent ou tuteur légal et consentez au traitement de ses données.",
     downloadMyData: "Télécharger Mes Données",
     deleteAccount: "Supprimer Mon Compte et Mes Données",
-    deleteAccountConfirm: "La suppression de votre compte effacera définitivement toutes vos données personnelles et de santé des systèmes de DentiBot. Cette action est irréversible. Êtes-vous sûr ?",
+    deleteAccountConfirm: "La suppression de votre compte effacera définitivement toutes vos données personnelles et de santé des systèmes de Caberu. Cette action est irréversible. Êtes-vous sûr ?",
     aiAdviceDisclaimer: "⚠️ Les suggestions de l'IA sont fournies à titre informatif uniquement et ne remplacent pas les conseils dentaires professionnels.",
 
     // Onboarding
@@ -1670,7 +1670,7 @@ Comment puis-je vous aider aujourd'hui ?`,
     phone: "Telefoon",
     optional: "optioneel",
     welcome: "Welkom",
-    accessDentiBot: "Toegang tot DentiBot",
+    accessCaberu: "Toegang tot Caberu",
     signInOrCreate: "Log in of maak een account aan om te beginnen",
     signInButton: "Inloggen",
     createAccountButton: "Account aanmaken",
@@ -1679,7 +1679,7 @@ Comment puis-je vous aider aujourd'hui ?`,
     signUpError: "Registratiefout",
     signInError: "Inlogfout",
     signInSuccess: "Inloggen gelukt!",
-    welcomeToDentiBot: "Welkom bij DentiBot.",
+    welcomeToCaberu: "Welkom bij Caberu.",
 
     // Placeholders
     enterFirstName: "Voer uw voornaam in",
@@ -1695,7 +1695,7 @@ Comment puis-je vous aider aujourd'hui ?`,
     dentalAssistant: "Tandheelkundige assistent",
     typeMessage: "Typ uw bericht...",
     send: "Versturen",
-    welcomeMessage: "Hallo! Ik ben DentiBot. Hoe kan ik u vandaag helpen? 🦷",
+    welcomeMessage: "Hallo! Ik ben Caberu. Hoe kan ik u vandaag helpen? 🦷",
     detailedWelcomeMessage: "Welkom bij First Smile AI! 🦷✨\n\nIk ben uw AI tandheelkundige assistent, 24/7 beschikbaar om u te helpen met:\n\n🤖 **AI Chat** - Krijg directe antwoorden op uw tandheelkundige vragen\n📅 **Slimme Boekingen** - Boek afspraken intelligent met duurduurinformatie\n📸 **Foto Analyse** - Upload foto's voor AI-aangedreven tandheelkundige analyse\n👨‍👩‍👧‍👦 **Familiezorg** - Boek afspraken voor uzelf of familieleden\n\n💡 **Pro Tip**: Vertel me gewoon wat u dwarszit, en ik zal u door alles heen begeleiden!\n\nHoe kan ik u vandaag helpen?",
     detailedWelcomeMessageWithName: (name: string) => `Welkom bij First Smile AI! 🦷✨\n\nHallo ${name}! Ik ben uw AI tandheelkundige assistent, 24/7 beschikbaar om u te helpen met:\n\n🤖 **AI Chat** - Krijg directe antwoorden op uw tandheelkundige vragen\n📅 **Slimme Boekingen** - Boek afspraken intelligent met duurduurinformatie\n📸 **Foto Analyse** - Upload foto's voor AI-aangedreven tandheelkundige analyse\n👨‍👩‍👧‍👦 **Familiezorg** - Boek afspraken voor uzelf of familieleden\n\n💡 **Pro Tip**: Vertel me gewoon wat u dwarszit, en ik zal u door alles heen begeleiden!\n\nHoe kan ik u vandaag helpen?`,
 
@@ -1751,7 +1751,7 @@ Comment puis-je vous aider aujourd'hui ?`,
     yesCancelAppointment: "Ja, Annuleren",
     appointmentCancelled: "Afspraak succesvol geannuleerd",
     failedToCancelAppointment: "Kan afspraak niet annuleren",
-    
+
     // Appointments Management
     appointmentsManagement: "Afspraken Beheer",
     manageViewAppointments: "Beheer en bekijk alle afspraken van uw patiënten",
@@ -1811,11 +1811,11 @@ Comment puis-je vous aider aujourd'hui ?`,
     invalidPhoneFormat: "Voer een geldig telefoonnummer in",
     invalidEmailFormat: "Voer een geldig e-mailadres in",
     requiredField: "Dit veld is verplicht",
-    consentHealthData: "Ik stem ermee in dat DentiBot mijn persoonlijke- en gezondheidsgegevens verwerkt voor het plannen van afspraken en ondersteuning van tandheelkundige diensten.",
+    consentHealthData: "Ik stem ermee in dat Caberu mijn persoonlijke- en gezondheidsgegevens verwerkt voor het plannen van afspraken en ondersteuning van tandheelkundige diensten.",
     childConsentNote: "Als u gegevens invoert voor een patiënt jonger dan 16 jaar, bevestigt u dat u hun ouder of wettelijke voogd bent en toestemt met de verwerking van hun gegevens.",
     downloadMyData: "Mijn Gegevens Downloaden",
     deleteAccount: "Mijn Account en Gegevens Verwijderen",
-    deleteAccountConfirm: "Het verwijderen van uw account verwijdert al uw persoonlijke- en gezondheidsgegevens permanent uit de systemen van DentiBot. Dit kan niet ongedaan worden gemaakt. Weet u het zeker?",
+    deleteAccountConfirm: "Het verwijderen van uw account verwijdert al uw persoonlijke- en gezondheidsgegevens permanent uit de systemen van Caberu. Dit kan niet ongedaan worden gemaakt. Weet u het zeker?",
     aiAdviceDisclaimer: "⚠️ AI-suggesties zijn alleen voor informatiedoeleinden en vervangen geen professioneel tandheelkundig advies.",
 
     // Onboarding
@@ -2079,7 +2079,7 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
             .eq('user_id', uid)
             .maybeSingle();
           const pref = (profile?.language_preference || 'en') as Language;
-          if (["en","fr","nl"].includes(pref)) {
+          if (["en", "fr", "nl"].includes(pref)) {
             setLanguage(pref);
           }
         } catch (error) {

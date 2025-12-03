@@ -1,4 +1,4 @@
-# DentiBot Design System
+# Caberu Design System
 
 A comprehensive, semantic design system ensuring consistency across the application.
 

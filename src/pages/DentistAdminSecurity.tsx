@@ -11,6 +11,17 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, Shield, Key, Clock, AlertTriangle, Users, UserPlus } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { StaffInviteDialog } from "@/components/staff/StaffInviteDialog";
 import { TwoFactorVerificationDialog } from "@/components/auth/TwoFactorVerificationDialog";
@@ -28,6 +39,9 @@ export default function DentistAdminSecurity() {
   const [enablingTwoFactor, setEnablingTwoFactor] = useState(false);
   const [show2FADialog, setShow2FADialog] = useState(false);
   const [userEmail, setUserEmail] = useState("");
+  const [exportLoading, setExportLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -228,6 +242,83 @@ export default function DentistAdminSecurity() {
     }
   };
 
+  const handleExportData = async () => {
+    try {
+      setExportLoading(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Create a new export bundle
+      const { data: bundle, error: bundleError } = await supabase
+        .from('gdpr_export_bundles')
+        .insert({
+          patient_id: user.id,
+          request_type: 'portability',
+          status: 'pending'
+        })
+        .select()
+        .single();
+
+      if (bundleError) throw bundleError;
+
+      // Trigger the edge function
+      const { error } = await supabase.functions.invoke('generate-data-export', {
+        body: {
+          bundleId: bundle.id,
+          exportType: 'portability'
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Export Started",
+        description: "Your data export has been started. You will receive an email when it is ready.",
+      });
+
+    } catch (error: any) {
+      console.error('Export error:', error);
+      toast({
+        title: "Export Failed",
+        description: error.message || "Failed to start data export",
+        variant: "destructive",
+      });
+    } finally {
+      setExportLoading(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    try {
+      setDeleteLoading(true);
+      const { error } = await supabase.functions.invoke('delete-user-account');
+
+      if (error) throw error;
+
+      toast({
+        title: "Account Deleted",
+        description: "Your account has been permanently deleted.",
+      });
+
+      // Sign out and redirect
+      await supabase.auth.signOut();
+      window.location.href = '/';
+
+    } catch (error: any) {
+      console.error('Delete error:', error);
+      toast({
+        title: "Delete Failed",
+        description: error.message || "Failed to delete account",
+        variant: "destructive",
+      });
+      setShowDeleteDialog(false);
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
+
+
   if (dentistLoading) {
     return (
       <div className="flex justify-center items-center p-8">
@@ -340,15 +431,16 @@ export default function DentistAdminSecurity() {
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between p-4 border rounded-lg">
               <div className="space-y-1">
-                <p className="font-medium">Enable 2FA</p>
+                <Label htmlFor="two-factor-auth" className="font-medium cursor-pointer">Enable 2FA</Label>
                 <p className="text-sm text-muted-foreground">
                   Require a verification code in addition to your password
                 </p>
               </div>
               <Switch
+                id="two-factor-auth"
                 checked={twoFactorEnabled}
                 onCheckedChange={handleTwoFactorToggle}
-                disabled={enablingTwoFactor}
+                disabled={enablingTwoFactor || !userEmail}
               />
             </div>
             {twoFactorEnabled && (
@@ -466,6 +558,10 @@ export default function DentistAdminSecurity() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+
+
+
+
             <div className="flex items-center justify-between">
               <div>
                 <p className="font-medium">Export Your Data</p>
@@ -473,7 +569,62 @@ export default function DentistAdminSecurity() {
                   Download a copy of all your data
                 </p>
               </div>
-              <Button variant="outline">Export Data</Button>
+              <Button
+                variant="outline"
+                onClick={handleExportData}
+                disabled={exportLoading}
+              >
+                {exportLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Exporting...
+                  </>
+                ) : (
+                  "Export Data"
+                )}
+              </Button>
+            </div>
+
+            <Separator />
+
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium text-red-600">Delete Account</p>
+                <p className="text-sm text-muted-foreground">
+                  Permanently delete your account and all data
+                </p>
+              </div>
+              <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive">Delete Account</Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This action cannot be undone. This will permanently delete your
+                      account and remove your data from our servers.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleDeleteAccount}
+                      className="bg-red-600 hover:bg-red-700"
+                      disabled={deleteLoading}
+                    >
+                      {deleteLoading ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Deleting...
+                        </>
+                      ) : (
+                        "Delete Account"
+                      )}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
 
             <Separator />
