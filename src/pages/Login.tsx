@@ -113,10 +113,13 @@ const Login = () => {
       // Check if user has 2FA enabled
       const twoFactorEnabled = authData.user?.user_metadata?.two_factor_enabled === true;
 
+      console.log('Login successful. User metadata:', authData.user?.user_metadata);
+      console.log('2FA enabled:', twoFactorEnabled);
 
       if (twoFactorEnabled) {
         // User has 2FA enabled - show verification dialog
         // Keep session active during 2FA verification
+        console.log('Showing 2FA dialog for:', formData.email);
         setUserEmail(formData.email);
         setShow2FADialog(true);
         setIsLoading(false);
@@ -125,6 +128,7 @@ const Login = () => {
 
 
       // No 2FA - proceed with normal login flow
+      console.log('No 2FA required, completing login');
       await completeLogin();
     } catch (error: any) {
       const errorMessage = error.message.toLowerCase();
