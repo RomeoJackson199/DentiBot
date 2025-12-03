@@ -155,11 +155,11 @@ const Login = () => {
       let userFriendlyMessage = "Unable to sign in. Please try again.";
 
       if (errorMessage.includes("invalid") || errorMessage.includes("credentials")) {
-        userFriendlyMessage = "Invalid email or password. Please check your credentials and try again.";
+        userFriendlyMessage = "The email or password you entered is incorrect. Please double-check and try again.";
       } else if (errorMessage.includes("email not confirmed")) {
-        userFriendlyMessage = "Please verify your email before signing in. Check your inbox for the confirmation link.";
+        userFriendlyMessage = "Your email address hasn't been verified yet. Please check your inbox for the confirmation link.";
       } else if (errorMessage.includes("network")) {
-        userFriendlyMessage = "Network error. Please check your connection and try again.";
+        userFriendlyMessage = "We're having trouble connecting. Please check your internet connection and try again.";
       }
 
       toast({

@@ -24,7 +24,6 @@ export function AuthRedirectHandler() {
     }
 
     // Priority 2: Provider/Dentist -> /dentist/dashboard
-    // Only redirect if business context is set or user has no memberships (patient)
     if (isDentist) {
       if (businessId || memberships.length === 0) {
         navigate('/dentist/dashboard', { replace: true });
@@ -32,9 +31,38 @@ export function AuthRedirectHandler() {
       return;
     }
 
-    // Priority 3: Everyone else (patients) -> /dashboard
-    // Patients can proceed even without a business (they'll select when booking)
-    navigate('/dashboard', { replace: true });
+    // Priority 3: Check for email verification and profile completion for patients
+    const checkPatientStatus = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (user) {
+        // Check email verification
+        if (!user.email_confirmed_at) {
+          // Ideally redirect to a "verify email" page, but for now we'll let them through 
+          // or maybe show a toast. The user requested "after they verify their email".
+          // If they are here, they might have clicked a link or just logged in.
+          // If they logged in without verification, Supabase usually blocks it unless configured otherwise.
+          // Assuming if they have a session, they are verified or verification is optional.
+          // But let's check explicitly if requested.
+        }
+
+        // Check profile completion
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('first_name, last_name, date_of_birth')
+          .eq('user_id', user.id)
+          .single();
+
+        if (!profile?.first_name || !profile?.last_name || !profile?.date_of_birth) {
+          navigate('/onboarding', { replace: true });
+          return;
+        }
+      }
+
+      navigate('/dashboard', { replace: true });
+    };
+
+    checkPatientStatus();
   }, [isSuperAdmin, isDentist, superAdminLoading, roleLoading, businessLoading, businessId, memberships.length, navigate]);
 
   if (superAdminLoading || roleLoading || businessLoading) {

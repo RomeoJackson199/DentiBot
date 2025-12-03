@@ -109,13 +109,13 @@ const Signup = () => {
       let userFriendlyMessage = "Unable to create account. Please try again.";
 
       if (errorMessage.includes("already registered") || errorMessage.includes("already exists")) {
-        userFriendlyMessage = "This email is already registered. Please sign in instead or use a different email.";
+        userFriendlyMessage = "An account with this email already exists. Please sign in instead.";
       } else if (errorMessage.includes("invalid email")) {
-        userFriendlyMessage = "Please enter a valid email address.";
+        userFriendlyMessage = "The email address you entered doesn't look right. Please check it and try again.";
       } else if (errorMessage.includes("password")) {
-        userFriendlyMessage = "Password must be at least 8 characters with uppercase and lowercase letters.";
+        userFriendlyMessage = "Your password needs to be stronger. It must be at least 8 characters long and include both uppercase and lowercase letters.";
       } else if (errorMessage.includes("network")) {
-        userFriendlyMessage = "Network error. Please check your connection and try again.";
+        userFriendlyMessage = "We're having trouble connecting. Please check your internet connection and try again.";
       }
 
       toast({

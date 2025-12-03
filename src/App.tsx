@@ -85,6 +85,7 @@ const DeleteBusinessPage = lazy(() => import("./pages/DeleteBusinessPage"));
 const SmartBookAppointment = lazy(() => import("./pages/SmartBookAppointment"));
 const SuperAdminDashboard = lazy(() => import("./pages/SuperAdminDashboard"));
 const AuthRedirect = lazy(() => import("./pages/AuthRedirect"));
+const Onboarding = lazy(() => import("./pages/Onboarding"));
 
 // Dashboard component that handles authentication with lazy loading
 // Business gate component that shows appropriate picker
