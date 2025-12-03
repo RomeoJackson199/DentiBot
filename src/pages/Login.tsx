@@ -184,6 +184,9 @@ const Login = () => {
         title: "Welcome back!",
         description: "You've successfully signed in.",
       });
+
+      // Navigate to auth-redirect after successful login
+      navigate("/auth-redirect");
     } catch (error) {
       logger.error("Error completing login:", error);
     }
