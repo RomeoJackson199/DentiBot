@@ -13,7 +13,7 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     mode === 'development' && componentTagger(),
-    mode === 'production' && beasties({ options: { preload: 'swap', noscriptFallback: true } }),
+    // mode === 'production' && beasties({ options: { preload: 'swap', noscriptFallback: true } }),
   ].filter(Boolean),
   resolve: {
     alias: {
