@@ -71,20 +71,7 @@ export const Header = ({ user, minimal = false }: HeaderProps) => {
 
           {/* Auth Buttons & Theme Toggle */}
           <div className="flex items-center gap-3">
-            {/* Dark Mode Toggle */}
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="hidden sm:inline-flex rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
-              aria-label="Toggle theme"
-            >
-              {theme === "dark" ? (
-                <Sun className="h-5 w-5" />
-              ) : (
-                <Moon className="h-5 w-5" />
-              )}
-            </Button>
+            {/* Theme Toggle Removed */}
 
             {!user ? (
               <>

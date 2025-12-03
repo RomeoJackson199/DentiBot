@@ -127,7 +127,11 @@ const Index = () => {
                 size="lg"
                 variant="outline"
                 className="h-14 px-8 text-lg rounded-full backdrop-blur-sm bg-white/50 hover:bg-white/80 border-2"
-                onClick={() => setShowDemoTour(true)}
+                onClick={() => {
+                  sessionStorage.setItem('demo_business_name', 'Demo Practice');
+                  sessionStorage.setItem('demo_template', 'healthcare');
+                  navigate('/demo/dentist');
+                }}
               >
                 <PlayCircle className="mr-2 h-5 w-5" />
                 Live Demo
@@ -181,9 +185,8 @@ const Index = () => {
         <PricingSection />
 
         {/* CTA Section */}
-        <section className="relative py-32 px-4 sm:px-6 lg:px-8 overflow-hidden">
-          <div className="absolute inset-0 bg-slate-900 -z-20" />
-          <div className="absolute inset-0 opacity-20 bg-[radial-gradient(#4f46e5_1px,transparent_1px)] [background-size:16px_16px] -z-10" />
+        <section className="relative py-32 px-4 sm:px-6 lg:px-8 overflow-hidden bg-slate-900">
+          <div className="absolute inset-0 opacity-20 bg-[radial-gradient(#4f46e5_1px,transparent_1px)] [background-size:16px_16px]" />
           <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
 
           <div className="relative z-10 max-w-4xl mx-auto text-center">
@@ -212,7 +215,7 @@ const Index = () => {
               </Button>
             </div>
             <p className="mt-8 text-sm text-slate-500">
-              No credit card required • 14-day free trial • Cancel anytime
+              No credit card required • Cancel anytime
             </p>
           </div>
         </section>
