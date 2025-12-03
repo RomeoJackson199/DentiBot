@@ -200,6 +200,9 @@ const Login = () => {
 
       if (error) throw error;
 
+      // Wait a moment for the session to be fully established
+      await new Promise(resolve => setTimeout(resolve, 500));
+
       // Log 2FA login event
       try {
         const { data: { user } } = await supabase.auth.getUser();
