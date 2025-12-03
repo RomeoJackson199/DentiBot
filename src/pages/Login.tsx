@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -30,6 +30,7 @@ const Login = () => {
   );
   const [show2FADialog, setShow2FADialog] = useState(false);
   const [userEmail, setUserEmail] = useState("");
+  const is2FAPending = useRef(false); // Track 2FA flow synchronously
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -37,20 +38,24 @@ const Login = () => {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      // Don't auto-navigate if user has 2FA enabled (let the login handler show the dialog)
-      const has2FA = session?.user?.user_metadata?.two_factor_enabled === true;
-      if (session && !has2FA) {
-        navigate("/auth-redirect");
+      // Don't auto-navigate if 2FA is pending
+      if (session && !is2FAPending.current) {
+        const has2FA = session?.user?.user_metadata?.two_factor_enabled === true;
+        if (!has2FA) {
+          navigate("/auth-redirect");
+        }
       }
     });
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      // Don't auto-navigate if user has 2FA enabled (let the login handler show the dialog)
-      const has2FA = session?.user?.user_metadata?.two_factor_enabled === true;
-      if (session && !has2FA) {
-        navigate("/auth-redirect");
+      // Don't auto-navigate if 2FA is pending
+      if (session && !is2FAPending.current) {
+        const has2FA = session?.user?.user_metadata?.two_factor_enabled === true;
+        if (!has2FA) {
+          navigate("/auth-redirect");
+        }
       }
     });
 
@@ -134,6 +139,7 @@ const Login = () => {
         // User has 2FA enabled - show verification dialog
         // Keep session active during 2FA verification
         console.log('Showing 2FA dialog for:', formData.email);
+        is2FAPending.current = true; // Prevent auto-navigation
         setUserEmail(formData.email);
         setShow2FADialog(true);
         setIsLoading(false);
@@ -212,6 +218,7 @@ const Login = () => {
 
   const handle2FASuccess = async () => {
     setIsLoading(true);
+    is2FAPending.current = false; // Clear flag after successful 2FA
     try {
       // Log 2FA login event
       try {
