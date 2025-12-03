@@ -4,19 +4,18 @@ import { User } from "@supabase/supabase-js";
 import { Header } from "@/components/homepage/Header";
 import { Footer } from "@/components/homepage/Footer";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, PlayCircle, Shield, Zap, CheckCircle2, Star, Globe } from "lucide-react";
+import { ArrowRight, PlayCircle, Shield, Zap, Globe } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AccessibleLoadingIndicator } from "@/components/ui/skip-to-content";
 import { DemoTourFlow } from "@/components/demo/DemoTourFlow";
-import { BentoGridFeatures } from "@/components/homepage/BentoGridFeatures";
-import { ProblemSection } from "@/components/homepage/ProblemSection";
-import { StatsSection } from "@/components/homepage/StatsSection";
+import { InteractiveBentoGrid } from "@/components/homepage/InteractiveBentoGrid";
+import { WhatCaberuDoesSection } from "@/components/homepage/WhatCaberuDoesSection";
 import { ResultsSection } from "@/components/homepage/ResultsSection";
 import { PricingSection } from "@/components/homepage/PricingSection";
 import { FloatingChatBubble } from "@/components/chat/FloatingChatBubble";
 import { TestimonialsSection } from "@/components/homepage/TestimonialsSection";
 import { FAQSection } from "@/components/homepage/FAQSection";
-import { TrustedBySection } from "@/components/homepage/TrustedBySection";
+import { SocialProofTicker } from "@/components/homepage/SocialProofTicker";
 import { ContactForm } from "@/components/homepage/ContactForm";
 import { motion } from "framer-motion";
 
@@ -160,17 +159,14 @@ const Index = () => {
           </div>
         </section>
 
-        {/* Trusted By */}
-        <TrustedBySection />
+        {/* Social Proof Ticker */}
+        <SocialProofTicker />
 
-        {/* Problem/Solution */}
-        <ProblemSection />
+        {/* What Caberu Does */}
+        <WhatCaberuDoesSection />
 
-        {/* Features Grid */}
-        <BentoGridFeatures />
-
-        {/* Stats */}
-        <StatsSection />
+        {/* Interactive Features Grid */}
+        <InteractiveBentoGrid />
 
         {/* Testimonials */}
         <TestimonialsSection />
@@ -185,7 +181,7 @@ const Index = () => {
         <PricingSection />
 
         {/* CTA Section */}
-        <section className="relative py-32 px-4 sm:px-6 lg:px-8 overflow-hidden bg-slate-900">
+        <section className="relative py-32 px-4 sm:px-6 lg:px-8 overflow-hidden bg-[#0f172a]">
           <div className="absolute inset-0 opacity-20 bg-[radial-gradient(#4f46e5_1px,transparent_1px)] [background-size:16px_16px]" />
           <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
 

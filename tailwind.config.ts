@@ -31,12 +31,12 @@ export default {
 			}
 		},
 		extend: {
-		fontFamily: {
-			sans: ['Poppins', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
-			heading: ['"DM Sans"', 'Poppins', 'system-ui', '-apple-system', 'sans-serif'],
-			body: ['Poppins', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
-			mono: ['"SF Mono"', '"Roboto Mono"', 'Consolas', 'monospace'],
-		},
+			fontFamily: {
+				sans: ['Poppins', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
+				heading: ['"DM Sans"', 'Poppins', 'system-ui', '-apple-system', 'sans-serif'],
+				body: ['Poppins', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
+				mono: ['"SF Mono"', '"Roboto Mono"', 'Consolas', 'monospace'],
+			},
 			screens: {
 				'xs': '475px',
 				'3xl': '1600px',
@@ -285,6 +285,10 @@ export default {
 					'50%': {
 						transform: 'translateY(-4px)'
 					}
+				},
+				'marquee': {
+					'0%': { transform: 'translateX(0%)' },
+					'100%': { transform: 'translateX(-100%)' }
 				}
 			},
 			animation: {
@@ -298,6 +302,7 @@ export default {
 				'mobile-slide-up': 'mobile-slide-up 0.4s ease-out',
 				'mobile-scale': 'mobile-scale 0.2s ease-out',
 				'bounce-gentle': 'bounce-gentle 2s ease-in-out infinite',
+				'marquee': 'marquee 25s linear infinite',
 			},
 			// Touch-friendly sizing
 			minHeight: {
