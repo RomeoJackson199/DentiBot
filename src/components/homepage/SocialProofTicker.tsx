@@ -13,7 +13,7 @@ const logos = [
 
 export const SocialProofTicker = () => {
     return (
-        <section className="py-10 bg-slate-50 border-y border-slate-100 overflow-hidden">
+        <section className="py-10 bg-slate-50 overflow-hidden">
             <div className="relative flex overflow-x-hidden group">
                 <div className="animate-marquee whitespace-nowrap flex gap-16 items-center">
                     {/* First set of logos */}
