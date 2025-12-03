@@ -278,6 +278,7 @@ const App = () => {
                         <Route path="/signup" element={<Signup />} />
                         <Route path="/forgot-password" element={<ForgotPassword />} />
                         <Route path="/create-business" element={<CreateBusiness />} />
+                        <Route path="/onboarding" element={<Onboarding />} />
                         {/* Post-auth redirect handler */}
                         <Route path="/auth-redirect" element={<AuthRedirect />} />
                         {/* Role-based dashboard routing */}
