@@ -9,10 +9,9 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { saveProfileData, loadProfileData, ProfileData } from "@/lib/profileUtils";
-import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { ProfilePictureUpload } from "@/components/ProfilePictureUpload";
+import { PatientSecuritySettings } from "@/components/patient/PatientSecuritySettings";
 
 export interface SettingsPageProps {
   user: User;
@@ -46,7 +45,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ user }) => {
       }
     })();
   }, [user]);
-  
+
   const handleSave = async () => {
     setSaving(true);
     try {
@@ -142,7 +141,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ email, profile, setProfile, o
         <CardTitle>Profile & Personal Info</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <ProfilePictureUpload 
+        <ProfilePictureUpload
           currentUrl={profile.profile_picture_url}
           userId={userId}
           onUploadComplete={(url) => setProfile({ ...profile, profile_picture_url: url })}
@@ -220,45 +219,7 @@ const Preferences: React.FC<{ theme?: string; setTheme: (t: string) => void; }> 
 };
 
 const Security: React.FC = () => {
-  const { toast } = useToast();
-  
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Security</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div>
-            <Label>Change Password</Label>
-            <div className="mt-2 flex gap-2">
-              <Input type="password" placeholder="New password" />
-              <Button>Update</Button>
-            </div>
-          </div>
-          <div>
-            <Label>Two-Factor Authentication</Label>
-            <div className="mt-2 flex items-center gap-4">
-              <Switch 
-                checked={false}
-                onCheckedChange={(checked) => {
-                  if (checked) {
-                    toast({
-                      title: "2FA Setup",
-                      description: "Two-factor authentication setup will be available soon. Your account is currently protected by secure password authentication.",
-                    });
-                  }
-                }}
-              />
-              <div className="text-sm text-muted-foreground">
-                Enhance your account security with 2FA
-              </div>
-            </div>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
+  return <PatientSecuritySettings />;
 };
 
 const LegalSupport: React.FC = () => {
