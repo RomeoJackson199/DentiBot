@@ -194,7 +194,7 @@ const App = () => {
     const checkAuth = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       setUser(user);
-      
+
       if (user) {
         const { data: profile } = await supabase
           .from('profiles')
@@ -245,111 +245,111 @@ const App = () => {
   }, []);
 
   return (
-  <ErrorBoundary>
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider
-        attribute="class"
-        defaultTheme="light"
-        enableSystem={true}
-        disableTransitionOnChange={false}
-      >
-        <LanguageProvider>
-          <BusinessProvider>
-            <TemplateProvider>
-              <AuthCallbackHandler />
-              <TooltipProvider>
-                <Sonner />
-                <PWAInstallPrompt />
-                <ProfileCompletionDialog />
-                <BrowserRouter>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          enableSystem={true}
+          disableTransitionOnChange={false}
+        >
+          <LanguageProvider>
+            <BusinessProvider>
+              <TemplateProvider>
+                <AuthCallbackHandler />
+                <TooltipProvider>
+                  <Sonner />
+                  <PWAInstallPrompt />
+                  <ProfileCompletionDialog />
+                  <BrowserRouter>
                     <DentistInvitationDialog />
                     <CommandPalette />
-                    <CookieConsent />
+                    <CookieConsent isAuthenticated={!!user} />
                     <OnboardingOrchestrator user={user} />
                     <SeoManager />
-                    <Suspense fallback={<ModernLoadingSpinner variant="overlay" message="Loading..." /> }>
+                    <Suspense fallback={<ModernLoadingSpinner variant="overlay" message="Loading..." />}>
                       <Routes>
-                  <Route path="/" element={<Index />} />
-                {/* Demo routes */}
-                <Route path="/demo/dentist" element={<DemoDentistDashboard />} />
-                {/* Auth routes */}
-                <Route path="/login" element={<Login />} />
-                <Route path="/signup" element={<Signup />} />
-                <Route path="/forgot-password" element={<ForgotPassword />} />
-                <Route path="/create-business" element={<CreateBusiness />} />
-                {/* Post-auth redirect handler */}
-                <Route path="/auth-redirect" element={<AuthRedirect />} />
-                {/* Role-based dashboard routing */}
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/patient/*" element={<Dashboard />} />
-                {/* Dentist routes with tab-based navigation */}
-                <Route path="/dentist/*" element={<RoleBasedRouter requiredRole='dentist'><DentistPortal /></RoleBasedRouter>} />
-                <Route path="/dentist-services" element={<RoleBasedRouter requiredRole='dentist'><DentistServices /></RoleBasedRouter>} />
-                {/* Patient portal routes with patient nav */}
-                <Route element={<PatientPortalNav><></></PatientPortalNav>}>
-                  <Route path="/care" element={<PatientCareHome />} />
-                  <Route path="/care/appointments" element={<PatientAppointmentsPage />} />
-                  <Route path="/care/prescriptions" element={<PatientPrescriptionsPage />} />
-                  <Route path="/care/history" element={<PatientTreatmentHistoryPage />} />
-                  <Route path="/billing" element={<PatientBillingPage />} />
-                  <Route path="/docs" element={<PatientDocumentsPage />} />
-                  <Route path="/account/profile" element={<PatientAccountProfilePage />} />
-                  <Route path="/account/insurance" element={<PatientAccountInsurancePage />} />
-                  <Route path="/account/privacy" element={<PatientAccountPrivacyPage />} />
-                  <Route path="/account/help" element={<PatientAccountHelpPage />} />
-                  <Route path="/account/settings" element={<PatientSettingsPage />} />
-                </Route>
-                {/* Public routes */}
-                <Route path="/dentists" element={<DentistProfiles />} />
-                <Route path="/terms" element={<Terms />} />
-                <Route path="/privacy" element={<PrivacyPolicy />} />
-                <Route path="/about" element={<About />} />
-                <Route path="/payment-success" element={<PaymentSuccess />} />
-                <Route path="/payment-cancelled" element={<PaymentCancelled />} />
-                <Route path="/support" element={<Support />} />
-                <Route path="/features/:id" element={<FeatureDetail />} />
-                <Route path="/language-test" element={<LanguageTest />} />
-                <Route path="/chat" element={<Chat />} />
-                <Route path="/messages" element={<Messages />} />
-                <Route path="/invite" element={<Invite />} />
-                <Route path="/claim" element={<Claim />} />
-                <Route path="/pricing" element={<Pricing />} />
-                <Route path="/faq" element={<FAQ />} />
-                <Route path="/ai-info" element={<AIInfo />} />
-                <Route path="/google-calendar-callback" element={<GoogleCalendarCallback />} />
-                {/* Admin route for homepage management */}
-                <Route path="/admin/homepage-manager" element={<AdminHomepageManager />} />
-                <Route path="/admin/setup-mp" element={<SetupMPPage />} />
-                <Route path="/admin/delete-business" element={<DeleteBusinessPage />} />
-                {/* Super Admin Dashboard */}
-                <Route path="/super-admin" element={<SuperAdminDashboard />} />
-                {/* AI-powered booking route */}
-                <Route path="/book-appointment" element={<BookingRouteHandler><BookAppointmentAI /></BookingRouteHandler>} />
-                {/* Legacy manual booking route */}
-                <Route path="/book-appointment-legacy" element={<BookingRouteHandler><BookAppointment /></BookingRouteHandler>} />
-                {/* Redirect old AI route to main booking */}
-                <Route path="/book-appointment-ai" element={<Navigate to="/book-appointment" replace />} />
-                <Route path="/smart-book-appointment" element={<Navigate to="/book-appointment" replace />} />
-                {/* Business portal route - must come before catch-all */}
-                <Route path="/:slug" element={<BusinessPortal />} />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
+                        <Route path="/" element={<Index />} />
+                        {/* Demo routes */}
+                        <Route path="/demo/dentist" element={<DemoDentistDashboard />} />
+                        {/* Auth routes */}
+                        <Route path="/login" element={<Login />} />
+                        <Route path="/signup" element={<Signup />} />
+                        <Route path="/forgot-password" element={<ForgotPassword />} />
+                        <Route path="/create-business" element={<CreateBusiness />} />
+                        {/* Post-auth redirect handler */}
+                        <Route path="/auth-redirect" element={<AuthRedirect />} />
+                        {/* Role-based dashboard routing */}
+                        <Route path="/dashboard" element={<Dashboard />} />
+                        <Route path="/patient/*" element={<Dashboard />} />
+                        {/* Dentist routes with tab-based navigation */}
+                        <Route path="/dentist/*" element={<RoleBasedRouter requiredRole='dentist'><DentistPortal /></RoleBasedRouter>} />
+                        <Route path="/dentist-services" element={<RoleBasedRouter requiredRole='dentist'><DentistServices /></RoleBasedRouter>} />
+                        {/* Patient portal routes with patient nav */}
+                        <Route element={<PatientPortalNav><></></PatientPortalNav>}>
+                          <Route path="/care" element={<PatientCareHome />} />
+                          <Route path="/care/appointments" element={<PatientAppointmentsPage />} />
+                          <Route path="/care/prescriptions" element={<PatientPrescriptionsPage />} />
+                          <Route path="/care/history" element={<PatientTreatmentHistoryPage />} />
+                          <Route path="/billing" element={<PatientBillingPage />} />
+                          <Route path="/docs" element={<PatientDocumentsPage />} />
+                          <Route path="/account/profile" element={<PatientAccountProfilePage />} />
+                          <Route path="/account/insurance" element={<PatientAccountInsurancePage />} />
+                          <Route path="/account/privacy" element={<PatientAccountPrivacyPage />} />
+                          <Route path="/account/help" element={<PatientAccountHelpPage />} />
+                          <Route path="/account/settings" element={<PatientSettingsPage />} />
+                        </Route>
+                        {/* Public routes */}
+                        <Route path="/dentists" element={<DentistProfiles />} />
+                        <Route path="/terms" element={<Terms />} />
+                        <Route path="/privacy" element={<PrivacyPolicy />} />
+                        <Route path="/about" element={<About />} />
+                        <Route path="/payment-success" element={<PaymentSuccess />} />
+                        <Route path="/payment-cancelled" element={<PaymentCancelled />} />
+                        <Route path="/support" element={<Support />} />
+                        <Route path="/features/:id" element={<FeatureDetail />} />
+                        <Route path="/language-test" element={<LanguageTest />} />
+                        <Route path="/chat" element={<Chat />} />
+                        <Route path="/messages" element={<Messages />} />
+                        <Route path="/invite" element={<Invite />} />
+                        <Route path="/claim" element={<Claim />} />
+                        <Route path="/pricing" element={<Pricing />} />
+                        <Route path="/faq" element={<FAQ />} />
+                        <Route path="/ai-info" element={<AIInfo />} />
+                        <Route path="/google-calendar-callback" element={<GoogleCalendarCallback />} />
+                        {/* Admin route for homepage management */}
+                        <Route path="/admin/homepage-manager" element={<AdminHomepageManager />} />
+                        <Route path="/admin/setup-mp" element={<SetupMPPage />} />
+                        <Route path="/admin/delete-business" element={<DeleteBusinessPage />} />
+                        {/* Super Admin Dashboard */}
+                        <Route path="/super-admin" element={<SuperAdminDashboard />} />
+                        {/* AI-powered booking route */}
+                        <Route path="/book-appointment" element={<BookingRouteHandler><BookAppointmentAI /></BookingRouteHandler>} />
+                        {/* Legacy manual booking route */}
+                        <Route path="/book-appointment-legacy" element={<BookingRouteHandler><BookAppointment /></BookingRouteHandler>} />
+                        {/* Redirect old AI route to main booking */}
+                        <Route path="/book-appointment-ai" element={<Navigate to="/book-appointment" replace />} />
+                        <Route path="/smart-book-appointment" element={<Navigate to="/book-appointment" replace />} />
+                        {/* Business portal route - must come before catch-all */}
+                        <Route path="/:slug" element={<BusinessPortal />} />
+                        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                        <Route path="*" element={<NotFound />} />
                       </Routes>
                     </Suspense>
-                    
+
                     {/* Business Picker Dialog */}
-                    <BusinessGate 
+                    <BusinessGate
                       showBusinessPicker={showBusinessPicker}
                       setShowBusinessPicker={setShowBusinessPicker}
                     />
-                </BrowserRouter>
-            </TooltipProvider>
-            </TemplateProvider>
-          </BusinessProvider>
-        </LanguageProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
-  </ErrorBoundary>
+                  </BrowserRouter>
+                </TooltipProvider>
+              </TemplateProvider>
+            </BusinessProvider>
+          </LanguageProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 };
 

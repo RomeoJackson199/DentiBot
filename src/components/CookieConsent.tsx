@@ -19,7 +19,11 @@ interface CookiePreferences {
   marketing: boolean;
 }
 
-export function CookieConsent() {
+interface CookieConsentProps {
+  isAuthenticated?: boolean;
+}
+
+export function CookieConsent({ isAuthenticated = false }: CookieConsentProps) {
   const [showBanner, setShowBanner] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [preferences, setPreferences] = useState<CookiePreferences>({
@@ -29,6 +33,11 @@ export function CookieConsent() {
   });
 
   useEffect(() => {
+    // Only show banner if user is authenticated
+    if (!isAuthenticated) {
+      return;
+    }
+
     // Check if user has already consented
     const consent = localStorage.getItem("cookie-consent");
     if (!consent) {
@@ -44,7 +53,7 @@ export function CookieConsent() {
         console.error("Failed to parse cookie preferences:", error);
       }
     }
-  }, []);
+  }, [isAuthenticated]);
 
   const savePreferences = (prefs: CookiePreferences) => {
     localStorage.setItem("cookie-consent", JSON.stringify(prefs));
