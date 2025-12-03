@@ -4,6 +4,7 @@ import { useIsSuperAdmin } from '@/hooks/useSuperAdmin';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useBusinessContext } from '@/hooks/useBusinessContext';
 import { ModernLoadingSpinner } from '@/components/enhanced/ModernLoadingSpinner';
+import { supabase } from "@/integrations/supabase/client";
 
 export function AuthRedirectHandler() {
   const navigate = useNavigate();
@@ -33,33 +34,29 @@ export function AuthRedirectHandler() {
 
     // Priority 3: Check for email verification and profile completion for patients
     const checkPatientStatus = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
 
-      if (user) {
-        // Check email verification
-        if (!user.email_confirmed_at) {
-          // Ideally redirect to a "verify email" page, but for now we'll let them through 
-          // or maybe show a toast. The user requested "after they verify their email".
-          // If they are here, they might have clicked a link or just logged in.
-          // If they logged in without verification, Supabase usually blocks it unless configured otherwise.
-          // Assuming if they have a session, they are verified or verification is optional.
-          // But let's check explicitly if requested.
+        if (user) {
+          // Check profile completion
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('first_name, last_name, date_of_birth')
+            .eq('user_id', user.id)
+            .single();
+
+          if (!profile?.first_name || !profile?.last_name || !profile?.date_of_birth) {
+            navigate('/onboarding', { replace: true });
+            return;
+          }
         }
 
-        // Check profile completion
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('first_name, last_name, date_of_birth')
-          .eq('user_id', user.id)
-          .single();
-
-        if (!profile?.first_name || !profile?.last_name || !profile?.date_of_birth) {
-          navigate('/onboarding', { replace: true });
-          return;
-        }
+        navigate('/dashboard', { replace: true });
+      } catch (error) {
+        console.error("Error in AuthRedirectHandler:", error);
+        // Fallback to dashboard if something fails, to avoid getting stuck
+        navigate('/dashboard', { replace: true });
       }
-
-      navigate('/dashboard', { replace: true });
     };
 
     checkPatientStatus();
