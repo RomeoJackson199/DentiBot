@@ -2,6 +2,7 @@ import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Bell, User, Shield } from 'lucide-react';
 import { ReminderPreferences } from '@/components/patient/ReminderPreferences';
+import { PatientSecuritySettings } from '@/components/patient/PatientSecuritySettings';
 import { AnimatedBackground, SectionHeader } from '@/components/ui/polished-components';
 
 export default function PatientSettingsPage() {
@@ -10,7 +11,7 @@ export default function PatientSettingsPage() {
       {/* Header */}
       <div className="relative overflow-hidden bg-gradient-to-br from-slate-50 via-gray-50 to-zinc-50 rounded-2xl p-6 border">
         <AnimatedBackground />
-        
+
         <div className="relative z-10">
           <SectionHeader
             icon={User}
@@ -49,9 +50,7 @@ export default function PatientSettingsPage() {
         </TabsContent>
 
         <TabsContent value="security">
-          <div className="text-center py-12 text-muted-foreground">
-            Security settings coming soon
-          </div>
+          <PatientSecuritySettings />
         </TabsContent>
       </Tabs>
     </div>

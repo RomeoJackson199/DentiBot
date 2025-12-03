@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Loader2, Shield, Sparkles, Zap, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { BusinessSelector } from "@/components/auth/BusinessSelector";
+import { TwoFactorVerificationDialog } from "@/components/auth/TwoFactorVerificationDialog";
 import { logger } from '@/lib/logger';
 
 type Business = {
@@ -27,6 +28,8 @@ const Login = () => {
   const [selectedBusinessId, setSelectedBusinessId] = useState<string | null>(
     () => localStorage.getItem("selected_business_id")
   );
+  const [show2FADialog, setShow2FADialog] = useState(false);
+  const [userEmail, setUserEmail] = useState("");
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -100,13 +103,53 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data: authData, error } = await supabase.auth.signInWithPassword({
         email: formData.email,
         password: formData.password,
       });
 
       if (error) throw error;
 
+      // Check if user has 2FA enabled
+      const twoFactorEnabled = authData.user?.user_metadata?.two_factor_enabled === true;
+
+      if (twoFactorEnabled) {
+        // User has 2FA enabled - show verification dialog
+        setUserEmail(formData.email);
+        setShow2FADialog(true);
+        setIsLoading(false);
+
+        // Sign out temporarily until 2FA is verified
+        await supabase.auth.signOut();
+        return;
+      }
+
+      // No 2FA - proceed with normal login flow
+      await completeLogin();
+    } catch (error: any) {
+      const errorMessage = error.message.toLowerCase();
+      let userFriendlyMessage = "Unable to sign in. Please try again.";
+
+      if (errorMessage.includes("invalid") || errorMessage.includes("credentials")) {
+        userFriendlyMessage = "Invalid email or password. Please check your credentials and try again.";
+      } else if (errorMessage.includes("email not confirmed")) {
+        userFriendlyMessage = "Please verify your email before signing in. Check your inbox for the confirmation link.";
+      } else if (errorMessage.includes("network")) {
+        userFriendlyMessage = "Network error. Please check your connection and try again.";
+      }
+
+      toast({
+        title: "Sign in failed",
+        description: userFriendlyMessage,
+        variant: "destructive",
+        duration: 6000,
+      });
+      setIsLoading(false);
+    }
+  };
+
+  const completeLogin = async () => {
+    try {
       const storedBusinessId = localStorage.getItem("selected_business_id");
       if (storedBusinessId) {
         const { data, error: businessError } = await supabase.functions.invoke(
@@ -141,23 +184,42 @@ const Login = () => {
         title: "Welcome back!",
         description: "You've successfully signed in.",
       });
-    } catch (error: any) {
-      const errorMessage = error.message.toLowerCase();
-      let userFriendlyMessage = "Unable to sign in. Please try again.";
+    } catch (error) {
+      logger.error("Error completing login:", error);
+    }
+  };
 
-      if (errorMessage.includes("invalid") || errorMessage.includes("credentials")) {
-        userFriendlyMessage = "Invalid email or password. Please check your credentials and try again.";
-      } else if (errorMessage.includes("email not confirmed")) {
-        userFriendlyMessage = "Please verify your email before signing in. Check your inbox for the confirmation link.";
-      } else if (errorMessage.includes("network")) {
-        userFriendlyMessage = "Network error. Please check your connection and try again.";
+  const handle2FASuccess = async () => {
+    setIsLoading(true);
+    try {
+      // Re-authenticate with the same credentials after 2FA verification
+      const { error } = await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: formData.password,
+      });
+
+      if (error) throw error;
+
+      // Log 2FA login event
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          await supabase.from('security_audit_logs').insert({
+            user_id: user.id,
+            event_type: '2fa_login',
+            metadata: { timestamp: new Date().toISOString() }
+          });
+        }
+      } catch (logError) {
+        console.error('Failed to log 2FA login:', logError);
       }
 
+      await completeLogin();
+    } catch (error: any) {
       toast({
         title: "Sign in failed",
-        description: userFriendlyMessage,
+        description: "Failed to complete sign in after 2FA verification",
         variant: "destructive",
-        duration: 6000,
       });
     } finally {
       setIsLoading(false);
@@ -403,6 +465,15 @@ const Login = () => {
           </div>
         </div>
       </div>
+
+      {/* 2FA Verification Dialog */}
+      <TwoFactorVerificationDialog
+        open={show2FADialog}
+        onOpenChange={setShow2FADialog}
+        email={userEmail}
+        onSuccess={handle2FASuccess}
+        mode="login"
+      />
     </div>
   );
 };

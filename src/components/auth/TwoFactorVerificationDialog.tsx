@@ -13,20 +13,34 @@ interface TwoFactorVerificationDialogProps {
   onOpenChange: (open: boolean) => void;
   email: string;
   onSuccess: () => void;
+  mode?: 'setup' | 'login'; // 'setup' for enabling 2FA, 'login' for login verification
 }
 
-export function TwoFactorVerificationDialog({ 
-  open, 
-  onOpenChange, 
-  email, 
-  onSuccess 
+export function TwoFactorVerificationDialog({
+  open,
+  onOpenChange,
+  email,
+  onSuccess,
+  mode = 'setup' // Default to setup mode for backward compatibility
 }: TwoFactorVerificationDialogProps) {
   const [verificationCode, setVerificationCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [codeSent, setCodeSent] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
   const { toast } = useToast();
 
+  const isLoginMode = mode === 'login';
+
   const sendVerificationCode = async () => {
+    if (resendCooldown > 0) {
+      toast({
+        title: "Please Wait",
+        description: `You can resend the code in ${resendCooldown} seconds`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
     try {
       const { error } = await supabase.functions.invoke('send-2fa-code', {
@@ -36,6 +50,19 @@ export function TwoFactorVerificationDialog({
       if (error) throw error;
 
       setCodeSent(true);
+
+      // Start 60-second cooldown
+      setResendCooldown(60);
+      const interval = setInterval(() => {
+        setResendCooldown((prev) => {
+          if (prev <= 1) {
+            clearInterval(interval);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+
       toast({
         title: "Verification Code Sent",
         description: "Check your email for the 6-digit code",
@@ -72,8 +99,10 @@ export function TwoFactorVerificationDialog({
 
       if (data?.verified) {
         toast({
-          title: "2FA Enabled",
-          description: "Two-factor authentication has been enabled successfully",
+          title: isLoginMode ? "Verified Successfully" : "2FA Enabled",
+          description: isLoginMode
+            ? "You have been successfully authenticated"
+            : "Two-factor authentication has been enabled successfully",
         });
         onSuccess();
         onOpenChange(false);
@@ -102,10 +131,13 @@ export function TwoFactorVerificationDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Shield className="h-5 w-5 text-primary" />
-            Enable Two-Factor Authentication
+            {isLoginMode ? 'Two-Factor Authentication' : 'Enable Two-Factor Authentication'}
           </DialogTitle>
           <DialogDescription>
-            We'll send a verification code to your email to confirm setup
+            {isLoginMode
+              ? "Enter the verification code sent to your email to complete sign in"
+              : "We'll send a verification code to your email to confirm setup"
+            }
           </DialogDescription>
         </DialogHeader>
 
@@ -120,8 +152,8 @@ export function TwoFactorVerificationDialog({
                 </div>
               </div>
 
-              <Button 
-                onClick={sendVerificationCode} 
+              <Button
+                onClick={sendVerificationCode}
                 disabled={loading}
                 className="w-full"
               >
@@ -156,16 +188,16 @@ export function TwoFactorVerificationDialog({
               </div>
 
               <div className="flex gap-2">
-                <Button 
-                  variant="outline" 
-                  onClick={sendVerificationCode} 
-                  disabled={loading}
+                <Button
+                  variant="outline"
+                  onClick={sendVerificationCode}
+                  disabled={loading || resendCooldown > 0}
                   className="flex-1"
                 >
-                  Resend Code
+                  {resendCooldown > 0 ? `Resend (${resendCooldown}s)` : 'Resend Code'}
                 </Button>
-                <Button 
-                  onClick={verifyCode} 
+                <Button
+                  onClick={verifyCode}
                   disabled={loading || verificationCode.length !== 6}
                   className="flex-1"
                 >
@@ -175,7 +207,7 @@ export function TwoFactorVerificationDialog({
                       Verifying...
                     </>
                   ) : (
-                    "Verify & Enable"
+                    isLoginMode ? "Verify & Sign In" : "Verify & Enable"
                   )}
                 </Button>
               </div>
