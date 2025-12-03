@@ -82,7 +82,7 @@ function readSidebarCookie(): boolean {
   try {
     const match = document.cookie.match(/(?:^|; )sidebar:state=([^;]+)/);
     if (match) return match[1] === "true";
-  } catch {}
+  } catch { }
   return true;
 }
 
@@ -275,7 +275,7 @@ function TopBar() {
         </div>
 
         <GlobalSearch open={openSearch} onOpenChange={setOpenSearch} />
-        
+
         <Dialog open={openPatientPicker} onOpenChange={setOpenPatientPicker}>
           <DialogContent>
             <DialogHeader>
@@ -348,7 +348,7 @@ export function AppShell() {
     const w = window.innerWidth;
     const computed = w >= 1024 ? true : w >= 768 ? false : false;
     setDefaultOpen(typeof cookieOpen === 'boolean' ? cookieOpen : computed);
-    try { emitAnalyticsEvent('nav_state_persisted', '', { collapsed: !cookieOpen }); } catch {}
+    try { emitAnalyticsEvent('nav_state_persisted', '', { collapsed: !cookieOpen }); } catch { }
   }, []);
 
   // Persisted open groups (multi-expand)
@@ -361,7 +361,7 @@ export function AppShell() {
     }
   });
   useEffect(() => {
-    try { localStorage.setItem(STORAGE.openGroups, JSON.stringify(openGroups)); } catch {}
+    try { localStorage.setItem(STORAGE.openGroups, JSON.stringify(openGroups)); } catch { }
   }, [openGroups]);
 
   // Critical badges
@@ -434,16 +434,16 @@ export function AppShell() {
   ], [t, paymentsOverdue, inventoryLow]);
 
   const handleNav = (to: string) => {
-    try { localStorage.setItem(STORAGE.lastItem, to); } catch {}
-    try { emitAnalyticsEvent('nav_click', '', { role: 'dentist', path: to, group: groups.find(g => g.items.some(i => i.to === to))?.id }); } catch {}
+    try { localStorage.setItem(STORAGE.lastItem, to); } catch { }
+    try { emitAnalyticsEvent('nav_click', '', { role: 'dentist', path: to, group: groups.find(g => g.items.some(i => i.to === to))?.id }); } catch { }
     navigate(to);
   };
 
   const toggleGroup = (groupId: string) => {
     setOpenGroups(prev => {
       const next = { ...prev, [groupId]: !prev[groupId] };
-      try { localStorage.setItem(STORAGE.openGroups, JSON.stringify(next)); } catch {}
-      try { emitAnalyticsEvent('nav_toggle_group', '', { group: groupId, expanded: !!next[groupId] }); } catch {}
+      try { localStorage.setItem(STORAGE.openGroups, JSON.stringify(next)); } catch { }
+      try { emitAnalyticsEvent('nav_toggle_group', '', { group: groupId, expanded: !!next[groupId] }); } catch { }
       return next;
     });
   };
@@ -471,7 +471,7 @@ export function AppShell() {
       if (last && isRootDashboard) {
         navigate(last, { replace: true });
       }
-    } catch {}
+    } catch { }
     // run only on first mount
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -523,17 +523,24 @@ export function AppShell() {
       <Sidebar variant="floating" collapsible={isMobile ? "offcanvas" : "icon"}>
         <SidebarHeader className="px-4 py-4 transition-[padding] duration-200 group-data-[state=collapsed]:px-3 group-data-[state=collapsed]:py-5">
           <div className="flex items-center gap-3 px-1">
-            {branding.logoUrl ? (
-              <img
-                src={branding.logoUrl}
-                alt={branding.clinicName || "Clinic"}
-                className="h-8 w-8 rounded-lg object-cover"
-              />
-            ) : (
-              <div className="h-8 w-8 rounded-lg bg-[hsl(var(--primary))] text-white flex items-center justify-center font-semibold shadow-sm">
-                {branding.clinicName?.[0]?.toUpperCase() || 'D'}
-              </div>
-            )}
+            <button
+              onClick={toggleSidebar}
+              className="shrink-0 hover:opacity-80 transition-opacity cursor-pointer rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              aria-label="Toggle sidebar"
+              title="Click to expand/collapse sidebar"
+            >
+              {branding.logoUrl ? (
+                <img
+                  src={branding.logoUrl}
+                  alt={branding.clinicName || "Clinic"}
+                  className="h-8 w-8 rounded-lg object-cover"
+                />
+              ) : (
+                <div className="h-8 w-8 rounded-lg bg-[hsl(var(--primary))] text-white flex items-center justify-center font-semibold shadow-sm">
+                  {branding.clinicName?.[0]?.toUpperCase() || 'D'}
+                </div>
+              )}
+            </button>
             <div className="leading-tight flex-1 min-w-0 transition-opacity duration-200 group-data-[state=collapsed]:opacity-0 group-data-[state=collapsed]:pointer-events-none">
               <div className="font-semibold truncate">{branding.clinicName || "Dental Practice"}</div>
               <div className="text-xs text-muted-foreground truncate">{branding.tagline || "Dashboard"}</div>
@@ -599,22 +606,22 @@ export function AppShell() {
                       <SidebarGroupContent>
                         <SidebarMenu>
                           {group.items.map((item) => {
-                          const active = (location.pathname + location.search + location.hash).startsWith(item.to);
-                          const ariaLabel = typeof item.badge === 'number' && item.badge > 0
-                            ? `Group: ${group.label}, item: ${item.label}, ${item.badge} due.`
-                            : `Group: ${group.label}, item: ${item.label}.`;
-                          return (
-                            <SidebarMenuItem key={item.id}>
-                              <SidebarMenuButton data-group-id={group.id} tooltip={item.label} isActive={active} aria-label={ariaLabel} onClick={() => handleNav(item.to)} className="rounded-md">
-                                {item.icon}
-                                <span>{item.label}</span>
-                              </SidebarMenuButton>
-                              {typeof item.badge === 'number' && item.badge > 0 && (
-                                <SidebarMenuBadge aria-label={`${item.label}, ${item.badge} due`}>{item.badge}</SidebarMenuBadge>
-                              )}
-                            </SidebarMenuItem>
-                          );
-                        })}
+                            const active = (location.pathname + location.search + location.hash).startsWith(item.to);
+                            const ariaLabel = typeof item.badge === 'number' && item.badge > 0
+                              ? `Group: ${group.label}, item: ${item.label}, ${item.badge} due.`
+                              : `Group: ${group.label}, item: ${item.label}.`;
+                            return (
+                              <SidebarMenuItem key={item.id}>
+                                <SidebarMenuButton data-group-id={group.id} tooltip={item.label} isActive={active} aria-label={ariaLabel} onClick={() => handleNav(item.to)} className="rounded-md">
+                                  {item.icon}
+                                  <span>{item.label}</span>
+                                </SidebarMenuButton>
+                                {typeof item.badge === 'number' && item.badge > 0 && (
+                                  <SidebarMenuBadge aria-label={`${item.label}, ${item.badge} due`}>{item.badge}</SidebarMenuBadge>
+                                )}
+                              </SidebarMenuItem>
+                            );
+                          })}
                         </SidebarMenu>
                       </SidebarGroupContent>
                     )}
