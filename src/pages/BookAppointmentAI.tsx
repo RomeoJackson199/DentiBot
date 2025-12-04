@@ -153,6 +153,12 @@ export default function BookAppointment() {
     try {
       const dateStr = format(date, 'yyyy-MM-dd');
 
+      // Ensure slots exist for this day
+      await supabase.rpc('generate_daily_slots', {
+        p_dentist_id: dentistId,
+        p_date: dateStr
+      });
+
       const { data, error } = await supabase.rpc('get_dentist_available_slots', {
         p_dentist_id: dentistId,
         p_date: dateStr,
@@ -308,6 +314,11 @@ export default function BookAppointment() {
         description: "Please try again",
         variant: "destructive",
       });
+      // Refresh slots on failure to prevent stale data
+      if (selectedDate && selectedDentist) {
+        fetchAvailableSlots(selectedDate, selectedDentist.id);
+      }
+      setBookingStep('datetime');
     }
   };
 
@@ -613,7 +624,12 @@ export default function BookAppointment() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setBookingStep('datetime')}
+            onClick={() => {
+              setBookingStep('datetime');
+              if (selectedDate && selectedDentist) {
+                fetchAvailableSlots(selectedDate, selectedDentist.id);
+              }
+            }}
             className="gap-2 mb-6"
           >
             <ArrowLeft className="h-4 w-4" />
