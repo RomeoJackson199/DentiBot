@@ -58,8 +58,8 @@ interface Treatment {
 // Dynamic steps by template
 const allStepMeta: Record<string, { title: string; icon: any }> = {
   overview: { title: 'Overview', icon: User },
-  treatments: { title: 'Services', icon: FileText },
-  services: { title: 'Services Provided', icon: FileText },
+  treatments: { title: 'Treatments', icon: FileText },
+  services: { title: 'Treatments Provided', icon: FileText },
   notes: { title: 'Notes', icon: FileText },
   prescriptions: { title: 'Prescriptions', icon: Pill },
   'treatment-plan': { title: 'Treatment Plan', icon: ClipboardListIcon },
@@ -90,8 +90,8 @@ export function AppointmentCompletionDialog({
     return defs.map(d => ({ id: d.id as any, title: (allStepMeta[d.id]?.title ?? d.title), icon: (allStepMeta[d.id]?.icon ?? FileText) }));
   }, [template]);
   const showToothInput = template?.id === 'healthcare' || !!template?.features.medicalRecords;
-  const serviceLabel = template?.terminology.service || 'Service';
-  const serviceLabelPlural = template?.terminology.servicePlural || 'Services';
+  const serviceLabel = template?.terminology.service || 'Treatment';
+  const serviceLabelPlural = template?.terminology.servicePlural || 'Treatments';
   // Form data
   const [treatments, setTreatments] = useState<Treatment[]>([]);
   const [notes, setNotes] = useState('');
@@ -487,7 +487,7 @@ export function AppointmentCompletionDialog({
 
               ${treatments.length > 0 ? `
                 <div style="background: #fff; border: 1px solid #e5e5e5; border-radius: 8px; padding: 20px; margin: 20px 0;">
-                  <h3 style="color: #333; margin-top: 0;">Services Provided</h3>
+                  <h3 style="color: #333; margin-top: 0;">Treatments Provided</h3>
                   ${treatments.map(treatment => `
                     <div style="border-bottom: 1px solid #f0f0f0; padding: 10px 0;">
                       <div style="display: flex; justify-content: space-between;">
@@ -556,7 +556,7 @@ export function AppointmentCompletionDialog({
 
       toast({
         title: "Appointment completed successfully",
-        description: `${treatments.length} service(s) recorded${paymentReceived ? ', payment received' : ''}${followUpNeeded ? ', follow-up scheduled' : ''}. Patient notified by email.`,
+        description: `${treatments.length} treatment(s) recorded${paymentReceived ? ', payment received' : ''}${followUpNeeded ? ', follow-up scheduled' : ''}. Patient notified by email.`,
       });
 
       onCompleted();
