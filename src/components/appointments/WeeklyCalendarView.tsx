@@ -39,9 +39,9 @@ const URGENCY_LABELS: Record<string, string> = {
   low: "LOW",
 };
 
-export function WeeklyCalendarView({ 
-  dentistId, 
-  currentDate, 
+export function WeeklyCalendarView({
+  dentistId,
+  currentDate,
   onAppointmentClick,
   selectedAppointmentId,
   googleCalendarEvents = []
@@ -58,7 +58,7 @@ export function WeeklyCalendarView({
   const [quickAppointmentOpen, setQuickAppointmentOpen] = useState(false);
   const [quickAppointmentDate, setQuickAppointmentDate] = useState<Date>(new Date());
   const [quickAppointmentTime, setQuickAppointmentTime] = useState<string>("");
-  
+
   // Fetch dentist availability
   const { data: availability = [] } = useQuery({
     queryKey: ["dentist-availability", dentistId],
@@ -68,7 +68,7 @@ export function WeeklyCalendarView({
         .select("*")
         .eq("dentist_id", dentistId)
         .eq("is_available", true);
-      
+
       if (error) throw error;
       return data || [];
     },
@@ -90,10 +90,10 @@ export function WeeklyCalendarView({
       avail.start_time,
       avail.end_time
     ]);
-    
+
     const startHour = Math.min(...times.map((time: string) => parseInt(time.split(':')[0])));
     const endHour = Math.max(...times.map((time: string) => parseInt(time.split(':')[0])));
-    
+
     return Array.from({ length: endHour - startHour + 1 }, (_, i) => {
       const hour = startHour + i;
       return `${hour.toString().padStart(2, '0')}:00`;
@@ -106,26 +106,26 @@ export function WeeklyCalendarView({
   const isBreakTime = (day: Date, timeSlot: string) => {
     const dayOfWeek = day.getDay();
     const dayAvailability = availability.find(a => a.day_of_week === dayOfWeek);
-    
+
     if (!dayAvailability) return false;
     if (!dayAvailability.break_start_time || !dayAvailability.break_end_time) return false;
-    
+
     const slotHour = parseInt(timeSlot.split(':')[0]);
     const breakStart = parseInt(dayAvailability.break_start_time.split(':')[0]);
     const breakEnd = parseInt(dayAvailability.break_end_time.split(':')[0]);
-    
+
     return slotHour >= breakStart && slotHour < breakEnd;
   };
-  
+
   // On mobile, only show one day
   const displayDays = isMobile ? [weekDays[mobileCurrentDay]] : weekDays;
-  
+
   const handlePreviousDay = () => {
     if (mobileCurrentDay > 0) {
       setMobileCurrentDay(mobileCurrentDay - 1);
     }
   };
-  
+
   const handleNextDay = () => {
     if (mobileCurrentDay < 6) {
       setMobileCurrentDay(mobileCurrentDay + 1);
@@ -166,7 +166,7 @@ export function WeeklyCalendarView({
       const aptHour = format(aptDate, "HH:00");
       return isSameDay(aptDate, day) && aptHour === timeSlot;
     });
-    
+
     // Add Google Calendar events for this slot
     const googleEvents = (googleCalendarEvents || []).filter((event) => {
       const eventStart = parseISO(event.start);
@@ -181,7 +181,7 @@ export function WeeklyCalendarView({
       isGoogleCalendarEvent: true,
       appointment_date: event.start
     }));
-    
+
     return [...regularAppts, ...googleEvents];
   };
 
@@ -202,7 +202,7 @@ export function WeeklyCalendarView({
         .from("appointments")
         .update({ status: "cancelled" })
         .eq("id", appointmentId);
-      
+
       queryClient.invalidateQueries({ queryKey: ["appointments-calendar"] });
       toast({
         title: "Appointment cancelled",
@@ -308,176 +308,177 @@ export function WeeklyCalendarView({
           </div>
         )}
 
-      {/* Time slots and appointments */}
-      <div>
-        <div className={cn(
-          "grid",
-          isMobile ? "grid-cols-[80px_1fr]" : "grid-cols-[80px_repeat(7,1fr)]"
-        )}>
-          {TIME_SLOTS.map((timeSlot) => (
-            <>
-              {/* Time label */}
-              <div
-                key={`time-${timeSlot}`}
-                className="px-3 py-3 border-r border-b text-xs text-muted-foreground font-medium bg-muted/20"
-              >
-                {timeSlot}
-              </div>
+        {/* Time slots and appointments */}
+        <div>
+          <div className={cn(
+            "grid",
+            isMobile ? "grid-cols-[80px_1fr]" : "grid-cols-[80px_repeat(7,1fr)]"
+          )}>
+            {TIME_SLOTS.map((timeSlot) => (
+              <>
+                {/* Time label */}
+                <div
+                  key={`time-${timeSlot}`}
+                  className="px-3 py-3 border-r border-b text-xs text-muted-foreground font-medium bg-muted/20"
+                >
+                  {timeSlot}
+                </div>
 
-              {/* Slots for each day */}
-              {displayDays.map((day) => {
-                const slotAppointments = getAppointmentsForSlot(day, timeSlot);
-                const isBreak = isBreakTime(day, timeSlot);
-                const isToday = isSameDay(day, new Date());
+                {/* Slots for each day */}
+                {displayDays.map((day) => {
+                  const slotAppointments = getAppointmentsForSlot(day, timeSlot);
+                  const isBreak = isBreakTime(day, timeSlot);
+                  const isToday = isSameDay(day, new Date());
 
-                return (
-                  <div
-                    key={`${day.toISOString()}-${timeSlot}`}
-                    className={cn(
-                      "p-2 border-r border-b last:border-r-0 min-h-[100px] transition-colors",
-                      isBreak
-                        ? "bg-muted/40"
-                        : isToday
-                          ? "bg-primary/5 hover:bg-primary/10"
-                          : "bg-background hover:bg-muted/20"
-                    )}
-                  >
-                    {isBreak ? (
-                      <div className="flex items-center justify-center h-full">
-                        <div className="text-center">
-                          <div className="text-xs text-muted-foreground italic">Break</div>
+                  return (
+                    <div
+                      key={`${day.toISOString()}-${timeSlot}`}
+                      className={cn(
+                        "p-2 border-r border-b last:border-r-0 min-h-[100px] transition-colors",
+                        isBreak
+                          ? "bg-muted/40"
+                          : isToday
+                            ? "bg-primary/5 hover:bg-primary/10"
+                            : "bg-background hover:bg-muted/20"
+                      )}
+                    >
+                      {isBreak ? (
+                        <div className="flex items-center justify-center h-full">
+                          <div className="text-center">
+                            <div className="text-xs text-muted-foreground italic">Break</div>
+                          </div>
                         </div>
-                      </div>
-                    ) : slotAppointments.length === 0 ? (
-                      <div
-                        className="flex items-center justify-center h-full group cursor-pointer rounded-md hover:bg-muted/40"
-                        onClick={() => handleEmptySlotClick(day, timeSlot)}
-                      >
-                        <div className="text-center opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-7 w-7 rounded-full"
-                          >
-                            <Plus className="h-3 w-3" />
-                          </Button>
+                      ) : slotAppointments.length === 0 ? (
+                        <div
+                          className="flex items-center justify-center h-full group cursor-pointer rounded-md hover:bg-muted/40"
+                          onClick={() => handleEmptySlotClick(day, timeSlot)}
+                        >
+                          <div className="text-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 w-7 rounded-full"
+                            >
+                              <Plus className="h-3 w-3" />
+                            </Button>
+                          </div>
                         </div>
-                      </div>
-                    ) : (
-                      <div className="space-y-1.5">
-                        {slotAppointments.map((apt) => {
-                        const patientName = `${apt.patient?.first_name || ""} ${apt.patient?.last_name || ""}`.trim() || "Unknown";
-                        const isSelected = apt.id === selectedAppointmentId;
-                        const startTime = parseISO(apt.appointment_date);
-                        const endTime = addHours(startTime, 1);
+                      ) : (
+                        <div className="space-y-1.5">
+                          {slotAppointments.map((apt) => {
+                            const patientName = `${apt.patient?.first_name || ""} ${apt.patient?.last_name || ""}`.trim() || "Unknown";
+                            const isSelected = apt.id === selectedAppointmentId;
+                            const startTime = parseISO(apt.appointment_date);
+                            const duration = apt.duration_minutes || 30;
+                            const endTime = addHours(startTime, duration / 60);
 
-                        return (
-                          <Tooltip key={apt.id}>
-                            <TooltipTrigger asChild>
-                              <Card
-                                className={cn(
-                                  "p-2.5 cursor-pointer transition-all rounded-md border",
-                                  getStatusColor(apt.status),
-                                  isSelected && "ring-2 ring-primary ring-offset-1"
-                                )}
-                                onClick={() => onAppointmentClick(apt)}
-                              >
-                                <div className="flex items-center gap-2">
-                                  <Avatar className="h-7 w-7 flex-shrink-0">
-                                    <AvatarFallback className="text-xs font-medium bg-primary text-primary-foreground">
-                                      {getPatientInitials(apt.patient?.first_name, apt.patient?.last_name)}
-                                    </AvatarFallback>
-                                  </Avatar>
-                                  <div className="flex-1 min-w-0">
-                                    <div className="font-medium text-xs truncate">
-                                      {patientName}
+                            return (
+                              <Tooltip key={apt.id}>
+                                <TooltipTrigger asChild>
+                                  <Card
+                                    className={cn(
+                                      "p-2.5 cursor-pointer transition-all rounded-md border",
+                                      getStatusColor(apt.status),
+                                      isSelected && "ring-2 ring-primary ring-offset-1"
+                                    )}
+                                    onClick={() => onAppointmentClick(apt)}
+                                  >
+                                    <div className="flex items-center gap-2">
+                                      <Avatar className="h-7 w-7 flex-shrink-0">
+                                        <AvatarFallback className="text-xs font-medium bg-primary text-primary-foreground">
+                                          {getPatientInitials(apt.patient?.first_name, apt.patient?.last_name)}
+                                        </AvatarFallback>
+                                      </Avatar>
+                                      <div className="flex-1 min-w-0">
+                                        <div className="font-medium text-xs truncate">
+                                          {patientName}
+                                        </div>
+                                        <div className="text-[10px] text-muted-foreground">
+                                          {format(startTime, "h:mm a")}
+                                        </div>
+                                      </div>
+                                      {apt.urgency === "high" && (
+                                        <Badge
+                                          variant="destructive"
+                                          className="text-[9px] px-1.5 h-4 font-semibold"
+                                        >
+                                          !
+                                        </Badge>
+                                      )}
                                     </div>
-                                    <div className="text-[10px] text-muted-foreground">
-                                      {format(startTime, "h:mm a")}
+                                  </Card>
+                                </TooltipTrigger>
+                                <TooltipContent side="right" className="w-80 p-4">
+                                  <div className="space-y-3">
+                                    <div className="flex items-center gap-3 pb-3 border-b">
+                                      <Avatar className="h-10 w-10">
+                                        <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
+                                          {getPatientInitials(apt.patient?.first_name, apt.patient?.last_name)}
+                                        </AvatarFallback>
+                                      </Avatar>
+                                      <div className="flex-1 min-w-0">
+                                        <p className="font-semibold text-sm">{patientName}</p>
+                                        <p className="text-xs text-muted-foreground truncate">{apt.patient?.email}</p>
+                                      </div>
                                     </div>
-                                  </div>
-                                  {apt.urgency === "high" && (
-                                    <Badge
-                                      variant="destructive"
-                                      className="text-[9px] px-1.5 h-4 font-semibold"
-                                    >
-                                      !
-                                    </Badge>
-                                  )}
-                                </div>
-                              </Card>
-                            </TooltipTrigger>
-                            <TooltipContent side="right" className="w-80 p-4">
-                              <div className="space-y-3">
-                                <div className="flex items-center gap-3 pb-3 border-b">
-                                  <Avatar className="h-10 w-10">
-                                    <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
-                                      {getPatientInitials(apt.patient?.first_name, apt.patient?.last_name)}
-                                    </AvatarFallback>
-                                  </Avatar>
-                                  <div className="flex-1 min-w-0">
-                                    <p className="font-semibold text-sm">{patientName}</p>
-                                    <p className="text-xs text-muted-foreground truncate">{apt.patient?.email}</p>
-                                  </div>
-                                </div>
 
-                                <div className="space-y-2 text-xs">
-                                  <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Date</span>
-                                    <span className="font-medium">{format(startTime, "MMM d, yyyy")}</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Time</span>
-                                    <span className="font-medium">{format(startTime, "h:mm a")} - {format(endTime, "h:mm a")}</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Status</span>
-                                    <Badge variant="outline" className="text-[10px] capitalize">
-                                      {apt.status}
-                                    </Badge>
-                                  </div>
-                                  {apt.reason && (
-                                    <div className="pt-1">
-                                      <span className="text-muted-foreground">Reason:</span>
-                                      <p className="mt-1 text-foreground">{apt.reason}</p>
+                                    <div className="space-y-2 text-xs">
+                                      <div className="flex justify-between">
+                                        <span className="text-muted-foreground">Date</span>
+                                        <span className="font-medium">{format(startTime, "MMM d, yyyy")}</span>
+                                      </div>
+                                      <div className="flex justify-between">
+                                        <span className="text-muted-foreground">Time</span>
+                                        <span className="font-medium">{format(startTime, "h:mm a")} - {format(endTime, "h:mm a")}</span>
+                                      </div>
+                                      <div className="flex justify-between">
+                                        <span className="text-muted-foreground">Status</span>
+                                        <Badge variant="outline" className="text-[10px] capitalize">
+                                          {apt.status}
+                                        </Badge>
+                                      </div>
+                                      {apt.reason && (
+                                        <div className="pt-1">
+                                          <span className="text-muted-foreground">Reason:</span>
+                                          <p className="mt-1 text-foreground">{apt.reason}</p>
+                                        </div>
+                                      )}
                                     </div>
-                                  )}
-                                </div>
 
-                                {apt.status !== "completed" && apt.status !== "cancelled" && (
-                                  <div className="flex gap-2 pt-2 border-t">
-                                    <Button
-                                      size="sm"
-                                      className="flex-1"
-                                      onClick={(e) => handleCompleteAppointment(apt, e)}
-                                    >
-                                      <CheckCircle2 className="h-3 w-3 mr-1" />
-                                      Complete
-                                    </Button>
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      className="flex-1"
-                                      onClick={(e) => handleCancelAppointment(apt.id, e)}
-                                    >
-                                      <XCircle className="h-3 w-3 mr-1" />
-                                      Cancel
-                                    </Button>
+                                    {apt.status !== "completed" && apt.status !== "cancelled" && (
+                                      <div className="flex gap-2 pt-2 border-t">
+                                        <Button
+                                          size="sm"
+                                          className="flex-1"
+                                          onClick={(e) => handleCompleteAppointment(apt, e)}
+                                        >
+                                          <CheckCircle2 className="h-3 w-3 mr-1" />
+                                          Complete
+                                        </Button>
+                                        <Button
+                                          size="sm"
+                                          variant="outline"
+                                          className="flex-1"
+                                          onClick={(e) => handleCancelAppointment(apt.id, e)}
+                                        >
+                                          <XCircle className="h-3 w-3 mr-1" />
+                                          Cancel
+                                        </Button>
+                                      </div>
+                                    )}
                                   </div>
-                                )}
-                              </div>
-                            </TooltipContent>
-                          </Tooltip>
-                        );
-                      })}
+                                </TooltipContent>
+                              </Tooltip>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
-                    )}
-                  </div>
-                );
-              })}
-            </>
-          ))}
-        </div>
+                  );
+                })}
+              </>
+            ))}
+          </div>
         </div>
       </div>
 
