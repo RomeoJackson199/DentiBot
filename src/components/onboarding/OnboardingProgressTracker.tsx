@@ -75,7 +75,7 @@ export function OnboardingProgressTracker({
           .eq("business_id", businessId || ""),
         supabase
           .from("profiles")
-          .select("onboarding_data, demo_data_generated")
+          .select("onboarding_data")
           .eq("user_id", userId)
           .single(),
         supabase
@@ -88,7 +88,8 @@ export function OnboardingProgressTracker({
       const hasAppointments = (appointmentCount || 0) > 0;
       const hasCompletedProfile = profile?.onboarding_data !== null;
       const hasSetAvailability = (availabilityCount || 0) > 0;
-      const hasGeneratedDemo = profile?.demo_data_generated === true;
+      // Use localStorage since column doesn't exist in database
+      const hasGeneratedDemo = localStorage.getItem("demo-data-generated") === "true";
 
       const newSteps: OnboardingStep[] = [
         {
@@ -213,11 +214,10 @@ export function OnboardingProgressTracker({
                 return (
                   <div
                     key={step.id}
-                    className={`flex items-center gap-3 p-3 rounded-lg transition-all ${
-                      step.completed
+                    className={`flex items-center gap-3 p-3 rounded-lg transition-all ${step.completed
                         ? "bg-green-50 dark:bg-green-900/20 border border-green-200"
                         : "bg-gray-50 dark:bg-gray-800/50 border border-gray-200 hover:border-blue-300"
-                    }`}
+                      }`}
                   >
                     <div className="flex-shrink-0">
                       {step.completed ? (
@@ -228,18 +228,16 @@ export function OnboardingProgressTracker({
                     </div>
 
                     <Icon
-                      className={`h-5 w-5 flex-shrink-0 ${
-                        step.completed ? "text-green-600" : "text-gray-600"
-                      }`}
+                      className={`h-5 w-5 flex-shrink-0 ${step.completed ? "text-green-600" : "text-gray-600"
+                        }`}
                     />
 
                     <div className="flex-1 min-w-0">
                       <p
-                        className={`text-sm font-medium ${
-                          step.completed
+                        className={`text-sm font-medium ${step.completed
                             ? "text-green-900 dark:text-green-100"
                             : ""
-                        }`}
+                          }`}
                       >
                         {step.title}
                       </p>

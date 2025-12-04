@@ -28,7 +28,7 @@ export const OnboardingOrchestrator = ({ user }: OnboardingOrchestratorProps) =>
         // Fetch user profile to check onboarding status
         const { data: profile, error } = await supabase
           .from("profiles")
-          .select("onboarding_completed, demo_data_generated, role")
+          .select("onboarding_completed, role")
           .eq("user_id", user.id)
           .single();
 
@@ -39,7 +39,8 @@ export const OnboardingOrchestrator = ({ user }: OnboardingOrchestratorProps) =>
 
         // Check if onboarding has been completed
         const hasCompletedOnboarding = profile?.onboarding_completed === true;
-        const hasGeneratedDemo = profile?.demo_data_generated === true;
+        // Use localStorage to track demo data since column doesn't exist
+        const hasGeneratedDemo = localStorage.getItem("demo-data-generated") === "true";
         const role = profile?.role;
 
         setUserRole(role);

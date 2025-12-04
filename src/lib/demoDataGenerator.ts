@@ -305,11 +305,8 @@ export async function generateDemoData(
     const medicalRecords = await createDemoMedicalRecords(businessId, userId, patients);
     console.log(`✅ Created ${medicalRecords.length} demo medical records`);
 
-    // Mark demo data as created in user preferences
-    await supabase
-      .from("profiles")
-      .update({ demo_data_generated: true })
-      .eq("user_id", userId);
+    // Mark demo data as created in localStorage (column doesn't exist in database)
+    localStorage.setItem("demo-data-generated", "true");
 
     return {
       success: true,
@@ -359,11 +356,8 @@ export async function clearDemoData(
       .eq("business_id", businessId)
       .contains("medical_notes", "Demo patient");
 
-    // Update user profile
-    await supabase
-      .from("profiles")
-      .update({ demo_data_generated: false })
-      .eq("user_id", userId);
+    // Clear demo data flag (using localStorage since column doesn't exist)
+    localStorage.removeItem("demo-data-generated");
 
     return {
       success: true,
