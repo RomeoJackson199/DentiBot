@@ -78,10 +78,10 @@ export default function BookAppointmentAI() {
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [loadingAI, setLoadingAI] = useState(false);
   const [showAllSlots, setShowAllSlots] = useState(false);
-  const [aiSlotCode, setAiSlotCode] = useState<{showSlots: string[], slotDetails: Record<string, {score: number, reason: string}>}>({ showSlots: [], slotDetails: {} });
-const [bookingStep, setBookingStep] = useState<'dentist' | 'datetime' | 'confirm'>('dentist');
-const [showSuccessDialog, setShowSuccessDialog] = useState(false);
-const [successDetails, setSuccessDetails] = useState<{ date: string; time: string; dentist?: string; reason?: string } | undefined>(undefined);
+  const [aiSlotCode, setAiSlotCode] = useState<{ showSlots: string[], slotDetails: Record<string, { score: number, reason: string }> }>({ showSlots: [], slotDetails: {} });
+  const [bookingStep, setBookingStep] = useState<'dentist' | 'datetime' | 'confirm'>('dentist');
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [successDetails, setSuccessDetails] = useState<{ date: string; time: string; dentist?: string; reason?: string } | undefined>(undefined);
 
   useEffect(() => {
     loadBookingData();
@@ -108,7 +108,7 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
 
   const fetchDentists = async () => {
     if (!businessId) return;
-    
+
     setLoading(true);
     try {
       const { data: memberData, error: memberError } = await supabase
@@ -129,7 +129,7 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
       if (memberError) throw memberError;
 
       const profileIds = memberData?.map(m => m.profile_id) || [];
-      
+
       if (profileIds.length === 0) {
         toast({
           title: "No Dentists Available",
@@ -140,7 +140,7 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
         setLoading(false);
         return;
       }
-      
+
       const dentistResult = await supabase
         .from("dentists")
         .select(`
@@ -164,7 +164,7 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
         .in("profile_id", profileIds);
 
       if (dentistResult.error) throw dentistResult.error;
-      
+
       const transformedData = (dentistResult.data || []).map((d: any) => ({
         ...d,
         profiles: Array.isArray(d.profiles) ? d.profiles[0] : (d.profiles || null),
@@ -182,7 +182,7 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
           d.clinic_address = settingsMap.get(d.id) || d.profiles?.address || '';
         });
       }
-      
+
       setDentists(transformedData);
 
       if (bookingData) {
@@ -247,68 +247,28 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
 
     setLoadingSlots(true);
     try {
-      // Use format to preserve Brussels date without UTC conversion
       const dateStr = format(date, 'yyyy-MM-dd');
-
-      // Check schedule first; if closed, skip generation/fetch
-      try {
-        const dayOfWeek = date.getDay();
-        const { data: availability } = await supabase
-          .from('dentist_availability')
-          .select('is_available')
-          .eq('dentist_id', dentistId)
-          .eq('business_id', businessId)
-          .eq('day_of_week', dayOfWeek)
-          .maybeSingle();
-
-        if (availability && availability.is_available === false) {
-          setAvailableSlots([]);
-          setLoadingSlots(false);
-          return;
-        }
-      } catch (e) {
-        console.warn('Availability check failed:', e);
-      }
 
       console.log('🔍 Fetching slots for:', { dentistId, dateStr, businessId });
 
-      const { error: rpcError } = await supabase.rpc('ensure_daily_slots', {
+      // Use the database function that computes availability dynamically
+      const { data, error } = await supabase.rpc('get_dentist_available_slots', {
         p_dentist_id: dentistId,
-        p_date: dateStr
+        p_date: dateStr,
+        p_business_id: businessId
       });
 
-      if (rpcError) {
-        console.error('❌ ensure_daily_slots error:', rpcError);
-        throw rpcError;
+      console.log('📊 RPC result:', { dataLength: data?.length, error });
+
+      if (error) {
+        console.error('❌ get_dentist_available_slots error:', error);
+        throw error;
       }
-
-      console.log('✅ ensure_daily_slots completed');
-
-      // First check if any slots exist at all for debugging
-      const { data: allSlots } = await supabase
-        .from('appointment_slots')
-        .select('slot_time, business_id')
-        .eq('dentist_id', dentistId)
-        .eq('slot_date', dateStr);
-
-      console.log('🔎 All slots for this dentist/date:', allSlots);
-
-      const { data, error } = await supabase
-        .from('appointment_slots')
-        .select('slot_time, is_available, emergency_only')
-        .eq('dentist_id', dentistId)
-        .eq('slot_date', dateStr)
-        .eq('is_available', true)
-        .order('slot_time');
-
-      console.log('📊 Query result:', { dataLength: data?.length, error, businessId });
-
-      if (error) throw error;
 
       if (!data || data.length === 0) {
         toast({
           title: "No Available Slots",
-          description: "No available slots found for this clinic on the selected date",
+          description: "No available slots found for this dentist on the selected date",
           variant: "destructive",
         });
         setAvailableSlots([]);
@@ -316,17 +276,20 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
         return;
       }
 
-      const slots: TimeSlot[] = (data || []).map(slot => ({
-        time: slot.slot_time.substring(0, 5),
-        available: slot.is_available && !slot.emergency_only,
-      }));
+      // Filter to only available slots and map to TimeSlot format
+      const slots: TimeSlot[] = data
+        .filter((slot: { is_available: boolean }) => slot.is_available)
+        .map((slot: { slot_time: string; is_available: boolean }) => ({
+          time: slot.slot_time.substring(0, 5),
+          available: slot.is_available,
+        }));
 
+      console.log('✅ Available slots:', slots.length);
       setAvailableSlots(slots);
 
       // Get AI recommendations
-      const availableSlotsList = slots.filter(s => s.available);
-      if (availableSlotsList.length > 0) {
-        fetchAIRecommendations(date, dentistId, availableSlotsList);
+      if (slots.length > 0) {
+        fetchAIRecommendations(date, dentistId, slots);
       }
     } catch (error) {
       logger.error("Error fetching slots:", error);
@@ -335,6 +298,7 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
         description: "Failed to load available times",
         variant: "destructive",
       });
+      setAvailableSlots([]);
     } finally {
       setLoadingSlots(false);
     }
@@ -498,8 +462,8 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
           status: "confirmed",
           booking_source: "ai",
           urgency: bookingData?.urgency >= 5 ? "emergency" :
-                   bookingData?.urgency === 4 ? "high" :
-                   bookingData?.urgency === 3 ? "medium" : "low",
+            bookingData?.urgency === 4 ? "high" :
+              bookingData?.urgency === 3 ? "medium" : "low",
           service_id: null,
           duration_minutes: 60
         })
@@ -574,7 +538,7 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
   // If AI chat is disabled, redirect to manual booking
   if (!hasAIChat) {
     // Redirect to integrated booking inside dashboard
-    try { localStorage.setItem('pd_section', 'assistant'); } catch {}
+    try { localStorage.setItem('pd_section', 'assistant'); } catch { }
     return <Navigate to="/dashboard" replace />;
   }
 
@@ -586,7 +550,7 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
             <CardContent className="p-6">
               <h2 className="text-2xl font-bold mb-4">Select a Clinic</h2>
               <p className="text-muted-foreground mb-6">Please select a clinic to view available dentists and book an appointment.</p>
-              <BusinessSelectionForPatients 
+              <BusinessSelectionForPatients
                 onSelectBusiness={(id, name) => switchBusiness(id)}
               />
             </CardContent>
@@ -598,7 +562,7 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-secondary/10">
-      <AppointmentSuccessDialog 
+      <AppointmentSuccessDialog
         open={showSuccessDialog}
         onOpenChange={setShowSuccessDialog}
         appointmentDetails={successDetails}
@@ -620,7 +584,7 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
                   <ArrowLeft className="h-4 w-4" />
                   Back to chat
                 </Button>
-                
+
                 <Button
                   variant="ghost"
                   size="sm"
@@ -650,7 +614,7 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
             </div>
           </div>
 
-           {recommendedDentist && (
+          {recommendedDentist && (
             <RecommendedDentistWidget
               dentist={recommendedDentist}
               matchReason={matchReason}
@@ -686,36 +650,32 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
                 return (
                   <Card
                     key={dentist.id}
-                    className={`group cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${
-                      isRecommended
+                    className={`group cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${isRecommended
                         ? 'border-yellow-400/50 ring-2 ring-yellow-400/20 bg-gradient-to-br from-yellow-50/50 to-amber-50/50 dark:from-yellow-950/20 dark:to-amber-950/20 hover:shadow-yellow-500/20'
                         : 'hover:shadow-blue-500/10 hover:border-blue-500/40'
-                    }`}
+                      }`}
                     onClick={() => handleDentistSelect(dentist)}
                   >
                     <CardContent className="p-4 space-y-3">
                       <div className="flex items-start gap-3">
-                        <Avatar className={`h-14 w-14 ring-2 transition-all ${
-                          isRecommended
+                        <Avatar className={`h-14 w-14 ring-2 transition-all ${isRecommended
                             ? 'ring-yellow-400/30 group-hover:ring-yellow-400/50'
                             : 'ring-primary/10 group-hover:ring-primary/30'
-                        }`}>
+                          }`}>
                           <AvatarImage src="" />
-                          <AvatarFallback className={`text-base font-bold ${
-                            isRecommended
+                          <AvatarFallback className={`text-base font-bold ${isRecommended
                               ? 'bg-gradient-to-br from-yellow-400/20 to-amber-400/20 text-yellow-700'
                               : 'bg-gradient-to-br from-blue-500/10 to-purple-500/10 text-primary'
-                          }`}>
+                            }`}>
                             {getDentistInitials(dentist)}
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start gap-2 mb-1">
-                            <h3 className={`font-semibold truncate transition-colors ${
-                              isRecommended
+                            <h3 className={`font-semibold truncate transition-colors ${isRecommended
                                 ? 'group-hover:text-yellow-700'
                                 : 'group-hover:text-blue-600'
-                            }`}>
+                              }`}>
                               Dr. {displayName}
                             </h3>
                             {isRecommended && (
@@ -842,7 +802,7 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
                           </div>
                         </div>
                         <p className="text-sm text-muted-foreground mb-2">
-                          Dr. {selectedDentist.last_name} is very kind, professional, and attentive. Other doctors often dismiss my concerns, 
+                          Dr. {selectedDentist.last_name} is very kind, professional, and attentive. Other doctors often dismiss my concerns,
                           but they took them seriously and came up with a brilliant diagnosis.
                         </p>
                         <div className="flex items-center justify-between text-xs text-muted-foreground">
@@ -910,13 +870,12 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
                           key={day}
                           onClick={() => !isDisabled && handleDateSelect(date)}
                           disabled={isDisabled}
-                          className={`flex flex-col items-center p-3 rounded-full transition-all ${
-                            isSelected
+                          className={`flex flex-col items-center p-3 rounded-full transition-all ${isSelected
                               ? 'bg-primary text-primary-foreground'
                               : isDisabled
-                              ? 'opacity-40 cursor-not-allowed'
-                              : 'hover:bg-muted'
-                          }`}
+                                ? 'opacity-40 cursor-not-allowed'
+                                : 'hover:bg-muted'
+                            }`}
                         >
                           <span className="text-xs mb-1">{day}</span>
                           <span className="text-lg font-medium">{date.getDate()}</span>
@@ -931,15 +890,15 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
                       <div className="flex items-center gap-2 mb-2">
                         <CheckCircle className="h-4 w-4 text-green-600" />
                         <span className="text-sm text-muted-foreground">
-                          {showAllSlots 
+                          {showAllSlots
                             ? `All Available Time Slots (${availableSlots.filter(slot => slot.available).length})`
                             : aiSlotCode.showSlots.length > 0
-                            ? `✨ AI Recommended Slots (${aiSlotCode.showSlots.length})`
-                            : `Available Time Slots (${availableSlots.filter(slot => slot.available).length})`
+                              ? `✨ AI Recommended Slots (${aiSlotCode.showSlots.length})`
+                              : `Available Time Slots (${availableSlots.filter(slot => slot.available).length})`
                           }
                         </span>
                       </div>
-                      
+
                       <div className="max-h-[400px] overflow-y-auto space-y-2">
                         {loadingSlots ? (
                           <p className="text-center text-muted-foreground py-8">Loading time slots...</p>
@@ -959,45 +918,44 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
                               const aiDetail = aiSlotCode.slotDetails[slot.time];
                               const isAISelected = aiSlotCode.showSlots.includes(slot.time);
                               return (
-                              <button
-                                key={slot.time}
-                                onClick={() => handleTimeSelect(slot.time)}
-                                className={`relative w-full p-4 rounded-xl border-2 text-left font-medium transition-all ${
-                                  selectedTime === slot.time
-                                    ? 'bg-primary text-primary-foreground border-primary shadow-lg'
-                                    : isAISelected
-                                    ? 'bg-purple-50 border-purple-300 hover:border-purple-400 hover:bg-purple-100 ring-2 ring-purple-200'
-                                    : 'border-muted hover:border-primary/50 hover:bg-muted/50'
-                                }`}
-                              >
-                                {isAISelected && (
-                                  <span className="absolute top-2 right-2 bg-purple-500 text-white text-[10px] px-2 py-0.5 rounded-full flex items-center gap-1">
-                                    <Clock className="h-3 w-3" />
-                                    ✨ AI Pick
-                                  </span>
-                                )}
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-2">
-                                    <Clock className="h-5 w-5" />
-                                    <span className="text-lg">{slot.time}</span>
-                                  </div>
-                                  {aiDetail?.score && (
-                                    <span className="text-sm text-purple-600 font-semibold">
-                                      Score: {aiDetail.score}
+                                <button
+                                  key={slot.time}
+                                  onClick={() => handleTimeSelect(slot.time)}
+                                  className={`relative w-full p-4 rounded-xl border-2 text-left font-medium transition-all ${selectedTime === slot.time
+                                      ? 'bg-primary text-primary-foreground border-primary shadow-lg'
+                                      : isAISelected
+                                        ? 'bg-purple-50 border-purple-300 hover:border-purple-400 hover:bg-purple-100 ring-2 ring-purple-200'
+                                        : 'border-muted hover:border-primary/50 hover:bg-muted/50'
+                                    }`}
+                                >
+                                  {isAISelected && (
+                                    <span className="absolute top-2 right-2 bg-purple-500 text-white text-[10px] px-2 py-0.5 rounded-full flex items-center gap-1">
+                                      <Clock className="h-3 w-3" />
+                                      ✨ AI Pick
                                     </span>
                                   )}
-                                </div>
-                                {isAISelected && aiDetail?.reason && (
-                                  <p className="text-xs text-muted-foreground mt-2 pl-7">
-                                    {aiDetail.reason}
-                                  </p>
-                                )}
-                              </button>
-                            );
-                          })
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                      <Clock className="h-5 w-5" />
+                                      <span className="text-lg">{slot.time}</span>
+                                    </div>
+                                    {aiDetail?.score && (
+                                      <span className="text-sm text-purple-600 font-semibold">
+                                        Score: {aiDetail.score}
+                                      </span>
+                                    )}
+                                  </div>
+                                  {isAISelected && aiDetail?.reason && (
+                                    <p className="text-xs text-muted-foreground mt-2 pl-7">
+                                      {aiDetail.reason}
+                                    </p>
+                                  )}
+                                </button>
+                              );
+                            })
                         )}
                       </div>
-                      
+
                       {/* Show All Slots Button */}
                       {!showAllSlots && aiSlotCode.showSlots.length > 0 && availableSlots.filter(slot => slot.available).length > aiSlotCode.showSlots.length && (
                         <Button
