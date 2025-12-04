@@ -296,6 +296,12 @@ export default function BookAppointment() {
         appointmentId: appointmentData.id
       });
 
+      // DEBUG: Log to browser console for user to see
+      console.log("=== BOOKING DEBUG ===");
+      console.log("Selected Time (from UI):", selectedTime);
+      console.log("Date String:", dateStr);
+      console.log("Appointment Date (UTC):", appointmentDateTime.toISOString());
+
       const { error: slotError } = await supabase.rpc('book_appointment_slot', {
         p_dentist_id: selectedDentist.id,
         p_slot_date: dateStr,
