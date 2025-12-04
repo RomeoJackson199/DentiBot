@@ -275,7 +275,7 @@ export default function BookAppointment() {
           booking_source: "manual",
           urgency: "low",
           service_id: null,
-          duration_minutes: 60
+          duration_minutes: 30
         })
         .select()
         .single();
