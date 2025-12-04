@@ -302,6 +302,7 @@ export default function BookAppointment() {
       console.log("Date String:", dateStr);
       console.log("Appointment Date (UTC):", appointmentDateTime.toISOString());
 
+      // Try to mark slot as unavailable (optional - appointments table is now the source of truth)
       const { error: slotError } = await supabase.rpc('book_appointment_slot', {
         p_dentist_id: selectedDentist.id,
         p_slot_date: dateStr,
@@ -309,9 +310,9 @@ export default function BookAppointment() {
         p_appointment_id: appointmentData.id
       });
 
+      // Log but don't fail if slot marking fails - the appointment is already created
       if (slotError) {
-        await supabase.from("appointments").delete().eq("id", appointmentData.id);
-        throw new Error("This time slot is no longer available");
+        console.log("Note: Could not mark slot in appointment_slots table (non-critical):", slotError);
       }
 
       setSuccessDetails({
