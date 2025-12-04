@@ -262,9 +262,13 @@ export const EnhancedAuthForm: React.FC<EnhancedAuthFormProps> = ({
         method: 'email'
       });
 
+      const errorMessage = error.message === "Invalid login credentials"
+        ? "Sorry password or email incorrect"
+        : error.message;
+
       toast({
         title: t.signInError,
-        description: error.message,
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {

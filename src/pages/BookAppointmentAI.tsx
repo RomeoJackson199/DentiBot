@@ -309,11 +309,21 @@ export default function BookAppointment() {
       setShowSuccessDialog(true);
     } catch (error) {
       logger.error("Error booking appointment:", error);
-      toast({
-        title: "Booking Failed",
-        description: "Please try again",
-        variant: "destructive",
-      });
+      const errorMessage = error instanceof Error ? error.message : "Please try again";
+
+      if (errorMessage.includes("no longer available") || errorMessage.includes("Slot not available")) {
+        toast({
+          title: "Slot No Longer Available",
+          description: "Sorry, this slot is not available. It may have just been taken.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Booking Failed",
+          description: "Please try again or contact support.",
+          variant: "destructive",
+        });
+      }
       // Refresh slots on failure to prevent stale data
       if (selectedDate && selectedDentist) {
         fetchAvailableSlots(selectedDate, selectedDentist.id);
