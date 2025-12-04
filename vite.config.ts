@@ -112,9 +112,8 @@ export default defineConfig(({ mode }) => ({
       'zod',
       '@tanstack/react-query',
       'framer-motion',
+      'mapbox-gl',
     ],
-    // Exclude heavy packages from pre-bundling
-    exclude: ['mapbox-gl'],
   },
   // Enable CSS optimizations
   css: {
