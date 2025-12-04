@@ -417,6 +417,10 @@ export default function BookAppointment() {
             <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               {dentists.map((dentist) => {
                 const displayName = `${dentist.first_name || dentist.profiles?.first_name} ${dentist.last_name || dentist.profiles?.last_name}`;
+                const bio = dentist.profiles?.bio;
+                const email = dentist.email || dentist.profiles?.email;
+                const phone = dentist.profiles?.phone;
+                const address = dentist.clinic_address || dentist.profiles?.address;
 
                 return (
                   <Card
@@ -448,6 +452,33 @@ export default function BookAppointment() {
                           </div>
                         </div>
                       </div>
+
+                      {/* Profile Details */}
+                      {bio && (
+                        <p className="text-sm text-muted-foreground line-clamp-2 border-t pt-3">
+                          {bio}
+                        </p>
+                      )}
+
+                      <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                        {email && (
+                          <span className="flex items-center gap-1">
+                            📧 {email}
+                          </span>
+                        )}
+                        {phone && (
+                          <span className="flex items-center gap-1">
+                            📞 {phone}
+                          </span>
+                        )}
+                      </div>
+
+                      <Button
+                        size="sm"
+                        className="w-full mt-2 group-hover:bg-blue-600"
+                      >
+                        Select Dr. {dentist.first_name || dentist.profiles?.first_name}
+                      </Button>
                     </CardContent>
                   </Card>
                 );
