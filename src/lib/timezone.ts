@@ -63,6 +63,28 @@ export function createAppointmentDateTime(date: Date, timeSlot: string): Date {
  * We create the appointment date/time WITHOUT any timezone conversion.
  * When stored in PostgreSQL with toISOString(), the browser's local offset is applied,
  * which for Belgium is correct since the user is in Belgium.
+ */
+export function createAppointmentDateTimeFromStrings(dateStr: string, timeStr: string): Date {
+  // Parse date components from 'yyyy-MM-dd' format
+  const [year, month, day] = dateStr.split('-').map(Number);
+
+  // Parse time components from 'HH:mm' or 'HH:mm:ss' format
+  const timeParts = timeStr.split(':').map(Number);
+  const hours = timeParts[0];
+  const minutes = timeParts[1] || 0;
+
+  // Create string in ISO-like format without timezone: "YYYY-MM-DDTHH:mm:ss"
+  const dateTimeString = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}T${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:00`;
+
+  // Interpret this string as being in the Clinic's timezone (Brussels)
+  // This returns a Date object representing that absolute moment in time
+  return fromZonedTime(dateTimeString, CLINIC_TIMEZONE);
+}
+
+/**
+ * Get available time slots for a given date in clinic timezone
+ */
+export function getClinicTimeSlots(date: Date): string[] {
   const slots: string[] = [];
   const now = new Date();
   const clinicNow = utcToClinicTime(now);
