@@ -288,6 +288,13 @@ export default function BookAppointment() {
 
       if (appointmentError) throw appointmentError;
 
+      logger.info("Booking slot with params:", {
+        dentistId: selectedDentist.id,
+        date: dateStr,
+        time: selectedTime,
+        appointmentId: appointmentData.id
+      });
+
       const { error: slotError } = await supabase.rpc('book_appointment_slot', {
         p_dentist_id: selectedDentist.id,
         p_slot_date: dateStr,
