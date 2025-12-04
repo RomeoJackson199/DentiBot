@@ -7,8 +7,13 @@
     (function () {
       const originalDefine = customElements.define;
       customElements.define = function (name, constructor, options) {
-        if (!customElements.get(name)) {
+        if (customElements.get(name)) {
+          return;
+        }
+        try {
           originalDefine.call(customElements, name, constructor, options);
+        } catch (e) {
+          console.warn('Silenced custom element error for:', name, e);
         }
       };
     })();

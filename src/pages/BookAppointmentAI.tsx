@@ -363,7 +363,15 @@ export default function BookAppointment() {
     <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-secondary/10">
       <AppointmentSuccessDialog
         open={showSuccessDialog}
-        onOpenChange={setShowSuccessDialog}
+        onOpenChange={(open) => {
+          setShowSuccessDialog(open);
+          if (!open && selectedDate && selectedDentist) {
+            // Refresh slots when dialog is closed to show updated availability
+            fetchAvailableSlots(selectedDate, selectedDentist.id);
+            setSelectedTime(undefined);
+            setBookingStep('datetime');
+          }
+        }}
         appointmentDetails={successDetails}
       />
 
