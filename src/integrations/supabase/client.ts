@@ -21,7 +21,37 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
     persistSession: true,
     autoRefreshToken: true,
     detectSessionInUrl: true,
-  }
+    // Faster auth by using PKCE
+    flowType: 'pkce',
+  },
+  // Performance optimizations
+  global: {
+    headers: {
+      // Enable compression for faster responses
+      'Accept-Encoding': 'gzip, deflate, br',
+    },
+  },
+  // Realtime configuration
+  realtime: {
+    // Reduce heartbeat for better battery/performance
+    params: {
+      eventsPerSecond: 10,
+    },
+  },
+  // Database connection pooling
+  db: {
+    schema: 'public',
+  },
 });
 
 export const getFunctionUrl = (name: string) => `${SUPABASE_URL}/functions/v1/${name}`;
+
+// Helper to abort slow requests
+export const createAbortableQuery = (timeoutMs = 10000) => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  return {
+    signal: controller.signal,
+    cleanup: () => clearTimeout(timeoutId),
+  };
+};

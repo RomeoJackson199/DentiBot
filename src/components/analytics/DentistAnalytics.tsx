@@ -493,7 +493,7 @@ export const DentistAnalytics = ({ dentistId, onOpenPatientsTab, onOpenClinicalT
     } catch (error) {
       console.error('Failed to load analytics filters from localStorage:', error);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, []);
   useEffect(() => {
     try {

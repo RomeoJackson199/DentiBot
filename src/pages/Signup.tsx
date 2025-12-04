@@ -104,8 +104,8 @@ const Signup = () => {
         // They'll be redirected when they close the alert dialog
         return;
       }
-    } catch (error: any) {
-      const errorMessage = error.message.toLowerCase();
+    } catch (signUpError: unknown) {
+      const errorMessage = signUpError instanceof Error ? signUpError.message.toLowerCase() : '';
       let userFriendlyMessage = "Unable to create account. Please try again.";
 
       if (errorMessage.includes("already registered") || errorMessage.includes("already exists")) {
@@ -150,7 +150,8 @@ const Signup = () => {
     }
   };
 
-  const passwordRequirements = {
+  // Password requirements for validation display (may be used in future UI)
+  const _passwordValidation = {
     minLength: formData.password.length >= 8,
     hasUpper: /[A-Z]/.test(formData.password),
     hasLower: /[a-z]/.test(formData.password),

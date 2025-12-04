@@ -1,10 +1,8 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
-import { componentTagger } from "lovable-tagger";
-import { beasties } from "vite-plugin-beasties";
 
-// https://vitejs.dev/config/
+// Performance-optimized Vite configuration
 export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
@@ -12,8 +10,6 @@ export default defineConfig(({ mode }) => ({
   },
   plugins: [
     react(),
-    // mode === 'development' && componentTagger(),
-    // mode === 'production' && beasties({ options: { preload: 'swap', noscriptFallback: true } }),
   ].filter(Boolean),
   resolve: {
     alias: {
@@ -21,34 +17,91 @@ export default defineConfig(({ mode }) => ({
     },
   },
   build: {
-    // Optimize bundle size
+    // Target modern browsers only for smaller bundles
+    target: 'es2020',
+    // Optimize bundle size with aggressive code splitting
     rollupOptions: {
       output: {
-        manualChunks: {
-          // Separate vendor chunks for better caching
-          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          'ui-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-select'],
-          'chart-vendor': ['recharts'],
-          'form-vendor': ['react-hook-form', '@hookform/resolvers', 'zod'],
-          'date-vendor': ['date-fns', 'date-fns-tz'],
-          'supabase-vendor': ['@supabase/supabase-js'],
+        manualChunks: (id) => {
+          // Node modules chunking strategy
+          if (id.includes('node_modules')) {
+            // Core React ecosystem - load immediately
+            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
+              return 'react-vendor';
+            }
+            // Supabase - critical for auth
+            if (id.includes('@supabase')) {
+              return 'supabase-vendor';
+            }
+            // UI components - frequently used
+            if (id.includes('@radix-ui')) {
+              return 'ui-vendor';
+            }
+            // Form handling
+            if (id.includes('react-hook-form') || id.includes('zod') || id.includes('@hookform')) {
+              return 'form-vendor';
+            }
+            // Date utilities
+            if (id.includes('date-fns')) {
+              return 'date-vendor';
+            }
+            // Charts - only loaded when needed
+            if (id.includes('recharts') || id.includes('d3')) {
+              return 'chart-vendor';
+            }
+            // Mapbox - very large, lazy load only
+            if (id.includes('mapbox')) {
+              return 'map-vendor';
+            }
+            // Animation libraries
+            if (id.includes('framer-motion')) {
+              return 'animation-vendor';
+            }
+            // TanStack Query
+            if (id.includes('@tanstack')) {
+              return 'query-vendor';
+            }
+            // Icons - split out lucide
+            if (id.includes('lucide')) {
+              return 'icons-vendor';
+            }
+            // Other smaller vendor packages
+            return 'vendor-misc';
+          }
+          // Split app code by feature area
+          if (id.includes('/src/')) {
+            if (id.includes('/pages/')) {
+              return 'pages';
+            }
+            if (id.includes('/components/ui/')) {
+              return 'ui-components';
+            }
+            if (id.includes('/components/')) {
+              return 'components';
+            }
+            if (id.includes('/hooks/')) {
+              return 'hooks';
+            }
+          }
         },
+        // Use hashed filenames for better caching
+        chunkFileNames: 'assets/[name]-[hash].js',
+        entryFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash].[ext]',
       },
     },
-    // Optimize chunk size
-    chunkSizeWarningLimit: 1000,
-    // Source maps for production debugging (disable for smaller builds)
+    // Increase warning limit since we're code-splitting
+    chunkSizeWarningLimit: 500,
+    // No source maps in production
     sourcemap: mode === 'development',
-    // Minification
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: mode === 'production', // Remove console.* in production
-        drop_debugger: true,
-      },
-    },
+    // Better minification with esbuild (faster than terser)
+    minify: 'esbuild',
+    // CSS code splitting
+    cssCodeSplit: true,
+    // Inline small assets
+    assetsInlineLimit: 4096,
   },
-  // Optimize dependencies
+  // Optimize dependencies for faster dev startup
   optimizeDeps: {
     include: [
       'react',
@@ -57,6 +110,27 @@ export default defineConfig(({ mode }) => ({
       '@supabase/supabase-js',
       'date-fns',
       'zod',
+      '@tanstack/react-query',
+      'framer-motion',
     ],
+    // Exclude heavy packages from pre-bundling
+    exclude: ['mapbox-gl'],
+  },
+  // Enable CSS optimizations
+  css: {
+    devSourcemap: false,
+  },
+  // JSON optimization
+  json: {
+    stringify: true,
+  },
+  // Enable experimental features for better performance
+  esbuild: {
+    // Remove console.log in production
+    drop: mode === 'production' ? ['console', 'debugger'] : [],
+    // Minify identifiers
+    minifyIdentifiers: true,
+    minifySyntax: true,
+    minifyWhitespace: true,
   },
 }));

@@ -1,5 +1,5 @@
 import { Card } from "@/components/ui/card";
-import { Scale, FileText, Users, Shield, AlertCircle, Mail } from "lucide-react";
+import { Scale, Users, Shield, AlertCircle, Mail } from "lucide-react";
 
 const Terms = () => {
   return (

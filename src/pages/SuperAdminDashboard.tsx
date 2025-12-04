@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ModernLoadingSpinner } from '@/components/enhanced/ModernLoadingSpinner';
 import { useIsSuperAdmin } from '@/hooks/useSuperAdmin';
-import { Shield, AlertCircle } from 'lucide-react';
+import { Shield, AlertCircle, LogOut } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 // Import tab components
 import { OverviewTab } from '@/components/super-admin/OverviewTab';
@@ -18,6 +20,25 @@ export default function SuperAdminDashboard() {
   const navigate = useNavigate();
   const { data: isSuperAdmin, isLoading, error } = useIsSuperAdmin();
   const [activeTab, setActiveTab] = useState('overview');
+  const { toast } = useToast();
+
+  const handleSignOut = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast({
+        title: 'Signed out',
+        description: 'You have been signed out successfully',
+      });
+      navigate('/');
+    } catch (error) {
+      console.error('Sign out error:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to sign out. Please try again.',
+        variant: 'destructive',
+      });
+    }
+  };
 
   useEffect(() => {
     if (!isLoading && !isSuperAdmin) {
@@ -65,6 +86,14 @@ export default function SuperAdminDashboard() {
             </p>
           </div>
         </div>
+        <Button
+          variant="outline"
+          onClick={handleSignOut}
+          className="gap-2"
+        >
+          <LogOut className="h-4 w-4" />
+          Sign Out
+        </Button>
       </div>
 
       {/* Warning Banner */}

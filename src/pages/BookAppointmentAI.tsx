@@ -293,7 +293,7 @@ const [successDetails, setSuccessDetails] = useState<{ date: string; time: strin
 
       console.log('🔎 All slots for this dentist/date:', allSlots);
 
-      let { data, error } = await supabase
+      const { data, error } = await supabase
         .from('appointment_slots')
         .select('slot_time, is_available, emergency_only')
         .eq('dentist_id', dentistId)

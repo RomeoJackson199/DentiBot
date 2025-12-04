@@ -2,100 +2,91 @@
 <html lang="en">
 
 <head>
-  <!-- Google Tag Manager -->
+  <!-- Critical inline script for custom elements -->
   <script>
-    // Prevent duplicate custom element registration errors
     (function () {
       const originalDefine = customElements.define;
       customElements.define = function (name, constructor, options) {
         if (!customElements.get(name)) {
           originalDefine.call(customElements, name, constructor, options);
-        } else {
-          console.warn(`Custom element ${name} is already defined. Skipping duplicate registration.`);
         }
       };
     })();
   </script>
-  <script>(function (w, d, s, l, i) {
-      w[l] = w[l] || []; w[l].push({
-        'gtm.start':
-          new Date().getTime(), event: 'gtm.js'
-      }); var f = d.getElementsByTagName(s)[0],
-        j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : ''; j.async = true; j.src =
-          'https://www.googletagmanager.com/gtm.js?id=' + i + dl; f.parentNode.insertBefore(j, f);
-    })(window, document, 'script', 'dataLayer', 'GTM-523X3ZCD');</script>
-  <!-- End Google Tag Manager -->
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-9LGVN77ZBR"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag() { dataLayer.push(arguments); }
-    gtag('js', new Date());
 
-    gtag('config', 'G-9LGVN77ZBR');
-  </script>
-  <meta charset="UTF-8" />
+  <!-- Preconnect for performance -->
+  <link rel="preconnect" href="https://gjvxcisbaxhhblhsytar.supabase.co" crossorigin>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="dns-prefetch" href="https://www.googletagmanager.com">
+
+  <!-- Critical meta tags -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#2563eb">
+
+  <!-- Favicon -->
   <link rel="icon"
     href="https://gjvxcisbaxhhblhsytar.supabase.co/storage/v1/object/public/company-logos/caberu-logo-icon.png"
     type="image/png">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#2563eb" />
-  <link rel="preconnect" href="https://gjvxcisbaxhhblhsytar.supabase.co" />
-  <link rel="dns-prefetch" href="https://gjvxcisbaxhhblhsytar.supabase.co" />
+
   <title>Caberu — Complete Healthcare Practice Management Platform</title>
   <meta name="description"
-    content="All-in-one healthcare practice management platform. Patient records, appointment scheduling, AI phone reception, billing, analytics, and patient portal. Everything your practice needs in one seamless, HIPAA-compliant platform." />
+    content="All-in-one healthcare practice management platform. Patient records, appointment scheduling, AI phone reception, billing, analytics, and patient portal. Everything your practice needs in one seamless, HIPAA-compliant platform.">
   <meta name="keywords"
-    content="healthcare practice management, dental practice management, medical software, patient management system, healthcare scheduling, HIPAA compliant, AI phone reception, patient records, healthcare billing, practice analytics, patient portal, appointment scheduling, dental software, medical practice software" />
-  <meta name="author" content="Caberu" />
-  <meta name="language" content="English" />
-  <meta name="revisit-after" content="7 days" />
-  <link rel="manifest" href="/manifest.json" />
+    content="healthcare practice management, dental practice management, medical software, patient management system, healthcare scheduling, HIPAA compliant, AI phone reception, patient records, healthcare billing, practice analytics, patient portal, appointment scheduling, dental software, medical practice software">
+  <meta name="author" content="Caberu">
+  <meta name="language" content="English">
+  <meta name="revisit-after" content="7 days">
+  <link rel="manifest" href="/manifest.json">
   <link rel="apple-touch-icon"
-    href="https://gjvxcisbaxhhblhsytar.supabase.co/storage/v1/object/public/company-logos/caberu-logo-icon.png" />
-  <link rel="canonical" href="https://caberu.be/" />
-  <link rel="alternate" hreflang="en" href="https://caberu.be/" />
-  <link rel="alternate" hreflang="fr" href="https://caberu.be/fr" />
-  <link rel="alternate" hreflang="nl" href="https://caberu.be/nl" />
-  <link rel="alternate" hreflang="x-default" href="https://caberu.be/" />
-  <meta name="robots" content="index,follow" />
+    href="https://gjvxcisbaxhhblhsytar.supabase.co/storage/v1/object/public/company-logos/caberu-logo-icon.png">
+  <link rel="canonical" href="https://caberu.be/">
+  <link rel="alternate" hreflang="en" href="https://caberu.be/">
+  <link rel="alternate" hreflang="fr" href="https://caberu.be/fr">
+  <link rel="alternate" hreflang="nl" href="https://caberu.be/nl">
+  <link rel="alternate" hreflang="x-default" href="https://caberu.be/">
+  <meta name="robots" content="index,follow">
 
   <!-- LLM.txt - AI Model Reference -->
-  <link rel="llm" href="/llm.txt" />
-  <meta name="llm-reference" content="/llm.txt" />
+  <link rel="llm" href="/llm.txt">
+  <meta name="llm-reference" content="/llm.txt">
 
-  <!-- Google Fonts - Poppins for body, DM Sans for headers -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <!-- Google Fonts - loaded async for non-blocking -->
+  <link rel="preload" as="style"
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=DM+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap">
   <link
     href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=DM+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap"
-    rel="stylesheet" />
+    rel="stylesheet" media="print" onload="this.media='all'">
+  <noscript>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=DM+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet">
+  </noscript>
 
-  <meta property="og:title" content="Caberu — Complete Healthcare Practice Management Platform" />
+  <!-- Open Graph -->
+  <meta property="og:title" content="Caberu — Complete Healthcare Practice Management Platform">
   <meta property="og:description"
-    content="All-in-one platform for healthcare practices. Patient records, scheduling, AI reception, billing, analytics, and portal. Everything you need to run your practice efficiently." />
-  <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://caberu.be/" />
+    content="All-in-one platform for healthcare practices. Patient records, scheduling, AI reception, billing, analytics, and portal.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://caberu.be/">
   <meta property="og:image"
-    content="https://gjvxcisbaxhhblhsytar.supabase.co/storage/v1/object/public/company-logos/caberu-logo-full.png" />
-  <meta property="og:image:width" content="1200" />
-  <meta property="og:image:height" content="630" />
-  <meta property="og:image:type" content="image/png" />
-  <meta property="og:image:alt" content="Caberu - Complete Healthcare Practice Management Platform" />
-  <meta property="og:site_name" content="Caberu" />
-  <meta property="og:locale" content="en_US" />
+    content="https://gjvxcisbaxhhblhsytar.supabase.co/storage/v1/object/public/company-logos/caberu-logo-full.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:site_name" content="Caberu">
+  <meta property="og:locale" content="en_US">
 
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:site" content="@caberu_be" />
-  <meta name="twitter:creator" content="@caberu_be" />
-  <meta name="twitter:image"
-    content="https://gjvxcisbaxhhblhsytar.supabase.co/storage/v1/object/public/company-logos/caberu-logo-full.png" />
-  <meta name="twitter:image:alt" content="Caberu - Complete Healthcare Practice Management Platform" />
-  <meta name="twitter:title" content="Caberu — Complete Healthcare Practice Management Platform" />
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@caberu_be">
+  <meta name="twitter:title" content="Caberu — Complete Healthcare Practice Management Platform">
   <meta name="twitter:description"
-    content="All-in-one platform for healthcare practices. Patient records, scheduling, AI reception, billing, analytics, and portal. Everything you need to run your practice efficiently." />
+    content="All-in-one platform for healthcare practices. Patient records, scheduling, AI reception, billing, analytics, and portal.">
+  <meta name="twitter:image"
+    content="https://gjvxcisbaxhhblhsytar.supabase.co/storage/v1/object/public/company-logos/caberu-logo-full.png">
 
-  <!-- Schema.org structured data for Google -->
+  <!-- Schema.org structured data -->
   <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -115,17 +106,44 @@
         "ratingValue": "4.8",
         "reviewCount": "100"
       },
-      "logo": "https://gjvxcisbaxhhblhsytar.supabase.co/storage/v1/object/public/company-logos/caberu-logo-full.png",
-      "image": "https://gjvxcisbaxhhblhsytar.supabase.co/storage/v1/object/public/company-logos/caberu-logo-full.png"
+      "logo": "https://gjvxcisbaxhhblhsytar.supabase.co/storage/v1/object/public/company-logos/caberu-logo-full.png"
     }
-    </script>
+  </script>
+
+  <!-- Analytics - loaded after page render -->
+  <script>
+    // Defer analytics loading until after interactive
+    window.addEventListener('load', function () {
+      setTimeout(function () {
+        // GTM
+        (function (w, d, s, l, i) {
+          w[l] = w[l] || []; w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
+          var f = d.getElementsByTagName(s)[0], j = d.createElement(s);
+          j.async = true; j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i;
+          f.parentNode.insertBefore(j, f);
+        })(window, document, 'script', 'dataLayer', 'GTM-523X3ZCD');
+
+        // GA4
+        var ga = document.createElement('script');
+        ga.async = true;
+        ga.src = 'https://www.googletagmanager.com/gtag/js?id=G-9LGVN77ZBR';
+        document.head.appendChild(ga);
+        ga.onload = function () {
+          window.dataLayer = window.dataLayer || [];
+          function gtag() { dataLayer.push(arguments); }
+          gtag('js', new Date());
+          gtag('config', 'G-9LGVN77ZBR');
+        };
+      }, 100);
+    });
+  </script>
 </head>
 
 <body>
-  <!-- Google Tag Manager (noscript) -->
+  <!-- GTM noscript fallback -->
   <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-523X3ZCD" height="0" width="0"
       style="display:none;visibility:hidden"></iframe></noscript>
-  <!-- End Google Tag Manager (noscript) -->
+
   <div id="root"></div>
 
   <script type="module" src="/src/main.tsx"></script>

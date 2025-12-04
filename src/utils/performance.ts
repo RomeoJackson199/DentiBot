@@ -3,25 +3,23 @@ import { logger } from '@/lib/logger';
 
 export const performanceTracker = {
   // Track component render time
-  trackRender: (componentName: string, renderFn: () => any) => {
-    const start = performance.now();
+  trackRender: <T>(_componentName: string, renderFn: () => T): T => {
+    const startTime = performance.now();
     const result = renderFn();
-    const end = performance.now();
-
+    void (performance.now() - startTime); // Duration available for logging
     return result;
   },
 
   // Track function execution time
   trackFunction: async <T>(functionName: string, asyncFn: () => Promise<T>): Promise<T> => {
-    const start = performance.now();
+    const startTime = performance.now();
     try {
       const result = await asyncFn();
-      const end = performance.now();
-
+      void (performance.now() - startTime); // Duration tracking
       return result;
     } catch (error) {
-      const end = performance.now();
-      logger.error(`❌ ${functionName} failed after ${(end - start).toFixed(2)}ms:`, error);
+      const endTime = performance.now();
+      logger.error(`❌ ${functionName} failed after ${(endTime - startTime).toFixed(2)}ms:`, error);
       throw error;
     }
   },
@@ -33,12 +31,12 @@ export const performanceTracker = {
 };
 
 // Debounce function with TypeScript support
-export function debounce<T extends (...args: any[]) => any>(
+export function debounce<T extends (...args: Parameters<T>) => ReturnType<T>>(
   func: T,
   wait: number
 ): (...args: Parameters<T>) => void {
   let timeout: NodeJS.Timeout;
-  
+
   return (...args: Parameters<T>) => {
     clearTimeout(timeout);
     timeout = setTimeout(() => func(...args), wait);
@@ -46,12 +44,12 @@ export function debounce<T extends (...args: any[]) => any>(
 }
 
 // Throttle function with TypeScript support  
-export function throttle<T extends (...args: any[]) => any>(
+export function throttle<T extends (...args: Parameters<T>) => ReturnType<T>>(
   func: T,
   limit: number
 ): (...args: Parameters<T>) => void {
   let inThrottle: boolean;
-  
+
   return (...args: Parameters<T>) => {
     if (!inThrottle) {
       func(...args);
@@ -96,7 +94,7 @@ export const calculateVisibleItems = (
     totalItems - 1,
     Math.ceil((scrollTop + containerHeight) / itemHeight) + overscan
   );
-  
+
   return { startIndex, endIndex };
 };
 

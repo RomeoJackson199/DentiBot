@@ -156,17 +156,26 @@ const Dashboard = () => {
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      gcTime: 10 * 60 * 1000, // 10 minutes (was cacheTime)
-      refetchOnWindowFocus: false,
+      // Cache data longer - reduces refetch requests
+      staleTime: 10 * 60 * 1000, // 10 minutes before data is considered stale
+      gcTime: 30 * 60 * 1000, // 30 minutes cache retention
+
+      // Smart refetch behavior
+      refetchOnWindowFocus: false, // Don't refetch when switching tabs
+      refetchOnReconnect: 'always', // Refetch when network reconnects
+      refetchOnMount: false, // Use cached data on remount if fresh
+
+      // Background updates - show cached data immediately, update in background
+      networkMode: 'offlineFirst',
+
+      // Only retry on network errors, not API errors
       retry: (failureCount, error) => {
         // Don't retry auth errors (401/403)
         if (error && typeof error === 'object') {
-          // Check for status codes
           if ('status' in error && (error.status === 401 || error.status === 403)) {
             return false;
           }
-          // Check for Supabase error codes
+          // Don't retry Supabase permission errors
           if ('code' in error) {
             const supabaseError = error as { code?: string };
             if (supabaseError.code === 'PGRST301' || supabaseError.code === 'PGRST116') {
@@ -174,9 +183,14 @@ const queryClient = new QueryClient({
             }
           }
         }
-        return failureCount < 3;
+        return failureCount < 2; // Only 2 retries (faster failure)
       },
-      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+      retryDelay: (attemptIndex) => Math.min(500 * 2 ** attemptIndex, 5000), // Faster retries
+    },
+    mutations: {
+      // Optimistic updates - UI updates immediately
+      networkMode: 'offlineFirst',
+      retry: 1,
     },
   },
 });

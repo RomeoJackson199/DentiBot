@@ -20,7 +20,7 @@ Object.defineProperty(global, 'IntersectionObserver', {
     readonly root: Element | null = null;
     readonly rootMargin: string = '';
     readonly thresholds: ReadonlyArray<number> = [0];
-    constructor(_callback?: any, _options?: any) { }
+    constructor(_callback?: IntersectionObserverCallback, _options?: IntersectionObserverInit) { }
     observe(): void { }
     unobserve(): void { }
     disconnect(): void { }
