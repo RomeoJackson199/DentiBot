@@ -3,8 +3,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
-import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import {
@@ -12,18 +10,14 @@ import {
   Clock,
   User,
   FileText,
-  Pill,
-  DollarSign,
   MapPin,
   AlertCircle,
   CheckCircle,
   Star,
-  Download,
   Phone,
   Mail
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useLanguage } from "@/hooks/useLanguage";
 import { logger } from '@/lib/logger';
 
 interface AppointmentDetailsProps {
@@ -35,7 +29,6 @@ interface AppointmentDetailsProps {
 export function AppointmentDetailsDialog({ appointmentId, open, onOpenChange }: AppointmentDetailsProps) {
   const [appointment, setAppointment] = useState<any>(null);
   const [loading, setLoading] = useState(false);
-  const { t } = useLanguage();
 
   useEffect(() => {
     if (open && appointmentId) {
@@ -59,11 +52,8 @@ export function AppointmentDetailsDialog({ appointmentId, open, onOpenChange }: 
           duration_minutes,
           booking_source,
           created_at,
-          dentists:dentist_id (
+          dentists:dentists!appointments_dentist_id_fkey (
             id,
-            first_name,
-            last_name,
-            email,
             specialization,
             clinic_address,
             profiles:profile_id (
@@ -74,7 +64,7 @@ export function AppointmentDetailsDialog({ appointmentId, open, onOpenChange }: 
               address
             )
           ),
-          patients:patient_id (
+          patient:profiles!appointments_patient_id_fkey (
             id,
             first_name,
             last_name,
@@ -135,9 +125,7 @@ export function AppointmentDetailsDialog({ appointmentId, open, onOpenChange }: 
 
   const dentistName = appointment?.dentists?.profiles
     ? `${appointment.dentists.profiles.first_name} ${appointment.dentists.profiles.last_name}`
-    : appointment?.dentists
-      ? `${appointment.dentists.first_name} ${appointment.dentists.last_name}`
-      : 'Unknown';
+    : 'Unknown';
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -208,12 +196,10 @@ export function AppointmentDetailsDialog({ appointmentId, open, onOpenChange }: 
                         </span>
                       </div>
                     )}
-                    {(appointment.dentists?.email || appointment.dentists?.profiles?.email) && (
+                    {appointment.dentists?.profiles?.email && (
                       <div className="flex items-center gap-2">
                         <Mail className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm">
-                          {appointment.dentists.email || appointment.dentists.profiles?.email}
-                        </span>
+                        <span className="text-sm">{appointment.dentists.profiles.email}</span>
                       </div>
                     )}
                     {appointment.dentists?.profiles?.phone && (
