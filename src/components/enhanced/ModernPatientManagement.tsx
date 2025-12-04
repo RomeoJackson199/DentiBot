@@ -617,6 +617,7 @@ export function ModernPatientManagement({ dentistId }: ModernPatientManagementPr
           dentistId={dentistId}
           selectedDate={new Date()}
           selectedTime={format(new Date(), 'HH:00')}
+          patient={selectedPatient}
         />
       )}
     </div>

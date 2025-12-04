@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { DollarSign, Clock, CheckCircle, XCircle, ExternalLink, Loader2 } from 'lucide-react';
+import { DollarSign, Clock, CheckCircle, XCircle, ExternalLink, Loader2, Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { logger } from '@/lib/logger';
@@ -18,12 +18,15 @@ interface PaymentRequest {
 
 interface PatientPaymentHistoryProps {
   patientId: string;
+  viewMode?: 'patient' | 'dentist';
+  dentistId?: string;
 }
 
-export const PatientPaymentHistory: React.FC<PatientPaymentHistoryProps> = ({ patientId }) => {
+export const PatientPaymentHistory: React.FC<PatientPaymentHistoryProps> = ({ patientId, viewMode = 'patient', dentistId }) => {
   const [paymentRequests, setPaymentRequests] = useState<PaymentRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [processingPayment, setProcessingPayment] = useState<string | null>(null);
+  const [sendingReminder, setSendingReminder] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -50,13 +53,13 @@ export const PatientPaymentHistory: React.FC<PatientPaymentHistoryProps> = ({ pa
 
   const formatPaymentTitle = (request: PaymentRequest) => {
     // If description looks like an ID (e.g., "appointment-b4143..."), format it better
-    if (request.description.toLowerCase().includes('appointment') || 
-        request.description.match(/^[a-f0-9-]{8,}$/i)) {
+    if (request.description.toLowerCase().includes('appointment') ||
+      request.description.match(/^[a-f0-9-]{8,}$/i)) {
       const date = new Date(request.created_at);
-      const formattedDate = date.toLocaleDateString('en-US', { 
-        month: 'short', 
-        day: 'numeric', 
-        year: 'numeric' 
+      const formattedDate = date.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
       });
       return `Dental Service – ${formattedDate}`;
     }
@@ -83,7 +86,7 @@ export const PatientPaymentHistory: React.FC<PatientPaymentHistoryProps> = ({ pa
     const colors = { pending: 'bg-yellow-100 text-yellow-800 border-yellow-200', paid: 'bg-green-100 text-green-800 border-green-200', cancelled: 'bg-red-100 text-red-800 border-red-200', overdue: 'bg-red-100 text-red-800 border-red-200', failed: 'bg-red-100 text-red-800 border-red-200', sent: 'bg-blue-100 text-blue-800 border-blue-200', draft: 'bg-gray-100 text-gray-800 border-gray-200' } as const;
 
     return (
-      <Badge 
+      <Badge
         variant={variants[status as keyof typeof variants] || 'default'}
         className={`${colors[status as keyof typeof colors] || colors.pending} font-medium px-3 py-1`}
       >
@@ -131,6 +134,39 @@ export const PatientPaymentHistory: React.FC<PatientPaymentHistoryProps> = ({ pa
       });
     } finally {
       setProcessingPayment(null);
+    }
+  };
+
+  const handleSendReminder = async (paymentRequestId: string) => {
+    try {
+      setSendingReminder(paymentRequestId);
+
+      // Call edge function to send payment reminder notification
+      const { data, error } = await supabase.functions.invoke('create-payment-request', {
+        body: {
+          payment_request_id: paymentRequestId,
+          send_reminder: true
+        }
+      });
+
+      if (error) {
+        console.error('Edge function error:', error);
+        throw error;
+      }
+
+      toast({
+        title: "Reminder sent",
+        description: "A payment reminder has been sent to the patient.",
+      });
+    } catch (error) {
+      console.error('Error sending reminder:', error);
+      toast({
+        title: "Error",
+        description: "Failed to send reminder. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setSendingReminder(null);
     }
   };
 
@@ -192,7 +228,7 @@ export const PatientPaymentHistory: React.FC<PatientPaymentHistoryProps> = ({ pa
                     <p className="font-bold text-lg md:text-xl text-dental-primary">{formatAmount(request.amount)}</p>
                     {getStatusBadge(request.status)}
                   </div>
-                  {request.status === 'pending' && (
+                  {request.status === 'pending' && viewMode === 'patient' && (
                     <Button
                       size="default"
                       onClick={() => handlePayNow(request.id)}
@@ -208,6 +244,26 @@ export const PatientPaymentHistory: React.FC<PatientPaymentHistoryProps> = ({ pa
                         <>
                           <ExternalLink className="h-4 w-4 mr-2" />
                           <span className="text-sm">Pay Now</span>
+                        </>
+                      )}
+                    </Button>
+                  )}
+                  {request.status === 'pending' && viewMode === 'dentist' && (
+                    <Button
+                      size="default"
+                      onClick={() => handleSendReminder(request.id)}
+                      disabled={sendingReminder === request.id}
+                      className="w-full sm:w-auto bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100"
+                    >
+                      {sendingReminder === request.id ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          <span className="text-sm">Sending...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Bell className="h-4 w-4 mr-2" />
+                          <span className="text-sm">Remind Now</span>
                         </>
                       )}
                     </Button>

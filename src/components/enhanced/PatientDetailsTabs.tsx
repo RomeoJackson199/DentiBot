@@ -80,7 +80,7 @@ export function PatientDetailsTabs({ selectedPatient, dentistId, appointments, o
 
   const handleCancelAppointment = async () => {
     if (!cancellingAppointment) return;
-    
+
     setLoading(true);
     try {
       const { error } = await supabase
@@ -110,11 +110,11 @@ export function PatientDetailsTabs({ selectedPatient, dentistId, appointments, o
   };
 
   const upcomingAppointments = appointments
-    .filter(a => new Date(a.appointment_date) >= new Date() && a.status !== 'cancelled' && a.status !== 'completed')
+    .filter(a => a.status !== 'cancelled' && a.status !== 'completed')
     .sort((a, b) => new Date(a.appointment_date).getTime() - new Date(b.appointment_date).getTime());
 
   const pastAppointments = appointments
-    .filter(a => a.status === 'completed' || new Date(a.appointment_date) < new Date())
+    .filter(a => a.status === 'completed' || a.status === 'cancelled')
     .sort((a, b) => new Date(b.appointment_date).getTime() - new Date(a.appointment_date).getTime());
 
   return (
@@ -162,7 +162,7 @@ export function PatientDetailsTabs({ selectedPatient, dentistId, appointments, o
                 Book Appointment
               </Button>
             </div>
-            
+
             {upcomingAppointments.length === 0 ? (
               <Card className="p-8 text-center bg-muted/30">
                 <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
@@ -182,8 +182,8 @@ export function PatientDetailsTabs({ selectedPatient, dentistId, appointments, o
                           <Badge variant="outline" className={cn(
                             "text-xs",
                             apt.urgency === 'high' ? 'border-red-500 text-red-500' :
-                            apt.urgency === 'medium' ? 'border-yellow-500 text-yellow-500' :
-                            'border-green-500 text-green-500'
+                              apt.urgency === 'medium' ? 'border-yellow-500 text-yellow-500' :
+                                'border-green-500 text-green-500'
                           )}>
                             {apt.urgency} urgency
                           </Badge>
@@ -202,16 +202,16 @@ export function PatientDetailsTabs({ selectedPatient, dentistId, appointments, o
                         )}
                       </div>
                       <div className="flex gap-2 w-full sm:w-auto">
-                        <Button 
-                          size="sm" 
+                        <Button
+                          size="sm"
                           className="gap-2 flex-1 sm:flex-initial text-xs sm:text-sm"
                           onClick={() => setCompletingAppointment(apt)}
                         >
                           <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4" />
                           Complete
                         </Button>
-                        <Button 
-                          size="sm" 
+                        <Button
+                          size="sm"
                           variant="outline"
                           className="flex-1 sm:flex-initial"
                           onClick={() => setCancellingAppointment(apt)}
@@ -233,7 +233,7 @@ export function PatientDetailsTabs({ selectedPatient, dentistId, appointments, o
               Past Appointments
               <Badge variant="secondary" className="rounded-full">{pastAppointments.length}</Badge>
             </h3>
-            
+
             {pastAppointments.length === 0 ? (
               <Card className="p-8 text-center bg-muted/30">
                 <ClipboardListIcon className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
@@ -248,8 +248,8 @@ export function PatientDetailsTabs({ selectedPatient, dentistId, appointments, o
                         <div className="flex items-center gap-3 flex-wrap">
                           <Badge className={
                             apt.status === 'completed' ? 'bg-green-500 text-white' :
-                            apt.status === 'cancelled' ? 'bg-red-500 text-white' :
-                            'bg-gray-500 text-white'
+                              apt.status === 'cancelled' ? 'bg-red-500 text-white' :
+                                'bg-gray-500 text-white'
                           }>
                             {apt.status}
                           </Badge>
@@ -267,8 +267,8 @@ export function PatientDetailsTabs({ selectedPatient, dentistId, appointments, o
                           </p>
                         )}
                       </div>
-                      <Button 
-                        size="sm" 
+                      <Button
+                        size="sm"
                         variant="ghost"
                       >
                         <EyeIcon className="h-4 w-4" />
@@ -284,7 +284,7 @@ export function PatientDetailsTabs({ selectedPatient, dentistId, appointments, o
         {/* Treatment Plans Tab */}
         {canShowTreatments && (
           <TabsContent value="treatments" className="space-y-4">
-            <TreatmentPlanManager 
+            <TreatmentPlanManager
               patientId={selectedPatient.id}
               dentistId={dentistId}
             />
@@ -294,7 +294,7 @@ export function PatientDetailsTabs({ selectedPatient, dentistId, appointments, o
         {/* Prescriptions Tab */}
         {canShowPrescriptions && (
           <TabsContent value="prescriptions" className="space-y-4">
-            <PrescriptionManager 
+            <PrescriptionManager
               dentistId={dentistId}
             />
           </TabsContent>
@@ -302,8 +302,10 @@ export function PatientDetailsTabs({ selectedPatient, dentistId, appointments, o
 
         {/* Payments Tab */}
         <TabsContent value="payments" className="space-y-4">
-          <PatientPaymentHistory 
+          <PatientPaymentHistory
             patientId={selectedPatient.id}
+            viewMode="dentist"
+            dentistId={dentistId}
           />
         </TabsContent>
 
