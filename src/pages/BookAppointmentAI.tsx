@@ -1,5 +1,5 @@
 import { useState, useEffect, lazy, Suspense } from "react";
-import { useNavigate, Navigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useBusinessContext } from "@/hooks/useBusinessContext";
@@ -7,29 +7,21 @@ import { BusinessSelectionForPatients } from "@/components/BusinessSelectionForP
 import { Button } from "@/components/ui/button";
 import { AppointmentSuccessDialog } from "@/components/AppointmentSuccessDialog";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Calendar } from "@/components/ui/calendar";
-import { RecommendedDentistWidget } from "@/components/chat/RecommendedDentistWidget";
 import {
   ArrowLeft,
-  MapPin,
-  Phone,
-  Mail,
   Star,
-  Bot,
   Clock,
   CalendarDays,
-  CheckCircle
+  CheckCircle,
+  Users
 } from "lucide-react";
-import { format, startOfDay, startOfWeek, addDays, getDay } from "date-fns";
+import { format, startOfDay, startOfWeek, addDays } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
-// Lazy load Map component (Mapbox is heavy ~100KB+)
 const ClinicMap = lazy(() => import("@/components/Map"));
 import { logger } from '@/lib/logger';
 import { AnimatedBackground, EmptyState } from "@/components/ui/polished-components";
-import { clinicTimeToUtc, createAppointmentDateTimeFromStrings } from "@/lib/timezone";
-import { useBusinessTemplate } from '@/hooks/useBusinessTemplate';
+import { createAppointmentDateTimeFromStrings } from "@/lib/timezone";
 
 interface Dentist {
   id: string;
@@ -53,58 +45,29 @@ interface Dentist {
 interface TimeSlot {
   time: string;
   available: boolean;
-  isRecommended?: boolean;
-  aiScore?: number;
-  aiReason?: string;
 }
 
-export default function BookAppointmentAI() {
+export default function BookAppointment() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { businessId, loading: businessLoading, switchBusiness } = useBusinessContext();
-  const { hasFeature, loading: templateLoading } = useBusinessTemplate();
-  const hasAIChat = hasFeature('aiChat');
-  const [bookingData, setBookingData] = useState<any>(null);
   const [dentists, setDentists] = useState<Dentist[]>([]);
-  const [recommendedDentist, setRecommendedDentist] = useState<any>(null);
-  const [matchReason, setMatchReason] = useState<string>("");
   const [selectedDentist, setSelectedDentist] = useState<Dentist | null>(null);
-  const [expandedDentist, setExpandedDentist] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [currentWeekStart, setCurrentWeekStart] = useState<Date>(startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [selectedTime, setSelectedTime] = useState<string>();
   const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingSlots, setLoadingSlots] = useState(false);
-  const [loadingAI, setLoadingAI] = useState(false);
-  const [showAllSlots, setShowAllSlots] = useState(false);
-  const [aiSlotCode, setAiSlotCode] = useState<{ showSlots: string[], slotDetails: Record<string, { score: number, reason: string }> }>({ showSlots: [], slotDetails: {} });
   const [bookingStep, setBookingStep] = useState<'dentist' | 'datetime' | 'confirm'>('dentist');
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [successDetails, setSuccessDetails] = useState<{ date: string; time: string; dentist?: string; reason?: string } | undefined>(undefined);
-
-  useEffect(() => {
-    loadBookingData();
-  }, []);
 
   useEffect(() => {
     if (!businessLoading && businessId) {
       fetchDentists();
     }
   }, [businessId, businessLoading]);
-
-  const loadBookingData = () => {
-    const data = sessionStorage.getItem('aiBookingData');
-    if (data) {
-      try {
-        setBookingData(JSON.parse(data));
-      } catch (error) {
-        console.error('Failed to parse booking data from sessionStorage:', error);
-        // Clear invalid data
-        sessionStorage.removeItem('aiBookingData');
-      }
-    }
-  };
 
   const fetchDentists = async () => {
     if (!businessId) return;
@@ -170,24 +133,7 @@ export default function BookAppointmentAI() {
         profiles: Array.isArray(d.profiles) ? d.profiles[0] : (d.profiles || null),
       }));
 
-      const dentistIds = transformedData.map(d => d.id);
-      if (dentistIds.length > 0) {
-        const { data: clinicSettings } = await supabase
-          .from('clinic_settings')
-          .select('dentist_id, address')
-          .in('dentist_id', dentistIds);
-
-        const settingsMap = new Map(clinicSettings?.map(s => [s.dentist_id, s.address]) || []);
-        transformedData.forEach(d => {
-          d.clinic_address = settingsMap.get(d.id) || d.profiles?.address || '';
-        });
-      }
-
       setDentists(transformedData);
-
-      if (bookingData) {
-        await getAIRecommendations(transformedData);
-      }
     } catch (error) {
       logger.error("Error fetching dentists:", error);
       toast({
@@ -200,48 +146,6 @@ export default function BookAppointmentAI() {
     }
   };
 
-  const getAIRecommendations = async (dentistList: Dentist[]) => {
-    if (!bookingData?.messages || bookingData.messages.length === 0) {
-      return;
-    }
-
-    setLoadingAI(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('dental-ai-chat', {
-        body: {
-          message: "Recommend dentist based on this conversation",
-          conversation_history: bookingData.messages,
-          business_id: businessId
-        }
-      });
-
-      if (error) {
-        console.error('AI recommendation error:', error);
-        toast({
-          title: "AI Recommendations Unavailable",
-          description: "Couldn't get AI recommendations, but you can still select a dentist manually",
-          variant: "default",
-        });
-        return;
-      }
-
-      if (data?.recommended_dentist && data.recommended_dentist.length > 0) {
-        const dentistData = data.recommended_dentist[0];
-        setRecommendedDentist(dentistData);
-        setMatchReason(data.match_reason || "Best match based on your needs");
-      }
-    } catch (error) {
-      console.error('Failed to get AI recommendations:', error);
-      toast({
-        title: "AI Recommendations Unavailable",
-        description: "Couldn't get AI recommendations, but you can still select a dentist manually",
-        variant: "default",
-      });
-    } finally {
-      setLoadingAI(false);
-    }
-  };
-
   const fetchAvailableSlots = async (date: Date, dentistId: string) => {
     if (!businessId) return;
 
@@ -249,19 +153,13 @@ export default function BookAppointmentAI() {
     try {
       const dateStr = format(date, 'yyyy-MM-dd');
 
-      console.log('🔍 Fetching slots for:', { dentistId, dateStr, businessId });
-
-      // Use the database function that computes availability dynamically
       const { data, error } = await supabase.rpc('get_dentist_available_slots', {
         p_dentist_id: dentistId,
         p_date: dateStr,
         p_business_id: businessId
       });
 
-      console.log('📊 RPC result:', { dataLength: data?.length, error });
-
       if (error) {
-        console.error('❌ get_dentist_available_slots error:', error);
         throw error;
       }
 
@@ -276,7 +174,6 @@ export default function BookAppointmentAI() {
         return;
       }
 
-      // Filter to only available slots and map to TimeSlot format
       const slots: TimeSlot[] = data
         .filter((slot: { is_available: boolean }) => slot.is_available)
         .map((slot: { slot_time: string; is_available: boolean }) => ({
@@ -284,13 +181,7 @@ export default function BookAppointmentAI() {
           available: slot.is_available,
         }));
 
-      console.log('✅ Available slots:', slots.length);
       setAvailableSlots(slots);
-
-      // Get AI recommendations
-      if (slots.length > 0) {
-        fetchAIRecommendations(date, dentistId, slots);
-      }
     } catch (error) {
       logger.error("Error fetching slots:", error);
       toast({
@@ -301,59 +192,6 @@ export default function BookAppointmentAI() {
       setAvailableSlots([]);
     } finally {
       setLoadingSlots(false);
-    }
-  };
-
-  const fetchAIRecommendations = async (date: Date, dentistId: string, slots: TimeSlot[]) => {
-    setLoadingAI(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
-
-      if (!profile) return;
-
-      const dateStr = format(date, 'yyyy-MM-dd');
-
-      const { data, error } = await supabase.functions.invoke('ai-slot-recommendations', {
-        body: {
-          dentistId,
-          patientId: profile.id,
-          date: dateStr,
-          availableSlots: slots
-        }
-      });
-
-      if (error) {
-        console.warn('AI recommendations failed:', error);
-        toast({
-          title: "AI Suggestions Unavailable",
-          description: "Couldn't get smart recommendations. Please select a time slot manually",
-          variant: "default",
-        });
-      } else if (data?.showSlots) {
-        // AI returned a code with slots to show
-        console.log('AI Code received - show these slots:', data.showSlots);
-        setAiSlotCode({
-          showSlots: data.showSlots,
-          slotDetails: data.slotDetails || {}
-        });
-        setShowAllSlots(false); // Reset to show only AI-selected slots
-      }
-    } catch (error) {
-      console.warn('AI recommendations error:', error);
-      toast({
-        title: "AI Suggestions Unavailable",
-        description: "Couldn't get smart recommendations. Please select a time slot manually",
-        variant: "default",
-      });
-    } finally {
-      setLoadingAI(false);
     }
   };
 
@@ -422,34 +260,8 @@ export default function BookAppointmentAI() {
         return;
       }
 
-      // Use format to preserve Brussels date without UTC conversion
       const dateStr = format(selectedDate, 'yyyy-MM-dd');
-
-      // Create appointment with proper timezone handling
-      // Parse date and time strings as Brussels timezone and convert to UTC
       const appointmentDateTime = createAppointmentDateTimeFromStrings(dateStr, selectedTime);
-
-      let appointmentReason = "General consultation";
-      if (bookingData?.messages?.length > 0) {
-        try {
-          const { generateAppointmentReason } = await import("@/lib/symptoms");
-          const aiReason = await generateAppointmentReason(
-            bookingData.messages as any,
-            {
-              id: profile.id,
-              first_name: profile.first_name,
-              last_name: profile.last_name,
-              user_id: profile.user_id,
-              email: profile.email,
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString()
-            } as any
-          );
-          if (aiReason) appointmentReason = aiReason;
-        } catch (err) {
-          logger.error('Failed to generate AI reason:', err);
-        }
-      }
 
       const { data: appointmentData, error: appointmentError } = await supabase
         .from("appointments")
@@ -458,12 +270,10 @@ export default function BookAppointmentAI() {
           dentist_id: selectedDentist.id,
           business_id: businessId,
           appointment_date: appointmentDateTime.toISOString(),
-          reason: appointmentReason,
+          reason: "General consultation",
           status: "confirmed",
-          booking_source: "ai",
-          urgency: bookingData?.urgency >= 5 ? "emergency" :
-            bookingData?.urgency === 4 ? "high" :
-              bookingData?.urgency === 3 ? "medium" : "low",
+          booking_source: "web",
+          urgency: "low",
           service_id: null,
           duration_minutes: 60
         })
@@ -484,17 +294,13 @@ export default function BookAppointmentAI() {
         throw new Error("This time slot is no longer available");
       }
 
-      // Show success dialog with Google Calendar option
       setSuccessDetails({
         date: format(selectedDate, 'yyyy-MM-dd'),
         time: selectedTime,
         dentist: `Dr. ${selectedDentist.first_name} ${selectedDentist.last_name}`,
-        reason: appointmentReason
+        reason: "General consultation"
       });
       setShowSuccessDialog(true);
-
-      sessionStorage.removeItem('aiBookingData');
-      // Do not navigate immediately; let user choose next action in the success dialog
     } catch (error) {
       logger.error("Error booking appointment:", error);
       toast({
@@ -520,7 +326,7 @@ export default function BookAppointmentAI() {
     return `${fn.charAt(0)}${ln.charAt(0)}`.toUpperCase();
   };
 
-  if (businessLoading || loading || templateLoading) {
+  if (businessLoading || loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-secondary/10 p-4">
         <div className="max-w-6xl mx-auto space-y-6 py-8">
@@ -535,13 +341,6 @@ export default function BookAppointmentAI() {
     );
   }
 
-  // If AI chat is disabled, redirect to manual booking
-  if (!hasAIChat) {
-    // Redirect to integrated booking inside dashboard
-    try { localStorage.setItem('pd_section', 'assistant'); } catch { }
-    return <Navigate to="/dashboard" replace />;
-  }
-
   if (!businessId) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-secondary/10 p-4">
@@ -551,7 +350,7 @@ export default function BookAppointmentAI() {
               <h2 className="text-2xl font-bold mb-4">Select a Clinic</h2>
               <p className="text-muted-foreground mb-6">Please select a clinic to view available dentists and book an appointment.</p>
               <BusinessSelectionForPatients
-                onSelectBusiness={(id, name) => switchBusiness(id)}
+                onSelectBusiness={(id) => switchBusiness(id)}
               />
             </CardContent>
           </Card>
@@ -567,12 +366,13 @@ export default function BookAppointmentAI() {
         onOpenChange={setShowSuccessDialog}
         appointmentDetails={successDetails}
       />
+
+      {/* Step 1: Select Dentist */}
       {bookingStep === 'dentist' && (
         <div className="max-w-6xl mx-auto p-4 py-8 space-y-6">
-          {/* Enhanced Header with Animated Background */}
-          <div className="relative overflow-hidden bg-gradient-to-br from-purple-50 via-blue-50 to-cyan-50 dark:from-purple-950/20 dark:via-blue-950/20 dark:to-cyan-950/20 rounded-2xl p-6 mb-6">
+          {/* Header */}
+          <div className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950/20 dark:via-indigo-950/20 dark:to-purple-950/20 rounded-2xl p-6 mb-6">
             <AnimatedBackground />
-
             <div className="relative z-10">
               <div className="flex items-center justify-between mb-4">
                 <Button
@@ -582,108 +382,60 @@ export default function BookAppointmentAI() {
                   className="gap-2 hover:bg-white/50"
                 >
                   <ArrowLeft className="h-4 w-4" />
-                  Back to chat
-                </Button>
-
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => navigate('/book-appointment')}
-                  className="gap-2 text-muted-foreground hover:text-primary hover:bg-white/50"
-                >
-                  <CalendarDays className="h-4 w-4" />
-                  <span className="hidden sm:inline">Switch to Classic Booking</span>
+                  Back
                 </Button>
               </div>
 
               <div className="text-center space-y-3">
                 <div className="flex items-center justify-center gap-3 mb-2">
-                  <div className="p-3 bg-gradient-to-br from-purple-500 to-cyan-500 rounded-xl shadow-lg animate-pulse">
-                    <Bot className="h-6 w-6 text-white" />
+                  <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-xl shadow-lg">
+                    <CalendarDays className="h-6 w-6 text-white" />
                   </div>
-                  <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-purple-600 to-cyan-600 bg-clip-text text-transparent">
-                    AI-Powered Booking
+                  <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                    Book an Appointment
                   </h1>
                 </div>
                 <p className="text-muted-foreground max-w-2xl mx-auto">
-                  {recommendedDentist
-                    ? "We've found the perfect dentist based on your conversation"
-                    : "Choose your preferred dentist and schedule a convenient time"}
+                  Choose your preferred dentist and schedule a convenient time
                 </p>
               </div>
             </div>
           </div>
 
-          {recommendedDentist && (
-            <RecommendedDentistWidget
-              dentist={recommendedDentist}
-              matchReason={matchReason}
-              symptoms={bookingData?.symptoms}
-              onSelectDentist={(dentist) => {
-                const fullDentist = dentists.find(d => d.id === dentist.id);
-                if (fullDentist) {
-                  handleDentistSelect(fullDentist);
-                }
-              }}
-              onSeeAlternatives={() => {
-                // User can scroll down to see all dentists
-              }}
-            />
-          )}
-
+          {/* Dentist Grid */}
           {dentists.length === 0 ? (
             <EmptyState
-              icon={Bot}
+              icon={Users}
               title="No Dentists Available"
-              description="This clinic doesn't have any dentists available for booking at the moment. Please try again later or contact the clinic directly."
+              description="This clinic doesn't have any dentists available for booking at the moment."
               action={{
-                label: "Back to Chat",
+                label: "Go Back",
                 onClick: () => navigate(-1)
               }}
             />
           ) : (
             <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               {dentists.map((dentist) => {
-                const isRecommended = recommendedDentist?.id === dentist.id;
                 const displayName = `${dentist.first_name || dentist.profiles?.first_name} ${dentist.last_name || dentist.profiles?.last_name}`;
 
                 return (
                   <Card
                     key={dentist.id}
-                    className={`group cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${isRecommended
-                        ? 'border-yellow-400/50 ring-2 ring-yellow-400/20 bg-gradient-to-br from-yellow-50/50 to-amber-50/50 dark:from-yellow-950/20 dark:to-amber-950/20 hover:shadow-yellow-500/20'
-                        : 'hover:shadow-blue-500/10 hover:border-blue-500/40'
-                      }`}
+                    className="group cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-1 hover:border-blue-500/40"
                     onClick={() => handleDentistSelect(dentist)}
                   >
                     <CardContent className="p-4 space-y-3">
                       <div className="flex items-start gap-3">
-                        <Avatar className={`h-14 w-14 ring-2 transition-all ${isRecommended
-                            ? 'ring-yellow-400/30 group-hover:ring-yellow-400/50'
-                            : 'ring-primary/10 group-hover:ring-primary/30'
-                          }`}>
+                        <Avatar className="h-14 w-14 ring-2 ring-primary/10 group-hover:ring-primary/30 transition-all">
                           <AvatarImage src="" />
-                          <AvatarFallback className={`text-base font-bold ${isRecommended
-                              ? 'bg-gradient-to-br from-yellow-400/20 to-amber-400/20 text-yellow-700'
-                              : 'bg-gradient-to-br from-blue-500/10 to-purple-500/10 text-primary'
-                            }`}>
+                          <AvatarFallback className="bg-gradient-to-br from-blue-500/10 to-purple-500/10 text-primary text-base font-bold">
                             {getDentistInitials(dentist)}
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-start gap-2 mb-1">
-                            <h3 className={`font-semibold truncate transition-colors ${isRecommended
-                                ? 'group-hover:text-yellow-700'
-                                : 'group-hover:text-blue-600'
-                              }`}>
-                              Dr. {displayName}
-                            </h3>
-                            {isRecommended && (
-                              <Badge className="bg-gradient-to-r from-yellow-100 to-amber-100 text-yellow-800 border-yellow-300 text-xs shrink-0 shadow-sm">
-                                ⭐ Best pick
-                              </Badge>
-                            )}
-                          </div>
+                          <h3 className="font-semibold truncate group-hover:text-blue-600 transition-colors">
+                            Dr. {displayName}
+                          </h3>
                           <p className="text-sm text-muted-foreground capitalize">
                             {dentist.specialization || 'General Dentistry'}
                           </p>
@@ -705,8 +457,9 @@ export default function BookAppointmentAI() {
         </div>
       )}
 
+      {/* Step 2: Select Date & Time */}
       {bookingStep === 'datetime' && selectedDentist && (
-        <div className="max-w-7xl mx-auto p-4 py-8">
+        <div className="max-w-4xl mx-auto p-4 py-8">
           <Button
             variant="ghost"
             size="sm"
@@ -714,331 +467,149 @@ export default function BookAppointmentAI() {
             className="gap-2 mb-6"
           >
             <ArrowLeft className="h-4 w-4" />
-            Back to list
+            Back to dentists
           </Button>
 
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-            {/* Left side - Dentist Details */}
-            <div className="lg:col-span-2 space-y-6">
-              {/* Profile Card */}
-              <Card>
-                <CardContent className="p-6 space-y-4">
-                  <div className="flex items-start gap-4">
-                    <div className="relative">
-                      <Avatar className="h-20 w-20">
-                        <AvatarImage src="" />
-                        <AvatarFallback className="bg-primary/10 text-primary text-xl">
-                          {getDentistInitials(selectedDentist)}
-                        </AvatarFallback>
-                      </Avatar>
-                      {recommendedDentist?.id === selectedDentist.id && (
-                        <Badge className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-yellow-100 text-yellow-800 border-yellow-200 text-xs px-2">
-                          Best pick
-                        </Badge>
-                      )}
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h2 className="text-xl font-bold">
-                          Dr. {selectedDentist.first_name} {selectedDentist.last_name}
-                        </h2>
-                        <Mail className="h-4 w-4 text-muted-foreground" />
-                        <Star className="h-4 w-4 text-blue-500" />
-                      </div>
-                      <p className="text-sm text-muted-foreground capitalize mb-2">
-                        {selectedDentist.specialization || 'General Dentistry'}
-                      </p>
-                      <div className="flex items-center gap-1">
-                        {[1, 2, 3, 4].map((i) => (
-                          <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                        ))}
-                        <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 opacity-50" />
-                        <span className="text-sm font-medium ml-1">4.87</span>
-                        <span className="text-sm text-muted-foreground ml-1">Reviews</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-wrap gap-2">
-                    <Badge variant="secondary" className="text-xs">In person & Online</Badge>
-                    <Badge variant="secondary" className="text-xs">Consultation - $80</Badge>
-                    <Badge variant="secondary" className="text-xs">Additional services</Badge>
-                    <Badge variant="secondary" className="text-xs">Payment methods: Card</Badge>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Bio Section */}
-              <Card>
-                <CardContent className="p-6">
-                  <h3 className="font-semibold mb-3">Bio</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {selectedDentist.profiles?.bio && selectedDentist.profiles.bio.trim().length > 0
-                      ? selectedDentist.profiles.bio
-                      : `A specialist in ${selectedDentist.specialization || 'general dentistry'}, with extensive training and experience.`}
+          <Card>
+            <CardContent className="p-6 space-y-6">
+              {/* Selected Dentist */}
+              <div className="flex items-center gap-4 pb-4 border-b">
+                <Avatar className="h-16 w-16">
+                  <AvatarFallback className="bg-primary/10 text-primary text-lg">
+                    {getDentistInitials(selectedDentist)}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <h2 className="text-xl font-bold">
+                    Dr. {selectedDentist.first_name} {selectedDentist.last_name}
+                  </h2>
+                  <p className="text-muted-foreground capitalize">
+                    {selectedDentist.specialization || 'General Dentistry'}
                   </p>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
 
-              {/* Last Review */}
-              <Card>
-                <CardContent className="p-6">
-                  <h3 className="font-semibold mb-4">Last review</h3>
-                  <div className="space-y-3">
-                    <div className="flex items-start gap-3">
-                      <Avatar className="h-10 w-10">
-                        <AvatarFallback className="bg-muted">JH</AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between mb-1">
-                          <div>
-                            <p className="font-medium text-sm">Jessica H.</p>
-                            <p className="text-xs text-muted-foreground">Warsaw | Verified</p>
-                          </div>
-                          <div className="flex gap-0.5">
-                            {[1, 2, 3, 4, 5].map((i) => (
-                              <Star key={i} className="h-3 w-3 fill-cyan-500 text-cyan-500" />
-                            ))}
-                          </div>
-                        </div>
-                        <p className="text-sm text-muted-foreground mb-2">
-                          Dr. {selectedDentist.last_name} is very kind, professional, and attentive. Other doctors often dismiss my concerns,
-                          but they took them seriously and came up with a brilliant diagnosis.
-                        </p>
-                        <div className="flex items-center justify-between text-xs text-muted-foreground">
-                          <span>17 Oct, 2022</span>
-                          <button className="text-primary">Report</button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              {/* Week Navigation */}
+              <div className="flex items-center justify-between">
+                <Button variant="ghost" size="icon" onClick={() => navigateWeek('prev')}>
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+                <h3 className="font-semibold">
+                  {selectedDate ? format(selectedDate, "EEE, dd MMMM") : "Select a date"}
+                </h3>
+                <Button variant="ghost" size="icon" onClick={() => navigateWeek('next')}>
+                  <ArrowLeft className="h-4 w-4 rotate-180" />
+                </Button>
+              </div>
 
-              {/* Location */}
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between mb-3">
-                    <h3 className="font-semibold">Dental Clinic</h3>
-                    <div className="flex items-center gap-1">
-                      {[1, 2, 3, 4].map((i) => (
-                        <Star key={i} className="h-3 w-3 fill-cyan-500 text-cyan-500" />
-                      ))}
-                      <Star className="h-3 w-3 fill-cyan-500 text-cyan-500 opacity-50" />
-                      <span className="text-sm font-medium ml-1">4.87</span>
-                    </div>
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-3">
-                    {selectedDentist.clinic_address || 'Address not available'}
-                  </p>
-                  <div className="w-full h-40 rounded-lg overflow-hidden">
-                    <Suspense fallback={<Skeleton className="w-full h-40" />}>
-                      <ClinicMap address={selectedDentist.clinic_address || ''} />
-                    </Suspense>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+              {/* Week Days */}
+              <div className="grid grid-cols-7 gap-2">
+                {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, index) => {
+                  const date = addDays(currentWeekStart, index);
+                  const isSelected = selectedDate && format(selectedDate, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd');
+                  const isDisabled = isDateDisabled(date);
 
-            {/* Right side - Calendar & Time Slots */}
-            <div className="lg:col-span-3">
-              <Card className="sticky top-4">
-                <CardContent className="p-6 space-y-6">
-                  {/* Date Navigation */}
-                  <div className="flex items-center justify-between">
-                    <Button variant="ghost" size="icon" onClick={() => navigateWeek('prev')}>
-                      <ArrowLeft className="h-4 w-4" />
-                    </Button>
-                    <h3 className="font-semibold">
-                      {selectedDate ? format(selectedDate, "EEE, dd MMMM") : "Select a date"}
-                    </h3>
-                    <Button variant="ghost" size="icon" onClick={() => navigateWeek('next')}>
-                      <ArrowLeft className="h-4 w-4 rotate-180" />
-                    </Button>
+                  return (
+                    <button
+                      key={day}
+                      onClick={() => !isDisabled && handleDateSelect(date)}
+                      disabled={isDisabled}
+                      className={`flex flex-col items-center p-3 rounded-full transition-all ${isSelected
+                        ? 'bg-primary text-primary-foreground'
+                        : isDisabled
+                          ? 'opacity-40 cursor-not-allowed'
+                          : 'hover:bg-muted'
+                        }`}
+                    >
+                      <span className="text-xs mb-1">{day}</span>
+                      <span className="text-lg font-medium">{date.getDate()}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Time Slots */}
+              {selectedDate && (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <span className="text-sm text-muted-foreground">
+                      Available Time Slots ({availableSlots.filter(slot => slot.available).length})
+                    </span>
                   </div>
 
-                  {/* Week Days */}
-                  <div className="grid grid-cols-7 gap-2">
-                    {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, index) => {
-                      // Calculate the correct date for the current week
-                      const date = addDays(currentWeekStart, index);
-                      const isSelected = selectedDate && format(selectedDate, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd');
-                      const isDisabled = isDateDisabled(date);
-
-                      return (
-                        <button
-                          key={day}
-                          onClick={() => !isDisabled && handleDateSelect(date)}
-                          disabled={isDisabled}
-                          className={`flex flex-col items-center p-3 rounded-full transition-all ${isSelected
-                              ? 'bg-primary text-primary-foreground'
-                              : isDisabled
-                                ? 'opacity-40 cursor-not-allowed'
-                                : 'hover:bg-muted'
-                            }`}
-                        >
-                          <span className="text-xs mb-1">{day}</span>
-                          <span className="text-lg font-medium">{date.getDate()}</span>
-                        </button>
-                      );
-                    })}
+                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 max-h-[300px] overflow-y-auto">
+                    {loadingSlots ? (
+                      <p className="col-span-full text-center text-muted-foreground py-8">Loading time slots...</p>
+                    ) : availableSlots.length === 0 ? (
+                      <p className="col-span-full text-center text-muted-foreground py-8">No available slots for this date</p>
+                    ) : (
+                      availableSlots
+                        .filter(slot => slot.available)
+                        .map((slot) => (
+                          <button
+                            key={slot.time}
+                            onClick={() => handleTimeSelect(slot.time)}
+                            className={`p-3 rounded-lg border-2 text-center font-medium transition-all ${selectedTime === slot.time
+                              ? 'bg-primary text-primary-foreground border-primary'
+                              : 'border-muted hover:border-primary/50 hover:bg-muted/50'
+                              }`}
+                          >
+                            <Clock className="h-4 w-4 mx-auto mb-1" />
+                            {slot.time}
+                          </button>
+                        ))
+                    )}
                   </div>
-
-                  {/* Time Slots */}
-                  {selectedDate && (
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2 mb-2">
-                        <CheckCircle className="h-4 w-4 text-green-600" />
-                        <span className="text-sm text-muted-foreground">
-                          {showAllSlots
-                            ? `All Available Time Slots (${availableSlots.filter(slot => slot.available).length})`
-                            : aiSlotCode.showSlots.length > 0
-                              ? `✨ AI Recommended Slots (${aiSlotCode.showSlots.length})`
-                              : `Available Time Slots (${availableSlots.filter(slot => slot.available).length})`
-                          }
-                        </span>
-                      </div>
-
-                      <div className="max-h-[400px] overflow-y-auto space-y-2">
-                        {loadingSlots ? (
-                          <p className="text-center text-muted-foreground py-8">Loading time slots...</p>
-                        ) : availableSlots.length === 0 || availableSlots.filter(slot => slot.available).length === 0 ? (
-                          <p className="text-center text-muted-foreground py-8">No available slots for this date</p>
-                        ) : (
-                          availableSlots
-                            .filter(slot => slot.available)
-                            .filter(slot => {
-                              // If AI code exists and not showing all, only show AI-selected slots
-                              if (!showAllSlots && aiSlotCode.showSlots.length > 0) {
-                                return aiSlotCode.showSlots.includes(slot.time);
-                              }
-                              return true;
-                            })
-                            .map((slot) => {
-                              const aiDetail = aiSlotCode.slotDetails[slot.time];
-                              const isAISelected = aiSlotCode.showSlots.includes(slot.time);
-                              return (
-                                <button
-                                  key={slot.time}
-                                  onClick={() => handleTimeSelect(slot.time)}
-                                  className={`relative w-full p-4 rounded-xl border-2 text-left font-medium transition-all ${selectedTime === slot.time
-                                      ? 'bg-primary text-primary-foreground border-primary shadow-lg'
-                                      : isAISelected
-                                        ? 'bg-purple-50 border-purple-300 hover:border-purple-400 hover:bg-purple-100 ring-2 ring-purple-200'
-                                        : 'border-muted hover:border-primary/50 hover:bg-muted/50'
-                                    }`}
-                                >
-                                  {isAISelected && (
-                                    <span className="absolute top-2 right-2 bg-purple-500 text-white text-[10px] px-2 py-0.5 rounded-full flex items-center gap-1">
-                                      <Clock className="h-3 w-3" />
-                                      ✨ AI Pick
-                                    </span>
-                                  )}
-                                  <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                      <Clock className="h-5 w-5" />
-                                      <span className="text-lg">{slot.time}</span>
-                                    </div>
-                                    {aiDetail?.score && (
-                                      <span className="text-sm text-purple-600 font-semibold">
-                                        Score: {aiDetail.score}
-                                      </span>
-                                    )}
-                                  </div>
-                                  {isAISelected && aiDetail?.reason && (
-                                    <p className="text-xs text-muted-foreground mt-2 pl-7">
-                                      {aiDetail.reason}
-                                    </p>
-                                  )}
-                                </button>
-                              );
-                            })
-                        )}
-                      </div>
-
-                      {/* Show All Slots Button */}
-                      {!showAllSlots && aiSlotCode.showSlots.length > 0 && availableSlots.filter(slot => slot.available).length > aiSlotCode.showSlots.length && (
-                        <Button
-                          variant="outline"
-                          className="w-full mt-2"
-                          onClick={() => setShowAllSlots(true)}
-                        >
-                          Show rest of available times ({availableSlots.filter(slot => slot.available).length - aiSlotCode.showSlots.length} more)
-                        </Button>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Book Button */}
-                  <Button
-                    className="w-full h-12 text-base bg-gradient-to-r from-purple-600 to-cyan-600 hover:from-purple-700 hover:to-cyan-700 shadow-lg hover:shadow-xl transition-all duration-300"
-                    size="lg"
-                    disabled={!selectedDate || !selectedTime}
-                    onClick={() => setBookingStep('confirm')}
-                  >
-                    <Bot className="h-5 w-5 mr-2" />
-                    Book with AI Assistant
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
       )}
 
+      {/* Step 3: Confirm Booking */}
       {bookingStep === 'confirm' && selectedDentist && selectedDate && selectedTime && (
-        <div className="max-w-6xl mx-auto p-4 py-8">
-          <Card className="max-w-2xl mx-auto">
+        <div className="max-w-2xl mx-auto p-4 py-8">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setBookingStep('datetime')}
+            className="gap-2 mb-6"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to time selection
+          </Button>
+
+          <Card>
             <CardContent className="p-6 space-y-6">
               <div className="text-center">
-                <CheckCircle className="h-12 w-12 mx-auto text-primary mb-4" />
-                <h2 className="text-2xl font-bold">Confirm Your Appointment</h2>
+                <h2 className="text-2xl font-bold mb-2">Confirm Your Appointment</h2>
+                <p className="text-muted-foreground">Review your booking details</p>
               </div>
 
-              <div className="space-y-4 bg-muted/50 rounded-lg p-4">
-                <div className="flex items-start gap-3">
-                  <Avatar className="h-12 w-12">
-                    <AvatarFallback className="bg-primary/10 text-primary">
-                      {getDentistInitials(selectedDentist)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="font-semibold">
-                      Dr. {selectedDentist.first_name} {selectedDentist.last_name}
-                    </p>
-                    <p className="text-sm text-muted-foreground capitalize">
-                      {selectedDentist.specialization}
-                    </p>
-                  </div>
+              <div className="space-y-4 py-4 border-y">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Dentist</span>
+                  <span className="font-medium">Dr. {selectedDentist.first_name} {selectedDentist.last_name}</span>
                 </div>
-
-                <div className="space-y-2 text-sm">
-                  <div className="flex items-center gap-2">
-                    <CalendarDays className="h-4 w-4 text-muted-foreground" />
-                    <span>{format(selectedDate, "EEEE, MMMM d, yyyy")}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-muted-foreground" />
-                    <span>{selectedTime}</span>
-                  </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Date</span>
+                  <span className="font-medium">{format(selectedDate, 'EEEE, MMMM d, yyyy')}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Time</span>
+                  <span className="font-medium">{selectedTime}</span>
                 </div>
               </div>
 
-              <div className="flex gap-3">
-                <Button
-                  variant="outline"
-                  className="flex-1"
-                  onClick={() => setBookingStep('datetime')}
-                >
-                  Go Back
-                </Button>
-                <Button
-                  className="flex-1"
-                  onClick={confirmBooking}
-                >
-                  Confirm Booking
-                </Button>
-              </div>
+              <Button
+                size="lg"
+                className="w-full"
+                onClick={confirmBooking}
+              >
+                Confirm Booking
+              </Button>
             </CardContent>
           </Card>
         </div>

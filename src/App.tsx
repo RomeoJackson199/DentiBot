@@ -64,7 +64,6 @@ const About = lazy(() => import("./pages/About"));
 const Claim = lazy(() => import("./pages/Claim"));
 const PublicBooking = lazy(() => import("./pages/PublicBooking"));
 const BookAppointmentAI = lazy(() => import("./pages/BookAppointmentAI"));
-const BookAppointment = lazy(() => import("./pages/BookAppointment"));
 const BusinessPortal = lazy(() => import("./pages/BusinessPortal"));
 import { BookingRouteHandler } from "./components/booking/BookingRouteHandler";
 import { logger } from '@/lib/logger';
@@ -339,11 +338,10 @@ const App = () => {
                         <Route path="/admin/delete-business" element={<DeleteBusinessPage />} />
                         {/* Super Admin Dashboard */}
                         <Route path="/super-admin" element={<SuperAdminDashboard />} />
-                        {/* AI-powered booking route */}
+                        {/* Main booking route */}
                         <Route path="/book-appointment" element={<BookingRouteHandler><BookAppointmentAI /></BookingRouteHandler>} />
-                        {/* Legacy manual booking route */}
-                        <Route path="/book-appointment-legacy" element={<BookingRouteHandler><BookAppointment /></BookingRouteHandler>} />
-                        {/* Redirect old AI route to main booking */}
+                        {/* Redirect old routes to main booking */}
+                        <Route path="/book-appointment-legacy" element={<Navigate to="/book-appointment" replace />} />
                         <Route path="/book-appointment-ai" element={<Navigate to="/book-appointment" replace />} />
                         <Route path="/smart-book-appointment" element={<Navigate to="/book-appointment" replace />} />
                         {/* Business portal route - must come before catch-all */}
