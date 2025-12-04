@@ -1,10 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useCurrentDentist } from "@/hooks/useCurrentDentist";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { ChevronLeft, ChevronRight, Calendar, Grid3x3, CalendarDays, Search, Filter, X, BarChart3 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import { useLanguage } from "@/hooks/useLanguage";
 import { WeeklyCalendarView } from "@/components/appointments/WeeklyCalendarView";
 import { DayCalendarView } from "@/components/appointments/DayCalendarView";
@@ -16,13 +12,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import { logger } from '@/lib/logger';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ChevronLeft, ChevronRight, Calendar, Grid3x3, CalendarDays, BarChart3 } from "lucide-react";
+
 export default function DentistAppointmentsManagement() {
   const {
     dentistId,
@@ -31,11 +24,7 @@ export default function DentistAppointmentsManagement() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
   const [viewMode, setViewMode] = useState<"week" | "day">("week");
-  const [headerVisible, setHeaderVisible] = useState(true);
   const [showStats, setShowStats] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [urgencyFilter, setUrgencyFilter] = useState<string>("all");
   const lastScrollY = useRef(0);
   const {
     toast
@@ -45,7 +34,7 @@ export default function DentistAppointmentsManagement() {
   } = useLanguage();
   const queryClient = useQueryClient();
 
-  // Fetch all appointments for stats and filtering
+  // Fetch all appointments for stats
   const {
     data: allAppointments = []
   } = useQuery({
@@ -117,36 +106,23 @@ export default function DentistAppointmentsManagement() {
     enabled: !!dentistId,
     refetchInterval: 300000 // Refresh every 5 minutes
   });
-  useEffect(() => {
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-      if (currentScrollY < 10) {
-        setHeaderVisible(true);
-      } else if (currentScrollY > lastScrollY.current) {
-        setHeaderVisible(false);
-      } else {
-        setHeaderVisible(true);
-      }
-      lastScrollY.current = currentScrollY;
-    };
-    window.addEventListener("scroll", handleScroll, {
-      passive: true
-    });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+
   const navigateDate = (direction: "prev" | "next") => {
     const daysToAdd = viewMode === "week" ? 7 : 1;
     setCurrentDate(direction === "next" ? addDays(currentDate, daysToAdd) : subDays(currentDate, daysToAdd));
   };
+
   const handleAppointmentClick = (appointment: any) => {
     setSelectedAppointment(appointment);
     setViewMode("day");
     setCurrentDate(parseISO(appointment.appointment_date));
   };
+
   const handleBackToWeek = () => {
     setViewMode("week");
     setSelectedAppointment(null);
   };
+
   const handleStatusChange = async (appointmentId: string, newStatus: string) => {
     try {
       const {
@@ -196,6 +172,7 @@ export default function DentistAppointmentsManagement() {
       });
     }
   };
+
   const getDateRangeLabel = () => {
     if (viewMode === "day") {
       return format(currentDate, "EEEE, MMMM d, yyyy");
@@ -203,13 +180,16 @@ export default function DentistAppointmentsManagement() {
     const weekEnd = addDays(currentDate, 6);
     return `${format(currentDate, "MMM d")} - ${format(weekEnd, "MMM d, yyyy")}`;
   };
+
   if (dentistLoading) {
     return <div className="flex justify-center items-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>;
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+    </div>;
   }
+
   if (!dentistId) {
-    return <div className="flex justify-center items-center min-h-screen">
+    return (
+      <div className="flex justify-center items-center min-h-screen">
         <Card>
           <CardContent className="pt-6">
             <p className="text-center text-muted-foreground">
@@ -217,30 +197,14 @@ export default function DentistAppointmentsManagement() {
             </p>
           </CardContent>
         </Card>
-      </div>;
+      </div>
+    );
   }
-  return <div className="h-screen flex flex-col bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30 dark:from-gray-950 dark:via-blue-950/30 dark:to-purple-950/30">
-      {/* Enhanced Header */}
-      <div className={cn(
-        "border-b bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl sticky top-0 z-30 transition-all duration-300 shadow-sm",
-        headerVisible ? "translate-y-0" : "-translate-y-full"
-      )}>
-        {/* Page Title Section */}
-        <div className="px-4 sm:px-6 pt-4 pb-3 border-b border-gray-100 dark:border-gray-800">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl shadow-lg">
-              <Calendar className="h-6 w-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-gray-100 dark:to-gray-400 bg-clip-text text-transparent">
-                Appointment Calendar
-              </h1>
-              <p className="text-sm text-muted-foreground">Manage your daily schedule and appointments</p>
-            </div>
-          </div>
-        </div>
 
-        {/* View Controls */}
+  return (
+    <div className="h-screen flex flex-col bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30 dark:from-gray-950 dark:via-blue-950/30 dark:to-purple-950/30">
+      {/* View Controls Only - Header Removed */}
+      <div className="border-b bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl sticky top-0 z-30 transition-all duration-300 shadow-sm">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 px-4 sm:px-6 py-3">
           {/* Date Navigation */}
           <div className="flex items-center gap-3">
@@ -329,79 +293,6 @@ export default function DentistAppointmentsManagement() {
             >
               Today
             </Button>
-          </div>
-        </div>
-
-        {/* Search and Filters */}
-        <div className="px-4 sm:px-6 py-3 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
-          <div className="flex flex-col sm:flex-row gap-3">
-            {/* Search */}
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="text"
-                placeholder="Search patients..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 pr-10 h-10 rounded-xl border-2"
-              />
-              {searchQuery && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="absolute right-1 top-1/2 transform -translate-y-1/2 h-8 w-8"
-                  onClick={() => setSearchQuery("")}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              )}
-            </div>
-
-            {/* Status Filter */}
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full sm:w-[180px] h-10 rounded-xl border-2">
-                <Filter className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="confirmed">Confirmed</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
-                <SelectItem value="cancelled">Cancelled</SelectItem>
-              </SelectContent>
-            </Select>
-
-            {/* Urgency Filter */}
-            <Select value={urgencyFilter} onValueChange={setUrgencyFilter}>
-              <SelectTrigger className="w-full sm:w-[180px] h-10 rounded-xl border-2">
-                <Filter className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Urgency" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Urgencies</SelectItem>
-                <SelectItem value="high">High</SelectItem>
-                <SelectItem value="medium">Medium</SelectItem>
-                <SelectItem value="low">Low</SelectItem>
-              </SelectContent>
-            </Select>
-
-            {/* Clear Filters */}
-            {(searchQuery || statusFilter !== "all" || urgencyFilter !== "all") && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setSearchQuery("");
-                  setStatusFilter("all");
-                  setUrgencyFilter("all");
-                }}
-                className="h-10 rounded-xl border-2"
-              >
-                <X className="h-4 w-4 mr-2" />
-                Clear
-              </Button>
-            )}
           </div>
         </div>
       </div>
@@ -540,5 +431,6 @@ export default function DentistAppointmentsManagement() {
           </div>
         )}
       </div>
-    </div>;
+    </div>
+  );
 }

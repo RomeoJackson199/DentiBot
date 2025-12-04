@@ -1,12 +1,18 @@
-import { useMemo } from "react";
-import { format, parseISO, isSameDay, addHours } from "date-fns";
+import { useState, useMemo, useEffect } from "react";
+import { format, addHours, isSameDay, parseISO, differenceInMinutes, setHours, setMinutes } from "date-fns";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { CheckCircle2, XCircle, Clock } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { AppointmentCompletionDialog } from "../appointment/AppointmentCompletionDialog";
+import { QuickAppointmentDialog } from "./QuickAppointmentDialog";
+import { logger } from '@/lib/logger';
 
 interface DayCalendarViewProps {
   dentistId: string;
@@ -17,18 +23,17 @@ interface DayCalendarViewProps {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  "completed": "bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 dark:from-emerald-900/40 dark:via-green-900/40 dark:to-teal-900/40 text-emerald-900 dark:text-emerald-100 border-l-emerald-500 shadow-md hover:shadow-lg",
-  "cancelled": "bg-gradient-to-br from-gray-50 via-slate-50 to-gray-100 dark:from-gray-800/40 dark:via-slate-800/40 dark:to-gray-800/40 text-gray-600 dark:text-gray-400 border-l-gray-400 shadow-md hover:shadow-lg",
-  "confirmed": "bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-100 dark:from-blue-900/40 dark:via-indigo-900/40 dark:to-blue-900/40 text-blue-900 dark:text-blue-100 border-l-blue-500 shadow-md hover:shadow-lg",
-  "pending": "bg-gradient-to-br from-amber-50 via-yellow-50 to-orange-50 dark:from-amber-900/40 dark:via-yellow-900/40 dark:to-orange-900/40 text-amber-900 dark:text-amber-100 border-l-amber-500 shadow-md hover:shadow-lg",
-  "google-calendar": "bg-gradient-to-br from-purple-50 via-violet-50 to-fuchsia-50 dark:from-purple-900/40 dark:via-violet-900/40 dark:to-fuchsia-900/40 text-purple-900 dark:text-purple-100 border-l-purple-500 shadow-md hover:shadow-lg",
+  "completed": "bg-emerald-100/80 dark:bg-emerald-900/40 text-emerald-900 dark:text-emerald-100 border-l-4 border-l-emerald-500",
+  "cancelled": "bg-gray-100/80 dark:bg-gray-800/40 text-gray-600 dark:text-gray-400 border-l-4 border-l-gray-400 opacity-70",
+  "confirmed": "bg-blue-100/80 dark:bg-blue-900/40 text-blue-900 dark:text-blue-100 border-l-4 border-l-blue-500",
+  "pending": "bg-amber-100/80 dark:bg-amber-900/40 text-amber-900 dark:text-amber-100 border-l-4 border-l-amber-500",
+  "google-calendar": "bg-purple-100/80 dark:bg-purple-900/40 text-purple-900 dark:text-purple-100 border-l-4 border-l-purple-500",
 };
 
-const URGENCY_BADGES: Record<string, string> = {
-  high: "bg-red-100 text-red-700 border-red-300 animate-pulse",
-  medium: "bg-orange-100 text-orange-700 border-orange-300",
-  low: "bg-gray-100 text-gray-700 border-gray-300",
-};
+const HOUR_HEIGHT = 100; // Taller slots for day view
+const START_HOUR = 7;
+const END_HOUR = 20;
+const TOTAL_HOURS = END_HOUR - START_HOUR;
 
 export function DayCalendarView({
   dentistId,
@@ -37,62 +42,22 @@ export function DayCalendarView({
   selectedAppointmentId,
   googleCalendarEvents = []
 }: DayCalendarViewProps) {
-  // Fetch dentist availability
-  const { data: availability = [] } = useQuery({
-    queryKey: ["dentist-availability", dentistId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("dentist_availability")
-        .select("*")
-        .eq("dentist_id", dentistId)
-        .eq("is_available", true);
-      
-      if (error) throw error;
-      return data || [];
-    },
-    enabled: !!dentistId
-  });
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  // Generate time slots based on availability
-  const TIME_SLOTS = useMemo(() => {
-    if (!availability.length) {
-      // Default to 9 AM - 6 PM if no availability set
-      return Array.from({ length: 10 }, (_, i) => {
-        const hour = 9 + i;
-        return `${hour.toString().padStart(2, '0')}:00`;
-      });
-    }
+  const [completionDialogOpen, setCompletionDialogOpen] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
+  const [quickAppointmentOpen, setQuickAppointmentOpen] = useState(false);
+  const [quickAppointmentDate, setQuickAppointmentDate] = useState<Date>(new Date());
+  const [quickAppointmentTime, setQuickAppointmentTime] = useState<string>("");
+  const [currentTime, setCurrentTime] = useState(new Date());
 
-    // Find earliest start and latest end across all days
-    const times = availability.flatMap((avail: any) => [
-      avail.start_time,
-      avail.end_time
-    ]);
-    
-    const startHour = Math.min(...times.map((time: string) => parseInt(time.split(':')[0])));
-    const endHour = Math.max(...times.map((time: string) => parseInt(time.split(':')[0])));
-    
-    return Array.from({ length: endHour - startHour + 1 }, (_, i) => {
-      const hour = startHour + i;
-      return `${hour.toString().padStart(2, '0')}:00`;
-    });
-  }, [availability]);
+  useEffect(() => {
+    const interval = setInterval(() => setCurrentTime(new Date()), 60000);
+    return () => clearInterval(interval);
+  }, []);
 
-  // Check if a time slot is a break time
-  const isBreakTime = (timeSlot: string) => {
-    const dayOfWeek = currentDate.getDay();
-    const dayAvailability = availability.find((a: any) => a.day_of_week === dayOfWeek);
-    
-    if (!dayAvailability) return false;
-    if (!dayAvailability.break_start_time || !dayAvailability.break_end_time) return false;
-    
-    const slotHour = parseInt(timeSlot.split(':')[0]);
-    const breakStart = parseInt(dayAvailability.break_start_time.split(':')[0]);
-    const breakEnd = parseInt(dayAvailability.break_end_time.split(':')[0]);
-    
-    return slotHour >= breakStart && slotHour < breakEnd;
-  };
-
+  // Fetch appointments for the day
   const { data: appointments = [], isLoading } = useQuery({
     queryKey: ["appointments-day", dentistId, format(currentDate, "yyyy-MM-dd")],
     queryFn: async () => {
@@ -117,49 +82,75 @@ export function DayCalendarView({
       if (patientIds.length) {
         const { data: profiles } = await supabase
           .from("profiles")
-          .select("id, first_name, last_name, email, phone, date_of_birth")
+          .select("id, first_name, last_name, email")
           .in("id", patientIds);
-
-        const profileMap = new Map((profiles || []).map((p: any) => [p.id, p]));
-        return appointments.map((a: any) => ({
-          ...a,
-          patient: profileMap.get(a.patient_id) || null
-        }));
+        const map = new Map((profiles || []).map((p: any) => [p.id, p]));
+        return appointments.map((a: any) => ({ ...a, patient: map.get(a.patient_id) || null }));
       }
-
       return appointments;
     }
   });
 
-  const getAppointmentsForSlot = (timeSlot: string) => {
-    const regularAppts = appointments.filter((apt) => {
-      const aptDate = parseISO(apt.appointment_date);
-      const aptHour = format(aptDate, "HH:00");
-      return aptHour === timeSlot;
-    });
-    
-    // Add Google Calendar events for this slot
-    const googleEvents = (googleCalendarEvents || []).filter((event) => {
-      const eventStart = parseISO(event.start);
-      const eventHour = format(eventStart, "HH:00");
-      return eventHour === timeSlot;
-    }).map(event => ({
+  // Combine regular appointments with Google Calendar events
+  const allEvents = useMemo(() => {
+    const googleEvents = (googleCalendarEvents || []).map(event => ({
       ...event,
       id: event.id,
-      patient: { first_name: '', last_name: '', email: '' },
+      patient: { first_name: 'Google', last_name: 'Calendar', email: '' },
       reason: event.summary,
       status: 'google-calendar',
       isGoogleCalendarEvent: true,
-      appointment_date: event.start
+      appointment_date: event.start,
+      duration_minutes: differenceInMinutes(parseISO(event.end), parseISO(event.start))
     }));
-    
-    return [...regularAppts, ...googleEvents];
-  };
+    return [...appointments, ...googleEvents];
+  }, [appointments, googleCalendarEvents]);
 
   const getPatientInitials = (firstName?: string, lastName?: string) => {
     const first = firstName?.[0] || "";
     const last = lastName?.[0] || "";
     return (first + last).toUpperCase() || "?";
+  };
+
+  const handleEmptySlotClick = (hour: number) => {
+    const dateWithTime = setMinutes(setHours(currentDate, hour), 0);
+    setQuickAppointmentDate(dateWithTime);
+    setQuickAppointmentTime(`${hour.toString().padStart(2, '0')}:00`);
+    setQuickAppointmentOpen(true);
+  };
+
+  const handleCompleteAppointment = (apt: any, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedAppointment(apt);
+    setCompletionDialogOpen(true);
+  };
+
+  const handleCancelAppointment = async (appointmentId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      await supabase.from("appointments").update({ status: "cancelled" }).eq("id", appointmentId);
+      queryClient.invalidateQueries({ queryKey: ["appointments-day"] });
+      queryClient.invalidateQueries({ queryKey: ["appointments-calendar"] });
+      toast({ title: "Appointment cancelled" });
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to cancel appointment.", variant: "destructive" });
+    }
+  };
+
+  const getEventStyle = (event: any) => {
+    const startDate = parseISO(event.appointment_date);
+    const startHour = startDate.getHours() + (startDate.getMinutes() / 60);
+    const durationHours = (event.duration_minutes || 30) / 60;
+
+    const top = (startHour - START_HOUR) * HOUR_HEIGHT;
+    const height = durationHours * HOUR_HEIGHT;
+
+    return {
+      top: `${Math.max(0, top)}px`,
+      height: `${Math.max(30, height)}px`,
+      left: '4px',
+      right: '4px',
+    };
   };
 
   if (isLoading) {
@@ -171,118 +162,191 @@ export function DayCalendarView({
   }
 
   return (
-    <div className="border-2 rounded-2xl bg-white dark:bg-gray-900 overflow-hidden shadow-xl transition-all duration-300">
-      {/* Enhanced Header */}
-      <div className="border-b-2 border-gray-200 dark:border-gray-700 bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 dark:from-blue-950/30 dark:via-purple-950/30 dark:to-pink-950/30 px-6 py-5">
-        <div className="text-xs text-muted-foreground font-semibold uppercase tracking-widest">
-          {format(currentDate, "EEEE")}
+    <TooltipProvider>
+      <div className="flex flex-col h-full bg-background border rounded-xl shadow-sm overflow-hidden">
+        {/* Header */}
+        <div className="px-6 py-4 border-b bg-muted/5 flex items-center justify-between">
+          <div>
+            <div className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+              {format(currentDate, "EEEE")}
+            </div>
+            <div className="text-2xl font-bold">
+              {format(currentDate, "MMMM d, yyyy")}
+            </div>
+          </div>
+          <div className="text-right">
+            <div className="text-sm text-muted-foreground">
+              {allEvents.length} appointments
+            </div>
+          </div>
         </div>
-        <div className="text-3xl font-bold mt-2 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-          {format(currentDate, "MMMM d, yyyy")}
+
+        {/* Scrollable Grid Area */}
+        <div className="flex-1 overflow-y-auto relative custom-scrollbar">
+          <div className="flex min-h-[800px]" style={{ height: `${TOTAL_HOURS * HOUR_HEIGHT}px` }}>
+
+            {/* Time Axis */}
+            <div className="w-20 flex-shrink-0 border-r bg-background/50 sticky left-0 z-20">
+              {Array.from({ length: TOTAL_HOURS }).map((_, i) => {
+                const hour = START_HOUR + i;
+                return (
+                  <div key={hour} className="relative border-b border-transparent" style={{ height: `${HOUR_HEIGHT}px` }}>
+                    <span className="absolute -top-3 right-3 text-sm text-muted-foreground font-medium">
+                      {format(setHours(new Date(), hour), "h a")}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Day Column */}
+            <div className="flex-1 relative bg-white dark:bg-gray-950/50">
+              {/* Horizontal Grid Lines */}
+              <div className="absolute inset-0 z-0 pointer-events-none">
+                {Array.from({ length: TOTAL_HOURS }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="border-b border-dashed border-gray-100 dark:border-gray-800 w-full"
+                    style={{ height: `${HOUR_HEIGHT}px` }}
+                  />
+                ))}
+              </div>
+
+              {/* Current Time Indicator */}
+              {isSameDay(currentDate, currentTime) && (
+                <div
+                  className="absolute left-0 right-0 border-t-2 border-red-500 z-10 pointer-events-none flex items-center"
+                  style={{
+                    top: `${((currentTime.getHours() + currentTime.getMinutes() / 60) - START_HOUR) * HOUR_HEIGHT}px`
+                  }}
+                >
+                  <div className="absolute -left-1.5 w-3 h-3 bg-red-500 rounded-full" />
+                </div>
+              )}
+
+              {/* Clickable Background Slots */}
+              {Array.from({ length: TOTAL_HOURS }).map((_, i) => (
+                <div
+                  key={i}
+                  className="absolute w-full hover:bg-gray-50/50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer z-0"
+                  style={{ top: `${i * HOUR_HEIGHT}px`, height: `${HOUR_HEIGHT}px` }}
+                  onClick={() => handleEmptySlotClick(START_HOUR + i)}
+                />
+              ))}
+
+              {/* Events */}
+              {allEvents.map((event) => {
+                const style = getEventStyle(event);
+                const isSelected = event.id === selectedAppointmentId;
+
+                return (
+                  <Tooltip key={event.id}>
+                    <TooltipTrigger asChild>
+                      <div
+                        className={cn(
+                          "absolute rounded-lg border p-3 cursor-pointer transition-all hover:brightness-95 hover:shadow-md z-10 overflow-hidden flex flex-col justify-center",
+                          STATUS_COLORS[event.status] || "bg-gray-100 border-l-gray-500",
+                          isSelected && "ring-2 ring-primary ring-offset-1 z-20 shadow-xl scale-[1.01]"
+                        )}
+                        style={style}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onAppointmentClick(event);
+                        }}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="font-bold text-sm truncate flex items-center gap-2">
+                            {event.urgency === 'high' && <Badge variant="destructive" className="h-4 px-1.5 text-[10px]">URGENT</Badge>}
+                            {event.patient?.first_name} {event.patient?.last_name}
+                          </div>
+                          <Badge variant="outline" className="text-[10px] h-5 bg-white/50 dark:bg-black/20 border-0 backdrop-blur-sm">
+                            {event.status}
+                          </Badge>
+                        </div>
+                        <div className="text-xs opacity-80 truncate flex items-center gap-2 mt-1">
+                          <Clock className="h-3 w-3" />
+                          {format(parseISO(event.appointment_date), "h:mm a")} - {format(addHours(parseISO(event.appointment_date), (event.duration_minutes || 30) / 60), "h:mm a")}
+                        </div>
+                        {event.reason && (
+                          <div className="text-xs opacity-70 truncate mt-1 italic">
+                            "{event.reason}"
+                          </div>
+                        )}
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent side="left" className="p-0 border-none shadow-xl">
+                      <Card className="w-80 border-0">
+                        <div className={cn("h-2 w-full", STATUS_COLORS[event.status]?.split(' ')[0])} />
+                        <div className="p-4 space-y-3">
+                          <div className="flex items-center gap-3 pb-3 border-b">
+                            <Avatar className="h-12 w-12 border-2 border-white shadow-sm">
+                              <AvatarFallback className="bg-primary/10 text-primary font-bold text-lg">
+                                {getPatientInitials(event.patient?.first_name, event.patient?.last_name)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <p className="font-bold text-base">{event.patient?.first_name} {event.patient?.last_name}</p>
+                              <p className="text-xs text-muted-foreground">{event.patient?.email}</p>
+                            </div>
+                          </div>
+
+                          <div className="space-y-2 text-sm">
+                            <div className="flex justify-between py-1 border-b border-dashed">
+                              <span className="text-muted-foreground">Date</span>
+                              <span className="font-medium">{format(parseISO(event.appointment_date), "MMM d, yyyy")}</span>
+                            </div>
+                            <div className="flex justify-between py-1 border-b border-dashed">
+                              <span className="text-muted-foreground">Time</span>
+                              <span className="font-medium">{format(parseISO(event.appointment_date), "h:mm a")} - {format(addHours(parseISO(event.appointment_date), (event.duration_minutes || 30) / 60), "h:mm a")}</span>
+                            </div>
+                            <div className="pt-2">
+                              <span className="text-muted-foreground text-xs block mb-1">Reason</span>
+                              <p className="font-medium bg-muted/50 p-2 rounded-md text-xs">{event.reason || "No reason provided"}</p>
+                            </div>
+                          </div>
+
+                          {!['completed', 'cancelled', 'google-calendar'].includes(event.status) && (
+                            <div className="flex gap-2 pt-2">
+                              <Button size="sm" className="flex-1" onClick={(e) => handleCompleteAppointment(event, e)}>
+                                <CheckCircle2 className="h-4 w-4 mr-2" /> Complete
+                              </Button>
+                              <Button size="sm" variant="outline" className="flex-1 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30" onClick={(e) => handleCancelAppointment(event.id, e)}>
+                                <XCircle className="h-4 w-4 mr-2" /> Cancel
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      </Card>
+                    </TooltipContent>
+                  </Tooltip>
+                );
+              })}
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Time slots */}
-      <ScrollArea className="h-[calc(100vh-300px)]">
-        <div className="divide-y-2 divide-gray-100 dark:divide-gray-800">
-          {TIME_SLOTS.map((timeSlot) => {
-            const slotAppointments = getAppointmentsForSlot(timeSlot);
-            const isBreak = isBreakTime(timeSlot);
+      {selectedAppointment && (
+        <AppointmentCompletionDialog
+          appointment={selectedAppointment}
+          open={completionDialogOpen}
+          onOpenChange={setCompletionDialogOpen}
+          onCompleted={() => {
+            setCompletionDialogOpen(false);
+            setSelectedAppointment(null);
+            queryClient.invalidateQueries({ queryKey: ["appointments-day"] });
+            queryClient.invalidateQueries({ queryKey: ["appointments-calendar"] });
+          }}
+        />
+      )}
 
-            return (
-              <div
-                key={timeSlot}
-                className={cn(
-                  "grid grid-cols-[110px_1fr] transition-all duration-200",
-                  isBreak
-                    ? "bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900"
-                    : "hover:bg-gradient-to-r hover:from-blue-50/30 hover:to-purple-50/30 dark:hover:from-blue-950/10 dark:hover:to-purple-950/10"
-                )}
-              >
-                {/* Time label */}
-                <div className="p-4 text-sm text-muted-foreground font-bold border-r-2 border-gray-200 dark:border-gray-700 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900">
-                  {timeSlot}
-                </div>
-
-                {/* Appointment slot */}
-                <div className="p-4 min-h-[90px]">
-                  {isBreak ? (
-                    <div className="flex items-center justify-center h-full">
-                      <div className="text-center space-y-1">
-                        <div className="text-sm text-muted-foreground font-semibold italic">Break Time</div>
-                        <div className="text-xs text-muted-foreground/60">No appointments</div>
-                      </div>
-                    </div>
-                  ) : slotAppointments.length === 0 ? (
-                    <div className="flex items-center h-full">
-                      <div className="text-sm text-muted-foreground italic">Available - No appointments</div>
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {slotAppointments.map((apt) => {
-                        const patientName = `${apt.patient?.first_name || ""} ${apt.patient?.last_name || ""}`.trim() || "Unknown";
-                        const isSelected = apt.id === selectedAppointmentId;
-                        const startTime = parseISO(apt.appointment_date);
-
-                        return (
-                          <Card
-                            key={apt.id}
-                            className={cn(
-                              "p-4 cursor-pointer transition-all duration-300 border-l-[6px] rounded-xl backdrop-blur-sm",
-                              STATUS_COLORS[apt.status],
-                              isSelected && "ring-4 ring-blue-500 ring-offset-2 shadow-2xl scale-105"
-                            )}
-                            onClick={() => onAppointmentClick(apt)}
-                          >
-                            <div className="flex items-center gap-3">
-                              <Avatar className="h-12 w-12 flex-shrink-0 ring-2 ring-white dark:ring-gray-800 shadow-md">
-                                <AvatarFallback className="text-sm font-bold bg-gradient-to-br from-blue-500 to-purple-600 text-white">
-                                  {getPatientInitials(apt.patient?.first_name, apt.patient?.last_name)}
-                                </AvatarFallback>
-                              </Avatar>
-
-                              <div className="flex-1 min-w-0">
-                                <div className="font-bold text-sm mb-1">{patientName}</div>
-                                <div className="text-xs text-muted-foreground mb-2 line-clamp-1">
-                                  {apt.reason || "General consultation"}
-                                </div>
-                                <div className="flex items-center gap-2 flex-wrap">
-                                  <Badge variant="outline" className="text-xs font-semibold">
-                                    {format(startTime, "h:mm a")}
-                                  </Badge>
-                                  {apt.urgency !== "low" && (
-                                    <Badge
-                                      variant="outline"
-                                      className={cn("text-xs uppercase font-bold", URGENCY_BADGES[apt.urgency])}
-                                    >
-                                      {apt.urgency}
-                                    </Badge>
-                                  )}
-                                  <Badge
-                                    variant="outline"
-                                    className={cn(
-                                      "text-xs font-semibold capitalize",
-                                      apt.status === "completed" && "bg-emerald-50 text-emerald-700 border-emerald-300",
-                                      apt.status === "confirmed" && "bg-blue-50 text-blue-700 border-blue-300",
-                                      apt.status === "pending" && "bg-amber-50 text-amber-700 border-amber-300"
-                                    )}
-                                  >
-                                    {apt.status}
-                                  </Badge>
-                                </div>
-                              </div>
-                            </div>
-                          </Card>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </ScrollArea>
-    </div>
+      <QuickAppointmentDialog
+        open={quickAppointmentOpen}
+        onOpenChange={setQuickAppointmentOpen}
+        dentistId={dentistId}
+        selectedDate={quickAppointmentDate}
+        selectedTime={quickAppointmentTime}
+      />
+    </TooltipProvider>
   );
 }
