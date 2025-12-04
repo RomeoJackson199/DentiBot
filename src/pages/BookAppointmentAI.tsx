@@ -292,14 +292,14 @@ export default function BookAppointment() {
       logger.info("Booking slot with params:", {
         dentistId: selectedDentist.id,
         date: dateStr,
-        time: selectedTime,
+        appointmentTimestamp: appointmentData.appointment_date,
         appointmentId: appointmentData.id
       });
 
       const { error: slotError } = await supabase.rpc('book_appointment_slot', {
         p_dentist_id: selectedDentist.id,
         p_slot_date: dateStr,
-        p_slot_time: selectedTime,
+        p_appointment_timestamp: appointmentData.appointment_date,
         p_appointment_id: appointmentData.id
       });
 

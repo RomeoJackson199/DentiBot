@@ -45,14 +45,14 @@ export default function PublicBooking() {
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [selectedTime, setSelectedTime] = useState("");
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
-  
+
   // Patient info
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [reason, setReason] = useState("");
-  
+
   const [loading, setLoading] = useState(false);
   const [loadingTimes, setLoadingTimes] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -71,7 +71,7 @@ export default function PublicBooking() {
   // Fetch dentists
   useEffect(() => {
     if (!effectiveBusinessId) return;
-    
+
     const fetchDentists = async () => {
       const { data: members } = await supabase
         .from('business_members')
@@ -128,7 +128,7 @@ export default function PublicBooking() {
               p_dentist_id: selectedDentist,
               p_date: dateStr,
             });
-          } catch {}
+          } catch { }
           setAvailableTimes([]);
           setLoadingTimes(false);
           return;
@@ -136,7 +136,7 @@ export default function PublicBooking() {
       } catch (e) {
         console.warn('Availability check failed (continuing):', e);
       }
-      
+
       try {
         // 1. Regenerate slots for this date to ensure cleanup and freshness
         await supabase.rpc('generate_daily_slots', {
@@ -171,7 +171,7 @@ export default function PublicBooking() {
         .order('slot_time');
 
       if (!error && data) {
-        setAvailableTimes(data.map(s => (s.slot_time.length === 8 ? s.slot_time.slice(0,5) : s.slot_time)));
+        setAvailableTimes(data.map(s => (s.slot_time.length === 8 ? s.slot_time.slice(0, 5) : s.slot_time)));
       } else {
         console.error('Error fetching slots:', error);
         setAvailableTimes([]);
@@ -183,7 +183,7 @@ export default function PublicBooking() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!firstName || !lastName || !email || !selectedDentist || !selectedDate || !selectedTime) {
       toast({
         title: t.error,
