@@ -272,7 +272,7 @@ export default function BookAppointment() {
           appointment_date: appointmentDateTime.toISOString(),
           reason: "General consultation",
           status: "confirmed",
-          booking_source: "web",
+          booking_source: "manual",
           urgency: "low",
           service_id: null,
           duration_minutes: 60
