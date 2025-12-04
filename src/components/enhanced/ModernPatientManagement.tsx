@@ -7,11 +7,11 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useSearchParams } from "react-router-dom";
 import { showEnhancedErrorToast } from "@/lib/enhancedErrorHandling";
-import { 
-  Users, 
-  Search, 
-  User, 
-  Calendar, 
+import {
+  Users,
+  Search,
+  User,
+  Calendar,
   CreditCard,
   Mail,
   Phone,
@@ -26,6 +26,7 @@ import {
 import { format } from "date-fns";
 import { NewPatientDialog } from "@/components/patient/NewPatientDialog";
 import { PatientDetailsTabs } from "./PatientDetailsTabs";
+import { QuickAppointmentDialog } from "@/components/appointments/QuickAppointmentDialog";
 import { logger } from '@/lib/logger';
 
 interface Patient {
@@ -76,6 +77,7 @@ export function ModernPatientManagement({ dentistId }: ModernPatientManagementPr
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [patientFlags, setPatientFlags] = useState<Record<string, PatientFlags>>({});
   const [newPatientDialogOpen, setNewPatientDialogOpen] = useState(false);
+  const [bookingDialogOpen, setBookingDialogOpen] = useState(false);
   const { toast } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -105,7 +107,7 @@ export function ModernPatientManagement({ dentistId }: ModernPatientManagementPr
   const fetchPatients = async () => {
     try {
       setLoading(true);
-      
+
       const { data: appointmentData, error: appointmentError } = await supabase
         .from('appointments')
         .select(`
@@ -128,13 +130,13 @@ export function ModernPatientManagement({ dentistId }: ModernPatientManagementPr
 
       const uniquePatients = appointmentData
         .map(apt => Array.isArray(apt.profiles) ? apt.profiles[0] : apt.profiles)
-        .filter((patient, index, self) => 
+        .filter((patient, index, self) =>
           patient && self.findIndex(p => p?.id === patient.id) === index
         )
         .filter(Boolean) as Patient[];
 
       setPatients(uniquePatients);
-      
+
       // Fetch flags for all patients
       uniquePatients.forEach(patient => {
         fetchPatientFlags(patient.id);
@@ -194,7 +196,7 @@ export function ModernPatientManagement({ dentistId }: ModernPatientManagementPr
         outstandingCents += (prs || [])
           .filter((p: any) => p.status !== 'paid' && p.status !== 'cancelled')
           .reduce((s: number, p: any) => s + (p.amount || 0), 0);
-      } catch {}
+      } catch { }
 
       const hasUnpaidBalance = outstandingCents > 0;
       const totalAppointments = (appointmentsData || []).length;
@@ -202,11 +204,11 @@ export function ModernPatientManagement({ dentistId }: ModernPatientManagementPr
 
       setPatientFlags(prev => ({
         ...prev,
-        [patientId]: { 
+        [patientId]: {
           hasUnpaidBalance,
           outstandingCents,
-          hasUpcomingAppointment, 
-          hasActiveTreatmentPlan, 
+          hasUpcomingAppointment,
+          hasActiveTreatmentPlan,
           lastVisitDate,
           nextAppointmentDate: nextAppointment?.appointment_date,
           nextAppointmentStatus: nextAppointment?.status,
@@ -290,7 +292,7 @@ export function ModernPatientManagement({ dentistId }: ModernPatientManagementPr
                 className="pl-12 h-12 rounded-xl border-border/50 bg-background/50 backdrop-blur-sm"
               />
             </div>
-            <Button 
+            <Button
               onClick={() => setNewPatientDialogOpen(true)}
               size="lg"
               className="h-12 px-6 rounded-xl"
@@ -316,7 +318,7 @@ export function ModernPatientManagement({ dentistId }: ModernPatientManagementPr
               </div>
             </CardContent>
           </Card>
-          
+
           <Card className="bg-card border-border/50 hover:shadow-elegant transition-all duration-300">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -397,15 +399,15 @@ export function ModernPatientManagement({ dentistId }: ModernPatientManagementPr
                     const flags = patientFlags[patient.id] || { hasUnpaidBalance: false, hasUpcomingAppointment: false, hasActiveTreatmentPlan: false, totalAppointments: 0, completedAppointments: 0 };
                     const initials = `${patient.first_name[0]}${patient.last_name[0]}`.toUpperCase();
                     const isSelected = selectedPatient?.id === patient.id;
-                    
+
                     return (
                       <div
                         key={patient.id}
                         onClick={() => setSelectedPatient(patient)}
                         className={`
                           group relative p-4 rounded-xl cursor-pointer transition-all duration-200
-                          ${isSelected 
-                            ? 'bg-primary/10 border-2 border-primary shadow-elegant' 
+                          ${isSelected
+                            ? 'bg-primary/10 border-2 border-primary shadow-elegant'
                             : 'bg-background/50 border border-border/50 hover:bg-muted/50 hover:shadow-md'
                           }
                         `}
@@ -414,14 +416,14 @@ export function ModernPatientManagement({ dentistId }: ModernPatientManagementPr
                           {/* Avatar */}
                           <div className={`
                             flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center font-semibold text-sm
-                            ${isSelected 
-                              ? 'bg-primary text-primary-foreground' 
+                            ${isSelected
+                              ? 'bg-primary text-primary-foreground'
                               : 'bg-gradient-primary text-white'
                             }
                           `}>
                             {initials}
                           </div>
-                          
+
                           {/* Patient Info */}
                           <div className="flex-1 min-w-0">
                             <p className={`font-semibold truncate ${isSelected ? 'text-primary' : ''}`}>
@@ -433,7 +435,7 @@ export function ModernPatientManagement({ dentistId }: ModernPatientManagementPr
                             )}
                           </div>
                         </div>
-                        
+
                         {/* Status Badges */}
                         {(flags?.hasUnpaidBalance || flags?.hasUpcomingAppointment || flags?.hasActiveTreatmentPlan) && (
                           <div className="flex flex-wrap gap-1 mt-3">
@@ -481,113 +483,111 @@ export function ModernPatientManagement({ dentistId }: ModernPatientManagementPr
           ) : (
             <>
               {/* Patient Header */}
-              <Card className="bg-card border-border/50 shadow-elegant">
-                <CardContent className="p-6">
-                  <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
-                    <div className="flex items-start gap-4">
-                      <div className="bg-gradient-primary w-16 h-16 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-lg flex-shrink-0">
-                        {`${selectedPatient.first_name[0]}${selectedPatient.last_name[0]}`.toUpperCase()}
+              <div className="bg-card border border-border/50 rounded-2xl shadow-elegant p-6">
+                <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
+                  <div className="flex items-start gap-4">
+                    <div className="bg-gradient-primary w-16 h-16 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-lg flex-shrink-0">
+                      {`${selectedPatient.first_name[0]}${selectedPatient.last_name[0]}`.toUpperCase()}
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-2xl font-bold text-foreground">
+                        {selectedPatient.first_name} {selectedPatient.last_name}
+                      </h3>
+                      <div className="flex flex-wrap items-center gap-3 mt-2">
+                        {selectedPatient.date_of_birth && (
+                          <p className="text-sm text-muted-foreground flex items-center gap-1">
+                            <User className="h-3 w-3" />
+                            {getAge(selectedPatient.date_of_birth)} years old
+                          </p>
+                        )}
+                        {patientFlags[selectedPatient.id]?.lastVisitDate && (
+                          <p className="text-sm text-muted-foreground flex items-center gap-1">
+                            <Calendar className="h-3 w-3" />
+                            Last visit: {format(new Date(patientFlags[selectedPatient.id].lastVisitDate!), 'MMM d')}
+                          </p>
+                        )}
+                        {patientFlags[selectedPatient.id]?.totalAppointments && (
+                          <Badge variant="secondary" className="rounded-full">
+                            {patientFlags[selectedPatient.id].totalAppointments} appointments
+                          </Badge>
+                        )}
                       </div>
-                      <div className="flex-1">
-                        <h3 className="text-2xl font-bold text-foreground">
-                          {selectedPatient.first_name} {selectedPatient.last_name}
-                        </h3>
-                        <div className="flex flex-wrap items-center gap-3 mt-2">
-                          {selectedPatient.date_of_birth && (
-                            <p className="text-sm text-muted-foreground flex items-center gap-1">
-                              <User className="h-3 w-3" />
-                              {getAge(selectedPatient.date_of_birth)} years old
-                            </p>
-                          )}
-                          {patientFlags[selectedPatient.id]?.lastVisitDate && (
-                            <p className="text-sm text-muted-foreground flex items-center gap-1">
-                              <Calendar className="h-3 w-3" />
-                              Last visit: {format(new Date(patientFlags[selectedPatient.id].lastVisitDate!), 'MMM d')}
-                            </p>
-                          )}
-                          {patientFlags[selectedPatient.id]?.totalAppointments && (
-                            <Badge variant="secondary" className="rounded-full">
-                              {patientFlags[selectedPatient.id].totalAppointments} appointments
-                            </Badge>
-                          )}
-                        </div>
-                        
-                        {/* Contact Info */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
-                          <div className="flex items-center gap-2 text-sm text-foreground">
-                            <Mail className="h-4 w-4 text-muted-foreground" />
-                            <span className="truncate">{selectedPatient.email}</span>
-                          </div>
-                          {selectedPatient.phone && (
-                            <div className="flex items-center gap-2 text-sm text-foreground">
-                              <Phone className="h-4 w-4 text-muted-foreground" />
-                              <span>{selectedPatient.phone}</span>
-                            </div>
-                          )}
-                          {selectedPatient.address && (
-                            <div className="flex items-center gap-2 text-sm text-foreground md:col-span-2">
-                              <MapPin className="h-4 w-4 text-muted-foreground" />
-                              <span>{selectedPatient.address}</span>
-                            </div>
-                          )}
-                        </div>
 
-                        {/* Medical History Alert */}
-                        {selectedPatient.medical_history && (
-                          <div className="mt-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
-                            <p className="text-sm font-medium text-destructive flex items-center gap-2">
-                              <FileText className="h-4 w-4" />
-                              Medical Alert
-                            </p>
-                            <p className="text-sm mt-1 text-foreground">{selectedPatient.medical_history}</p>
+                      {/* Contact Info */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+                        <div className="flex items-center gap-2 text-sm text-foreground">
+                          <Mail className="h-4 w-4 text-muted-foreground" />
+                          <span className="truncate">{selectedPatient.email}</span>
+                        </div>
+                        {selectedPatient.phone && (
+                          <div className="flex items-center gap-2 text-sm text-foreground">
+                            <Phone className="h-4 w-4 text-muted-foreground" />
+                            <span>{selectedPatient.phone}</span>
+                          </div>
+                        )}
+                        {selectedPatient.address && (
+                          <div className="flex items-center gap-2 text-sm text-foreground md:col-span-2">
+                            <MapPin className="h-4 w-4 text-muted-foreground" />
+                            <span>{selectedPatient.address}</span>
                           </div>
                         )}
                       </div>
-                    </div>
 
-                    {/* Quick Stats */}
-                    <div className="grid grid-cols-2 gap-3 md:w-auto w-full">
-                      <Card className="bg-background/50">
-                        <CardContent className="p-3 text-center">
-                          <TrendingUp className="h-5 w-5 mx-auto mb-1 text-green-500" />
-                          <p className="text-xs text-muted-foreground">Completed</p>
-                          <p className="text-lg font-bold">
-                            {patientFlags[selectedPatient.id]?.completedAppointments || 0}
+                      {/* Medical History Alert */}
+                      {selectedPatient.medical_history && (
+                        <div className="mt-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+                          <p className="text-sm font-medium text-destructive flex items-center gap-2">
+                            <FileText className="h-4 w-4" />
+                            Medical Alert
                           </p>
-                        </CardContent>
-                      </Card>
-                      {patientFlags[selectedPatient.id]?.hasUnpaidBalance && (
-                        <Card className="bg-destructive/10 border-destructive/20">
-                          <CardContent className="p-3 text-center">
-                            <CreditCard className="h-5 w-5 mx-auto mb-1 text-destructive" />
-                            <p className="text-xs text-muted-foreground">Outstanding</p>
-                            <p className="text-lg font-bold text-destructive">
-                              €{((patientFlags[selectedPatient.id]?.outstandingCents || 0) / 100).toFixed(2)}
-                            </p>
-                          </CardContent>
-                        </Card>
+                          <p className="text-sm mt-1 text-foreground">{selectedPatient.medical_history}</p>
+                        </div>
                       )}
                     </div>
                   </div>
 
-                  {/* Quick Actions */}
-                  <div className="flex flex-wrap gap-3 mt-6 pt-6 border-t">
-                    <Button variant="outline" className="gap-2" disabled title="Staff booking temporarily disabled - needs reimplementation with slot locking">
-                      <Calendar className="h-4 w-4" />
-                      Book Appointment
-                    </Button>
-                    <Button variant="outline" className="gap-2">
-                      <EyeIcon className="h-4 w-4" />
-                      View Full History
-                    </Button>
+                  {/* Quick Stats */}
+                  <div className="grid grid-cols-2 gap-3 md:w-auto w-full">
+                    <Card className="bg-background/50">
+                      <CardContent className="p-3 text-center">
+                        <TrendingUp className="h-5 w-5 mx-auto mb-1 text-green-500" />
+                        <p className="text-xs text-muted-foreground">Completed</p>
+                        <p className="text-lg font-bold">
+                          {patientFlags[selectedPatient.id]?.completedAppointments || 0}
+                        </p>
+                      </CardContent>
+                    </Card>
+                    {patientFlags[selectedPatient.id]?.hasUnpaidBalance && (
+                      <Card className="bg-destructive/10 border-destructive/20">
+                        <CardContent className="p-3 text-center">
+                          <CreditCard className="h-5 w-5 mx-auto mb-1 text-destructive" />
+                          <p className="text-xs text-muted-foreground">Outstanding</p>
+                          <p className="text-lg font-bold text-destructive">
+                            €{((patientFlags[selectedPatient.id]?.outstandingCents || 0) / 100).toFixed(2)}
+                          </p>
+                        </CardContent>
+                      </Card>
+                    )}
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+
+                {/* Quick Actions */}
+                <div className="flex flex-wrap gap-3 mt-6 pt-6 border-t">
+                  <Button
+                    variant="outline"
+                    className="gap-2"
+                    onClick={() => setBookingDialogOpen(true)}
+                  >
+                    <Calendar className="h-4 w-4" />
+                    Book Appointment
+                  </Button>
+                </div>
+              </div>
 
               {/* Tabbed Content */}
               <Card className="bg-card border-border/50">
                 <CardContent className="p-6">
-                  <PatientDetailsTabs 
+                  <PatientDetailsTabs
                     selectedPatient={selectedPatient}
                     dentistId={dentistId}
                     appointments={appointments}
@@ -602,13 +602,23 @@ export function ModernPatientManagement({ dentistId }: ModernPatientManagementPr
           )}
         </div>
       </div>
-      
+
       <NewPatientDialog
         open={newPatientDialogOpen}
         onOpenChange={setNewPatientDialogOpen}
         dentistId={dentistId}
         onPatientCreated={fetchPatients}
       />
+
+      {selectedPatient && (
+        <QuickAppointmentDialog
+          open={bookingDialogOpen}
+          onOpenChange={setBookingDialogOpen}
+          dentistId={dentistId}
+          selectedDate={new Date()}
+          selectedTime={format(new Date(), 'HH:00')}
+        />
+      )}
     </div>
   );
 }
