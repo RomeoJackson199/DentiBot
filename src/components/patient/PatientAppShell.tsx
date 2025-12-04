@@ -367,7 +367,7 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
           x: -20
         }} transition={{
           duration: 0.3
-        }} className="min-h-screen h-screen overflow-y-auto p-6">
+        }} className="p-6">
           {children}
         </motion.div>
       </AnimatePresence>

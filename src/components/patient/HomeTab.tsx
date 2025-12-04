@@ -91,7 +91,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
       if (profile?.id) {
         const rec = await getPatientActiveRecall(profile.id);
         setActiveRecall(rec);
-        
+
         // Get patient's dentist from most recent appointment
         const { data: recentAppointment } = await supabase
           .from('appointments')
@@ -100,7 +100,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
           .order('appointment_date', { ascending: false })
           .limit(1)
           .single();
-        
+
         if (recentAppointment?.dentist_id) {
           setDentistId(recentAppointment.dentist_id);
         }
@@ -140,9 +140,9 @@ export const HomeTab: React.FC<HomeTabProps> = ({
   };
 
   return (
-    <div className="h-full overflow-y-auto px-4 md:px-6 py-4 space-y-6 max-w-7xl mx-auto">
+    <div className="px-4 md:px-6 py-4 space-y-6 max-w-7xl mx-auto">
       {/* Welcome Header */}
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         className="flex items-center justify-between"
@@ -171,7 +171,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
 
       {/* Primary Cards Section - In specified order */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        
+
         {/* 1. Next Appointment Card */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -235,8 +235,8 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                 <div className="text-center py-4">
                   <Calendar className="h-12 w-12 text-muted-foreground/50 mx-auto mb-3" />
                   <p className="text-muted-foreground mb-3">{t.noUpcomingAppointments}</p>
-                  <Button 
-                    onClick={onBookAppointment || (() => onNavigateTo('appointments'))} 
+                  <Button
+                    onClick={onBookAppointment || (() => onNavigateTo('appointments'))}
                     className="w-full"
                     aria-label="Book appointment"
                   >
@@ -322,7 +322,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                   {unpaid ? t.amountDue : t.allPaid}
                 </p>
                 {unpaid && (
-                  <Button 
+                  <Button
                     onClick={() => onNavigateTo('payments')}
                     className="w-full bg-error hover:bg-error/90 text-error-foreground"
                     size="sm"
@@ -441,8 +441,8 @@ export const HomeTab: React.FC<HomeTabProps> = ({
         transition={{ delay: 0.7 }}
         className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-6"
       >
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           className="h-auto py-4 flex flex-col items-center gap-2 hover:bg-primary/5"
           onClick={() => onNavigateTo('care')}
         >
@@ -453,8 +453,8 @@ export const HomeTab: React.FC<HomeTabProps> = ({
           )}
         </Button>
 
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           className="h-auto py-4 flex flex-col items-center gap-2 hover:bg-primary/5"
           onClick={() => onNavigateTo('care')}
         >
@@ -462,8 +462,8 @@ export const HomeTab: React.FC<HomeTabProps> = ({
           <span className="text-xs">{t.healthRecords}</span>
         </Button>
 
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           className="h-auto py-4 flex flex-col items-center gap-2 hover:bg-primary/5"
           onClick={onOpenAssistant}
         >
@@ -471,8 +471,8 @@ export const HomeTab: React.FC<HomeTabProps> = ({
           <span className="text-xs">{t.emergency}</span>
         </Button>
 
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           className="h-auto py-4 flex flex-col items-center gap-2 hover:bg-primary/5"
           onClick={() => onNavigateTo('appointments')}
         >

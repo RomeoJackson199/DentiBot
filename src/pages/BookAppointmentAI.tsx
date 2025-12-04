@@ -613,7 +613,7 @@ export default function BookAppointment() {
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 max-h-[300px] overflow-y-auto">
+                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
                     {loadingSlots ? (
                       <p className="col-span-full text-center text-muted-foreground py-8">Loading time slots...</p>
                     ) : availableSlots.length === 0 ? (
