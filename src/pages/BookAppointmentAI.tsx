@@ -156,7 +156,8 @@ export default function BookAppointment() {
       // Ensure slots exist for this day
       await supabase.rpc('generate_daily_slots', {
         p_dentist_id: dentistId,
-        p_date: dateStr
+        p_date: dateStr,
+        p_business_id: businessId
       });
 
       const { data, error } = await supabase.rpc('get_dentist_available_slots', {
