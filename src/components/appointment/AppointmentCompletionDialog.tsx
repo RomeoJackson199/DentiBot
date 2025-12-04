@@ -8,10 +8,10 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
-import { 
-  CheckCircle2, 
-  FileText, 
-  DollarSign, 
+import {
+  CheckCircle2,
+  FileText,
+  DollarSign,
   Calendar,
   ArrowRight,
   ArrowLeft,
@@ -58,7 +58,7 @@ interface Treatment {
 // Dynamic steps by template
 const allStepMeta: Record<string, { title: string; icon: any }> = {
   overview: { title: 'Overview', icon: User },
-  treatments: { title: 'Treatments', icon: FileText },
+  treatments: { title: 'Services', icon: FileText },
   services: { title: 'Services Provided', icon: FileText },
   notes: { title: 'Notes', icon: FileText },
   prescriptions: { title: 'Prescriptions', icon: Pill },
@@ -67,16 +67,16 @@ const allStepMeta: Record<string, { title: string; icon: any }> = {
   complete: { title: 'Complete', icon: CheckCircle2 },
 } as const;
 
-export function AppointmentCompletionDialog({ 
-  open, 
-  onOpenChange, 
-  appointment, 
-  onCompleted 
+export function AppointmentCompletionDialog({
+  open,
+  onOpenChange,
+  appointment,
+  onCompleted
 }: AppointmentCompletionDialogProps) {
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(false);
-  
+
   // Template-driven behavior
   const { template, hasFeature } = useBusinessTemplate();
   const steps = useMemo(() => {
@@ -90,8 +90,8 @@ export function AppointmentCompletionDialog({
     return defs.map(d => ({ id: d.id as any, title: (allStepMeta[d.id]?.title ?? d.title), icon: (allStepMeta[d.id]?.icon ?? FileText) }));
   }, [template]);
   const showToothInput = template?.id === 'healthcare' || !!template?.features.medicalRecords;
-  const serviceLabel = template?.terminology.service || 'Treatment';
-  const serviceLabelPlural = template?.terminology.servicePlural || 'Treatments';
+  const serviceLabel = template?.terminology.service || 'Service';
+  const serviceLabelPlural = template?.terminology.servicePlural || 'Services';
   // Form data
   const [treatments, setTreatments] = useState<Treatment[]>([]);
   const [notes, setNotes] = useState('');
@@ -129,12 +129,12 @@ export function AppointmentCompletionDialog({
         .eq('patient_id', appointment.patient_id)
         .eq('dentist_id', appointment.dentist_id)
         .eq('status', 'active');
-      
+
       if (data) {
         setTreatmentPlans(data);
       }
     };
-    
+
     if (open) {
       fetchTreatmentPlans();
     }
@@ -152,8 +152,25 @@ export function AppointmentCompletionDialog({
   const currentStepData = steps[currentStep];
   const progress = ((currentStep + 1) / steps.length) * 100;
 
-  // Quick service options based on template
-  const quickTreatments = (template?.quickAddServices || [
+  // Fetch services from DB
+  const [dbServices, setDbServices] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchServices = async () => {
+      const { data } = await supabase
+        .from('business_services')
+        .select('name, price_cents')
+        .eq('is_active', true);
+
+      if (data) {
+        setDbServices(data.map(s => ({ name: s.name, price: s.price_cents / 100 })));
+      }
+    };
+    fetchServices();
+  }, []);
+
+  // Quick service options based on DB or template
+  const quickTreatments = dbServices.length > 0 ? dbServices : (template?.quickAddServices || [
     { name: 'Routine Cleaning', price: 80 },
     { name: 'Dental Examination', price: 50 },
     { name: 'X-Ray', price: 35 },
@@ -172,7 +189,7 @@ export function AppointmentCompletionDialog({
   };
 
   const addCustomTreatment = () => {
-    const name = prompt('Treatment name:');
+    const name = prompt('Service name:');
     const priceStr = prompt('Price (€):');
     if (name && priceStr) {
       const price = parseFloat(priceStr);
@@ -187,13 +204,13 @@ export function AppointmentCompletionDialog({
   };
 
   const updateTreatmentPrice = (id: string, newPrice: number) => {
-    setTreatments(prev => prev.map(t => 
+    setTreatments(prev => prev.map(t =>
       t.id === id ? { ...t, price: newPrice } : t
     ));
   };
 
   const updateTreatmentTooth = (id: string, tooth: string) => {
-    setTreatments(prev => prev.map(t => 
+    setTreatments(prev => prev.map(t =>
       t.id === id ? { ...t, tooth } : t
     ));
   };
@@ -210,7 +227,7 @@ export function AppointmentCompletionDialog({
   };
 
   const updatePrescription = (id: string, field: string, value: string) => {
-    setPrescriptions(prev => prev.map(rx => 
+    setPrescriptions(prev => prev.map(rx =>
       rx.id === id ? { ...rx, [field]: value } : rx
     ));
   };
@@ -260,13 +277,13 @@ export function AppointmentCompletionDialog({
       }
       // 1. Save treatment records as notes (since appointment_treatments table doesn't exist)
       if (treatments.length > 0) {
-        const treatmentNotes = treatments.map(treatment => 
-          `Treatment: ${treatment.name}${treatment.tooth ? ` (Tooth: ${treatment.tooth})` : ''} - €${treatment.price.toFixed(2)}`
+        const treatmentNotes = treatments.map(treatment =>
+          `Service: ${treatment.name}${treatment.tooth ? ` (Tooth: ${treatment.tooth})` : ''} - €${treatment.price.toFixed(2)}`
         ).join('\n');
-        
+
         await supabase.from('notes').insert({
           patient_id: appointment.patient_id,
-          title: `Appointment Treatments - ${format(new Date(appointment.appointment_date), 'PPP')}`,
+          title: `Appointment Services - ${format(new Date(appointment.appointment_date), 'PPP')}`,
           content: treatmentNotes,
           note_type: 'treatment',
           created_by: appointment.dentist_id
@@ -316,7 +333,7 @@ export function AppointmentCompletionDialog({
           // Add invoice items for treatments
           const invoiceItems = treatments.map(treatment => ({
             invoice_id: invoice.id,
-            code: `TREAT-${treatment.name.replace(/\s+/g, '-').toUpperCase()}`,
+            code: `SERV-${treatment.name.replace(/\s+/g, '-').toUpperCase()}`,
             description: treatment.name,
             quantity: 1,
             tariff_cents: Math.round(treatment.price * 100),
@@ -337,7 +354,7 @@ export function AppointmentCompletionDialog({
             .single();
 
           if (patientProfile?.email) {
-            const treatmentDescription = treatments.map(t => 
+            const treatmentDescription = treatments.map(t =>
               `${t.name}${t.tooth ? ` (Tooth ${t.tooth})` : ''}`
             ).join(', ');
 
@@ -386,13 +403,13 @@ export function AppointmentCompletionDialog({
           prescribed_date: new Date().toISOString(),
           status: 'active'
         }));
-        
+
         await supabase.from('prescriptions').insert(prescriptionData);
       }
 
       // 5. Create new treatment plan or link to existing one
       let treatmentPlanId = selectedTreatmentPlan;
-      
+
       if (createNewTreatmentPlan && newTreatmentPlanForm.title.trim()) {
         const { data: newPlan, error: planError } = await supabase
           .from('treatment_plans')
@@ -410,14 +427,14 @@ export function AppointmentCompletionDialog({
           })
           .select()
           .single();
-        
+
         if (planError) {
           console.error('Error creating treatment plan:', planError);
         } else if (newPlan) {
           treatmentPlanId = newPlan.id;
         }
       }
-      
+
       if (treatmentPlanId) {
         await supabase
           .from('appointments')
@@ -470,7 +487,7 @@ export function AppointmentCompletionDialog({
 
               ${treatments.length > 0 ? `
                 <div style="background: #fff; border: 1px solid #e5e5e5; border-radius: 8px; padding: 20px; margin: 20px 0;">
-                  <h3 style="color: #333; margin-top: 0;">Treatments Provided</h3>
+                  <h3 style="color: #333; margin-top: 0;">Services Provided</h3>
                   ${treatments.map(treatment => `
                     <div style="border-bottom: 1px solid #f0f0f0; padding: 10px 0;">
                       <div style="display: flex; justify-content: space-between;">
@@ -520,7 +537,7 @@ export function AppointmentCompletionDialog({
 
           await NotificationService.sendEmailNotification(
             patientProfile.user_id,
-            'Appointment Completed - Treatment Summary',
+            'Appointment Completed - Service Summary',
             emailContent,
             'appointment',
             true,
@@ -539,7 +556,7 @@ export function AppointmentCompletionDialog({
 
       toast({
         title: "Appointment completed successfully",
-        description: `${treatments.length} treatment(s) recorded${paymentReceived ? ', payment received' : ''}${followUpNeeded ? ', follow-up scheduled' : ''}. Patient notified by email.`,
+        description: `${treatments.length} service(s) recorded${paymentReceived ? ', payment received' : ''}${followUpNeeded ? ', follow-up scheduled' : ''}. Patient notified by email.`,
       });
 
       onCompleted();
@@ -634,7 +651,7 @@ export function AppointmentCompletionDialog({
                 onClick={addCustomTreatment}
                 className="mt-2 w-full"
               >
-              + Custom {serviceLabel}
+                + Custom {serviceLabel}
               </Button>
             </div>
 
@@ -682,7 +699,7 @@ export function AppointmentCompletionDialog({
                     </Card>
                   ))}
                 </div>
-                
+
                 <Card className="mt-4 bg-primary/5">
                   <CardContent className="p-3">
                     <div className="flex justify-between items-center">
@@ -713,7 +730,7 @@ export function AppointmentCompletionDialog({
                 className="mt-2 min-h-24"
               />
             </div>
-            
+
             <div>
               <Label htmlFor="general-notes" className="text-base font-semibold">
                 Additional Notes
@@ -791,7 +808,7 @@ export function AppointmentCompletionDialog({
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
-                      
+
                       <div className="grid grid-cols-2 gap-3">
                         <div>
                           <Label htmlFor={`rx-medication-${rx.id}`}>Medication Name</Label>
@@ -829,17 +846,15 @@ export function AppointmentCompletionDialog({
                             onChange={(e) => updatePrescription(rx.id, 'duration', e.target.value)}
                           />
                         </div>
-                      </div>
-                      
-                      <div>
-                        <Label htmlFor={`rx-instructions-${rx.id}`}>Instructions</Label>
-                        <Textarea
-                          id={`rx-instructions-${rx.id}`}
-                          placeholder="Special instructions for the patient..."
-                          value={rx.instructions}
-                          onChange={(e) => updatePrescription(rx.id, 'instructions', e.target.value)}
-                          className="mt-1"
-                        />
+                        <div className="col-span-2">
+                          <Label htmlFor={`rx-instructions-${rx.id}`}>Special Instructions</Label>
+                          <Input
+                            id={`rx-instructions-${rx.id}`}
+                            placeholder="e.g., Take with food"
+                            value={rx.instructions}
+                            onChange={(e) => updatePrescription(rx.id, 'instructions', e.target.value)}
+                          />
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
@@ -851,224 +866,149 @@ export function AppointmentCompletionDialog({
 
       case 'treatment-plan':
         return (
-          <div className="space-y-4">
-            <div>
-              <Label className="text-base font-semibold">Treatment Plan</Label>
-              <p className="text-sm text-muted-foreground mt-1">
-                Create a new treatment plan or link to an existing one
-              </p>
-            </div>
-
-            {/* Create New Treatment Plan */}
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="create-treatment-plan"
-                checked={createNewTreatmentPlan}
-                onChange={(e) => {
-                  setCreateNewTreatmentPlan(e.target.checked);
-                  if (e.target.checked) setLinkToTreatmentPlan(false);
-                }}
-                className="w-4 h-4"
-              />
-              <Label htmlFor="create-treatment-plan">Create new treatment plan</Label>
-            </div>
-
-            {createNewTreatmentPlan && (
-              <Card className="p-4 space-y-3">
-                <div>
-                  <Label htmlFor="plan-title">Plan Title *</Label>
-                  <Input
-                    id="plan-title"
-                    placeholder="e.g., Full Mouth Restoration"
-                    value={newTreatmentPlanForm.title}
-                    onChange={(e) => setNewTreatmentPlanForm(prev => ({ ...prev, title: e.target.value }))}
+          <div className="space-y-6">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Label className="text-base font-semibold">Treatment Plan</Label>
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="create-new-plan"
+                    checked={createNewTreatmentPlan}
+                    onChange={(e) => {
+                      setCreateNewTreatmentPlan(e.target.checked);
+                      if (e.target.checked) {
+                        setLinkToTreatmentPlan(false);
+                        setSelectedTreatmentPlan(null);
+                      }
+                    }}
+                    className="w-4 h-4"
                   />
+                  <Label htmlFor="create-new-plan">Create New Plan</Label>
                 </div>
-                <div>
-                  <Label htmlFor="plan-description">Description</Label>
-                  <Textarea
-                    id="plan-description"
-                    placeholder="Describe the treatment plan..."
-                    value={newTreatmentPlanForm.description}
-                    onChange={(e) => setNewTreatmentPlanForm(prev => ({ ...prev, description: e.target.value }))}
-                    className="min-h-20"
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <Label htmlFor="plan-diagnosis">Diagnosis</Label>
-                    <Input
-                      id="plan-diagnosis"
-                      placeholder="e.g., Multiple caries"
-                      value={newTreatmentPlanForm.diagnosis}
-                      onChange={(e) => setNewTreatmentPlanForm(prev => ({ ...prev, diagnosis: e.target.value }))}
+              </div>
+
+              {createNewTreatmentPlan ? (
+                <Card>
+                  <CardContent className="p-4 space-y-4">
+                    <div>
+                      <Label htmlFor="plan-title">Plan Title</Label>
+                      <Input
+                        id="plan-title"
+                        placeholder="e.g., Comprehensive Restoration"
+                        value={newTreatmentPlanForm.title}
+                        onChange={(e) => setNewTreatmentPlanForm(prev => ({ ...prev, title: e.target.value }))}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="plan-diagnosis">Diagnosis</Label>
+                      <Textarea
+                        id="plan-diagnosis"
+                        placeholder="Primary diagnosis..."
+                        value={newTreatmentPlanForm.diagnosis}
+                        onChange={(e) => setNewTreatmentPlanForm(prev => ({ ...prev, diagnosis: e.target.value }))}
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="plan-cost">Est. Cost (€)</Label>
+                        <Input
+                          id="plan-cost"
+                          type="number"
+                          placeholder="0.00"
+                          value={newTreatmentPlanForm.estimated_cost}
+                          onChange={(e) => setNewTreatmentPlanForm(prev => ({ ...prev, estimated_cost: e.target.value }))}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="plan-duration">Est. Weeks</Label>
+                        <Input
+                          id="plan-duration"
+                          type="number"
+                          placeholder="0"
+                          value={newTreatmentPlanForm.estimated_duration_weeks}
+                          onChange={(e) => setNewTreatmentPlanForm(prev => ({ ...prev, estimated_duration_weeks: e.target.value }))}
+                        />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="link-plan"
+                      checked={linkToTreatmentPlan}
+                      onChange={(e) => setLinkToTreatmentPlan(e.target.checked)}
+                      disabled={treatmentPlans.length === 0}
+                      className="w-4 h-4"
                     />
+                    <Label htmlFor="link-plan">Link to Existing Plan</Label>
                   </div>
-                  <div>
-                    <Label htmlFor="plan-priority">Priority</Label>
+
+                  {linkToTreatmentPlan && (
                     <Select
-                      value={newTreatmentPlanForm.priority}
-                      onValueChange={(value) => setNewTreatmentPlanForm(prev => ({ ...prev, priority: value }))}
+                      value={selectedTreatmentPlan || ''}
+                      onValueChange={setSelectedTreatmentPlan}
                     >
                       <SelectTrigger>
-                        <SelectValue />
+                        <SelectValue placeholder="Select a treatment plan" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="low">Low</SelectItem>
-                        <SelectItem value="normal">Normal</SelectItem>
-                        <SelectItem value="high">High</SelectItem>
+                        {treatmentPlans.map(plan => (
+                          <SelectItem key={plan.id} value={plan.id}>
+                            {plan.title} ({format(new Date(plan.created_at), 'MMM d, yyyy')})
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="plan-cost">Estimated Cost (€)</Label>
-                    <Input
-                      id="plan-cost"
-                      type="number"
-                      placeholder="0.00"
-                      value={newTreatmentPlanForm.estimated_cost}
-                      onChange={(e) => setNewTreatmentPlanForm(prev => ({ ...prev, estimated_cost: e.target.value }))}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="plan-duration">Duration (weeks)</Label>
-                    <Input
-                      id="plan-duration"
-                      type="number"
-                      placeholder="0"
-                      value={newTreatmentPlanForm.estimated_duration_weeks}
-                      onChange={(e) => setNewTreatmentPlanForm(prev => ({ ...prev, estimated_duration_weeks: e.target.value }))}
-                    />
-                  </div>
+                  )}
                 </div>
-              </Card>
-            )}
-
-            {/* Link to Existing Treatment Plan */}
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="link-treatment-plan"
-                checked={linkToTreatmentPlan}
-                onChange={(e) => {
-                  setLinkToTreatmentPlan(e.target.checked);
-                  if (e.target.checked) setCreateNewTreatmentPlan(false);
-                }}
-                className="w-4 h-4"
-              />
-              <Label htmlFor="link-treatment-plan">Link to existing treatment plan</Label>
+              )}
             </div>
-
-            {linkToTreatmentPlan && (
-              <div className="space-y-3">
-                {treatmentPlans.length === 0 ? (
-                  <Card className="p-6 text-center bg-muted/30">
-                    <ClipboardListIcon className="h-10 w-10 text-muted-foreground mx-auto mb-2" />
-                    <p className="text-muted-foreground">No active treatment plans found</p>
-                    <p className="text-sm text-muted-foreground/60 mt-1">
-                      Create a new treatment plan above
-                    </p>
-                  </Card>
-                ) : (
-                  <div className="space-y-2">
-                    <Label>Select Treatment Plan</Label>
-                    {treatmentPlans.map((plan) => (
-                      <Card
-                        key={plan.id}
-                        className={`p-4 cursor-pointer transition-all ${
-                          selectedTreatmentPlan === plan.id
-                            ? 'border-primary bg-primary/5'
-                            : 'hover:bg-muted/50'
-                        }`}
-                        onClick={() => setSelectedTreatmentPlan(plan.id)}
-                      >
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <h4 className="font-semibold">{plan.title || 'Untitled Treatment Plan'}</h4>
-                            {plan.description && (
-                              <p className="text-sm text-muted-foreground mt-1">
-                                {plan.description}
-                              </p>
-                            )}
-                            <div className="flex items-center gap-2 mt-2">
-                              <Badge variant="outline">{plan.status}</Badge>
-                              {plan.estimated_cost && (
-                                <span className="text-sm text-muted-foreground">
-                                  Est. Cost: €{plan.estimated_cost}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                          {selectedTreatmentPlan === plan.id && (
-                            <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0" />
-                          )}
-                        </div>
-                      </Card>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {!linkToTreatmentPlan && !createNewTreatmentPlan && (
-              <Card className="p-6 text-center bg-muted/30">
-                <p className="text-sm text-muted-foreground">
-                  This appointment will be recorded as a standalone visit
-                </p>
-              </Card>
-            )}
           </div>
         );
 
       case 'billing':
         return (
-          <div className="space-y-4">
+          <div className="space-y-6">
             <Card>
-              <CardContent className="p-4">
-                <h3 className="font-semibold mb-3">Treatment Summary</h3>
-                {treatments.length > 0 ? (
-                  <div className="space-y-2">
-                    {treatments.map((treatment) => (
-                      <div key={treatment.id} className="flex justify-between items-center">
-                        <div>
-                          <p className="font-medium">{treatment.name}</p>
-                          {treatment.tooth && (
-                            <p className="text-sm text-muted-foreground">Tooth: {treatment.tooth}</p>
-                          )}
-                        </div>
-                        <span className="font-semibold">€{treatment.price.toFixed(2)}</span>
-                      </div>
-                    ))}
-                    <Separator />
-                    <div className="flex justify-between items-center font-semibold text-lg">
-                      <span>Total</span>
-                      <span className="text-primary">€{totalAmount.toFixed(2)}</span>
-                    </div>
-                  </div>
-                ) : (
-                  <p className="text-muted-foreground">No treatments added</p>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="payment-received"
-                    checked={paymentReceived}
-                    onChange={(e) => setPaymentReceived(e.target.checked)}
-                    className="w-4 h-4"
-                  />
-                  <Label htmlFor="payment-received" className="font-semibold">
-                    Payment received (€{totalAmount.toFixed(2)})
-                  </Label>
+              <CardHeader>
+                <CardTitle className="text-base">Payment Summary</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex justify-between items-center text-lg font-semibold">
+                  <span>Total Amount</span>
+                  <span>€{totalAmount.toFixed(2)}</span>
                 </div>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Check this if the patient has paid for the treatment
-                </p>
+
+                <Separator />
+
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="payment-received"
+                      checked={paymentReceived}
+                      onChange={(e) => setPaymentReceived(e.target.checked)}
+                      className="w-4 h-4"
+                    />
+                    <Label htmlFor="payment-received">Payment Received Now</Label>
+                  </div>
+
+                  {!paymentReceived && totalAmount > 0 && (
+                    <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg flex items-start gap-3">
+                      <DollarSign className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+                      <div className="text-sm">
+                        <p className="font-medium text-blue-900 dark:text-blue-200">Payment Request</p>
+                        <p className="text-blue-700 dark:text-blue-300 mt-1">
+                          A payment request will be automatically sent to the patient via email.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -1076,27 +1016,45 @@ export function AppointmentCompletionDialog({
 
       case 'complete':
         return (
-          <Card>
-            <CardContent className="p-6 text-center space-y-4">
-              <CheckCircle2 className="h-12 w-12 text-green-500 mx-auto" />
+          <div className="py-8 text-center space-y-6">
+            <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto">
+              <CheckCircle2 className="h-8 w-8 text-green-600 dark:text-green-400" />
+            </div>
+
+            <div className="space-y-2">
               <h3 className="text-xl font-semibold">Ready to Complete</h3>
-              <div className="space-y-2 text-sm text-muted-foreground">
-                <p>✓ {treatments.length} treatment(s) will be recorded</p>
-                {(notes.trim() || consultationNotes.trim()) && (
-                  <p>✓ Clinical notes will be saved</p>
-                )}
-                {paymentReceived && (
-                  <p>✓ Payment of €{totalAmount.toFixed(2)} will be recorded</p>
-                )}
-                {followUpNeeded && followUpDate && (
-                  <p>✓ Follow-up appointment will be scheduled</p>
-                )}
-              </div>
-              <p className="text-sm text-muted-foreground">
-                The appointment status will be changed to "Completed" and cannot be undone.
+              <p className="text-muted-foreground max-w-md mx-auto">
+                Review the summary below before finalizing the appointment.
               </p>
-            </CardContent>
-          </Card>
+            </div>
+
+            <Card className="text-left max-w-md mx-auto">
+              <CardContent className="p-4 space-y-3">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Services:</span>
+                  <span className="font-medium">{treatments.length} items</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Total Amount:</span>
+                  <span className="font-medium">€{totalAmount.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Payment:</span>
+                  <span className={`font-medium ${paymentReceived ? 'text-green-600' : 'text-orange-600'}`}>
+                    {paymentReceived ? 'Received' : 'Request to be sent'}
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Follow-up:</span>
+                  <span className="font-medium">{followUpNeeded ? 'Scheduled' : 'Not needed'}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Prescriptions:</span>
+                  <span className="font-medium">{prescriptions.length} items</span>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         );
 
       default:
@@ -1106,56 +1064,42 @@ export function AppointmentCompletionDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <User className="h-5 w-5" />
-            <span>Complete Appointment - {currentStepData.title}</span>
-          </DialogTitle>
+          <DialogTitle>Complete Appointment – {steps[currentStep].title}</DialogTitle>
         </DialogHeader>
 
-        {/* Progress indicator */}
-        <div className="space-y-2 mb-4">
-          <div className="flex justify-between text-sm mb-1">
-            <span className="text-muted-foreground font-medium">Step {currentStep + 1} of {steps.length}</span>
-            <span className="font-medium text-primary">{Math.round(progress)}% Complete</span>
+        <div className="mt-4">
+          <div className="flex items-center justify-between mb-2 text-sm text-muted-foreground">
+            <span>Step {currentStep + 1} of {steps.length}</span>
+            <span>{Math.round(progress)}% Complete</span>
           </div>
-          <Progress value={progress} className="h-2.5" />
+          <Progress value={progress} className="h-2" />
         </div>
 
-        {/* Step content */}
-        <div className="py-4">
+        <div className="py-6 min-h-[300px]">
           {renderStepContent()}
         </div>
 
-        {/* Navigation */}
-        <div className="flex justify-between">
+        <div className="flex justify-between pt-4 border-t">
           <Button
             variant="outline"
             onClick={handlePrevious}
-            disabled={currentStep === 0}
+            disabled={currentStep === 0 || loading}
           >
-            <ArrowLeft className="h-4 w-4 mr-2" />
+            <ArrowLeft className="mr-2 h-4 w-4" />
             Previous
           </Button>
 
-          {currentStep === steps.length - 1 ? (
-            <Button
-              onClick={handleComplete}
-              disabled={loading || treatments.length === 0}
-              className="bg-green-600 hover:bg-green-700"
-            >
-              {loading ? (
-                <Clock className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <CheckCircle2 className="h-4 w-4 mr-2" />
-              )}
-              Complete Appointment
-            </Button>
-          ) : (
+          {currentStep < steps.length - 1 ? (
             <Button onClick={handleNext}>
               Next
-              <ArrowRight className="h-4 w-4 ml-2" />
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          ) : (
+            <Button onClick={handleComplete} disabled={loading} className="bg-green-600 hover:bg-green-700">
+              {loading ? 'Completing...' : 'Complete Appointment'}
+              {!loading && <CheckCircle2 className="ml-2 h-4 w-4" />}
             </Button>
           )}
         </div>

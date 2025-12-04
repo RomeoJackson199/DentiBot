@@ -296,22 +296,13 @@ export function ServiceManager() {
           {filteredServices.map((service) => (
             <Card
               key={service.id}
-              className={`flex h-full flex-col transition-all hover:shadow-xl ${
-                !service.is_active
+              className={`flex h-full flex-col transition-all hover:shadow-xl ${!service.is_active
                   ? 'border-dashed opacity-60 hover:opacity-80'
                   : 'border-2 hover:scale-[1.02] shadow-md'
-              }`}
+                }`}
             >
               <CardHeader className="space-y-4">
-                {service.image_url && (
-                  <div className="h-48 w-full overflow-hidden rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-muted shadow-inner">
-                    <img
-                      src={service.image_url}
-                      alt={service.name}
-                      className="h-full w-full object-cover transition-transform hover:scale-110"
-                    />
-                  </div>
-                )}
+
                 <div className="flex items-start justify-between gap-3">
                   <div className="space-y-2">
                     <CardTitle className="text-xl font-bold">{service.name}</CardTitle>

@@ -14,7 +14,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { Upload, X, AlertCircle } from 'lucide-react';
+import { X, AlertCircle } from 'lucide-react';
 import { logger } from '@/lib/logger';
 import { sanitizeServiceData, serviceCreationSchema } from '@/lib/validationSchemas';
 import { z } from 'zod';
@@ -52,9 +52,6 @@ export function ServiceDialog({ open, onClose, service, businessId, defaultCateg
     requires_upfront_payment: false,
     is_active: true,
   });
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [templateType, setTemplateType] = useState<TemplateType | null>(null);
@@ -104,7 +101,6 @@ export function ServiceDialog({ open, onClose, service, businessId, defaultCateg
         requires_upfront_payment: service.requires_upfront_payment,
         is_active: service.is_active,
       });
-      setImagePreview(service.image_url);
     } else {
       setFormData({
         name: '',
@@ -116,51 +112,9 @@ export function ServiceDialog({ open, onClose, service, businessId, defaultCateg
         requires_upfront_payment: false,
         is_active: true,
       });
-      setImagePreview(null);
     }
-    setImageFile(null);
     setErrors({});
-    }, [service, open, defaultCategory]);
-
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setImageFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const uploadImage = async (): Promise<string | null> => {
-    if (!imageFile) return service?.image_url || null;
-
-    try {
-      setUploading(true);
-      const fileExt = imageFile.name.split('.').pop();
-      const fileName = `${businessId}/${Date.now()}.${fileExt}`;
-
-      const { error: uploadError, data } = await supabase.storage
-        .from('dental-photos')
-        .upload(fileName, imageFile);
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('dental-photos')
-        .getPublicUrl(fileName);
-
-      return publicUrl;
-    } catch (error: any) {
-      console.error('Error uploading image:', error);
-      toast.error('Failed to upload image');
-      return null;
-    } finally {
-      setUploading(false);
-    }
-  };
+  }, [service, open, defaultCategory]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -180,12 +134,6 @@ export function ServiceDialog({ open, onClose, service, businessId, defaultCateg
 
       setSaving(true);
 
-      // Upload image if provided
-      const imageUrl = await uploadImage();
-      if (imageFile && !imageUrl) {
-        throw new Error('Image upload failed');
-      }
-
       const priceCents = Math.round(validated.price * 100);
 
       // Sanitize the data
@@ -195,7 +143,7 @@ export function ServiceDialog({ open, onClose, service, businessId, defaultCateg
         description: validated.description || null,
         price_cents: priceCents,
         currency: 'EUR',
-        image_url: imageUrl,
+        image_url: null, // Image upload removed
         duration_minutes: validated.duration || null,
         category: validated.category || null,
         requires_upfront_payment: formData.requires_upfront_payment,
@@ -265,54 +213,6 @@ export function ServiceDialog({ open, onClose, service, businessId, defaultCateg
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Image Upload */}
-          <div className="space-y-2">
-            <Label>Service Image</Label>
-            <p className="text-xs text-muted-foreground">Optional - Add a photo to make your service more appealing</p>
-            <div className="border-2 border-dashed rounded-lg p-4 text-center">
-              {imagePreview ? (
-                <div className="relative">
-                  <img
-                    src={imagePreview}
-                    alt="Preview"
-                    className="max-h-48 mx-auto rounded-lg"
-                  />
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    size="sm"
-                    className="absolute top-2 right-2"
-                    onClick={() => {
-                      setImageFile(null);
-                      setImagePreview(null);
-                    }}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              ) : (
-                <div>
-                  <Upload className="h-12 w-12 mx-auto mb-2 text-muted-foreground" />
-                  <p className="text-sm text-muted-foreground mb-2">
-                    Click to upload or drag and drop
-                  </p>
-                </div>
-              )}
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageChange}
-                className="hidden"
-                id="image-upload"
-              />
-              <Label htmlFor="image-upload" className="cursor-pointer">
-                <Button type="button" variant="outline" className="mt-2" asChild>
-                  <span>{imagePreview ? 'Change Image' : 'Upload Image'}</span>
-                </Button>
-              </Label>
-            </div>
-          </div>
-
           {/* Name */}
           <div className="space-y-2">
             <Label htmlFor="name">{fieldLabels.serviceName} *</Label>
@@ -493,8 +393,8 @@ export function ServiceDialog({ open, onClose, service, businessId, defaultCateg
             <Button type="button" variant="outline" onClick={() => onClose(false)}>
               Cancel
             </Button>
-            <Button type="submit" disabled={saving || uploading}>
-              {saving || uploading ? 'Saving...' : service ? 'Update Service' : 'Create Service'}
+            <Button type="submit" disabled={saving}>
+              {saving ? 'Saving...' : service ? 'Update Service' : 'Create Service'}
             </Button>
           </div>
         </form>
