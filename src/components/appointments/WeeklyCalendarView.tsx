@@ -196,7 +196,10 @@ export function WeeklyCalendarView({
         {/* Calendar Header (Days) */}
         <div className="flex border-b bg-muted/5">
           <div className="w-16 flex-shrink-0 border-r bg-background/50" /> {/* Time axis spacer */}
-          <div className="flex-1 grid grid-cols-1 md:grid-cols-7 divide-x">
+          <div
+            className="flex-1 grid divide-x"
+            style={{ gridTemplateColumns: `repeat(${displayDays.length}, minmax(0, 1fr))` }}
+          >
             {displayDays.map((day) => {
               const isToday = isSameDay(day, new Date());
               return (
@@ -235,13 +238,16 @@ export function WeeklyCalendarView({
             </div>
 
             {/* Day Columns */}
-            <div className="flex-1 grid grid-cols-1 md:grid-cols-7 divide-x relative">
+            <div
+              className="flex-1 grid divide-x relative"
+              style={{ gridTemplateColumns: `repeat(${displayDays.length}, minmax(0, 1fr))` }}
+            >
               {/* Horizontal Grid Lines */}
               <div className="absolute inset-0 z-0 pointer-events-none">
                 {Array.from({ length: TOTAL_HOURS }).map((_, i) => (
                   <div
                     key={i}
-                    className="border-b border-dashed border-gray-100 dark:border-gray-800 w-full"
+                    className="border-b border-dashed border-gray-300 dark:border-gray-700 w-full"
                     style={{ height: `${HOUR_HEIGHT}px` }}
                   />
                 ))}

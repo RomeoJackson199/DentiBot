@@ -23,11 +23,11 @@ interface DayCalendarViewProps {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  "completed": "bg-emerald-100/80 dark:bg-emerald-900/40 text-emerald-900 dark:text-emerald-100 border-l-4 border-l-emerald-500",
-  "cancelled": "bg-gray-100/80 dark:bg-gray-800/40 text-gray-600 dark:text-gray-400 border-l-4 border-l-gray-400 opacity-70",
-  "confirmed": "bg-blue-100/80 dark:bg-blue-900/40 text-blue-900 dark:text-blue-100 border-l-4 border-l-blue-500",
-  "pending": "bg-amber-100/80 dark:bg-amber-900/40 text-amber-900 dark:text-amber-100 border-l-4 border-l-amber-500",
-  "google-calendar": "bg-purple-100/80 dark:bg-purple-900/40 text-purple-900 dark:text-purple-100 border-l-4 border-l-purple-500",
+  "completed": "bg-emerald-100 dark:bg-emerald-900 text-emerald-900 dark:text-emerald-100 border-l-4 border-l-emerald-500",
+  "cancelled": "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-l-4 border-l-gray-400 opacity-70",
+  "confirmed": "bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100 border-l-4 border-l-blue-500",
+  "pending": "bg-amber-100 dark:bg-amber-900 text-amber-900 dark:text-amber-100 border-l-4 border-l-amber-500",
+  "google-calendar": "bg-purple-100 dark:bg-purple-900 text-purple-900 dark:text-purple-100 border-l-4 border-l-purple-500",
 };
 
 const HOUR_HEIGHT = 100; // Taller slots for day view
@@ -103,7 +103,10 @@ export function DayCalendarView({
       appointment_date: event.start,
       duration_minutes: differenceInMinutes(parseISO(event.end), parseISO(event.start))
     }));
-    return [...appointments, ...googleEvents];
+    const combined = [...appointments, ...googleEvents];
+    // Deduplicate by ID
+    const uniqueEvents = Array.from(new Map(combined.map(item => [item.id, item])).values());
+    return uniqueEvents;
   }, [appointments, googleCalendarEvents]);
 
   const getPatientInitials = (firstName?: string, lastName?: string) => {
@@ -206,7 +209,7 @@ export function DayCalendarView({
                 {Array.from({ length: TOTAL_HOURS }).map((_, i) => (
                   <div
                     key={i}
-                    className="border-b border-dashed border-gray-100 dark:border-gray-800 w-full"
+                    className="border-b border-dashed border-gray-300 dark:border-gray-700 w-full"
                     style={{ height: `${HOUR_HEIGHT}px` }}
                   />
                 ))}
@@ -274,7 +277,7 @@ export function DayCalendarView({
                         )}
                       </div>
                     </TooltipTrigger>
-                    <TooltipContent side="left" className="p-0 border-none shadow-xl">
+                    <TooltipContent side="bottom" align="start" className="p-0 border-none shadow-xl">
                       <Card className="w-80 border-0">
                         <div className={cn("h-2 w-full", STATUS_COLORS[event.status]?.split(' ')[0])} />
                         <div className="p-4 space-y-3">
