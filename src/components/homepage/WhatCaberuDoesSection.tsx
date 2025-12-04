@@ -12,10 +12,10 @@ export const WhatCaberuDoesSection = () => {
                         viewport={{ once: true }}
                         transition={{ duration: 0.5 }}
                     >
-                        <h2 className="text-4xl font-bold text-gray-900 mb-6">
+                        <h2 className="text-4xl font-bold text-white mb-6">
                             The All-in-One Operating System for Modern Dentistry
                         </h2>
-                        <p className="text-xl text-gray-600 leading-relaxed">
+                        <p className="text-xl text-gray-300 leading-relaxed">
                             Caberu replaces fragmented tools with a single, intelligent platform. From AI reception to clinical records, we handle the busywork so you can focus on patient care.
                         </p>
                     </motion.div>
@@ -28,13 +28,13 @@ export const WhatCaberuDoesSection = () => {
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ duration: 0.5, delay: 0.1 }}
-                        className="flex flex-col items-center text-center p-6 rounded-2xl bg-slate-50 border border-slate-100 hover:shadow-lg transition-all duration-300"
+                        className="flex flex-col items-center text-center p-6 rounded-2xl bg-slate-800/50 border border-slate-700 hover:shadow-lg hover:bg-slate-800/70 transition-all duration-300"
                     >
-                        <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-6 text-blue-600">
+                        <div className="w-16 h-16 bg-blue-500/20 rounded-full flex items-center justify-center mb-6 text-blue-400">
                             <Zap className="w-8 h-8" />
                         </div>
-                        <h3 className="text-2xl font-bold text-gray-900 mb-4">Automate Operations</h3>
-                        <p className="text-gray-600">
+                        <h3 className="text-2xl font-bold text-white mb-4">Automate Operations</h3>
+                        <p className="text-gray-300">
                             Our AI handles phone calls, scheduling, and reminders 24/7. Reduce administrative overhead by 60% and never miss a patient inquiry.
                         </p>
                     </motion.div>
@@ -45,13 +45,13 @@ export const WhatCaberuDoesSection = () => {
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ duration: 0.5, delay: 0.2 }}
-                        className="flex flex-col items-center text-center p-6 rounded-2xl bg-slate-50 border border-slate-100 hover:shadow-lg transition-all duration-300"
+                        className="flex flex-col items-center text-center p-6 rounded-2xl bg-slate-800/50 border border-slate-700 hover:shadow-lg hover:bg-slate-800/70 transition-all duration-300"
                     >
-                        <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-6 text-purple-600">
+                        <div className="w-16 h-16 bg-purple-500/20 rounded-full flex items-center justify-center mb-6 text-purple-400">
                             <Shield className="w-8 h-8" />
                         </div>
-                        <h3 className="text-2xl font-bold text-gray-900 mb-4">Secure & Compliant</h3>
-                        <p className="text-gray-600">
+                        <h3 className="text-2xl font-bold text-white mb-4">Secure & Compliant</h3>
+                        <p className="text-gray-300">
                             Enterprise-grade security with HIPAA compliance, SOC 2 Type II certification, and 256-bit encryption. Your patient data is safe with us.
                         </p>
                     </motion.div>
@@ -62,13 +62,13 @@ export const WhatCaberuDoesSection = () => {
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ duration: 0.5, delay: 0.3 }}
-                        className="flex flex-col items-center text-center p-6 rounded-2xl bg-slate-50 border border-slate-100 hover:shadow-lg transition-all duration-300"
+                        className="flex flex-col items-center text-center p-6 rounded-2xl bg-slate-800/50 border border-slate-700 hover:shadow-lg hover:bg-slate-800/70 transition-all duration-300"
                     >
-                        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-6 text-green-600">
+                        <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mb-6 text-green-400">
                             <Globe className="w-8 h-8" />
                         </div>
-                        <h3 className="text-2xl font-bold text-gray-900 mb-4">Grow Your Practice</h3>
-                        <p className="text-gray-600">
+                        <h3 className="text-2xl font-bold text-white mb-4">Grow Your Practice</h3>
+                        <p className="text-gray-300">
                             Integrated marketing tools, reputation management, and analytics help you attract more patients and retain them for life.
                         </p>
                     </motion.div>
