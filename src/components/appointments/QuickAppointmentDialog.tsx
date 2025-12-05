@@ -54,6 +54,33 @@ export function QuickAppointmentDialog({
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Fetch dentist's business ID
+  const { data: dentistBusiness } = useQuery({
+    queryKey: ["dentist-business", dentistId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("dentists")
+        .select(`
+          id,
+          profile_id,
+          provider_business_map!inner (
+            business_id
+          )
+        `)
+        .eq("id", dentistId)
+        .single();
+
+      if (error) throw error;
+
+      const businessMap = Array.isArray(data?.provider_business_map)
+        ? data.provider_business_map[0]
+        : data?.provider_business_map;
+
+      return businessMap?.business_id || null;
+    },
+    enabled: open,
+  });
+
   // Fetch all patients for this dentist
   const { data: patients = [], isLoading: patientsLoading } = useQuery({
     queryKey: ["dentist-patients", dentistId],
@@ -87,6 +114,7 @@ export function QuickAppointmentDialog({
     },
     enabled: open && (showPatientSelector || !patient),
   });
+
 
   // Fetch existing appointments for the selected date
   const { data: existingAppointments = [] } = useQuery({
@@ -214,6 +242,7 @@ export function QuickAppointmentDialog({
         .insert({
           dentist_id: dentistId,
           patient_id: selectedPatient.id,
+          business_id: dentistBusiness,
           appointment_date: appointmentDateTime.toISOString(),
           duration_minutes: parseInt(duration),
           status: "pending",
