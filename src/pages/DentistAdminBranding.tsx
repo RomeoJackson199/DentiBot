@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Palette, Upload, Image as ImageIcon, Briefcase, Package, Copy, Check, QrCode, Download } from "lucide-react";
+import { Loader2, Palette, Upload, Image as ImageIcon, Briefcase, Package, Copy, Check, QrCode, Download, Mail } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { BusinessTemplateSelector } from "@/components/BusinessTemplateSelector";
 import { TemplateType, getTemplateConfig } from "@/lib/businessTemplates";
@@ -30,6 +30,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { QRCodeCanvas } from "qrcode.react";
 import { logger } from '@/lib/logger';
 import { TemplatePreview } from "@/components/TemplatePreview";
+import { EmailTemplateEditor } from "@/components/settings/EmailTemplateEditor";
 
 export default function DentistAdminBranding() {
   const { businessId, loading: businessLoading } = useBusinessContext();
@@ -468,11 +469,15 @@ export default function DentistAdminBranding() {
         />
 
         <Tabs defaultValue="branding" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="branding">Branding</TabsTrigger>
             <TabsTrigger value="services">
               <Package className="h-4 w-4 mr-2" />
               Services
+            </TabsTrigger>
+            <TabsTrigger value="emails">
+              <Mail className="h-4 w-4 mr-2" />
+              Emails
             </TabsTrigger>
             <TabsTrigger value="ai">AI Behavior</TabsTrigger>
           </TabsList>
@@ -710,6 +715,10 @@ export default function DentistAdminBranding() {
 
           <TabsContent value="services">
             <ServiceManager />
+          </TabsContent>
+
+          <TabsContent value="emails">
+            <EmailTemplateEditor />
           </TabsContent>
 
           <TabsContent value="ai" className="space-y-6">

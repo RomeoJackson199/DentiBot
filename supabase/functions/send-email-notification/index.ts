@@ -5,7 +5,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 // Environment-based CORS configuration
 const getCorsHeaders = () => {
   const environment = Deno.env.get('ENVIRONMENT') || 'development';
-  
+
   if (environment === 'production') {
     return {
       'Access-Control-Allow-Origin': 'https://gjvxcisbaxhhblhsytar.supabase.co',
@@ -14,7 +14,7 @@ const getCorsHeaders = () => {
       'Access-Control-Max-Age': '86400',
     };
   }
-  
+
   return {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -28,7 +28,7 @@ interface EmailRequest {
   to: string;
   subject: string;
   message: string;
-  messageType: 'appointment_confirmation' | 'appointment_reminder' | 'prescription' | 'emergency' | 'system';
+  messageType: 'appointment_confirmation' | 'appointment_reminder' | 'appointment_cancelled' | 'payment_received' | 'payment_reminder' | 'prescription' | 'emergency' | 'system';
   patientId?: string;
   dentistId?: string;
   isSystemNotification?: boolean;
@@ -133,7 +133,7 @@ serve(async (req) => {
     // Always use Romeo@caberu.be as the sender
     let fromEmail = 'Romeo@caberu.be';
     let fromName = 'Romeo - Dental Practice';
-    
+
     if (dentistId) {
       const { data: dentistProfile } = await supabase
         .from('dentists')
@@ -142,7 +142,7 @@ serve(async (req) => {
         `)
         .eq('id', dentistId)
         .single();
-      
+
       if (dentistProfile?.profile) {
         fromName = `Dr. ${dentistProfile.profile.first_name} ${dentistProfile.profile.last_name} - Romeo Dental`;
       }
@@ -157,28 +157,75 @@ serve(async (req) => {
 
     console.log('🔑 SendGrid API key configured, proceeding with email send...');
 
+    // Try to get custom template for this business
+    let emailSubject = subject;
+    let emailBody = message;
+
+    if (dentistId) {
+      // Get the business ID for this dentist
+      const { data: dentistData } = await supabase
+        .from('dentists')
+        .select('profile_id')
+        .eq('id', dentistId)
+        .single();
+
+      if (dentistData?.profile_id) {
+        // Get business from business_members
+        const { data: businessMember } = await supabase
+          .from('business_members')
+          .select('business_id')
+          .eq('profile_id', dentistData.profile_id)
+          .limit(1)
+          .maybeSingle();
+
+        const businessId = businessMember?.business_id;
+
+        if (businessId) {
+          // Check for custom template
+          const { data: customTemplate } = await supabase
+            .from('business_email_templates')
+            .select('subject, body_html, is_active')
+            .eq('business_id', businessId)
+            .eq('template_type', messageType)
+            .eq('is_active', true)
+            .maybeSingle();
+
+          if (customTemplate) {
+            console.log('📝 Using custom email template for:', messageType);
+            emailSubject = customTemplate.subject;
+            emailBody = customTemplate.body_html;
+          }
+        }
+      }
+    }
+
+    // Build email HTML
+    const emailHtml = emailBody.includes('<div') || emailBody.includes('<p')
+      ? emailBody  // Already HTML
+      : `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #333;">${emailSubject}</h2>
+          <div style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            ${emailBody.replace(/\n/g, '<br>')}
+          </div>
+          <p style="color: #666; font-size: 12px;">
+            This email was sent from your dental practice management system.
+          </p>
+        </div>
+      `;
+
     const emailData = {
       personalizations: [{
         to: [{ email: to }],
-        subject: subject
+        subject: emailSubject
       }],
-      from: { 
+      from: {
         email: fromEmail,
         name: fromName
       },
       content: [{
         type: "text/html",
-        value: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #333;">${subject}</h2>
-            <div style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin: 20px 0;">
-              ${message.replace(/\n/g, '<br>')}
-            </div>
-            <p style="color: #666; font-size: 12px;">
-              This email was sent from your dental practice management system.
-            </p>
-          </div>
-        `
+        value: emailHtml
       }]
     };
 
@@ -202,7 +249,7 @@ serve(async (req) => {
         statusText: response.statusText,
         error: errorText
       });
-      
+
       // Update notification status to failed
       if (notificationId) {
         try {
@@ -214,7 +261,7 @@ serve(async (req) => {
           console.error('Failed to update notification status:', updateError);
         }
       }
-      
+
       throw new Error(`SendGrid API failed: ${response.status} - ${errorText}`);
     }
 
@@ -242,7 +289,7 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Error sending email:', error);
-    
+
     return new Response(JSON.stringify({
       error: error.message,
       success: false
