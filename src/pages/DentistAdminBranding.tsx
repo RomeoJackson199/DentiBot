@@ -87,7 +87,7 @@ export default function DentistAdminBranding() {
     try {
       const { data: business, error } = await supabase
         .from('businesses')
-        .select('name, slug, tagline, logo_url, primary_color, secondary_color, template_type, ai_system_behavior, ai_greeting, ai_personality_traits, custom_config, custom_features, custom_terminology')
+        .select('name, slug, tagline, logo_url, template_type, ai_system_behavior, ai_greeting, ai_personality_traits')
         .eq('id', businessId)
         .single();
 
@@ -100,8 +100,8 @@ export default function DentistAdminBranding() {
           slug: business.slug || "",
           tagline: business.tagline || "",
           address: business.tagline || "",
-          primaryColor: business.primary_color || "#2D5D7B",
-          secondaryColor: business.secondary_color || "#8B5CF6",
+          primaryColor: "#2D5D7B",
+          secondaryColor: "#8B5CF6",
           logoUrl: business.logo_url || "",
           templateType: (business.template_type as TemplateType) || "healthcare",
           aiSystemBehavior: business.ai_system_behavior || template.aiBehaviorDefaults.systemBehavior,
