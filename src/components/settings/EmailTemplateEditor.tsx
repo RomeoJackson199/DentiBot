@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { useBusinessContext } from "@/contexts/BusinessContext";
+import { useBusinessContext } from "@/hooks/useBusinessContext";
 import { Mail, Eye, Save, RotateCcw, Loader2, Code } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
