@@ -24,8 +24,10 @@ import {
   Shield
 } from "lucide-react";
 import { AccountClaimFlow } from "@/components/AccountClaimFlow";
+import { ACCOUNT_CLAIM_FLOW_STEPS } from "@/components/AccountClaimFlow";
 import { analytics, ANALYTICS_EVENTS } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
+import { ForgotPasswordDialog } from "@/components/auth/ForgotPasswordDialog";
 
 interface EnhancedAuthFormProps {
   compact?: boolean;
@@ -56,6 +58,8 @@ export const EnhancedAuthForm: React.FC<EnhancedAuthFormProps> = ({
   const [healthConsent, setHealthConsent] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [passwordStrength, setPasswordStrength] = useState(0);
+
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const { toast } = useToast();
 
   // Rate limiting
@@ -439,6 +443,15 @@ export const EnhancedAuthForm: React.FC<EnhancedAuthFormProps> = ({
                     </button>
                   </div>
                 </div>
+                <div className="flex justify-end mt-1">
+                  <button
+                    type="button"
+                    onClick={() => setShowForgotPassword(true)}
+                    className="text-xs text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    Forgot password?
+                  </button>
+                </div>
 
                 {validationErrors.length > 0 && (
                   <Alert variant="destructive">
@@ -687,6 +700,12 @@ export const EnhancedAuthForm: React.FC<EnhancedAuthFormProps> = ({
           </CardContent>
         </Tabs>
       </Card>
+
+      <ForgotPasswordDialog
+        open={showForgotPassword}
+        onOpenChange={setShowForgotPassword}
+        defaultEmail={formData.email}
+      />
     </div>
   );
 };

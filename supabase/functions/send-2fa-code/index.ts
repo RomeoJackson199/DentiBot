@@ -8,6 +8,7 @@ const corsHeaders = {
 
 interface EmailRequest {
   email: string;
+  type?: '2fa' | 'recovery';
 }
 
 serve(async (req) => {
@@ -16,7 +17,7 @@ serve(async (req) => {
   }
 
   try {
-    const { email }: EmailRequest = await req.json();
+    const { email, type = '2fa' }: EmailRequest = await req.json();
 
     if (!email) {
       return new Response(
@@ -43,6 +44,7 @@ serve(async (req) => {
       .upsert({
         email,
         code,
+        type, // Store the type to distinguish functionality
         expires_at: expiresAt.toISOString(),
         used: false,
       }, {
@@ -54,16 +56,27 @@ serve(async (req) => {
       throw storeError;
     }
 
+    // Configure email content based on type
+    let subject = 'Your Two-Factor Authentication Code';
+    let title = 'Two-Factor Authentication';
+    let messageBody = 'Your verification code is:';
+
+    if (type === 'recovery') {
+      subject = 'Reset Your Password';
+      title = 'Password Reset Request';
+      messageBody = 'Use the code below to reset your password:';
+    }
+
     // Build HTML email content
     const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
         <div style="text-align: center; margin-bottom: 30px;">
-          <h1 style="color: #0F3D91; margin: 0;">Two-Factor Authentication</h1>
+          <h1 style="color: #0F3D91; margin: 0;">${title}</h1>
         </div>
         
         <div style="background: #f8f9fa; padding: 30px; border-radius: 10px; text-align: center;">
           <p style="font-size: 16px; color: #333; margin-bottom: 20px;">
-            Your verification code is:
+            ${messageBody}
           </p>
           <div style="background: white; padding: 20px; border-radius: 8px; display: inline-block;">
             <span style="font-size: 36px; font-weight: bold; letter-spacing: 8px; color: #0F3D91;">
@@ -92,7 +105,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         to: email,
-        subject: 'Your Two-Factor Authentication Code',
+        subject: subject,
         message: htmlContent,
         messageType: 'system',
         isSystemNotification: true,
@@ -105,7 +118,7 @@ serve(async (req) => {
       throw new Error(`Failed to send email: ${errorText}`);
     }
 
-    console.log('2FA code sent successfully to:', email);
+    console.log(`${title} code sent successfully to:`, email);
 
     return new Response(
       JSON.stringify({ success: true, message: 'Verification code sent' }),
