@@ -12,6 +12,8 @@ import { saveProfileData, loadProfileData, ProfileData } from "@/lib/profileUtil
 import { useToast } from "@/hooks/use-toast";
 import { ProfilePictureUpload } from "@/components/ProfilePictureUpload";
 import { PatientSecuritySettings } from "@/components/patient/PatientSecuritySettings";
+import { AddressAutocomplete } from "@/components/ui/address-autocomplete";
+import { PhoneNumberInput } from "@/components/ui/phone-input";
 
 export interface SettingsPageProps {
   user: User;
@@ -161,11 +163,19 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ email, profile, setProfile, o
           </div>
           <div>
             <Label>Phone</Label>
-            <Input value={profile.phone} onChange={(e) => setProfile({ ...profile, phone: e.target.value })} />
+            <PhoneNumberInput
+              value={profile.phone}
+              onChange={(val) => setProfile({ ...profile, phone: val || "" })}
+              placeholder="Enter phone number"
+            />
           </div>
           <div>
             <Label>Address</Label>
-            <Input value={profile.address} onChange={(e) => setProfile({ ...profile, address: e.target.value })} />
+            <AddressAutocomplete
+              value={profile.address}
+              onChange={(val) => setProfile({ ...profile, address: val })}
+              placeholder="Search address..."
+            />
           </div>
           <div>
             <Label>Date of Birth</Label>

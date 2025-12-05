@@ -10,6 +10,8 @@ import { Loader2, Save, User } from "lucide-react";
 import { useCurrentDentist } from "@/hooks/useCurrentDentist";
 import { useUnsavedChanges } from "@/hooks/useUnsavedChanges";
 import { ProfilePictureUpload } from "@/components/ProfilePictureUpload";
+import { AddressAutocomplete } from "@/components/ui/address-autocomplete";
+import { PhoneNumberInput } from "@/components/ui/phone-input";
 
 export default function DentistAdminProfile() {
   const { dentistId, profileId, loading: dentistLoading } = useCurrentDentist();
@@ -38,7 +40,7 @@ export default function DentistAdminProfile() {
 
   const loadProfile = async () => {
     if (!dentistId || !profileId) return;
-    
+
     setLoading(true);
     try {
       const [{ data: dentistData }, { data: profileData }] = await Promise.all([
@@ -130,7 +132,7 @@ export default function DentistAdminProfile() {
   }, [formData, initialData]);
 
   const handleSave = async () => {
-    const fakeEvent = { preventDefault: () => {} } as React.FormEvent;
+    const fakeEvent = { preventDefault: () => { } } as React.FormEvent;
     await handleSubmit(fakeEvent);
   };
 
@@ -156,134 +158,130 @@ export default function DentistAdminProfile() {
   return (
     <>
       <ConfirmationDialog />
-    <Card>
-      <CardHeader>
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-            <User className="h-5 w-5 text-primary" />
-          </div>
-          <div>
-            <CardTitle>Profile Information</CardTitle>
-            <CardDescription>
-              Update your personal and professional details
-            </CardDescription>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <ProfilePictureUpload 
-            currentUrl={formData.profile_picture_url}
-            userId={dentistId || ''}
-            onUploadComplete={(url) => handleInputChange('profile_picture_url', url)}
-          />
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="first_name">First Name</Label>
-              <Input
-                id="first_name"
-                value={formData.first_name}
-                onChange={(e) => handleInputChange('first_name', e.target.value)}
-                placeholder="John"
-                required
-              />
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+              <User className="h-5 w-5 text-primary" />
             </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="last_name">Last Name</Label>
-              <Input
-                id="last_name"
-                value={formData.last_name}
-                onChange={(e) => handleInputChange('last_name', e.target.value)}
-                placeholder="Smith"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => handleInputChange('email', e.target.value)}
-                placeholder="john@example.com"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="phone">Phone</Label>
-              <Input
-                id="phone"
-                type="tel"
-                value={formData.phone}
-                onChange={(e) => handleInputChange('phone', e.target.value)}
-                placeholder="+1 (555) 123-4567"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="specialization">Specialization</Label>
-              <Input
-                id="specialization"
-                value={formData.specialization}
-                onChange={(e) => handleInputChange('specialization', e.target.value)}
-                placeholder="General Dentistry, Orthodontics, etc."
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="license_number">License Number</Label>
-              <Input
-                id="license_number"
-                value={formData.license_number}
-                onChange={(e) => handleInputChange('license_number', e.target.value)}
-                placeholder="DDS-12345"
-              />
+            <div>
+              <CardTitle>Profile Information</CardTitle>
+              <CardDescription>
+                Update your personal and professional details
+              </CardDescription>
             </div>
           </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="clinic_address">Clinic Address</Label>
-            <Textarea
-              id="clinic_address"
-              value={formData.clinic_address}
-              onChange={(e) => handleInputChange('clinic_address', e.target.value)}
-              placeholder="123 Main Street, City, State, ZIP"
-              rows={3}
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <ProfilePictureUpload
+              currentUrl={formData.profile_picture_url}
+              userId={dentistId || ''}
+              onUploadComplete={(url) => handleInputChange('profile_picture_url', url)}
             />
-          </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="first_name">First Name</Label>
+                <Input
+                  id="first_name"
+                  value={formData.first_name}
+                  onChange={(e) => handleInputChange('first_name', e.target.value)}
+                  placeholder="John"
+                  required
+                />
+              </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="bio">Professional Bio</Label>
-            <Textarea
-              id="bio"
-              value={formData.bio}
-              onChange={(e) => handleInputChange('bio', e.target.value)}
-              placeholder="Tell patients about yourself, your experience, and specializations..."
-              rows={4}
-            />
-          </div>
+              <div className="space-y-2">
+                <Label htmlFor="last_name">Last Name</Label>
+                <Input
+                  id="last_name"
+                  value={formData.last_name}
+                  onChange={(e) => handleInputChange('last_name', e.target.value)}
+                  placeholder="Smith"
+                  required
+                />
+              </div>
 
-          <div className="flex justify-end">
-            <Button type="submit" disabled={saving}>
-              {saving ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  Saving...
-                </>
-              ) : (
-                <>
-                  <Save className="h-4 w-4 mr-2" />
-                  Save Changes
-                </>
-              )}
-            </Button>
-          </div>
-        </form>
-      </CardContent>
-    </Card>
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => handleInputChange('email', e.target.value)}
+                  placeholder="john@example.com"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="phone">Phone</Label>
+                <PhoneNumberInput
+                  value={formData.phone}
+                  onChange={(val) => handleInputChange('phone', val || "")}
+                  placeholder="Enter phone number"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="specialization">Specialization</Label>
+                <Input
+                  id="specialization"
+                  value={formData.specialization}
+                  onChange={(e) => handleInputChange('specialization', e.target.value)}
+                  placeholder="General Dentistry, Orthodontics, etc."
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="license_number">License Number</Label>
+                <Input
+                  id="license_number"
+                  value={formData.license_number}
+                  onChange={(e) => handleInputChange('license_number', e.target.value)}
+                  placeholder="DDS-12345"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="clinic_address">Clinic Address</Label>
+              <AddressAutocomplete
+                value={formData.clinic_address}
+                onChange={(val) => handleInputChange('clinic_address', val)}
+                placeholder="123 Main Street, City, State, ZIP"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="bio">Professional Bio</Label>
+              <Textarea
+                id="bio"
+                value={formData.bio}
+                onChange={(e) => handleInputChange('bio', e.target.value)}
+                placeholder="Tell patients about yourself, your experience, and specializations..."
+                rows={4}
+              />
+            </div>
+
+            <div className="flex justify-end">
+              <Button type="submit" disabled={saving}>
+                {saving ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4 mr-2" />
+                    Save Changes
+                  </>
+                )}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
     </>
   );
 }
