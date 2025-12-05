@@ -28,9 +28,7 @@ interface QuickAppointmentDialogProps {
   dentistId: string;
   selectedDate: Date;
   selectedTime: string;
-  // Optional: pre-fill with patient data when booking for a specific patient
   patient?: Patient;
-  // Optional: show patient selector (for agenda view)
   showPatientSelector?: boolean;
 }
 
@@ -54,29 +52,55 @@ export function QuickAppointmentDialog({
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch dentist's business ID
+  // Fetch dentist's business ID from multiple potential sources
   const { data: dentistBusiness } = useQuery({
     queryKey: ["dentist-business", dentistId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // First, get the dentist's profile_id
+      const { data: dentist, error: dentistError } = await supabase
         .from("dentists")
-        .select(`
-          id,
-          profile_id,
-          provider_business_map!inner (
-            business_id
-          )
-        `)
+        .select("profile_id")
         .eq("id", dentistId)
         .single();
 
-      if (error) throw error;
+      if (dentistError || !dentist) {
+        console.error("Could not find dentist:", dentistError);
+        return null;
+      }
 
-      const businessMap = Array.isArray(data?.provider_business_map)
-        ? data.provider_business_map[0]
-        : data?.provider_business_map;
+      // Try 1: Get from business_members
+      const { data: businessMember } = await supabase
+        .from("business_members")
+        .select("business_id")
+        .eq("profile_id", dentist.profile_id)
+        .limit(1)
+        .maybeSingle();
 
-      return businessMap?.business_id || null;
+      if (businessMember?.business_id) {
+        return businessMember.business_id;
+      }
+
+      // Try 2: Get from businesses where they are owner
+      const { data: ownedBusiness } = await supabase
+        .from("businesses")
+        .select("id")
+        .eq("owner_profile_id", dentist.profile_id)
+        .limit(1)
+        .maybeSingle();
+
+      if (ownedBusiness?.id) {
+        return ownedBusiness.id;
+      }
+
+      // Try 3: Get from provider_business_map
+      const { data: providerMap } = await supabase
+        .from("provider_business_map")
+        .select("business_id")
+        .eq("provider_id", dentist.profile_id)
+        .limit(1)
+        .maybeSingle();
+
+      return providerMap?.business_id || null;
     },
     enabled: open,
   });
@@ -101,7 +125,6 @@ export function QuickAppointmentDialog({
 
       if (error) throw error;
 
-      // Get unique patients
       const uniquePatients = new Map<string, Patient>();
       data?.forEach((apt: any) => {
         const profile = Array.isArray(apt.profiles) ? apt.profiles[0] : apt.profiles;
@@ -114,7 +137,6 @@ export function QuickAppointmentDialog({
     },
     enabled: open && (showPatientSelector || !patient),
   });
-
 
   // Fetch existing appointments for the selected date
   const { data: existingAppointments = [] } = useQuery({
@@ -142,13 +164,11 @@ export function QuickAppointmentDialog({
     const slots: string[] = [];
     const durationMinutes = parseInt(duration);
 
-    // Generate all possible time slots (8 AM to 6 PM)
     for (let h = 8; h <= 18; h++) {
       for (let m = 0; m < 60; m += 30) {
-        if (h === 18 && m > 0) continue; // Don't go past 6 PM
+        if (h === 18 && m > 0) continue;
         const time = `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
 
-        // Check if this slot overlaps with any existing appointment
         const slotStart = new Date(`${appointmentDate}T${time}:00`);
         const slotEnd = addMinutes(slotStart, durationMinutes);
 
@@ -156,7 +176,6 @@ export function QuickAppointmentDialog({
           const aptStart = parseISO(apt.appointment_date);
           const aptEnd = addMinutes(aptStart, apt.duration_minutes || 60);
 
-          // Check for overlap
           return (
             (isAfter(slotStart, aptStart) && isBefore(slotStart, aptEnd)) ||
             (isAfter(slotEnd, aptStart) && isBefore(slotEnd, aptEnd)) ||
@@ -174,20 +193,17 @@ export function QuickAppointmentDialog({
     return slots;
   }, [appointmentDate, existingAppointments, duration]);
 
-  // Pre-fill patient info when patient prop is provided
   useEffect(() => {
     if (patient) {
       setSelectedPatient(patient);
     }
   }, [patient]);
 
-  // Update date/time when props change
   useEffect(() => {
     setAppointmentDate(format(selectedDate, "yyyy-MM-dd"));
     setAppointmentTime(selectedTime);
   }, [selectedDate, selectedTime]);
 
-  // Reset form when dialog closes
   useEffect(() => {
     if (!open) {
       if (!patient) {
@@ -199,7 +215,6 @@ export function QuickAppointmentDialog({
     }
   }, [open, patient]);
 
-  // Filter patients based on search
   const filteredPatients = useMemo(() => {
     if (!patientSearch) return patients;
     const search = patientSearch.toLowerCase();
@@ -230,9 +245,17 @@ export function QuickAppointmentDialog({
       return;
     }
 
+    if (!dentistBusiness) {
+      toast({
+        title: "Error",
+        description: "Could not determine business. Please try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
     try {
-      // Create appointment with selected date and time
       const appointmentDateTime = new Date(appointmentDate);
       const [hours, minutes] = appointmentTime.split(":");
       appointmentDateTime.setHours(parseInt(hours), parseInt(minutes || "0"), 0, 0);
@@ -257,7 +280,6 @@ export function QuickAppointmentDialog({
         description: `Successfully created appointment for ${selectedPatient.first_name} ${selectedPatient.last_name}`,
       });
 
-      // Invalidate queries to refresh calendar
       await queryClient.invalidateQueries({ queryKey: ["appointments-calendar"] });
       await queryClient.invalidateQueries({ queryKey: ["appointments-day"] });
       await queryClient.invalidateQueries({ queryKey: ["all-appointments"] });
@@ -373,7 +395,6 @@ export function QuickAppointmentDialog({
               </Popover>
             </div>
           ) : (
-            // Show selected patient info (read-only)
             <div className="p-3 bg-muted rounded-lg">
               <div className="flex items-center gap-3">
                 <Avatar className="h-10 w-10">
@@ -469,7 +490,7 @@ export function QuickAppointmentDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
             Cancel
           </Button>
-          <Button onClick={handleCreateAppointment} disabled={loading || !selectedPatient}>
+          <Button onClick={handleCreateAppointment} disabled={loading || !selectedPatient || !dentistBusiness}>
             {loading ? "Creating..." : "Book Appointment"}
           </Button>
         </DialogFooter>
