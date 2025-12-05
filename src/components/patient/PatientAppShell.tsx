@@ -16,6 +16,7 @@ import { LanguageSelectorMenu } from "@/components/LanguageSelector";
 import { RoleSwitcherMenu } from "@/components/RoleSwitcher";
 import { UserTour, useUserTour } from "@/components/UserTour";
 import { useTemplate } from "@/contexts/TemplateContext";
+import { useBusinessContext } from "@/hooks/useBusinessContext";
 
 export type PatientSection = 'home' | 'assistant' | 'care' | 'appointments' | 'payments' | 'messages' | 'settings';
 
@@ -254,11 +255,6 @@ export const PatientAppShell: React.FC<PatientAppShellProps> = ({
           <h1 className="font-semibold text-base leading-tight truncate">{branding.clinicName || "Patient Portal"}</h1>
           <p className="text-xs text-muted-foreground">Healthcare Dashboard</p>
         </div>}
-        <div className="ml-auto">
-          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setCollapsed(v => !v)} aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"} title={collapsed ? "Expand" : "Collapse"}>
-            <PanelLeft className="h-4 w-4" />
-          </Button>
-        </div>
       </div>
 
       {/* Navigation */}

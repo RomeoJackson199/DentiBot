@@ -179,7 +179,10 @@ export const HomeTab: React.FC<HomeTabProps> = ({
           transition={{ delay: 0.1 }}
           className="md:col-span-2 lg:col-span-4"
         >
-          <Card className="h-full border-2 hover:border-primary/30 transition-all hover:shadow-lg">
+          <Card
+            className="h-full border-2 hover:border-primary/30 transition-all hover:shadow-lg cursor-pointer"
+            onClick={() => onNavigateTo('appointments')}
+          >
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center justify-between">
                 <span className="flex items-center gap-2">
@@ -433,53 +436,6 @@ export const HomeTab: React.FC<HomeTabProps> = ({
           </Card>
         </motion.div>
       </div>
-
-      {/* Quick Actions - Optional additional row */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.7 }}
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-6"
-      >
-        <Button
-          variant="outline"
-          className="h-auto py-4 flex flex-col items-center gap-2 hover:bg-primary/5"
-          onClick={() => onNavigateTo('care')}
-        >
-          <ClipboardListIcon className="h-5 w-5 text-orange-600" />
-          <span className="text-xs">{t.treatmentPlans}</span>
-          {activeTreatmentPlans > 0 && (
-            <Badge variant="secondary" className="text-xs">{activeTreatmentPlans}</Badge>
-          )}
-        </Button>
-
-        <Button
-          variant="outline"
-          className="h-auto py-4 flex flex-col items-center gap-2 hover:bg-primary/5"
-          onClick={() => onNavigateTo('care')}
-        >
-          <Heart className="h-5 w-5 text-red-600" />
-          <span className="text-xs">{t.healthRecords}</span>
-        </Button>
-
-        <Button
-          variant="outline"
-          className="h-auto py-4 flex flex-col items-center gap-2 hover:bg-primary/5"
-          onClick={onOpenAssistant}
-        >
-          <AlertCircle className="h-5 w-5 text-amber-600" />
-          <span className="text-xs">{t.emergency}</span>
-        </Button>
-
-        <Button
-          variant="outline"
-          className="h-auto py-4 flex flex-col items-center gap-2 hover:bg-primary/5"
-          onClick={() => onNavigateTo('appointments')}
-        >
-          <Award className="h-5 w-5 text-purple-600" />
-          <span className="text-xs">{t.rewards}</span>
-        </Button>
-      </motion.div>
     </div>
   );
 };
