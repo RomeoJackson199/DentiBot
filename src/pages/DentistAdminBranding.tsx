@@ -31,6 +31,8 @@ import { QRCodeCanvas } from "qrcode.react";
 import { logger } from '@/lib/logger';
 import { TemplatePreview } from "@/components/TemplatePreview";
 import { EmailTemplateEditor } from "@/components/settings/EmailTemplateEditor";
+import { AddressAutocomplete } from "@/components/ui/address-autocomplete";
+import { PhoneNumberInput } from "@/components/ui/phone-input";
 
 export default function DentistAdminBranding() {
   const { businessId, loading: businessLoading } = useBusinessContext();
@@ -44,6 +46,7 @@ export default function DentistAdminBranding() {
   const [showQrDialog, setShowQrDialog] = useState(false);
   const [tagline, setTagline] = useState("");
   const [address, setAddress] = useState("");
+  const [phone, setPhone] = useState("");
   const [primaryColor, setPrimaryColor] = useState("#0EA5E9");
   const [secondaryColor, setSecondaryColor] = useState("#10B981");
   const [logoUrl, setLogoUrl] = useState("");
@@ -68,6 +71,7 @@ export default function DentistAdminBranding() {
     slug,
     tagline,
     address,
+    phone,
     primaryColor,
     secondaryColor,
     logoUrl,
@@ -87,7 +91,7 @@ export default function DentistAdminBranding() {
     try {
       const { data: business, error } = await supabase
         .from('businesses')
-        .select('name, slug, tagline, logo_url, template_type, ai_system_behavior, ai_greeting, ai_personality_traits')
+        .select('name, slug, tagline, address, phone, logo_url, template_type, ai_system_behavior, ai_greeting, ai_personality_traits')
         .eq('id', businessId)
         .single();
 
@@ -99,7 +103,8 @@ export default function DentistAdminBranding() {
           clinicName: business.name || "",
           slug: business.slug || "",
           tagline: business.tagline || "",
-          address: business.tagline || "",
+          address: business.address || "",
+          phone: business.phone || "",
           primaryColor: "#2D5D7B",
           secondaryColor: "#8B5CF6",
           logoUrl: business.logo_url || "",
@@ -113,6 +118,7 @@ export default function DentistAdminBranding() {
         setSlug(state.slug);
         setTagline(state.tagline);
         setAddress(state.address);
+        setPhone(state.phone);
         setPrimaryColor(state.primaryColor);
         setSecondaryColor(state.secondaryColor);
         setLogoUrl(state.logoUrl);
@@ -365,7 +371,9 @@ export default function DentistAdminBranding() {
       const updateData: any = {
         name: clinicName,
         slug: slug,
-        tagline: address,
+        tagline: tagline,
+        address: address,
+        phone: phone,
       };
 
       // Only add optional columns if they have values
@@ -395,6 +403,7 @@ export default function DentistAdminBranding() {
         slug,
         tagline,
         address,
+        phone,
         primaryColor,
         secondaryColor,
         logoUrl,
@@ -422,6 +431,7 @@ export default function DentistAdminBranding() {
       slug,
       tagline,
       address,
+      phone,
       primaryColor,
       secondaryColor,
       logoUrl,
@@ -431,7 +441,7 @@ export default function DentistAdminBranding() {
       aiPersonalityTraits,
     };
     setHasChanges(JSON.stringify(currentState) !== JSON.stringify(initialState));
-  }, [clinicName, slug, tagline, address, primaryColor, secondaryColor, logoUrl, templateType, aiSystemBehavior, aiGreeting, aiPersonalityTraits, initialState]);
+  }, [clinicName, slug, tagline, address, phone, primaryColor, secondaryColor, logoUrl, templateType, aiSystemBehavior, aiGreeting, aiPersonalityTraits, initialState]);
 
   const { ConfirmationDialog } = useUnsavedChanges({
     hasUnsavedChanges: hasChanges,
@@ -662,11 +672,19 @@ export default function DentistAdminBranding() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="address">Clinic Address</Label>
-                  <Input
-                    id="address"
+                  <AddressAutocomplete
                     value={address}
-                    onChange={(e) => setAddress(e.target.value)}
-                    placeholder="123 Main St, City, State, ZIP"
+                    onChange={setAddress}
+                    placeholder="Search for your clinic address..."
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Phone Number</Label>
+                  <PhoneNumberInput
+                    value={phone}
+                    onChange={(val) => setPhone(val || "")}
+                    placeholder="Enter phone number"
                   />
                 </div>
               </CardContent>
