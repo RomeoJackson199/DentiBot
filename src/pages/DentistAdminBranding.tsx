@@ -87,7 +87,7 @@ export default function DentistAdminBranding() {
     try {
       const { data: business, error } = await supabase
         .from('businesses')
-        .select('name, slug, tagline, logo_url, primary_color, secondary_color, template_type, ai_system_behavior, ai_greeting, ai_personality_traits, daily_revenue_goal_cents, custom_config, custom_features, custom_terminology')
+        .select('name, slug, tagline, logo_url, primary_color, secondary_color, template_type, ai_system_behavior, ai_greeting, ai_personality_traits, custom_config, custom_features, custom_terminology')
         .eq('id', businessId)
         .single();
 
@@ -99,7 +99,7 @@ export default function DentistAdminBranding() {
           clinicName: business.name || "",
           slug: business.slug || "",
           tagline: business.tagline || "",
-          address: "",
+          address: business.tagline || "",
           primaryColor: business.primary_color || "#2D5D7B",
           secondaryColor: business.secondary_color || "#8B5CF6",
           logoUrl: business.logo_url || "",
@@ -107,7 +107,6 @@ export default function DentistAdminBranding() {
           aiSystemBehavior: business.ai_system_behavior || template.aiBehaviorDefaults.systemBehavior,
           aiGreeting: business.ai_greeting || template.aiBehaviorDefaults.greeting,
           aiPersonalityTraits: (business.ai_personality_traits as string[]) || template.aiBehaviorDefaults.personalityTraits,
-          dailyRevenueGoal: (business.daily_revenue_goal_cents || 180000) / 100,
         };
 
         setClinicName(state.clinicName);
@@ -121,7 +120,6 @@ export default function DentistAdminBranding() {
         setAiSystemBehavior(state.aiSystemBehavior);
         setAiGreeting(state.aiGreeting);
         setAiPersonalityTraits(state.aiPersonalityTraits);
-        setDailyRevenueGoal(state.dailyRevenueGoal);
 
         setInitialState(state);
         setHasChanges(false);
@@ -367,15 +365,15 @@ export default function DentistAdminBranding() {
       const updateData: any = {
         name: clinicName,
         slug: slug,
-        tagline: address, // Address stored in tagline field
-        logo_url: logoUrl,
-        primary_color: primaryColor,
-        secondary_color: secondaryColor,
-        template_type: templateType,
-        ai_system_behavior: aiSystemBehavior,
-        ai_greeting: aiGreeting,
-        ai_personality_traits: aiPersonalityTraits,
+        tagline: address,
       };
+
+      // Only add optional columns if they have values
+      if (logoUrl) updateData.logo_url = logoUrl;
+      if (templateType) updateData.template_type = templateType;
+      if (aiSystemBehavior) updateData.ai_system_behavior = aiSystemBehavior;
+      if (aiGreeting) updateData.ai_greeting = aiGreeting;
+      if (aiPersonalityTraits?.length) updateData.ai_personality_traits = aiPersonalityTraits;
 
       const { error } = await supabase
         .from('businesses')
