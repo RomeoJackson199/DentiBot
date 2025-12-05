@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,15 +7,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { format } from "date-fns";
-import { Calendar, Clock, User } from "lucide-react";
-import { useQueryClient } from "@tanstack/react-query";
+import { format, parseISO, addMinutes, isBefore, isAfter, startOfDay, endOfDay } from "date-fns";
+import { Calendar, Clock, User, Search, Loader2 } from "lucide-react";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 interface Patient {
   id: string;
   first_name: string;
   last_name: string;
   email: string;
+  phone?: string;
 }
 
 interface QuickAppointmentDialogProps {
@@ -26,6 +30,8 @@ interface QuickAppointmentDialogProps {
   selectedTime: string;
   // Optional: pre-fill with patient data when booking for a specific patient
   patient?: Patient;
+  // Optional: show patient selector (for agenda view)
+  showPatientSelector?: boolean;
 }
 
 export function QuickAppointmentDialog({
@@ -34,11 +40,13 @@ export function QuickAppointmentDialog({
   dentistId,
   selectedDate,
   selectedTime,
-  patient
+  patient,
+  showPatientSelector = false
 }: QuickAppointmentDialogProps) {
   const [loading, setLoading] = useState(false);
-  const [patientEmail, setPatientEmail] = useState("");
-  const [patientName, setPatientName] = useState("");
+  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(patient || null);
+  const [patientSearchOpen, setPatientSearchOpen] = useState(false);
+  const [patientSearch, setPatientSearch] = useState("");
   const [reason, setReason] = useState("");
   const [duration, setDuration] = useState("60");
   const [appointmentDate, setAppointmentDate] = useState(format(selectedDate, "yyyy-MM-dd"));
@@ -46,11 +54,102 @@ export function QuickAppointmentDialog({
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Fetch all patients for this dentist
+  const { data: patients = [], isLoading: patientsLoading } = useQuery({
+    queryKey: ["dentist-patients", dentistId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("appointments")
+        .select(`
+          patient_id,
+          profiles!appointments_patient_id_fkey (
+            id,
+            first_name,
+            last_name,
+            email,
+            phone
+          )
+        `)
+        .eq("dentist_id", dentistId);
+
+      if (error) throw error;
+
+      // Get unique patients
+      const uniquePatients = new Map<string, Patient>();
+      data?.forEach((apt: any) => {
+        const profile = Array.isArray(apt.profiles) ? apt.profiles[0] : apt.profiles;
+        if (profile && !uniquePatients.has(profile.id)) {
+          uniquePatients.set(profile.id, profile);
+        }
+      });
+
+      return Array.from(uniquePatients.values());
+    },
+    enabled: open && (showPatientSelector || !patient),
+  });
+
+  // Fetch existing appointments for the selected date
+  const { data: existingAppointments = [] } = useQuery({
+    queryKey: ["appointments-for-date", dentistId, appointmentDate],
+    queryFn: async () => {
+      const dateStart = startOfDay(new Date(appointmentDate));
+      const dateEnd = endOfDay(new Date(appointmentDate));
+
+      const { data, error } = await supabase
+        .from("appointments")
+        .select("appointment_date, duration_minutes, status")
+        .eq("dentist_id", dentistId)
+        .gte("appointment_date", dateStart.toISOString())
+        .lte("appointment_date", dateEnd.toISOString())
+        .neq("status", "cancelled");
+
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: open,
+  });
+
+  // Generate available time slots
+  const availableTimeSlots = useMemo(() => {
+    const slots: string[] = [];
+    const durationMinutes = parseInt(duration);
+
+    // Generate all possible time slots (8 AM to 6 PM)
+    for (let h = 8; h <= 18; h++) {
+      for (let m = 0; m < 60; m += 30) {
+        if (h === 18 && m > 0) continue; // Don't go past 6 PM
+        const time = `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
+
+        // Check if this slot overlaps with any existing appointment
+        const slotStart = new Date(`${appointmentDate}T${time}:00`);
+        const slotEnd = addMinutes(slotStart, durationMinutes);
+
+        const isAvailable = !existingAppointments.some((apt: any) => {
+          const aptStart = parseISO(apt.appointment_date);
+          const aptEnd = addMinutes(aptStart, apt.duration_minutes || 60);
+
+          // Check for overlap
+          return (
+            (isAfter(slotStart, aptStart) && isBefore(slotStart, aptEnd)) ||
+            (isAfter(slotEnd, aptStart) && isBefore(slotEnd, aptEnd)) ||
+            (isBefore(slotStart, aptStart) && isAfter(slotEnd, aptEnd)) ||
+            slotStart.getTime() === aptStart.getTime()
+          );
+        });
+
+        if (isAvailable) {
+          slots.push(time);
+        }
+      }
+    }
+
+    return slots;
+  }, [appointmentDate, existingAppointments, duration]);
+
   // Pre-fill patient info when patient prop is provided
   useEffect(() => {
     if (patient) {
-      setPatientName(`${patient.first_name} ${patient.last_name}`);
-      setPatientEmail(patient.email);
+      setSelectedPatient(patient);
     }
   }, [patient]);
 
@@ -64,19 +163,40 @@ export function QuickAppointmentDialog({
   useEffect(() => {
     if (!open) {
       if (!patient) {
-        setPatientEmail("");
-        setPatientName("");
+        setSelectedPatient(null);
       }
       setReason("");
       setDuration("60");
+      setPatientSearch("");
     }
   }, [open, patient]);
 
+  // Filter patients based on search
+  const filteredPatients = useMemo(() => {
+    if (!patientSearch) return patients;
+    const search = patientSearch.toLowerCase();
+    return patients.filter(
+      (p) =>
+        p.first_name.toLowerCase().includes(search) ||
+        p.last_name.toLowerCase().includes(search) ||
+        p.email.toLowerCase().includes(search)
+    );
+  }, [patients, patientSearch]);
+
   const handleCreateAppointment = async () => {
-    if (!patientEmail || !patientName) {
+    if (!selectedPatient) {
       toast({
         title: "Missing Information",
-        description: "Please provide patient name and email",
+        description: "Please select a patient",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!appointmentTime) {
+      toast({
+        title: "Missing Information",
+        description: "Please select a time slot",
         variant: "destructive",
       });
       return;
@@ -84,43 +204,6 @@ export function QuickAppointmentDialog({
 
     setLoading(true);
     try {
-      let patientId: string;
-
-      if (patient) {
-        // Use existing patient ID
-        patientId = patient.id;
-      } else {
-        // Find or create patient profile
-        const { data: existingProfile } = await supabase
-          .from("profiles")
-          .select("id")
-          .eq("email", patientEmail.toLowerCase())
-          .maybeSingle();
-
-        if (existingProfile) {
-          patientId = existingProfile.id;
-        } else {
-          // Create new profile
-          const nameParts = patientName.trim().split(" ");
-          const firstName = nameParts[0] || "";
-          const lastName = nameParts.slice(1).join(" ") || "";
-
-          const { data: newProfile, error: profileError } = await supabase
-            .from("profiles")
-            .insert({
-              email: patientEmail.toLowerCase(),
-              first_name: firstName,
-              last_name: lastName,
-              role: "patient",
-            })
-            .select()
-            .single();
-
-          if (profileError) throw profileError;
-          patientId = newProfile.id;
-        }
-      }
-
       // Create appointment with selected date and time
       const appointmentDateTime = new Date(appointmentDate);
       const [hours, minutes] = appointmentTime.split(":");
@@ -130,7 +213,7 @@ export function QuickAppointmentDialog({
         .from("appointments")
         .insert({
           dentist_id: dentistId,
-          patient_id: patientId,
+          patient_id: selectedPatient.id,
           appointment_date: appointmentDateTime.toISOString(),
           duration_minutes: parseInt(duration),
           status: "pending",
@@ -142,13 +225,14 @@ export function QuickAppointmentDialog({
 
       toast({
         title: "Appointment Created",
-        description: `Successfully created appointment for ${patientName}`,
+        description: `Successfully created appointment for ${selectedPatient.first_name} ${selectedPatient.last_name}`,
       });
 
       // Invalidate queries to refresh calendar
       await queryClient.invalidateQueries({ queryKey: ["appointments-calendar"] });
       await queryClient.invalidateQueries({ queryKey: ["appointments-day"] });
       await queryClient.invalidateQueries({ queryKey: ["all-appointments"] });
+      await queryClient.invalidateQueries({ queryKey: ["appointments-for-date"] });
 
       onOpenChange(false);
     } catch (error: any) {
@@ -163,15 +247,6 @@ export function QuickAppointmentDialog({
     }
   };
 
-  // Generate time options
-  const timeOptions = [];
-  for (let h = 8; h <= 18; h++) {
-    for (let m = 0; m < 60; m += 30) {
-      const time = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
-      timeOptions.push(time);
-    }
-  }
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
@@ -181,55 +256,108 @@ export function QuickAppointmentDialog({
             Book Appointment
           </DialogTitle>
           <DialogDescription>
-            {patient
-              ? `Schedule an appointment for ${patient.first_name} ${patient.last_name}`
-              : "Create a new appointment"
-            }
+            {selectedPatient
+              ? `Schedule an appointment for ${selectedPatient.first_name} ${selectedPatient.last_name}`
+              : "Select a patient and time slot"}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
-          {/* Patient Info - Read-only if patient prop is provided */}
-          {patient ? (
+          {/* Patient Selector */}
+          {(showPatientSelector || !patient) ? (
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <User className="h-4 w-4" />
+                Patient *
+              </Label>
+              <Popover open={patientSearchOpen} onOpenChange={setPatientSearchOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={patientSearchOpen}
+                    className="w-full justify-between"
+                  >
+                    {selectedPatient ? (
+                      <div className="flex items-center gap-2">
+                        <Avatar className="h-6 w-6">
+                          <AvatarFallback className="text-xs">
+                            {selectedPatient.first_name[0]}{selectedPatient.last_name[0]}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span>{selectedPatient.first_name} {selectedPatient.last_name}</span>
+                      </div>
+                    ) : (
+                      <span className="text-muted-foreground">Select patient...</span>
+                    )}
+                    <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[400px] p-0" align="start">
+                  <Command>
+                    <CommandInput
+                      placeholder="Search patients..."
+                      value={patientSearch}
+                      onValueChange={setPatientSearch}
+                    />
+                    <CommandList>
+                      {patientsLoading ? (
+                        <div className="flex items-center justify-center p-4">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        </div>
+                      ) : (
+                        <>
+                          <CommandEmpty>No patients found.</CommandEmpty>
+                          <CommandGroup>
+                            {filteredPatients.map((p) => (
+                              <CommandItem
+                                key={p.id}
+                                value={`${p.first_name} ${p.last_name} ${p.email}`}
+                                onSelect={() => {
+                                  setSelectedPatient(p);
+                                  setPatientSearchOpen(false);
+                                }}
+                              >
+                                <div className="flex items-center gap-3 w-full">
+                                  <Avatar className="h-8 w-8">
+                                    <AvatarFallback>
+                                      {p.first_name[0]}{p.last_name[0]}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="font-medium truncate">
+                                      {p.first_name} {p.last_name}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground truncate">
+                                      {p.email}
+                                    </p>
+                                  </div>
+                                </div>
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </>
+                      )}
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            </div>
+          ) : (
+            // Show selected patient info (read-only)
             <div className="p-3 bg-muted rounded-lg">
               <div className="flex items-center gap-3">
-                <div className="bg-primary/10 w-10 h-10 rounded-full flex items-center justify-center text-primary font-semibold">
-                  {patient.first_name[0]}{patient.last_name[0]}
-                </div>
+                <Avatar className="h-10 w-10">
+                  <AvatarFallback className="text-sm">
+                    {selectedPatient?.first_name[0]}{selectedPatient?.last_name[0]}
+                  </AvatarFallback>
+                </Avatar>
                 <div>
-                  <p className="font-medium">{patient.first_name} {patient.last_name}</p>
-                  <p className="text-sm text-muted-foreground">{patient.email}</p>
+                  <p className="font-medium">{selectedPatient?.first_name} {selectedPatient?.last_name}</p>
+                  <p className="text-sm text-muted-foreground">{selectedPatient?.email}</p>
                 </div>
               </div>
             </div>
-          ) : (
-            <>
-              {/* Patient Name */}
-              <div className="space-y-2">
-                <Label htmlFor="patientName" className="flex items-center gap-2">
-                  <User className="h-4 w-4" />
-                  Patient Name *
-                </Label>
-                <Input
-                  id="patientName"
-                  placeholder="John Doe"
-                  value={patientName}
-                  onChange={(e) => setPatientName(e.target.value)}
-                />
-              </div>
-
-              {/* Patient Email */}
-              <div className="space-y-2">
-                <Label htmlFor="patientEmail">Patient Email *</Label>
-                <Input
-                  id="patientEmail"
-                  type="email"
-                  placeholder="patient@example.com"
-                  value={patientEmail}
-                  onChange={(e) => setPatientEmail(e.target.value)}
-                />
-              </div>
-            </>
           )}
 
           {/* Date and Time */}
@@ -255,14 +383,20 @@ export function QuickAppointmentDialog({
               </Label>
               <Select value={appointmentTime} onValueChange={setAppointmentTime}>
                 <SelectTrigger id="appointmentTime">
-                  <SelectValue />
+                  <SelectValue placeholder="Select time" />
                 </SelectTrigger>
                 <SelectContent>
-                  {timeOptions.map((time) => (
-                    <SelectItem key={time} value={time}>
-                      {time}
-                    </SelectItem>
-                  ))}
+                  {availableTimeSlots.length === 0 ? (
+                    <div className="p-2 text-sm text-muted-foreground text-center">
+                      No available slots
+                    </div>
+                  ) : (
+                    availableTimeSlots.map((time) => (
+                      <SelectItem key={time} value={time}>
+                        {time}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -306,7 +440,7 @@ export function QuickAppointmentDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
             Cancel
           </Button>
-          <Button onClick={handleCreateAppointment} disabled={loading}>
+          <Button onClick={handleCreateAppointment} disabled={loading || !selectedPatient}>
             {loading ? "Creating..." : "Book Appointment"}
           </Button>
         </DialogFooter>

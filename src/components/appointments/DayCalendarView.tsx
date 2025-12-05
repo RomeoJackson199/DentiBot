@@ -349,6 +349,7 @@ export function DayCalendarView({
         dentistId={dentistId}
         selectedDate={quickAppointmentDate}
         selectedTime={quickAppointmentTime}
+        showPatientSelector={true}
       />
     </TooltipProvider>
   );

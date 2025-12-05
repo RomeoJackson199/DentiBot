@@ -388,6 +388,7 @@ export function WeeklyCalendarView({
         dentistId={dentistId}
         selectedDate={quickAppointmentDate}
         selectedTime={quickAppointmentTime}
+        showPatientSelector={true}
       />
     </TooltipProvider>
   );
