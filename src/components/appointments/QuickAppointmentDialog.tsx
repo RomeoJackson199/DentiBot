@@ -77,7 +77,6 @@ export function QuickAppointmentDialog({
         .maybeSingle();
 
       if (businessMember?.business_id) {
-        console.log("Found business from business_members:", businessMember.business_id);
         return businessMember.business_id;
       }
 
@@ -90,7 +89,6 @@ export function QuickAppointmentDialog({
         .maybeSingle();
 
       if (ownedBusiness?.id) {
-        console.log("Found business from owned businesses:", ownedBusiness.id);
         return ownedBusiness.id;
       }
 
@@ -103,7 +101,6 @@ export function QuickAppointmentDialog({
         .maybeSingle();
 
       if (providerMap?.business_id) {
-        console.log("Found business from provider_business_map:", providerMap.business_id);
         return providerMap.business_id;
       }
 
@@ -117,7 +114,6 @@ export function QuickAppointmentDialog({
         .maybeSingle();
 
       if (existingAppt?.business_id) {
-        console.log("Found business from existing appointments:", existingAppt.business_id);
         return existingAppt.business_id;
       }
 
@@ -129,11 +125,9 @@ export function QuickAppointmentDialog({
         .maybeSingle();
 
       if (anyBusiness?.id) {
-        console.log("Using fallback business:", anyBusiness.id);
         return anyBusiness.id;
       }
 
-      console.error("No business found at all!");
       return null;
     },
     enabled: open,
