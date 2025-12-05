@@ -54,7 +54,6 @@ export default function DentistAdminBranding() {
   const [aiGreeting, setAiGreeting] = useState("");
   const [aiPersonalityTraits, setAiPersonalityTraits] = useState<string[]>([]);
   const [showTestChat, setShowTestChat] = useState(false);
-  const [dailyRevenueGoal, setDailyRevenueGoal] = useState(1800);
   const { toast } = useToast();
   const qrCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const baseOrigin = typeof window !== "undefined" ? window.location.origin : "";
@@ -76,7 +75,6 @@ export default function DentistAdminBranding() {
     aiSystemBehavior,
     aiGreeting,
     aiPersonalityTraits,
-    dailyRevenueGoal,
   });
 
   useEffect(() => {
@@ -369,7 +367,7 @@ export default function DentistAdminBranding() {
       const updateData: any = {
         name: clinicName,
         slug: slug,
-        tagline: tagline,
+        tagline: address, // Address stored in tagline field
         logo_url: logoUrl,
         primary_color: primaryColor,
         secondary_color: secondaryColor,
@@ -377,7 +375,6 @@ export default function DentistAdminBranding() {
         ai_system_behavior: aiSystemBehavior,
         ai_greeting: aiGreeting,
         ai_personality_traits: aiPersonalityTraits,
-        daily_revenue_goal_cents: dailyRevenueGoal * 100,
       };
 
       const { error } = await supabase
@@ -395,7 +392,6 @@ export default function DentistAdminBranding() {
         description: "Your branding settings have been saved successfully. All changes are now active!",
       });
 
-      // Update initial state after successful save
       setInitialState({
         clinicName,
         slug,
@@ -408,7 +404,6 @@ export default function DentistAdminBranding() {
         aiSystemBehavior,
         aiGreeting,
         aiPersonalityTraits,
-        dailyRevenueGoal,
       });
       setHasChanges(false);
     } catch (error: any) {
@@ -436,10 +431,9 @@ export default function DentistAdminBranding() {
       aiSystemBehavior,
       aiGreeting,
       aiPersonalityTraits,
-      dailyRevenueGoal,
     };
     setHasChanges(JSON.stringify(currentState) !== JSON.stringify(initialState));
-  }, [clinicName, slug, tagline, address, primaryColor, secondaryColor, logoUrl, templateType, aiSystemBehavior, aiGreeting, aiPersonalityTraits, dailyRevenueGoal, initialState]);
+  }, [clinicName, slug, tagline, address, primaryColor, secondaryColor, logoUrl, templateType, aiSystemBehavior, aiGreeting, aiPersonalityTraits, initialState]);
 
   const { ConfirmationDialog } = useUnsavedChanges({
     hasUnsavedChanges: hasChanges,
@@ -677,22 +671,6 @@ export default function DentistAdminBranding() {
                     placeholder="123 Main St, City, State, ZIP"
                   />
                 </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="revenue-goal">Daily Revenue Goal (USD)</Label>
-                  <Input
-                    id="revenue-goal"
-                    type="number"
-                    min="0"
-                    step="1"
-                    value={dailyRevenueGoal}
-                    onChange={(e) => setDailyRevenueGoal(Number(e.target.value))}
-                    placeholder="1800"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Set your daily revenue target to track performance on the dashboard
-                  </p>
-                </div>
               </CardContent>
             </Card>
 
@@ -800,7 +778,7 @@ export default function DentistAdminBranding() {
             onConfirmSwitch={confirmTemplateChange}
           />
         )}
-      </div>
+      </div >
     </>
   );
 }
