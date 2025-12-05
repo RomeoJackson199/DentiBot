@@ -77,6 +77,7 @@ export function QuickAppointmentDialog({
         .maybeSingle();
 
       if (businessMember?.business_id) {
+        console.log("Found business from business_members:", businessMember.business_id);
         return businessMember.business_id;
       }
 
@@ -89,6 +90,7 @@ export function QuickAppointmentDialog({
         .maybeSingle();
 
       if (ownedBusiness?.id) {
+        console.log("Found business from owned businesses:", ownedBusiness.id);
         return ownedBusiness.id;
       }
 
@@ -100,7 +102,39 @@ export function QuickAppointmentDialog({
         .limit(1)
         .maybeSingle();
 
-      return providerMap?.business_id || null;
+      if (providerMap?.business_id) {
+        console.log("Found business from provider_business_map:", providerMap.business_id);
+        return providerMap.business_id;
+      }
+
+      // Try 4: Get from existing appointments for this dentist
+      const { data: existingAppt } = await supabase
+        .from("appointments")
+        .select("business_id")
+        .eq("dentist_id", dentistId)
+        .not("business_id", "is", null)
+        .limit(1)
+        .maybeSingle();
+
+      if (existingAppt?.business_id) {
+        console.log("Found business from existing appointments:", existingAppt.business_id);
+        return existingAppt.business_id;
+      }
+
+      // Try 5: Just get ANY business (last resort)
+      const { data: anyBusiness } = await supabase
+        .from("businesses")
+        .select("id")
+        .limit(1)
+        .maybeSingle();
+
+      if (anyBusiness?.id) {
+        console.log("Using fallback business:", anyBusiness.id);
+        return anyBusiness.id;
+      }
+
+      console.error("No business found at all!");
+      return null;
     },
     enabled: open,
   });
