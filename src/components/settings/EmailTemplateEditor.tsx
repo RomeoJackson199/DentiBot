@@ -10,7 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useBusinessContext } from "@/hooks/useBusinessContext";
-import { Mail, Eye, Save, RotateCcw, Loader2, Code } from "lucide-react";
+import { Mail, Eye, Save, RotateCcw, Loader2, Code, Send } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 // Template types with their available variables
@@ -124,6 +124,51 @@ export function EmailTemplateEditor() {
     const [bodyHtml, setBodyHtml] = useState("");
     const [isActive, setIsActive] = useState(true);
     const [showPreview, setShowPreview] = useState(false);
+    const [sendingTest, setSendingTest] = useState(false);
+
+    // Send test email to dentist
+    const sendTestEmail = async () => {
+        setSendingTest(true);
+        try {
+            // Get current user's email
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user?.email) {
+                throw new Error("No email found for current user");
+            }
+
+            // Get preview HTML with sample data
+            const previewHtml = getPreviewHtml();
+            const previewSubject = subject
+                .replace(/{{clinic_name}}/g, 'Your Clinic')
+                .replace(/{{patient_name}}/g, 'Test User');
+
+            // Send via edge function
+            const { error } = await supabase.functions.invoke('send-email-notification', {
+                body: {
+                    to: user.email,
+                    subject: `[TEST] ${previewSubject}`,
+                    message: previewHtml,
+                    messageType: 'system',
+                    isSystemNotification: true,
+                },
+            });
+
+            if (error) throw error;
+
+            toast({
+                title: "Test Email Sent!",
+                description: `Check your inbox at ${user.email}`,
+            });
+        } catch (error: any) {
+            toast({
+                title: "Failed to send test email",
+                description: error.message || "Unknown error",
+                variant: "destructive",
+            });
+        } finally {
+            setSendingTest(false);
+        }
+    };
 
     // Fetch existing templates
     const { data: templates, isLoading } = useQuery({
@@ -361,14 +406,24 @@ export function EmailTemplateEditor() {
                         <RotateCcw className="h-4 w-4 mr-2" />
                         Reset to Default
                     </Button>
-                    <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending}>
-                        {saveMutation.isPending ? (
-                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        ) : (
-                            <Save className="h-4 w-4 mr-2" />
-                        )}
-                        Save Template
-                    </Button>
+                    <div className="flex gap-2">
+                        <Button variant="outline" onClick={sendTestEmail} disabled={sendingTest}>
+                            {sendingTest ? (
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            ) : (
+                                <Send className="h-4 w-4 mr-2" />
+                            )}
+                            Send Test Email
+                        </Button>
+                        <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending}>
+                            {saveMutation.isPending ? (
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            ) : (
+                                <Save className="h-4 w-4 mr-2" />
+                            )}
+                            Save Template
+                        </Button>
+                    </div>
                 </div>
             </CardContent>
         </Card>
