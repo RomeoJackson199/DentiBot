@@ -35,13 +35,11 @@ interface EmailRequest {
 }
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    // Read request payload first to determine system-mode
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     if (!supabaseUrl || !supabaseServiceKey) {
@@ -54,11 +52,9 @@ serve(async (req) => {
     let supabase;
     let authedUserId: string | null = null;
     if (isSystem) {
-      // System notifications use service role and bypass end-user auth
       supabase = createClient(supabaseUrl, supabaseServiceKey);
       console.log('📧 System notification - skipping user authentication');
     } else {
-      // Require end-user token for non-system notifications
       const authHeader = req.headers.get('authorization');
       if (!authHeader) {
         throw new Error('Authorization header required');
@@ -75,7 +71,7 @@ serve(async (req) => {
 
     console.log('📧 Email request details:', { to, subject, messageType, patientId, dentistId, isSystemNotification: isSystem });
 
-    // Authorization check: Skip for system notifications, otherwise verify dentist access
+    // Authorization check
     if (!isSystem && dentistId && patientId) {
       const { data: userProfile } = await supabase
         .from('profiles')
@@ -101,7 +97,7 @@ serve(async (req) => {
       console.log('📧 System notification - skipping dentist authorization');
     }
 
-    // Create email notification record (only for dentist-patient communications)
+    // Create email notification record
     let notificationId;
     if (patientId && dentistId && !isSystem) {
       try {
@@ -130,44 +126,29 @@ serve(async (req) => {
       }
     }
 
-    // Always use Romeo@caberu.be as the sender
+    // Default sender info
     let fromEmail = 'Romeo@caberu.be';
-    let fromName = 'Romeo - Dental Practice';
+    let fromName = 'Caberu Dental';
+    let emailSubject = subject;
+    let emailBody = message;
+    let businessData: { name: string; phone?: string; address?: string } | null = null;
+    let dentistFullName = '';
 
+    // Fetch real business and dentist data
     if (dentistId) {
-      const { data: dentistProfile } = await supabase
+      const { data: dentistData } = await supabase
         .from('dentists')
         .select(`
-          profile:profiles(first_name, last_name)
+          profile_id,
+          profiles (first_name, last_name)
         `)
         .eq('id', dentistId)
         .single();
 
-      if (dentistProfile?.profile) {
-        fromName = `Dr. ${dentistProfile.profile.first_name} ${dentistProfile.profile.last_name} - Romeo Dental`;
+      if (dentistData?.profiles) {
+        const profile = dentistData.profiles as any;
+        dentistFullName = `Dr. ${profile.first_name} ${profile.last_name}`;
       }
-    }
-
-    // Send email using Twilio SendGrid
-    const sendGridApiKey = Deno.env.get('TWILIO_API_KEY');
-    if (!sendGridApiKey) {
-      console.error('❌ TWILIO_API_KEY environment variable not set');
-      throw new Error('SendGrid API key not configured - please set TWILIO_API_KEY environment variable');
-    }
-
-    console.log('🔑 SendGrid API key configured, proceeding with email send...');
-
-    // Try to get custom template for this business
-    let emailSubject = subject;
-    let emailBody = message;
-
-    if (dentistId) {
-      // Get the business ID for this dentist
-      const { data: dentistData } = await supabase
-        .from('dentists')
-        .select('profile_id')
-        .eq('id', dentistId)
-        .single();
 
       if (dentistData?.profile_id) {
         // Get business from business_members
@@ -181,6 +162,23 @@ serve(async (req) => {
         const businessId = businessMember?.business_id;
 
         if (businessId) {
+          // Fetch actual business details
+          const { data: business } = await supabase
+            .from('businesses')
+            .select('name, phone, tagline')
+            .eq('id', businessId)
+            .single();
+
+          if (business) {
+            businessData = {
+              name: business.name || 'Your Dental Practice',
+              phone: business.phone || '',
+              address: business.tagline || '',
+            };
+            fromName = dentistFullName ? `${dentistFullName} - ${business.name}` : business.name;
+            console.log('📍 Using real business data:', businessData.name);
+          }
+
           // Check for custom template
           const { data: customTemplate } = await supabase
             .from('business_email_templates')
@@ -199,9 +197,21 @@ serve(async (req) => {
       }
     }
 
-    // Build email HTML
+    // Replace template variables with real data
+    const replaceVars = (text: string) => {
+      return text
+        .replace(/\{\{clinic_name\}\}/g, businessData?.name || 'Your Dental Practice')
+        .replace(/\{\{clinic_phone\}\}/g, businessData?.phone || '')
+        .replace(/\{\{clinic_address\}\}/g, businessData?.address || '')
+        .replace(/\{\{dentist_name\}\}/g, dentistFullName || 'Your Dentist');
+    };
+
+    emailSubject = replaceVars(emailSubject);
+    emailBody = replaceVars(emailBody);
+
+    // Build final email HTML
     const emailHtml = emailBody.includes('<div') || emailBody.includes('<p')
-      ? emailBody  // Already HTML
+      ? emailBody
       : `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h2 style="color: #333;">${emailSubject}</h2>
@@ -209,28 +219,27 @@ serve(async (req) => {
             ${emailBody.replace(/\n/g, '<br>')}
           </div>
           <p style="color: #666; font-size: 12px;">
-            This email was sent from your dental practice management system.
+            This email was sent from ${businessData?.name || 'your dental practice'}.
           </p>
         </div>
       `;
+
+    // Send via SendGrid
+    const sendGridApiKey = Deno.env.get('TWILIO_API_KEY');
+    if (!sendGridApiKey) {
+      throw new Error('SendGrid API key not configured');
+    }
 
     const emailData = {
       personalizations: [{
         to: [{ email: to }],
         subject: emailSubject
       }],
-      from: {
-        email: fromEmail,
-        name: fromName
-      },
-      content: [{
-        type: "text/html",
-        value: emailHtml
-      }]
+      from: { email: fromEmail, name: fromName },
+      content: [{ type: "text/html", value: emailHtml }]
     };
 
-    // Send via Twilio SendGrid API
-    console.log('🚀 Sending email to SendGrid API...');
+    console.log('🚀 Sending email via SendGrid...');
     const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
       method: 'POST',
       headers: {
@@ -240,32 +249,22 @@ serve(async (req) => {
       body: JSON.stringify(emailData)
     });
 
-    console.log('📡 SendGrid API response status:', response.status);
+    console.log('📡 SendGrid response status:', response.status);
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('❌ SendGrid API error:', {
-        status: response.status,
-        statusText: response.statusText,
-        error: errorText
-      });
+      console.error('❌ SendGrid error:', errorText);
 
-      // Update notification status to failed
       if (notificationId) {
-        try {
-          await supabase
-            .from('email_notifications')
-            .update({ status: 'failed', error_message: errorText })
-            .eq('id', notificationId);
-        } catch (updateError) {
-          console.error('Failed to update notification status:', updateError);
-        }
+        await supabase
+          .from('email_notifications')
+          .update({ status: 'failed', error_message: errorText })
+          .eq('id', notificationId);
       }
 
-      throw new Error(`SendGrid API failed: ${response.status} - ${errorText}`);
+      throw new Error(`SendGrid API failed: ${response.status}`);
     }
 
-    // Update notification status to sent
     if (notificationId) {
       await supabase
         .from('email_notifications')
@@ -277,18 +276,18 @@ serve(async (req) => {
         .eq('id', notificationId);
     }
 
-    console.log(`Email sent successfully via Twilio SendGrid for ${messageType}`);
+    console.log(`✅ Email sent successfully for ${messageType}`);
 
     return new Response(JSON.stringify({
       success: true,
-      notificationId: notificationId,
-      message: 'Notification processed successfully'
+      notificationId,
+      message: 'Email sent successfully'
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
   } catch (error) {
-    console.error('Error sending email:', error);
+    console.error('❌ Error sending email:', error);
 
     return new Response(JSON.stringify({
       error: error.message,
