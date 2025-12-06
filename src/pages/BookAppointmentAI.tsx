@@ -122,7 +122,6 @@ export default function BookAppointment() {
             email,
             phone,
             address,
-            address,
             bio,
             avatar_url
           )

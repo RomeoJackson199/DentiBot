@@ -123,8 +123,6 @@ export function ModernPatientManagement({ dentistId }: ModernPatientManagementPr
             date_of_birth,
             address,
             medical_history,
-            address,
-            medical_history,
             emergency_contact,
             avatar_url
           )
