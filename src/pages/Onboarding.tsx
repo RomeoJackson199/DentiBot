@@ -104,7 +104,6 @@ const Onboarding = () => {
                     date_of_birth: formData.dateOfBirth,
                     phone: formData.phone,
                     address: fullAddress,
-                    two_factor_enabled: formData.enable2FA,
                     onboarding_completed: true,
                     updated_at: new Date().toISOString(),
                 })

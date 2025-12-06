@@ -166,7 +166,6 @@ export const DentistOnboardingFlow = ({ isOpen, onClose, userId }: DentistOnboar
           role: 'dentist',
           phone: data.practicePhone,
           address: `${data.practiceAddress}, ${data.practicePostalCode} ${data.practiceCity}`,
-          two_factor_enabled: data.enable2FA,
         })
         .eq('user_id', userId);
 
