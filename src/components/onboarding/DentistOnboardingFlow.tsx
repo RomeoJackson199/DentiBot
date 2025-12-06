@@ -36,6 +36,7 @@ import {
   CalendarCheck,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
+import { PhoneNumberInput } from "@/components/ui/phone-input";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -162,7 +163,6 @@ export const DentistOnboardingFlow = ({ isOpen, onClose, userId }: DentistOnboar
         .from('profiles')
         .update({
           onboarding_completed: true,
-          onboarding_data: data,
           role: 'dentist',
           phone: data.practicePhone,
           address: `${data.practiceAddress}, ${data.practicePostalCode} ${data.practiceCity}`,
@@ -382,14 +382,13 @@ export const DentistOnboardingFlow = ({ isOpen, onClose, userId }: DentistOnboar
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="practicePhone">Phone Number *</Label>
-              <Input
-                id="practicePhone"
-                type="tel"
-                placeholder="(555) 123-4567"
-                value={data.practicePhone}
-                onChange={(e) => updateData("practicePhone", e.target.value)}
-                className="mt-1"
-              />
+              <div className="mt-1">
+                <PhoneNumberInput
+                  value={data.practicePhone}
+                  onChange={(val) => updateData("practicePhone", val || "")}
+                  placeholder="Enter phone number"
+                />
+              </div>
             </div>
             <div>
               <Label htmlFor="practiceEmail">Email *</Label>

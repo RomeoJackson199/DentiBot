@@ -6,8 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, User, Calendar, Phone, ArrowRight, MapPin, Shield, Sparkles, Heart, Bell } from "lucide-react";
-import { validateName, validatePhone } from "@/lib/security";
+import { Loader2, User, Calendar, ArrowRight, MapPin, Shield, Sparkles, Heart, Bell } from "lucide-react";
+import { validateName } from "@/lib/security";
+import { PhoneNumberInput } from "@/components/ui/phone-input";
 
 const Onboarding = () => {
     const navigate = useNavigate();
@@ -80,8 +81,8 @@ const Onboarding = () => {
             if (!validateName(formData.lastName)) {
                 throw new Error("Last name contains invalid characters");
             }
-            if (formData.phone && !validatePhone(formData.phone)) {
-                throw new Error("Invalid phone number format");
+            if (!formData.phone) {
+                throw new Error("Phone number is required");
             }
             if (!formData.dateOfBirth) {
                 throw new Error("Date of birth is required");
@@ -218,18 +219,11 @@ const Onboarding = () => {
                         {/* Phone */}
                         <div className="space-y-2">
                             <Label htmlFor="phone">Phone Number *</Label>
-                            <div className="relative">
-                                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input
-                                    id="phone"
-                                    type="tel"
-                                    value={formData.phone}
-                                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                                    className="pl-10"
-                                    placeholder="+32 4XX XX XX XX"
-                                    required
-                                />
-                            </div>
+                            <PhoneNumberInput
+                                value={formData.phone}
+                                onChange={(val) => setFormData({ ...formData, phone: val || "" })}
+                                placeholder="Enter phone number"
+                            />
                         </div>
 
                         {/* Address */}
