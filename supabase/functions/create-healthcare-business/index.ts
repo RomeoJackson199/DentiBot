@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const supabaseClient = createClient(
+    const supabaseAuthClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
       {
@@ -22,14 +22,19 @@ serve(async (req) => {
       }
     );
 
+    const supabaseServiceClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+    );
+
     // Get authenticated user
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+    const { data: { user }, error: userError } = await supabaseAuthClient.auth.getUser();
     if (userError || !user) {
       throw new Error('Not authenticated');
     }
 
     // Get user's profile
-    const { data: profile, error: profileError } = await supabaseClient
+    const { data: profile, error: profileError } = await supabaseServiceClient
       .from('profiles')
       .select('id')
       .eq('user_id', user.id)
@@ -46,7 +51,7 @@ serve(async (req) => {
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-+|-+$/g, '');
 
-    const { data: existingBusiness } = await supabaseClient
+    const { data: existingBusiness } = await supabaseServiceClient
       .from('businesses')
       .select('id')
       .eq('slug', slug)
@@ -57,7 +62,7 @@ serve(async (req) => {
     }
 
     // Create business
-    const { data: business, error: businessError } = await supabaseClient
+    const { data: business, error: businessError } = await supabaseServiceClient
       .from('businesses')
       .insert({
         name,
@@ -75,11 +80,11 @@ serve(async (req) => {
     if (businessError) throw businessError;
 
     // Assign admin and provider roles
-    const { error: adminRoleError } = await supabaseClient
+    const { error: adminRoleError } = await supabaseServiceClient
       .from('user_roles')
       .upsert({ user_id: user.id, role: 'admin' }, { onConflict: 'user_id,role' });
 
-    const { error: providerRoleError } = await supabaseClient
+    const { error: providerRoleError } = await supabaseServiceClient
       .from('user_roles')
       .upsert({ user_id: user.id, role: 'provider' }, { onConflict: 'user_id,role' });
 
@@ -88,7 +93,7 @@ serve(async (req) => {
     }
 
     // Create dentist record
-    const { error: dentistError } = await supabaseClient
+    const { error: dentistError } = await supabaseServiceClient
       .from('dentists')
       .upsert(
         {
@@ -106,7 +111,7 @@ serve(async (req) => {
     }
 
     // Add to business_members
-    const { error: memberError } = await supabaseClient
+    const { error: memberError } = await supabaseServiceClient
       .from('business_members')
       .insert({
         business_id: business.id,
@@ -114,21 +119,17 @@ serve(async (req) => {
         role: 'owner',
       });
 
-    if (memberError) {
-      console.error('Error adding business member:', memberError);
-    }
+    if (memberError) throw memberError;
 
     // Set session business
-    const { error: sessionError } = await supabaseClient
+    const { error: sessionError } = await supabaseServiceClient
       .from('session_business')
       .upsert(
         { user_id: user.id, business_id: business.id },
         { onConflict: 'user_id' }
       );
 
-    if (sessionError) {
-      console.error('Error setting session business:', sessionError);
-    }
+    if (sessionError) throw sessionError;
 
     console.log('Healthcare business created successfully:', business.id);
 
