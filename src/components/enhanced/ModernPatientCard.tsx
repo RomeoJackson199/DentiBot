@@ -26,7 +26,7 @@ interface Patient {
   last_appointment?: string;
   total_appointments: number;
   upcoming_appointments: number;
-  avatar_url?: string | null;
+  profile_picture_url?: string | null;
 }
 
 interface ModernPatientCardProps {
@@ -70,7 +70,7 @@ export function ModernPatientCard({
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <Avatar className="h-10 w-10">
-                <AvatarImage src={patient.avatar_url || `https://api.dicebear.com/7.x/initials/svg?seed=${patient.first_name}${patient.last_name}`} />
+                <AvatarImage src={patient.profile_picture_url || `https://api.dicebear.com/7.x/initials/svg?seed=${patient.first_name}${patient.last_name}`} />
                 <AvatarFallback className="bg-gradient-primary text-white">
                   {getInitials()}
                 </AvatarFallback>
@@ -97,7 +97,7 @@ export function ModernPatientCard({
         <div className="flex items-start justify-between">
           <div className="flex items-center space-x-4">
             <Avatar className="h-16 w-16 ring-2 ring-dental-primary/10 group-hover:ring-dental-primary/30 transition-all">
-              <AvatarImage src={patient.avatar_url || `https://api.dicebear.com/7.x/initials/svg?seed=${patient.first_name}${patient.last_name}`} />
+              <AvatarImage src={patient.profile_picture_url || `https://api.dicebear.com/7.x/initials/svg?seed=${patient.first_name}${patient.last_name}`} />
               <AvatarFallback className="bg-gradient-primary text-white text-lg font-semibold">
                 {getInitials()}
               </AvatarFallback>

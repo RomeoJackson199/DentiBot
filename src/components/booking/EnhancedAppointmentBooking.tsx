@@ -32,7 +32,7 @@ interface Dentist {
   profiles: {
     first_name: string;
     last_name: string;
-    avatar_url?: string | null;
+    profile_picture_url?: string | null;
   };
 }
 
@@ -87,7 +87,7 @@ export const EnhancedAppointmentBooking = ({
           profiles:profile_id (
             first_name,
             last_name,
-            avatar_url
+            profile_picture_url
           )
         `)
         .eq('is_active', true);
@@ -481,8 +481,8 @@ export const EnhancedAppointmentBooking = ({
                       <SelectItem key={dentist.id} value={dentist.id} className="py-3">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold overflow-hidden">
-                            {dentist.profiles.avatar_url ? (
-                              <img src={dentist.profiles.avatar_url} alt="Dr" className="w-full h-full object-cover" />
+                            {dentist.profiles.profile_picture_url ? (
+                              <img src={dentist.profiles.profile_picture_url} alt="Dr" className="w-full h-full object-cover" />
                             ) : (
                               <span>{dentist.profiles.first_name[0]}{dentist.profiles.last_name[0]}</span>
                             )}

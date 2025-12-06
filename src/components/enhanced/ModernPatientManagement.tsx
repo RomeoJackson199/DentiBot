@@ -40,7 +40,7 @@ interface Patient {
   address?: string;
   medical_history?: string;
   emergency_contact?: string;
-  avatar_url?: string | null;
+  profile_picture_url?: string | null;
 }
 
 interface Appointment {
@@ -124,7 +124,7 @@ export function ModernPatientManagement({ dentistId }: ModernPatientManagementPr
             address,
             medical_history,
             emergency_contact,
-            avatar_url
+            profile_picture_url
           )
         `)
         .eq('dentist_id', dentistId);
@@ -421,7 +421,7 @@ export function ModernPatientManagement({ dentistId }: ModernPatientManagementPr
                             flex-shrink-0
                           `}>
                             <Avatar className="h-12 w-12">
-                              <AvatarImage src={patient.avatar_url || undefined} />
+                              <AvatarImage src={patient.profile_picture_url || undefined} />
                               <AvatarFallback className={`font-semibold text-sm ${isSelected ? 'bg-primary text-primary-foreground' : 'bg-gradient-primary text-white'}`}>
                                 {initials}
                               </AvatarFallback>
@@ -491,7 +491,7 @@ export function ModernPatientManagement({ dentistId }: ModernPatientManagementPr
                 <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
                   <div className="flex items-start gap-4">
                     <Avatar className="h-16 w-16 rounded-2xl shadow-lg">
-                      <AvatarImage src={selectedPatient.avatar_url || undefined} className="rounded-2xl object-cover" />
+                      <AvatarImage src={selectedPatient.profile_picture_url || undefined} className="rounded-2xl object-cover" />
                       <AvatarFallback className="bg-gradient-primary text-white text-2xl font-bold rounded-2xl">
                         {`${selectedPatient.first_name[0]}${selectedPatient.last_name[0]}`.toUpperCase()}
                       </AvatarFallback>

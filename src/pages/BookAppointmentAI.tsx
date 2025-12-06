@@ -38,9 +38,8 @@ interface Dentist {
     email: string;
     phone?: string;
     address?: string;
-    address?: string;
     bio?: string;
-    avatar_url?: string | null;
+    profile_picture_url?: string | null;
   } | null;
 }
 
@@ -123,7 +122,7 @@ export default function BookAppointment() {
             phone,
             address,
             bio,
-            avatar_url
+            profile_picture_url
           )
         `)
         .eq("is_active", true)
@@ -478,7 +477,7 @@ export default function BookAppointment() {
                     <CardContent className="p-4 space-y-3">
                       <div className="flex items-start gap-3">
                         <Avatar className="h-14 w-14 ring-2 ring-primary/10 group-hover:ring-primary/30 transition-all">
-                          <AvatarImage src={dentist.profiles?.avatar_url || undefined} className="object-cover" />
+                          <AvatarImage src={dentist.profiles?.profile_picture_url || undefined} className="object-cover" />
                           <AvatarFallback className="bg-gradient-to-br from-blue-500/10 to-purple-500/10 text-primary text-base font-bold">
                             {getDentistInitials(dentist)}
                           </AvatarFallback>
@@ -553,7 +552,7 @@ export default function BookAppointment() {
               {/* Selected Dentist */}
               <div className="flex items-center gap-4 pb-4 border-b">
                 <Avatar className="h-16 w-16">
-                  <AvatarImage src={selectedDentist.profiles?.avatar_url || undefined} className="object-cover" />
+                  <AvatarImage src={selectedDentist.profiles?.profile_picture_url || undefined} className="object-cover" />
                   <AvatarFallback className="bg-primary/10 text-primary text-lg">
                     {getDentistInitials(selectedDentist)}
                   </AvatarFallback>
