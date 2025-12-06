@@ -32,7 +32,10 @@ import {
   Phone,
   Mail,
   Briefcase,
+  Shield,
+  CalendarCheck,
 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -51,11 +54,10 @@ interface OnboardingData {
   practiceType: "solo" | "group" | "corporate" | "other";
   specialty: string;
 
-  // Step 3: Contact & Location
+  // Step 3: Contact & Location (Belgium-friendly)
   practiceAddress: string;
   practiceCity: string;
-  practiceState: string;
-  practiceZip: string;
+  practicePostalCode: string;
   practicePhone: string;
   practiceEmail: string;
 
@@ -76,6 +78,10 @@ interface OnboardingData {
   // Step 6: Services & Goals
   primaryServices: string[];
   mainGoals: string[];
+
+  // Step 7: Security Settings
+  enable2FA: boolean;
+  requireApproval: boolean;
 }
 
 export const DentistOnboardingFlow = ({ isOpen, onClose, userId }: DentistOnboardingFlowProps) => {
@@ -90,8 +96,7 @@ export const DentistOnboardingFlow = ({ isOpen, onClose, userId }: DentistOnboar
     specialty: "General Dentistry",
     practiceAddress: "",
     practiceCity: "",
-    practiceState: "",
-    practiceZip: "",
+    practicePostalCode: "",
     practicePhone: "",
     practiceEmail: "",
     mondayHours: "9:00 AM - 5:00 PM",
@@ -106,9 +111,11 @@ export const DentistOnboardingFlow = ({ isOpen, onClose, userId }: DentistOnboar
     numberOfReceptionists: "1",
     primaryServices: [],
     mainGoals: [],
+    enable2FA: false,
+    requireApproval: false,
   });
 
-  const totalSteps = 7;
+  const totalSteps = 8;
   const progress = ((currentStep + 1) / totalSteps) * 100;
 
   const updateData = (field: string, value: any) => {
@@ -141,17 +148,58 @@ export const DentistOnboardingFlow = ({ isOpen, onClose, userId }: DentistOnboar
   const handleComplete = async () => {
     setLoading(true);
     try {
-      // Save onboarding data to the database
-      const { error } = await supabase
+      // Get current profile
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', userId)
+        .single();
+
+      if (profileError) throw profileError;
+
+      // Update profile with onboarding data and 2FA setting
+      const { error: updateError } = await supabase
         .from('profiles')
         .update({
           onboarding_completed: true,
           onboarding_data: data,
-          role: data.role,
+          role: 'dentist',
+          phone: data.practicePhone,
+          address: `${data.practiceAddress}, ${data.practicePostalCode} ${data.practiceCity}`,
+          two_factor_enabled: data.enable2FA,
         })
         .eq('user_id', userId);
 
-      if (error) throw error;
+      if (updateError) throw updateError;
+
+      // Create or update dentist record
+      const { data: existingDentist } = await supabase
+        .from('dentists')
+        .select('id')
+        .eq('profile_id', profile.id)
+        .maybeSingle();
+
+      const dentistPayload = {
+        profile_id: profile.id,
+        first_name: data.practiceName.split(' ')[0] || '',
+        last_name: data.practiceName.split(' ').slice(1).join(' ') || '',
+        email: data.practiceEmail,
+        specialization: data.specialty,
+        clinic_address: `${data.practiceAddress}, ${data.practicePostalCode} ${data.practiceCity}`,
+        is_active: true,
+        require_appointment_approval: data.requireApproval,
+      };
+
+      if (existingDentist) {
+        await supabase
+          .from('dentists')
+          .update(dentistPayload)
+          .eq('id', existingDentist.id);
+      } else {
+        await supabase
+          .from('dentists')
+          .insert(dentistPayload);
+      }
 
       toast({
         title: "Welcome to Caberu!",
@@ -159,10 +207,12 @@ export const DentistOnboardingFlow = ({ isOpen, onClose, userId }: DentistOnboar
       });
 
       onClose();
+      window.location.reload(); // Refresh to apply new role
     } catch (error: any) {
+      console.error('Onboarding error:', error);
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || "Failed to complete setup",
         variant: "destructive",
       });
     } finally {
@@ -317,27 +367,17 @@ export const DentistOnboardingFlow = ({ isOpen, onClose, userId }: DentistOnboar
               />
             </div>
             <div>
-              <Label htmlFor="practiceState">State *</Label>
+              <Label htmlFor="practicePostalCode">Postal Code *</Label>
               <Input
-                id="practiceState"
-                placeholder="State"
-                value={data.practiceState}
-                onChange={(e) => updateData("practiceState", e.target.value)}
+                id="practicePostalCode"
+                placeholder="1000"
+                value={data.practicePostalCode}
+                onChange={(e) => updateData("practicePostalCode", e.target.value)}
                 className="mt-1"
               />
             </div>
           </div>
 
-          <div>
-            <Label htmlFor="practiceZip">ZIP Code *</Label>
-            <Input
-              id="practiceZip"
-              placeholder="12345"
-              value={data.practiceZip}
-              onChange={(e) => updateData("practiceZip", e.target.value)}
-              className="mt-1"
-            />
-          </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -472,11 +512,10 @@ export const DentistOnboardingFlow = ({ isOpen, onClose, userId }: DentistOnboar
                 key={service}
                 type="button"
                 onClick={() => toggleArrayItem("primaryServices", service)}
-                className={`p-3 rounded-lg border-2 text-sm transition-all ${
-                  data.primaryServices.includes(service)
-                    ? "border-blue-600 bg-blue-50 text-blue-900 font-semibold"
-                    : "border-gray-200 hover:border-gray-300"
-                }`}
+                className={`p-3 rounded-lg border-2 text-sm transition-all ${data.primaryServices.includes(service)
+                  ? "border-blue-600 bg-blue-50 text-blue-900 font-semibold"
+                  : "border-gray-200 hover:border-gray-300"
+                  }`}
               >
                 {service}
               </button>
@@ -509,11 +548,10 @@ export const DentistOnboardingFlow = ({ isOpen, onClose, userId }: DentistOnboar
                 key={goal}
                 type="button"
                 onClick={() => toggleArrayItem("mainGoals", goal)}
-                className={`w-full p-3 rounded-lg border-2 text-left text-sm transition-all ${
-                  data.mainGoals.includes(goal)
-                    ? "border-blue-600 bg-blue-50 text-blue-900 font-semibold"
-                    : "border-gray-200 hover:border-gray-300"
-                }`}
+                className={`w-full p-3 rounded-lg border-2 text-left text-sm transition-all ${data.mainGoals.includes(goal)
+                  ? "border-blue-600 bg-blue-50 text-blue-900 font-semibold"
+                  : "border-gray-200 hover:border-gray-300"
+                  }`}
               >
                 <div className="flex items-center gap-2">
                   {data.mainGoals.includes(goal) && (
@@ -524,6 +562,48 @@ export const DentistOnboardingFlow = ({ isOpen, onClose, userId }: DentistOnboar
               </button>
             ))}
           </div>
+        </div>
+      ),
+    },
+
+    // Step 7: Security Settings
+    {
+      title: "Security Settings",
+      description: "Configure your account security preferences",
+      icon: Shield,
+      content: (
+        <div className="space-y-6 py-4">
+          <div className="flex items-center justify-between p-4 rounded-lg border bg-blue-50">
+            <div className="space-y-1 flex-1">
+              <div className="flex items-center gap-2">
+                <Shield className="h-5 w-5 text-blue-600" />
+                <p className="font-semibold">Two-Factor Authentication (2FA)</p>
+              </div>
+              <p className="text-sm text-gray-600">
+                Add an extra layer of security by requiring a verification code when you sign in
+              </p>
+            </div>
+            <Switch
+              checked={data.enable2FA}
+              onCheckedChange={(checked) => updateData("enable2FA", checked)}
+            />
+          </div>
+
+          <div className="flex items-center justify-between p-4 rounded-lg border bg-amber-50">
+            <div className="space-y-1 flex-1">
+              <div className="flex items-center gap-2">
+                <CalendarCheck className="h-5 w-5 text-amber-600" />
+                <p className="font-semibold">Require Appointment Approval</p>
+              </div>
+              <p className="text-sm text-gray-600">
+                When enabled, patient appointments need your approval before they are confirmed
+              </p>
+            </div>
+            <Switch
+              checked={data.requireApproval}
+              onCheckedChange={(checked) => updateData("requireApproval", checked)}
+            />
+          </div>
 
           <div className="bg-gradient-to-br from-blue-50 to-purple-50 p-6 rounded-lg mt-6 border border-blue-200">
             <h4 className="font-semibold text-lg mb-2 text-blue-900">🎉 You're all set!</h4>
@@ -533,13 +613,14 @@ export const DentistOnboardingFlow = ({ isOpen, onClose, userId }: DentistOnboar
             </p>
             <div className="flex items-center gap-2 text-xs text-gray-600">
               <CheckCircle2 className="h-4 w-4 text-green-600" />
-              <span>Your data is secure and HIPAA compliant</span>
+              <span>Your data is secure and GDPR compliant</span>
             </div>
           </div>
         </div>
       ),
     },
   ];
+
 
   const currentStepData = steps[currentStep];
   const Icon = currentStepData.icon;
@@ -551,8 +632,8 @@ export const DentistOnboardingFlow = ({ isOpen, onClose, userId }: DentistOnboar
       case 1:
         return data.practiceName && data.practiceType && data.specialty;
       case 2:
-        return data.practiceAddress && data.practiceCity && data.practiceState &&
-               data.practiceZip && data.practicePhone && data.practiceEmail;
+        return data.practiceAddress && data.practiceCity && data.practicePostalCode &&
+          data.practicePhone && data.practiceEmail;
       default:
         return true;
     }
