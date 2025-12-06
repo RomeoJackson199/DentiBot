@@ -18,7 +18,9 @@ import {
   X,
   Eye as EyeIcon,
   AlertCircle,
-  Pencil
+  Pencil,
+  ThumbsUp,
+  ThumbsDown
 } from "lucide-react";
 import { EditPatientDialog } from "@/components/patient/EditPatientDialog";
 import { PatientPaymentHistory } from "@/components/PatientPaymentHistory";
@@ -112,6 +114,86 @@ export function PatientDetailsTabs({ selectedPatient, dentistId, appointments, o
     }
   };
 
+  const handleApproveAppointment = async (apt: Appointment) => {
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from('appointments')
+        .update({ status: 'confirmed' })
+        .eq('id', apt.id);
+
+      if (error) throw error;
+
+      // Send approval email notification
+      try {
+        await supabase.functions.invoke('send-appointment-decision', {
+          body: {
+            appointment_id: apt.id,
+            decision: 'approved'
+          }
+        });
+      } catch (emailError) {
+        logger.warn('Failed to send approval email:', emailError);
+      }
+
+      toast({
+        title: "Appointment approved",
+        description: "The appointment has been confirmed and the patient has been notified.",
+      });
+
+      onRefresh();
+    } catch (error) {
+      console.error('Error approving appointment:', error);
+      toast({
+        title: "Error",
+        description: "Failed to approve appointment. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRejectAppointment = async (apt: Appointment) => {
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from('appointments')
+        .update({ status: 'cancelled' })
+        .eq('id', apt.id);
+
+      if (error) throw error;
+
+      // Send rejection email notification
+      try {
+        await supabase.functions.invoke('send-appointment-decision', {
+          body: {
+            appointment_id: apt.id,
+            decision: 'rejected'
+          }
+        });
+      } catch (emailError) {
+        logger.warn('Failed to send rejection email:', emailError);
+      }
+
+      toast({
+        title: "Appointment rejected",
+        description: "The appointment has been cancelled and the patient has been notified.",
+      });
+
+      onRefresh();
+    } catch (error) {
+      console.error('Error rejecting appointment:', error);
+      toast({
+        title: "Error",
+        description: "Failed to reject appointment. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const upcomingAppointments = appointments
     .filter(a => a.status !== 'cancelled' && a.status !== 'completed')
     .sort((a, b) => new Date(a.appointment_date).getTime() - new Date(b.appointment_date).getTime());
@@ -179,8 +261,11 @@ export function PatientDetailsTabs({ selectedPatient, dentistId, appointments, o
                     <div className="flex flex-col sm:flex-row items-start justify-between gap-3 sm:gap-4">
                       <div className="space-y-2 flex-1 w-full min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <Badge className="bg-blue-500 text-white text-xs">
-                            {apt.status}
+                          <Badge className={cn(
+                            "text-white text-xs",
+                            apt.status === 'pending' ? 'bg-amber-500' : 'bg-blue-500'
+                          )}>
+                            {apt.status === 'pending' ? 'Awaiting Approval' : apt.status}
                           </Badge>
                           <Badge variant="outline" className={cn(
                             "text-xs",
@@ -205,22 +290,48 @@ export function PatientDetailsTabs({ selectedPatient, dentistId, appointments, o
                         )}
                       </div>
                       <div className="flex gap-2 w-full sm:w-auto">
-                        <Button
-                          size="sm"
-                          className="gap-2 flex-1 sm:flex-initial text-xs sm:text-sm"
-                          onClick={() => setCompletingAppointment(apt)}
-                        >
-                          <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4" />
-                          Complete
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="flex-1 sm:flex-initial"
-                          onClick={() => setCancellingAppointment(apt)}
-                        >
-                          <X className="h-3 w-3 sm:h-4 sm:w-4" />
-                        </Button>
+                        {apt.status === 'pending' ? (
+                          <>
+                            <Button
+                              size="sm"
+                              className="gap-2 flex-1 sm:flex-initial text-xs sm:text-sm bg-green-600 hover:bg-green-700"
+                              onClick={() => handleApproveAppointment(apt)}
+                              disabled={loading}
+                            >
+                              <ThumbsUp className="h-3 w-3 sm:h-4 sm:w-4" />
+                              Approve
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              className="flex-1 sm:flex-initial text-xs sm:text-sm"
+                              onClick={() => handleRejectAppointment(apt)}
+                              disabled={loading}
+                            >
+                              <ThumbsDown className="h-3 w-3 sm:h-4 sm:w-4" />
+                              Reject
+                            </Button>
+                          </>
+                        ) : (
+                          <>
+                            <Button
+                              size="sm"
+                              className="gap-2 flex-1 sm:flex-initial text-xs sm:text-sm"
+                              onClick={() => setCompletingAppointment(apt)}
+                            >
+                              <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4" />
+                              Complete
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="flex-1 sm:flex-initial"
+                              onClick={() => setCancellingAppointment(apt)}
+                            >
+                              <X className="h-3 w-3 sm:h-4 sm:w-4" />
+                            </Button>
+                          </>
+                        )}
                       </div>
                     </div>
                   </Card>

@@ -41,6 +41,7 @@ interface Dentist {
     bio?: string;
     profile_picture_url?: string | null;
   } | null;
+  require_appointment_approval?: boolean;
 }
 
 interface TimeSlot {
@@ -62,7 +63,7 @@ export default function BookAppointment() {
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [bookingStep, setBookingStep] = useState<'dentist' | 'datetime' | 'confirm'>('dentist');
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
-  const [successDetails, setSuccessDetails] = useState<{ date: string; time: string; dentist?: string; reason?: string } | undefined>(undefined);
+  const [successDetails, setSuccessDetails] = useState<{ date: string; time: string; dentist?: string; reason?: string; pendingApproval?: boolean } | undefined>(undefined);
 
   useEffect(() => {
     if (!businessLoading && businessId) {
@@ -115,6 +116,7 @@ export default function BookAppointment() {
           specialization,
           license_number,
           profile_id,
+          require_appointment_approval,
           profiles:profile_id (
             first_name,
             last_name,
@@ -272,6 +274,10 @@ export default function BookAppointment() {
       const dateStr = format(selectedDate, 'yyyy-MM-dd');
       const appointmentDateTime = createAppointmentDateTimeFromStrings(dateStr, selectedTime);
 
+      // Check if dentist requires approval
+      const needsApproval = selectedDentist.require_appointment_approval === true;
+      const appointmentStatus = needsApproval ? "pending" : "confirmed";
+
       const { data: appointmentData, error: appointmentError } = await supabase
         .from("appointments")
         .insert({
@@ -280,7 +286,7 @@ export default function BookAppointment() {
           business_id: businessId,
           appointment_date: appointmentDateTime.toISOString(),
           reason: "General consultation",
-          status: "confirmed",
+          status: appointmentStatus,
           booking_source: "manual",
           urgency: "low",
           service_id: null,
@@ -321,7 +327,8 @@ export default function BookAppointment() {
         date: format(selectedDate, 'yyyy-MM-dd'),
         time: selectedTime,
         dentist: `Dr. ${selectedDentist.first_name} ${selectedDentist.last_name}`,
-        reason: "General consultation"
+        reason: "General consultation",
+        pendingApproval: needsApproval
       });
       setShowSuccessDialog(true);
     } catch (error) {

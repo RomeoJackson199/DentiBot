@@ -13,15 +13,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
   DialogTrigger,
   DialogFooter
 } from "@/components/ui/dialog";
-import { 
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -32,10 +32,10 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { 
-  Settings as SettingsIcon, 
-  LogOut, 
-  User as UserIcon, 
+import {
+  Settings as SettingsIcon,
+  LogOut,
+  User as UserIcon,
   Sun,
   Moon,
   Globe,
@@ -92,6 +92,7 @@ export const ModernSettings = ({ user }: ModernSettingsProps) => {
   const [dentistClinicAddress, setDentistClinicAddress] = useState<string>('');
   const [dentistSpecialty, setDentistSpecialty] = useState<string>('');
   const [hasDentistRecord, setHasDentistRecord] = useState<boolean>(false);
+  const [requireApproval, setRequireApproval] = useState<boolean>(false);
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
@@ -102,7 +103,7 @@ export const ModernSettings = ({ user }: ModernSettingsProps) => {
     try {
       const profileData = await loadProfileData(user);
       setProfile(profileData);
-      
+
       const isIncomplete = !profileData.first_name || !profileData.last_name;
       setHasIncompleteProfile(isIncomplete);
 
@@ -112,22 +113,23 @@ export const ModernSettings = ({ user }: ModernSettingsProps) => {
         .eq('user_id', user.id)
         .single();
       if (profErr) throw profErr;
-      
+
       setProfileId(profRow.id);
       const userIsDentist = profRow.role === 'dentist';
       setIsDentist(userIsDentist);
-      
+
       if (userIsDentist) {
         const { data: dentistRow, error: dentistErr } = await supabase
           .from('dentists')
-          .select('id, clinic_address, specialization')
+          .select('id, clinic_address, specialization, require_appointment_approval')
           .eq('profile_id', profRow.id)
           .maybeSingle();
-        
+
         if (dentistRow) {
           setHasDentistRecord(true);
           setDentistClinicAddress(dentistRow.clinic_address || '');
           setDentistSpecialty(dentistRow.specialization || '');
+          setRequireApproval(dentistRow.require_appointment_approval || false);
         }
       }
     } catch (error) {
@@ -165,6 +167,7 @@ export const ModernSettings = ({ user }: ModernSettingsProps) => {
         const dentistPayload: any = {
           clinic_address: dentistClinicAddress?.trim() || null,
           specialization: dentistSpecialty?.trim() || null,
+          require_appointment_approval: requireApproval,
         };
 
         if (hasDentistRecord) {
@@ -186,7 +189,7 @@ export const ModernSettings = ({ user }: ModernSettingsProps) => {
         title: t.success,
         description: isDentist ? "Personal and dentist information saved successfully" : t.personalInfoUpdated,
       });
-      
+
       fetchProfile();
     } catch (error) {
       console.error('Profile save error:', error);
@@ -230,7 +233,7 @@ export const ModernSettings = ({ user }: ModernSettingsProps) => {
     link.download = 'dentibot_data.json';
     link.click();
     URL.revokeObjectURL(url);
-    
+
     toast({
       title: t.success,
       description: t.downloadMyData + " completed",
@@ -246,9 +249,9 @@ export const ModernSettings = ({ user }: ModernSettingsProps) => {
       await supabase.from('profiles').delete().eq('user_id', user.id);
     }
     await supabase.auth.signOut();
-    toast({ 
-      title: t.success, 
-      description: 'Your account has been deleted.' 
+    toast({
+      title: t.success,
+      description: 'Your account has been deleted.'
     });
   };
 
@@ -258,9 +261,9 @@ export const ModernSettings = ({ user }: ModernSettingsProps) => {
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <div className="relative">
-          <Button 
-            variant="outline" 
-            size="sm" 
+          <Button
+            variant="outline"
+            size="sm"
             className="glass-card border-dental-primary/30 text-dental-primary hover:bg-dental-primary/10 hover:border-dental-primary/50 transition-all duration-300"
           >
             <SettingsIcon className="h-4 w-4" />
@@ -277,7 +280,7 @@ export const ModernSettings = ({ user }: ModernSettingsProps) => {
             <span>{t.settings}</span>
           </DialogTitle>
         </DialogHeader>
-        
+
         <div className="px-6 pb-6 h-[calc(90vh-8rem)] overflow-y-auto">
           <Tabs defaultValue="general" className="w-full">
             <TabsList className="grid w-full grid-cols-4 mb-6">
@@ -496,7 +499,7 @@ export const ModernSettings = ({ user }: ModernSettingsProps) => {
                         <Stethoscope className="h-5 w-5" />
                         Dentist Information
                       </h3>
-                      
+
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-2">
                           <Label htmlFor="specialty">Specialty</Label>
@@ -517,11 +520,26 @@ export const ModernSettings = ({ user }: ModernSettingsProps) => {
                           />
                         </div>
                       </div>
+
+                      <Separator className="my-4" />
+
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-1">
+                          <p className="font-medium">Require Appointment Approval</p>
+                          <p className="text-sm text-muted-foreground">
+                            When enabled, patient appointments need your approval before confirmation
+                          </p>
+                        </div>
+                        <Switch
+                          checked={requireApproval}
+                          onCheckedChange={setRequireApproval}
+                        />
+                      </div>
                     </>
                   )}
 
-                  <Button 
-                    onClick={handleSaveProfile} 
+                  <Button
+                    onClick={handleSaveProfile}
                     disabled={loading}
                     className="w-full"
                   >
@@ -547,7 +565,7 @@ export const ModernSettings = ({ user }: ModernSettingsProps) => {
                       {t.privacyNotice}
                     </p>
                   </div>
-                  
+
                   <div className="p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
                     <p className="text-sm text-amber-800 dark:text-amber-200">
                       {t.consentHealthData}
@@ -559,7 +577,7 @@ export const ModernSettings = ({ user }: ModernSettingsProps) => {
                       {t.childConsentNote}
                     </p>
                   </div>
-                  
+
                   {/* Dentist Management Section */}
                   {isDentist && profileId && (
                     <>
@@ -587,7 +605,7 @@ export const ModernSettings = ({ user }: ModernSettingsProps) => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <Button 
+                  <Button
                     onClick={handleDownloadData}
                     variant="outline"
                     className="w-full"
@@ -595,9 +613,9 @@ export const ModernSettings = ({ user }: ModernSettingsProps) => {
                     <Download className="h-4 w-4 mr-2" />
                     {t.downloadMyData}
                   </Button>
-                  
+
                   <Separator />
-                  
+
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button variant="destructive" className="w-full">
@@ -631,7 +649,7 @@ export const ModernSettings = ({ user }: ModernSettingsProps) => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <Button 
+                  <Button
                     onClick={handleSignOut}
                     variant="outline"
                     className="w-full"

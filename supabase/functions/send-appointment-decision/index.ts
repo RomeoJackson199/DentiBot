@@ -1,0 +1,149 @@
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
+
+const corsHeaders = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+serve(async (req) => {
+    // Handle CORS preflight requests
+    if (req.method === 'OPTIONS') {
+        return new Response('ok', { headers: corsHeaders });
+    }
+
+    try {
+        const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+        const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+        const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+        const { appointment_id, decision } = await req.json();
+
+        if (!appointment_id || !decision) {
+            return new Response(
+                JSON.stringify({ error: 'appointment_id and decision are required' }),
+                { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+        }
+
+        // Get appointment details with patient and dentist info
+        const { data: appointment, error: aptError } = await supabase
+            .from('appointments')
+            .select(`
+        id,
+        appointment_date,
+        reason,
+        patient_id,
+        dentist_id,
+        profiles:patient_id (
+          first_name,
+          last_name,
+          email
+        ),
+        dentists:dentist_id (
+          profile_id,
+          profiles:profile_id (
+            first_name,
+            last_name
+          )
+        )
+      `)
+            .eq('id', appointment_id)
+            .single();
+
+        if (aptError || !appointment) {
+            console.error('Error fetching appointment:', aptError);
+            return new Response(
+                JSON.stringify({ error: 'Appointment not found' }),
+                { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+        }
+
+        const patientEmail = appointment.profiles?.email;
+        const patientName = `${appointment.profiles?.first_name || ''} ${appointment.profiles?.last_name || ''}`.trim();
+
+        // Handle nested dentist profile
+        const dentistProfiles = appointment.dentists?.profiles;
+        const dentistProfile = Array.isArray(dentistProfiles) ? dentistProfiles[0] : dentistProfiles;
+        const dentistName = dentistProfile
+            ? `Dr. ${dentistProfile.first_name || ''} ${dentistProfile.last_name || ''}`.trim()
+            : 'Your dentist';
+
+        if (!patientEmail) {
+            console.log('No patient email found, skipping notification');
+            return new Response(
+                JSON.stringify({ success: true, message: 'No email to send - patient email not found' }),
+                { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+        }
+
+        // Format the date
+        const appointmentDate = new Date(appointment.appointment_date);
+        const formattedDate = appointmentDate.toLocaleDateString('en-US', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+        });
+        const formattedTime = appointmentDate.toLocaleTimeString('en-US', {
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true,
+        });
+
+        // Prepare email content based on decision
+        let subject: string;
+        let title: string;
+        let message: string;
+        let statusColor: string;
+
+        if (decision === 'approved') {
+            subject = '✅ Your Appointment Has Been Confirmed!';
+            title = 'Appointment Confirmed';
+            message = `Great news! ${dentistName} has approved your appointment request.`;
+            statusColor = '#22c55e'; // green
+        } else {
+            subject = '❌ Appointment Request Update';
+            title = 'Appointment Not Available';
+            message = `Unfortunately, ${dentistName} was unable to confirm your appointment request for this time slot. Please book a new appointment at a different time.`;
+            statusColor = '#ef4444'; // red
+        }
+
+        // Send email using the existing send-email-notification function
+        const { error: emailError } = await supabase.functions.invoke('send-email-notification', {
+            body: {
+                to: patientEmail,
+                subject: subject,
+                template_type: 'appointment_decision',
+                variables: {
+                    patient_name: patientName || 'Patient',
+                    dentist_name: dentistName,
+                    appointment_date: formattedDate,
+                    appointment_time: formattedTime,
+                    reason: appointment.reason || 'General consultation',
+                    decision: decision,
+                    title: title,
+                    message: message,
+                    status_color: statusColor,
+                },
+            },
+        });
+
+        if (emailError) {
+            console.error('Error sending email:', emailError);
+            // Don't fail the request if email fails
+        }
+
+        return new Response(
+            JSON.stringify({ success: true, message: `${decision} email sent to ${patientEmail}` }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+
+    } catch (error) {
+        console.error('Error in send-appointment-decision:', error);
+        return new Response(
+            JSON.stringify({ error: error.message }),
+            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+    }
+});
