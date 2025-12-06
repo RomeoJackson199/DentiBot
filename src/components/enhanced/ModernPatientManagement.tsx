@@ -28,6 +28,7 @@ import { NewPatientDialog } from "@/components/patient/NewPatientDialog";
 import { PatientDetailsTabs } from "./PatientDetailsTabs";
 import { QuickAppointmentDialog } from "@/components/appointments/QuickAppointmentDialog";
 import { logger } from '@/lib/logger';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface Patient {
   id: string;
@@ -39,6 +40,7 @@ interface Patient {
   address?: string;
   medical_history?: string;
   emergency_contact?: string;
+  avatar_url?: string | null;
 }
 
 interface Appointment {
@@ -121,7 +123,10 @@ export function ModernPatientManagement({ dentistId }: ModernPatientManagementPr
             date_of_birth,
             address,
             medical_history,
-            emergency_contact
+            address,
+            medical_history,
+            emergency_contact,
+            avatar_url
           )
         `)
         .eq('dentist_id', dentistId);
@@ -415,13 +420,14 @@ export function ModernPatientManagement({ dentistId }: ModernPatientManagementPr
                         <div className="flex items-center gap-3">
                           {/* Avatar */}
                           <div className={`
-                            flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center font-semibold text-sm
-                            ${isSelected
-                              ? 'bg-primary text-primary-foreground'
-                              : 'bg-gradient-primary text-white'
-                            }
+                            flex-shrink-0
                           `}>
-                            {initials}
+                            <Avatar className="h-12 w-12">
+                              <AvatarImage src={patient.avatar_url || undefined} />
+                              <AvatarFallback className={`font-semibold text-sm ${isSelected ? 'bg-primary text-primary-foreground' : 'bg-gradient-primary text-white'}`}>
+                                {initials}
+                              </AvatarFallback>
+                            </Avatar>
                           </div>
 
                           {/* Patient Info */}
@@ -486,9 +492,12 @@ export function ModernPatientManagement({ dentistId }: ModernPatientManagementPr
               <div className="bg-card border border-border/50 rounded-2xl shadow-elegant p-6">
                 <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
                   <div className="flex items-start gap-4">
-                    <div className="bg-gradient-primary w-16 h-16 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-lg flex-shrink-0">
-                      {`${selectedPatient.first_name[0]}${selectedPatient.last_name[0]}`.toUpperCase()}
-                    </div>
+                    <Avatar className="h-16 w-16 rounded-2xl shadow-lg">
+                      <AvatarImage src={selectedPatient.avatar_url || undefined} className="rounded-2xl object-cover" />
+                      <AvatarFallback className="bg-gradient-primary text-white text-2xl font-bold rounded-2xl">
+                        {`${selectedPatient.first_name[0]}${selectedPatient.last_name[0]}`.toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
                     <div className="flex-1">
                       <h3 className="text-2xl font-bold text-foreground">
                         {selectedPatient.first_name} {selectedPatient.last_name}

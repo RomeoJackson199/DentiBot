@@ -32,6 +32,7 @@ interface Dentist {
   profiles: {
     first_name: string;
     last_name: string;
+    avatar_url?: string | null;
   };
 }
 
@@ -41,13 +42,13 @@ interface TimeSlot {
   reason?: string;
 }
 
-export const EnhancedAppointmentBooking = ({ 
-  user, 
-  selectedDentist: preSelectedDentist, 
-  prefilledReason, 
+export const EnhancedAppointmentBooking = ({
+  user,
+  selectedDentist: preSelectedDentist,
+  prefilledReason,
   chatNotes,
-  onComplete, 
-  onCancel 
+  onComplete,
+  onCancel
 }: EnhancedAppointmentBookingProps) => {
   const [dentists, setDentists] = useState<Dentist[]>([]);
   const [selectedDentist, setSelectedDentist] = useState("");
@@ -85,13 +86,20 @@ export const EnhancedAppointmentBooking = ({
           specialization,
           profiles:profile_id (
             first_name,
-            last_name
+            last_name,
+            avatar_url
           )
         `)
         .eq('is_active', true);
 
       if (error) throw error;
-      setDentists(data || []);
+
+      const transformedData = (data || []).map((d: any) => ({
+        ...d,
+        profiles: Array.isArray(d.profiles) ? d.profiles[0] : d.profiles
+      }));
+
+      setDentists(transformedData);
     } catch (error) {
       console.error('Failed to fetch dentists:', error);
       toast({
@@ -135,7 +143,7 @@ export const EnhancedAppointmentBooking = ({
 
   const fetchAvailability = async (date: Date) => {
     if (!selectedDentist) return;
-    
+
     setLoadingTimes(true);
     setSelectedTime("");
 
@@ -162,7 +170,7 @@ export const EnhancedAppointmentBooking = ({
               p_dentist_id: selectedDentist,
               p_date: dateStr
             });
-          } catch {}
+          } catch { }
           setAvailableSlots([]);
           setAllSlots([]);
           setLoadingTimes(false);
@@ -201,7 +209,7 @@ export const EnhancedAppointmentBooking = ({
 
       setAllSlots(allSlotsData);
       setAvailableSlots(availableSlotsData);
-      
+
     } catch (error) {
       console.error('Failed to fetch availability:', error);
       toast({
@@ -241,7 +249,7 @@ export const EnhancedAppointmentBooking = ({
       // Validate required fields
       const requiredFields = ['first_name', 'last_name', 'phone', 'email'];
       const missingFields = requiredFields.filter(field => !profile[field]);
-      
+
       if (missingFields.length > 0) {
         toast({
           title: "Incomplete Profile",
@@ -315,7 +323,7 @@ export const EnhancedAppointmentBooking = ({
           .eq('id', selectedDentist)
           .single();
 
-        const dentistName = dentistProfile?.profiles 
+        const dentistName = dentistProfile?.profiles
           ? `Dr. ${dentistProfile.profiles.first_name} ${dentistProfile.profiles.last_name}`
           : 'Your dentist';
 
@@ -383,7 +391,7 @@ export const EnhancedAppointmentBooking = ({
         console.error('Failed to send confirmation email:', emailError);
         // Don't fail the booking if email fails
       }
-      
+
       toast({
         title: "Appointment Confirmed!",
         description: `Your appointment is scheduled for ${formatClinicTime(clinicDateTime, 'PPP')} at ${formatClinicTime(clinicDateTime, 'HH:mm')}. Check your email for confirmation details.`,
@@ -395,8 +403,8 @@ export const EnhancedAppointmentBooking = ({
         time: formatClinicTime(clinicDateTime, 'HH:mm'),
         reason: reason || "General consultation",
         notes: notes || chatNotes || "",
-        dentist: dentists.find(d => d.id === selectedDentist)?.profiles.first_name + " " + 
-                dentists.find(d => d.id === selectedDentist)?.profiles.last_name
+        dentist: dentists.find(d => d.id === selectedDentist)?.profiles.first_name + " " +
+          dentists.find(d => d.id === selectedDentist)?.profiles.last_name
       });
     } catch (error) {
       console.error("Error booking appointment:", error);
@@ -440,7 +448,7 @@ export const EnhancedAppointmentBooking = ({
               </CardTitle>
               <p className="text-muted-foreground mt-2 text-base">Schedule your dental consultation in 3 simple steps</p>
             </CardHeader>
-            
+
             <CardContent className="space-y-8 p-6 md:p-10">
               {/* Step Indicator */}
               <div className="flex items-center justify-center gap-3 mb-6">
@@ -472,8 +480,12 @@ export const EnhancedAppointmentBooking = ({
                     {dentists.map((dentist) => (
                       <SelectItem key={dentist.id} value={dentist.id} className="py-3">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold">
-                            {dentist.profiles.first_name[0]}{dentist.profiles.last_name[0]}
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold overflow-hidden">
+                            {dentist.profiles.avatar_url ? (
+                              <img src={dentist.profiles.avatar_url} alt="Dr" className="w-full h-full object-cover" />
+                            ) : (
+                              <span>{dentist.profiles.first_name[0]}{dentist.profiles.last_name[0]}</span>
+                            )}
                           </div>
                           <div>
                             <div className="font-semibold">Dr {dentist.profiles.first_name} {dentist.profiles.last_name}</div>
@@ -513,7 +525,7 @@ export const EnhancedAppointmentBooking = ({
                     <Clock className="h-5 w-5 mr-2 text-pink-600" />
                     Select Your Time Slot
                   </Label>
-                  
+
                   {loadingTimes ? (
                     <div className="flex justify-center items-center py-8">
                       <Loader2 className="h-8 w-8 animate-spin text-dental-primary" />
@@ -583,8 +595,8 @@ export const EnhancedAppointmentBooking = ({
                                 key={`status-${slot.time}`}
                                 className={cn(
                                   "h-14 flex flex-col items-center justify-center rounded text-xs font-medium border-2",
-                                  slot.available 
-                                    ? "bg-green-50 border-green-200 text-green-700" 
+                                  slot.available
+                                    ? "bg-green-50 border-green-200 text-green-700"
                                     : "bg-red-50 border-red-200 text-red-600"
                                 )}
                                 title={slot.available ? "Available" : "Occupied"}
@@ -617,7 +629,7 @@ export const EnhancedAppointmentBooking = ({
                     className="min-h-[100px]"
                   />
                 </div>
-                
+
                 {chatNotes && (
                   <div className="space-y-2">
                     <Label>AI Chat Summary</Label>
@@ -667,7 +679,7 @@ export const EnhancedAppointmentBooking = ({
               Please confirm the details of your appointment booking.
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4 py-4">
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
@@ -690,15 +702,15 @@ export const EnhancedAppointmentBooking = ({
           </div>
 
           <div className="flex gap-3">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => setShowConfirmDialog(false)}
               className="flex-1"
               disabled={isLoading}
             >
               Back
             </Button>
-            <Button 
+            <Button
               onClick={confirmBooking}
               className="flex-1"
               disabled={isLoading}

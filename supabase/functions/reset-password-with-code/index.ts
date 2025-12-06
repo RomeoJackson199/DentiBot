@@ -60,23 +60,22 @@ serve(async (req) => {
         if (updateError) throw updateError;
 
         // 3. Find user ID from profiles.
-        // We search profiles by email to find the user ID.
         const { data: profile, error: profileError } = await supabase
             .from('profiles')
-            .select('id')
+            .select('user_id')
             .eq('email', email)
             .single();
 
-        if (profileError || !profile) {
+        if (profileError || !profile || !profile.user_id) {
             return new Response(
-                JSON.stringify({ error: 'User not found' }),
+                JSON.stringify({ error: 'User profile not found or not linked to an account' }),
                 { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
             );
         }
 
         // 4. Update password
         const { error: authError } = await supabase.auth.admin.updateUserById(
-            profile.id,
+            profile.user_id,
             { password: newPassword }
         );
 

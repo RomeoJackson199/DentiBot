@@ -17,8 +17,10 @@ import {
   CheckCircle,
   X,
   Eye as EyeIcon,
-  AlertCircle
+  AlertCircle,
+  Pencil
 } from "lucide-react";
+import { EditPatientDialog } from "@/components/patient/EditPatientDialog";
 import { PatientPaymentHistory } from "@/components/PatientPaymentHistory";
 import { PrescriptionManager } from "@/components/PrescriptionManager";
 import { TreatmentPlanManager } from "@/components/TreatmentPlanManager";
@@ -71,6 +73,7 @@ export function PatientDetailsTabs({ selectedPatient, dentistId, appointments, o
   const { toast } = useToast();
   const [completingAppointment, setCompletingAppointment] = useState<Appointment | null>(null);
   const [cancellingAppointment, setCancellingAppointment] = useState<Appointment | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
   // Feature gating from business template
@@ -312,7 +315,13 @@ export function PatientDetailsTabs({ selectedPatient, dentistId, appointments, o
         {/* Patient Info Tab */}
         <TabsContent value="info" className="space-y-4">
           <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-4">Patient Information</h3>
+            <div className="flex justify-between items-start mb-4">
+              <h3 className="text-lg font-semibold">Patient Information</h3>
+              <Button variant="outline" size="sm" onClick={() => setEditDialogOpen(true)}>
+                <Pencil className="h-4 w-4 mr-2" />
+                Edit Details
+              </Button>
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div className="space-y-4">
                 <div>
@@ -409,6 +418,12 @@ export function PatientDetailsTabs({ selectedPatient, dentistId, appointments, o
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <EditPatientDialog
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        patient={selectedPatient}
+        onPatientUpdated={onRefresh}
+      />
     </>
   );
 }

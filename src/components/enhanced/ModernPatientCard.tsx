@@ -3,12 +3,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getAccessibleButtonProps } from "@/lib/accessibility";
-import { 
-  Calendar, 
-  Clock, 
-  User, 
-  Phone, 
-  Mail, 
+import {
+  Calendar,
+  Clock,
+  User,
+  Phone,
+  Mail,
   MapPin,
   Activity,
   TrendingUp,
@@ -26,6 +26,7 @@ interface Patient {
   last_appointment?: string;
   total_appointments: number;
   upcoming_appointments: number;
+  avatar_url?: string | null;
 }
 
 interface ModernPatientCardProps {
@@ -35,11 +36,11 @@ interface ModernPatientCardProps {
   variant?: "compact" | "detailed";
 }
 
-export function ModernPatientCard({ 
-  patient, 
-  onSelect, 
-  onViewDetails, 
-  variant = "detailed" 
+export function ModernPatientCard({
+  patient,
+  onSelect,
+  onViewDetails,
+  variant = "detailed"
 }: ModernPatientCardProps) {
   const getInitials = () => {
     return `${patient.first_name?.[0] || ''}${patient.last_name?.[0] || ''}`.toUpperCase();
@@ -69,7 +70,7 @@ export function ModernPatientCard({
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <Avatar className="h-10 w-10">
-                <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${patient.first_name}${patient.last_name}`} />
+                <AvatarImage src={patient.avatar_url || `https://api.dicebear.com/7.x/initials/svg?seed=${patient.first_name}${patient.last_name}`} />
                 <AvatarFallback className="bg-gradient-primary text-white">
                   {getInitials()}
                 </AvatarFallback>
@@ -96,7 +97,7 @@ export function ModernPatientCard({
         <div className="flex items-start justify-between">
           <div className="flex items-center space-x-4">
             <Avatar className="h-16 w-16 ring-2 ring-dental-primary/10 group-hover:ring-dental-primary/30 transition-all">
-              <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${patient.first_name}${patient.last_name}`} />
+              <AvatarImage src={patient.avatar_url || `https://api.dicebear.com/7.x/initials/svg?seed=${patient.first_name}${patient.last_name}`} />
               <AvatarFallback className="bg-gradient-primary text-white text-lg font-semibold">
                 {getInitials()}
               </AvatarFallback>
@@ -135,7 +136,7 @@ export function ModernPatientCard({
             <p className="text-2xl font-bold text-dental-primary">{patient.total_appointments}</p>
             <p className="text-xs text-dental-muted-foreground">Total Visits</p>
           </div>
-          
+
           <div className="text-center p-3 rounded-lg bg-dental-accent/5 border border-dental-accent/10">
             <div className="flex items-center justify-center mb-1">
               <Calendar className="h-4 w-4 text-dental-accent" />
@@ -143,7 +144,7 @@ export function ModernPatientCard({
             <p className="text-2xl font-bold text-dental-accent">{patient.upcoming_appointments}</p>
             <p className="text-xs text-dental-muted-foreground">Upcoming</p>
           </div>
-          
+
           <div className="text-center p-3 rounded-lg bg-dental-secondary/5 border border-dental-secondary/10">
             <div className="flex items-center justify-center mb-1">
               <Clock className="h-4 w-4 text-dental-secondary" />
@@ -163,7 +164,7 @@ export function ModernPatientCard({
               <span>Born: {new Date(patient.date_of_birth).toLocaleDateString()}</span>
             </div>
           )}
-          
+
           {patient.address && (
             <div className="flex items-center space-x-2 text-sm text-dental-muted-foreground">
               <MapPin className="h-4 w-4" />
@@ -175,7 +176,7 @@ export function ModernPatientCard({
         {/* Action Buttons */}
         <div className="flex gap-2 pt-2 border-t border-dental-primary/10">
           {onSelect && (
-            <Button 
+            <Button
               onClick={() => onSelect(patient)}
               variant="gradient"
               size="sm"
@@ -185,9 +186,9 @@ export function ModernPatientCard({
               Select Patient
             </Button>
           )}
-          
+
           {onViewDetails && (
-            <Button 
+            <Button
               onClick={() => onViewDetails(patient)}
               variant="outline"
               size="sm"
